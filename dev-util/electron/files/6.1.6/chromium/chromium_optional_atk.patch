@@ -1,0 +1,63 @@
+diff --git a/build/config/ui.gni b/build/config/ui.gni
+index 547b42f..966b00c 100644
+--- a/build/config/ui.gni
++++ b/build/config/ui.gni
+@@ -51,8 +51,10 @@ if (use_ozone) {
+   use_glib = false
+ }
+ 
+-# Whether to use atk, the Accessibility ToolKit library
+-use_atk = is_desktop_linux && use_x11
++declare_args() {
++  # Whether to use atk, the Accessibility ToolKit library
++  use_atk = is_desktop_linux && use_x11
++}
+ # =============================================
+ #   PLEASE DO NOT ADD MORE FLAGS TO THIS FILE
+ # =============================================
+diff --git a/ui/views/widget/desktop_aura/desktop_window_tree_host_x11.cc b/ui/views/widget/desktop_aura/desktop_window_tree_host_x11.cc
+index 2c502b3..6586884 100644
+--- a/ui/views/widget/desktop_aura/desktop_window_tree_host_x11.cc
++++ b/ui/views/widget/desktop_aura/desktop_window_tree_host_x11.cc
+@@ -19,7 +19,9 @@
+ #include "base/threading/thread_task_runner_handle.h"
+ #include "base/trace_event/trace_event.h"
+ #include "third_party/skia/include/core/SkPath.h"
++#if defined(USE_ATK)
+ #include "ui/accessibility/platform/atk_util_auralinux.h"
++#endif
+ #include "ui/aura/client/aura_constants.h"
+ #include "ui/aura/client/cursor_client.h"
+ #include "ui/aura/client/focus_client.h"
+@@ -2114,11 +2116,15 @@ uint32_t DesktopWindowTreeHostX11::DispatchEvent(
+       break;
+     }
+     case KeyPress: {
++#if defined(USE_ATK)
+       if (ui::AtkUtilAuraLinux::HandleKeyEvent(xev) !=
+           ui::DiscardAtkKeyEvent::Discard) {
++#endif
+         ui::KeyEvent keydown_event(xev);
+         DispatchKeyEvent(&keydown_event);
++#if defined(USE_ATK)
+       }
++#endif
+       break;
+     }
+     case KeyRelease: {
+@@ -2127,11 +2133,15 @@ uint32_t DesktopWindowTreeHostX11::DispatchEvent(
+       if (!IsActive() && !HasCapture())
+         break;
+ 
++#if defined(USE_ATK)
+       if (ui::AtkUtilAuraLinux::HandleKeyEvent(xev) !=
+           ui::DiscardAtkKeyEvent::Discard) {
++#endif
+         ui::KeyEvent key_event(xev);
+         DispatchKeyEvent(&key_event);
++#if defined(USE_ATK)
+       }
++#endif
+       break;
+     }
+     case ButtonPress:

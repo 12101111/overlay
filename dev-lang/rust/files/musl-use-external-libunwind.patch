@@ -1,0 +1,24 @@
+--- a/src/libunwind/build.rs
++++ b/src/libunwind/build.rs
+@@ -11,8 +11,7 @@ fn main() {
+         llvm_libunwind::compile();
+     } else if target.contains("linux") {
+         if target.contains("musl") {
+-            // linking for musl is handled in lib.rs
+-            llvm_libunwind::compile();
++            println!("cargo:rustc-link-lib=unwind");
+         } else if !target.contains("android") {
+             println!("cargo:rustc-link-lib=gcc_s");
+         }
+--- a/src/libunwind/lib.rs
++++ b/src/libunwind/lib.rs
+@@ -22,7 +22,7 @@ cfg_if::cfg_if! {
+
+ #[cfg(target_env = "musl")]
+ #[link(name = "unwind", kind = "static", cfg(target_feature = "crt-static"))]
+-#[link(name = "gcc_s", cfg(not(target_feature = "crt-static")))]
++#[link(name = "unwind", cfg(not(target_feature = "crt-static")))]
+ extern {}
+
+ #[cfg(target_os = "redox")]
+

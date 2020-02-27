@@ -1,0 +1,10 @@
+--- a/common/elfdefinitions.h	2019-10-01 04:17:59.604519328 +0000
++++ b/common/elfdefinitions.h	2019-10-01 04:18:26.588884932 +0000
+@@ -39,6 +39,7 @@
+ 
+ #ifndef _ELFDEFINITIONS_H_
+ #define _ELFDEFINITIONS_H_
++#define _ELF_H
+ 
+ #include <stdint.h>
+ 
