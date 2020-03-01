@@ -1,0 +1,12 @@
+--- a/src/libs/porttalk/porttalk.cpp	2020-03-01 10:25:52.000000000 +0800
++++ b/src/libs/porttalk/porttalk.cpp	2020-03-01 21:06:30.937404111 +0800
+@@ -239,7 +239,7 @@
+ #ifdef LINUX
+ # if defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
+ // This Linux ioperm only works up to port 0x3FF
+-#include <sys/perm.h>
++#include <sys/io.h>
+
+ bool initPorttalk() {
+     if(ioperm(0x3da,1,1) < 0) return false;
+

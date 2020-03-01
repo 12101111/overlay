@@ -119,7 +119,7 @@ toml_usex() {
 }
 
 pre_build_checks() {
-	CHECKREQS_DISK_BUILD="10G"
+	CHECKREQS_DISK_BUILD="9G"
 	eshopts_push -s extglob
 	if is-flagq '-g?(gdb)?([1-9])'; then
 		CHECKREQS_DISK_BUILD="15G"
@@ -225,7 +225,7 @@ src_configure() {
 		docdir = "share/doc/${PF}"
 		mandir = "share/man"
 		[rust]
-		optimize = $(toml_usex !debug)
+		optimize = true
 		debug = $(toml_usex debug)
 		debug-assertions = $(toml_usex debug)
 		default-linker = "$(tc-getCC)"
@@ -233,6 +233,7 @@ src_configure() {
 		channel = "$(usex nightly nightly stable)"
 		rpath = false
 		lld = $(usex system-llvm false $(toml_usex wasm))
+		backtrace-on-ice = true
 		[dist]
 		src-tarball = false
 	EOF
