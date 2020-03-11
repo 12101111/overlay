@@ -612,6 +612,7 @@ src_compile() {
 		# Reset and cleanup environment variables used by GNOME/XDG
 		gnome2_environment_reset
 
+		addpredict /dev/dri/
 		addpredict /root
 		addpredict /etc/gconf
 	fi
