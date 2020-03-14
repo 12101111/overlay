@@ -1,0 +1,40 @@
+From 2543517443e29991b717fe00894d523442e4ca43 Mon Sep 17 00:00:00 2001
+From: Cheng Zhao <zcbenz@gmail.com>
+Date: Thu, 5 Mar 2020 13:07:17 +0900
+Subject: [PATCH 4/5] fix: destroy node platform after destroying wrappers
+ (#22536)
+
+Co-authored-by: Cheng Zhao <zcbenz@electronjs.org>
+---
+ shell/browser/atom_browser_main_parts.cc | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/shell/browser/atom_browser_main_parts.cc b/shell/browser/atom_browser_main_parts.cc
+index 939db7b76..d092d5a50 100644
+--- a/shell/browser/atom_browser_main_parts.cc
++++ b/shell/browser/atom_browser_main_parts.cc
+@@ -511,9 +511,6 @@ void AtomBrowserMainParts::PostMainMessageLoopRun() {
+   ui::SetX11ErrorHandlers(X11EmptyErrorHandler, X11EmptyIOErrorHandler);
+ #endif
+ 
+-  node_debugger_->Stop();
+-  js_env_->OnMessageLoopDestroying();
+-
+ #if defined(OS_MACOSX)
+   FreeAppDelegate();
+ #endif
+@@ -530,6 +527,11 @@ void AtomBrowserMainParts::PostMainMessageLoopRun() {
+     ++iter;
+   }
+ 
++  // Destroy node platform after all destructors_ are executed, as they may
++  // invoke Node/V8 APIs inside them.
++  node_debugger_->Stop();
++  js_env_->OnMessageLoopDestroying();
++
+   fake_browser_process_->PostMainMessageLoopRun();
+ }
+ 
+-- 
+2.25.1
+
