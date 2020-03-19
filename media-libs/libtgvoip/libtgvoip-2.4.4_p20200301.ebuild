@@ -5,7 +5,7 @@ EAPI=7
 
 inherit autotools
 
-EGIT_COMMIT="c5651ffc728336e56d8567f5c6c179e8a5d4fe55"
+EGIT_COMMIT="e422d2a80546a32ab7166a9b1058bacfc5daeefc"
 
 DESCRIPTION="VoIP library for Telegram clients"
 HOMEPAGE="https://github.com/telegramdesktop/libtgvoip"
@@ -14,7 +14,7 @@ SRC_URI="https://github.com/telegramdesktop/libtgvoip/archive/${EGIT_COMMIT}.tar
 LICENSE="Unlicense"
 SLOT="0"
 KEYWORDS="~amd64 ~ppc64"
-IUSE="alsa +dsp libressl pulseaudio"
+IUSE="+alsa +dsp libressl pulseaudio"
 
 DEPEND="
 	!libressl? ( dev-libs/openssl:0= )
@@ -29,10 +29,6 @@ BDEPEND=""
 REQUIRED_USE="|| ( alsa pulseaudio )"
 
 S="${WORKDIR}/${PN}-${EGIT_COMMIT}"
-
-PATCHES=(
-	"${FILESDIR}/2.4.4-pulseaudio.patch"
-)
 
 src_prepare() {
 	default
