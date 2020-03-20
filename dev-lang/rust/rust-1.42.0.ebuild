@@ -18,10 +18,10 @@ else
 	SLOT="stable/${ABI_VER}"
 	MY_P="rustc-${PV}"
 	SRC="${MY_P}-src.tar.xz"
-	KEYWORDS="amd64 ~arm ~arm64 ppc64 x86"
+	KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
 fi
 
-RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).0"
+RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).1"
 
 DESCRIPTION="Systems programming language from Mozilla"
 HOMEPAGE="https://www.rust-lang.org/"
@@ -38,7 +38,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
-IUSE="clippy cpu_flags_x86_sse2 debug doc libressl nightly parallel-compiler rls rustfmt system-bootstrap system-llvm wasm ${ALL_LLVM_TARGETS[*]}"
+IUSE="clippy cpu_flags_x86_sse2 debug doc libressl miri nightly parallel-compiler rls rustfmt system-bootstrap system-llvm wasm ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -50,7 +50,7 @@ IUSE="clippy cpu_flags_x86_sse2 debug doc libressl nightly parallel-compiler rls
 # 3. Specify LLVM_MAX_SLOT, e.g. 9.
 LLVM_DEPEND="
 	|| (
-		sys-devel/llvm:9[llvm_targets_WebAssembly?]
+		sys-devel/llvm:9[${LLVM_TARGET_USEDEPS// /,}]
 		wasm? ( =sys-devel/lld-9* )
 	)
 	<sys-devel/llvm-10:=
@@ -79,7 +79,7 @@ DEPEND="${COMMON_DEPEND}
 		>=sys-devel/clang-3.5
 	)
 	system-bootstrap? ( ${BOOTSTRAP_DEPEND}	)
-	system-llvm? (
+	!system-llvm? (
 		dev-util/cmake
 		dev-util/ninja
 	)
@@ -90,26 +90,26 @@ RDEPEND="${COMMON_DEPEND}
 "
 
 REQUIRED_USE="|| ( ${ALL_LLVM_TARGETS[*]} )
+	miri? ( nightly )
 	parallel-compiler? ( nightly )
 	wasm? ( llvm_targets_WebAssembly )
 	x86? ( cpu_flags_x86_sse2 )
 "
 
 QA_FLAGS_IGNORED="
-	usr/bin/*-${PV}
-	usr/lib*/lib*.so
-	usr/lib/rustlib/*/codegen-backends/librustc_codegen_llvm-llvm.so
-	usr/lib/rustlib/*/lib/lib*.so
+	usr/bin/.*-${PV}
+	usr/lib.*/lib.*.so
+	usr/lib/rustlib/.*/codegen-backends/librustc_codegen_llvm-llvm.so
+	usr/lib/rustlib/.*/lib/lib.*.so
 "
 
 QA_SONAME="usr/lib.*/librustc_macros.*.so"
 
 PATCHES=(
 	"${FILESDIR}"/1.40.0-add-soname.patch
-	"${FILESDIR}"/llvm-gcc10.patch
-	"${FILESDIR}"/musl-fix-linux_musl_base.patch
-	"${FILESDIR}"/musl-fix-static-linking.patch
-	"${FILESDIR}"/musl-use-external-libunwind.patch
+    "${FILESDIR}"/musl-fix-linux_musl_base.patch
+    "${FILESDIR}"/musl-use-external-libunwind.patch
+	"${FILESDIR}"/crt-static.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
@@ -179,6 +179,9 @@ src_configure() {
 	local extended="true" tools="\"cargo\","
 	if use clippy; then
 		tools="\"clippy\",$tools"
+	fi
+	if use miri; then
+		tools="\"miri\",$tools"
 	fi
 	if use rls; then
 		tools="\"rls\",\"analysis\",\"src\",$tools"
@@ -272,17 +275,19 @@ src_configure() {
 			linker = "$(usex system-llvm lld rust-lld)"
 		EOF
 	fi
+
+	einfo "Rust configured with the following settings:"
+	cat "${S}"/config.toml || die
 }
 
 src_compile() {
 	env $(cat "${S}"/config.env)\
-		"${EPYTHON}" ./x.py build -vv --config="${S}"/config.toml -j$(makeopts_jobs) \
-		--exclude src/tools/miri || die # https://github.com/rust-lang/rust/issues/52305
+		"${EPYTHON}" ./x.py build -vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
 }
 
 src_install() {
-	env DESTDIR="${D}" "${EPYTHON}" ./x.py install -vv --config="${S}"/config.toml \
-	--exclude src/tools/miri || die
+	env $(cat "${S}"/config.env) DESTDIR="${D}" \
+		"${EPYTHON}" ./x.py install -vv --config="${S}"/config.toml || die
 
 	# bug #689562, #689160
 	rm "${D}/etc/bash_completion.d/cargo" || die
@@ -298,6 +303,10 @@ src_install() {
 	if use clippy; then
 		mv "${ED}/usr/bin/clippy-driver" "${ED}/usr/bin/clippy-driver-${PV}" || die
 		mv "${ED}/usr/bin/cargo-clippy" "${ED}/usr/bin/cargo-clippy-${PV}" || die
+	fi
+	if use miri; then
+		mv "${ED}/usr/bin/miri" "${ED}/usr/bin/miri-${PV}" || die
+		mv "${ED}/usr/bin/cargo-miri" "${ED}/usr/bin/cargo-miri-${PV}" || die
 	fi
 	if use rls; then
 		mv "${ED}/usr/bin/rls" "${ED}/usr/bin/rls-${PV}" || die
@@ -327,6 +336,10 @@ src_install() {
 	if use clippy; then
 		echo /usr/bin/clippy-driver >> "${T}/provider-${P}"
 		echo /usr/bin/cargo-clippy >> "${T}/provider-${P}"
+	fi
+	if use miri; then
+		echo /usr/bin/miri >> "${T}/provider-${P}"
+		echo /usr/bin/cargo-miri >> "${T}/provider-${P}"
 	fi
 	if use rls; then
 		echo /usr/bin/rls >> "${T}/provider-${P}"
@@ -358,14 +371,6 @@ pkg_postinst() {
 		elog "install app-vim/rust-vim to get vim support for rust."
 	fi
 
-	if use elibc_musl; then
-		ewarn "${PN} on *-musl targets is configured with crt-static"
-		ewarn ""
-		ewarn "you will need to set RUSTFLAGS=\"-C target-feature=-crt-static\" in make.conf"
-		ewarn "to use it with portage, otherwise you may see failures like"
-		ewarn "error: cannot produce proc-macro for serde_derive v1.0.98 as the target "
-		ewarn "x86_64-unknown-linux-musl does not support these crate types"
-	fi
 }
 
 pkg_postrm() {
