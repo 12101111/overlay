@@ -613,6 +613,7 @@ src_configure() {
 	if use lto; then
 		myconf_gn+=" use_thin_lto=true"
 		myconf_gn+=" use_lld=true"
+		myconf_gn+=" thin_lto_enable_optimizations=true"
 	else
 		myconf_gn+=" use_lld=false"
 	fi
