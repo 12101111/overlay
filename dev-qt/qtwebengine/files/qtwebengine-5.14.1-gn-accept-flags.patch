@@ -1,0 +1,30 @@
+--- a/src/3rdparty/gn/build/gen.py	2020-01-20 18:37:42.000000000 +0800
++++ b/src/3rdparty/gn/build/gen.py	2020-04-02 18:29:53.764175621 +0800
+@@ -286,10 +286,10 @@
+   #  ld = cxx
+   #  ar = os.environ.get('AR', 'ar')
+   #
+-  #cflags = os.environ.get('CFLAGS', '').split()
+-  #cflags_cc = os.environ.get('CXXFLAGS', '').split()
+-  #ldflags = os.environ.get('LDFLAGS', '').split()
+-  #libflags = os.environ.get('LIBFLAGS', '').split()
++  cflags = os.environ.get('CFLAGS', '').split()
++  cflags_cc = os.environ.get('CXXFLAGS', '').split()
++  ldflags = os.environ.get('LDFLAGS', '').split()
++  libflags = os.environ.get('LIBFLAGS', '').split()
+
+   cc = options.cc
+   cxx = options.cxx
+@@ -302,11 +302,6 @@
+      else:
+         ar = os.environ.get('AR', 'ar')
+
+-  cflags = []
+-  cflags_cc = []
+-  ldflags = []
+-  libflags = []
+-
+   include_dirs = [os.path.relpath(REPO_ROOT, os.path.dirname(path)), '.']
+   libs = []
+
+
