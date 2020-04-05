@@ -1,0 +1,12 @@
+--- a/sptr.hh	2020-04-03 17:55:11.301089242 +0800
++++ b/sptr.h	2020-04-03 18:03:57.649105305 +0800
+@@ -68,7 +68,7 @@
+   }
+
+   unsigned use_count() const
+-  { return count; }
++  { return * count; }
+
+   sptr_base & operator = ( sptr_base const & other )
+   { if ( &other != this ) { reset(); p = other.p; count = other.count; increment(); }
+
