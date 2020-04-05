@@ -275,7 +275,11 @@ src_prepare() {
 
 	cd "${CHROMIUM_S}" || die
 	# Finally, apply Gentoo patches for Chromium.
-	eapply "${FILESDIR}/${PV}/chromium/"
+	cp -r "${FILESDIR}/${PV}/chromium/" "${WORKDIR}"/chromium-patch
+	if ! use elibc_musl;then
+		rm -r "${WORKDIR}"/chromium-patch/musl*
+	fi
+	eapply "${WORKDIR}"/chromium-patch
 
 	mkdir -p third_party/node/linux/node-linux-x64/bin || die
 	ln -s "${EPREFIX}"/usr/bin/node \
