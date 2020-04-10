@@ -106,8 +106,8 @@ QA_SONAME="usr/lib.*/librustc_macros.*.so"
 
 PATCHES=(
 	"${FILESDIR}"/1.40.0-add-soname.patch
-    "${FILESDIR}"/musl-fix-linux_musl_base.patch
-    "${FILESDIR}"/musl-use-external-libunwind.patch
+	"${FILESDIR}"/musl-fix-linux_musl_base.patch
+	"${FILESDIR}"/musl-use-external-libunwind.patch
 	"${FILESDIR}"/crt-static.patch
 	"${FILESDIR}"/llvm10.patch
 )
