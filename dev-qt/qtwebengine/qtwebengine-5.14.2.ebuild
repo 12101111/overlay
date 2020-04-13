@@ -12,7 +12,7 @@ if [[ ${QT5_BUILD_TYPE} == release ]]; then
 	KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 fi
 
-IUSE="alsa bindist designer geolocation jumbo-build pulseaudio +system-ffmpeg +system-icu widgets"
+IUSE="alsa bindist designer geolocation jumbo-build kerberos pulseaudio +system-ffmpeg +system-icu widgets"
 REQUIRED_USE="designer? ( widgets )"
 
 RDEPEND="
@@ -60,6 +60,7 @@ RDEPEND="
 	alsa? ( media-libs/alsa-lib )
 	designer? ( ~dev-qt/designer-${PV} )
 	geolocation? ( ~dev-qt/qtpositioning-${PV} )
+	kerberos? ( virtual/krb5 )
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? ( media-video/ffmpeg:0= )
 	system-icu? ( >=dev-libs/icu-60.2:= )
@@ -79,7 +80,6 @@ DEPEND="${RDEPEND}
 
 PATCHES=(
 	"${FILESDIR}/${P}-disable-fatal-warnings.patch" # bug 695446
-	"${FILESDIR}/${P}-detect-ninja-1.10.patch" # QTBUG-82715, fixed in Qt 5.14.2
 	"${FILESDIR}/${P}-gn-accept-flags.patch"
 )
 
@@ -89,11 +89,25 @@ src_prepare() {
 			src/buildtools/config/common.pri || die
 	fi
 
-	# Pass appropriate options to ninja when building GN.
-	sed -e "s/cmd = \['ninja'/&, '-j$(makeopts_jobs)', '-l$(makeopts_loadavg "${MAKEOPTS}" 0)', '-v'/" -i src/3rdparty/chromium/tools/gn/bootstrap/bootstrap.py || die
+	# bug 630834 - pass appropriate options to ninja when building GN
+	sed -e "s/\['ninja'/&, '-j$(makeopts_jobs)', '-l$(makeopts_loadavg "${MAKEOPTS}" 0)', '-v'/" \
+		-i src/3rdparty/chromium/tools/gn/bootstrap/bootstrap.py || die
 
 	# bug 620444 - ensure local headers are used
 	find "${S}" -type f -name "*.pr[fio]" | xargs sed -i -e 's|INCLUDEPATH += |&$$QTWEBENGINE_ROOT/include |' || die
+
+	if use system-icu; then
+		# Sanity check to ensure that bundled copy of ICU is not used.
+		# Whole src/3rdparty/chromium/third_party/icu directory cannot be deleted because
+		# src/3rdparty/chromium/third_party/icu/BUILD.gn is used by build system.
+		# If usage of headers of bundled copy of ICU occurs, then lists of shim headers in
+		# shim_headers("icui18n_shim") and shim_headers("icuuc_shim") in
+		# src/3rdparty/chromium/third_party/icu/BUILD.gn should be updated.
+		local file
+		while read file; do
+			echo "#error This file should not be used!" > "${file}" || die
+		done < <(find src/3rdparty/chromium/third_party/icu -type f "(" -name "*.c" -o -name "*.cpp" -o -name "*.h" ")" 2>/dev/null)
+	fi
 
 	qt_use_disable_config alsa webengine-alsa src/buildtools/config/linux.pri
 	qt_use_disable_config pulseaudio webengine-pulseaudio src/buildtools/config/linux.pri
@@ -117,6 +131,7 @@ src_configure() {
 		$(usex alsa '-alsa' '-no-alsa')
 		$(usex bindist '-no-proprietary-codecs' '-proprietary-codecs')
 		$(usex geolocation '-webengine-geolocation' '-no-webengine-geolocation')
+		$(usex kerberos '-webengine-kerberos' '-no-webengine-kerberos')
 		$(usex pulseaudio '-pulseaudio' '-no-pulseaudio')
 		$(usex system-ffmpeg '-system-ffmpeg' '-qt-ffmpeg')
 		$(usex system-icu '-webengine-icu' '-no-webengine-icu')
