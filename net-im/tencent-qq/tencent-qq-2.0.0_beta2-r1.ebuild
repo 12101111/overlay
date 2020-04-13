@@ -1,4 +1,4 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -13,6 +13,7 @@ RESTRICT="bindist mirror"
 
 SRC_URI="
 	amd64? ( http://down.qq.com/qqweb/LinuxQQ_1/linuxqq_2.0.0-b2-1082_x86_64.rpm )
+	arm64? ( http://down.qq.com/qqweb/LinuxQQ_1/linuxqq_2.0.0-ci-1077_aarch64.rpm )
 	mips? ( http://down.qq.com/qqweb/LinuxQQ_1/linuxqq_2.0.0-b2-1082_mips64el.rpm )
 "
 
