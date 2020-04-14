@@ -1,0 +1,8 @@
+--- a/src/libs/sidebar/CMakeLists.txt	2020-04-14 23:10:41.156650517 +0800
++++ b/src/libs/sidebar/CMakeLists.txt	2020-04-14 23:11:54.431652753 +0800
+@@ -1,4 +1,4 @@
+-add_library(Sidebar
++add_library(Sidebar STATIC
+     container.cpp
+     proxyview.cpp
+     view.cpp
