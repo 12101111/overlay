@@ -16,7 +16,7 @@ SRC_URI="https://www.webkitgtk.org/releases/${MY_P}.tar.xz"
 
 LICENSE="LGPL-2+ BSD"
 SLOT="4/37" # soname version of libwebkit2gtk-4.0
-KEYWORDS="~amd64 ~arm64 ~ia64 ~ppc64 ~sparc ~x86"
+KEYWORDS="~amd64 ~arm64 ~ppc64 ~sparc ~x86"
 
 IUSE="aqua coverage +egl +geolocation gles2-only gnome-keyring +gstreamer gtk-doc +introspection +jpeg2k +jumbo-build libnotify +opengl seccomp spell wayland +X"
 
@@ -166,11 +166,11 @@ src_prepare() {
 	eapply "${FILESDIR}"/2.26.2-fix-arm-non-unified-build.patch # bug 704194
 	eapply "${FILESDIR}"/2.26.3-fix-gtk-doc.patch # bug 704550 - retest without it once we can depend on >=gtk-doc-1.32
 	if use elibc_musl; then
-		eapply "${FILESDIR}"/musl-fixes.patch
+		eapply "${FILESDIR}"/webkit-gtk-2.26-musl-fixes.patch
 	fi
 	eapply "${FILESDIR}"/remove-at-spi2.patch
-	rm ${S}/Source/cmake/FindATKBridge.cmake
-	rm ${S}/Source/cmake/FindATSPI.cmake
+	rm "${S}"/Source/cmake/FindATKBridge.cmake
+	rm "${S}"/Source/cmake/FindATSPI.cmake
 	cmake-utils_src_prepare
 	gnome2_src_prepare
 }
