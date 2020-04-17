@@ -43,7 +43,7 @@ DEPEND="${RDEPEND}
 src_configure() {
 	local mycmakeargs=(
 		-DKDE_INSTALL_USE_QT_SYS_PATHS=yes
-		-DENABLE_KCM=$(usex kcm)
+		-DENABLE_KCM=$(usex kde)
 	)
 
 	cmake-utils_src_configure
