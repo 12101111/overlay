@@ -91,6 +91,7 @@ COMMON_DEPEND="
 	x11-libs/libXScrnSaver:=
 	x11-libs/libXtst:=
 	x11-libs/pango:=
+	x11-libs/libnotify:=
 	app-arch/snappy:=
 	media-libs/flac:=
 	>=media-libs/libwebp-0.4.0:=
@@ -165,7 +166,10 @@ pre_build_checks() {
 
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="8G"
-	CHECKREQS_DISK_BUILD="4G"
+	CHECKREQS_DISK_BUILD="6G"
+	if use lto; then
+		CHECKREQS_MEMORY="12G"
+	fi
 	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
 		CHECKREQS_DISK_BUILD="25G"
 		if ! use component-build; then
