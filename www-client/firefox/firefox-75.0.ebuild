@@ -27,7 +27,7 @@ if [[ ${MOZ_ESR} == 1 ]] ; then
 fi
 
 # Patch version
-PATCH="${PN}-74.0-patches-04"
+PATCH="${PN}-75.0-patches-5"
 
 MOZ_HTTP_URI="https://archive.mozilla.org/pub/${PN}/releases"
 MOZ_SRC_URI="${MOZ_HTTP_URI}/${MOZ_PV}/source/firefox-${MOZ_PV}.source.tar.xz"
@@ -41,8 +41,9 @@ fi
 LLVM_MAX_SLOT=10
 
 inherit check-reqs eapi7-ver flag-o-matic toolchain-funcs eutils \
-		gnome2-utils llvm mozcoreconf-v6 pax-utils xdg-utils \
-		autotools mozlinguas-v2 virtualx eapi7-ver
+		gnome2-utils llvm mozcoreconf-v6 multiprocessing \
+		pax-utils xdg-utils autotools mozlinguas-v2 virtualx \
+		eapi7-ver
 
 DESCRIPTION="Firefox Web Browser"
 HOMEPAGE="https://www.mozilla.com/firefox"
@@ -54,21 +55,21 @@ LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
 IUSE="bindist clang cpu_flags_x86_avx2 debug eme-free geckodriver
 	+gmp-autoupdate hardened hwaccel jack lto cpu_flags_arm_neon pgo
 	pulseaudio +screenshot selinux startup-notification +system-av1
-	+system-harfbuzz +system-icu +system-jpeg +system-libevent  +system-sqlite
-	 +system-libvpx +system-webp test wayland wifi"
+	+system-harfbuzz +system-icu +system-jpeg +system-libevent +system-libvpx
+	+system-webp test wayland wifi"
 
 REQUIRED_USE="pgo? ( lto )"
 
 RESTRICT="!bindist? ( bindist )
 	!test? ( test )"
 
-PATCH_URIS=( https://dev.gentoo.org/~{anarchy,axs,polynomial-c,whissi}/mozilla/patchsets/${PATCH}.tar.xz )
+PATCH_URIS=( https://dev.gentoo.org/~{whissi,anarchy,polynomial-c,axs}/mozilla/patchsets/${PATCH}.tar.xz )
 SRC_URI="${SRC_URI}
 	${MOZ_SRC_URI}
 	${PATCH_URIS[@]}"
 
 CDEPEND="
-	>=dev-libs/nss-3.50
+	>=dev-libs/nss-3.51
 	>=dev-libs/nspr-4.25
 	dev-libs/atk
 	dev-libs/expat
@@ -107,7 +108,6 @@ CDEPEND="
 	system-jpeg? ( >=media-libs/libjpeg-turbo-1.2.1 )
 	system-libevent? ( >=dev-libs/libevent-2.0:0=[threads] )
 	system-libvpx? ( >=media-libs/libvpx-1.8.2:0=[postproc] )
-	system-sqlite? ( >=dev-db/sqlite-3.31.1:3[secure-delete,debug=] )
 	system-webp? ( >=media-libs/libwebp-1.1.0:0= )
 	wifi? (
 		kernel_linux? (
@@ -119,19 +119,19 @@ CDEPEND="
 
 RDEPEND="${CDEPEND}
 	jack? ( virtual/jack )
-	pulseaudio? ( || ( media-sound/pulseaudio
-		>=media-sound/apulse-0.1.9 ) )
+	pulseaudio? (
+		|| (
+			media-sound/pulseaudio
+			>=media-sound/apulse-0.1.12-r4
+		)
+	)
 	selinux? ( sec-policy/selinux-mozilla )"
 
 DEPEND="${CDEPEND}
 	app-arch/zip
 	app-arch/unzip
 	>=dev-util/cbindgen-0.13.0
-	>=net-libs/nodejs-8.11.0
-	|| (
-		sys-devel/llvm
-		>=sys-devel/binutils-2.30
-	)
+	>=net-libs/nodejs-10.19.0
 	sys-apps/findutils
 	|| (
 		(
@@ -167,8 +167,13 @@ DEPEND="${CDEPEND}
 			)
 		)
 	)
-	pulseaudio? ( media-sound/pulseaudio )
-	>=virtual/rust-1.39.0
+	pulseaudio? (
+		|| (
+			media-sound/pulseaudio
+			>=media-sound/apulse-0.1.12-r4[sdk]
+		)
+	)
+	>=virtual/rust-1.41.0
 	wayland? ( >=x11-libs/gtk+-3.11:3[wayland] )
 	amd64? ( >=dev-lang/yasm-1.1 virtual/opengl )
 	x86? ( >=dev-lang/yasm-1.1 virtual/opengl )
@@ -188,6 +193,21 @@ BUILD_OBJ_DIR="${S}/ff"
 if [[ -z $GMP_PLUGIN_LIST ]] ; then
 	GMP_PLUGIN_LIST=( gmp-gmpopenh264 gmp-widevinecdm )
 fi
+
+fix_path() {
+	local value_to_move=${1}
+	local new_path path_value
+	IFS=:; local -a path_values=( ${PATH} )
+	for path_value in "${path_values[@]}" ; do
+		if [[ ${path_value} == *"${value_to_move}"* ]] ; then
+			new_path="${path_value}${new_path:+:}${new_path}"
+		else
+			new_path+="${new_path:+:}${path_value}"
+		fi
+	done
+
+	echo "${new_path}"
+}
 
 llvm_check_deps() {
 	if ! has_version --host-root "sys-devel/clang:${LLVM_SLOT}" ; then
@@ -240,15 +260,6 @@ pkg_pretend() {
 pkg_setup() {
 	moz_pkgsetup
 
-	# Ensure we have enough disk space to compile
-	if use pgo || use lto || use debug || use test ; then
-		CHECKREQS_DISK_BUILD="8G"
-	else
-		CHECKREQS_DISK_BUILD="4G"
-	fi
-
-	check-reqs_pkg_setup
-
 	# Avoid PGO profiling problems due to enviroment leakage
 	# These should *always* be cleaned up anyway
 	unset DBUS_SESSION_BUS_ADDRESS \
@@ -270,6 +281,15 @@ pkg_setup() {
 	addpredict /proc/self/oom_score_adj
 
 	llvm_pkg_setup
+
+	# Workaround for #627726
+	if has ccache ${FEATURES} ; then
+		einfo "Fixing PATH for FEATURES=ccache ..."
+		PATH=$(fix_path 'ccache/bin')
+	elif has distcc ${FEATURES} ; then
+		einfo "Fixing PATH for FEATURES=distcc ..."
+		PATH=$(fix_path 'distcc/bin')
+	fi
 }
 
 src_unpack() {
@@ -280,11 +300,13 @@ src_unpack() {
 }
 
 src_prepare() {
-	use !wayland && rm -f "${WORKDIR}/firefox/2019_mozilla-bug1539471.patch"
 	eapply "${WORKDIR}/firefox"
 
-	eapply "${FILESDIR}/${PN}-73.0_fix_lto_pgo_builds.patch"
-	eapply "${FILESDIR}/${PN}-73.0_fix_llvm9.patch"
+	# Make LTO respect MAKEOPTS
+	sed -i \
+		-e "s/multiprocessing.cpu_count()/$(makeopts_jobs)/" \
+		"${S}"/build/moz.configure/lto-pgo.configure \
+		|| die "sed failed to set num_cores"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
@@ -543,7 +565,6 @@ src_configure() {
 	fi
 
 	mozconfig_use_enable startup-notification
-	mozconfig_use_enable system-sqlite
 	mozconfig_use_with system-av1
 	mozconfig_use_with system-harfbuzz
 	mozconfig_use_with system-harfbuzz system-graphite2
@@ -691,7 +712,7 @@ src_install() {
 	fi
 
 	# Install language packs
-	MOZ_INSTALL_L10N_XPIFILE="1" mozlinguas_src_install
+	MOZEXTENSION_TARGET="distribution/extensions" MOZ_INSTALL_L10N_XPIFILE="1" mozlinguas_src_install
 
 	local size sizes icon_path icon name
 	if use bindist ; then
@@ -724,22 +745,77 @@ PROFILE_EOF
 	newins "${FILESDIR}"/disable-auto-update.policy.json policies.json
 
 	# Install icons and .desktop for menu entry
-	for size in ${sizes}; do
+	for size in ${sizes} ; do
 		insinto "/usr/share/icons/hicolor/${size}x${size}/apps"
 		newins "${icon_path}/default${size}.png" "${icon}.png"
 	done
 	# Install a 48x48 icon into /usr/share/pixmaps for legacy DEs
 	newicon "${icon_path}/default48.png" "${icon}.png"
-	newmenu "${FILESDIR}/icon/${PN}.desktop" "${PN}.desktop"
-	sed -i -e "s:@NAME@:${name}:" -e "s:@ICON@:${icon}:" \
-		"${ED}/usr/share/applications/${PN}.desktop" || die
 
 	# Add StartupNotify=true bug 237317
+	local startup_notify="false"
 	if use startup-notification ; then
-		echo "StartupNotify=true"\
-			 >> "${ED}/usr/share/applications/${PN}.desktop" \
-			|| die
+		startup_notify="true"
 	fi
+
+	local display_protocols="auto X11" use_wayland="false"
+	if use wayland ; then
+		display_protocols+=" Wayland"
+		use_wayland="true"
+	fi
+
+	local app_name desktop_filename display_protocol exec_command
+	for display_protocol in ${display_protocols} ; do
+		app_name="${name} on ${display_protocol}"
+		desktop_filename="${PN}-${display_protocol,,}.desktop"
+
+		case ${display_protocol} in
+			Wayland)
+				exec_command='firefox-wayland --name firefox-wayland'
+				newbin "${FILESDIR}"/firefox-wayland.sh firefox-wayland
+				;;
+			X11)
+				if ! use wayland ; then
+					# Exit loop here because there's no choice so
+					# we don't need wrapper/.desktop file for X11.
+					continue
+				fi
+
+				exec_command='firefox-x11 --name firefox-x11'
+				newbin "${FILESDIR}"/firefox-x11.sh firefox-x11
+				;;
+			*)
+				app_name="${name}"
+				desktop_filename="${PN}.desktop"
+				exec_command='firefox'
+				;;
+		esac
+
+		newmenu "${FILESDIR}/icon/${PN}-r1.desktop" "${desktop_filename}"
+		sed -i \
+			-e "s:@NAME@:${app_name}:" \
+			-e "s:@EXEC@:${exec_command}:" \
+			-e "s:@ICON@:${icon}:" \
+			-e "s:@STARTUP_NOTIFY@:${startup_notify}:" \
+			"${ED%/}/usr/share/applications/${desktop_filename}" || die
+	done
+
+	rm "${ED%/}"/usr/bin/firefox || die
+	newbin "${FILESDIR}"/firefox.sh firefox
+
+	local wrapper
+	for wrapper in \
+		"${ED%/}"/usr/bin/firefox \
+		"${ED%/}"/usr/bin/firefox-x11 \
+		"${ED%/}"/usr/bin/firefox-wayland \
+	; do
+		[[ ! -f "${wrapper}" ]] && continue
+
+		sed -i \
+			-e "s:@PREFIX@:${EPREFIX%/}/usr:" \
+			-e "s:@DEFAULT_WAYLAND@:${use_wayland}:" \
+			"${wrapper}" || die
+	done
 
 	# Don't install llvm-symbolizer from sys-devel/llvm package
 	[[ -f "${ED%/}${MOZILLA_FIVE_HOME}/llvm-symbolizer" ]] && \
@@ -750,13 +826,13 @@ PROFILE_EOF
 	dosym firefox ${MOZILLA_FIVE_HOME}/firefox-bin
 
 	# Required in order to use plugins and even run firefox on hardened.
-	pax-mark m "${ED}"${MOZILLA_FIVE_HOME}/{firefox,plugin-container}
+	pax-mark m "${ED%/}"${MOZILLA_FIVE_HOME}/{firefox,plugin-container}
 }
 
 pkg_preinst() {
 	# if the apulse libs are available in MOZILLA_FIVE_HOME then apulse
 	# doesn't need to be forced into the LD_LIBRARY_PATH
-	if use pulseaudio && has_version ">=media-sound/apulse-0.1.9" ; then
+	if use pulseaudio && has_version ">=media-sound/apulse-0.1.12-r4" ; then
 		einfo "APULSE found - Generating library symlinks for sound support"
 		local lib
 		pushd "${ED}"${MOZILLA_FIVE_HOME} &>/dev/null || die
@@ -783,25 +859,30 @@ pkg_postinst() {
 		elog
 	fi
 
-	if use pulseaudio && has_version ">=media-sound/apulse-0.1.9" ; then
+	if use pulseaudio && has_version ">=media-sound/apulse-0.1.12-r4" ; then
 		elog "Apulse was detected at merge time on this system and so it will always be"
 		elog "used for sound.  If you wish to use pulseaudio instead please unmerge"
 		elog "media-sound/apulse."
 		elog
 	fi
 
-	local show_doh_information
+	local show_doh_information show_normandy_information
 
 	if [[ -z "${REPLACING_VERSIONS}" ]] ; then
 		# New install; Tell user that DoH is disabled by default
 		show_doh_information=yes
+		show_normandy_information=yes
 	else
 		local replacing_version
 		for replacing_version in ${REPLACING_VERSIONS} ; do
 			if ver_test "${replacing_version}" -lt 70 ; then
 				# Tell user only once about our DoH default
 				show_doh_information=yes
-				break
+			fi
+
+			if ver_test "${replacing_version}" -lt 74.0-r2 ; then
+				# Tell user only once about our Normandy default
+				show_normandy_information=yes
 			fi
 		done
 	fi
@@ -814,6 +895,23 @@ pkg_postinst() {
 		elog "should respect OS configured settings), \"network.trr.mode\" was set to 5"
 		elog "(\"Off by choice\") by default."
 		elog "You can enable DNS-over-HTTPS in ${PN^}'s preferences."
+	fi
+
+	# bug 713782
+	if [[ -n "${show_normandy_information}" ]] ; then
+		elog
+		elog "Upstream operates a service named Normandy which allows Mozilla to"
+		elog "push changes for default settings or even install new add-ons remotely."
+		elog "While this can be useful to address problems like 'Armagadd-on 2.0' or"
+		elog "revert previous decisions to disable TLS 1.0/1.1, privacy and security"
+		elog "concerns prevail, which is why we have switched off the use of this"
+		elog "service by default."
+		elog
+		elog "To re-enable this service set"
+		elog
+		elog "    app.normandy.enabled=true"
+		elog
+		elog "in about:config."
 	fi
 }
 
