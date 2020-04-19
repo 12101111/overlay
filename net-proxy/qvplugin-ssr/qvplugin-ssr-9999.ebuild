@@ -33,6 +33,7 @@ src_configure() {
 }
 
 src_install(){
-	into "/usr/share/qv2ray/plugins"
-	dolib.so "${BUILD_DIR}/libQvSSRPlugin.so"
+	insinto "/usr/share/qv2ray/plugins"
+	insopts -m644
+	doins "${BUILD_DIR}/libQvSSRPlugin.so"
 }
