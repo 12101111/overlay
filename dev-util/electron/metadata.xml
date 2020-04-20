@@ -23,5 +23,6 @@
 	</use>
 	<upstream>
 		<remote-id type="github">electron/electron/</remote-id>
+		<remote-id type="github">hedgepigdaniel/pkgbuild-electron-ozone/</remote-id>
 	</upstream>
 </pkgmetadata>

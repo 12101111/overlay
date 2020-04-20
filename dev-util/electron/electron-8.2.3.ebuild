@@ -246,7 +246,9 @@ src_prepare() {
 	# Apply Gentoo patches for Electron itself.
 	cd "${CHROMIUM_S}/electron" || die
 
-	eapply "${FILESDIR}/${PV}/electron/"
+	cp -r "${FILESDIR}/${PV}/electron/" "${WORKDIR}/electron-patch"
+	use ozone || rm -r "${WORKDIR}"/electron-patch/ozone*
+	eapply ""${WORKDIR}"/electron-patch"
 
 	# Apply Chromium patches from Electron.
 	cd "${WORKDIR}" || die
@@ -282,10 +284,8 @@ src_prepare() {
 
 	cd "${CHROMIUM_S}" || die
 	# Finally, apply Gentoo patches for Chromium.
-	cp -r "${FILESDIR}/${PV}/chromium/" "${WORKDIR}"/chromium-patch
-	if ! use elibc_musl;then
-		rm -r "${WORKDIR}"/chromium-patch/musl*
-	fi
+	cp -r "${FILESDIR}/${PV}/chromium/" "${WORKDIR}/chromium-patch"
+	use elibc_musl || rm -r "${WORKDIR}"/chromium-patch/musl*
 	eapply "${WORKDIR}"/chromium-patch
 
 	mkdir -p third_party/node/linux/node-linux-x64/bin || die
@@ -631,6 +631,7 @@ src_configure() {
 			myconf_gn+=" ozone_platform_wayland=true"
 			myconf_gn+=" use_system_libwayland=true"
 			myconf_gn+=" use_system_libdrm=true"
+			#myconf_gn+=" use_system_minigbm=true"
 		fi
 		myconf_gn+=" use_xkbcommon=true"
 	fi
@@ -862,19 +863,19 @@ src_install() {
 	doins -r out/Release/resources
 	doins -r out/Release/locales
 
-	if [[ -d out/Release/swiftshader ]]; then
-		# FIXME: Electron may use Mesa's libGL directly
-		insinto "${install_dir}"/swiftshader
-		doins out/Release/swiftshader/libEGL.so
-		doins out/Release/swiftshader/libGLESv2.so
-	fi
-
 	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
 
 	doins -r "${NODE_S}/deps/npm"
 
 	echo "${PV}" > out/Release/version
 	doins out/Release/version
+
+	if [[ -d out/Release/swiftshader ]]; then
+		# FIXME: Electron may use Mesa's libGL directly
+		insinto "${install_dir}"/swiftshader
+		doins out/Release/swiftshader/libEGL.so
+		doins out/Release/swiftshader/libGLESv2.so
+	fi
 
 	cat >out/Release/node <<EOF
 #!/bin/sh
