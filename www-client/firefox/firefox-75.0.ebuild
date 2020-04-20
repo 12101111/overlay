@@ -311,12 +311,8 @@ src_prepare() {
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
 
-	# prebuilt glibc binary file cause segfault on musl
-	if use elibc_musl; then
-		rm "${S}"/third_party/python/psutil/psutil/*.so
-		rm "${S}"/third_party/python/psutil/build/lib.linux-x86_64-2.7/psutil/*.so
-		rm "${S}"/third_party/python/psutil/build/temp.linux-x86_64-2.7/psutil/*.o
-	fi
+	einfo "Removing pre-built binaries ..."
+	find "${S}"/third_party -type f \( -name '*.so' -o -name '*.o' \) -print -delete || die
 
 	# Enable gnomebreakpad
 	if use debug ; then
