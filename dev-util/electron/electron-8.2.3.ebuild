@@ -109,6 +109,7 @@ COMMON_DEPEND="
 	>=dev-libs/openssl-1.1.1:0=
 	kerberos? ( virtual/krb5 )
 	pipewire? ( media-video/pipewire )
+	app-eselect/eselect-electron
 "
 # For nvidia-drivers blocker, see bug #413637 .
 RDEPEND="${COMMON_DEPEND}
@@ -272,15 +273,6 @@ src_prepare() {
 
 	"${EPYTHON}" "${S}/script/apply_all_patches.py" \
 		"${S}/patches/config.json" || die
-
-	# Fix the NODE_MODULE_VERSION in supplied Node headers.
-	local node_module_version=$(grep \
-		'node_module_version =' "${CHROMIUM_S}/electron/build/args/all.gn" \
-		| sed -e "s/node_module_version = \([[:digit:]]\+\)/\\1/g")
-	[ -n "${node_module_version}" ] || die
-	echo ${node_module_version}
-	sed -i -e "s/\(#define NODE_MODULE_VERSION\) \([[:digit:]]\+\)/\\1 ${node_module_version}/g" \
-		"${NODE_S}/src/node_version.h" || die
 
 	cd "${CHROMIUM_S}" || die
 	# Finally, apply Gentoo patches for Chromium.
@@ -492,6 +484,10 @@ src_prepare() {
 	fi
 	if use tcmalloc; then
 		keeplibs+=( third_party/tcmalloc )
+	fi
+	if use wayland ; then
+		keeplibs+=( third_party/wayland )
+		keeplibs+=( third_party/minigbm )
 	fi
 
 	# Remove most bundled libraries. Some are still needed.
@@ -797,6 +793,8 @@ src_compile() {
 
 	cd "${CHROMIUM_S}" || die
 
+	ninja -C out/Release third_party/electron_node:headers
+
 	# Build mksnapshot and pax-mark it.
 	local x
 	for x in mksnapshot v8_context_snapshot_generator; do
@@ -834,8 +832,8 @@ src_install() {
 	exeinto "${install_dir}"
 	doexe out/Release/electron
 	doexe out/Release/chromedriver
-	doexe out/Release/mksnapshot
 	# FIXME: Is this useful?
+	doexe out/Release/mksnapshot
 	doexe out/Release/crashpad_handler
 	if use suid; then
 		newexe out/Release/chrome_sandbox chrome-sandbox
@@ -846,11 +844,15 @@ src_install() {
 	doins out/Release/chrome_100_percent.pak
 	doins out/Release/chrome_200_percent.pak
 	doins out/Release/resources.pak
-	# FIXME: Electron may use Mesa's libGL directly
-	doins out/Release/libEGL.so
-	doins out/Release/libGLESv2.so
+	# FIXME: don't exist in ozone?
+	if ! use ozone; then
+		doins out/Release/libEGL.so
+		doins out/Release/libGLESv2.so
+		doins out/Release/vk_swiftshader_icd.json
+	else
+		doins out/Release/libminigbm.so
+	fi
 	doins out/Release/libvk_swiftshader.so
-	doins out/Release/vk_swiftshader_icd.json
 
 	if ! use system-ffmpeg; then
 		doins out/Release/libffmpeg.so
@@ -861,7 +863,7 @@ src_install() {
 	fi
 
 	doins -r out/Release/resources
-	doins -r out/Release/locales
+	doins out/Release/locales/*.pak
 
 	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
 
@@ -871,7 +873,6 @@ src_install() {
 	doins out/Release/version
 
 	if [[ -d out/Release/swiftshader ]]; then
-		# FIXME: Electron may use Mesa's libGL directly
 		insinto "${install_dir}"/swiftshader
 		doins out/Release/swiftshader/libEGL.so
 		doins out/Release/swiftshader/libGLESv2.so
@@ -884,17 +885,15 @@ EOF
 	doexe out/Release/node
 
 	# Install Node headers
-	HEADERS_ONLY=1 "${NODE_S}/tools/install.py" install "${ED}" "/usr" || die
+	local node_headers="/usr/include/electron${install_suffix}"
+	insinto "${node_headers}"
+	doins -r out/Release/gen/node_headers/include/node
 	# set up a symlink structure that npm expects..
-	dodir /usr/include/node/deps/{v8,uv}
-	dosym . /usr/include/node/src
+	dodir "${node_headers}"/node/deps/{v8,uv}
+	dosym . "${node_headers}"/node/src
 	for var in deps/{uv,v8}/include; do
-		dosym ../.. /usr/include/node/${var}
+		dosym ../.. "${node_headers}"/node/${var}
 	done
-
-	dodir "/usr/include/electron${install_suffix}"
-	mv "${ED}/usr/include/node" \
-		"${ED}/usr/include/electron${install_suffix}/node" || die
 }
 
 pkg_postinst() {
