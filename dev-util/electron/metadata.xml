@@ -2,19 +2,16 @@
 <!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
 <pkgmetadata>
 	<maintainer type="person">
-		<email>elvis@magic.io</email>
-		<name>Elvis Pranskevichus</name>
-	</maintainer>
-	<maintainer type="project">
-		<email>proxy-maint@gentoo.org</email>
-		<name>Proxy Maintainers</name>
+		<email>w12101111@gmail.com</email>
 	</maintainer>
 	<longdescription>Electron is a cross platform application development framework based on web technologies based on Chromium</longdescription>
 	<use>
 		<flag name="atk">Add support for atk</flag>
+		<flag name="ozone">Use ozone platform to support both wayland and X11</flag>
+		<flag name="wayland">Add wayland backend of ozone</flag>
+		<flag name="pipewire">Use <pkg>media-video/pipewire</pkg> to support screen sharing in WebRTC under wayland</flag>
 		<flag name="clang">Use Clang compiler instead of GCC</flag>
 		<flag name="component-build">Split build into more shared libraries to speed up linking. Mostly intended for debugging and development, NOT RECOMMENDED for general use.</flag>
-		<flag name="gconf">Use gnome-base/gconf</flag>
 		<flag name="jumbo-build">Combine source files to speed up build process.</flag>
 		<flag name="lto">Build with link time optimization enabled</flag>
 		<flag name="pic">Disable optimized assembly code that is not PIC friendly</flag>
@@ -25,9 +22,6 @@
 		<flag name="tcmalloc">Use bundled tcmalloc instead of system malloc</flag>
 	</use>
 	<upstream>
-		<remote-id type="github">elprans/asar</remote-id>
-		<remote-id type="github">elprans/gentoo-electron-patches</remote-id>
-		<remote-id type="github">elprans/grit</remote-id>
-		<remote-id type="github">elprans/node-browserify</remote-id>
+		<remote-id type="github">electron/electron/</remote-id>
 	</upstream>
 </pkgmetadata>
