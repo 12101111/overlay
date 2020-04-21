@@ -793,7 +793,7 @@ src_compile() {
 
 	cd "${CHROMIUM_S}" || die
 
-	ninja -C out/Release third_party/electron_node:headers
+	eninja -C out/Release third_party/electron_node:headers
 
 	# Build mksnapshot and pax-mark it.
 	local x
@@ -839,43 +839,50 @@ src_install() {
 		newexe out/Release/chrome_sandbox chrome-sandbox
 		fperms 4755 "${install_dir}"/chrome-sandbox
 	fi
+
+	# 0644
 	doins out/Release/snapshot_blob.bin
 	doins out/Release/v8_context_snapshot.bin
 	doins out/Release/chrome_100_percent.pak
 	doins out/Release/chrome_200_percent.pak
 	doins out/Release/resources.pak
-	# FIXME: don't exist in ozone?
-	if ! use ozone; then
-		doins out/Release/libEGL.so
-		doins out/Release/libGLESv2.so
-		doins out/Release/vk_swiftshader_icd.json
-	else
-		doins out/Release/libminigbm.so
-	fi
-	doins out/Release/libvk_swiftshader.so
-
-	if ! use system-ffmpeg; then
-		doins out/Release/libffmpeg.so
-	fi
 
 	if ! use system-icu; then
 		doins out/Release/icudtl.dat
 	fi
 
 	doins -r out/Release/resources
-	doins out/Release/locales/*.pak
-
-	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
 
 	doins -r "${NODE_S}/deps/npm"
 
 	echo "${PV}" > out/Release/version
 	doins out/Release/version
 
+	insinto "${install_dir}"/locales
+	doins out/Release/locales/*.pak
+
+	insopts -m755
 	if [[ -d out/Release/swiftshader ]]; then
 		insinto "${install_dir}"/swiftshader
 		doins out/Release/swiftshader/libEGL.so
 		doins out/Release/swiftshader/libGLESv2.so
+	fi
+
+	insinto "${install_dir}"
+	if ! use system-ffmpeg; then
+		doins out/Release/libffmpeg.so
+	fi
+
+	doins out/Release/libvk_swiftshader.so
+
+	# FIXME: don't exist in ozone?
+	if ! use ozone; then
+		doins out/Release/libEGL.so
+		doins out/Release/libGLESv2.so
+		insopts -m644
+		doins out/Release/vk_swiftshader_icd.json
+	else
+		doins out/Release/libminigbm.so
 	fi
 
 	cat >out/Release/node <<EOF
@@ -885,6 +892,7 @@ EOF
 	doexe out/Release/node
 
 	# Install Node headers
+	insopts -m644
 	local node_headers="/usr/include/electron${install_suffix}"
 	insinto "${node_headers}"
 	doins -r out/Release/gen/node_headers/include/node
@@ -894,6 +902,8 @@ EOF
 	for var in deps/{uv,v8}/include; do
 		dosym ../.. "${node_headers}"/node/${var}
 	done
+
+	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
 }
 
 pkg_postinst() {
