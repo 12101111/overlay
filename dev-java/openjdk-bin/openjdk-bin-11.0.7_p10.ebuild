@@ -5,12 +5,13 @@ EAPI=6
 
 inherit java-vm-2 eapi7-ver
 
-MY_ZULU_PV="zulu11.37.17-ca-jdk11.0.6-linux_musl_x64"
+MY_ZULU_PV="11.39.15-ca-jdk11.0.7"
+MY_ZULU_ARCH="linux_musl_x64"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
 
 SRC_URI="
-	amd64? ( https://cdn.azul.com/zulu/bin/${MY_ZULU_PV}.tar.gz )
+	amd64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-${MY_ZULU_ARCH}.tar.gz )
 "
 
 DESCRIPTION="Prebuilt Java JDK binaries for musl provided by Zulu"
@@ -43,7 +44,7 @@ PDEPEND="webstart? ( >=dev-java/icedtea-web-1.6.1:0 )
 RESTRICT="preserve-libs splitdebug"
 QA_PREBUILT="*"
 
-S="${WORKDIR}/${MY_ZULU_PV}"
+S="${WORKDIR}/zulu${MY_ZULU_PV}-${MY_ZULU_ARCH}"
 
 src_install() {
 	local dest="/opt/${P}"
