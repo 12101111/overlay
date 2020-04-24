@@ -8,9 +8,7 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk vi zh-CN zh-TW"
 
-inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils \
-	pax-utils portability python-any-r1 readme.gentoo-r1 toolchain-funcs \
-	xdg-utils
+inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-utils portability python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils
 
 # Keep this in sync with DEPS:chromium_version
 CHROMIUM_VERSION="78.0.3904.108"
@@ -28,7 +26,6 @@ SRC_URI="
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
 "
 
-S="${WORKDIR}/${P}"
 CHROMIUM_S="${WORKDIR}/${CHROMIUM_P}"
 NODE_S="${CHROMIUM_S}/third_party/electron_node"
 ROOT_S="${WORKDIR}/src"
@@ -36,10 +33,13 @@ ROOT_S="${WORKDIR}/src"
 LICENSE="BSD"
 SLOT="7"
 KEYWORDS="~amd64"
-IUSE="atk clang component-build cups custom-cflags cpu_flags_arm_neon
-	  gnome-keyring jumbo-build kerberos lto pic +proprietary-codecs pulseaudio
-	  selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc"
+IUSE="atk clang custom-cflags lto
+	component-build cups cpu_flags_arm_neon jumbo-build kerberos pic +proprietary-codecs
+	pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
+REQUIRED_USE="
+	component-build? ( !suid )
+	lto? ( clang )"
 
 COMMON_DEPEND="
 	atk? ( >=app-accessibility/at-spi2-atk-2.26:2 )
@@ -54,7 +54,6 @@ COMMON_DEPEND="
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.26:=
 	>=dev-libs/re2-0.2016.11.01:=
-	gnome-keyring? ( >=gnome-base/libgnome-keyring-3.12:= )
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
 	media-libs/freetype:=
@@ -96,7 +95,13 @@ COMMON_DEPEND="
 	media-libs/flac:=
 	>=media-libs/libwebp-0.4.0:=
 	sys-libs/zlib:=[minizip]
+	>=net-dns/c-ares-1.15.0
+	>=net-libs/http-parser-2.8.0:=
+	>=net-libs/nghttp2-1.39.2
+	dev-libs/libevent:=
+	>=dev-libs/openssl-1.1.1:0=
 	kerberos? ( virtual/krb5 )
+	app-eselect/eselect-electron
 "
 # For nvidia-drivers blocker, see bug #413637 .
 RDEPEND="${COMMON_DEPEND}
@@ -165,8 +170,8 @@ pre_build_checks() {
 	fi
 
 	# Check build requirements, bug #541816 and bug #471810 .
-	CHECKREQS_MEMORY="8G"
-	CHECKREQS_DISK_BUILD="6G"
+	CHECKREQS_MEMORY="4G"
+	CHECKREQS_DISK_BUILD="9G"
 	if use lto; then
 		CHECKREQS_MEMORY="12G"
 	fi
@@ -185,6 +190,8 @@ pkg_pretend() {
 
 pkg_setup() {
 	pre_build_checks
+
+	chromium_suid_sandbox_check_kernel_config
 }
 
 _get_install_suffix() {
@@ -203,25 +210,6 @@ _get_install_suffix() {
 
 _get_install_dir() {
 	echo -n "/usr/$(get_libdir)/electron$(_get_install_suffix)"
-}
-
-_get_target_arch() {
-	local myarch="$(tc-arch)"
-	local target_arch
-
-	if [[ $myarch = amd64 ]] ; then
-		target_arch=x64
-	elif [[ $myarch = x86 ]] ; then
-		target_arch=ia32
-	elif [[ $myarch = arm64 ]] ; then
-		target_arch=arm64
-	elif [[ $myarch = arm ]] ; then
-		target_arch=arm
-	else
-		die "Failed to determine target arch, got '$myarch'."
-	fi
-
-	echo -n "${target_arch}"
 }
 
 src_prepare() {
@@ -268,26 +256,14 @@ src_prepare() {
 	"${EPYTHON}" "${S}/script/apply_all_patches.py" \
 		"${S}/patches/config.json" || die
 
-	# Fix the NODE_MODULE_VERSION in supplied Node headers.
-	local node_module_version=$(grep \
-		'node_module_version =' "${CHROMIUM_S}/electron/build/args/all.gn" \
-		| sed -e "s/node_module_version = \([[:digit:]]\+\)/\\1/g")
-	[ -n "${node_module_version}" ] || die
-	echo ${node_module_version}
-	sed -i -e "s/\(#define NODE_MODULE_VERSION\) \([[:digit:]]\+\)/\\1 ${node_module_version}/g" \
-		"${NODE_S}/src/node_version.h" || die
-
 	cd "${CHROMIUM_S}" || die
 	# Finally, apply Gentoo patches for Chromium.
-	cp -r "${FILESDIR}/${PV}/chromium/" "${WORKDIR}"/chromium-patch
-	if ! use elibc_musl;then
-		rm -r "${WORKDIR}"/chromium-patch/musl*
-	fi
+	cp -r "${FILESDIR}/${PV}/chromium/" "${WORKDIR}/chromium-patch"
+	use elibc_musl || rm -r "${WORKDIR}"/chromium-patch/musl*
 	eapply "${WORKDIR}"/chromium-patch
 
 	mkdir -p third_party/node/linux/node-linux-x64/bin || die
-	ln -s "${EPREFIX}"/usr/bin/node \
-		third_party/node/linux/node-linux-x64/bin/node || die
+	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
 
 	local keeplibs=(
 		third_party/electron_node
@@ -503,7 +479,6 @@ src_configure() {
 	python_setup
 
 	local myconf_gn=""
-	local gn_target
 
 	# Make sure the build system will use the right tools, bug #340795.
 	tc-export AR CC CXX NM
@@ -551,12 +526,14 @@ src_configure() {
 	# https://chromium.googlesource.com/chromium/src/+/lkcr/docs/jumbo.md
 	myconf_gn+=" use_jumbo_build=$(usex jumbo-build true false)"
 
-	if ! use elibc_musl; then
-		myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
-	else
-		myconf_gn+=" use_allocator=\"none\""
+	if use elibc_musl;then
+		if use tcmalloc; then
+			die "tcmalloc is broken with musl at this moment."
+		fi
 		myconf_gn+=" use_allocator_shim=false"
 	fi
+
+	myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
 
 	# Disable nacl, we can't build without pnacl (http://crbug.com/269560).
 	myconf_gn+=" enable_nacl=false"
@@ -575,8 +552,9 @@ src_configure() {
 		fontconfig
 		freetype
 		# Need harfbuzz_from_pkgconfig target
-		#harfbuzz-ng
+		harfbuzz-ng
 		libdrm
+		libevent
 		libjpeg
 		libpng
 		libwebp
@@ -602,9 +580,11 @@ src_configure() {
 	# See dependency logic in third_party/BUILD.gn
 	myconf_gn+=" use_system_harfbuzz=true"
 
+	# Disable deprecated libgnome-keyring dependency, bug #713012
+	myconf_gn+=" use_gnome_keyring=false"
+
 	# Optional dependencies.
 	myconf_gn+=" use_cups=$(usex cups true false)"
-	myconf_gn+=" use_gnome_keyring=$(usex gnome-keyring true false)"
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
 	myconf_gn+=" use_atk=$(usex atk true false)"
@@ -661,20 +641,20 @@ src_configure() {
 
 	if [[ $myarch = amd64 ]] ; then
 		myconf_gn+=" target_cpu=\"x64\""
-		target_arch=x64
+		ffmpeg_target_arch=x64
 	elif [[ $myarch = x86 ]] ; then
 		myconf_gn+=" target_cpu=\"x86\""
-		target_arch=ia32
+		ffmpeg_target_arch=ia32
 
 		# This is normally defined by compiler_cpu_abi in
 		# build/config/compiler/BUILD.gn, but we patch that part out.
 		append-flags -msse2 -mfpmath=sse -mmmx
 	elif [[ $myarch = arm64 ]] ; then
 		myconf_gn+=" target_cpu=\"arm64\""
-		target_arch=arm64
+		ffmpeg_target_arch=arm64
 	elif [[ $myarch = arm ]] ; then
 		myconf_gn+=" target_cpu=\"arm\""
-		target_arch=$(usex cpu_flags_arm_neon arm-neon arm)
+		ffmpeg_target_arch=$(usex cpu_flags_arm_neon arm-neon arm)
 	else
 		die "Failed to determine target arch, got '$myarch'."
 	fi
@@ -694,40 +674,62 @@ src_configure() {
 	# https://bugs.gentoo.org/654216
 	addpredict /dev/dri/ #nowarn
 
-	#if ! use system-ffmpeg; then
-	if false; then
+	if ! use system-ffmpeg; then
+	# if false; then #FIXME: why chromium ebuild have this?
 		local build_ffmpeg_args=""
-		if use pic && [[ "${target_arch}" == "ia32" ]]; then
+		if use pic && [[ "${ffmpeg_target_arch}" == "ia32" ]]; then
 			build_ffmpeg_args+=" --disable-asm"
 		fi
 
 		# Re-configure bundled ffmpeg. See bug #491378 for example reasons.
 		einfo "Configuring bundled ffmpeg..."
 		pushd third_party/ffmpeg > /dev/null || die
-		chromium/scripts/build_ffmpeg.py linux ${target_arch} \
+		chromium/scripts/build_ffmpeg.py linux ${ffmpeg_target_arch} \
 			--branding ${ffmpeg_branding} -- ${build_ffmpeg_args} || die
 		chromium/scripts/copy_config.sh || die
 		chromium/scripts/generate_gn.py || die
 		popd > /dev/null || die
 	fi
 
+	# Explicitly disable ICU data file support for system-icu builds.
+	if use system-icu; then
+		myconf_gn+=" icu_use_data_file=false"
+	fi
+
 	einfo "Configuring bundled nodejs..."
 	pushd "${NODE_S}" > /dev/null || die
 	# --shared-libuv cannot be used as electron's node fork
 	# patches uv_loop structure.
-	./configure \
-		--shared \
-		--without-bundled-v8 \
-		--shared-openssl \
-		--shared-http-parser \
-		--shared-zlib \
-		--shared-nghttp2 \
-		--shared-cares \
-		--without-npm \
-		--with-intl=system-icu \
-		--without-dtrace \
-		--dest-cpu=${target_arch} \
-		--prefix="" || die
+	local nodeconf=(
+		--shared
+		--without-bundled-v8
+		--shared-openssl
+		--shared-http-parser
+		--shared-zlib
+		--shared-nghttp2
+		--shared-cares
+		--without-npm
+		--without-dtrace
+	)
+
+	use system-icu && nodeconf+=( --with-intl=system-icu ) || nodeconf+=( --with-intl=none )
+
+	local nodearch=""
+	case ${ABI} in
+		amd64) nodearch="x64";;
+		arm) nodearch="arm";;
+		arm64) nodearch="arm64";;
+		ppc64) nodearch="ppc64";;
+		x32) nodearch="x32";;
+		x86) nodearch="ia32";;
+		*) nodearch="${ABI}";;
+	esac
+
+	"${EPYTHON}" configure.py \
+	--prefix="" \
+	--dest-cpu=${nodearch} \
+	"${nodeconf[@]}" || die
+
 	popd > /dev/null || die
 
 	myconf_gn+=" import(\"//electron/build/args/release.gn\")"
@@ -747,9 +749,11 @@ src_compile() {
 
 	cd "${CHROMIUM_S}" || die
 
+	eninja -C out/Release third_party/electron_node:headers
+
 	# Build mksnapshot and pax-mark it.
 	local x
-	for x in mksnapshot; do
+	for x in mksnapshot v8_context_snapshot_generator; do
 		if tc-is-cross-compiler; then
 			eninja -C out/Release "host/${x}"
 			pax-mark m "out/Release/host/${x}"
@@ -762,6 +766,8 @@ src_compile() {
 	# Even though ninja autodetects number of CPUs, we respect
 	# user's options, for debugging with -j 1 or any other reason.
 	eninja -C out/Release electron chromedriver
+
+	use suid && eninja -C out/Release chrome_sandbox
 
 	pax-mark m out/Release/electron
 }
@@ -783,20 +789,48 @@ src_install() {
 	doexe out/Release/electron
 	doexe out/Release/chromedriver
 	doexe out/Release/mksnapshot
+	if use suid; then
+		newexe out/Release/chrome_sandbox chrome-sandbox
+		fperms 4755 "${install_dir}"/chrome-sandbox
+	fi
+
 	doins out/Release/natives_blob.bin
 	doins out/Release/snapshot_blob.bin
 	doins out/Release/v8_context_snapshot.bin
 	doins out/Release/chrome_100_percent.pak
 	doins out/Release/chrome_200_percent.pak
 	doins out/Release/resources.pak
+
+	if ! use system-icu; then
+		doins out/Release/icudtl.dat
+	fi
+
 	doins -r out/Release/resources
-	doins -r out/Release/locales
-	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
 
 	doins -r "${NODE_S}/deps/npm"
+	fperms -R 755 "${install_dir}/npm/bin/"
 
 	echo "${PV}" > out/Release/version
 	doins out/Release/version
+
+	insinto "${install_dir}"/locales
+	doins out/Release/locales/*.pak
+
+	insopts -m755
+	if [[ -d out/Release/swiftshader ]]; then
+		insinto "${install_dir}"/swiftshader
+		doins out/Release/swiftshader/libEGL.so
+		doins out/Release/swiftshader/libGLESv2.so
+		doins out/Release/swiftshader/libvk_swiftshader.so
+	fi
+
+	insinto "${install_dir}"
+	if ! use system-ffmpeg; then
+		doins out/Release/libffmpeg.so
+	fi
+
+	doins out/Release/libEGL.so
+	doins out/Release/libGLESv2.so
 
 	cat >out/Release/node <<EOF
 #!/bin/sh
@@ -805,17 +839,18 @@ EOF
 	doexe out/Release/node
 
 	# Install Node headers
-	HEADERS_ONLY=1 "${NODE_S}/tools/install.py" install "${ED}" "/usr" || die
+	insopts -m644
+	local node_headers="/usr/include/electron${install_suffix}"
+	insinto "${node_headers}"
+	doins -r out/Release/gen/node_headers/include/node
 	# set up a symlink structure that npm expects..
-	dodir /usr/include/node/deps/{v8,uv}
-	dosym . /usr/include/node/src
+	dodir "${node_headers}"/node/deps/{v8,uv}
+	dosym . "${node_headers}"/node/src
 	for var in deps/{uv,v8}/include; do
-		dosym ../.. /usr/include/node/${var}
+		dosym ../.. "${node_headers}"/node/${var}
 	done
 
-	dodir "/usr/include/electron${install_suffix}"
-	mv "${ED}/usr/include/node" \
-	   "${ED}/usr/include/electron${install_suffix}/node" || die
+	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
 }
 
 pkg_postinst() {
