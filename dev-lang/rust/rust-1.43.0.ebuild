@@ -8,11 +8,10 @@ PYTHON_COMPAT=( python3_{6,7} )
 inherit bash-completion-r1 check-reqs estack flag-o-matic llvm multiprocessing multilib-build python-any-r1 rust-toolchain toolchain-funcs
 
 if [[ ${PV} = *beta* ]]; then
-	betaver=${PV//*beta}
-	BETA_SNAPSHOT="${betaver:0:4}-${betaver:4:2}-${betaver:6:2}"
 	MY_P="rustc-beta"
 	SLOT="beta/${PV}"
-	SRC="${BETA_SNAPSHOT}/rustc-beta-src.tar.xz"
+	SRC="rustc-beta-src.tar.xz"
+	KEYWORDS="~amd64"
 else
 	ABI_VER="$(ver_cut 1-2)"
 	SLOT="stable/${ABI_VER}"
@@ -21,7 +20,7 @@ else
 	KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
 fi
 
-RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).1"
+RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).0"
 
 DESCRIPTION="Systems programming language from Mozilla"
 HOMEPAGE="https://www.rust-lang.org/"
@@ -50,12 +49,12 @@ IUSE="clippy cpu_flags_x86_sse2 debug doc libressl miri nightly parallel-compile
 # 3. Specify LLVM_MAX_SLOT, e.g. 9.
 LLVM_DEPEND="
 	|| (
-		sys-devel/llvm:9[${LLVM_TARGET_USEDEPS// /,}]
-		wasm? ( =sys-devel/lld-9* )
+		sys-devel/llvm:10[${LLVM_TARGET_USEDEPS// /,}]
+		wasm? ( =sys-devel/lld-10* )
 	)
-	<sys-devel/llvm-10:=
+	<sys-devel/llvm-11:=
 "
-LLVM_MAX_SLOT=9
+LLVM_MAX_SLOT=10
 
 BOOTSTRAP_DEPEND="|| ( >=dev-lang/rust-1.$(($(ver_cut 2) - 1)).0-r1 >=dev-lang/rust-bin-1.$(($(ver_cut 2) - 1)) )"
 
@@ -110,6 +109,7 @@ PATCHES=(
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
 	"${FILESDIR}"/musl-use-external-libunwind.patch
 	"${FILESDIR}"/crt-static.patch
+	"${FILESDIR}"/llvm10.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
@@ -119,7 +119,7 @@ toml_usex() {
 }
 
 pre_build_checks() {
-	CHECKREQS_DISK_BUILD="9G"
+	CHECKREQS_DISK_BUILD="8G"
 	eshopts_push -s extglob
 	if is-flagq '-g?(gdb)?([1-9])'; then
 		CHECKREQS_DISK_BUILD="15G"
