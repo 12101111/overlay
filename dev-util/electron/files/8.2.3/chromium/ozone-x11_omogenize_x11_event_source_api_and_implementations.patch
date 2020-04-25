@@ -1,0 +1,1216 @@
+From e81f6a2c0d78c2208bf2a63cbf3afdb5ab4ffbfd Mon Sep 17 00:00:00 2001
+From: Nick Diego Yamane <nickdiego@igalia.com>
+Date: Tue, 28 Jan 2020 22:57:31 +0000
+Subject: [PATCH] x11, ozone: Homogenize X11 event source API and
+ implementations
+
+This fixes libgtkui-based file dialogs support on Ozone X11 and prepares X11
+event source implementations for the upcoming PlatformEvent migration CLs.
+
+Further details:
+
+CL standardizes the X11EventSource interface (i.e: Support XEvent => ui::Event
+translation, XEvent specific dispatchers and observers, etc), moving most of
+the code out of the default delegate implementation into X11EventSource itself.
+2 reasons motivate this change:
+
+1. Gtk-based file dialogs do not work in Ozone X11 with FdWatch-based source.
+So, as an initial fix, this CL makes it possible to use the pure glib-based
+implementation (i.e: uses glib API, GSource directly, etc) in Ozone builds with
+use_glib=true. FdWatch-based impl, originally used in ozone-based products,
+misses some events because it does not use the XPending() function to check for
+new events (instead it only watches for X11 connection FD changes).  Thus, with
+this change, pure glib-based X11 event source is used in Ozone when use_glib GN
+arg is set explicitly, otherwise the fdwatch-based one is used (e.g: CrOS on
+Linux).
+
+2. It is a preliminary and required step for the upcoming PlatformEvent
+migration CLs [1]. As one of the first speps of the migration, event source
+must support the same API and logic as the one originally used in ozone, as
+described above. As, at this point, it still must support the non-Ozone path
+(where PlatformEvent is still defined as XEvent*), Ozone specific code is
+guarded under USE_OZONE build flag.
+
+As a side effect, this simplifies a lot of X11EventSourceDelegate impls so that
+they turn into XEvent "watchers" instead, so this CL also renames them
+accordingly.
+
+[1] https://bugs.chromium.org/p/chromium/issues/detail?id=965991
+
+Bug: 1008755, 963419
+Change-Id: I060ec0dab519590e485e5baa96b5e84a7afad5cc
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/1863940
+Reviewed-by: Thomas Anderson <thomasanderson@chromium.org>
+Reviewed-by: Sadrul Chowdhury <sadrul@chromium.org>
+Reviewed-by: Robert Kroeger <rjkroege@chromium.org>
+Commit-Queue: Nick Yamane <nickdiego@igalia.com>
+Cr-Commit-Position: refs/heads/master@{#736114}
+---
+ ...exchange_data_provider_aurax11_unittest.cc |   4 +-
+ ui/events/platform/x11/BUILD.gn               |  14 +-
+ ui/events/platform/x11/x11_event_source.cc    | 147 ++++++++++++--
+ ui/events/platform/x11/x11_event_source.h     |  77 +++++---
+ .../platform/x11/x11_event_source_default.cc  | 180 ------------------
+ .../platform/x11/x11_event_source_default.h   |  80 --------
+ .../platform/x11/x11_event_source_glib.h      |  54 ------
+ .../platform/x11/x11_event_watcher_fdwatch.cc |  47 +++++
+ .../platform/x11/x11_event_watcher_fdwatch.h  |  41 ++++
+ ...urce_glib.cc => x11_event_watcher_glib.cc} |  58 +++---
+ .../platform/x11/x11_event_watcher_glib.h     |  46 +++++
+ ui/ozone/platform/x11/ozone_platform_x11.cc   |   6 +-
+ .../platform/x11/x11_screen_ozone_unittest.cc |   6 +-
+ .../platform/x11/x11_window_ozone_unittest.cc |   6 +-
+ ...window_tree_host_x11_interactive_uitest.cc |   4 +-
+ .../desktop_window_tree_host_x11_unittest.cc  |   2 +-
+ 16 files changed, 360 insertions(+), 412 deletions(-)
+ delete mode 100644 ui/events/platform/x11/x11_event_source_default.cc
+ delete mode 100644 ui/events/platform/x11/x11_event_source_default.h
+ delete mode 100644 ui/events/platform/x11/x11_event_source_glib.h
+ create mode 100644 ui/events/platform/x11/x11_event_watcher_fdwatch.cc
+ create mode 100644 ui/events/platform/x11/x11_event_watcher_fdwatch.h
+ rename ui/events/platform/x11/{x11_event_source_glib.cc => x11_event_watcher_glib.cc} (60%)
+ create mode 100644 ui/events/platform/x11/x11_event_watcher_glib.h
+
+diff --git a/ui/base/dragdrop/os_exchange_data_provider_aurax11_unittest.cc b/ui/base/dragdrop/os_exchange_data_provider_aurax11_unittest.cc
+index 4062392821a4f..01f0e59b906ca 100644
+--- a/ui/base/dragdrop/os_exchange_data_provider_aurax11_unittest.cc
++++ b/ui/base/dragdrop/os_exchange_data_provider_aurax11_unittest.cc
+@@ -10,7 +10,7 @@
+ #include "testing/gtest/include/gtest/gtest.h"
+ #include "ui/base/clipboard/clipboard_constants.h"
+ #include "ui/base/dragdrop/file_info.h"
+-#include "ui/events/platform/x11/x11_event_source_glib.h"
++#include "ui/events/platform/x11/x11_event_source.h"
+ #include "ui/gfx/x/x11_atom_cache.h"
+ #include "url/gurl.h"
+ 
+@@ -37,7 +37,7 @@ class OSExchangeDataProviderAuraX11Test : public testing::Test {
+ 
+  protected:
+   base::test::TaskEnvironment task_environment_;
+-  X11EventSourceGlib event_source;
++  X11EventSource event_source;
+   ui::OSExchangeDataProviderAuraX11 provider;
+ };
+ 
+diff --git a/ui/events/platform/x11/BUILD.gn b/ui/events/platform/x11/BUILD.gn
+index 2fa71d2f7fcd7..08355120b0eca 100644
+--- a/ui/events/platform/x11/BUILD.gn
++++ b/ui/events/platform/x11/BUILD.gn
+@@ -27,6 +27,7 @@ jumbo_component("x11") {
+     "//ui/events:events_base",
+     "//ui/events/devices",
+     "//ui/events/devices/x11",
++    "//ui/events/keycodes:x11",
+     "//ui/events/platform",
+     "//ui/events/x",
+     "//ui/gfx",
+@@ -39,20 +40,17 @@ jumbo_component("x11") {
+     deps += [ "//ui/events/ozone" ]
+   }
+ 
+-  if (use_x11) {
++  if (use_glib) {
+     sources += [
+-      "x11_event_source_glib.cc",
+-      "x11_event_source_glib.h",
++      "x11_event_watcher_glib.cc",
++      "x11_event_watcher_glib.h",
+     ]
+-
+     configs += [ "//build/config/linux:glib" ]
+   } else {
+     assert(ozone_platform_x11)
+     sources += [
+-      "x11_event_source_default.cc",
+-      "x11_event_source_default.h",
++      "x11_event_watcher_fdwatch.cc",
++      "x11_event_watcher_fdwatch.h",
+     ]
+-
+-    deps += [ "//ui/events/keycodes:x11" ]
+   }
+ }
+diff --git a/ui/events/platform/x11/x11_event_source.cc b/ui/events/platform/x11/x11_event_source.cc
+index 5f7911699ffb9..ef75392b07273 100644
+--- a/ui/events/platform/x11/x11_event_source.cc
++++ b/ui/events/platform/x11/x11_event_source.cc
+@@ -9,13 +9,25 @@
+ #include "ui/events/devices/x11/device_data_manager_x11.h"
+ #include "ui/events/devices/x11/touch_factory_x11.h"
+ #include "ui/events/event_utils.h"
++#include "ui/events/keycodes/keyboard_code_conversion_x.h"
+ #include "ui/events/platform/platform_event_dispatcher.h"
+ #include "ui/events/platform/x11/x11_hotplug_event_handler.h"
+ #include "ui/events/x/events_x_utils.h"
++#include "ui/events/x/x11_event_translation.h"
+ #include "ui/events/x/x11_window_event_manager.h"
+ #include "ui/gfx/x/x11.h"
+ #include "ui/gfx/x/x11_atom_cache.h"
+ 
++#if defined(USE_GLIB)
++#include "ui/events/platform/x11/x11_event_watcher_glib.h"
++#else
++#include "ui/events/platform/x11/x11_event_watcher_fdwatch.h"
++#endif
++
++#if defined(OS_CHROMEOS)
++#include "ui/events/ozone/chromeos/cursor_controller.h"
++#endif
++
+ namespace ui {
+ 
+ namespace {
+@@ -89,11 +101,16 @@ x11::Bool IsPropertyNotifyForTimestamp(Display* display,
+ 
+ }  // namespace
+ 
++#if defined(USE_GLIB)
++using X11EventWatcherImpl = X11EventWatcherGlib;
++#else
++using X11EventWatcherImpl = X11EventWatcherFdWatch;
++#endif
++
+ X11EventSource* X11EventSource::instance_ = nullptr;
+ 
+-X11EventSource::X11EventSource(X11EventSourceDelegate* delegate,
+-                               XDisplay* display)
+-    : delegate_(delegate),
++X11EventSource::X11EventSource(XDisplay* display)
++    : watcher_(std::make_unique<X11EventWatcherImpl>(this)),
+       display_(display),
+       dispatching_event_(nullptr),
+       dummy_initialized_(false),
+@@ -102,10 +119,11 @@ X11EventSource::X11EventSource(X11EventSourceDelegate* delegate,
+   DCHECK(!instance_);
+   instance_ = this;
+ 
+-  DCHECK(delegate_);
+   DCHECK(display_);
+   DeviceDataManagerX11::CreateInstance();
+   InitializeXkb(display_);
++
++  watcher_->StartWatching();
+ }
+ 
+ X11EventSource::~X11EventSource() {
+@@ -232,32 +250,126 @@ X11EventSource::GetRootCursorLocationFromCurrentEvent() const {
+ 
+ // TODO(crbug.com/965991): Use ui::Event in Aura/X11
+ #if defined(USE_OZONE)
+-void X11EventSource::RemoveXEventDispatcher(XEventDispatcher* dispatcher) {
+-  delegate_->RemoveXEventDispatcher(dispatcher);
++void X11EventSource::AddXEventDispatcher(XEventDispatcher* dispatcher) {
++  dispatchers_xevent_.AddObserver(dispatcher);
++  PlatformEventDispatcher* event_dispatcher =
++      dispatcher->GetPlatformEventDispatcher();
++  if (event_dispatcher)
++    AddPlatformEventDispatcher(event_dispatcher);
+ }
+ 
+-void X11EventSource::AddXEventDispatcher(XEventDispatcher* dispatcher) {
+-  delegate_->AddXEventDispatcher(dispatcher);
++void X11EventSource::RemoveXEventDispatcher(XEventDispatcher* dispatcher) {
++  dispatchers_xevent_.RemoveObserver(dispatcher);
++  PlatformEventDispatcher* event_dispatcher =
++      dispatcher->GetPlatformEventDispatcher();
++  if (event_dispatcher)
++    RemovePlatformEventDispatcher(event_dispatcher);
+ }
+ 
+ void X11EventSource::AddXEventObserver(XEventObserver* observer) {
+-  delegate_->AddXEventObserver(observer);
++  CHECK(observer);
++  observers_.AddObserver(observer);
+ }
+ 
+ void X11EventSource::RemoveXEventObserver(XEventObserver* observer) {
+-  delegate_->RemoveXEventObserver(observer);
++  CHECK(observer);
++  observers_.RemoveObserver(observer);
+ }
+ 
+ std::unique_ptr<ScopedXEventDispatcher>
+ X11EventSource::OverrideXEventDispatcher(XEventDispatcher* dispatcher) {
+-  return delegate_->OverrideXEventDispatcher(dispatcher);
++  CHECK(dispatcher);
++  overridden_dispatcher_restored_ = false;
++  return std::make_unique<ScopedXEventDispatcher>(&overridden_dispatcher_,
++                                                  dispatcher);
+ }
+ 
+ void X11EventSource::RestoreOverridenXEventDispatcher() {
+-  delegate_->RestoreOverridenXEventDispatcher();
++  CHECK(overridden_dispatcher_);
++  overridden_dispatcher_restored_ = true;
++}
++
++void X11EventSource::DispatchPlatformEvent(const PlatformEvent& event,
++                                           XEvent* xevent) {
++  DCHECK(event);
++
++  // First, tell the XEventDispatchers, which can have PlatformEventDispatcher,
++  // an ui::Event is going to be sent next. It must make a promise to handle
++  // next translated |event| sent by PlatformEventSource based on a XID in
++  // |xevent| tested in CheckCanDispatchNextPlatformEvent(). This is needed
++  // because it is not possible to access |event|'s associated NativeEvent* and
++  // check if it is the event's target window (XID).
++  for (XEventDispatcher& dispatcher : dispatchers_xevent_)
++    dispatcher.CheckCanDispatchNextPlatformEvent(xevent);
++
++  DispatchEvent(event);
++
++  // Explicitly reset a promise to handle next translated event.
++  for (XEventDispatcher& dispatcher : dispatchers_xevent_)
++    dispatcher.PlatformEventDispatchFinished();
++}
++
++void X11EventSource::DispatchXEventToXEventDispatchers(XEvent* xevent) {
++  bool stop_dispatching = false;
++
++  for (auto& observer : observers_)
++    observer.WillProcessXEvent(xevent);
++
++  if (overridden_dispatcher_) {
++    stop_dispatching = overridden_dispatcher_->DispatchXEvent(xevent);
++  }
++
++  if (!stop_dispatching) {
++    for (XEventDispatcher& dispatcher : dispatchers_xevent_) {
++      if (dispatcher.DispatchXEvent(xevent))
++        break;
++    }
++  }
++
++  for (auto& observer : observers_)
++    observer.DidProcessXEvent(xevent);
++
++  // If an overridden dispatcher has been destroyed, then the event source
++  // should halt dispatching the current stream of events, and wait until the
++  // next message-loop iteration for dispatching events. This lets any nested
++  // message-loop to unwind correctly and any new dispatchers to receive the
++  // correct sequence of events.
++  if (overridden_dispatcher_restored_)
++    StopCurrentEventStream();
++
++  overridden_dispatcher_restored_ = false;
++}
++
++void XEventDispatcher::CheckCanDispatchNextPlatformEvent(XEvent* xev) {}
++
++void XEventDispatcher::PlatformEventDispatchFinished() {}
++
++PlatformEventDispatcher* XEventDispatcher::GetPlatformEventDispatcher() {
++  return nullptr;
+ }
+ #endif
+ 
++void X11EventSource::ProcessXEvent(XEvent* xevent) {
++#if !defined(USE_OZONE)
++  DispatchEvent(xevent);
++#else
++  auto translated_event = ui::BuildEventFromXEvent(*xevent);
++  if (translated_event) {
++#if defined(OS_CHROMEOS)
++    if (translated_event->IsLocatedEvent()) {
++      ui::CursorController::GetInstance()->SetCursorLocation(
++          translated_event->AsLocatedEvent()->location_f());
++    }
++#endif
++    DispatchPlatformEvent(translated_event.get(), xevent);
++  } else {
++    // Only if we can't translate XEvent into ui::Event, try to dispatch XEvent
++    // directly to XEventDispatchers.
++    DispatchXEventToXEventDispatchers(xevent);
++  }
++#endif
++}
++
+ ////////////////////////////////////////////////////////////////////////////////
+ // X11EventSource, protected
+ 
+@@ -270,7 +382,7 @@ void X11EventSource::ExtractCookieDataDispatchEvent(XEvent* xevent) {
+ 
+   dispatching_event_ = xevent;
+ 
+-  delegate_->ProcessXEvent(xevent);
++  ProcessXEvent(xevent);
+   PostDispatchEvent(xevent);
+ 
+   dispatching_event_ = nullptr;
+@@ -316,6 +428,8 @@ void X11EventSource::StopCurrentEventStream() {
+ }
+ 
+ void X11EventSource::OnDispatcherListChanged() {
++  watcher_->StartWatching();
++
+   if (!hotplug_event_handler_) {
+     hotplug_event_handler_ = std::make_unique<X11HotplugEventHandler>();
+     // Force the initial device query to have an update list of active devices.
+@@ -337,4 +451,11 @@ ScopedXEventDispatcher::~ScopedXEventDispatcher() {
+ #endif
+ }
+ 
++// static
++#if !defined(USE_OZONE)
++std::unique_ptr<PlatformEventSource> PlatformEventSource::CreateDefault() {
++  return std::make_unique<X11EventSource>(gfx::GetXDisplay());
++}
++#endif
++
+ }  // namespace ui
+diff --git a/ui/events/platform/x11/x11_event_source.h b/ui/events/platform/x11/x11_event_source.h
+index 427cfac30b70e..2ed210abb72b7 100644
+--- a/ui/events/platform/x11/x11_event_source.h
++++ b/ui/events/platform/x11/x11_event_source.h
+@@ -14,6 +14,7 @@
+ #include "base/macros.h"
+ #include "base/optional.h"
+ #include "ui/events/events_export.h"
++#include "ui/events/platform/platform_event_source.h"
+ #include "ui/gfx/x/x11_types.h"
+ 
+ using Time = unsigned long;
+@@ -77,30 +78,22 @@ class EVENTS_EXPORT XEventObserver {
+   virtual ~XEventObserver() {}
+ };
+ 
+-// Responsible for notifying X11EventSource when new XEvents are available and
+-// processing/dispatching XEvents. Implementations will likely be a
+-// PlatformEventSource.
+-class X11EventSourceDelegate {
++// Responsible for notifying X11EventSource when new XEvents are available to
++// be processed/dispatched.
++class X11EventWatcher {
+  public:
+-  X11EventSourceDelegate() = default;
+-  virtual ~X11EventSourceDelegate() = default;
++  X11EventWatcher() = default;
++  virtual ~X11EventWatcher() = default;
+ 
+-  // Processes (if necessary) and handles dispatching XEvents.
+-  virtual void ProcessXEvent(XEvent* xevent) = 0;
++  // Starts watching for X Events and feeding them into X11EventSource to be
++  // processed, through XEventSource::ProcessXEvent(), as they come in.
++  virtual void StartWatching() = 0;
+ 
+-  // TODO(crbug.com/965991): Use ui::Event in Aura/X11
+-#if defined(USE_OZONE)
+-  virtual void AddXEventDispatcher(XEventDispatcher* dispatcher) = 0;
+-  virtual void RemoveXEventDispatcher(XEventDispatcher* dispatcher) = 0;
+-  virtual void AddXEventObserver(XEventObserver* observer) = 0;
+-  virtual void RemoveXEventObserver(XEventObserver* observer) = 0;
+-  virtual std::unique_ptr<ScopedXEventDispatcher> OverrideXEventDispatcher(
+-      XEventDispatcher* dispatcher) = 0;
+-  virtual void RestoreOverridenXEventDispatcher() = 0;
+-#endif
++  // Stops watching for X Events.
++  virtual void StopWatching() = 0;
+ 
+  private:
+-  DISALLOW_COPY_AND_ASSIGN(X11EventSourceDelegate);
++  DISALLOW_COPY_AND_ASSIGN(X11EventWatcher);
+ };
+ 
+ // A temporary XEventDispatcher can be installed on a X11EventSource that
+@@ -123,12 +116,14 @@ class EVENTS_EXPORT ScopedXEventDispatcher {
+   DISALLOW_COPY_AND_ASSIGN(ScopedXEventDispatcher);
+ };
+ 
+-// Receives X11 events and sends them to X11EventSourceDelegate. Handles
+-// receiving, pre-process and post-processing XEvents.
+-class EVENTS_EXPORT X11EventSource {
++// PlatformEventSource implementation for X11, both Ozone and non-Ozone.
++// Receives X11 events from X11EventWatcher and sends them to registered
++// {Platform,X}EventDispatchers. Handles receiving, pre-process, translation
++// and post-processing of XEvents.
++class EVENTS_EXPORT X11EventSource : public PlatformEventSource {
+  public:
+-  X11EventSource(X11EventSourceDelegate* delegate, XDisplay* display);
+-  ~X11EventSource();
++  explicit X11EventSource(XDisplay* display);
++  ~X11EventSource() override;
+ 
+   static bool HasInstance();
+   static X11EventSource* GetInstance();
+@@ -153,9 +148,6 @@ class EVENTS_EXPORT X11EventSource {
+   // dispatched that contains that information.
+   base::Optional<gfx::Point> GetRootCursorLocationFromCurrentEvent() const;
+ 
+-  void StopCurrentEventStream();
+-  void OnDispatcherListChanged();
+-
+   // Explicitly asks the X11 server for the current timestamp, and updates
+   // |last_seen_server_time_| with this value.
+   Time GetCurrentServerTime();
+@@ -191,6 +183,8 @@ class EVENTS_EXPORT X11EventSource {
+       XEventDispatcher* dispatcher);
+ #endif
+ 
++  void ProcessXEvent(XEvent* xevent);
++
+  protected:
+   // Extracts cookie data from |xevent| if it's of GenericType, and dispatches
+   // the event. This function also frees up the cookie data after dispatch is
+@@ -203,11 +197,27 @@ class EVENTS_EXPORT X11EventSource {
+  private:
+   friend class ScopedXEventDispatcher;
+ 
++// TODO(crbug.com/965991): Use ui::Event in Aura/X11
++#if defined(USE_OZONE)
++  // Tells XEventDispatchers, which can also have PlatformEventDispatchers, that
++  // a translated event is going to be sent next, then dispatches the event and
++  // notifies XEventDispatchers the event has been sent out and, most probably,
++  // consumed.
++  void DispatchPlatformEvent(const PlatformEvent& event, XEvent* xevent);
++
++  // Sends XEvent to registered XEventDispatchers.
++  void DispatchXEventToXEventDispatchers(XEvent* xevent);
++#endif
++
++  // PlatformEventSource:
++  void StopCurrentEventStream() override;
++  void OnDispatcherListChanged() override;
++
+   void RestoreOverridenXEventDispatcher();
+ 
+   static X11EventSource* instance_;
+ 
+-  X11EventSourceDelegate* delegate_;
++  std::unique_ptr<X11EventWatcher> watcher_;
+ 
+   // The connection to the X11 server used to receive the events.
+   XDisplay* display_;
+@@ -231,6 +241,17 @@ class EVENTS_EXPORT X11EventSource {
+   std::default_random_engine generator_;
+   std::uniform_int_distribution<int> distribution_;
+ 
++// TODO(crbug.com/965991): Use ui::Event in Aura/X11
++#if defined(USE_OZONE)
++  // Keep track of all XEventDispatcher to send XEvents directly to.
++  base::ObserverList<XEventDispatcher>::Unchecked dispatchers_xevent_;
++
++  base::ObserverList<XEventObserver>::Unchecked observers_;
++
++  XEventDispatcher* overridden_dispatcher_ = nullptr;
++  bool overridden_dispatcher_restored_ = false;
++#endif
++
+   DISALLOW_COPY_AND_ASSIGN(X11EventSource);
+ };
+ 
+diff --git a/ui/events/platform/x11/x11_event_source_default.cc b/ui/events/platform/x11/x11_event_source_default.cc
+deleted file mode 100644
+index e47640961b696..0000000000000
+--- a/ui/events/platform/x11/x11_event_source_default.cc
++++ /dev/null
+@@ -1,180 +0,0 @@
+-// Copyright 2014 The Chromium Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.
+-
+-#include "ui/events/platform/x11/x11_event_source_default.h"
+-
+-#include <memory>
+-
+-#include "base/message_loop/message_loop_current.h"
+-#include "ui/events/event.h"
+-#include "ui/events/event_utils.h"
+-#include "ui/events/keycodes/keyboard_code_conversion_x.h"
+-#include "ui/events/platform/platform_event_dispatcher.h"
+-#include "ui/events/x/events_x_utils.h"
+-#include "ui/events/x/x11_event_translation.h"
+-#include "ui/gfx/x/x11.h"
+-
+-#if defined(OS_CHROMEOS)
+-#include "ui/events/ozone/chromeos/cursor_controller.h"
+-#endif
+-
+-namespace ui {
+-
+-X11EventSourceDefault::X11EventSourceDefault(XDisplay* display)
+-    : event_source_(this, display), watcher_controller_(FROM_HERE) {
+-  AddEventWatcher();
+-}
+-
+-X11EventSourceDefault::~X11EventSourceDefault() {}
+-
+-// static
+-X11EventSourceDefault* X11EventSourceDefault::GetInstance() {
+-  return static_cast<X11EventSourceDefault*>(
+-      PlatformEventSource::GetInstance());
+-}
+-
+-void X11EventSourceDefault::AddXEventDispatcher(XEventDispatcher* dispatcher) {
+-  dispatchers_xevent_.AddObserver(dispatcher);
+-  PlatformEventDispatcher* event_dispatcher =
+-      dispatcher->GetPlatformEventDispatcher();
+-  if (event_dispatcher)
+-    AddPlatformEventDispatcher(event_dispatcher);
+-}
+-
+-void X11EventSourceDefault::RemoveXEventDispatcher(
+-    XEventDispatcher* dispatcher) {
+-  dispatchers_xevent_.RemoveObserver(dispatcher);
+-  PlatformEventDispatcher* event_dispatcher =
+-      dispatcher->GetPlatformEventDispatcher();
+-  if (event_dispatcher)
+-    RemovePlatformEventDispatcher(event_dispatcher);
+-}
+-
+-void X11EventSourceDefault::AddXEventObserver(XEventObserver* observer) {
+-  CHECK(observer);
+-  observers_.AddObserver(observer);
+-}
+-
+-void X11EventSourceDefault::RemoveXEventObserver(XEventObserver* observer) {
+-  CHECK(observer);
+-  observers_.RemoveObserver(observer);
+-}
+-
+-std::unique_ptr<ScopedXEventDispatcher>
+-X11EventSourceDefault::OverrideXEventDispatcher(XEventDispatcher* dispatcher) {
+-  CHECK(dispatcher);
+-  overridden_dispatcher_restored_ = false;
+-  return std::make_unique<ScopedXEventDispatcher>(&overridden_dispatcher_,
+-                                                  dispatcher);
+-}
+-
+-void X11EventSourceDefault::RestoreOverridenXEventDispatcher() {
+-  CHECK(overridden_dispatcher_);
+-  overridden_dispatcher_restored_ = true;
+-}
+-
+-void X11EventSourceDefault::ProcessXEvent(XEvent* xevent) {
+-  auto translated_event = ui::BuildEventFromXEvent(*xevent);
+-  if (translated_event) {
+-#if defined(OS_CHROMEOS)
+-    if (translated_event->IsLocatedEvent()) {
+-      ui::CursorController::GetInstance()->SetCursorLocation(
+-          translated_event->AsLocatedEvent()->location_f());
+-    }
+-#endif
+-    DispatchPlatformEvent(translated_event.get(), xevent);
+-  } else {
+-    // Only if we can't translate XEvent into ui::Event, try to dispatch XEvent
+-    // directly to XEventDispatchers.
+-    DispatchXEventToXEventDispatchers(xevent);
+-  }
+-}
+-
+-void X11EventSourceDefault::AddEventWatcher() {
+-  if (initialized_)
+-    return;
+-  if (!base::MessageLoopCurrent::Get())
+-    return;
+-
+-  int fd = ConnectionNumber(event_source_.display());
+-  base::MessageLoopCurrentForUI::Get()->WatchFileDescriptor(
+-      fd, true, base::MessagePumpForUI::WATCH_READ, &watcher_controller_, this);
+-  initialized_ = true;
+-}
+-
+-void X11EventSourceDefault::DispatchPlatformEvent(const PlatformEvent& event,
+-                                                  XEvent* xevent) {
+-  // First, tell the XEventDispatchers, which can have PlatformEventDispatcher,
+-  // an ui::Event is going to be sent next. It must make a promise to handle
+-  // next translated |event| sent by PlatformEventSource based on a XID in
+-  // |xevent| tested in CheckCanDispatchNextPlatformEvent(). This is needed
+-  // because it is not possible to access |event|'s associated NativeEvent* and
+-  // check if it is the event's target window (XID).
+-  for (XEventDispatcher& dispatcher : dispatchers_xevent_)
+-    dispatcher.CheckCanDispatchNextPlatformEvent(xevent);
+-
+-  DispatchEvent(event);
+-
+-  // Explicitly reset a promise to handle next translated event.
+-  for (XEventDispatcher& dispatcher : dispatchers_xevent_)
+-    dispatcher.PlatformEventDispatchFinished();
+-}
+-
+-void X11EventSourceDefault::DispatchXEventToXEventDispatchers(XEvent* xevent) {
+-  bool stop_dispatching = false;
+-
+-  for (auto& observer : observers_)
+-    observer.WillProcessXEvent(xevent);
+-
+-  if (overridden_dispatcher_) {
+-    stop_dispatching = overridden_dispatcher_->DispatchXEvent(xevent);
+-  }
+-
+-  if (!stop_dispatching) {
+-    for (XEventDispatcher& dispatcher : dispatchers_xevent_) {
+-      if (dispatcher.DispatchXEvent(xevent))
+-        break;
+-    }
+-  }
+-
+-  for (auto& observer : observers_)
+-    observer.DidProcessXEvent(xevent);
+-
+-  // If an overridden dispatcher has been destroyed, then the event source
+-  // should halt dispatching the current stream of events, and wait until the
+-  // next message-loop iteration for dispatching events. This lets any nested
+-  // message-loop to unwind correctly and any new dispatchers to receive the
+-  // correct sequence of events.
+-  if (overridden_dispatcher_restored_)
+-    StopCurrentEventStream();
+-
+-  overridden_dispatcher_restored_ = false;
+-}
+-
+-void X11EventSourceDefault::StopCurrentEventStream() {
+-  event_source_.StopCurrentEventStream();
+-}
+-
+-void X11EventSourceDefault::OnDispatcherListChanged() {
+-  AddEventWatcher();
+-  event_source_.OnDispatcherListChanged();
+-}
+-
+-void X11EventSourceDefault::OnFileCanReadWithoutBlocking(int fd) {
+-  event_source_.DispatchXEvents();
+-}
+-
+-void X11EventSourceDefault::OnFileCanWriteWithoutBlocking(int fd) {
+-  NOTREACHED();
+-}
+-
+-void XEventDispatcher::CheckCanDispatchNextPlatformEvent(XEvent* xev) {}
+-
+-void XEventDispatcher::PlatformEventDispatchFinished() {}
+-
+-PlatformEventDispatcher* XEventDispatcher::GetPlatformEventDispatcher() {
+-  return nullptr;
+-}
+-
+-}  // namespace ui
+diff --git a/ui/events/platform/x11/x11_event_source_default.h b/ui/events/platform/x11/x11_event_source_default.h
+deleted file mode 100644
+index af0a7a7340e4c..0000000000000
+--- a/ui/events/platform/x11/x11_event_source_default.h
++++ /dev/null
+@@ -1,80 +0,0 @@
+-// Copyright 2016 The Chromium Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.
+-
+-#ifndef UI_EVENTS_PLATFORM_X11_X11_EVENT_SOURCE_DEFAULT_H_
+-#define UI_EVENTS_PLATFORM_X11_X11_EVENT_SOURCE_DEFAULT_H_
+-
+-#include "base/macros.h"
+-#include "base/message_loop/message_pump_for_ui.h"
+-#include "base/observer_list.h"
+-#include "ui/events/events_export.h"
+-#include "ui/events/platform/platform_event_source.h"
+-#include "ui/events/platform/x11/x11_event_source.h"
+-
+-namespace ui {
+-
+-// PlatformEventSource implementation which uses MessagePumpForUI::FdWatcher to
+-// be notified about incoming XEvents and converts XEvents to ui::Events before
+-// dispatching. For X11 specific events a separate list of XEventDispatchers is
+-// maintained.
+-class EVENTS_EXPORT X11EventSourceDefault
+-    : public X11EventSourceDelegate,
+-      public PlatformEventSource,
+-      public base::MessagePumpForUI::FdWatcher {
+- public:
+-  explicit X11EventSourceDefault(XDisplay* display);
+-  ~X11EventSourceDefault() override;
+-
+-  static X11EventSourceDefault* GetInstance();
+-
+-  // X11EventSourceDelegate:
+-  void ProcessXEvent(XEvent* xevent) override;
+-  void AddXEventDispatcher(XEventDispatcher* dispatcher) override;
+-  void RemoveXEventDispatcher(XEventDispatcher* dispatcher) override;
+-  void AddXEventObserver(XEventObserver* observer) override;
+-  void RemoveXEventObserver(XEventObserver* observer) override;
+-  std::unique_ptr<ScopedXEventDispatcher> OverrideXEventDispatcher(
+-      XEventDispatcher* dispatcher) override;
+-  void RestoreOverridenXEventDispatcher() override;
+-
+- private:
+-  // Registers event watcher with Libevent.
+-  void AddEventWatcher();
+-
+-  // Tells XEventDispatchers, which can also have PlatformEventDispatchers, that
+-  // a translated event is going to be sent next, then dispatches the event and
+-  // notifies XEventDispatchers the event has been sent out and, most probably,
+-  // consumed.
+-  void DispatchPlatformEvent(const PlatformEvent& event, XEvent* xevent);
+-
+-  // Sends XEvent to registered XEventDispatchers.
+-  void DispatchXEventToXEventDispatchers(XEvent* xevent);
+-
+-  // PlatformEventSource:
+-  void StopCurrentEventStream() override;
+-  void OnDispatcherListChanged() override;
+-
+-  // base::MessagePumpForUI::FdWatcher:
+-  void OnFileCanReadWithoutBlocking(int fd) override;
+-  void OnFileCanWriteWithoutBlocking(int fd) override;
+-
+-  X11EventSource event_source_;
+-
+-  // Keep track of all XEventDispatcher to send XEvents directly to.
+-  base::ObserverList<XEventDispatcher>::Unchecked dispatchers_xevent_;
+-
+-  base::MessagePumpForUI::FdWatchController watcher_controller_;
+-  bool initialized_ = false;
+-
+-  base::ObserverList<XEventObserver>::Unchecked observers_;
+-
+-  XEventDispatcher* overridden_dispatcher_ = nullptr;
+-  bool overridden_dispatcher_restored_ = false;
+-
+-  DISALLOW_COPY_AND_ASSIGN(X11EventSourceDefault);
+-};
+-
+-}  // namespace ui
+-
+-#endif  // UI_EVENTS_PLATFORM_X11_X11_EVENT_SOURCE_DEFAULT_H_
+diff --git a/ui/events/platform/x11/x11_event_source_glib.h b/ui/events/platform/x11/x11_event_source_glib.h
+deleted file mode 100644
+index 7bd33d3698d5f..0000000000000
+--- a/ui/events/platform/x11/x11_event_source_glib.h
++++ /dev/null
+@@ -1,54 +0,0 @@
+-// Copyright 2016 The Chromium Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.
+-
+-#ifndef UI_EVENTS_PLATFORM_X11_X11_EVENT_SOURCE_GLIB_H_
+-#define UI_EVENTS_PLATFORM_X11_X11_EVENT_SOURCE_GLIB_H_
+-
+-#include <stdint.h>
+-
+-#include <memory>
+-
+-#include "base/macros.h"
+-#include "ui/events/events_export.h"
+-#include "ui/events/platform/platform_event_source.h"
+-#include "ui/events/platform/x11/x11_event_source.h"
+-#include "ui/gfx/x/x11_types.h"
+-
+-typedef struct _GPollFD GPollFD;
+-typedef struct _GSource GSource;
+-
+-namespace ui {
+-
+-// A PlatformEventSource implementation for X11. Dispatches XEvents and uses
+-// Glib to be notified for incoming XEvents.
+-class EVENTS_EXPORT X11EventSourceGlib : public X11EventSourceDelegate,
+-                                         public PlatformEventSource {
+- public:
+-  explicit X11EventSourceGlib(XDisplay* display);
+-  ~X11EventSourceGlib() override;
+-
+-  // X11EventSourceDelegate:
+-  void ProcessXEvent(XEvent* xevent) override;
+-
+- private:
+-  // PlatformEventSource:
+-  void StopCurrentEventStream() override;
+-  void OnDispatcherListChanged() override;
+-
+-  void InitXSource(int fd);
+-
+-  X11EventSource event_source_;
+-
+-  // The GLib event source for X events.
+-  GSource* x_source_ = nullptr;
+-
+-  // The poll attached to |x_source_|.
+-  std::unique_ptr<GPollFD> x_poll_;
+-
+-  DISALLOW_COPY_AND_ASSIGN(X11EventSourceGlib);
+-};
+-
+-}  // namespace ui
+-
+-#endif  // UI_EVENTS_PLATFORM_X11_X11_EVENT_SOURCE_GLIB_H_
+diff --git a/ui/events/platform/x11/x11_event_watcher_fdwatch.cc b/ui/events/platform/x11/x11_event_watcher_fdwatch.cc
+new file mode 100644
+index 0000000000000..e5042b52d4d01
+--- /dev/null
++++ b/ui/events/platform/x11/x11_event_watcher_fdwatch.cc
+@@ -0,0 +1,47 @@
++// Copyright 2014 The Chromium Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#include "ui/events/platform/x11/x11_event_watcher_fdwatch.h"
++
++#include "base/message_loop/message_loop_current.h"
++#include "ui/gfx/x/x11.h"
++
++namespace ui {
++
++X11EventWatcherFdWatch::X11EventWatcherFdWatch(X11EventSource* source)
++    : event_source_(source), watcher_controller_(FROM_HERE) {}
++
++X11EventWatcherFdWatch::~X11EventWatcherFdWatch() {
++  StopWatching();
++}
++
++void X11EventWatcherFdWatch::StartWatching() {
++  if (started_ || !base::MessageLoopCurrent::Get())
++    return;
++
++  DCHECK(event_source_->display()) << "Unable to get connection to X server";
++
++  int fd = ConnectionNumber(event_source_->display());
++  base::MessageLoopCurrentForUI::Get()->WatchFileDescriptor(
++      fd, true, base::MessagePumpForUI::WATCH_READ, &watcher_controller_, this);
++  started_ = true;
++}
++
++void X11EventWatcherFdWatch::StopWatching() {
++  if (!started_)
++    return;
++
++  watcher_controller_.StopWatchingFileDescriptor();
++  started_ = false;
++}
++
++void X11EventWatcherFdWatch::OnFileCanReadWithoutBlocking(int fd) {
++  event_source_->DispatchXEvents();
++}
++
++void X11EventWatcherFdWatch::OnFileCanWriteWithoutBlocking(int fd) {
++  NOTREACHED();
++}
++
++}  // namespace ui
+diff --git a/ui/events/platform/x11/x11_event_watcher_fdwatch.h b/ui/events/platform/x11/x11_event_watcher_fdwatch.h
+new file mode 100644
+index 0000000000000..e9152d9a255be
+--- /dev/null
++++ b/ui/events/platform/x11/x11_event_watcher_fdwatch.h
+@@ -0,0 +1,41 @@
++// Copyright 2016 The Chromium Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef UI_EVENTS_PLATFORM_X11_X11_EVENT_WATCHER_FDWATCH_H_
++#define UI_EVENTS_PLATFORM_X11_X11_EVENT_WATCHER_FDWATCH_H_
++
++#include "base/macros.h"
++#include "base/message_loop/message_pump_for_ui.h"
++#include "ui/events/platform/x11/x11_event_source.h"
++
++namespace ui {
++
++// X11EventWatcher implementation which uses MessagePumpForUI::FdWatcher
++// API to be notified about incoming XEvents.
++class X11EventWatcherFdWatch : public X11EventWatcher,
++                               public base::MessagePumpForUI::FdWatcher {
++ public:
++  explicit X11EventWatcherFdWatch(X11EventSource* source);
++  ~X11EventWatcherFdWatch() override;
++
++  // X11EventWatcher:
++  void StartWatching() override;
++  void StopWatching() override;
++
++ private:
++  // base::MessagePumpForUI::FdWatcher:
++  void OnFileCanReadWithoutBlocking(int fd) override;
++  void OnFileCanWriteWithoutBlocking(int fd) override;
++
++  X11EventSource* event_source_;
++
++  base::MessagePumpForUI::FdWatchController watcher_controller_;
++  bool started_ = false;
++
++  DISALLOW_COPY_AND_ASSIGN(X11EventWatcherFdWatch);
++};
++
++}  // namespace ui
++
++#endif  // UI_EVENTS_PLATFORM_X11_X11_EVENT_WATCHER_FDWATCH_H_
+diff --git a/ui/events/platform/x11/x11_event_source_glib.cc b/ui/events/platform/x11/x11_event_watcher_glib.cc
+similarity index 60%
+rename from ui/events/platform/x11/x11_event_source_glib.cc
+rename to ui/events/platform/x11/x11_event_watcher_glib.cc
+index 600a5359578fa..fa33d543e56d4 100644
+--- a/ui/events/platform/x11/x11_event_source_glib.cc
++++ b/ui/events/platform/x11/x11_event_watcher_glib.cc
+@@ -2,9 +2,10 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
+-#include "ui/events/platform/x11/x11_event_source_glib.h"
++#include "ui/events/platform/x11/x11_event_watcher_glib.h"
+ 
+ #include <glib.h>
++
+ #include "ui/gfx/x/x11.h"
+ 
+ namespace ui {
+@@ -40,61 +41,50 @@ gboolean XSourceDispatch(GSource* source,
+   return TRUE;
+ }
+ 
+-GSourceFuncs XSourceFuncs = {
+-  XSourcePrepare,
+-  XSourceCheck,
+-  XSourceDispatch,
+-  NULL
+-};
++GSourceFuncs XSourceFuncs = {XSourcePrepare, XSourceCheck, XSourceDispatch,
++                             nullptr};
+ 
+ }  // namespace
+ 
+-X11EventSourceGlib::X11EventSourceGlib(XDisplay* display)
+-    : event_source_(this, display) {
+-  InitXSource(ConnectionNumber(display));
+-}
++X11EventWatcherGlib::X11EventWatcherGlib(X11EventSource* source)
++    : event_source_(source) {}
+ 
+-X11EventSourceGlib::~X11EventSourceGlib() {
+-  g_source_destroy(x_source_);
+-  g_source_unref(x_source_);
++X11EventWatcherGlib::~X11EventWatcherGlib() {
++  StopWatching();
+ }
+ 
+-void X11EventSourceGlib::ProcessXEvent(XEvent* xevent) {
+-  DispatchEvent(xevent);
+-}
++void X11EventWatcherGlib::StartWatching() {
++  if (started_)
++    return;
+ 
+-void X11EventSourceGlib::StopCurrentEventStream() {
+-  event_source_.StopCurrentEventStream();
+-}
+-
+-void X11EventSourceGlib::OnDispatcherListChanged() {
+-  event_source_.OnDispatcherListChanged();
+-}
+-
+-void X11EventSourceGlib::InitXSource(int fd) {
+-  DCHECK(!x_source_);
+-  DCHECK(event_source_.display()) << "Unable to get connection to X server";
++  DCHECK(event_source_->display()) << "Unable to get connection to X server";
++  Display* display = event_source_->display();
+ 
+   x_poll_ = std::make_unique<GPollFD>();
+-  x_poll_->fd = fd;
++  x_poll_->fd = ConnectionNumber(display);
+   x_poll_->events = G_IO_IN;
+   x_poll_->revents = 0;
+ 
+   GLibX11Source* glib_x_source = static_cast<GLibX11Source*>(
+       g_source_new(&XSourceFuncs, sizeof(GLibX11Source)));
+-  glib_x_source->display = event_source_.display();
++  glib_x_source->display = display;
+   glib_x_source->poll_fd = x_poll_.get();
+ 
+   x_source_ = glib_x_source;
+   g_source_add_poll(x_source_, x_poll_.get());
+   g_source_set_can_recurse(x_source_, TRUE);
+-  g_source_set_callback(x_source_, NULL, &event_source_, NULL);
++  g_source_set_callback(x_source_, nullptr, event_source_, nullptr);
+   g_source_attach(x_source_, g_main_context_default());
++  started_ = true;
+ }
+ 
+-// static
+-std::unique_ptr<PlatformEventSource> PlatformEventSource::CreateDefault() {
+-  return std::make_unique<X11EventSourceGlib>(gfx::GetXDisplay());
++void X11EventWatcherGlib::StopWatching() {
++  if (!started_)
++    return;
++
++  g_source_destroy(x_source_);
++  g_source_unref(x_source_);
++  started_ = false;
+ }
+ 
+ }  // namespace ui
+diff --git a/ui/events/platform/x11/x11_event_watcher_glib.h b/ui/events/platform/x11/x11_event_watcher_glib.h
+new file mode 100644
+index 0000000000000..650af83316f68
+--- /dev/null
++++ b/ui/events/platform/x11/x11_event_watcher_glib.h
+@@ -0,0 +1,46 @@
++// Copyright 2016 The Chromium Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef UI_EVENTS_PLATFORM_X11_X11_EVENT_WATCHER_GLIB_H_
++#define UI_EVENTS_PLATFORM_X11_X11_EVENT_WATCHER_GLIB_H_
++
++#include <memory>
++
++#include "base/macros.h"
++#include "ui/events/platform/x11/x11_event_source.h"
++
++using GPollFD = struct _GPollFD;
++using GSource = struct _GSource;
++
++namespace ui {
++
++// A X11EventWatcher implementation which uses a Glib GSource API to be
++// notified for incoming XEvents. It must run in the browser process' main
++// thread when use_glib GN flag is set (i.e: MessagePumpGlib is in place).
++class X11EventWatcherGlib : public X11EventWatcher {
++ public:
++  explicit X11EventWatcherGlib(X11EventSource* source);
++  ~X11EventWatcherGlib() override;
++
++  // X11EventWatcher:
++  void StartWatching() override;
++  void StopWatching() override;
++
++ private:
++  X11EventSource* event_source_;
++
++  // The GLib event source for X events.
++  GSource* x_source_ = nullptr;
++
++  // The poll attached to |x_source_|.
++  std::unique_ptr<GPollFD> x_poll_;
++
++  bool started_ = false;
++
++  DISALLOW_COPY_AND_ASSIGN(X11EventWatcherGlib);
++};
++
++}  // namespace ui
++
++#endif  // UI_EVENTS_PLATFORM_X11_X11_EVENT_WATCHER_GLIB_H_
+diff --git a/ui/ozone/platform/x11/ozone_platform_x11.cc b/ui/ozone/platform/x11/ozone_platform_x11.cc
+index c2516477c56c6..c3e0ec1855aea 100644
+--- a/ui/ozone/platform/x11/ozone_platform_x11.cc
++++ b/ui/ozone/platform/x11/ozone_platform_x11.cc
+@@ -14,7 +14,7 @@
+ #include "ui/events/devices/x11/touch_factory_x11.h"
+ #include "ui/events/ozone/layout/keyboard_layout_engine_manager.h"
+ #include "ui/events/ozone/layout/stub/stub_keyboard_layout_engine.h"
+-#include "ui/events/platform/x11/x11_event_source_default.h"
++#include "ui/events/platform/x11/x11_event_source.h"
+ #include "ui/gfx/native_widget_types.h"
+ #include "ui/gfx/x/x11_connection.h"
+ #include "ui/gfx/x/x11_types.h"
+@@ -177,7 +177,7 @@ class OzonePlatformX11 : public OzonePlatform {
+       return;
+ 
+     XDisplay* display = gfx::GetXDisplay();
+-    event_source_ = std::make_unique<X11EventSourceDefault>(display);
++    event_source_ = std::make_unique<X11EventSource>(display);
+   }
+ 
+   bool common_initialized_ = false;
+@@ -194,7 +194,7 @@ class OzonePlatformX11 : public OzonePlatform {
+   std::unique_ptr<X11SurfaceFactory> surface_factory_ozone_;
+ 
+   // Objects in both UI and GPU process.
+-  std::unique_ptr<X11EventSourceDefault> event_source_;
++  std::unique_ptr<X11EventSource> event_source_;
+ 
+   DISALLOW_COPY_AND_ASSIGN(OzonePlatformX11);
+ };
+diff --git a/ui/ozone/platform/x11/x11_screen_ozone_unittest.cc b/ui/ozone/platform/x11/x11_screen_ozone_unittest.cc
+index 87ae05c85f22e..121a6ccc77ccd 100644
+--- a/ui/ozone/platform/x11/x11_screen_ozone_unittest.cc
++++ b/ui/ozone/platform/x11/x11_screen_ozone_unittest.cc
+@@ -12,7 +12,7 @@
+ #include "ui/base/x/x11_display_manager.h"
+ #include "ui/display/display.h"
+ #include "ui/display/display_observer.h"
+-#include "ui/events/platform/x11/x11_event_source_default.h"
++#include "ui/events/platform/x11/x11_event_source.h"
+ #include "ui/ozone/platform/x11/x11_window_ozone.h"
+ #include "ui/ozone/test/mock_platform_window_delegate.h"
+ #include "ui/platform_window/platform_window_delegate.h"
+@@ -56,7 +56,7 @@ class X11ScreenOzoneTest : public testing::Test {
+ 
+   void SetUp() override {
+     XDisplay* display = gfx::GetXDisplay();
+-    event_source_ = std::make_unique<X11EventSourceDefault>(display);
++    event_source_ = std::make_unique<X11EventSource>(display);
+     primary_display_ = std::make_unique<display::Display>(
+         NextDisplayId(), kPrimaryDisplayBounds);
+     screen_ = std::make_unique<X11ScreenOzone>();
+@@ -112,7 +112,7 @@ class X11ScreenOzoneTest : public testing::Test {
+  private:
+   std::unique_ptr<display::Display> primary_display_;
+   std::unique_ptr<X11ScreenOzone> screen_;
+-  std::unique_ptr<X11EventSourceDefault> event_source_;
++  std::unique_ptr<X11EventSource> event_source_;
+   std::unique_ptr<base::test::TaskEnvironment> task_env_;
+ 
+   DISALLOW_COPY_AND_ASSIGN(X11ScreenOzoneTest);
+diff --git a/ui/ozone/platform/x11/x11_window_ozone_unittest.cc b/ui/ozone/platform/x11/x11_window_ozone_unittest.cc
+index 099e88b847d80..506b86827d21d 100644
+--- a/ui/ozone/platform/x11/x11_window_ozone_unittest.cc
++++ b/ui/ozone/platform/x11/x11_window_ozone_unittest.cc
+@@ -14,7 +14,7 @@
+ #include "ui/display/screen.h"
+ #include "ui/events/devices/x11/touch_factory_x11.h"
+ #include "ui/events/event.h"
+-#include "ui/events/platform/x11/x11_event_source_default.h"
++#include "ui/events/platform/x11/x11_event_source.h"
+ #include "ui/events/test/events_test_utils_x11.h"
+ #include "ui/ozone/test/mock_platform_window_delegate.h"
+ #include "ui/platform_window/platform_window_delegate.h"
+@@ -92,7 +92,7 @@ class X11WindowOzoneTest : public testing::Test {
+ 
+   void SetUp() override {
+     XDisplay* display = gfx::GetXDisplay();
+-    event_source_ = std::make_unique<X11EventSourceDefault>(display);
++    event_source_ = std::make_unique<X11EventSource>(display);
+ 
+     display::Screen::SetScreenInstance(new TestScreen());
+ 
+@@ -128,7 +128,7 @@ class X11WindowOzoneTest : public testing::Test {
+ 
+  private:
+   std::unique_ptr<base::test::TaskEnvironment> task_env_;
+-  std::unique_ptr<X11EventSourceDefault> event_source_;
++  std::unique_ptr<X11EventSource> event_source_;
+ 
+   DISALLOW_COPY_AND_ASSIGN(X11WindowOzoneTest);
+ };
+diff --git a/ui/views/widget/desktop_aura/desktop_window_tree_host_x11_interactive_uitest.cc b/ui/views/widget/desktop_aura/desktop_window_tree_host_x11_interactive_uitest.cc
+index 8bd27d22979f4..1ace5fc7fc411 100644
+--- a/ui/views/widget/desktop_aura/desktop_window_tree_host_x11_interactive_uitest.cc
++++ b/ui/views/widget/desktop_aura/desktop_window_tree_host_x11_interactive_uitest.cc
+@@ -14,7 +14,6 @@
+ #include "ui/base/x/x11_util.h"
+ #include "ui/events/event_handler.h"
+ #include "ui/events/platform/x11/x11_event_source.h"
+-#include "ui/events/platform/x11/x11_event_source_glib.h"
+ #include "ui/gfx/geometry/rect.h"
+ #include "ui/gfx/x/x11.h"
+ #include "ui/gfx/x/x11_atom_cache.h"
+@@ -107,8 +106,7 @@ void DispatchMouseMotionEvent(DesktopWindowTreeHostX11* desktop_host,
+   xev.xmotion.is_hint = NotifyNormal;
+   xev.xmotion.same_screen = x11::True;
+ 
+-  static_cast<ui::X11EventSourceGlib*>(ui::PlatformEventSource::GetInstance())
+-      ->ProcessXEvent(&xev);
++  ui::X11EventSource::GetInstance()->ProcessXEvent(&xev);
+ }
+ 
+ }  // namespace
+diff --git a/ui/views/widget/desktop_aura/desktop_window_tree_host_x11_unittest.cc b/ui/views/widget/desktop_aura/desktop_window_tree_host_x11_unittest.cc
+index 8195a80156164..9af3d10df6158 100644
+--- a/ui/views/widget/desktop_aura/desktop_window_tree_host_x11_unittest.cc
++++ b/ui/views/widget/desktop_aura/desktop_window_tree_host_x11_unittest.cc
+@@ -17,7 +17,7 @@
+ #include "ui/base/x/x11_util.h"
+ #include "ui/display/display_switches.h"
+ #include "ui/events/devices/x11/touch_factory_x11.h"
+-#include "ui/events/platform/x11/x11_event_source_glib.h"
++#include "ui/events/platform/x11/x11_event_source.h"
+ #include "ui/events/test/events_test_utils_x11.h"
+ #include "ui/events/test/platform_event_source_test_api.h"
+ #include "ui/gfx/geometry/point.h"

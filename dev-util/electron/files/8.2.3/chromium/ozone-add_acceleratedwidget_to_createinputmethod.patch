@@ -1,0 +1,248 @@
+From 0ef449c96333a96367f3647fbba2ac8e99330a1d Mon Sep 17 00:00:00 2001
+From: Sharon Yang <yangsharon@chromium.org>
+Date: Mon, 13 Jan 2020 17:29:27 +0000
+Subject: [PATCH] [Fuchsia] Add AcceleratedWidget to CreateInputMethod in Ozone
+
+Add AcceleratedWidget as a parameter to CreateInputMethod for Ozone
+since it is needed by the platform Scenic. The Scenic platform is
+only used by Fuchsia, which is the only platform affected by this
+change.
+The new input service used by Scenic needs a way to associate a
+window or view to an IME.
+
+Bug: 988507
+Change-Id: I74c1c7eaf5b71b390b8c63e8b232daf6b8290f10
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/1993679
+Commit-Queue: Sharon Yang <yangsharon@chromium.org>
+Reviewed-by: Yohei Yukawa <yukawa@chromium.org>
+Reviewed-by: Sergey Ulanov <sergeyu@chromium.org>
+Reviewed-by: Michael Spang <spang@chromium.org>
+Cr-Commit-Position: refs/heads/master@{#730584}
+---
+ ui/base/ime/fuchsia/input_method_fuchsia.cc           | 3 ++-
+ ui/base/ime/fuchsia/input_method_fuchsia.h            | 3 ++-
+ ui/base/ime/init/input_method_factory.cc              | 2 +-
+ ui/ozone/platform/cast/ozone_platform_cast.cc         | 4 +++-
+ ui/ozone/platform/drm/ozone_platform_gbm.cc           | 4 +++-
+ ui/ozone/platform/headless/ozone_platform_headless.cc | 5 +++--
+ ui/ozone/platform/scenic/ozone_platform_scenic.cc     | 6 ++++--
+ ui/ozone/platform/wayland/ozone_platform_wayland.cc   | 4 +++-
+ ui/ozone/platform/windows/ozone_platform_windows.cc   | 4 +++-
+ ui/ozone/platform/x11/ozone_platform_x11.cc           | 4 +++-
+ ui/ozone/public/ozone_platform.h                      | 4 +++-
+ 11 files changed, 30 insertions(+), 13 deletions(-)
+
+diff --git a/ui/base/ime/fuchsia/input_method_fuchsia.cc b/ui/base/ime/fuchsia/input_method_fuchsia.cc
+index 8238d8414ef14..2d205c8d1823e 100644
+--- a/ui/base/ime/fuchsia/input_method_fuchsia.cc
++++ b/ui/base/ime/fuchsia/input_method_fuchsia.cc
+@@ -17,7 +17,8 @@
+ 
+ namespace ui {
+ 
+-InputMethodFuchsia::InputMethodFuchsia(internal::InputMethodDelegate* delegate)
++InputMethodFuchsia::InputMethodFuchsia(internal::InputMethodDelegate* delegate,
++                                       gfx::AcceleratedWidget widget)
+     : InputMethodBase(delegate),
+       event_converter_(this),
+       ime_client_binding_(this),
+diff --git a/ui/base/ime/fuchsia/input_method_fuchsia.h b/ui/base/ime/fuchsia/input_method_fuchsia.h
+index 2863e7d1c8a01..e0d8e8b6a776b 100644
+--- a/ui/base/ime/fuchsia/input_method_fuchsia.h
++++ b/ui/base/ime/fuchsia/input_method_fuchsia.h
+@@ -26,7 +26,8 @@ class COMPONENT_EXPORT(UI_BASE_IME_FUCHSIA) InputMethodFuchsia
+       public InputEventDispatcherDelegate,
+       public fuchsia::ui::input::InputMethodEditorClient {
+  public:
+-  explicit InputMethodFuchsia(internal::InputMethodDelegate* delegate);
++  InputMethodFuchsia(internal::InputMethodDelegate* delegate,
++                     gfx::AcceleratedWidget widget);
+   ~InputMethodFuchsia() override;
+ 
+   fuchsia::ui::input::ImeService* ime_service() const {
+diff --git a/ui/base/ime/init/input_method_factory.cc b/ui/base/ime/init/input_method_factory.cc
+index b9c988b2e82bb..5e98636a36c9c 100644
+--- a/ui/base/ime/init/input_method_factory.cc
++++ b/ui/base/ime/init/input_method_factory.cc
+@@ -66,7 +66,7 @@ std::unique_ptr<InputMethod> CreateInputMethod(
+ #elif defined(USE_X11)
+   return std::make_unique<InputMethodAuraLinux>(delegate);
+ #elif defined(USE_OZONE)
+-  return ui::OzonePlatform::GetInstance()->CreateInputMethod(delegate);
++  return ui::OzonePlatform::GetInstance()->CreateInputMethod(delegate, widget);
+ #else
+   return std::make_unique<InputMethodMinimal>(delegate);
+ #endif
+diff --git a/ui/ozone/platform/cast/ozone_platform_cast.cc b/ui/ozone/platform/cast/ozone_platform_cast.cc
+index ddf85e22f4b95..a2ce0266582fb 100644
+--- a/ui/ozone/platform/cast/ozone_platform_cast.cc
++++ b/ui/ozone/platform/cast/ozone_platform_cast.cc
+@@ -20,6 +20,7 @@
+ #include "ui/events/ozone/evdev/event_factory_evdev.h"
+ #include "ui/events/ozone/layout/keyboard_layout_engine_manager.h"
+ #include "ui/events/ozone/layout/stub/stub_keyboard_layout_engine.h"
++#include "ui/gfx/native_widget_types.h"
+ #include "ui/ozone/platform/cast/overlay_manager_cast.h"
+ #include "ui/ozone/platform/cast/platform_window_cast.h"
+ #include "ui/ozone/platform/cast/surface_factory_cast.h"
+@@ -109,7 +110,8 @@ class OzonePlatformCast : public OzonePlatform {
+     return nullptr;
+   }
+   std::unique_ptr<InputMethod> CreateInputMethod(
+-      internal::InputMethodDelegate* delegate) override {
++      internal::InputMethodDelegate* delegate,
++      gfx::AcceleratedWidget) override {
+     return std::make_unique<InputMethodMinimal>(delegate);
+   }
+ 
+diff --git a/ui/ozone/platform/drm/ozone_platform_gbm.cc b/ui/ozone/platform/drm/ozone_platform_gbm.cc
+index 8bd1ab4918e69..16d379a0e8951 100644
+--- a/ui/ozone/platform/drm/ozone_platform_gbm.cc
++++ b/ui/ozone/platform/drm/ozone_platform_gbm.cc
+@@ -25,6 +25,7 @@
+ #include "ui/events/ozone/evdev/event_factory_evdev.h"
+ #include "ui/events/ozone/layout/keyboard_layout_engine_manager.h"
+ #include "ui/gfx/linux/client_native_pixmap_dmabuf.h"
++#include "ui/gfx/native_widget_types.h"
+ #include "ui/ozone/platform/drm/common/drm_util.h"
+ #include "ui/ozone/platform/drm/gpu/drm_device_generator.h"
+ #include "ui/ozone/platform/drm/gpu/drm_device_manager.h"
+@@ -168,7 +169,8 @@ class OzonePlatformGbm : public OzonePlatform {
+     return std::make_unique<DrmNativeDisplayDelegate>(display_manager_.get());
+   }
+   std::unique_ptr<InputMethod> CreateInputMethod(
+-      internal::InputMethodDelegate* delegate) override {
++      internal::InputMethodDelegate* delegate,
++      gfx::AcceleratedWidget) override {
+ #if defined(OS_CHROMEOS)
+     return std::make_unique<InputMethodChromeOS>(delegate);
+ #else
+diff --git a/ui/ozone/platform/headless/ozone_platform_headless.cc b/ui/ozone/platform/headless/ozone_platform_headless.cc
+index c84e960f5f519..9d356f701e3e4 100644
+--- a/ui/ozone/platform/headless/ozone_platform_headless.cc
++++ b/ui/ozone/platform/headless/ozone_platform_headless.cc
+@@ -89,9 +89,10 @@ class OzonePlatformHeadless : public OzonePlatform {
+     return std::make_unique<HeadlessScreen>();
+   }
+   std::unique_ptr<InputMethod> CreateInputMethod(
+-      internal::InputMethodDelegate* delegate) override {
++      internal::InputMethodDelegate* delegate,
++      gfx::AcceleratedWidget widget) override {
+ #if defined(OS_FUCHSIA)
+-    return std::make_unique<InputMethodFuchsia>(delegate);
++    return std::make_unique<InputMethodFuchsia>(delegate, widget);
+ #else
+     return std::make_unique<InputMethodMinimal>(delegate);
+ #endif
+diff --git a/ui/ozone/platform/scenic/ozone_platform_scenic.cc b/ui/ozone/platform/scenic/ozone_platform_scenic.cc
+index 535751d99bbdd..d05d7fbe1faee 100644
+--- a/ui/ozone/platform/scenic/ozone_platform_scenic.cc
++++ b/ui/ozone/platform/scenic/ozone_platform_scenic.cc
+@@ -20,6 +20,7 @@
+ #include "ui/events/ozone/layout/keyboard_layout_engine_manager.h"
+ #include "ui/events/ozone/layout/stub/stub_keyboard_layout_engine.h"
+ #include "ui/events/platform/platform_event_source.h"
++#include "ui/gfx/native_widget_types.h"
+ #include "ui/ozone/common/stub_overlay_manager.h"
+ #include "ui/ozone/platform/scenic/scenic_gpu_host.h"
+ #include "ui/ozone/platform/scenic/scenic_gpu_service.h"
+@@ -118,8 +119,9 @@ class OzonePlatformScenic
+   }
+ 
+   std::unique_ptr<InputMethod> CreateInputMethod(
+-      internal::InputMethodDelegate* delegate) override {
+-    return std::make_unique<InputMethodFuchsia>(delegate);
++      internal::InputMethodDelegate* delegate,
++      gfx::AcceleratedWidget widget) override {
++    return std::make_unique<InputMethodFuchsia>(delegate, widget);
+   }
+ 
+   void InitializeUI(const InitParams& params) override {
+diff --git a/ui/ozone/platform/wayland/ozone_platform_wayland.cc b/ui/ozone/platform/wayland/ozone_platform_wayland.cc
+index e2b583d685fce..60f9d6e025a63 100644
+--- a/ui/ozone/platform/wayland/ozone_platform_wayland.cc
++++ b/ui/ozone/platform/wayland/ozone_platform_wayland.cc
+@@ -18,6 +18,7 @@
+ #include "ui/base/ime/linux/input_method_auralinux.h"
+ #include "ui/events/ozone/layout/keyboard_layout_engine_manager.h"
+ #include "ui/gfx/linux/client_native_pixmap_dmabuf.h"
++#include "ui/gfx/native_widget_types.h"
+ #include "ui/ozone/common/stub_overlay_manager.h"
+ #include "ui/ozone/platform/wayland/common/wayland_util.h"
+ #include "ui/ozone/platform/wayland/gpu/drm_render_node_path_finder.h"
+@@ -130,7 +131,8 @@ class OzonePlatformWayland : public OzonePlatform {
+   }
+ 
+   std::unique_ptr<InputMethod> CreateInputMethod(
+-      internal::InputMethodDelegate* delegate) override {
++      internal::InputMethodDelegate* delegate,
++      gfx::AcceleratedWidget) override {
+     return std::make_unique<InputMethodAuraLinux>(delegate);
+   }
+ 
+diff --git a/ui/ozone/platform/windows/ozone_platform_windows.cc b/ui/ozone/platform/windows/ozone_platform_windows.cc
+index 5f3f010241dc9..d6dee8a511cfd 100644
+--- a/ui/ozone/platform/windows/ozone_platform_windows.cc
++++ b/ui/ozone/platform/windows/ozone_platform_windows.cc
+@@ -15,6 +15,7 @@
+ #include "ui/events/ozone/layout/keyboard_layout_engine_manager.h"
+ #include "ui/events/ozone/layout/stub/stub_keyboard_layout_engine.h"
+ #include "ui/events/platform/platform_event_source.h"
++#include "ui/gfx/native_widget_types.h"
+ #include "ui/ozone/common/stub_overlay_manager.h"
+ #include "ui/ozone/platform/windows/windows_surface_factory.h"
+ #include "ui/ozone/platform/windows/windows_window.h"
+@@ -77,7 +78,8 @@ class OzonePlatformWindows : public OzonePlatform {
+     return std::make_unique<display::FakeDisplayDelegate>();
+   }
+   std::unique_ptr<InputMethod> CreateInputMethod(
+-      internal::InputMethodDelegate* delegate) override {
++      internal::InputMethodDelegate* delegate,
++      gfx::AcceleratedWidget) override {
+     NOTREACHED();
+     return nullptr;
+   }
+diff --git a/ui/ozone/platform/x11/ozone_platform_x11.cc b/ui/ozone/platform/x11/ozone_platform_x11.cc
+index 67e1e41dc407a..c2516477c56c6 100644
+--- a/ui/ozone/platform/x11/ozone_platform_x11.cc
++++ b/ui/ozone/platform/x11/ozone_platform_x11.cc
+@@ -15,6 +15,7 @@
+ #include "ui/events/ozone/layout/keyboard_layout_engine_manager.h"
+ #include "ui/events/ozone/layout/stub/stub_keyboard_layout_engine.h"
+ #include "ui/events/platform/x11/x11_event_source_default.h"
++#include "ui/gfx/native_widget_types.h"
+ #include "ui/gfx/x/x11_connection.h"
+ #include "ui/gfx/x/x11_types.h"
+ #include "ui/ozone/common/stub_overlay_manager.h"
+@@ -108,7 +109,8 @@ class OzonePlatformX11 : public OzonePlatform {
+   }
+ 
+   std::unique_ptr<InputMethod> CreateInputMethod(
+-      internal::InputMethodDelegate* delegate) override {
++      internal::InputMethodDelegate* delegate,
++      gfx::AcceleratedWidget) override {
+ #if defined(OS_CHROMEOS)
+     return std::make_unique<InputMethodChromeOS>(delegate);
+ #else
+diff --git a/ui/ozone/public/ozone_platform.h b/ui/ozone/public/ozone_platform.h
+index d37530f7f4372..c1d82b8ba5cce 100644
+--- a/ui/ozone/public/ozone_platform.h
++++ b/ui/ozone/public/ozone_platform.h
+@@ -14,6 +14,7 @@
+ #include "base/message_loop/message_pump_type.h"
+ #include "mojo/public/cpp/bindings/binder_map.h"
+ #include "ui/gfx/buffer_types.h"
++#include "ui/gfx/native_widget_types.h"
+ #include "ui/platform_window/platform_window.h"
+ #include "ui/platform_window/platform_window_delegate.h"
+ 
+@@ -149,7 +150,8 @@ class COMPONENT_EXPORT(OZONE) OzonePlatform {
+   virtual std::unique_ptr<PlatformScreen> CreateScreen() = 0;
+   virtual PlatformClipboard* GetPlatformClipboard();
+   virtual std::unique_ptr<InputMethod> CreateInputMethod(
+-      internal::InputMethodDelegate* delegate) = 0;
++      internal::InputMethodDelegate* delegate,
++      gfx::AcceleratedWidget widget) = 0;
+ 
+   // Returns true if the specified buffer format is supported.
+   virtual bool IsNativePixmapConfigSupported(gfx::BufferFormat format,

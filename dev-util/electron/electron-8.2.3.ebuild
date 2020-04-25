@@ -26,7 +26,6 @@ SRC_URI="
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
 "
 
-S="${WORKDIR}/${P}"
 CHROMIUM_S="${WORKDIR}/${CHROMIUM_P}"
 NODE_S="${CHROMIUM_S}/third_party/electron_node"
 ROOT_S="${WORKDIR}/src"
@@ -35,12 +34,14 @@ LICENSE="BSD"
 SLOT="8"
 KEYWORDS="~amd64"
 IUSE="atk clang custom-cflags lto ozone X wayland pipewire
-	component-build cups cpu_flags_arm_neon kerberos pic
-	+proprietary-codecs pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc"
+	component-build cups cpu_flags_arm_neon kerberos pic +proprietary-codecs
+	pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
-	lto? ( clang )"
+	lto? ( clang )
+	wayland? ( ozone )
+	|| ( X wayland )"
 
 COMMON_DEPEND="
 	atk? ( >=app-accessibility/at-spi2-atk-2.26:2 )
@@ -121,10 +122,6 @@ RDEPEND="${COMMON_DEPEND}
 "
 DEPEND="${COMMON_DEPEND}
 "
-REQUIRED_USE="
-	wayland? ( ozone )
-	|| ( X wayland )
-"
 # dev-vcs/git - https://bugs.gentoo.org/593476
 BDEPEND="
 	${PYTHON_DEPS}
@@ -182,6 +179,16 @@ pre_build_checks() {
 			if use component-build; then
 				die "Component build with clang requires fuzzer headers."
 			fi
+		fi
+	fi
+
+	if use ozone && use X; then
+		ewarn "Ozone platform for X11 of Electron 8 (Chromium 80) is WIP and will crash on startup"
+		ewarn "See https://github.com/electron/electron/issues/10915 for more information"
+		if [[ -z "${I_KNOW_WHAT_I_AM_DOING}" ]]; then
+			die "Please disable `ozone` amd `wayland` USE or use Electron 9"
+		else
+			ewarn "Continuing anyway as requested."
 		fi
 	fi
 
@@ -278,6 +285,7 @@ src_prepare() {
 	# Finally, apply Gentoo patches for Chromium.
 	cp -r "${FILESDIR}/${PV}/chromium/" "${WORKDIR}/chromium-patch"
 	use elibc_musl || rm -r "${WORKDIR}"/chromium-patch/musl*
+	use ozone || rm -r "${WORKDIR}"/chromium-patch/ozone*
 	eapply "${WORKDIR}"/chromium-patch
 
 	mkdir -p third_party/node/linux/node-linux-x64/bin || die
@@ -756,23 +764,23 @@ src_configure() {
 		--without-dtrace
 	)
 
-	use system-icu && nodeconf+=( --with-intl=system-icu ) || myconf+=( --with-intl=none )
+	use system-icu && nodeconf+=( --with-intl=system-icu ) || nodeconf+=( --with-intl=none )
 
-	local myarch=""
+	local nodearch=""
 	case ${ABI} in
-		amd64) myarch="x64";;
-		arm) myarch="arm";;
-		arm64) myarch="arm64";;
-		ppc64) myarch="ppc64";;
-		x32) myarch="x32";;
-		x86) myarch="ia32";;
-		*) myarch="${ABI}";;
+		amd64) nodearch="x64";;
+		arm) nodearch="arm";;
+		arm64) nodearch="arm64";;
+		ppc64) nodearch="ppc64";;
+		x32) nodearch="x32";;
+		x86) nodearch="ia32";;
+		*) nodearch="${ABI}";;
 	esac
 
 	"${EPYTHON}" configure.py \
-	--prefix="${EPREFIX}"/usr \
-	--dest-cpu=${myarch} \
-	"${myconf[@]}" || die
+	--prefix="" \
+	--dest-cpu=${nodearch} \
+	"${nodeconf[@]}" || die
 
 	popd > /dev/null || die
 
@@ -854,6 +862,8 @@ src_install() {
 	doins -r out/Release/resources
 
 	doins -r "${NODE_S}/deps/npm"
+
+	fperms -R 755 "${install_dir}/npm/bin/"
 
 	echo "${PV}" > out/Release/version
 	doins out/Release/version
