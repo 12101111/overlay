@@ -2,6 +2,9 @@
 
 This is my overlay. The patches and changes in it only apply to me, so it is not recommended to use it directly.
 
+Please follow the [official instruction](https://wiki.gentoo.org/wiki/Ebuild_repository#Masking_installed_but_unsafe_ebuild_repositories) to add this overlay,
+ and mask/unmask ebuild you don't want/want, otherwise your system may broke after installing some ebuild only for musl.
+
 ## Packages
 
 - [app-doc/zeal](https://github.com/zealdocs/zeal): live ebuild.
@@ -21,25 +24,24 @@ This is my overlay. The patches and changes in it only apply to me, so it is not
 - [media-libs/libtgvoip](https://github.com/telegramdesktop/libtgvoip): clang and musl fix
 - [media-im/tencent-qq](https://im.qq.com/linuxqq/download.html): 腾讯QQ Linux官方客户端
 - [net-libs/webkit-gtk](webkitgtk.org/): fix for musl
-- [net-proxy/qv2ray](https://github.com/Qv2ray/Qv2ray)
-- [net-proxy/qvplugin-ssr](https://github.com/Qv2ray/QvPlugin-SSR/)
+- [net-proxy/qv2ray](https://github.com/Qv2ray/Qv2ray): GUI fontend for v2ray
+- [net-proxy/qvplugin-ssr](https://github.com/Qv2ray/QvPlugin-SSR/): SSR plugin for Qv2ray
 - [sys-apps/attr](https://savannah.nongnu.org/projects/attr): fix issue with ld.gold and ld.lld. [Gentoo bugs](https://bugs.gentoo.org/644048)
 - [sys-apps/musl-locales](https://gitlab.com/rilian-la-te/musl-locales): `locale` for musl
 - [sys-devel/binutils](https://sourceware.org/binutils/): GNU binutils ebuild that can disable most component. Useful for llvm binutils users
 - virtual/libelf: use with elftoolchain
 - virtual/man: use busybox man instead of man-db
-- [www-client/chromium](https://github.com/chromium/chromium/): Chromium beta with ozone (Wayland and X11) support
-- www-client/firefox: Most changes is upstreamed
+- [www-client/chromium](https://github.com/chromium/chromium/): Chromium 83 beta with optional ozone (Wayland and X11) support
+- www-client/firefox: Firefox with patches for musl system. Most changes is upstreamed to musl overlay.
 - [www-client/otter](https://github.com/OtterBrowser/otter-browser): A dual backend(qtwebkit and qtwebengine) web browser with classic Opera (12.x) UI
-- x11-apps/igt-gpu-tools: remove sys-libs/libunwind dependence because conflict with llvm-libunwind
+- x11-apps/igt-gpu-tools: remove sys-libs/libunwind dependence because it conflict with llvm-libunwind
 
 ### TODO
 
 Chromiums:
 
 - [ ] [dev-qt/qtwebengine](https://github.com/qt/qtwebengine): musl support. [alpine linux patches](https://github.com/alpinelinux/aports/tree/master/community/qt5-qtwebengine)
-- [ ] [dev-util/electron](https://github.com/electron/electron/): musl support for electron-8
-- [ ] [dev-util/electron](https://github.com/electron/electron/): electron-9
+- [ ] [dev-util/electron](https://github.com/electron/electron/): add electron-9 when it's released
 - [ ] [www-client/chromium](https://github.com/chromium/chromium/): musl support.
 
 Webkits:
