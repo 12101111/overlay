@@ -3,7 +3,7 @@
 This is my overlay. The patches and changes in it only apply to me, so it is not recommended to use it directly.
 
 Please follow the [official instruction](https://wiki.gentoo.org/wiki/Ebuild_repository#Masking_installed_but_unsafe_ebuild_repositories) to add this overlay,
- and mask/unmask ebuild you don't want/want, otherwise your system may broke after installing some ebuild only for musl.
+ and mask/unmask ebuild you don't want/want, otherwise your system may break after installing some ebuild only for musl.
 
 ## Packages
 
