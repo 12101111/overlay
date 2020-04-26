@@ -24,6 +24,7 @@ SRC_URI="
 	https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
 	https://github.com/electron/electron/archive/v${PV}.tar.gz -> ${P}.tar.gz
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
+	https://github.com/12101111/overlay/releases/download/v2020-04-26/electron-7.2.3_node_modules.tar.xz
 "
 
 CHROMIUM_S="${WORKDIR}/${CHROMIUM_P}"
@@ -31,7 +32,7 @@ NODE_S="${CHROMIUM_S}/third_party/electron_node"
 ROOT_S="${WORKDIR}/src"
 
 LICENSE="BSD"
-SLOT="7"
+SLOT=${PV%%[.+]*}
 KEYWORDS="~amd64"
 IUSE="atk clang custom-cflags lto
 	component-build cups cpu_flags_arm_neon jumbo-build kerberos pic +proprietary-codecs
@@ -223,7 +224,6 @@ src_prepare() {
 	mkdir -p "${NODE_S}/" || die
 	rsync -a "${WORKDIR}/${NODE_P}/" "${NODE_S}/" || die
 
-	tar xf "${FILESDIR}"/${PV}/electron_node_modules.tar.xz -C "${WORKDIR}" || die
 	mv "${WORKDIR}/node_modules" "${S}/" || die
 
 	ln -s "${S}/" "${CHROMIUM_S}/electron" || die
