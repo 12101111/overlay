@@ -1,0 +1,32 @@
+diff --git a/product.json b/product.json
+index 759d765533..864c7188c5 100644
+--- a/product.json
++++ b/product.json
+@@ -1,4 +1,16 @@
+ {
++	"quality": "stable",
++	"extensionsGallery": {
++		"serviceUrl": "https://marketplace.visualstudio.com/_apis/public/gallery",
++		"cacheUrl": "https://vscode.blob.core.windows.net/gallery/index",
++		"itemUrl": "https://marketplace.visualstudio.com/items"
++	},
++	"documentationUrl": "https://code.visualstudio.com/docs",
++	"requestFeatureUrl": "https://github.com/Microsoft/vscode/issues",
++	"introductoryVideosUrl": "https://go.microsoft.com/fwlink/?linkid=832146",
++	"tipsAndTricksUrl": "https://go.microsoft.com/fwlink/?linkid=852118",
++	"keyboardShortcutsUrlLinux": "https://go.microsoft.com/fwlink/?linkid=832144",
++	"date": "@DATE@",
+ 	"nameShort": "Code - OSS",
+ 	"nameLong": "Code - OSS",
+ 	"applicationName": "code-oss",
+@@ -21,6 +33,9 @@
+ 	"reportIssueUrl": "https://github.com/Microsoft/vscode/issues/new",
+ 	"urlProtocol": "code-oss",
+ 	"extensionAllowedProposedApi": [
++		"ms-vscode-remote.remote-containers",
++		"ms-vscode-remote.remote-ssh",
++		"ms-vsliveshare.vsliveshare",
+ 		"ms-vscode.references-view"
+ 	]
+ }
+

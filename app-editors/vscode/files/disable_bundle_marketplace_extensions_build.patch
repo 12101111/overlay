@@ -1,0 +1,13 @@
+diff --git a/build/gulpfile.extensions.js b/build/gulpfile.extensions.js
+index 25cccf6d8e..1e68c01c5a 100644
+--- a/build/gulpfile.extensions.js
++++ b/build/gulpfile.extensions.js
+@@ -162,7 +162,7 @@ const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimr
+ const compileExtensionsBuildTask = task.define('compile-extensions-build', task.series(
+ 	cleanExtensionsBuildTask,
+ 	task.define('bundle-extensions-build', () => ext.packageLocalExtensionsStream().pipe(gulp.dest('.build'))),
+-	task.define('bundle-marketplace-extensions-build', () => ext.packageMarketplaceExtensionsStream().pipe(gulp.dest('.build'))),
++	//task.define('bundle-marketplace-extensions-build', () => ext.packageMarketplaceExtensionsStream().pipe(gulp.dest('.build'))),
+ ));
+ 
+ gulp.task(compileExtensionsBuildTask);

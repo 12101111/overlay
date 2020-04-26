@@ -1,0 +1,13 @@
+diff --git a/src/vs/base/node/macAddress.ts b/src/vs/base/node/macAddress.ts
+index 524b136c06..63908993ca 100644
+--- a/src/vs/base/node/macAddress.ts
++++ b/src/vs/base/node/macAddress.ts
+@@ -8,7 +8,7 @@ import { isWindows } from 'vs/base/common/platform';
+ 
+ const cmdline = {
+ 	windows: 'getmac.exe',
+-	unix: '/sbin/ifconfig -a || /sbin/ip link'
++	unix: '/bin/ifconfig -a || /bin/ip link'
+ };
+ 
+ const invalidMacAddresses = new Set([
