@@ -27,7 +27,7 @@ if [[ ${MOZ_ESR} == 1 ]] ; then
 fi
 
 # Patch version
-PATCH="${PN}-75.0-patches-5"
+PATCH="${PN}-75.0-patches-6"
 
 MOZ_HTTP_URI="https://archive.mozilla.org/pub/${PN}/releases"
 MOZ_SRC_URI="${MOZ_HTTP_URI}/${MOZ_PV}/source/firefox-${MOZ_PV}.source.tar.xz"
@@ -91,7 +91,7 @@ CDEPEND="
 	>=dev-libs/glib-2.26:2
 	>=sys-libs/zlib-1.2.3
 	>=dev-libs/libffi-3.0.10:=
-	virtual/ffmpeg
+	media-video/ffmpeg
 	x11-libs/libX11
 	x11-libs/libXcomposite
 	x11-libs/libXdamage
@@ -132,6 +132,7 @@ DEPEND="${CDEPEND}
 	app-arch/unzip
 	>=dev-util/cbindgen-0.13.0
 	>=net-libs/nodejs-10.19.0
+	>=sys-devel/binutils-2.30
 	sys-apps/findutils
 	|| (
 		(
@@ -139,6 +140,7 @@ DEPEND="${CDEPEND}
 			!clang? ( sys-devel/llvm:10 )
 			clang? (
 				=sys-devel/lld-10*
+				sys-devel/llvm:10
 				pgo? ( =sys-libs/compiler-rt-sanitizers-10*[profile] )
 			)
 		)
@@ -147,6 +149,7 @@ DEPEND="${CDEPEND}
 			!clang? ( sys-devel/llvm:9 )
 			clang? (
 				=sys-devel/lld-9*
+				sys-devel/llvm:9
 				pgo? ( =sys-libs/compiler-rt-sanitizers-9*[profile] )
 			)
 		)
@@ -155,6 +158,7 @@ DEPEND="${CDEPEND}
 			!clang? ( sys-devel/llvm:8 )
 			clang? (
 				=sys-devel/lld-8*
+				sys-devel/llvm:8
 				pgo? ( =sys-libs/compiler-rt-sanitizers-8*[profile] )
 			)
 		)
@@ -163,6 +167,7 @@ DEPEND="${CDEPEND}
 			!clang? ( sys-devel/llvm:7 )
 			clang? (
 				=sys-devel/lld-7*
+				sys-devel/llvm:7
 				pgo? ( =sys-libs/compiler-rt-sanitizers-7*[profile] )
 			)
 		)
@@ -259,6 +264,15 @@ pkg_pretend() {
 
 pkg_setup() {
 	moz_pkgsetup
+
+	# Ensure we have enough disk space to compile
+	if use pgo || use lto || use debug || use test ; then
+		CHECKREQS_DISK_BUILD="8G"
+	else
+		CHECKREQS_DISK_BUILD="4G"
+	fi
+
+	check-reqs_pkg_setup
 
 	# Avoid PGO profiling problems due to enviroment leakage
 	# These should *always* be cleaned up anyway
