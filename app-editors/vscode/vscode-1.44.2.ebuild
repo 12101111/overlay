@@ -17,7 +17,7 @@ ELECTRON_PREBUILT="https://github.com/electron/electron/releases/download"
 ELECTRON_VERSION="7.2.3"
 ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 
-KEYWORDS="~amd64 ~x86"
+KEYWORDS="~amd64"
 LICENSE="MIT"
 SLOT="0"
 IUSE="system-electron system-ripgrep"
@@ -178,13 +178,16 @@ src_install() {
 	save_config product.json
 
 	local vscode_path="/usr/$(get_libdir)/vscode"
-	insinto ${vscode_path}
+	insinto "${vscode_path}"
 
 	if use system-electron ; then
 		doins -r "${WORKDIR}/VSCode-linux-x64/resources"
 		doins -r "${WORKDIR}/VSCode-linux-x64/bin"
 	else
-		doins -r "${WORKDIR}/VSCode-linux-x64/*"
+		insinto "/usr/$(get_libdir)"
+		doins -r "${WORKDIR}/VSCode-linux-x64"
+		mv "${ED}usr/$(get_libdir)/VSCode-linux-x64" "${ED}${vscode_path}"
+		insinto "${vscode_path}"
 	fi
 
 	local app_name="$(ls ${ED}${vscode_path}/bin)"
