@@ -21,7 +21,7 @@ DEPEND="
 	dev-qt/qtgui:5
 	dev-qt/qtnetwork:5
 	dev-qt/qtsql:5[sqlite]
-	dev-qt/qtwebkit:5
+	dev-qt/qtwebengine:5
 	dev-qt/qtwidgets:5
 	dev-qt/qtx11extras:5
 	kde-frameworks/extra-cmake-modules:5
