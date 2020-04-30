@@ -36,7 +36,7 @@ SLOT=${PV%%[.+]*}
 KEYWORDS="~amd64"
 IUSE="atk clang custom-cflags lto ozone X wayland pipewire
 	component-build cups cpu_flags_arm_neon kerberos pic +proprietary-codecs
-	pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc"
+	pulseaudio selinux +suid +system-ffmpeg system-icu +system-libvpx +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
@@ -51,7 +51,7 @@ COMMON_DEPEND="
 	atk? ( >=dev-libs/atk-2.26 )
 	dev-libs/expat:=
 	dev-libs/glib:2
-	system-icu? ( >=dev-libs/icu-65:= )
+	system-icu? ( <dev-libs/icu-67:= )
 	>=dev-libs/libxml2-2.9.4-r3:=[icu]
 	dev-libs/libxslt:=
 	dev-libs/nspr:=
