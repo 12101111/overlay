@@ -79,8 +79,9 @@ DEPEND="${RDEPEND}
 "
 
 PATCHES=(
-	"${FILESDIR}/${P}-disable-fatal-warnings.patch" # bug 695446
-	"${FILESDIR}/${P}-gn-accept-flags.patch"
+	"${FILESDIR}/${PN}-5.14.1-disable-fatal-warnings.patch" # bug 695446
+	"${FILESDIR}/${PN}-5.14.2-icu67.patch"
+	"${FILESDIR}/${PN}-5.14.2-gn-accept-flags.patch"
 )
 
 src_prepare() {
@@ -94,7 +95,8 @@ src_prepare() {
 		-i src/3rdparty/chromium/tools/gn/bootstrap/bootstrap.py || die
 
 	# bug 620444 - ensure local headers are used
-	find "${S}" -type f -name "*.pr[fio]" | xargs sed -i -e 's|INCLUDEPATH += |&$$QTWEBENGINE_ROOT/include |' || die
+	find "${S}" -type f -name "*.pr[fio]" | \
+		xargs sed -i -e 's|INCLUDEPATH += |&$${QTWEBENGINE_ROOT}_build/include $${QTWEBENGINE_ROOT}/include |' || die
 
 	if use system-icu; then
 		# Sanity check to ensure that bundled copy of ICU is not used.
