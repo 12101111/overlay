@@ -1,4 +1,4 @@
-# Copyright 2009-2020 Gentoo Authors
+# Copyright 1999-2020 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -11,9 +11,9 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-utils portability python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils
 
 # Keep this in sync with DEPS:chromium_version
-CHROMIUM_VERSION="80.0.3987.163"
+CHROMIUM_VERSION="78.0.3904.108"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="12.13.0"
+NODE_VERSION="12.8.1"
 
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 NODE_P="node-${NODE_VERSION}"
@@ -24,7 +24,7 @@ SRC_URI="
 	https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
 	https://github.com/electron/electron/archive/v${PV}.tar.gz -> ${P}.tar.gz
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
-	https://github.com/12101111/overlay/releases/download/v2020-04-26/electron-8.2.3_node_modules.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-04-26/electron-7.2.3_node_modules.tar.xz
 "
 
 CHROMIUM_S="${WORKDIR}/${CHROMIUM_P}"
@@ -34,15 +34,13 @@ ROOT_S="${WORKDIR}/src"
 LICENSE="BSD"
 SLOT=${PV%%[.+]*}
 KEYWORDS="~amd64"
-IUSE="atk clang custom-cflags lto ozone X wayland pipewire
-	component-build cups cpu_flags_arm_neon kerberos pic +proprietary-codecs
-	pulseaudio selinux +suid +system-ffmpeg system-icu +system-libvpx +tcmalloc"
+IUSE="atk clang custom-cflags lto
+	component-build cups cpu_flags_arm_neon jumbo-build kerberos pic +proprietary-codecs
+	pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
-	lto? ( clang )
-	wayland? ( ozone )
-	|| ( X wayland )"
+	lto? ( clang )"
 
 COMMON_DEPEND="
 	atk? ( >=app-accessibility/at-spi2-atk-2.26:2 )
@@ -51,19 +49,19 @@ COMMON_DEPEND="
 	atk? ( >=dev-libs/atk-2.26 )
 	dev-libs/expat:=
 	dev-libs/glib:2
-	system-icu? ( <dev-libs/icu-67:= )
+	system-icu? ( >=dev-libs/icu-64:= )
 	>=dev-libs/libxml2-2.9.4-r3:=[icu]
 	dev-libs/libxslt:=
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.26:=
-	>=dev-libs/re2-0.2019.08.01:=
+	>=dev-libs/re2-0.2016.11.01:=
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
 	media-libs/freetype:=
 	>=media-libs/harfbuzz-2.4.0:0=[icu(-)]
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
-	system-libvpx? ( media-libs/libvpx:=[postproc,svc] )
+	system-libvpx? ( >=media-libs/libvpx-1.8.0:=[postproc,svc] )
 	>=media-libs/openh264-1.6.0:=
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
@@ -72,49 +70,43 @@ COMMON_DEPEND="
 			media-video/ffmpeg[-samba]
 			>=net-fs/samba-4.5.10-r1[-debug(-)]
 		)
-		>=media-libs/opus-1.3.1:=
+		!=net-fs/samba-4.5.12-r0
+		media-libs/opus:=
 	)
 	sys-apps/dbus:=
 	sys-apps/pciutils:=
 	virtual/udev
-	X? (
-		x11-libs/cairo:=
-		x11-libs/pango:=
-		x11-libs/libX11:=
-		x11-libs/libXcomposite:=
-		x11-libs/libXcursor:=
-		x11-libs/libXdamage:=
-		x11-libs/libXext:=
-		x11-libs/libXfixes:=
-		>=x11-libs/libXi-1.6.0:=
-		x11-libs/libXrandr:=
-		x11-libs/libXrender:=
-		x11-libs/libXScrnSaver:=
-		x11-libs/libXtst:=
-	)
-	wayland? (
-		x11-libs/libxkbcommon:=
-		dev-libs/wayland:=
-		x11-libs/libdrm:=
-	)
+	x11-libs/cairo:=
 	x11-libs/gdk-pixbuf:2
 	x11-libs/gtk+:3[X]
+	x11-libs/libX11:=
+	x11-libs/libXcomposite:=
+	x11-libs/libXcursor:=
+	x11-libs/libXdamage:=
+	x11-libs/libXext:=
+	x11-libs/libXfixes:=
+	>=x11-libs/libXi-1.6.0:=
+	x11-libs/libXrandr:=
+	x11-libs/libXrender:=
+	x11-libs/libXScrnSaver:=
+	x11-libs/libXtst:=
+	x11-libs/pango:=
 	x11-libs/libnotify:=
 	app-arch/snappy:=
 	media-libs/flac:=
 	>=media-libs/libwebp-0.4.0:=
 	sys-libs/zlib:=[minizip]
 	>=net-dns/c-ares-1.15.0
-	>=net-libs/http-parser-2.9.0:=
+	>=net-libs/http-parser-2.8.0:=
 	>=net-libs/nghttp2-1.39.2
 	dev-libs/libevent:=
 	>=dev-libs/openssl-1.1.1:0=
 	kerberos? ( virtual/krb5 )
-	pipewire? ( media-video/pipewire )
 	app-eselect/eselect-electron
 "
 # For nvidia-drivers blocker, see bug #413637 .
 RDEPEND="${COMMON_DEPEND}
+	!<dev-util/electron-0.36.12-r4
 	x11-misc/xdg-utils
 	virtual/opengl
 	virtual/ttf-fonts
@@ -175,21 +167,6 @@ pre_build_checks() {
 		# component build hangs with tcmalloc enabled due to sandbox issue, bug #695976.
 		if has usersandbox ${FEATURES} && use tcmalloc && use component-build; then
 			die "Component build with tcmalloc requires FEATURES=-usersandbox."
-		fi
-		if use clang || tc-is-clang; then
-			if use component-build; then
-				die "Component build with clang requires fuzzer headers."
-			fi
-		fi
-	fi
-
-	if use ozone && use X; then
-		ewarn "Ozone platform for X11 of Electron 8 (Chromium 80) is WIP and will crash on startup"
-		ewarn "See https://github.com/electron/electron/issues/10915 for more information"
-		if [[ -z "${I_KNOW_WHAT_I_AM_DOING}" ]]; then
-			die "Please disable `ozone` amd `wayland` USE or use Electron 9"
-		else
-			ewarn "Continuing anyway as requested."
 		fi
 	fi
 
@@ -253,39 +230,22 @@ src_prepare() {
 
 	# Apply Gentoo patches for Electron itself.
 	cd "${CHROMIUM_S}/electron" || die
-
-	cp -r "${FILESDIR}/${PV}/electron/" "${WORKDIR}/electron-patch"
-	use ozone || rm -r "${WORKDIR}"/electron-patch/ozone*
-	eapply ""${WORKDIR}"/electron-patch"
+	eapply "${FILESDIR}/${PV}/electron/"
 
 	# Apply Chromium patches from Electron.
-	cd "${WORKDIR}" || die
-	local repopath
-	("${EPYTHON}" "${S}/script/list_patch_targets.py" \
+	local patchespath repopath
+	("${EPYTHON}" "${FILESDIR}/list_patch_targets.py" \
 		"${S}/patches/config.json" || die) \
-	| while read -r repopath; do
-		cd "${repopath}"
-		ebegin "Initializing git repo at ${repopath}"
-		git init -q || die
-		git config "gc.auto" "0"
-		if [ "${repopath}" != "src" ]; then
-			echo "/${repopath#src/}" >> "${CHROMIUM_S}/.gitignore"
-		fi
-		git add . || die
-		git -c 'user.name=Electron Ebuild' -c 'user.email=electron@ebuild' \
-			commit -q -m "." || die
-		cd "${WORKDIR}"
-		eend
+	| while read -r patchespath repopath; do
+		einfo "Apply Electron's patches to ${repopath}"
+		cd "${WORKDIR}/${repopath}" || die
+		eapply "${WORKDIR}/${patchespath}"
 	done
-
-	"${EPYTHON}" "${S}/script/apply_all_patches.py" \
-		"${S}/patches/config.json" || die
 
 	cd "${CHROMIUM_S}" || die
 	# Finally, apply Gentoo patches for Chromium.
 	cp -r "${FILESDIR}/${PV}/chromium/" "${WORKDIR}/chromium-patch"
 	use elibc_musl || rm -r "${WORKDIR}"/chromium-patch/musl*
-	use ozone || rm -r "${WORKDIR}"/chromium-patch/ozone*
 	eapply "${WORKDIR}"/chromium-patch
 
 	mkdir -p third_party/node/linux/node-linux-x64/bin || die
@@ -331,6 +291,9 @@ src_prepare() {
 		third_party/blink
 		third_party/boringssl
 		third_party/boringssl/src/third_party/fiat
+		third_party/boringssl/src/third_party/sike
+		third_party/boringssl/linux-aarch64/crypto/third_party/sike
+		third_party/boringssl/linux-x86_64/crypto/third_party/sike
 		third_party/breakpad
 		third_party/breakpad/breakpad/src/third_party/curl
 		third_party/brotli
@@ -361,13 +324,11 @@ src_prepare() {
 		third_party/dawn
 		third_party/depot_tools
 		third_party/devscripts
-		third_party/devtools-frontend
-		third_party/devtools-frontend/src/third_party
 		third_party/dom_distiller_js
 		third_party/emoji-segmenter
 		third_party/flatbuffers
+		third_party/flot
 		third_party/freetype
-		third_party/libgifcodec
 		third_party/glslang
 		third_party/google_input_tools
 		third_party/google_input_tools/third_party/closure_library
@@ -435,6 +396,7 @@ src_prepare() {
 		third_party/skia
 		third_party/skia/include/third_party/skcms
 		third_party/skia/include/third_party/vulkan
+		third_party/skia/third_party/gif
 		third_party/skia/third_party/skcms
 		third_party/skia/third_party/vulkan
 		third_party/smhasher
@@ -444,7 +406,6 @@ src_prepare() {
 		third_party/swiftshader
 		third_party/swiftshader/third_party/llvm-7.0
 		third_party/swiftshader/third_party/llvm-subzero
-		third_party/swiftshader/third_party/marl
 		third_party/swiftshader/third_party/subzero
 		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
 		third_party/unrar
@@ -462,7 +423,6 @@ src_prepare() {
 		third_party/webrtc/rtc_base/third_party/sigslot
 		third_party/widevine
 		third_party/woff2
-		third_party/wuffs
 		third_party/zlib/google
 		tools/grit/third_party/six
 		url/third_party/mozilla
@@ -493,13 +453,11 @@ src_prepare() {
 	if use tcmalloc; then
 		keeplibs+=( third_party/tcmalloc )
 	fi
-	if use wayland ; then
-		keeplibs+=( third_party/wayland )
-		keeplibs+=( third_party/minigbm )
-	fi
 
+	ebegin "Remove bundled libraries"
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
+	eend
 
 	eapply_user
 }
@@ -549,14 +507,12 @@ src_configure() {
 	# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
 	myconf_gn+=" is_debug=false"
 
-	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
-		# FIXME: need more test on debug build
-		myconf_gn+=" blink_symbol_level=0"
-	fi
-
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
+
+	# https://chromium.googlesource.com/chromium/src/+/lkcr/docs/jumbo.md
+	myconf_gn+=" use_jumbo_build=$(usex jumbo-build true false)"
 
 	if use elibc_musl;then
 		if use tcmalloc; then
@@ -584,7 +540,7 @@ src_configure() {
 		fontconfig
 		freetype
 		# Need harfbuzz_from_pkgconfig target
-		harfbuzz-ng # FIXME
+		harfbuzz-ng
 		libdrm
 		libevent
 		libjpeg
@@ -620,25 +576,6 @@ src_configure() {
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
 	myconf_gn+=" use_atk=$(usex atk true false)"
-	myconf_gn+=" rtc_use_pipewire=$(usex pipewire true false)"
-
-	myconf_gn+=" use_glib=true"
-
-	if use ozone; then
-		# FIXME: ozone need some patches 
-		myconf_gn+=" use_ozone=true"
-		myconf_gn+=" ozone_auto_platforms=false"
-		if use X; then
-			myconf_gn+=" ozone_platform_x11=true"
-		fi
-		if use wayland ; then
-			myconf_gn+=" ozone_platform_wayland=true"
-			myconf_gn+=" use_system_libwayland=true"
-			myconf_gn+=" use_system_libdrm=true"
-			#myconf_gn+=" use_system_minigbm=true"
-		fi
-		myconf_gn+=" use_xkbcommon=true"
-	fi
 
 	# TODO: link_pulseaudio=true for GN.
 
@@ -654,7 +591,6 @@ src_configure() {
 		myconf_gn+=" use_lld=true"
 		myconf_gn+=" thin_lto_enable_optimizations=true"
 	else
-		# Disable forced lld, bug 641556
 		myconf_gn+=" use_lld=false"
 	fi
 
@@ -672,6 +608,7 @@ src_configure() {
 	myconf_gn+=" google_api_key=\"${google_api_key}\""
 	myconf_gn+=" google_default_client_id=\"${google_default_client_id}\""
 	myconf_gn+=" google_default_client_secret=\"${google_default_client_secret}\""
+
 	local myarch="$(tc-arch)"
 
 	# Avoid CFLAGS problems, bug #352457, bug #390147.
@@ -747,7 +684,6 @@ src_configure() {
 		myconf_gn+=" icu_use_data_file=false"
 	fi
 
-	# This configutation can generate config.gypi
 	einfo "Configuring bundled nodejs..."
 	pushd "${NODE_S}" > /dev/null || die
 	# --shared-libuv cannot be used as electron's node fork
@@ -818,7 +754,7 @@ src_compile() {
 	# Even though ninja autodetects number of CPUs, we respect
 	# user's options, for debugging with -j 1 or any other reason.
 	eninja -C out/Release electron chromedriver
-	# FIXME: Is this useful?
+
 	use suid && eninja -C out/Release chrome_sandbox
 
 	pax-mark m out/Release/electron
@@ -840,15 +776,13 @@ src_install() {
 	exeinto "${install_dir}"
 	doexe out/Release/electron
 	doexe out/Release/chromedriver
-	# FIXME: Is this useful?
 	doexe out/Release/mksnapshot
-	doexe out/Release/crashpad_handler
 	if use suid; then
 		newexe out/Release/chrome_sandbox chrome-sandbox
 		fperms 4755 "${install_dir}"/chrome-sandbox
 	fi
 
-	# 0644
+	doins out/Release/natives_blob.bin
 	doins out/Release/snapshot_blob.bin
 	doins out/Release/v8_context_snapshot.bin
 	doins out/Release/chrome_100_percent.pak
@@ -862,7 +796,6 @@ src_install() {
 	doins -r out/Release/resources
 
 	doins -r "${NODE_S}/deps/npm"
-
 	fperms -R 755 "${install_dir}/npm/bin/"
 
 	echo "${PV}" > out/Release/version
@@ -876,6 +809,7 @@ src_install() {
 		insinto "${install_dir}"/swiftshader
 		doins out/Release/swiftshader/libEGL.so
 		doins out/Release/swiftshader/libGLESv2.so
+		doins out/Release/swiftshader/libvk_swiftshader.so
 	fi
 
 	insinto "${install_dir}"
@@ -883,17 +817,8 @@ src_install() {
 		doins out/Release/libffmpeg.so
 	fi
 
-	doins out/Release/libvk_swiftshader.so
-
-	# FIXME: don't exist in ozone?
-	if ! use ozone; then
-		doins out/Release/libEGL.so
-		doins out/Release/libGLESv2.so
-		insopts -m644
-		doins out/Release/vk_swiftshader_icd.json
-	else
-		doins out/Release/libminigbm.so
-	fi
+	doins out/Release/libEGL.so
+	doins out/Release/libGLESv2.so
 
 	cat >out/Release/node <<EOF
 #!/bin/sh
