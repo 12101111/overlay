@@ -14,7 +14,7 @@ RG_VERSION="11.0.1-2"
 VSCODE_RIPGREP_VERSION="1.5.8 1.5.7"
 
 ELECTRON_PREBUILT="https://github.com/electron/electron/releases/download"
-ELECTRON_VERSION="7.2.3"
+ELECTRON_VERSION="7.2.4"
 ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 
 KEYWORDS="~amd64"
@@ -36,11 +36,13 @@ SRC_URI="
 		arm64? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-aarch64-unknown-linux-gnu.tar.gz )
 		ppc64? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-powerpc64le-unknown-linux-gnu.tar.gz )
 	)
-	https://atom.io/download/electron/v${ELECTRON_VERSION}/node-v${ELECTRON_VERSION}-headers.tar.gz -> electron-v${ELECTRON_VERSION}-headers.tar.gz
-	amd64? ( ${ELECTRON_PREBUILT}/v${ELECTRON_VERSION}/electron-v${ELECTRON_VERSION}-linux-x64.zip )
-	x86? ( ${ELECTRON_PREBUILT}/v${ELECTRON_VERSION}/electron-v${ELECTRON_VERSION}-linux-ia32.zip )
-	arm? ( ${ELECTRON_PREBUILT}/v${ELECTRON_VERSION}/electron-v${ELECTRON_VERSION}-linux-armv7l.zip )
-	arm64? ( ${ELECTRON_PREBUILT}/v${ELECTRON_VERSION}/electron-v${ELECTRON_VERSION}-linux-arm64.zip )
+	!system-electron? (
+		https://atom.io/download/electron/v${ELECTRON_VERSION}/node-v${ELECTRON_VERSION}-headers.tar.gz -> electron-v${ELECTRON_VERSION}-headers.tar.gz
+		amd64? ( ${ELECTRON_PREBUILT}/v${ELECTRON_VERSION}/electron-v${ELECTRON_VERSION}-linux-x64.zip )
+		x86? ( ${ELECTRON_PREBUILT}/v${ELECTRON_VERSION}/electron-v${ELECTRON_VERSION}-linux-ia32.zip )
+		arm? ( ${ELECTRON_PREBUILT}/v${ELECTRON_VERSION}/electron-v${ELECTRON_VERSION}-linux-armv7l.zip )
+		arm64? ( ${ELECTRON_PREBUILT}/v${ELECTRON_VERSION}/electron-v${ELECTRON_VERSION}-linux-arm64.zip )
+	)
 "
 
 BDEPEND="
@@ -58,7 +60,10 @@ DEPEND="
 	>=dev-libs/oniguruma-6.6.0:=
 	x11-libs/libxkbfile
 	system-ripgrep? ( sys-apps/ripgrep )
-	system-electron? ( dev-util/electron:${ELECTRON_SLOT} )
+	system-electron? (
+		dev-util/electron:${ELECTRON_SLOT}
+		app-arch/zip
+	)
 "
 
 RDEPEND="
@@ -103,33 +108,29 @@ src_prepare() {
 	default
 
 	export PATH="/usr/$(get_libdir)/node_modules/npm/bin/node-gyp-bin:${PATH}"
+	# https://github.com/joaomoreno/gulp-atom-electron/blob/master/src/download.js#L16
 	local electron_cache_path="${TMPDIR}/gulp-electron-cache/atom/electron/"
 	mkdir -p "${electron_cache_path}"
-	local electron_zip="$(get_electron_prebuilt_zip_name)"
-	#if use system-electron; then
+	if use system-electron; then
 		# Build native modules for system electron
-	#	local electron_target="$(get_local_electron_version)"
-	#	einfo "Build against Electron ${electron_target}"
-	#	sed -i "s/^target .*/target \"${electron_target//v/}\"/" ${S}/.yarnrc
+		local electron_version="$(get_local_electron_version)"
+		local electron_zip="$(get_electron_prebuilt_zip_name ${electron_version})"
+		einfo "Build against Electron ${electron_version}"
+		sed -i "s/^target .*/target \"${electron_version//v/}\"/" ${S}/.yarnrc
 
 		# use local electron node headers
-	#	echo "nodedir $(get_electron_nodedir)" >> ${S}/.yarnrc
-	#	echo "nodedir /usr/include/node/" >> ${S}/remote/.yarnrc
+		echo "nodedir $(get_electron_nodedir)" >> ${S}/.yarnrc
+		echo "nodedir /usr/include/node/" >> ${S}/remote/.yarnrc
 
-		# make a fake electron zip
-	#	mkdir ${WORKDIR}/electron
-	#	pushd ${WORKDIR}/electron > /dev/null || die
-		# crate_fake_bin "$(get_electron_dir)/electron" electron
-	#	cp -r $(get_electron_dir)/{electron,*.pak,*.bin,version,locales} .
-	#	zip -y "${electron_zip}" *
-
-		# move electron zip to cache directory
-		# https://github.com/joaomoreno/gulp-atom-electron/blob/master/src/download.js#L16
-	#	mv "${electron_zip}" "${electron_cache_path}"
-
-	#	popd > /dev/null || die
-	#else
+		einfo "making a ${electron_zip} from local electron"
+		pushd "$(get_electron_dir)" > /dev/null || die
+		zip -0yr "${electron_cache_path}/${electron_zip}" * \
+			--exclude="chrome-sandbox" --exclude="chromedriver" --exclude="mksnapshot" \
+			--exclude="npm/*" --exclude="resources/*"
+		popd > /dev/null || die
+	else
 		# Build native modules for cached electron
+		local electron_zip="$(get_electron_prebuilt_zip_name ${ELECTRON_VERSION})"
 		einfo "Build against Electron v${ELECTRON_VERSION}"
 		sed -i "s/^target .*/target \"${ELECTRON_VERSION//v/}\"/" "${S}/.yarnrc"
 
@@ -138,7 +139,7 @@ src_prepare() {
 		echo "nodedir /usr/include/node/" >> "${S}/remote/.yarnrc"
 
 		cp "${DISTDIR}/${electron_zip}" "${electron_cache_path}"
-	#fi
+	fi
 
 	# use offline cache
 	echo 'yarn-offline-mirror "../offline-cache"' >> ${S}/.yarnrc
@@ -191,7 +192,10 @@ src_install() {
 	fi
 
 	local app_name="$(ls ${ED}${vscode_path}/bin)"
-	mv "${ED}${vscode_path}/bin/${app_name}" "${ED}${vscode_path}/bin/code"
+	if [[ "${app_name}" != "code" ]];then
+		mv "${ED}${vscode_path}/bin/${app_name}" "${ED}${vscode_path}/bin/code"
+	fi
+
 	sed -i "s/VSCODE_PATH=\"\/usr\/share\/${app_name}\"/VSCODE_PATH=\"\/usr\/$(get_libdir)\/vscode\"/g" \
 		"${ED}${vscode_path}/bin/code"
 
@@ -209,6 +213,7 @@ src_install() {
 
 	fperms -R 755 ${vscode_path}/bin/code
 	fperms -R 755 ${vscode_path}/resources/app/node_modules.asar.unpacked/
+	fperms -R 755 ${vscode_path}/resources/app/out/vs/base/node/
 	dosym ${vscode_path}/bin/code /usr/bin/code
 }
 
@@ -256,11 +261,11 @@ get_electron_prebuilt_zip_name() {
 		arm64) myarch="arm64";;
 		*);;
 	esac
-	echo "electron-v${ELECTRON_VERSION}-linux-${myarch}.zip"
+	echo "electron-v$1-linux-${myarch}.zip"
 }
 
 crate_fake_bin() {
-	echo "#!/bin/sh" > "$2"
+	echo "#\!/bin/sh" > "$2"
 	echo "${1} \$@" >> "$2"
 	chmod +x "$2"
 }
