@@ -32,7 +32,7 @@ NODE_S="${CHROMIUM_S}/third_party/electron_node"
 ROOT_S="${WORKDIR}/src"
 
 LICENSE="BSD"
-SLOT=${PV%%[.+]*}
+SLOT="${PV%%.*}"
 KEYWORDS="~amd64"
 IUSE="atk clang custom-cflags lto ozone X wayland pipewire
 	component-build cups cpu_flags_arm_neon kerberos pic +proprietary-codecs
