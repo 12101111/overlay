@@ -1,0 +1,13 @@
+diff --git a/patches/chromium/feat_offscreen_rendering_with_viz_compositor.patch b/patches/chromium/feat_offscreen_rendering_with_viz_compositor.patch
+index 6b5643b4a..8c5472601 100644
+--- a/patches/chromium/feat_offscreen_rendering_with_viz_compositor.patch
++++ b/patches/chromium/feat_offscreen_rendering_with_viz_compositor.patch
+@@ -363,7 +363,7 @@ index 0000000000000000000000000000000000000000..3865939d0445a23a468770f57207ba5e
+ +#endif
+ +
+ +#include <memory>
+-+
+++#include "base/threading/thread_checker.h"
+ +#include "components/viz/host/host_display_client.h"
+ +#include "components/viz/service/display/software_output_device.h"
+ +#include "components/viz/service/viz_service_export.h"
