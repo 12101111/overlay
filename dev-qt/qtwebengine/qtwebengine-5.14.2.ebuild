@@ -82,9 +82,31 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.14.1-disable-fatal-warnings.patch" # bug 695446
 	"${FILESDIR}/${PN}-5.14.2-icu67.patch"
 	"${FILESDIR}/${PN}-5.14.2-gn-accept-flags.patch"
+	"${FILESDIR}/yasm-nls.patch"
 )
 
 src_prepare() {
+	if use elibc_musl;then
+		PATCHES+=(
+			"${FILESDIR}/musl-default-pthread-stacksize.patch"
+			"${FILESDIR}/musl-cdefs.patch"
+			"${FILESDIR}/musl-execinfo.patch"
+			"${FILESDIR}/musl-fpstate.patch"
+			"${FILESDIR}/musl-mallinfo.patch"
+			"${FILESDIR}/musl-pvalloc.patch"
+			"${FILESDIR}/musl-resolve.patch"
+			"${FILESDIR}/musl-sandbox-sched_getparam.patch"
+			"${FILESDIR}/musl-sandbox.patch"
+			"${FILESDIR}/musl-sysreg-for__WORDSIZE.patch"
+			"${FILESDIR}/musl_canonicalize_file_name.patch"
+			"${FILESDIR}/musl_pread_pwrite64.patch"
+			"${FILESDIR}/musl_push_back.patch"
+			"${FILESDIR}/musl_si_fields.patch"
+			"${FILESDIR}/musl_stack_size.patch"
+			"${FILESDIR}/musl_stack_trace.patch"
+		)
+	fi
+
 	if ! use jumbo-build; then
 		sed -i -e 's|use_jumbo_build=true|use_jumbo_build=false|' \
 			src/buildtools/config/common.pri || die

@@ -1,0 +1,13 @@
+diff --git a/src/3rdparty/chromium/base/threading/platform_thread_linux.cc b/src/3rdparty/chromium/base/threading/platform_thread_linux.cc
+index 095c49b..5044bb8 100644
+--- a/src/3rdparty/chromium/base/threading/platform_thread_linux.cc
++++ b/src/3rdparty/chromium/base/threading/platform_thread_linux.cc
+@@ -186,7 +186,7 @@ void TerminateOnThread() {}
+ 
+ size_t GetDefaultThreadStackSize(const pthread_attr_t& attributes) {
+ #if !defined(THREAD_SANITIZER)
+-  return 0;
++  return (1 << 23);
+ #else
+   // ThreadSanitizer bloats the stack heavily. Evidence has been that the
+   // default stack size isn't enough for some browser tests.
