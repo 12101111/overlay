@@ -1,0 +1,27 @@
+diff --git a/patches/chromium/net_avoid_vector_const_elements.patch b/patches/chromium/net_avoid_vector_const_elements.patch
+index 30ef81023..90d0cf2a9 100644
+--- a/patches/chromium/net_avoid_vector_const_elements.patch
++++ b/patches/chromium/net_avoid_vector_const_elements.patch
+@@ -10,7 +10,7 @@ diff --git a/net/dns/dns_util.cc b/net/dns/dns_util.cc
+ index d83ff7c15024bd8b7e674f480f8ffd91527dabb9..d5ee744b2a92fcb0c42a43b41796e4f1debb489e 100644
+ --- a/net/dns/dns_util.cc
+ +++ b/net/dns/dns_util.cc
+-@@ -139,11 +139,11 @@ struct DohUpgradeEntry {
++@@ -139,12 +139,12 @@ struct DohUpgradeEntry {
+    const DnsConfig::DnsOverHttpsServerConfig dns_over_https_config;
+  };
+  
+@@ -20,10 +20,12 @@ index d83ff7c15024bd8b7e674f480f8ffd91527dabb9..d5ee744b2a92fcb0c42a43b41796e4f1
+    // DohProviderId histogram suffix list in
+    // tools/metrics/histograms/histograms.xml.
+ -  static const base::NoDestructor<std::vector<const DohUpgradeEntry>>
++-      upgradable_servers({
+ +  static const base::NoDestructor<std::vector<DohUpgradeEntry>>
+-       upgradable_servers({
+++      upgradable_servers(std::initializer_list<DohUpgradeEntry>{
+            DohUpgradeEntry(
+                "CleanBrowsingAdult",
++               {"185.228.168.10", "185.228.169.11", "2a0d:2a00:1::1",
+ @@ -222,7 +222,7 @@ const std::vector<const DohUpgradeEntry>& GetDohUpgradeList() {
+  std::vector<const DohUpgradeEntry*> GetDohUpgradeEntriesFromNameservers(
+      const std::vector<IPEndPoint>& dns_servers,
