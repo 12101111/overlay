@@ -36,7 +36,7 @@ COMMON_DEPEND="
 	atk? ( >=dev-libs/atk-2.26 )
 	dev-libs/expat:=
 	dev-libs/glib:2
-	system-icu? ( >=dev-libs/icu-65:= )
+	system-icu? ( >=dev-libs/icu-67.1:= )
 	>=dev-libs/libxml2-2.9.4-r3:=[icu]
 	dev-libs/libxslt:=
 	dev-libs/nspr:=
@@ -190,7 +190,10 @@ PATCHES=(
 	"${FILESDIR}/chromium-83-gcc-include.patch"
 	"${FILESDIR}/chromium-83-gcc-permissive.patch"
 	"${FILESDIR}/chromium-83-gcc-iterator.patch"
+	"${FILESDIR}/chromium-83-gcc-serviceworker.patch"
 	"${FILESDIR}/chromium-83-gcc-10.patch"
+	"${FILESDIR}/chromium-83-icu67.patch"
+	"${FILESDIR}/chromium-81-re2-0.2020.05.01.patch"
 	"${FILESDIR}/chromium_atk_optional.patch"
 )
 
