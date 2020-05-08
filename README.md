@@ -15,6 +15,7 @@ Please follow the [official instruction](https://wiki.gentoo.org/wiki/Ebuild_rep
 - [app-text/goldendict](https://github.com/goldendict/goldendict): live ebuild. fix build with clang10
 - [dev-java/openjdk-bin](https://www.azul.com/downloads/zulu-community/): prebuilt OpenJDK for musl system by Zulu Community.
 - [dev-lang/rust](https://github.com/rust-lang/rust/): rust with patches for musl and llvm10
+- [dev-lang/luajit](https://github.com/moonjit/moonjit): Moonjit is a fork of the inactive LuaJIT project and aims to provide a way forward for existing users of LuaJIT looking for continuity in development and maintenance.
 - [dev-libs/elftoolchain](https://sourceforge.net/projects/elftoolchain/files/): replacement of elfutils, useful for systems with clang/llvm and musl
 - [dev-qt/q-creator](https://github.com/qt-creator/qt-creator/): update to newest and fix build with clang 10.
 - [dev-qt/qtwebengine](https://github.com/qt/qtwebengine): allow build GN with CXXFLAGS and patches for musl.
