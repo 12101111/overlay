@@ -1,0 +1,61 @@
+name: Create vscode nodejs cache (Artifact)
+
+on:
+  pull_request:
+    branches: [ master ]
+    paths: 
+    - '.github/workflows/vscode*.yml'
+    - 'app-editors/vscode/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        path: overlay 
+    
+    - name: Checkout vscode
+      uses: actions/checkout@v2
+      with:
+        repository: microsoft/vscode
+        ref: 'release/1.45'
+        path: vscode
+
+    - name: Setup nodejs
+      uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+
+    - name: Apply patch for vscode
+      working-directory: ${{ github.workspace }}/vscode
+      run: |
+        rm ../overlay/app-editors/vscode/files/0009-Run-yarn-install-in-offline-mode.patch
+        git apply ../overlay/app-editors/vscode/files/*
+
+    - name: Download and crate yarn cache
+      working-directory: ${{ github.workspace }}/vscode
+      run: |
+        echo 'yarn-offline-mirror "offline-cache"' >> .yarnrc
+        yarn --frozen-lockfile --ignore-scripts
+        yarn postinstall --frozen-lockfile
+        tar cJf ../vscode-yarn-offline-cache.tar.xz offline-cache
+        
+    - name: Download builtin extensions
+      working-directory: ${{ github.workspace }}/vscode
+      run: |
+        yarn download-builtin-extensions
+        cd .build
+        tar cJf ../../vscode-builtin-extensions.tar.xz builtInExtensions
+      
+    - uses: actions/upload-artifact@v2
+      with:
+        name: vscode-yarn-offline-cache
+        path: ${{ github.workspace }}/vscode-yarn-offline-cache.tar.xz
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: vscode-builtin-extensions
+        path: ${{ github.workspace }}/vscode-builtin-extensions.tar.xz
