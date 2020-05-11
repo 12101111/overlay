@@ -1,5 +1,5 @@
 diff --git a/product.json b/product.json
-index 759d765533..864c7188c5 100644
+index 335caa71f6..e9943c8ebe 100644
 --- a/product.json
 +++ b/product.json
 @@ -1,4 +1,16 @@
@@ -26,7 +26,6 @@ index 759d765533..864c7188c5 100644
 +		"ms-vscode-remote.remote-containers",
 +		"ms-vscode-remote.remote-ssh",
 +		"ms-vsliveshare.vsliveshare",
+ 		"ms-vscode.vscode-js-profile-table",
  		"ms-vscode.references-view"
- 	]
- }
-
+ 	],

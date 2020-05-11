@@ -3,11 +3,15 @@
 
 EAPI=7
 
-PYTHON_COMPAT=( python2_7 )
-inherit python-single-r1 xdg-utils savedconfig
+inherit xdg-utils savedconfig
 
 DESCRIPTION="Visual Studio Code - Open Source"
 HOMEPAGE="https://code.visualstudio.com/"
+
+KEYWORDS="~amd64"
+LICENSE="MIT"
+SLOT="0"
+IUSE="system-electron system-ripgrep"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 RG_VERSION="11.0.1-2"
@@ -17,18 +21,10 @@ ELECTRON_PREBUILT="https://github.com/electron/electron/releases/download"
 ELECTRON_VERSION="7.2.4"
 ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 
-KEYWORDS="~amd64"
-LICENSE="MIT"
-SLOT="0"
-IUSE="system-electron system-ripgrep"
-REQUIRED_USE="
-	${PYTHON_REQUIRED_USE}
-"
-
 SRC_URI="
 	https://github.com/microsoft/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz
-	https://github.com/12101111/overlay/releases/download/v2020-04-26/vscode-builtin-extensions.tar.xz
-	https://github.com/12101111/overlay/releases/download/v2020-04-26/vscode-yarn-offline-cache.tar.xz
+	http://127.0.0.1:8088/vscode-builtin-extensions.tar.xz -> ${P}-builtin-extensions.tar.xz
+	http://127.0.0.1:8088/vscode-yarn-offline-cache.tar.xz -> ${P}-yarn-offline-cache.tar.xz
 	!system-ripgrep? (
 		amd64? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-x86_64-unknown-linux-musl.tar.gz )
 		x86? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-i686-unknown-linux-musl.tar.gz )
@@ -46,19 +42,14 @@ SRC_URI="
 "
 
 BDEPEND="
-	sys-apps/yarn
-	>=net-libs/nodejs-10.19.0:=
+	>=sys-apps/yarn-1.22.0:=
+	>=net-libs/nodejs-10.19.0:=[npm]
 "
 
 DEPEND="
-	>=app-crypt/libsecret-0.18.6:=
-	>=app-text/hunspell-1.3.3:=
-	>=dev-db/sqlite-3.24:=
-	>=dev-libs/glib-2.52.0:=
-	>=dev-libs/libgit2-0.23:=[ssh]
-	>=dev-libs/libpcre2-10.22:=[jit,pcre16]
-	>=dev-libs/oniguruma-6.6.0:=
-	x11-libs/libxkbfile
+	>=app-crypt/libsecret-0.18.8:=
+	>=x11-libs/libX11-1.6.9:=
+	>=x11-libs/libxkbfile-1.1.0:=
 	system-ripgrep? ( sys-apps/ripgrep )
 	system-electron? (
 		dev-util/electron:${ELECTRON_SLOT}
@@ -66,24 +57,20 @@ DEPEND="
 	)
 "
 
-RDEPEND="
-	${DEPEND}
-	>=dev-util/ctags-5.8
-	dev-vcs/git
-"
+RDEPEND="${DEPEND}"
 
 PATCHES=(
-	"${FILESDIR}/build_npm_postinstall.patch"
-	"${FILESDIR}/disable_bundle_marketplace_extensions_build.patch"
-	"${FILESDIR}/dont-download-ffmpeg.patch"
-	"${FILESDIR}/fix-mac-address.patch"
-	"${FILESDIR}/node-version.patch"
+	"${FILESDIR}/0001-remove-playwright-as-it-s-only-used-in-unit-test.patch"
+	"${FILESDIR}/0002-Don-t-download-bundle-marketplace-extensions-in-gulp.patch"
+	"${FILESDIR}/0003-Don-t-download-prebuilt-ffmpeg.patch"
+	"${FILESDIR}/0004-Fix-paths-of-ifconfig-and-ip-command-on-Gentoo-Linux.patch"
+	"${FILESDIR}/0005-Allow-build-using-nodejs-14.patch"
+	"${FILESDIR}/0006-Allow-offline-in-args.patch"
+	"${FILESDIR}/0007-Don-t-run-yarn-install-for-web-remote-test.patch"
+	"${FILESDIR}/0008-Add-install-script-for-Gentoo.patch"
+	"${FILESDIR}/0009-Run-yarn-install-in-offline-mode.patch"
 	"${FILESDIR}/product_json.patch"
 )
-
-pkg_setup() {
-	python-single-r1_pkg_setup
-}
 
 src_unpack() {
 	# Dont't unpack ripgrep and electron
@@ -92,19 +79,18 @@ src_unpack() {
 	# How to download builtin extensions?
 	# 1. yarn download-builtin-extensions
 	# 2. cd .build
-	# 3. tar cJf builtin-extensions.tar.xz builtInExtensions
-	unpack vscode-builtin-extensions.tar.xz
+	# 3. tar cJf vscode-builtin-extensions.tar.xz builtInExtensions
+	unpack ${P}-builtin-extensions.tar.xz
 
 	# How to crate yarn cache?
 	# 1. echo 'yarn-offline-mirror "offline-cache"' >> .yarnrc
 	# 2. yarn --frozen-lockfile --ignore-scripts
 	# 3. yarn postinstall --frozen-lockfile
-	# 4. tar cJf yarn-offline-cache.tar.xz offline-cache
-	unpack vscode-yarn-offline-cache.tar.xz
+	# 4. tar cJf vscode-yarn-offline-cache.tar.xz offline-cache
+	unpack ${P}-yarn-offline-cache.tar.xz
 }
 
 src_prepare() {
-	python_setup
 	default
 
 	export PATH="/usr/$(get_libdir)/node_modules/npm/bin/node-gyp-bin:${PATH}"
@@ -168,42 +154,28 @@ src_prepare() {
 }
 
 src_configure() {
-	yarn install --frozen-lockfile --offline --verbose || die
+	yarn install --ignore-optional --frozen-lockfile --offline \
+		--no-progress || die
 }
 
 src_compile() {
-	yarn gulp vscode-linux-x64-min || die
+	yarn gulp vscode-linux-$(get_arch)-min || die
 }
 
 src_install() {
-	save_config product.json
+	export DESTDIR=${ED}
+	export LIBDIR=$(get_libdir)
+	export XDG_CACHE_HOME=${TMPDIR}
+	yarn gulp vscode-linux-$(get_arch)-install-gentoo
 
 	local vscode_path="/usr/$(get_libdir)/vscode"
-	insinto "${vscode_path}"
-
-	if use system-electron ; then
-		doins -r "${WORKDIR}/VSCode-linux-x64/resources"
-		doins -r "${WORKDIR}/VSCode-linux-x64/bin"
-	else
-		insinto "/usr/$(get_libdir)"
-		doins -r "${WORKDIR}/VSCode-linux-x64"
-		mv "${ED}usr/$(get_libdir)/VSCode-linux-x64" "${ED}${vscode_path}"
-		insinto "${vscode_path}"
-	fi
-
 	local app_name="$(ls ${ED}${vscode_path}/bin)"
-	if [[ "${app_name}" != "code" ]];then
-		mv "${ED}${vscode_path}/bin/${app_name}" "${ED}${vscode_path}/bin/code"
-	fi
-
-	sed -i "s/VSCODE_PATH=\"\/usr\/share\/${app_name}\"/VSCODE_PATH=\"\/usr\/$(get_libdir)\/vscode\"/g" \
-		"${ED}${vscode_path}/bin/code"
 
 	if use system-electron; then
 		sed -i "s/ELECTRON=\"\$VSCODE_PATH\/${app_name}\"/ELECTRON=\"\/usr\/$(get_libdir)\/electron-${ELECTRON_SLOT}\/electron\"/g" \
-			"${ED}${vscode_path}/bin/code"
+			"${ED}${vscode_path}/bin/${app_name}"
 		sed -i "s/\"\$CLI\"/\"\$CLI\" --app=\"\${VSCODE_PATH}\/resources\/app\"/g" \
-			"${ED}${vscode_path}/bin/code"
+			"${ED}${vscode_path}/bin/${app_name}"
 	fi
 
 	if use system-ripgrep; then
@@ -211,10 +183,16 @@ src_install() {
 		ln -s /usr/bin/rg "${ED}${vscode_path}/resources/app/node_modules.asar.unpacked/vscode-ripgrep/bin/rg"
 	fi
 
-	fperms -R 755 ${vscode_path}/bin/code
-	fperms -R 755 ${vscode_path}/resources/app/node_modules.asar.unpacked/
-	fperms -R 755 ${vscode_path}/resources/app/out/vs/base/node/
-	dosym ${vscode_path}/bin/code /usr/bin/code
+	if use system-electron; then
+		pushd "${ED}${vscode_path}" > /dev/null || die	
+			find . -type f,d -maxdepth 1 \
+				-not \( -name '.*' -or -name 'bin' -or -name 'resources' \) \
+				-exec rm -r "{}" +
+		popd > /dev/null || die
+	fi
+	rm -rf "${ED}/usr/local"
+	dosym ${vscode_path}/bin/${app_name} /usr/bin/${app_name}
+	save_config product.json
 }
 
 pkg_postinst() {
@@ -237,6 +215,15 @@ get_local_electron_version() {
 
 get_electron_nodedir() {
 	echo "/usr/include/electron-${ELECTRON_SLOT}/node"
+}
+
+get_arch() {
+	case ${ABI} in
+        amd64) echo "x64";;
+        arm) echo "arm";;
+        arm64) echo "arm64";;
+        *);;
+    esac
 }
 
 get_rg_tar_name() {

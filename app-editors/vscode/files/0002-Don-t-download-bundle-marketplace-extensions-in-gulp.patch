@@ -1,3 +1,12 @@
+From c07a643f7a9d11a553ed241c0656b60fc8034171 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 8 May 2020 20:43:33 +0800
+Subject: [PATCH 2/6] Don't download bundle marketplace extensions in gulp
+
+---
+ build/gulpfile.extensions.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/build/gulpfile.extensions.js b/build/gulpfile.extensions.js
 index 25cccf6d8e..1e68c01c5a 100644
 --- a/build/gulpfile.extensions.js
@@ -11,3 +20,6 @@ index 25cccf6d8e..1e68c01c5a 100644
  ));
  
  gulp.task(compileExtensionsBuildTask);
+-- 
+2.26.2
+

@@ -1,5 +1,14 @@
+From 1a7da8f4d173ddf265d7699f40643135af21a3e8 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 8 May 2020 20:44:56 +0800
+Subject: [PATCH 3/6] Don't download prebuilt ffmpeg
+
+---
+ build/gulpfile.vscode.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 3488d7b51c..731282a881 100644
+index 25b41bd3a9..2240e534c7 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
 @@ -267,7 +267,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
@@ -11,4 +20,6 @@ index 3488d7b51c..731282a881 100644
  			.pipe(filter(['**', '!LICENSE', '!LICENSES.chromium.html', '!version'], { dot: true }));
  
  		if (platform === 'linux') {
- 
+-- 
+2.26.2
+

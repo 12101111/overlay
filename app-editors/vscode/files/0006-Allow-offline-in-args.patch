@@ -1,12 +1,27 @@
+From 9e6119c67c7cbc92bfdb05f7062e3caf18580c3b Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 8 May 2020 20:47:03 +0800
+Subject: [PATCH 6/6] Allow --offline in args
+
+---
+ build/npm/postinstall.js | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
+index 7a2320d828..e0a512c8df 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -20,7 +20,8 @@ function yarnInstall(location, opts) {
+@@ -20,8 +20,8 @@ function yarnInstall(location, opts) {
  	const raw = process.env['npm_config_argv'] || '{}';
  	const argv = JSON.parse(raw);
  	const original = argv.original || [];
 -	const args = original.filter(arg => arg === '--ignore-optional' || arg === '--frozen-lockfile');
+-
 +	const passargs = ['--ignore-optional', '--frozen-lockfile', '--offline', '--no-progress', '--verbose'];
 +	const args = original.filter(arg => passargs.includes(arg));
- 
  	console.log(`Installing dependencies in ${location}...`);
  	console.log(`$ yarn ${args.join(' ')}`);
+ 	const result = cp.spawnSync(yarn, args, opts);
+-- 
+2.26.2
+
