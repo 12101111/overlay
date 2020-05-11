@@ -1,14 +1,27 @@
+From a8cfbd32843d983c12d970324a2f61768f49dc2d Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 8 May 2020 20:46:40 +0800
+Subject: [PATCH 5/6] Allow build using nodejs-14
+
+---
+ build/npm/preinstall.js | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
 diff --git a/build/npm/preinstall.js b/build/npm/preinstall.js
-index cb88d37..bf20e4c 100644
+index cb88d37ade..b0bbb96341 100644
 --- a/build/npm/preinstall.js
 +++ b/build/npm/preinstall.js
-@@ -7,8 +7,8 @@
-
+@@ -7,8 +7,8 @@ let err = false;
+ 
  const majorNodeVersion = parseInt(/^(\d+)\./.exec(process.versions.node)[1]);
-
+ 
 -if (majorNodeVersion < 10 || majorNodeVersion >= 13) {
 -	console.error('\033[1;31m*** Please use node >=10 and <=12.\033[0;0m');
 +if (majorNodeVersion < 10 || majorNodeVersion >= 15) {
 +	console.error('\033[1;31m*** Please use node >=10 and <=14.\033[0;0m');
  	err = true;
  }
+ 
+-- 
+2.26.2
+

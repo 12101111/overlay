@@ -1,3 +1,12 @@
+From 0f822a1056856ade67619ad8be885994b842d20a Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 8 May 2020 20:45:57 +0800
+Subject: [PATCH 4/6] Fix paths of ifconfig and ip command on Gentoo Linux
+
+---
+ src/vs/base/node/macAddress.ts | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 diff --git a/src/vs/base/node/macAddress.ts b/src/vs/base/node/macAddress.ts
 index 524b136c06..63908993ca 100644
 --- a/src/vs/base/node/macAddress.ts
@@ -11,3 +20,6 @@ index 524b136c06..63908993ca 100644
  };
  
  const invalidMacAddresses = new Set([
+-- 
+2.26.2
+

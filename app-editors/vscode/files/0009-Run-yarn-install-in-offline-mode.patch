@@ -1,0 +1,53 @@
+From 8e8fb8ef6c6ffb65198b44226140e03813d1a932 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sun, 10 May 2020 17:43:46 +0800
+Subject: [PATCH] Run yarn install in offline mode
+
+---
+ extensions/css-language-features/package.json  | 2 +-
+ extensions/html-language-features/package.json | 2 +-
+ extensions/json-language-features/package.json | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/extensions/css-language-features/package.json b/extensions/css-language-features/package.json
+index 4c73760167..7cccf06247 100644
+--- a/extensions/css-language-features/package.json
++++ b/extensions/css-language-features/package.json
+@@ -21,7 +21,7 @@
+     "compile": "gulp compile-extension:css-language-features-client compile-extension:css-language-features-server",
+     "watch": "gulp watch-extension:css-language-features-client watch-extension:css-language-features-server",
+     "test": "mocha",
+-    "postinstall": "cd server && yarn install",
++    "postinstall": "cd server && yarn install --ignore-optional --frozen-lockfile --offline --no-progress",
+     "install-client-next": "yarn add vscode-languageclient@next"
+   },
+   "categories": [
+diff --git a/extensions/html-language-features/package.json b/extensions/html-language-features/package.json
+index c86a74e2cc..93a76c592a 100644
+--- a/extensions/html-language-features/package.json
++++ b/extensions/html-language-features/package.json
+@@ -19,7 +19,7 @@
+   "scripts": {
+     "compile": "npx gulp compile-extension:html-language-features-client compile-extension:html-language-features-server",
+     "watch": "npx gulp watch-extension:html-language-features-client watch-extension:html-language-features-server",
+-    "postinstall": "cd server && yarn install",
++    "postinstall": "cd server && yarn install --ignore-optional --frozen-lockfile --offline --no-progress",
+     "install-client-next": "yarn add vscode-languageclient@next"
+   },
+   "categories": [
+diff --git a/extensions/json-language-features/package.json b/extensions/json-language-features/package.json
+index d2edb7d54a..0825c23c0d 100644
+--- a/extensions/json-language-features/package.json
++++ b/extensions/json-language-features/package.json
+@@ -19,7 +19,7 @@
+     "scripts": {
+         "compile": "gulp compile-extension:json-language-features-client compile-extension:json-language-features-server",
+         "watch": "gulp watch-extension:json-language-features-client watch-extension:json-language-features-server",
+-        "postinstall": "cd server && yarn install",
++        "postinstall": "cd server && yarn install --ignore-optional --frozen-lockfile --offline --no-progress",
+         "install-client-next": "yarn add vscode-languageclient@next"
+     },
+     "categories": [
+-- 
+2.26.2
+
