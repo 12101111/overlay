@@ -507,6 +507,10 @@ src_configure() {
 	# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
 	myconf_gn+=" is_debug=false"
 
+	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
+		myconf_gn+=" blink_symbol_level=0"
+	fi
+
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"

@@ -1,18 +1,3 @@
---- a/v8/include/v8.h	2020-05-03 22:57:20.133114536 +0800
-+++ b/v8/include/v8.h	2020-05-03 22:58:37.358116893 +0800
-@@ -1023,6 +1023,11 @@
-   friend class ReturnValue;
- };
-
-+template <typename T>
-+struct TracedGlobalTrait<v8::TracedGlobal<T>> {
-+  static constexpr bool kRequiresExplicitDestruction = false;
-+};
-+
-  /**
-  * A stack-allocated class that governs a number of local handles.
-  * After a handle scope has been created, all local handles will be
-
 --- a/third_party/blink/renderer/platform/bindings/trace_wrapper_v8_reference.h	2020-05-03 23:16:53.230150336 +0800
 +++ b/third_party/blink/renderer/platform/bindings/trace_wrapper_v8_reference.h	2020-05-03 22:59:15.850118067 +0800
 @@ -11,15 +11,6 @@
