@@ -7,10 +7,15 @@ name: vscode nodejs cache
 on:
   push:
     branches: [ master ]
-    paths: '.github/workflows/vscode.yml'
+    paths: 
+    - '.github/workflows/vscode.yml'
+    - 'app-editors/vscode/**'
   pull_request:
     branches: [ master ]
-    paths: '.github/workflows/vscode.yml'
+    paths: 
+    - '.github/workflows/vscode.yml'
+    - 'app-editors/vscode/**'
+
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
