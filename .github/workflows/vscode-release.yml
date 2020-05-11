@@ -54,11 +54,11 @@ jobs:
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Nodejs cache for vscode 1.45.0
-          prerelease: true
-      
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Nodejs cache for vscode 1.45.0
+        prerelease: true
+
     - name: Upload yarn offline cache
       id: upload-release-asset
       uses: actions/upload-release-asset@v1
