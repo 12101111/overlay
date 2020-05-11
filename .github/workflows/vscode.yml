@@ -8,7 +8,9 @@ on:
   push:
     branches: [ master ]
     paths: '.github/workflows/vscode.yml'
-
+  pull_request:
+    branches: [ master ]
+    paths: '.github/workflows/vscode.yml'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -38,21 +40,21 @@ jobs:
         node-version: '12.x'
 
     - name: Apply patch for vscode
+      working-directory: ${{ github.workspace }}/vscode
       run: |
-        cd $GITHUB_WORKSPACE/vscode
-        git apply $GITHUB_WORKSPACE/overlay/app-editors/vscode/files/*
+        git apply ../overlay/app-editors/vscode/files/*
 
     - name: Download and crate yarn cache
+      working-directory: ${{ github.workspace }}/vscode
       run: |
-        cd $GITHUB_WORKSPACE/vscode
         echo 'yarn-offline-mirror "offline-cache"' >> .yarnrc
         yarn --frozen-lockfile --ignore-scripts
         yarn postinstall --frozen-lockfile
         tar cJf ../vscode-yarn-offline-cache.tar.xz offline-cache
         
     - name: Download builtin extensions
+      working-directory: ${{ github.workspace }}/vscode
       run: |
-        cd $GITHUB_WORKSPACE/vscode
         yarn download-builtin-extensions
         cd .build
         tar cJf ../../vscode-builtin-extensions.tar.xz builtInExtensions
@@ -60,9 +62,9 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: vscode-yarn-offline-cache
-        path: $GITHUB_WORKSPACE/vscode-yarn-offline-cache.tar.xz
+        path: ${{ github.workspace }}/vscode-yarn-offline-cache.tar.xz
 
     - uses: actions/upload-artifact@v2
       with:
-        name: vscode-yarn-offline-cache
-        path: $GITHUB_WORKSPACE/vscode-builtin-extensions.tar.xz
+        name: vscode-builtin-extensions
+        path: ${{ github.workspace }}/vscode-builtin-extensions.tar.xz
