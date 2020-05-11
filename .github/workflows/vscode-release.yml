@@ -2,9 +2,8 @@ name: Create vscode nodejs cache (Release)
 
 on:
   push:
-    branches: [ master ]
     tags:
-    - 'v*'
+      - 'v*'
 
 jobs:
   build:
