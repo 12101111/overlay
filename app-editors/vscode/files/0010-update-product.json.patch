@@ -1,8 +1,17 @@
+From 3b12a3485900fa2c5eea5beb1ef30ff480e808df Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Mon, 11 May 2020 20:45:04 +0800
+Subject: [PATCH] update product.json
+
+---
+ product.json | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
 diff --git a/product.json b/product.json
-index 335caa71f6..e9943c8ebe 100644
+index 335caa71f6..cbadf059cd 100644
 --- a/product.json
 +++ b/product.json
-@@ -1,4 +1,16 @@
+@@ -1,4 +1,17 @@
  {
 +	"quality": "stable",
 +	"extensionsGallery": {
@@ -16,10 +25,11 @@ index 335caa71f6..e9943c8ebe 100644
 +	"tipsAndTricksUrl": "https://go.microsoft.com/fwlink/?linkid=852118",
 +	"keyboardShortcutsUrlLinux": "https://go.microsoft.com/fwlink/?linkid=832144",
 +	"date": "@DATE@",
++	"commit": "d69a79b73808559a91206d73d7717ff5f798f23c",
  	"nameShort": "Code - OSS",
  	"nameLong": "Code - OSS",
  	"applicationName": "code-oss",
-@@ -21,6 +33,9 @@
+@@ -21,6 +34,9 @@
  	"reportIssueUrl": "https://github.com/Microsoft/vscode/issues/new",
  	"urlProtocol": "code-oss",
  	"extensionAllowedProposedApi": [
@@ -29,3 +39,6 @@ index 335caa71f6..e9943c8ebe 100644
  		"ms-vscode.vscode-js-profile-table",
  		"ms-vscode.references-view"
  	],
+-- 
+2.26.2
+

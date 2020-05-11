@@ -13,6 +13,8 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-electron system-ripgrep"
 
+COMMIT="d69a79b73808559a91206d73d7717ff5f798f23c"
+
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 RG_VERSION="11.0.1-2"
 VSCODE_RIPGREP_VERSION="1.5.8 1.5.7"
@@ -69,7 +71,7 @@ PATCHES=(
 	"${FILESDIR}/0007-Don-t-run-yarn-install-for-web-remote-test.patch"
 	"${FILESDIR}/0008-Add-install-script-for-Gentoo.patch"
 	"${FILESDIR}/0009-Run-yarn-install-in-offline-mode.patch"
-	"${FILESDIR}/product_json.patch"
+	"${FILESDIR}/0010-update-product.json.patch"
 )
 
 src_unpack() {
@@ -146,10 +148,6 @@ src_prepare() {
 	done
 	popd > /dev/null || die
 
-	# FIXME: really useful?
-	export ELECTRON_SKIP_BINARY_DOWNLOAD=1
-	export PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
-
 	restore_config product.json
 }
 
@@ -171,10 +169,12 @@ src_install() {
 	local vscode_path="/usr/$(get_libdir)/vscode"
 	local app_name="$(ls ${ED}${vscode_path}/bin)"
 
+	sed -i "2i	\"commit\": \"${COMMIT}\"," "${ED}${vscode_path}/resources/app/product.json"
 	if use system-electron; then
+		cp "${FILESDIR}/code.js" "${ED}${vscode_path}/resources/app"
 		sed -i "s/ELECTRON=\"\$VSCODE_PATH\/${app_name}\"/ELECTRON=\"\/usr\/$(get_libdir)\/electron-${ELECTRON_SLOT}\/electron\"/g" \
 			"${ED}${vscode_path}/bin/${app_name}"
-		sed -i "s/\"\$CLI\"/\"\$CLI\" --app=\"\${VSCODE_PATH}\/resources\/app\"/g" \
+		sed -i "s/\"\$CLI\"/\"\$CLI\" \"\${VSCODE_PATH}\/resources\/app\/code.js\"/g" \
 			"${ED}${vscode_path}/bin/${app_name}"
 	fi
 
