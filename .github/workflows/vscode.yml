@@ -47,6 +47,7 @@ jobs:
     - name: Apply patch for vscode
       working-directory: ${{ github.workspace }}/vscode
       run: |
+        rm ../overlay/app-editors/vscode/files/0009-Run-yarn-install-in-offline-mode.patch
         git apply ../overlay/app-editors/vscode/files/*
 
     - name: Download and crate yarn cache
