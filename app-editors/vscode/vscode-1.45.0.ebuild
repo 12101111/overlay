@@ -23,8 +23,8 @@ ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 
 SRC_URI="
 	https://github.com/microsoft/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz
-	http://127.0.0.1:8088/vscode-builtin-extensions.tar.xz -> ${P}-builtin-extensions.tar.xz
-	http://127.0.0.1:8088/vscode-yarn-offline-cache.tar.xz -> ${P}-yarn-offline-cache.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-05-11/vscode-builtin-extensions.tar.xz -> ${P}-builtin-extensions.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-05-11/vscode-yarn-offline-cache.tar.xz -> ${P}-yarn-offline-cache.tar.xz
 	!system-ripgrep? (
 		amd64? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-x86_64-unknown-linux-musl.tar.gz )
 		x86? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-i686-unknown-linux-musl.tar.gz )
