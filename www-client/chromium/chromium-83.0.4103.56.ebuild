@@ -36,20 +36,17 @@ COMMON_DEPEND="
 	atk? ( >=dev-libs/atk-2.26 )
 	dev-libs/expat:=
 	dev-libs/glib:2
-	system-icu? ( >=dev-libs/icu-67.1:= )
 	>=dev-libs/libxml2-2.9.4-r3:=[icu]
-	dev-libs/libxslt:=
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.26:=
-	>=dev-libs/re2-0.2019.08.01:=
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
 	media-libs/freetype:=
 	>=media-libs/harfbuzz-2.4.0:0=[icu(-)]
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
+	media-libs/mesa:=[gbm]
 	system-libvpx? ( >=media-libs/libvpx-1.8.2:=[postproc,svc] )
-	>=media-libs/openh264-1.6.0:=
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
 		>=media-video/ffmpeg-4:=
@@ -84,7 +81,6 @@ COMMON_DEPEND="
 	)
 	x11-libs/gdk-pixbuf:2
 	x11-libs/gtk+:3[X]
-	app-arch/snappy:=
 	media-libs/flac:=
 	>=media-libs/libwebp-0.4.0:=
 	sys-libs/zlib:=[minizip]
@@ -105,9 +101,6 @@ BDEPEND="
 	${PYTHON_DEPS}
 	>=app-arch/gzip-1.7
 	app-arch/unzip
-	!arm? (
-		dev-lang/yasm
-	)
 	dev-lang/perl
 	>=dev-util/gn-0.1726
 	dev-vcs/git
@@ -117,8 +110,12 @@ BDEPEND="
 	sys-apps/hwids[usb(+)]
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
-	closure-compile? ( virtual/jre )
 	virtual/pkgconfig
+	closure-compile? ( virtual/jre )
+	!system-libvpx? (
+		amd64? ( dev-lang/yasm )
+		x86? ( dev-lang/yasm )
+	)
 	clang? (
 		|| (
 			(
@@ -129,17 +126,35 @@ BDEPEND="
 				sys-devel/clang:9
 				=sys-devel/lld-9*
 			)
-			(
-				sys-devel/clang:8
-				=sys-devel/lld-8*
-			)
-			(
-				sys-devel/clang:7
-				=sys-devel/lld-7*
-			)
 		)
 	)
 "
+
+: ${CHROMIUM_FORCE_CLANG=no}
+: ${CHROMIUM_FORCE_LIBCXX=no}
+
+if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
+	BDEPEND+=" >=sys-devel/clang-9"
+fi
+
+if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
+	RDEPEND+=" >=sys-libs/libcxx-9"
+	DEPEND+=" >=sys-libs/libcxx-9"
+	BDEPEND+="
+		amd64? ( dev-lang/yasm )
+		x86? ( dev-lang/yasm )
+	"
+else
+	COMMON_DEPEND="
+		app-arch/snappy:=
+		dev-libs/libxslt:=
+		>=dev-libs/re2-0.2019.08.01:=
+		>=media-libs/openh264-1.6.0:=
+		system-icu? ( >=dev-libs/icu-67.1:= )
+	"
+	RDEPEND+="${COMMON_DEPEND}"
+	DEPEND+="${COMMON_DEPEND}"
+fi
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
 	EBUILD_DEATH_HOOKS+=" chromium_pkg_die";
@@ -181,7 +196,6 @@ PATCHES=(
 	"${FILESDIR}/chromium-78-protobuf-export.patch"
 	"${FILESDIR}/chromium-79-gcc-alignas.patch"
 	"${FILESDIR}/chromium-80-gcc-quiche.patch"
-	"${FILESDIR}/chromium-82-gcc-constexpr.patch"
 	"${FILESDIR}/chromium-82-gcc-noexcept.patch"
 	"${FILESDIR}/chromium-82-gcc-incomplete-type.patch"
 	"${FILESDIR}/chromium-82-gcc-template.patch"
@@ -454,9 +468,28 @@ src_prepare() {
 	if ! use system-libvpx; then
 		keeplibs+=( third_party/libvpx )
 		keeplibs+=( third_party/libvpx/source/libvpx/third_party/x86inc )
+
+		# we need to generate ppc64 stuff because upstream does not ship it yet
+		# it has to be done before unbundling.
+		if use ppc64; then
+			pushd third_party/libvpx >/dev/null || die
+			mkdir -p source/config/linux/ppc64 || die
+			./generate_gni.sh || die
+			popd >/dev/null || die
+		fi
 	fi
 	if use tcmalloc; then
 		keeplibs+=( third_party/tcmalloc )
+	fi
+	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
+		keeplibs+=( third_party/libxml )
+		keeplibs+=( third_party/libxslt )
+		keeplibs+=( third_party/openh264 )
+		keeplibs+=( third_party/re2 )
+		keeplibs+=( third_party/snappy )
+		if use system-icu; then
+			keeplibs+=( third_party/icu )
+		fi
 	fi
 	if use wayland ; then
 		keeplibs+=( third_party/wayland )
@@ -476,7 +509,7 @@ src_configure() {
 	# Make sure the build system will use the right tools, bug #340795.
 	tc-export AR CC CXX NM
 
-	if use clang && ! tc-is-clang ; then
+	if ( [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || use clang ) && ! tc-is-clang ; then
 		# Force clang
 		einfo "Enforcing the use of clang due to USE=clang ..."
 		CC=${CHOST}-clang
@@ -493,6 +526,9 @@ src_configure() {
 	if tc-is-clang; then
 		myconf_gn+=" is_clang=true clang_use_chrome_plugins=false"
 	else
+		if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
+			die "Compiling with sys-libs/libcxx requires clang."
+		fi
 		myconf_gn+=" is_clang=false"
 	fi
 
@@ -545,17 +581,12 @@ src_configure() {
 		fontconfig
 		freetype
 		# Need harfbuzz_from_pkgconfig target
-		harfbuzz-ng
+		#harfbuzz-ng
 		libdrm
-		libevent
+		#libevent
 		libjpeg
 		libpng
 		libwebp
-		libxml
-		libxslt
-		openh264
-		re2
-		snappy
 		yasm
 		zlib
 	)
@@ -567,6 +598,14 @@ src_configure() {
 	fi
 	if use system-libvpx; then
 		gn_system_libraries+=( libvpx )
+	fi
+	if [[ ${CHROMIUM_FORCE_LIBCXX} != yes ]]; then
+		# unbundle only without libc++, because libc++ is not fully ABI compatible with libstdc++
+		gn_system_libraries+=( libxml )
+		gn_system_libraries+=( libxslt )
+		gn_system_libraries+=( openh264 )
+		gn_system_libraries+=( re2 )
+		gn_system_libraries+=( snappy )
 	fi
 	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
 
@@ -655,6 +694,11 @@ src_configure() {
 		fi
 	fi
 
+	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
+		append-flags -stdlib=libc++
+		append-ldflags -stdlib=libc++
+	fi
+
 	if [[ $myarch = amd64 ]] ; then
 		myconf_gn+=" target_cpu=\"x64\""
 		ffmpeg_target_arch=x64
@@ -671,6 +715,9 @@ src_configure() {
 	elif [[ $myarch = arm ]] ; then
 		myconf_gn+=" target_cpu=\"arm\""
 		ffmpeg_target_arch=$(usex cpu_flags_arm_neon arm-neon arm)
+	elif [[ $myarch = ppc64 ]] ; then
+		myconf_gn+=" target_cpu=\"ppc64\""
+		ffmpeg_target_arch=ppc64
 	else
 		die "Failed to determine target arch, got '$myarch'."
 	fi
