@@ -12,6 +12,7 @@ KEYWORDS="~amd64"
 LICENSE="MIT"
 SLOT="0"
 IUSE="system-electron system-ripgrep"
+REQUIRED_USE="system-electron? ( elibc_glibc )"
 
 COMMIT="d69a79b73808559a91206d73d7717ff5f798f23c"
 
@@ -59,7 +60,18 @@ DEPEND="
 	)
 "
 
-RDEPEND="${DEPEND}"
+RDEPEND="${DEPEND}
+	!system-electron? (
+		>=x11-libs/gtk+-3.24.161:3[X]
+		>=media-libs/alsa-lib-1.2.1
+		>=net-print/cups-2.2.13
+		x11-libs/libnotify
+		dev-libs/nss
+		app-accessibility/at-spi2-atk
+		x11-libs/libXScrnSaver
+		x11-libs/libXtst
+		app-crypt/libsecret[crypt]
+	)"
 
 PATCHES=(
 	"${FILESDIR}/0001-remove-playwright-as-it-s-only-used-in-unit-test.patch"
@@ -168,6 +180,9 @@ src_install() {
 
 	local vscode_path="/usr/$(get_libdir)/vscode"
 	local app_name="$(ls ${ED}${vscode_path}/bin)"
+
+	insinto "${vscode_path}/resources/app/extensions"
+	doins -r "${WORKDIR}"/builtInExtensions/*
 
 	sed -i "2i	\"commit\": \"${COMMIT}\"," "${ED}${vscode_path}/resources/app/product.json"
 	if use system-electron; then
