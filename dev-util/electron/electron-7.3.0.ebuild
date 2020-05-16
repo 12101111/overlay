@@ -546,7 +546,6 @@ src_configure() {
 		# Need harfbuzz_from_pkgconfig target
 		harfbuzz-ng
 		libdrm
-		libevent
 		libjpeg
 		libpng
 		libwebp
