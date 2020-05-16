@@ -12,7 +12,7 @@ KEYWORDS="~amd64"
 LICENSE="MIT"
 SLOT="0"
 IUSE="system-electron system-ripgrep"
-REQUIRED_USE="system-electron? ( elibc_glibc )"
+REQUIRED_USE="!system-electron? ( elibc_glibc )"
 
 COMMIT="d69a79b73808559a91206d73d7717ff5f798f23c"
 
