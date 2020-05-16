@@ -1,7 +1,7 @@
-From 38fc51a77e5747230cb0b6ec72a2c31f46e7a689 Mon Sep 17 00:00:00 2001
+From e2f346b3635f68fb25260c28169467e391ff477a Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 8 May 2020 20:42:43 +0800
-Subject: [PATCH 1/6] remove playwright as it's only used in unit test
+Date: Sat, 16 May 2020 14:52:08 +0800
+Subject: [PATCH 01/10] remove playwright as it's only used in unit test
 
 ---
  package.json |  1 -
@@ -9,29 +9,29 @@ Subject: [PATCH 1/6] remove playwright as it's only used in unit test
  2 files changed, 24 deletions(-)
 
 diff --git a/package.json b/package.json
-index 8836b634f3..2ca12da91f 100644
+index d150d539ae..14ccb6129e 100644
 --- a/package.json
 +++ b/package.json
 @@ -147,7 +147,6 @@
      "opn": "^6.0.0",
      "optimist": "0.3.5",
      "p-all": "^1.0.0",
--    "playwright": "0.15.0",
+-    "playwright": "1.0.1",
      "pump": "^1.0.1",
      "queue": "3.0.6",
      "rcedit": "^1.1.0",
 diff --git a/yarn.lock b/yarn.lock
-index 19b82930df..e3721c4094 100644
+index 1bc94693ea..e3721c4094 100644
 --- a/yarn.lock
 +++ b/yarn.lock
 @@ -7012,29 +7012,6 @@ pkg-dir@^3.0.0:
    dependencies:
      find-up "^3.0.0"
  
--playwright-core@=0.15.0:
--  version "0.15.0"
--  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-0.15.0.tgz#c605c98a13c81d5a2e2691f15d04758cf302c20a"
--  integrity sha512-uTm4PoF2U3iXkLMMG9vlTxlGfO8atQGAHDxqi8xV7hEjNSYeLTU7c6HN5zwadeHRVuBbNsZ4yqu9u4hoqC7uxQ==
+-playwright-core@=1.0.1:
+-  version "1.0.1"
+-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.0.1.tgz#823b6f1afa16917ffd418f3cec0c14688a985738"
+-  integrity sha512-a71FjUDRFqWLG3VBAojVen2TaZiXkuog+ZmI0Nh0+/QndFUbbW3kameOfUTMXFvLUGWx2ipERZx6EQTJMEQDMA==
 -  dependencies:
 -    debug "^4.1.1"
 -    extract-zip "^2.0.0"
@@ -44,12 +44,12 @@ index 19b82930df..e3721c4094 100644
 -    rimraf "^3.0.2"
 -    ws "^6.1.0"
 -
--playwright@0.15.0:
--  version "0.15.0"
--  resolved "https://registry.yarnpkg.com/playwright/-/playwright-0.15.0.tgz#bf5c3bb8404975aba78459310742388c08438431"
--  integrity sha512-UGHkQz8DT43uJ0KgMh2rmj8BI4FE5ReQJ9nm5mG68tt1Cj2sXPdM2b05qptfYYBPtQRetQqtJTauZ6rlCDemaQ==
+-playwright@1.0.1:
+-  version "1.0.1"
+-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.0.1.tgz#326d479829a3505799ddc9988cc8decf5a7f8376"
+-  integrity sha512-kVTE7uvZ7OcDVOBx7MVArUm2nbzzzpauKV9tuVIAH6vWGsOWbGGALUoTWMzNDzsPPTBJXXmxzC4KgI2zN+kVhw==
 -  dependencies:
--    playwright-core "=0.15.0"
+-    playwright-core "=1.0.1"
 -
  plist@^3.0.1:
    version "3.0.1"

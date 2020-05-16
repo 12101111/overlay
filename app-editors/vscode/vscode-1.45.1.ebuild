@@ -14,7 +14,7 @@ SLOT="0"
 IUSE="system-electron system-ripgrep"
 REQUIRED_USE="!system-electron? ( elibc_glibc )"
 
-COMMIT="d69a79b73808559a91206d73d7717ff5f798f23c"
+COMMIT="5763d909d5f12fe19f215cbfdd29a91c0fa9208a"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 RG_VERSION="11.0.1-2"

@@ -1,7 +1,7 @@
-From 0f822a1056856ade67619ad8be885994b842d20a Mon Sep 17 00:00:00 2001
+From 5a25a4fa0bab71489c580a17fcba8bbddcbd5f38 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 8 May 2020 20:45:57 +0800
-Subject: [PATCH 4/6] Fix paths of ifconfig and ip command on Gentoo Linux
+Subject: [PATCH 04/10] Fix paths of ifconfig and ip command on Gentoo Linux
 
 ---
  src/vs/base/node/macAddress.ts | 2 +-

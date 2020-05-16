@@ -1,7 +1,7 @@
-From a8cfbd32843d983c12d970324a2f61768f49dc2d Mon Sep 17 00:00:00 2001
+From 26c0409400e986522ffc2f68ece6f6c26ef1246d Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 8 May 2020 20:46:40 +0800
-Subject: [PATCH 5/6] Allow build using nodejs-14
+Subject: [PATCH 05/10] Allow build using nodejs-14
 
 ---
  build/npm/preinstall.js | 4 ++--

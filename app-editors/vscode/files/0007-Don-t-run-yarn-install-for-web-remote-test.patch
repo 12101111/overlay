@@ -1,7 +1,7 @@
-From 7c1f317116fcb3029b56612a426a7c5f12f03237 Mon Sep 17 00:00:00 2001
+From 107e20ad583af15742186ae1f0e7674720698945 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 8 May 2020 22:05:08 +0800
-Subject: [PATCH] Don't run `yarn install` for web/remote/test
+Subject: [PATCH 07/10] Don't run `yarn install` for web/remote/test
 
 ---
  build/npm/postinstall.js | 10 +++++-----

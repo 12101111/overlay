@@ -1,7 +1,7 @@
-From 8e8fb8ef6c6ffb65198b44226140e03813d1a932 Mon Sep 17 00:00:00 2001
+From fadc2011fcbd6462456ac0849196e1744aaca4dc Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 10 May 2020 17:43:46 +0800
-Subject: [PATCH] Run yarn install in offline mode
+Subject: [PATCH 09/10] Run yarn install in offline mode
 
 ---
  extensions/css-language-features/package.json  | 2 +-

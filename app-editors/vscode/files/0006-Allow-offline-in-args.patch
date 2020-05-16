@@ -1,7 +1,7 @@
-From 9e6119c67c7cbc92bfdb05f7062e3caf18580c3b Mon Sep 17 00:00:00 2001
+From bda94f09a604788af918d4517bf1715c15f48007 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 8 May 2020 20:47:03 +0800
-Subject: [PATCH 6/6] Allow --offline in args
+Subject: [PATCH 06/10] Allow --offline in args
 
 ---
  build/npm/postinstall.js | 4 ++--

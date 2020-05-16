@@ -1,7 +1,7 @@
-From 1a7da8f4d173ddf265d7699f40643135af21a3e8 Mon Sep 17 00:00:00 2001
+From aef55c82c83510436670510c4f4cd3020c0dd787 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 8 May 2020 20:44:56 +0800
-Subject: [PATCH 3/6] Don't download prebuilt ffmpeg
+Subject: [PATCH 03/10] Don't download prebuilt ffmpeg
 
 ---
  build/gulpfile.vscode.js | 2 +-
