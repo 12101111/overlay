@@ -573,9 +573,8 @@ src_configure() {
 		fontconfig
 		freetype
 		# Need harfbuzz_from_pkgconfig target
-		harfbuzz-ng # FIXME
+		#harfbuzz-ng # FIXME
 		libdrm
-		libevent
 		libjpeg
 		libpng
 		libwebp

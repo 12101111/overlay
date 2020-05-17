@@ -1,0 +1,11 @@
+--- a/base/trace_event/trace_event_memory_overhead.h	2019-11-19 09:27:43.000000000 +0800
++++ b/base/trace_event/trace_event_memory_overhead.h	2020-05-17 15:13:09.046787263 +0800
+@@ -8,6 +8,7 @@
+ #include <stddef.h>
+ #include <stdint.h>
+
++#include <string>
+ #include <unordered_map>
+
+ #include "base/base_export.h"
+
