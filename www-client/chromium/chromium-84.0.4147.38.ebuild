@@ -12,8 +12,13 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
+XCB_PROTO_VERSION="1.14"
+PATCHSET="1"
+PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
-	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip"
+	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
+	https://www.x.org/releases/individual/proto/xcb-proto-${XCB_PROTO_VERSION}.tar.xz
+	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
 
 LICENSE="BSD"
 SLOT="0"
@@ -190,24 +195,6 @@ in /etc/chromium/default.
 "
 
 PATCHES=(
-	"${FILESDIR}/chromium-compiler-r12.patch"
-	"${FILESDIR}/chromium-fix-char_traits.patch"
-	"${FILESDIR}/chromium-blink-style_format.patch"
-	"${FILESDIR}/chromium-78-protobuf-export.patch"
-	"${FILESDIR}/chromium-79-gcc-alignas.patch"
-	"${FILESDIR}/chromium-80-gcc-quiche.patch"
-	"${FILESDIR}/chromium-82-gcc-noexcept.patch"
-	"${FILESDIR}/chromium-82-gcc-incomplete-type.patch"
-	"${FILESDIR}/chromium-82-gcc-template.patch"
-	"${FILESDIR}/chromium-82-gcc-iterator.patch"
-	"${FILESDIR}/chromium-83-gcc-template.patch"
-	"${FILESDIR}/chromium-83-gcc-include.patch"
-	"${FILESDIR}/chromium-83-gcc-permissive.patch"
-	"${FILESDIR}/chromium-83-gcc-iterator.patch"
-	"${FILESDIR}/chromium-83-gcc-serviceworker.patch"
-	"${FILESDIR}/chromium-83-gcc-10.patch"
-	"${FILESDIR}/chromium-83-icu67.patch"
-	"${FILESDIR}/chromium-81-re2-0.2020.05.01.patch"
 	"${FILESDIR}/chromium_atk_optional.patch"
 )
 
@@ -258,6 +245,8 @@ pkg_setup() {
 src_prepare() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
+
+	eapply "${WORKDIR}/patches"
 
 	default
 
@@ -335,6 +324,8 @@ src_prepare() {
 		third_party/depot_tools
 		third_party/devscripts
 		third_party/devtools-frontend
+		third_party/devtools-frontend/src/front_end/third_party/acorn
+		third_party/devtools-frontend/src/front_end/third_party/codemirror
 		third_party/devtools-frontend/src/front_end/third_party/fabricjs
 		third_party/devtools-frontend/src/front_end/third_party/lighthouse
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
@@ -363,6 +354,7 @@ src_prepare() {
 		third_party/libaom
 		third_party/libaom/source/libaom/third_party/vector
 		third_party/libaom/source/libaom/third_party/x86inc
+		third_party/libavif
 		third_party/libjingle
 		third_party/libphonenumber
 		third_party/libsecret
@@ -373,6 +365,7 @@ src_prepare() {
 		third_party/libxml/chromium
 		third_party/libyuv
 		third_party/llvm
+		third_party/lottie
 		third_party/lss
 		third_party/lzma_sdk
 		third_party/mako
@@ -385,6 +378,7 @@ src_prepare() {
 		third_party/node/node_modules/polymer-bundler/lib/third_party/UglifyJS2
 		third_party/one_euro_filter
 		third_party/openscreen
+		third_party/openscreen/src/third_party/mozilla
 		third_party/openscreen/src/third_party/tinycbor/src/src
 		third_party/ots
 		third_party/pdfium
@@ -432,7 +426,7 @@ src_prepare() {
 		third_party/web-animations-js
 		third_party/webdriver
 		third_party/webrtc
-		third_party/webrtc/common_audio/third_party/fft4g
+		third_party/webrtc/common_audio/third_party/ooura
 		third_party/webrtc/common_audio/third_party/spl_sqrt_floor
 		third_party/webrtc/modules/third_party/fft
 		third_party/webrtc/modules/third_party/g711
@@ -457,7 +451,6 @@ src_prepare() {
 		third_party/speech-dispatcher
 		third_party/usb_ids
 		third_party/xdg-utils
-		third_party/yasm/run_yasm.py
 	)
 	if ! use system-ffmpeg; then
 		keeplibs+=( third_party/ffmpeg third_party/opus )
@@ -583,11 +576,9 @@ src_configure() {
 		# Need harfbuzz_from_pkgconfig target
 		#harfbuzz-ng
 		libdrm
-		#libevent
 		libjpeg
 		libpng
 		libwebp
-		yasm
 		zlib
 	)
 	if use system-ffmpeg; then
@@ -650,7 +641,7 @@ src_configure() {
 	# Never use bundled gold binary. Disable gold linker flags for now.
 	# Do not use bundled clang.
 	# Trying to use gold results in linker crash.
-	myconf_gn+=" use_gold=false use_sysroot=false linux_use_bundled_binutils=false use_custom_libcxx=false"
+	myconf_gn+=" use_gold=false use_sysroot=false use_custom_libcxx=false"
 
 	if use lto; then
 		myconf_gn+=" use_thin_lto=true"
@@ -690,7 +681,7 @@ src_configure() {
 
 		# Prevent libvpx build failures. Bug 530248, 544702, 546984.
 		if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
-			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2
+			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4
 		fi
 	fi
 
@@ -762,6 +753,9 @@ src_configure() {
 		myconf_gn+=" icu_use_data_file=false"
 	fi
 
+	# Use bundled xcb-proto, bug #727000
+	myconf_gn+=" xcbproto_path=\"${WORKDIR}/xcb-proto-${XCB_PROTO_VERSION}/src\""
+
 	einfo "Configuring Chromium..."
 	set -- gn gen --args="${myconf_gn} ${EXTRA_GN}" out/Release
 	echo "$@"
@@ -776,21 +770,22 @@ src_compile() {
 	python_setup
 
 	# https://bugs.gentoo.org/717456
-	local -x PYTHONPATH="${WORKDIR}/setuptools-44.1.0${PYTHONPATH+:}${PYTHONPATH}"
+	# Use bundled xcb-proto, because system xcb-proto doesn't have Python 2.7 support
+	local -x PYTHONPATH="${WORKDIR}/setuptools-44.1.0:${WORKDIR}/xcb-proto-${XCB_PROTO_VERSION}${PYTHONPATH+:}${PYTHONPATH}"
 
 	#"${EPYTHON}" tools/clang/scripts/update.py --force-local-build --gcc-toolchain /usr --skip-checkout --use-system-cmake --without-android || die
 
 	# Build mksnapshot and pax-mark it.
 	local x
-	for x in mksnapshot v8_context_snapshot_generator; do
-		if tc-is-cross-compiler; then
-			eninja -C out/Release "host/${x}"
-			pax-mark m "out/Release/host/${x}"
-		else
-			eninja -C out/Release "${x}"
-			pax-mark m "out/Release/${x}"
-		fi
-	done
+	#for x in mksnapshot v8_context_snapshot_generator; do
+	#	if tc-is-cross-compiler; then
+	#		eninja -C out/Release "host/${x}"
+	#		pax-mark m "out/Release/host/${x}"
+	#	else
+	#		eninja -C out/Release "${x}"
+	#		pax-mark m "out/Release/${x}"
+	#	fi
+	#done
 
 	# Even though ninja autodetects number of CPUs, we respect
 	# user's options, for debugging with -j 1 or any other reason.
