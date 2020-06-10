@@ -62,7 +62,7 @@ DEPEND="
 
 RDEPEND="${DEPEND}
 	!system-electron? (
-		>=x11-libs/gtk+-3.24.161:3[X]
+		>=x11-libs/gtk+-3.24.16:3[X]
 		>=media-libs/alsa-lib-1.2.1
 		>=net-print/cups-2.2.13
 		x11-libs/libnotify
@@ -116,7 +116,7 @@ src_prepare() {
 		local electron_version="$(get_local_electron_version)"
 		local electron_zip="$(get_electron_prebuilt_zip_name ${electron_version})"
 		einfo "Build against Electron ${electron_version}"
-		sed -i "s/^target .*/target \"${electron_version//v/}\"/" ${S}/.yarnrc
+		sed -i "s/^target .*/target \"${electron_version//v/}\"/" "${S}"/.yarnrc
 
 		# use local electron node headers
 		echo "nodedir $(get_electron_nodedir)" >> ${S}/.yarnrc
@@ -199,7 +199,7 @@ src_install() {
 	fi
 
 	if use system-electron; then
-		pushd "${ED}${vscode_path}" > /dev/null || die	
+		pushd "${ED}${vscode_path}" > /dev/null || die
 			find . -type f,d -maxdepth 1 \
 				-not \( -name '.*' -or -name 'bin' -or -name 'resources' \) \
 				-exec rm -r "{}" +
@@ -234,11 +234,11 @@ get_electron_nodedir() {
 
 get_arch() {
 	case ${ABI} in
-        amd64) echo "x64";;
-        arm) echo "arm";;
-        arm64) echo "arm64";;
-        *);;
-    esac
+		amd64) echo "x64";;
+		arm) echo "arm";;
+		arm64) echo "arm64";;
+		*);;
+	esac
 }
 
 get_rg_tar_name() {
