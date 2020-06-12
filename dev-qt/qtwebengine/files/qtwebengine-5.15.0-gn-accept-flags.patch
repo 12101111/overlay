@@ -1,0 +1,22 @@
+--- a/src/3rdparty/gn/build/gen.py	2020-05-06 22:21:29.000000000 +0800
++++ b/src/3rdparty/gn/build/gen.py	2020-05-27 09:09:44.196948737 +0800
+@@ -286,15 +286,10 @@
+   #  ld = cxx
+   #  ar = os.environ.get('AR', 'ar')
+
+-  # cflags = os.environ.get('CFLAGS', '').split()
+-  # cflags_cc = os.environ.get('CXXFLAGS', '').split()
+-  # ldflags = os.environ.get('LDFLAGS', '').split()
+-  # libflags = os.environ.get('LIBFLAGS', '').split()
+-
+-  cflags = []
+-  cflags_cc = []
+-  ldflags = []
+-  libflags = []
++  cflags = os.environ.get('CFLAGS', '').split()
++  cflags_cc = os.environ.get('CXXFLAGS', '').split()
++  ldflags = os.environ.get('LDFLAGS', '').split()
++  libflags = os.environ.get('LIBFLAGS', '').split()
+
+   cc = options.cc
+   cxx = options.cxx
