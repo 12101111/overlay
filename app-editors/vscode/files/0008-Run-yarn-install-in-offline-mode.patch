@@ -1,7 +1,7 @@
-From fadc2011fcbd6462456ac0849196e1744aaca4dc Mon Sep 17 00:00:00 2001
+From 58f911508d5f00c75711613368e88dce2f167e27 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 10 May 2020 17:43:46 +0800
-Subject: [PATCH 09/10] Run yarn install in offline mode
+Subject: [PATCH 08/10] Run yarn install in offline mode
 
 ---
  extensions/css-language-features/package.json  | 2 +-
@@ -10,10 +10,10 @@ Subject: [PATCH 09/10] Run yarn install in offline mode
  3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/extensions/css-language-features/package.json b/extensions/css-language-features/package.json
-index 4c73760167..7cccf06247 100644
+index 2b030a4b53..39e8553ed8 100644
 --- a/extensions/css-language-features/package.json
 +++ b/extensions/css-language-features/package.json
-@@ -21,7 +21,7 @@
+@@ -22,7 +22,7 @@
      "compile": "gulp compile-extension:css-language-features-client compile-extension:css-language-features-server",
      "watch": "gulp watch-extension:css-language-features-client watch-extension:css-language-features-server",
      "test": "mocha",
@@ -36,7 +36,7 @@ index c86a74e2cc..93a76c592a 100644
    },
    "categories": [
 diff --git a/extensions/json-language-features/package.json b/extensions/json-language-features/package.json
-index d2edb7d54a..0825c23c0d 100644
+index 2868c0c01a..18af970f8f 100644
 --- a/extensions/json-language-features/package.json
 +++ b/extensions/json-language-features/package.json
 @@ -19,7 +19,7 @@
@@ -49,5 +49,5 @@ index d2edb7d54a..0825c23c0d 100644
      },
      "categories": [
 -- 
-2.26.2
+2.27.0
 

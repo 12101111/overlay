@@ -1,29 +1,28 @@
-From 107e20ad583af15742186ae1f0e7674720698945 Mon Sep 17 00:00:00 2001
+From 724f2af540ad5e130b6b9f8378cb699e585df57c Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 8 May 2020 22:05:08 +0800
-Subject: [PATCH 07/10] Don't run `yarn install` for web/remote/test
+Date: Fri, 12 Jun 2020 13:07:00 +0800
+Subject: [PATCH 09/10] Don't run `yarn install` for web/remote/test
 
 ---
  build/npm/postinstall.js | 10 +++++-----
  1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index e0a512c8df..5ad9491e33 100644
+index d3dafad880..8524a9c54a 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -33,9 +33,9 @@ function yarnInstall(location, opts) {
- 
+@@ -34,8 +34,8 @@ function yarnInstall(location, opts) {
  yarnInstall('extensions'); // node modules shared by all extensions
  
--yarnInstall('remote'); // node modules used by vscode server
-+//yarnInstall('remote'); // node modules used by vscode server
- 
--yarnInstall('remote/web'); // node modules used by vscode web
-+//yarnInstall('remote/web'); // node modules used by vscode web
+ if (!(process.platform === 'win32' && process.env['npm_config_arch'] === 'arm64')) {
+-	yarnInstall('remote'); // node modules used by vscode server
+-	yarnInstall('remote/web'); // node modules used by vscode web
++//	yarnInstall('remote'); // node modules used by vscode server
++//	yarnInstall('remote/web'); // node modules used by vscode web
+ }
  
  const allExtensionFolders = fs.readdirSync('extensions');
- const extensions = allExtensionFolders.filter(e => {
-@@ -68,7 +68,7 @@ runtime "${runtime}"`;
+@@ -69,7 +69,7 @@ runtime "${runtime}"`;
  }
  
  yarnInstall(`build`); // node modules required for build
@@ -35,5 +34,5 @@ index e0a512c8df..5ad9491e33 100644
 +//yarnInstall('test/integration/browser'); // node modules required for integration
  yarnInstallBuildDependencies(); // node modules for watching, specific to host node version, not electron
 -- 
-2.26.2
+2.27.0
 

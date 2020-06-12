@@ -1,4 +1,4 @@
-From 9feaf5c4b39dc7f74efaf21e720087e14dccb9ba Mon Sep 17 00:00:00 2001
+From fd5a3af40786930053eda7000ec55c0ebfe5514f Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 8 May 2020 20:43:33 +0800
 Subject: [PATCH 02/10] Don't download bundle marketplace extensions in gulp
@@ -21,5 +21,5 @@ index 25cccf6d8e..1e68c01c5a 100644
  
  gulp.task(compileExtensionsBuildTask);
 -- 
-2.26.2
+2.27.0
 

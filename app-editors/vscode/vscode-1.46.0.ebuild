@@ -14,14 +14,15 @@ SLOT="0"
 IUSE="system-electron system-ripgrep"
 REQUIRED_USE="!system-electron? ( elibc_glibc )"
 
-COMMIT="5763d909d5f12fe19f215cbfdd29a91c0fa9208a"
+COMMIT="a5d1cc28bb5da32ec67e86cc50f84c67cc690321"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
+# https://github.com/microsoft/vscode-ripgrep/blob/v1.5.8/lib/postinstall.js#L19
 RG_VERSION="11.0.1-2"
 VSCODE_RIPGREP_VERSION="1.5.8 1.5.7"
 
 ELECTRON_PREBUILT="https://github.com/electron/electron/releases/download"
-ELECTRON_VERSION="7.2.4"
+ELECTRON_VERSION="7.3.1"
 ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 
 SRC_URI="
@@ -65,8 +66,9 @@ RDEPEND="${DEPEND}
 		>=x11-libs/gtk+-3.24.16:3[X]
 		>=media-libs/alsa-lib-1.2.1
 		>=net-print/cups-2.2.13
-		x11-libs/libnotify
-		dev-libs/nss
+		>=x11-libs/libnotify-0.7.8
+		>=dev-libs/nss-3.26
+		app-crypt/gnupg
 		app-accessibility/at-spi2-atk
 		x11-libs/libXScrnSaver
 		x11-libs/libXtst
@@ -80,9 +82,9 @@ PATCHES=(
 	"${FILESDIR}/0004-Fix-paths-of-ifconfig-and-ip-command-on-Gentoo-Linux.patch"
 	"${FILESDIR}/0005-Allow-build-using-nodejs-14.patch"
 	"${FILESDIR}/0006-Allow-offline-in-args.patch"
-	"${FILESDIR}/0007-Don-t-run-yarn-install-for-web-remote-test.patch"
-	"${FILESDIR}/0008-Add-install-script-for-Gentoo.patch"
-	"${FILESDIR}/0009-Run-yarn-install-in-offline-mode.patch"
+	"${FILESDIR}/0007-Add-install-script-for-Gentoo.patch"
+	"${FILESDIR}/0008-Run-yarn-install-in-offline-mode.patch"
+	"${FILESDIR}/0009-Don-t-run-yarn-install-for-web-remote-test.patch"
 	"${FILESDIR}/0010-update-product.json.patch"
 )
 
@@ -145,7 +147,7 @@ src_prepare() {
 	echo 'yarn-offline-mirror "../offline-cache"' >> ${S}/.yarnrc
 
 	# move ripgrep tarball to cache directory
-	# https://github.com/microsoft/vscode-ripgrep/blob/master/lib/download.js#L13
+	# https://github.com/microsoft/vscode-ripgrep/blob/master/lib/download.js#L14
 	pushd "${WORKDIR}" > /dev/null || die
 	local rg_tar_path="${DISTDIR}/$(get_rg_tar_name)"
 	if use system-ripgrep; then

@@ -1,4 +1,4 @@
-From 5a25a4fa0bab71489c580a17fcba8bbddcbd5f38 Mon Sep 17 00:00:00 2001
+From 74d9843246b8e8624fbf435151a14f04b42b7294 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 8 May 2020 20:45:57 +0800
 Subject: [PATCH 04/10] Fix paths of ifconfig and ip command on Gentoo Linux
@@ -21,5 +21,5 @@ index 524b136c06..63908993ca 100644
  
  const invalidMacAddresses = new Set([
 -- 
-2.26.2
+2.27.0
 

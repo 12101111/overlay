@@ -1,4 +1,4 @@
-From bda94f09a604788af918d4517bf1715c15f48007 Mon Sep 17 00:00:00 2001
+From 0c4ef48233b1694a19e3c28ba71f7e310b147f3c Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 8 May 2020 20:47:03 +0800
 Subject: [PATCH 06/10] Allow --offline in args
@@ -8,7 +8,7 @@ Subject: [PATCH 06/10] Allow --offline in args
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index 7a2320d828..e0a512c8df 100644
+index 7b8b710636..d3dafad880 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
 @@ -20,8 +20,8 @@ function yarnInstall(location, opts) {
@@ -23,5 +23,5 @@ index 7a2320d828..e0a512c8df 100644
  	console.log(`$ yarn ${args.join(' ')}`);
  	const result = cp.spawnSync(yarn, args, opts);
 -- 
-2.26.2
+2.27.0
 
