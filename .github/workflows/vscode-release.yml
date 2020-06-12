@@ -31,7 +31,7 @@ jobs:
       working-directory: ${{ github.workspace }}/vscode
       run: |
         rm ../overlay/app-editors/vscode/files/0008-Run-yarn-install-in-offline-mode.patch
-        git apply ../overlay/app-editors/vscode/files/*
+        git apply ../overlay/app-editors/vscode/files/*.patch
 
     - name: Download and crate yarn cache
       working-directory: ${{ github.workspace }}/vscode
