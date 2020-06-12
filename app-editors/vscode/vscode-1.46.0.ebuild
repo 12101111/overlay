@@ -11,7 +11,7 @@ HOMEPAGE="https://code.visualstudio.com/"
 KEYWORDS="~amd64"
 LICENSE="MIT"
 SLOT="0"
-IUSE="system-electron system-ripgrep"
+IUSE="system-electron system-ripgrep savedconfig"
 REQUIRED_USE="!system-electron? ( elibc_glibc )"
 
 COMMIT="a5d1cc28bb5da32ec67e86cc50f84c67cc690321"
@@ -27,8 +27,8 @@ ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 
 SRC_URI="
 	https://github.com/microsoft/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz
-	https://github.com/12101111/overlay/releases/download/v2020-05-11/vscode-builtin-extensions.tar.xz -> ${P}-builtin-extensions.tar.xz
-	https://github.com/12101111/overlay/releases/download/v2020-05-11/vscode-yarn-offline-cache.tar.xz -> ${P}-yarn-offline-cache.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-06-12/vscode-builtin-extensions.tar.xz -> ${P}-builtin-extensions.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-06-12/vscode-yarn-offline-cache.tar.xz -> ${P}-yarn-offline-cache.tar.xz
 	!system-ripgrep? (
 		amd64? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-x86_64-unknown-linux-musl.tar.gz )
 		x86? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-i686-unknown-linux-musl.tar.gz )
