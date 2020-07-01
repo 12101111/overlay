@@ -23,22 +23,31 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="atk clang custom-cflags lto ozone X wayland
-	+closure-compile component-build cups cpu_flags_arm_neon +hangouts kerberos pic
-	+proprietary-codecs pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx
-	+tcmalloc widevine"
+IUSE="atk lto pgo component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos ozone pic +proprietary-codecs pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc wayland widevine"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
-	lto? ( clang )
 	wayland? ( ozone )
-	|| ( X wayland )"
+"
+
+COMMON_X_DEPEND="
+	media-libs/mesa:=[gbm]
+	x11-libs/libX11:=
+	x11-libs/libXcomposite:=
+	x11-libs/libXcursor:=
+	x11-libs/libXdamage:=
+	x11-libs/libXext:=
+	x11-libs/libXfixes:=
+	>=x11-libs/libXi-1.6.0:=
+	x11-libs/libXrandr:=
+	x11-libs/libXrender:=
+	x11-libs/libXtst:=
+	x11-libs/libxcb:=
+"
 
 COMMON_DEPEND="
-	atk? ( >=app-accessibility/at-spi2-atk-2.26:2 )
 	app-arch/bzip2:=
 	cups? ( >=net-print/cups-1.3.11:= )
-	atk? ( >=dev-libs/atk-2.26 )
 	dev-libs/expat:=
 	dev-libs/glib:2
 	>=dev-libs/libxml2-2.9.4-r3:=[icu]
@@ -50,7 +59,6 @@ COMMON_DEPEND="
 	>=media-libs/harfbuzz-2.4.0:0=[icu(-)]
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
-	media-libs/mesa:=[gbm]
 	system-libvpx? ( >=media-libs/libvpx-1.8.2:=[postproc,svc] )
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
@@ -64,32 +72,35 @@ COMMON_DEPEND="
 	sys-apps/dbus:=
 	sys-apps/pciutils:=
 	virtual/udev
-	X? (
-		x11-libs/cairo:=
-		x11-libs/libX11:=
-		x11-libs/libXcomposite:=
-		x11-libs/libXcursor:=
-		x11-libs/libXdamage:=
-		x11-libs/libXext:=
-		x11-libs/libXfixes:=
-		>=x11-libs/libXi-1.6.0:=
-		x11-libs/libXrandr:=
-		x11-libs/libXrender:=
-		x11-libs/libXScrnSaver:=
-		x11-libs/libXtst:=
-		x11-libs/pango:=
-	)
-	wayland? (
-		x11-libs/libxkbcommon:=
-		dev-libs/wayland:=
-		x11-libs/libdrm:=
-	)
+	x11-libs/cairo:=
 	x11-libs/gdk-pixbuf:2
-	x11-libs/gtk+:3[X]
+	x11-libs/pango:=
 	media-libs/flac:=
 	>=media-libs/libwebp-0.4.0:=
 	sys-libs/zlib:=[minizip]
 	kerberos? ( virtual/krb5 )
+	ozone? (
+		!headless? (
+			${COMMON_X_DEPEND}
+			x11-libs/gtk+:3[wayland?,X]
+			wayland? (
+				dev-libs/wayland:=
+				dev-libs/libffi:=
+				x11-libs/libdrm:=
+				x11-libs/libxkbcommon:=
+			)
+		)
+	)
+	!ozone? (
+		atk? (
+			>=app-accessibility/at-spi2-atk-2.26:2
+			>=app-accessibility/at-spi2-core-2.26:2
+			>=dev-libs/atk-2.26
+		)
+		x11-libs/gtk+:3[X]
+		x11-libs/libXScrnSaver:=
+		${COMMON_X_DEPEND}
+	)
 "
 # For nvidia-drivers blocker, see bug #413637 .
 RDEPEND="${COMMON_DEPEND}
@@ -116,23 +127,7 @@ BDEPEND="
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
-	closure-compile? ( virtual/jre )
-	!system-libvpx? (
-		amd64? ( dev-lang/yasm )
-		x86? ( dev-lang/yasm )
-	)
-	clang? (
-		|| (
-			(
-				sys-devel/clang:10
-				=sys-devel/lld-10*
-			)
-			(
-				sys-devel/clang:9
-				=sys-devel/lld-9*
-			)
-		)
-	)
+	js-type-check? ( virtual/jre )
 "
 
 : ${CHROMIUM_FORCE_CLANG=no}
@@ -145,10 +140,6 @@ fi
 if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
 	RDEPEND+=" >=sys-libs/libcxx-9"
 	DEPEND+=" >=sys-libs/libcxx-9"
-	BDEPEND+="
-		amd64? ( dev-lang/yasm )
-		x86? ( dev-lang/yasm )
-	"
 else
 	COMMON_DEPEND="
 		app-arch/snappy:=
@@ -196,13 +187,15 @@ in /etc/chromium/default.
 
 PATCHES=(
 	"${FILESDIR}/chromium_atk_optional.patch"
+	"${FILESDIR}/chromium-84-mediaalloc.patch"
+	"${FILESDIR}/chromium-85-ozone-include.patch"
 )
 
 pre_build_checks() {
 	if [[ ${MERGE_TYPE} != binary ]]; then
 		local -x CPP="$(tc-getCXX) -E"
-		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 8.0; then
-			die "At least gcc 8.0 is required"
+		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 9.2; then
+			die "At least gcc 9.2 is required"
 		fi
 		# component build hangs with tcmalloc enabled due to sandbox issue, bug #695976.
 		if has usersandbox ${FEATURES} && use tcmalloc && use component-build; then
@@ -218,9 +211,6 @@ pre_build_checks() {
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="3G"
 	CHECKREQS_DISK_BUILD="7G"
-	if use lto; then
-		CHECKREQS_MEMORY="12G"
-	fi
 	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
 		if use custom-cflags || use component-build; then
 			CHECKREQS_DISK_BUILD="25G"
@@ -228,6 +218,13 @@ pre_build_checks() {
 		if ! use component-build; then
 			CHECKREQS_MEMORY="16G"
 		fi
+	fi
+
+	if use lto || use pgo; then
+		if ! tc-is-clang; then
+			die "lto or pgo only support clang and lld"
+		fi
+		CHECKREQS_MEMORY="8G"
 	fi
 	check-reqs_pkg_setup
 }
@@ -246,6 +243,11 @@ src_prepare() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
 
+	if use elibc_musl; then
+		eapply "${FILESDIR}/musl"
+	fi
+	# chromium commit ef2ef4063c48ea5432530c4107188e6978e6ab37
+	rm "${WORKDIR}/patches/chromium-clang_lto_visibility_public.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -377,6 +379,7 @@ src_prepare() {
 		third_party/node
 		third_party/node/node_modules/polymer-bundler/lib/third_party/UglifyJS2
 		third_party/one_euro_filter
+		third_party/opencv
 		third_party/openscreen
 		third_party/openscreen/src/third_party/mozilla
 		third_party/openscreen/src/third_party/tinycbor/src/src
@@ -474,6 +477,9 @@ src_prepare() {
 	if use tcmalloc; then
 		keeplibs+=( third_party/tcmalloc )
 	fi
+	if use ozone && use wayland && ! use headless ; then
+		keeplibs+=( third_party/wayland )
+	fi
 	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
 		keeplibs+=( third_party/libxml )
 		keeplibs+=( third_party/libxslt )
@@ -484,13 +490,11 @@ src_prepare() {
 			keeplibs+=( third_party/icu )
 		fi
 	fi
-	if use wayland ; then
-		keeplibs+=( third_party/wayland )
-		keeplibs+=( third_party/minigbm )
-	fi
 
+	ebegin "Remove bundled libraries"
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
+	eend
 }
 
 src_configure() {
@@ -502,17 +506,10 @@ src_configure() {
 	# Make sure the build system will use the right tools, bug #340795.
 	tc-export AR CC CXX NM
 
-	if ( [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || use clang ) && ! tc-is-clang ; then
-		# Force clang
-		einfo "Enforcing the use of clang due to USE=clang ..."
+	if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] && ! tc-is-clang; then
+		# Force clang since gcc is pretty broken at the moment.
 		CC=${CHOST}-clang
 		CXX=${CHOST}-clang++
-		strip-unsupported-flags
-	elif ! use clang && ! tc-is-gcc ; then
-		# Force gcc
-		einfo "Enforcing the use of gcc due to USE=-clang ..."
-		CC=${CHOST}-gcc
-		CXX=${CHOST}-g++
 		strip-unsupported-flags
 	fi
 
@@ -539,11 +536,6 @@ src_configure() {
 	# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
 	myconf_gn+=" is_debug=false"
 
-	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
-		# FIXME: need more test on debug build
-		myconf_gn+=" blink_symbol_level=0"
-	fi
-
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
@@ -553,7 +545,7 @@ src_configure() {
 			die "tcmalloc is broken with musl at this moment."
 		fi
 		myconf_gn+=" use_allocator_shim=false"
-	fi
+     fi
 
 	myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
 
@@ -607,32 +599,13 @@ src_configure() {
 	myconf_gn+=" use_gnome_keyring=false"
 
 	# Optional dependencies.
-	myconf_gn+=" closure_compile=$(usex closure-compile true false)"
+	myconf_gn+=" enable_js_type_check=$(usex js-type-check true false)"
 	myconf_gn+=" enable_hangout_services_extension=$(usex hangouts true false)"
 	myconf_gn+=" enable_widevine=$(usex widevine true false)"
 	myconf_gn+=" use_cups=$(usex cups true false)"
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
 	myconf_gn+=" use_atk=$(usex atk true false)"
-
-	myconf_gn+=" use_glib=true"
-
-	if use ozone; then
-		myconf_gn+=" use_ozone=true"
-		myconf_gn+=" ozone_auto_platforms=false"
-		if use X; then
-			myconf_gn+=" ozone_platform_x11=true"
-			myconf_gn+=" ozone_platform=\"x11\""
-		fi
-		if use wayland ; then
-			myconf_gn+=" ozone_platform_wayland=true"
-			myconf_gn+=" use_system_libwayland=true"
-			myconf_gn+=" use_system_libdrm=true"
-			myconf_gn+=" use_system_minigbm=true"
-			myconf_gn+=" use_gtk=true"
-		fi
-		myconf_gn+=" use_xkbcommon=true"
-	fi
 
 	# TODO: link_pulseaudio=true for GN.
 
@@ -642,7 +615,7 @@ src_configure() {
 	# Do not use bundled clang.
 	# Trying to use gold results in linker crash.
 	myconf_gn+=" use_gold=false use_sysroot=false use_custom_libcxx=false"
-
+ 
 	if use lto; then
 		myconf_gn+=" use_thin_lto=true"
 		myconf_gn+=" use_lld=true"
@@ -650,6 +623,10 @@ src_configure() {
 	else
 		# Disable forced lld, bug 641556
 		myconf_gn+=" use_lld=false"
+	fi
+
+	if use pgo; then
+		myconf_gn+=" clang_use_default_sample_profile=true"
 	fi
 
 	ffmpeg_branding="$(usex proprietary-codecs Chrome Chromium)"
@@ -728,8 +705,8 @@ src_configure() {
 	# https://bugs.gentoo.org/654216
 	addpredict /dev/dri/ #nowarn
 
-	if ! use system-ffmpeg; then
-	#if false; then
+	#if ! use system-ffmpeg; then
+	if false; then
 		local build_ffmpeg_args=""
 		if use pic && [[ "${ffmpeg_target_arch}" == "ia32" ]]; then
 			build_ffmpeg_args+=" --disable-asm"
@@ -756,6 +733,26 @@ src_configure() {
 	# Use bundled xcb-proto, bug #727000
 	myconf_gn+=" xcbproto_path=\"${WORKDIR}/xcb-proto-${XCB_PROTO_VERSION}/src\""
 
+	# Enable ozone support
+	if use ozone; then
+		myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
+		myconf_gn+=" ozone_platform_headless=true"
+		if ! use headless; then
+			myconf_gn+=" use_system_libdrm=true"
+			myconf_gn+=" ozone_platform_wayland=$(usex wayland true false)"
+			myconf_gn+=" ozone_platform_x11=true"
+			myconf_gn+=" ozone_platform_headless=true"
+			if use wayland; then
+				myconf_gn+=" use_system_minigbm=true use_xkbcommon=true"
+				myconf_gn+=" ozone_platform=\"wayland\""
+			else
+				myconf_gn+=" ozone_platform=\"x11\""
+			fi
+		else
+			myconf_gn+=" ozone_platform=\"headless\""
+		fi
+	fi
+
 	einfo "Configuring Chromium..."
 	set -- gn gen --args="${myconf_gn} ${EXTRA_GN}" out/Release
 	echo "$@"
@@ -776,7 +773,7 @@ src_compile() {
 	#"${EPYTHON}" tools/clang/scripts/update.py --force-local-build --gcc-toolchain /usr --skip-checkout --use-system-cmake --without-android || die
 
 	# Build mksnapshot and pax-mark it.
-	local x
+	#local x
 	#for x in mksnapshot v8_context_snapshot_generator; do
 	#	if tc-is-cross-compiler; then
 	#		eninja -C out/Release "host/${x}"
@@ -821,8 +818,14 @@ src_install() {
 
 	doexe out/Release/chromedriver
 
-	local sedargs=( -e "s:/usr/lib/:/usr/$(get_libdir)/:g" )
-	sed "${sedargs[@]}" "${FILESDIR}/chromium-launcher-r3.sh" > chromium-launcher.sh || die
+	ozone_auto_session () {
+		use ozone && use wayland && ! use headless && echo true || echo false
+	}
+	local sedargs=( -e
+			"s:/usr/lib/:/usr/$(get_libdir)/:g;
+			s:@@OZONE_AUTO_SESSION@@:$(ozone_auto_session):g"
+	)
+	sed "${sedargs[@]}" "${FILESDIR}/chromium-launcher-r4.sh" > chromium-launcher.sh || die
 	doexe chromium-launcher.sh
 
 	# It is important that we name the target "chromium-browser",
@@ -844,7 +847,11 @@ src_install() {
 	insinto "${CHROMIUM_HOME}"
 	doins out/Release/*.bin
 	doins out/Release/*.pak
-	doins out/Release/*.so
+	(
+		shopt -s nullglob
+		local files=(out/Release/*.so)
+		[[ ${#files[@]} -gt 0 ]] && doins "${files[@]}"
+	)
 
 	if ! use system-icu; then
 		doins out/Release/icudtl.dat
