@@ -25,7 +25,7 @@ SRC_URI="
 	https://github.com/electron/electron/archive/v${PV}.tar.gz -> ${P}.tar.gz
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
-	http://192.168.50.101:8088/electron-9_node_modules.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-06-29/electron-9_node_modules.tar.xz
 "
 
 CHROMIUM_S="${WORKDIR}/${CHROMIUM_P}"
@@ -35,37 +35,45 @@ ROOT_S="${WORKDIR}/src"
 LICENSE="BSD"
 SLOT="9"
 KEYWORDS="~amd64"
-IUSE="atk clang custom-cflags lto ozone X wayland pipewire
-	component-build cups cpu_flags_arm_neon kerberos pic +proprietary-codecs
-	pulseaudio selinux +suid +system-ffmpeg system-icu +system-libvpx +tcmalloc"
+IUSE="atk custom-cflags lto X pipewire
+	component-build cups cpu_flags_arm_neon headless kerberos ozone pic +proprietary-codecs
+	pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc wayland"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
-	lto? ( clang )
 	wayland? ( ozone )
-	|| ( X wayland )"
+	!headless ( || ( X wayland ) )"
+
+COMMON_X_DEPEND="
+	media-libs/mesa:=[gbm]
+	x11-libs/libX11:=
+	x11-libs/libXcomposite:=
+	x11-libs/libXcursor:=
+	x11-libs/libXdamage:=
+	x11-libs/libXext:=
+	x11-libs/libXfixes:=
+	>=x11-libs/libXi-1.6.0:=
+	x11-libs/libXrandr:=
+	x11-libs/libXrender:=
+	x11-libs/libXtst:=
+	x11-libs/libxcb:=
+"
 
 COMMON_DEPEND="
-	atk? ( >=app-accessibility/at-spi2-atk-2.26:2 )
 	app-arch/bzip2:=
 	cups? ( >=net-print/cups-1.3.11:= )
-	atk? ( >=dev-libs/atk-2.26 )
 	dev-libs/expat:=
 	dev-libs/glib:2
-	system-icu? ( >=dev-libs/icu-65:= )
 	>=dev-libs/libxml2-2.9.4-r3:=[icu]
-	dev-libs/libxslt:=
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.26:=
-	>=dev-libs/re2-0.2019.08.01:=
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
 	media-libs/freetype:=
 	>=media-libs/harfbuzz-2.4.0:0=[icu(-)]
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
-	system-libvpx? ( media-libs/libvpx:=[postproc,svc] )
-	>=media-libs/openh264-1.6.0:=
+	system-libvpx? ( >=media-libs/libvpx-1.8.2:=[postproc,svc] )
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
 		>=media-video/ffmpeg-4:=
@@ -78,40 +86,42 @@ COMMON_DEPEND="
 	sys-apps/dbus:=
 	sys-apps/pciutils:=
 	virtual/udev
-	X? (
-		x11-libs/cairo:=
-		x11-libs/pango:=
-		x11-libs/libX11:=
-		x11-libs/libXcomposite:=
-		x11-libs/libXcursor:=
-		x11-libs/libXdamage:=
-		x11-libs/libXext:=
-		x11-libs/libXfixes:=
-		>=x11-libs/libXi-1.6.0:=
-		x11-libs/libXrandr:=
-		x11-libs/libXrender:=
-		x11-libs/libXScrnSaver:=
-		x11-libs/libXtst:=
-	)
-	wayland? (
-		x11-libs/libxkbcommon:=
-		dev-libs/wayland:=
-		x11-libs/libdrm:=
-	)
+	x11-libs/cairo:=
 	x11-libs/gdk-pixbuf:2
-	x11-libs/gtk+:3[X]
-	x11-libs/libnotify:=
-	app-arch/snappy:=
+	x11-libs/pango:=
 	media-libs/flac:=
 	>=media-libs/libwebp-0.4.0:=
 	sys-libs/zlib:=[minizip]
+	kerberos? ( virtual/krb5 )
+	pipewire? ( media-video/pipewire )
+	ozone? (
+		!headless? (
+			${COMMON_X_DEPEND}
+			x11-libs/gtk+:3[wayland?,X]
+			wayland? (
+				dev-libs/wayland:=
+				dev-libs/libffi:=
+				x11-libs/libdrm:=
+				x11-libs/libxkbcommon:=
+			)
+		)
+	)
+	!ozone? (
+		atk? ( 
+			>=app-accessibility/at-spi2-atk-2.26:2
+			>=app-accessibility/at-spi2-core-2.26:2
+			>=dev-libs/atk-2.26
+		)
+		x11-libs/gtk+:3[X]
+		x11-libs/libXScrnSaver:=
+		${COMMON_X_DEPEND}
+	)
+	x11-libs/libnotify:=
 	>=net-dns/c-ares-1.15.0
 	>=net-libs/http-parser-2.9.0:=
 	>=net-libs/nghttp2-1.39.2
 	dev-libs/libevent:=
 	>=dev-libs/openssl-1.1.1:0=
-	kerberos? ( virtual/krb5 )
-	pipewire? ( media-video/pipewire )
 	app-eselect/eselect-electron
 "
 # For nvidia-drivers blocker, see bug #413637 .
@@ -128,11 +138,9 @@ DEPEND="${COMMON_DEPEND}
 BDEPEND="
 	${PYTHON_DEPS}
 	>=app-arch/gzip-1.7
-	!arm? (
-		dev-lang/yasm
-	)
+	app-arch/unzip
 	dev-lang/perl
-	dev-util/gn
+	>=dev-util/gn-0.1726
 	dev-vcs/git
 	>=dev-util/gperf-3.0.3
 	>=dev-util/ninja-1.7.2
@@ -141,33 +149,46 @@ BDEPEND="
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
-	clang? (
-		|| (
-			(
-				sys-devel/clang:10
-				=sys-devel/lld-10*
-			)
-			(
-				sys-devel/clang:9
-				=sys-devel/lld-9*
-			)
-			(
-				sys-devel/clang:8
-				=sys-devel/lld-8*
-			)
-			(
-				sys-devel/clang:7
-				=sys-devel/lld-7*
-			)
-		)
+	!system-libvpx? (
+		amd64? ( dev-lang/yasm )
+		x86? ( dev-lang/yasm )
 	)
 "
+
+: ${CHROMIUM_FORCE_CLANG=no}
+: ${CHROMIUM_FORCE_LIBCXX=no}
+
+if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
+	BDEPEND+=" >=sys-devel/clang-9"
+fi
+
+if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
+	RDEPEND+=" >=sys-libs/libcxx-9"
+	DEPEND+=" >=sys-libs/libcxx-9"
+	BDEPEND+="
+		amd64? ( dev-lang/yasm )
+		x86? ( dev-lang/yasm )
+	"
+else
+	COMMON_DEPEND="
+		app-arch/snappy:=
+		dev-libs/libxslt:=
+		>=dev-libs/re2-0.2019.08.01:=
+		>=media-libs/openh264-1.6.0:=
+		system-icu? ( >=dev-libs/icu-67.1:= )
+	"
+	RDEPEND+="${COMMON_DEPEND}"
+	DEPEND+="${COMMON_DEPEND}"
+fi
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
 	EBUILD_DEATH_HOOKS+=" chromium_pkg_die";
 fi
 
 pre_build_checks() {
+	if use ozone; then
+		die "ozone support for electron 9 is broken now"
+	fi
 	if [[ ${MERGE_TYPE} != binary ]]; then
 		local -x CPP="$(tc-getCXX) -E"
 		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 8.0; then
@@ -177,31 +198,27 @@ pre_build_checks() {
 		if has usersandbox ${FEATURES} && use tcmalloc && use component-build; then
 			die "Component build with tcmalloc requires FEATURES=-usersandbox."
 		fi
-		if use clang || tc-is-clang; then
+		if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || tc-is-clang; then
 			if use component-build; then
 				die "Component build with clang requires fuzzer headers."
+			fi
+		else
+			if use lto; then
+				die "lto build requires clang and lld"
 			fi
 		fi
 	fi
 
-	if use ozone && use X; then
-		ewarn "Ozone platform for X11 of Electron 8 (Chromium 80) is WIP and will crash on startup"
-		ewarn "See https://github.com/electron/electron/issues/10915 for more information"
-		if [[ -z "${I_KNOW_WHAT_I_AM_DOING}" ]]; then
-			die "Please disable `ozone` amd `wayland` USE or use Electron 9"
-		else
-			ewarn "Continuing anyway as requested."
-		fi
-	fi
-
 	# Check build requirements, bug #541816 and bug #471810 .
-	CHECKREQS_MEMORY="4G"
-	CHECKREQS_DISK_BUILD="9G"
+	CHECKREQS_MEMORY="3G"
+	CHECKREQS_DISK_BUILD="7G"
 	if use lto; then
-		CHECKREQS_MEMORY="12G"
+		CHECKREQS_MEMORY="8G"
 	fi
 	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
-		CHECKREQS_DISK_BUILD="25G"
+		if use custom-cflags || use component-build; then
+			CHECKREQS_DISK_BUILD="25G"
+		fi
 		if ! use component-build; then
 			CHECKREQS_MEMORY="16G"
 		fi
@@ -256,7 +273,7 @@ src_prepare() {
 	cd "${CHROMIUM_S}/electron" || die
 
 	cp -r "${FILESDIR}/${PV}/electron/" "${WORKDIR}/electron-patch"
-	use ozone || rm -r "${WORKDIR}"/electron-patch/ozone*
+	use ozone || rm -r "${WORKDIR}"/electron-patch/000*
 	eapply ""${WORKDIR}"/electron-patch"
 
 	# Apply Chromium patches from Electron.
@@ -484,13 +501,31 @@ src_prepare() {
 	if ! use system-libvpx; then
 		keeplibs+=( third_party/libvpx )
 		keeplibs+=( third_party/libvpx/source/libvpx/third_party/x86inc )
+
+		# we need to generate ppc64 stuff because upstream does not ship it yet
+		# it has to be done before unbundling.
+		if use ppc64; then
+			pushd third_party/libvpx >/dev/null || die
+			mkdir -p source/config/linux/ppc64 || die
+			./generate_gni.sh || die
+			popd >/dev/null || die
+		fi
 	fi
 	if use tcmalloc; then
 		keeplibs+=( third_party/tcmalloc )
 	fi
-	if use wayland ; then
+	if use ozone && use wayland && ! use headless ; then
 		keeplibs+=( third_party/wayland )
-		keeplibs+=( third_party/minigbm )
+	fi
+	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
+		keeplibs+=( third_party/libxml )
+		keeplibs+=( third_party/libxslt )
+		keeplibs+=( third_party/openh264 )
+		keeplibs+=( third_party/re2 )
+		keeplibs+=( third_party/snappy )
+		if use system-icu; then
+			keeplibs+=( third_party/icu )
+		fi
 	fi
 
 	ebegin "Remove bundled libraries"
@@ -512,23 +547,19 @@ src_configure() {
 
 	cd "${CHROMIUM_S}" || die
 
-	if use clang && ! tc-is-clang ; then
-		# Force clang
-		einfo "Enforcing the use of clang due to USE=clang ..."
+	if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] && ! tc-is-clang; then
+		# Force clang since gcc is pretty broken at the moment.
 		CC=${CHOST}-clang
 		CXX=${CHOST}-clang++
-		strip-unsupported-flags
-	elif ! use clang && ! tc-is-gcc ; then
-		# Force gcc
-		einfo "Enforcing the use of gcc due to USE=-clang ..."
-		CC=${CHOST}-gcc
-		CXX=${CHOST}-g++
 		strip-unsupported-flags
 	fi
 
 	if tc-is-clang; then
 		myconf_gn+=" is_clang=true clang_use_chrome_plugins=false"
 	else
+		if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
+			die "Compiling with sys-libs/libcxx requires clang."
+		fi
 		myconf_gn+=" is_clang=false"
 	fi
 
@@ -547,7 +578,6 @@ src_configure() {
 	myconf_gn+=" is_debug=false"
 
 	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
-		# FIXME: need more test on debug build
 		myconf_gn+=" blink_symbol_level=0"
 	fi
 
@@ -581,16 +611,11 @@ src_configure() {
 		fontconfig
 		freetype
 		# Need harfbuzz_from_pkgconfig target
-		#harfbuzz-ng # FIXME
+		#harfbuzz-ng
 		libdrm
 		libjpeg
 		libpng
 		libwebp
-		libxml
-		libxslt
-		openh264
-		re2
-		snappy
 		yasm
 		zlib
 	)
@@ -602,6 +627,14 @@ src_configure() {
 	fi
 	if use system-libvpx; then
 		gn_system_libraries+=( libvpx )
+	fi
+	if [[ ${CHROMIUM_FORCE_LIBCXX} != yes ]]; then
+		# unbundle only without libc++, because libc++ is not fully ABI compatible with libstdc++
+		gn_system_libraries+=( libxml )
+		gn_system_libraries+=( libxslt )
+		gn_system_libraries+=( openh264 )
+		gn_system_libraries+=( re2 )
+		gn_system_libraries+=( snappy )
 	fi
 	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
 
@@ -619,22 +652,6 @@ src_configure() {
 	myconf_gn+=" rtc_use_pipewire=$(usex pipewire true false)"
 
 	myconf_gn+=" use_glib=true"
-
-	if use ozone; then
-		# FIXME: ozone need some patches 
-		myconf_gn+=" use_ozone=true"
-		myconf_gn+=" ozone_auto_platforms=false"
-		if use X; then
-			myconf_gn+=" ozone_platform_x11=true"
-		fi
-		if use wayland ; then
-			myconf_gn+=" ozone_platform_wayland=true"
-			myconf_gn+=" use_system_libwayland=true"
-			myconf_gn+=" use_system_libdrm=true"
-			#myconf_gn+=" use_system_minigbm=true"
-		fi
-		myconf_gn+=" use_xkbcommon=true"
-	fi
 
 	# TODO: link_pulseaudio=true for GN.
 
@@ -675,15 +692,21 @@ src_configure() {
 		replace-flags "-Os" "-O2"
 		strip-flags
 
+		# Debug info section overflows without component build
 		# Prevent linker from running out of address space, bug #471810 .
-		if use x86; then
+		if ! use component-build || use x86; then
 			filter-flags "-g*"
 		fi
 
 		# Prevent libvpx build failures. Bug 530248, 544702, 546984.
 		if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
-			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2
+			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4
 		fi
+	fi
+
+	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
+		append-flags -stdlib=libc++
+		append-ldflags -stdlib=libc++
 	fi
 
 	if [[ $myarch = amd64 ]] ; then
@@ -702,6 +725,9 @@ src_configure() {
 	elif [[ $myarch = arm ]] ; then
 		myconf_gn+=" target_cpu=\"arm\""
 		ffmpeg_target_arch=$(usex cpu_flags_arm_neon arm-neon arm)
+	elif [[ $myarch = ppc64 ]] ; then
+		myconf_gn+=" target_cpu=\"ppc64\""
+		ffmpeg_target_arch=ppc64
 	else
 		die "Failed to determine target arch, got '$myarch'."
 	fi
@@ -738,9 +764,35 @@ src_configure() {
 		popd > /dev/null || die
 	fi
 
+	# Chromium relies on this, but was disabled in >=clang-10, crbug.com/1042470
+	append-cxxflags $(test-flags-CXX -flax-vector-conversions=all)
+
 	# Explicitly disable ICU data file support for system-icu builds.
 	if use system-icu; then
 		myconf_gn+=" icu_use_data_file=false"
+	fi
+
+	# Enable ozone support
+	if use ozone; then
+		myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
+		myconf_gn+=" ozone_platform_headless=true"
+		if ! use headless; then
+			myconf_gn+=" use_system_libdrm=true"
+			myconf_gn+=" ozone_platform_wayland=$(usex wayland true false)"
+			myconf_gn+=" ozone_platform_x11=$(usex X true false)"
+			myconf_gn+=" ozone_platform_headless=true"
+			if use wayland; then
+				myconf_gn+=" use_system_minigbm=true use_xkbcommon=true"
+				myconf_gn+=" use_system_libwayland=true"
+			fi
+			if use X; then
+				myconf_gn+=" ozone_platform=\"x11\""
+			else
+				myconf_gn+=" ozone_platform=\"wayland\""
+			fi
+		else
+			myconf_gn+=" ozone_platform=\"headless\""
+		fi
 	fi
 
 	# This configutation can generate config.gypi
@@ -889,8 +941,6 @@ src_install() {
 		doins out/Release/libGLESv2.so
 		insopts -m644
 		doins out/Release/vk_swiftshader_icd.json
-	else
-		doins out/Release/libminigbm.so
 	fi
 
 	cat >out/Release/node <<EOF

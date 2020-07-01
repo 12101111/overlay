@@ -1,0 +1,69 @@
+From 80f80b4122cc6cbe88dd17e332f35de8f40b5b93 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Tue, 30 Jun 2020 12:11:35 +0800
+Subject: [PATCH 6/6] fix: add ifdefs around some X11 specific code to focus
+ dialogs
+
+---
+ shell/browser/ui/file_dialog_gtk.cc | 5 ++++-
+ shell/browser/ui/message_box_gtk.cc | 4 ++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/shell/browser/ui/file_dialog_gtk.cc b/shell/browser/ui/file_dialog_gtk.cc
+index 146201f66..9fe1e75f2 100644
+--- a/shell/browser/ui/file_dialog_gtk.cc
++++ b/shell/browser/ui/file_dialog_gtk.cc
+@@ -14,7 +14,9 @@
+ #include "shell/browser/unresponsive_suppressor.h"
+ #include "shell/common/gin_converters/file_path_converter.h"
+ #include "ui/base/glib/glib_signal.h"
++#if defined(USE_X11)
+ #include "ui/events/platform/x11/x11_event_source.h"
++#endif
+ #include "ui/gtk/gtk_util.h"
+ 
+ namespace file_dialog {
+@@ -133,11 +135,12 @@ class FileChooserDialog {
+     g_signal_connect(dialog_, "response", G_CALLBACK(OnFileDialogResponseThunk),
+                      this);
+     gtk_widget_show_all(dialog_);
+-
++#if defined(USE_X11)
+     // We need to call gtk_window_present after making the widgets visible to
+     // make sure window gets correctly raised and gets focus.
+     int time = ui::X11EventSource::GetInstance()->GetTimestamp();
+     gtk_window_present_with_time(GTK_WINDOW(dialog_), time);
++#endif
+   }
+ 
+   void RunSaveAsynchronous(
+diff --git a/shell/browser/ui/message_box_gtk.cc b/shell/browser/ui/message_box_gtk.cc
+index 6dbe28e86..75cd59ece 100644
+--- a/shell/browser/ui/message_box_gtk.cc
++++ b/shell/browser/ui/message_box_gtk.cc
+@@ -13,7 +13,9 @@
+ #include "shell/browser/native_window_views.h"
+ #include "shell/browser/unresponsive_suppressor.h"
+ #include "ui/base/glib/glib_signal.h"
++#if defined(USE_X11)
+ #include "ui/events/platform/x11/x11_event_source.h"
++#endif
+ #include "ui/gfx/image/image_skia.h"
+ #include "ui/gtk/gtk_util.h"
+ 
+@@ -133,10 +135,12 @@ class GtkMessageBox : public NativeWindowObserver {
+ 
+   void Show() {
+     gtk_widget_show(dialog_);
++#if defined(USE_X11)
+     // We need to call gtk_window_present after making the widgets visible to
+     // make sure window gets correctly raised and gets focus.
+     int time = ui::X11EventSource::GetInstance()->GetTimestamp();
+     gtk_window_present_with_time(GTK_WINDOW(dialog_), time);
++#endif
+   }
+ 
+   int RunSynchronous() {
+-- 
+2.27.0
+
