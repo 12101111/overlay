@@ -35,7 +35,7 @@ ROOT_S="${WORKDIR}/src"
 LICENSE="BSD"
 SLOT="9"
 KEYWORDS="~amd64"
-IUSE="atk custom-cflags lto X pipewire
+IUSE="atk custom-cflags lto X pipewire pgo
 	component-build cups cpu_flags_arm_neon headless kerberos ozone pic +proprietary-codecs
 	pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc wayland"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
@@ -222,6 +222,13 @@ pre_build_checks() {
 		if ! use component-build; then
 			CHECKREQS_MEMORY="16G"
 		fi
+	fi
+
+	if use lto || use pgo; then
+		if ! tc-is-clang; then
+			die "lto or pgo only support clang and lld"
+		fi
+		CHECKREQS_MEMORY="8G"
 	fi
 	check-reqs_pkg_setup
 }
@@ -669,6 +676,10 @@ src_configure() {
 	else
 		# Disable forced lld, bug 641556
 		myconf_gn+=" use_lld=false"
+	fi
+
+	if use pgo; then
+		myconf_gn+=" clang_use_default_sample_profile=true"
 	fi
 
 	ffmpeg_branding="$(usex proprietary-codecs Chrome Chromium)"
