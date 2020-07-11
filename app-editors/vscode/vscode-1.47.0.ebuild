@@ -14,21 +14,21 @@ SLOT="0"
 IUSE="system-electron system-ripgrep savedconfig"
 REQUIRED_USE="!system-electron? ( elibc_glibc )"
 
-COMMIT="cd9ea6488829f560dc949a8b2fb789f3cdc05f5d"
+COMMIT="d5e9aa0227e057a60c82568bf31c04730dc15dcd"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
-# https://github.com/microsoft/vscode-ripgrep/blob/v1.5.8/lib/postinstall.js#L19
-RG_VERSION="11.0.1-2"
-VSCODE_RIPGREP_VERSION="1.5.8 1.5.7"
+# https://github.com/microsoft/vscode-ripgrep/blob/v1.7.0/lib/postinstall.js#L19
+RG_VERSION="11.0.1-6"
+VSCODE_RIPGREP_VERSION="1.7.0"
 
 ELECTRON_PREBUILT="https://github.com/electron/electron/releases/download"
-ELECTRON_VERSION="7.3.1"
+ELECTRON_VERSION="7.3.2"
 ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 
 SRC_URI="
 	https://github.com/microsoft/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz
-	https://github.com/12101111/overlay/releases/download/v2020-06-12/vscode-builtin-extensions.tar.xz -> ${P}-builtin-extensions.tar.xz
-	https://github.com/12101111/overlay/releases/download/v2020-06-12/vscode-yarn-offline-cache.tar.xz -> ${P}-yarn-offline-cache.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-07-11/vscode-builtin-extensions.tar.xz -> ${P}-builtin-extensions.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-07-11/vscode-yarn-offline-cache.tar.xz -> ${P}-yarn-offline-cache.tar.xz
 	!system-ripgrep? (
 		amd64? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-x86_64-unknown-linux-musl.tar.gz )
 		x86? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-i686-unknown-linux-musl.tar.gz )
@@ -86,6 +86,7 @@ PATCHES=(
 	"${FILESDIR}/0008-Run-yarn-install-in-offline-mode.patch"
 	"${FILESDIR}/0009-Don-t-run-yarn-install-for-web-remote-test.patch"
 	"${FILESDIR}/0010-update-product.json.patch"
+	"${FILESDIR}/0011-don-t-run-git-config.patch"
 )
 
 src_unpack() {
@@ -167,7 +168,7 @@ src_prepare() {
 
 src_configure() {
 	yarn install --ignore-optional --frozen-lockfile --offline \
-		--no-progress || die
+		--no-progress --verbose || die
 }
 
 src_compile() {
