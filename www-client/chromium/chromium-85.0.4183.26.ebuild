@@ -12,12 +12,10 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-XCB_PROTO_VERSION="1.14"
-PATCHSET="1"
+PATCHSET="2"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
-	https://www.x.org/releases/individual/proto/xcb-proto-${XCB_PROTO_VERSION}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
 
 LICENSE="BSD"
@@ -42,6 +40,7 @@ COMMON_X_DEPEND="
 	x11-libs/libXrandr:=
 	x11-libs/libXrender:=
 	x11-libs/libXtst:=
+	x11-libs/libXScrnSaver:=
 	x11-libs/libxcb:=
 "
 
@@ -98,7 +97,6 @@ COMMON_DEPEND="
 			>=dev-libs/atk-2.26
 		)
 		x11-libs/gtk+:3[X]
-		x11-libs/libXScrnSaver:=
 		${COMMON_X_DEPEND}
 	)
 "
@@ -188,7 +186,6 @@ in /etc/chromium/default.
 PATCHES=(
 	"${FILESDIR}/chromium_atk_optional.patch"
 	"${FILESDIR}/chromium-84-mediaalloc.patch"
-	"${FILESDIR}/chromium-85-ozone-include.patch"
 )
 
 pre_build_checks() {
@@ -211,6 +208,12 @@ pre_build_checks() {
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="3G"
 	CHECKREQS_DISK_BUILD="7G"
+	if use lto || use pgo; then
+		if ! tc-is-clang; then
+			die "lto or pgo only support clang and lld"
+		fi
+		CHECKREQS_MEMORY="8G"
+	fi
 	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
 		if use custom-cflags || use component-build; then
 			CHECKREQS_DISK_BUILD="25G"
@@ -220,12 +223,6 @@ pre_build_checks() {
 		fi
 	fi
 
-	if use lto || use pgo; then
-		if ! tc-is-clang; then
-			die "lto or pgo only support clang and lld"
-		fi
-		CHECKREQS_MEMORY="8G"
-	fi
 	check-reqs_pkg_setup
 }
 
@@ -246,8 +243,6 @@ src_prepare() {
 	if use elibc_musl; then
 		eapply "${FILESDIR}/musl"
 	fi
-	# chromium commit ef2ef4063c48ea5432530c4107188e6978e6ab37
-	rm "${WORKDIR}/patches/chromium-clang_lto_visibility_public.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -439,6 +434,7 @@ src_prepare() {
 		third_party/widevine
 		third_party/woff2
 		third_party/wuffs
+		third_party/xcbproto
 		third_party/zlib/google
 		tools/grit/third_party/six
 		url/third_party/mozilla
@@ -730,9 +726,6 @@ src_configure() {
 		myconf_gn+=" icu_use_data_file=false"
 	fi
 
-	# Use bundled xcb-proto, bug #727000
-	myconf_gn+=" xcbproto_path=\"${WORKDIR}/xcb-proto-${XCB_PROTO_VERSION}/src\""
-
 	# Enable ozone support
 	if use ozone; then
 		myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
@@ -767,8 +760,7 @@ src_compile() {
 	python_setup
 
 	# https://bugs.gentoo.org/717456
-	# Use bundled xcb-proto, because system xcb-proto doesn't have Python 2.7 support
-	local -x PYTHONPATH="${WORKDIR}/setuptools-44.1.0:${WORKDIR}/xcb-proto-${XCB_PROTO_VERSION}${PYTHONPATH+:}${PYTHONPATH}"
+	local -x PYTHONPATH="${WORKDIR}/setuptools-44.1.0:${PYTHONPATH+:}${PYTHONPATH}"
 
 	#"${EPYTHON}" tools/clang/scripts/update.py --force-local-build --gcc-toolchain /usr --skip-checkout --use-system-cmake --without-android || die
 
