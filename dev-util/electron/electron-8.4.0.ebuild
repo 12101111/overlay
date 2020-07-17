@@ -34,7 +34,7 @@ ROOT_S="${WORKDIR}/src"
 LICENSE="BSD"
 SLOT="8"
 KEYWORDS="~amd64"
-IUSE="atk clang custom-cflags lto ozone X wayland pipewire
+IUSE="atk clang custom-cflags lto ozone X wayland pipewire pgo
 	component-build cups cpu_flags_arm_neon kerberos pic +proprietary-codecs
 	pulseaudio selinux +suid +system-ffmpeg system-icu +system-libvpx +tcmalloc"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
@@ -196,8 +196,11 @@ pre_build_checks() {
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="4G"
 	CHECKREQS_DISK_BUILD="9G"
-	if use lto; then
-		CHECKREQS_MEMORY="12G"
+	if use lto || use pgo; then
+		if ! tc-is-clang; then
+			die "lto or pgo only support clang and lld"
+		fi
+		CHECKREQS_MEMORY="8G"
 	fi
 	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
 		CHECKREQS_DISK_BUILD="25G"
@@ -644,6 +647,10 @@ src_configure() {
 	else
 		# Disable forced lld, bug 641556
 		myconf_gn+=" use_lld=false"
+	fi
+
+	if use pgo; then
+		myconf_gn+=" clang_use_default_sample_profile=true"
 	fi
 
 	ffmpeg_branding="$(usex proprietary-codecs Chrome Chromium)"

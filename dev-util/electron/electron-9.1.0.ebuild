@@ -41,8 +41,7 @@ IUSE="atk custom-cflags lto X pipewire pgo
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
-	wayland? ( ozone )
-	!headless ( || ( X wayland ) )"
+	wayland? ( ozone )"
 
 COMMON_X_DEPEND="
 	media-libs/mesa:=[gbm]
@@ -56,6 +55,7 @@ COMMON_X_DEPEND="
 	x11-libs/libXrandr:=
 	x11-libs/libXrender:=
 	x11-libs/libXtst:=
+	x11-libs/libXScrnSaver:=
 	x11-libs/libxcb:=
 "
 
@@ -113,7 +113,6 @@ COMMON_DEPEND="
 			>=dev-libs/atk-2.26
 		)
 		x11-libs/gtk+:3[X]
-		x11-libs/libXScrnSaver:=
 		${COMMON_X_DEPEND}
 	)
 	x11-libs/libnotify:=
@@ -202,17 +201,16 @@ pre_build_checks() {
 			if use component-build; then
 				die "Component build with clang requires fuzzer headers."
 			fi
-		else
-			if use lto; then
-				die "lto build requires clang and lld"
-			fi
 		fi
 	fi
 
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="3G"
 	CHECKREQS_DISK_BUILD="7G"
-	if use lto; then
+	if use lto || use pgo; then
+		if ! tc-is-clang; then
+			die "lto or pgo only support clang and lld"
+		fi
 		CHECKREQS_MEMORY="8G"
 	fi
 	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
@@ -224,12 +222,6 @@ pre_build_checks() {
 		fi
 	fi
 
-	if use lto || use pgo; then
-		if ! tc-is-clang; then
-			die "lto or pgo only support clang and lld"
-		fi
-		CHECKREQS_MEMORY="8G"
-	fi
 	check-reqs_pkg_setup
 }
 
