@@ -21,11 +21,12 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="atk lto pgo component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos ozone pic +proprietary-codecs pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc wayland widevine"
+IUSE="atk lto pgo pipewire vaapi swiftshader component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos ozone pic +proprietary-codecs pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc wayland widevine"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
 	wayland? ( ozone )
+	vaapi? ( !system-libvpx )
 "
 
 COMMON_X_DEPEND="
@@ -78,6 +79,8 @@ COMMON_DEPEND="
 	>=media-libs/libwebp-0.4.0:=
 	sys-libs/zlib:=[minizip]
 	kerberos? ( virtual/krb5 )
+	pipewire? ( media-video/pipewire )
+	vaapi? ( x11-libs/libva:= )
 	ozone? (
 		!headless? (
 			${COMMON_X_DEPEND}
@@ -186,6 +189,10 @@ in /etc/chromium/default.
 PATCHES=(
 	"${FILESDIR}/chromium_atk_optional.patch"
 	"${FILESDIR}/chromium-84-mediaalloc.patch"
+	"${FILESDIR}/chromium-fix-vaapi-on-intel.patch"
+	"${FILESDIR}/chromium-skia-harmony.patch"
+	"${FILESDIR}/nvidia-vdpau.patch"
+	"${FILESDIR}/wayland-egl.patch"
 )
 
 pre_build_checks() {
@@ -411,13 +418,6 @@ src_prepare() {
 		third_party/spirv-headers
 		third_party/SPIRV-Tools
 		third_party/sqlite
-		third_party/swiftshader
-		third_party/swiftshader/third_party/astc-encoder
-		third_party/swiftshader/third_party/llvm-7.0
-		third_party/swiftshader/third_party/llvm-subzero
-		third_party/swiftshader/third_party/marl
-		third_party/swiftshader/third_party/subzero
-		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
 		third_party/unrar
 		third_party/usrsctp
 		third_party/vulkan
@@ -476,6 +476,17 @@ src_prepare() {
 	if use ozone && use wayland && ! use headless ; then
 		keeplibs+=( third_party/wayland )
 	fi
+	if use swiftshader ; then
+		keeplibs+=(
+			third_party/swiftshader
+			third_party/swiftshader/third_party/astc-encoder
+			third_party/swiftshader/third_party/llvm-7.0
+			third_party/swiftshader/third_party/llvm-subzero
+			third_party/swiftshader/third_party/marl
+			third_party/swiftshader/third_party/subzero
+			third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1 
+		)
+	fi
 	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
 		keeplibs+=( third_party/libxml )
 		keeplibs+=( third_party/libxslt )
@@ -487,7 +498,7 @@ src_prepare() {
 		fi
 	fi
 
-	ebegin "Remove bundled libraries"
+	ebegin "Remove bundled libraries, keeplibs: ${keeplibs[@]}"
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 	eend
@@ -602,6 +613,10 @@ src_configure() {
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
 	myconf_gn+=" use_atk=$(usex atk true false)"
+	myconf_gn+=" rtc_use_pipewire=$(usex pipewire true false)"
+	myconf_gn+=" use_vaapi=$(usex vaapi true false)"
+	myconf_gn+=" enable_swiftshader=$(usex swiftshader true false)"
+	myconf_gn+=" enable_swiftshader_vulkan=$(usex swiftshader true false)"
 
 	# TODO: link_pulseaudio=true for GN.
 
