@@ -53,7 +53,6 @@ BDEPEND="
 
 PATCHES=(
 	"${FILESDIR}/${PN}-1.5.0-qtsingleapplication-unbundle.patch"
-	"${FILESDIR}/${PN}-1.5.0-fix-sqtr.patch"
 )
 
 src_prepare() {
