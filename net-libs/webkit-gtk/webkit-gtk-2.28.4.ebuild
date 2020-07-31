@@ -168,7 +168,7 @@ src_prepare() {
 	eapply "${FILESDIR}/${PN}-2.24.4-eglmesaext-include.patch" # bug 699054 # https://bugs.webkit.org/show_bug.cgi?id=204108
 	eapply "${FILESDIR}"/2.28.2-opengl-without-X-fixes.patch
 	eapply "${FILESDIR}"/2.28.2-non-jumbo-fix.patch
-	eapply "${FILESDIR}"/2.28.3-non-jumbo-fix2.patch
+	eapply "${FILESDIR}"/2.28.4-non-jumbo-fix2.patch
 	eapply "${FILESDIR}"/remove-at-spi2.patch
 	if use elibc_musl ; then
 		eapply "${FILESDIR}/${PN}-2.28.1-musl.patch"

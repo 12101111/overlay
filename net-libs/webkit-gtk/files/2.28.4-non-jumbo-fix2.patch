@@ -26,19 +26,6 @@ index 55d9e34df61..12a7a83cc61 100644
  #include "RenderSVGResourceContainer.h"
  #include "SVGClipPathElement.h"
  #include "SVGUnitTypes.h"
-diff --git a/Source/WebCore/xml/parser/XMLDocumentParserLibxml2.cpp b/Source/WebCore/xml/parser/XMLDocumentParserLibxml2.cpp
-index ec2fbe165b1..ab0688615a6 100644
---- a/Source/WebCore/xml/parser/XMLDocumentParserLibxml2.cpp
-+++ b/Source/WebCore/xml/parser/XMLDocumentParserLibxml2.cpp
-@@ -42,6 +42,8 @@
- #include "HTTPParsers.h"
- #include "InlineClassicScript.h"
- #include "MIMETypeRegistry.h"
-+#include "Page.h"
-+#include "PageConsoleClient.h"
- #include "PendingScript.h"
- #include "ProcessingInstruction.h"
- #include "ResourceError.h"
 -- 
 2.20.1
 
