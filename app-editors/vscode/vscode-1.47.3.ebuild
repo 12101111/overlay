@@ -14,12 +14,12 @@ SLOT="0"
 IUSE="system-electron system-ripgrep savedconfig"
 REQUIRED_USE="!system-electron? ( elibc_glibc )"
 
-COMMIT="17299e413d5590b14ab0340ea477cdd86ff13daf"
+COMMIT="91899dcef7b8110878ea59626991a18c8a6a1b3e"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.7.0/lib/postinstall.js#L19
-RG_VERSION="11.0.1-6"
-VSCODE_RIPGREP_VERSION="1.7.0"
+RG_VERSION=("11.0.1-4" "11.0.1-6")
+VSCODE_RIPGREP_VERSION=("1.6.2" "1.7.0")
 
 ELECTRON_PREBUILT="https://github.com/electron/electron/releases/download"
 ELECTRON_VERSION="7.3.2"
@@ -27,14 +27,14 @@ ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 
 SRC_URI="
 	https://github.com/microsoft/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz
-	https://github.com/12101111/overlay/releases/download/v2020-07-11/vscode-builtin-extensions.tar.xz -> ${P}-builtin-extensions.tar.xz
-	https://github.com/12101111/overlay/releases/download/v2020-07-11/vscode-yarn-offline-cache.tar.xz -> ${P}-yarn-offline-cache.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-07-11/vscode-builtin-extensions.tar.xz -> ${PN}-1.47.2-builtin-extensions.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-07-11/vscode-yarn-offline-cache.tar.xz -> ${PN}-1.47.2-yarn-offline-cache.tar.xz
 	!system-ripgrep? (
-		amd64? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-x86_64-unknown-linux-musl.tar.gz )
-		x86? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-i686-unknown-linux-musl.tar.gz )
-		arm? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-arm-unknown-linux-gnueabihf.tar.gz )
-		arm64? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-aarch64-unknown-linux-gnu.tar.gz )
-		ppc64? ( ${RG_PREBUILT}/v${RG_VERSION}/ripgrep-v${RG_VERSION}-powerpc64le-unknown-linux-gnu.tar.gz )
+		amd64? ( ${RG_PREBUILT}/v${RG_VERSION[1]}/ripgrep-v${RG_VERSION[1]}-x86_64-unknown-linux-musl.tar.gz )
+		x86? ( ${RG_PREBUILT}/v${RG_VERSION[1]}/ripgrep-v${RG_VERSION[1]}-i686-unknown-linux-musl.tar.gz )
+		arm? ( ${RG_PREBUILT}/v${RG_VERSION[1]}/ripgrep-v${RG_VERSION[1]}-arm-unknown-linux-gnueabihf.tar.gz )
+		arm64? ( ${RG_PREBUILT}/v${RG_VERSION[1]}/ripgrep-v${RG_VERSION[1]}-aarch64-unknown-linux-gnu.tar.gz )
+		ppc64? ( ${RG_PREBUILT}/v${RG_VERSION[1]}/ripgrep-v${RG_VERSION[1]}-powerpc64le-unknown-linux-gnu.tar.gz )
 	)
 	!system-electron? (
 		https://atom.io/download/electron/v${ELECTRON_VERSION}/node-v${ELECTRON_VERSION}-headers.tar.gz -> electron-v${ELECTRON_VERSION}-headers.tar.gz
@@ -97,14 +97,14 @@ src_unpack() {
 	# 1. yarn download-builtin-extensions
 	# 2. cd .build
 	# 3. tar cJf vscode-builtin-extensions.tar.xz builtInExtensions
-	unpack ${P}-builtin-extensions.tar.xz
+	unpack ${PN}-1.47.2-builtin-extensions.tar.xz
 
 	# How to crate yarn cache?
 	# 1. echo 'yarn-offline-mirror "offline-cache"' >> .yarnrc
 	# 2. yarn --frozen-lockfile --ignore-scripts
 	# 3. yarn postinstall --frozen-lockfile
 	# 4. tar cJf vscode-yarn-offline-cache.tar.xz offline-cache
-	unpack ${P}-yarn-offline-cache.tar.xz
+	unpack ${PN}-1.47.2-yarn-offline-cache.tar.xz
 }
 
 src_prepare() {
@@ -150,16 +150,16 @@ src_prepare() {
 	# move ripgrep tarball to cache directory
 	# https://github.com/microsoft/vscode-ripgrep/blob/master/lib/download.js#L14
 	pushd "${WORKDIR}" > /dev/null || die
-	local rg_tar_path="${DISTDIR}/$(get_rg_tar_name)"
+	local source_rg_tar_path="${DISTDIR}/$(get_rg_tar_name 1)"
 	if use system-ripgrep; then
 		crate_fake_bin /usr/bin/rg rg
-		tar cf "$(get_rg_tar_name)" rg
-		rg_tar_path="${WORKDIR}/$(get_rg_tar_name)"
+		tar cf "$(get_rg_tar_name 1)" rg
+		source_rg_tar_path="${WORKDIR}/$(get_rg_tar_name 1)"
 	fi
-	for version in ${VSCODE_RIPGREP_VERSION}; do
-		local rg_cache_path="${TMPDIR}/vscode-ripgrep-cache-${version}"
+	for i in {0..1}; do
+		local rg_cache_path="${TMPDIR}/vscode-ripgrep-cache-${VSCODE_RIPGREP_VERSION[$i]}"
 		mkdir -p "${rg_cache_path}"
-		cp "${rg_tar_path}" "${rg_cache_path}"
+		cp "${source_rg_tar_path}" "${rg_cache_path}/$(get_rg_tar_name $i)"
 	done
 	popd > /dev/null || die
 
@@ -254,7 +254,7 @@ get_rg_tar_name() {
 		ppc64) myarch="powerpc64le-unknown-linux-gnu";;
 		*);;
 	esac
-	echo "ripgrep-v${RG_VERSION}-${myarch}.tar.gz"
+	echo "ripgrep-v${RG_VERSION[$1]}-${myarch}.tar.gz"
 }
 
 get_electron_prebuilt_zip_name() {
