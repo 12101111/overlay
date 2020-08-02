@@ -498,7 +498,7 @@ src_prepare() {
 		fi
 	fi
 
-	ebegin "Remove bundled libraries, keeplibs: ${keeplibs[@]}"
+	ebegin "Remove bundled libraries" # keeplibs: ${keeplibs[@]}"
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 	eend
