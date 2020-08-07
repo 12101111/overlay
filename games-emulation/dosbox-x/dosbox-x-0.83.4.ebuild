@@ -32,7 +32,9 @@ RDEPEND=${DEPEND}
 S="${WORKDIR}/${PN}-${PN}-v${PV}"
 
 PATCHES=(
-	"${FILESDIR}"/sys-perm.patch
+	"${FILESDIR}/sys-perm.patch"
+	"${FILESDIR}/cmath.patch"
+	"${FILESDIR}/z_of_fix.patch"
 )
 
 src_prepare() {

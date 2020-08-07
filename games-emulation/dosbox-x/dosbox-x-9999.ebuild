@@ -29,7 +29,9 @@ DEPEND="alsa? ( media-libs/alsa-lib )
 RDEPEND=${DEPEND}
 
 PATCHES=(
-	"${FILESDIR}"/sys-perm.patch
+	"${FILESDIR}/sys-perm.patch"
+	"${FILESDIR}/cmath.patch"
+	"${FILESDIR}/z_of_fix.patch"
 )
 
 src_prepare() {
