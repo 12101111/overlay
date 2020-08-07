@@ -12,14 +12,13 @@ Please follow the [official instruction](https://wiki.gentoo.org/wiki/Ebuild_rep
 - [app-editors/vscode](https://github.com/microsoft/vscode/): build vscode from source code
 - app-i18n/{fcitx5-chinese-addons, kcm-fcitx5, libime}, x11-libs/xcb-imdkit: keep update with [fcitx5](https://github.com/fcitx) upstream
 - [app-mobilephone/scrcpy](https://github.com/Genymobile/scrcpy)
-- [app-text/goldendict](https://github.com/goldendict/goldendict): live ebuild. fix build with clang10
+- [app-text/goldendict](https://github.com/goldendict/goldendict): live ebuild.
 - [dev-java/openjdk-bin](https://www.azul.com/downloads/zulu-community/): prebuilt OpenJDK for musl system by Zulu Community.
-- [dev-lang/rust](https://github.com/rust-lang/rust/): rust with patches for musl and llvm10
 - [dev-lang/luajit](https://github.com/moonjit/moonjit): Moonjit is a fork of the inactive LuaJIT project and aims to provide a way forward for existing users of LuaJIT looking for continuity in development and maintenance.
 - [dev-libs/elftoolchain](https://sourceforge.net/projects/elftoolchain/files/): replacement of elfutils, useful for systems with clang/llvm and musl
-- [dev-qt/q-creator](https://github.com/qt-creator/qt-creator/): update to newest and fix build with clang 10.
+- [dev-qt/qt-creator](https://github.com/qt-creator/qt-creator/): update to newest and fix build with clang 10.
 - [dev-qt/qtwebengine](https://github.com/qt/qtwebengine): allow build GN with CXXFLAGS and patches for musl.
-- [dev-util/electron](https://github.com/electron/electron/): The **newest** Electron (7/8) for **Gentoo** and **musl**! (electron-6 is [drop](https://github.com/12101111/overlay/commit/c1d4b0250fcc38268545fb163eb0a3137b809f56)).Patches set: [Gentoo Chromium](https://github.com/gentoo/gentoo/tree/master/www-client/chromium), [Alpine Linux Chromium](https://github.com/alpinelinux/aports/tree/master/community/chromium), [Void Linux Chromium](https://github.com/void-linux/void-packages/tree/master/srcpkgs/chromium), [Electrom Ozone](https://aur.archlinux.org/packages/electron-ozone), [Chromium Ozone](https://aur.archlinux.org/packages/chromium-beta-ozone/)
+- [dev-util/electron](https://github.com/electron/electron/): The **newest** Electron (7/8/9) for **Gentoo** and **musl**! (electron-6 is [drop](https://github.com/12101111/overlay/commit/c1d4b0250fcc38268545fb163eb0a3137b809f56)).Patches set: [Gentoo Chromium](https://github.com/gentoo/gentoo/tree/master/www-client/chromium), [Alpine Linux Chromium](https://github.com/alpinelinux/aports/tree/master/community/chromium), [Void Linux Chromium](https://github.com/void-linux/void-packages/tree/master/srcpkgs/chromium), [Electrom Ozone](https://aur.archlinux.org/packages/electron-ozone), [Chromium Ozone](https://aur.archlinux.org/packages/chromium-beta-ozone/)
 - [games-emulation/dosbox-x](https://github.com/joncampbell123/dosbox-x): update to newest and fix for musl
 - [gnome-base/dconf](https://gitlab.gnome.org/GNOME/dconf/): new release: dconf 0.35.1
 - [media-libs/libglvnd](https://gitlab.freedesktop.org/glvnd/libglvnd): musl tls fix
@@ -39,12 +38,4 @@ Please follow the [official instruction](https://wiki.gentoo.org/wiki/Ebuild_rep
 
 ### TODO
 
-Chromiums:
-
-- [ ] [dev-util/electron](https://github.com/electron/electron/): add electron-9 when it's released
-- [ ] [www-client/chromium](https://github.com/chromium/chromium/): musl support.
-
-Webkits:
-
-- [ ] [dev-qt/qtwebkit](https://github.com/qtwebkit/qtwebkit): musl support. [upstream issue](https://github.com/qtwebkit/qtwebkit/issues/708) [alpine linux patches](https://github.com/alpinelinux/aports/tree/master/community/qt5-qtwebkit)
-- [ ] [net-libs/webkit-gtk](webkitgtk.org/): update musl patches to 2.28
+- [ ] [dev-qt/qtwebkit](https://github.com/qtwebkit/qtwebkit): goldendict don't work properly with qtwebkit on musl. [upstream issue](https://github.com/qtwebkit/qtwebkit/issues/708) [alpine linux patches](https://github.com/alpinelinux/aports/tree/master/community/qt5-qtwebkit)
