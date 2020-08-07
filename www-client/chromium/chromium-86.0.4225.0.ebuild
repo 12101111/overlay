@@ -12,7 +12,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="2"
+PATCHSET="1"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -21,12 +21,11 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="atk lto pgo pipewire vaapi swiftshader component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos ozone pic +proprietary-codecs pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc wayland widevine"
+IUSE="atk lto pgo pipewire vaapi swiftshader vulkan component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos ozone pic +proprietary-codecs pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc wayland widevine"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
 	wayland? ( ozone )
-	vaapi? ( !system-libvpx )
 "
 
 COMMON_X_DEPEND="
@@ -79,7 +78,7 @@ COMMON_DEPEND="
 	>=media-libs/libwebp-0.4.0:=
 	sys-libs/zlib:=[minizip]
 	kerberos? ( virtual/krb5 )
-	pipewire? ( media-video/pipewire )
+	pipewire? ( media-video/pipewire:0/0.3 )
 	vaapi? ( x11-libs/libva:= )
 	ozone? (
 		!headless? (
@@ -119,7 +118,7 @@ BDEPEND="
 	>=app-arch/gzip-1.7
 	app-arch/unzip
 	dev-lang/perl
-	>=dev-util/gn-0.1726
+	>=dev-util/gn-0.1807
 	dev-vcs/git
 	>=dev-util/gperf-3.0.3
 	>=dev-util/ninja-1.7.2
@@ -135,12 +134,12 @@ BDEPEND="
 : ${CHROMIUM_FORCE_LIBCXX=no}
 
 if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
-	BDEPEND+=" >=sys-devel/clang-9"
+	BDEPEND+=" >=sys-devel/clang-10"
 fi
 
 if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
-	RDEPEND+=" >=sys-libs/libcxx-9"
-	DEPEND+=" >=sys-libs/libcxx-9"
+	RDEPEND+=" >=sys-libs/libcxx-10"
+	DEPEND+=" >=sys-libs/libcxx-10"
 else
 	COMMON_DEPEND="
 		app-arch/snappy:=
@@ -187,12 +186,15 @@ in /etc/chromium/default.
 "
 
 PATCHES=(
-	"${FILESDIR}/chromium_atk_optional.patch"
-	"${FILESDIR}/chromium-84-mediaalloc.patch"
-	"${FILESDIR}/chromium-fix-vaapi-on-intel.patch"
-	"${FILESDIR}/chromium-skia-harmony.patch"
-	"${FILESDIR}/nvidia-vdpau.patch"
-	"${FILESDIR}/wayland-egl.patch"
+    "${FILESDIR}/chromium-84-mediaalloc.patch"
+	"${FILESDIR}/build-with-pipewire-0.3.patch"
+    "${FILESDIR}/chromium_atk_optional.patch"
+    "${FILESDIR}/chromium-fix-vaapi-on-intel.patch"
+    "${FILESDIR}/chromium-skia-harmony.patch"
+    "${FILESDIR}/nvidia-vdpau.patch"
+    "${FILESDIR}/wayland-egl.patch"
+	"${FILESDIR}/chromium-86-compiler.patch"
+	"${FILESDIR}/vaapi_list.patch"
 )
 
 pre_build_checks() {
@@ -229,7 +231,6 @@ pre_build_checks() {
 			CHECKREQS_MEMORY="16G"
 		fi
 	fi
-
 	check-reqs_pkg_setup
 }
 
@@ -250,6 +251,10 @@ src_prepare() {
 	if use elibc_musl; then
 		eapply "${FILESDIR}/musl"
 	fi
+
+	rm "${WORKDIR}/patches/chromium-86-AddressComponent-const.patch"
+	rm "${WORKDIR}/patches/chromium-86-compiler.patch"
+	rm "${WORKDIR}/patches/chromium-86-template-specialization.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -300,7 +305,6 @@ src_prepare() {
 		third_party/breakpad
 		third_party/breakpad/breakpad/src/third_party/curl
 		third_party/brotli
-		third_party/cacheinvalidation
 		third_party/catapult
 		third_party/catapult/common/py_vulcanize/third_party/rcssmin
 		third_party/catapult/common/py_vulcanize/third_party/rjsmin
@@ -329,9 +333,15 @@ src_prepare() {
 		third_party/devscripts
 		third_party/devtools-frontend
 		third_party/devtools-frontend/src/front_end/third_party/acorn
+		third_party/devtools-frontend/src/front_end/third_party/chromium
 		third_party/devtools-frontend/src/front_end/third_party/codemirror
 		third_party/devtools-frontend/src/front_end/third_party/fabricjs
+		third_party/devtools-frontend/src/front_end/third_party/i18n
+		third_party/devtools-frontend/src/front_end/third_party/intl-messageformat
 		third_party/devtools-frontend/src/front_end/third_party/lighthouse
+		third_party/devtools-frontend/src/front_end/third_party/lit-html
+		third_party/devtools-frontend/src/front_end/third_party/lodash-isequal
+		third_party/devtools-frontend/src/front_end/third_party/marked
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/third_party
 		third_party/dom_distiller_js
@@ -378,6 +388,7 @@ src_prepare() {
 		third_party/metrics_proto
 		third_party/modp_b64
 		third_party/nasm
+		third_party/nearby
 		third_party/node
 		third_party/node/node_modules/polymer-bundler/lib/third_party/UglifyJS2
 		third_party/one_euro_filter
@@ -408,6 +419,7 @@ src_prepare() {
 		third_party/rnnoise
 		third_party/s2cellid
 		third_party/schema_org
+		third_party/securemessage
 		third_party/simplejson
 		third_party/skia
 		third_party/skia/include/third_party/skcms
@@ -418,6 +430,7 @@ src_prepare() {
 		third_party/spirv-headers
 		third_party/SPIRV-Tools
 		third_party/sqlite
+		third_party/ukey2
 		third_party/unrar
 		third_party/usrsctp
 		third_party/vulkan
@@ -436,6 +449,7 @@ src_prepare() {
 		third_party/wuffs
 		third_party/xcbproto
 		third_party/zlib/google
+		third_party/zxcvbn-cpp
 		tools/grit/third_party/six
 		url/third_party/mozilla
 		v8/src/third_party/siphash
@@ -480,13 +494,13 @@ src_prepare() {
 		keeplibs+=(
 			third_party/swiftshader
 			third_party/swiftshader/third_party/astc-encoder
-			third_party/swiftshader/third_party/llvm-7.0
+			third_party/swiftshader/third_party/llvm-10.0
 			third_party/swiftshader/third_party/llvm-subzero
 			third_party/swiftshader/third_party/marl
 			third_party/swiftshader/third_party/subzero
 			third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1 
 		)
-	fi
+    fi
 	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
 		keeplibs+=( third_party/libxml )
 		keeplibs+=( third_party/libxslt )
@@ -497,8 +511,7 @@ src_prepare() {
 			keeplibs+=( third_party/icu )
 		fi
 	fi
-
-	ebegin "Remove bundled libraries" # keeplibs: ${keeplibs[@]}"
+	ebegin "Remove bundled libraries"
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 	eend
@@ -542,6 +555,8 @@ src_configure() {
 
 	# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
 	myconf_gn+=" is_debug=false"
+	myconf_gn+=" symbol_level=1"
+	myconf_gn+=" blink_symbol_level=0"
 
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
@@ -552,7 +567,7 @@ src_configure() {
 			die "tcmalloc is broken with musl at this moment."
 		fi
 		myconf_gn+=" use_allocator_shim=false"
-     fi
+	fi
 
 	myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
 
@@ -614,9 +629,16 @@ src_configure() {
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
 	myconf_gn+=" use_atk=$(usex atk true false)"
 	myconf_gn+=" rtc_use_pipewire=$(usex pipewire true false)"
+	if use pipewire; then
+        myconf_gn+=" rtc_link_pipewire=true"
+        myconf_gn+=" rtc_use_pipewire_version=\"0.3\""
+	fi
 	myconf_gn+=" use_vaapi=$(usex vaapi true false)"
 	myconf_gn+=" enable_swiftshader=$(usex swiftshader true false)"
-	myconf_gn+=" enable_swiftshader_vulkan=$(usex swiftshader true false)"
+	myconf_gn+=" enable_vulkan=$(usex vulkan true false)"
+	if use vulkan && use swiftshader; then
+        myconf_gn+=" enable_swiftshader_vulkan=true"
+	fi
 
 	# TODO: link_pulseaudio=true for GN.
 
@@ -626,7 +648,7 @@ src_configure() {
 	# Do not use bundled clang.
 	# Trying to use gold results in linker crash.
 	myconf_gn+=" use_gold=false use_sysroot=false use_custom_libcxx=false"
- 
+
 	if use lto; then
 		myconf_gn+=" use_thin_lto=true"
 		myconf_gn+=" use_lld=true"
@@ -736,6 +758,9 @@ src_configure() {
 	# Chromium relies on this, but was disabled in >=clang-10, crbug.com/1042470
 	append-cxxflags $(test-flags-CXX -flax-vector-conversions=all)
 
+	# Disable unknown warning message from clang.
+	tc-is-clang && append-flags -Wno-unknown-warning-option
+
 	# Explicitly disable ICU data file support for system-icu builds.
 	if use system-icu; then
 		myconf_gn+=" icu_use_data_file=false"
@@ -749,6 +774,7 @@ src_configure() {
 			myconf_gn+=" use_system_libdrm=true"
 			myconf_gn+=" ozone_platform_wayland=$(usex wayland true false)"
 			myconf_gn+=" ozone_platform_x11=true"
+			myconf_gn+=" use_aura=true"
 			myconf_gn+=" ozone_platform_headless=true"
 			if use wayland; then
 				myconf_gn+=" use_system_minigbm=true use_xkbcommon=true"
@@ -780,7 +806,7 @@ src_compile() {
 	#"${EPYTHON}" tools/clang/scripts/update.py --force-local-build --gcc-toolchain /usr --skip-checkout --use-system-cmake --without-android || die
 
 	# Build mksnapshot and pax-mark it.
-	#local x
+	local x
 	#for x in mksnapshot v8_context_snapshot_generator; do
 	#	if tc-is-cross-compiler; then
 	#		eninja -C out/Release "host/${x}"
@@ -832,7 +858,7 @@ src_install() {
 			"s:/usr/lib/:/usr/$(get_libdir)/:g;
 			s:@@OZONE_AUTO_SESSION@@:$(ozone_auto_session):g"
 	)
-	sed "${sedargs[@]}" "${FILESDIR}/chromium-launcher-r4.sh" > chromium-launcher.sh || die
+	sed "${sedargs[@]}" "${FILESDIR}/chromium-launcher-r5.sh" > chromium-launcher.sh || die
 	doexe chromium-launcher.sh
 
 	# It is important that we name the target "chromium-browser",
