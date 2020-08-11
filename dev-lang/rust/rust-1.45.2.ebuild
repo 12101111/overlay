@@ -60,36 +60,36 @@ LLVM_MAX_SLOT=10
 
 BOOTSTRAP_DEPEND="|| ( >=dev-lang/rust-1.$(($(ver_cut 2) - 1)) >=dev-lang/rust-bin-1.$(($(ver_cut 2) - 1)) )"
 
-# libgit2 should be at least same as bungled into libgit-sys #707746
-COMMON_DEPEND="
-	>=dev-libs/libgit2-0.99:=
-	net-libs/libssh2:=
-	net-libs/http-parser:=
-	net-misc/curl:=[ssl]
-	sys-libs/zlib:=
-	!libressl? ( dev-libs/openssl:0= )
-	libressl? ( dev-libs/libressl:0= )
-	elibc_musl? ( || ( sys-libs/llvm-libunwind sys-libs/libunwind ) )
-	system-llvm? (
-		${LLVM_DEPEND}
-	)
-"
-
-DEPEND="${COMMON_DEPEND}
-	${PYTHON_DEPS}
+BDEPEND="${PYTHON_DEPS}
+	app-eselect/eselect-rust
 	|| (
 		>=sys-devel/gcc-4.7
 		>=sys-devel/clang-3.5
 	)
-	system-bootstrap? ( ${BOOTSTRAP_DEPEND}	)
+	system-bootstrap? ( ${BOOTSTRAP_DEPEND} )
 	!system-llvm? (
 		dev-util/cmake
 		dev-util/ninja
 	)
 "
 
-RDEPEND="${COMMON_DEPEND}
-	>=app-eselect/eselect-rust-20190311
+# libgit2 should be at least same as bundled into libgit-sys #707746
+DEPEND="
+	>=dev-libs/libgit2-0.99:=
+	net-libs/libssh2:=
+	net-libs/http-parser:=
+	net-misc/curl:=[http2,ssl]
+	sys-libs/zlib:=
+	!libressl? ( dev-libs/openssl:0= )
+	libressl? ( dev-libs/libressl:0= )
+	elibc_musl? (  || ( sys-libs/llvm-libunwind sys-libs/libunwind ) )
+	system-llvm? (
+		${LLVM_DEPEND}
+	)
+"
+
+RDEPEND="${DEPEND}
+	app-eselect/eselect-rust
 "
 
 REQUIRED_USE="|| ( ${ALL_LLVM_TARGETS[*]} )
@@ -99,16 +99,19 @@ REQUIRED_USE="|| ( ${ALL_LLVM_TARGETS[*]} )
 	x86? ( cpu_flags_x86_sse2 )
 "
 
+# we don't use cmake.eclass, but can get a warnin -l
+CMAKE_WARN_UNUSED_CLI=no
+
 QA_FLAGS_IGNORED="
 	usr/bin/.*-${PV}
-	usr/lib.*/lib.*.so
-	usr/lib/rustlib/.*/codegen-backends/librustc_codegen_llvm-llvm.so
-	usr/lib/rustlib/.*/lib/lib.*.so
+	usr/lib.*/${P}/lib.*.so.*
+	usr/lib.*/${P}/rustlib/.*/bin/.*
+	usr/lib.*/${P}/rustlib/.*/lib/lib.*.so.*
 "
 
 QA_SONAME="
-	usr/lib.*/lib.*.so
-	usr/lib.*/librustc_macros.*.s
+	usr/lib.*/${P}/lib.*.so.*
+	usr/lib.*/${P}/rustlib/.*/lib/lib.*.so.*
 "
 
 # tests need a bit more work, currently they are causing multiple
@@ -128,14 +131,41 @@ toml_usex() {
 	usex "$1" true false
 }
 
+boostrap_rust_version_check() {
+	# never call from pkg_pretend. eselect-rust may be not installed yet.
+	local rustc_wanted="$(ver_cut 1).$(($(ver_cut 2) - 1))"
+	local rustc_version=( $(eselect --brief rust show 2>/dev/null) )
+	rustc_version=${rustc_version[0]#rust-bin-}
+	rustc_version=${rustc_version#rust-}
+
+	[[ -z "${rustc_version}" ]] && die "Failed to determine rustc version!"
+
+	if ver_test "${rustc_version}" -lt "${rustc_wanted}" ; then
+		eerror "Rust >=${rustc_wanted} is required"
+		eerror "please run \'eselect rust\' and set correct rust version" 
+		die
+	else
+		einfo "Using rust ${rustc_version} to build"
+	fi
+}
+
 pre_build_checks() {
-	CHECKREQS_DISK_BUILD="9G"
+	local M=6144
+	M=$(( $(usex clippy 128 0) + ${M} ))
+	M=$(( $(usex miri 128 0) + ${M} ))
+	M=$(( $(usex rls 512 0) + ${M} ))
+	M=$(( $(usex rustfmt 256 0) + ${M} ))
+	M=$(( $(usex system-llvm 0 2048) + ${M} ))
+	M=$(( $(usex wasm 256 0) + ${M} ))
+	M=$(( $(usex debug 15 10) * ${M} / 10 ))
 	eshopts_push -s extglob
 	if is-flagq '-g?(gdb)?([1-9])'; then
-		CHECKREQS_DISK_BUILD="15G"
+		M=$(( 15 * ${M} / 10 ))
 	fi
 	eshopts_pop
-	check-reqs_pkg_setup
+	M=$(( $(usex system-bootstrap 0 1024) + ${M} ))
+	M=$(( $(usex doc 256 0) + ${M} ))
+	CHECKREQS_DISK_BUILD=${M}M check-reqs_pkg_${EBUILD_PHASE}
 }
 
 pkg_pretend() {
@@ -145,6 +175,7 @@ pkg_pretend() {
 pkg_setup() {
 	pre_build_checks
 	python-any-r1_pkg_setup
+	use system-bootstrap && boostrap_rust_version_check
 
 	# required to link agains system libs, otherwise
 	# crates use bundled sources and compile own static version
@@ -243,9 +274,9 @@ src_configure() {
 		cargo-native-static = false
 		[install]
 		prefix = "${EPREFIX}/usr"
-		libdir = "lib"
+		libdir = "$(get_libdir)/${P}"
 		docdir = "share/doc/${PF}"
-		mandir = "share/man"
+		mandir = "share/${P}/man"
 		[rust]
 		optimize = true
 		debug = $(toml_usex debug)
@@ -261,6 +292,7 @@ src_configure() {
 		optimize-tests = $(toml_usex !debug)
 		codegen-tests = true
 		dist-src = false
+		remap-debuginfo = true
 		lld = $(usex system-llvm false $(toml_usex wasm))
 		backtrace-on-ice = true
 		jemalloc = false
@@ -363,7 +395,7 @@ src_configure() {
 		sed -i "/^target = \[/ s#\[.*\]#\[${rust_targets}\]#" config.toml || die
 
 		ewarn
-		ewarn "Enabled ${rust_target} rust target"
+		ewarn "Enabled ${cross_rust_target} rust target"
 		ewarn "Using ${cross_toolchain} cross toolchain"
 		ewarn
 		if ! has_version -b 'sys-devel/binutils[multitarget]' ; then
@@ -435,14 +467,30 @@ src_install() {
 		mv "${ED}/usr/bin/cargo-fmt" "${ED}/usr/bin/cargo-fmt-${PV}" || die
 	fi
 
-	# Move public shared libs to abi specific libdir
-	# Private and target specific libs MUST stay in /usr/lib/rustlib/${rust_target}/lib
-	if [[ $(get_libdir) != lib ]]; then
-		dodir /usr/$(get_libdir)
-		mv "${ED}/usr/lib"/*.so "${ED}/usr/$(get_libdir)/" || die
-	fi
+	# Copy shared library versions of standard libraries for all targets
+	# into the system's abi-dependent lib directories because the rust
+	# installer only does so for the native ABI.
+
+	local abi_libdir rust_target
+	for v in $(multilib_get_enabled_abi_pairs); do
+		if [ ${v##*.} = ${DEFAULT_ABI} ]; then
+			continue
+		fi
+		abi_libdir=$(get_abi_LIBDIR ${v##*.})
+		rust_target=$(rust_abi $(get_abi_CHOST ${v##*.}))
+		mkdir -p "${ED}/usr/${abi_libdir}/${P}"
+		cp "${ED}/usr/$(get_libdir)/${P}/rustlib/${rust_target}/lib"/*.so \
+		   "${ED}/usr/${abi_libdir}/${P}" || die
+	done
+
+	# versioned libdir/mandir support
+	newenvd - "50${P}" <<-_EOF_
+		LDPATH="${EPREFIX}/usr/$(get_libdir)/${P}"
+		MANPATH="${EPREFIX}/usr/share/${P}/man"
+	_EOF_
 
 	dodoc COPYRIGHT
+	rm -rf "${ED}/usr/$(get_libdir)/${P}"/*.old || die
 	rm "${ED}/usr/share/doc/${P}"/*.old || die
 	rm "${ED}/usr/share/doc/${P}/LICENSE-APACHE" || die
 	rm "${ED}/usr/share/doc/${P}/LICENSE-MIT" || die
