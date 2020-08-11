@@ -32,10 +32,10 @@ index 7e42cfc..363f3b0 100644
    struct mallinfo info = mallinfo();
  #if !defined(ADDRESS_SANITIZER) && !defined(THREAD_SANITIZER)
    // Sanitizers override mallinfo.
-diff --git a/third_party/swiftshader/third_party/llvm-7.0/configs/linux/include/llvm/Config/config.h b/third_party/swiftshader/third_party/llvm-7.0/configs/linux/include/llvm/Config/config.h
+diff --git a/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h b/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
 index 6e17020..d4a9ed0 100644
---- a/third_party/swiftshader/third_party/llvm-7.0/configs/linux/include/llvm/Config/config.h
-+++ b/third_party/swiftshader/third_party/llvm-7.0/configs/linux/include/llvm/Config/config.h
+--- a/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
++++ b/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
 @@ -122,7 +122,7 @@
  /* #undef HAVE_MALLCTL */
  

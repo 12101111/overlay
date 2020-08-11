@@ -932,4 +932,10 @@ pkg_postinst() {
 	xdg_icon_cache_update
 	xdg_desktop_database_update
 	readme.gentoo_print_elog
+	if use vaapi ; then
+        einfo
+        elog "Hardware video acceleration needs additional configuration described in ArchLinux wiki:"
+		elog "https://wiki.archlinux.org/index.php/Chromium#Force_GPU_acceleration"
+		elog "Put command-line flags in /etc/chromium/* or CHROMIUM_USER_FLAGS environment variable"
+    fi
 }

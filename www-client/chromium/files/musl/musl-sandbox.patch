@@ -157,10 +157,10 @@ index 349504a..ea3c7c9 100644
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_X86_64_LINUX_SYSCALLS_H_
  
-diff --git a/services/service_manager/sandbox/linux/bpf_renderer_policy_linux.cc b/services/service_manager/sandbox/linux/bpf_renderer_policy_linux.cc
+diff --git a/sandbox/policy/linux/bpf_renderer_policy_linux.cc b/sandbox/policy/linux/bpf_renderer_policy_linux.cc
 index 017f13c..50aeec3 100644
---- a/services/service_manager/sandbox/linux/bpf_renderer_policy_linux.cc
-+++ b/services/service_manager/sandbox/linux/bpf_renderer_policy_linux.cc
+--- a/sandbox/policy/linux/bpf_renderer_policy_linux.cc
++++ b/sandbox/policy/linux/bpf_renderer_policy_linux.cc
 @@ -88,10 +88,10 @@ ResultExpr RendererProcessPolicy::EvaluateSyscall(int sysno) const {
      case __NR_sysinfo:
      case __NR_times:

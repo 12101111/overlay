@@ -26,7 +26,7 @@ index 1aaaa1c60d..e99d09a323 100644
    //
    return 512 * 1024;
 +#endif // defined(OS_LINUX) && !defined(__GLIBC__)
- #elif defined(OS_MACOSX)
+ #elif defined(OS_MAC)
    // pthread_get_stacksize_np() returns too low a value for the main thread on
    // OSX 10.9,
 @@ -96,7 +100,7 @@ return Threading::ThreadStackSize();

@@ -14,11 +14,11 @@ index 2f94832..2dd1a98 100644
 @@ -173,7 +173,7 @@ ConfigParsePosixResult ReadDnsConfig(DnsConfig* dns_config) {
  #else
    res_nclose(&res);
- #endif  // defined(OS_MACOSX) || defined(OS_FREEBSD)
+ #endif  // defined(OS_APPLE) || defined(OS_FREEBSD)
 -#endif  // defined(OS_OPENBSD)
 +#endif  // defined(OS_OPENBSD) || defined(OS_FUCHSIA) || (defined(OS_LINUX) && !defined(__GLIBC__))
  
- #if defined(OS_MACOSX) && !defined(OS_IOS)
+ #if defined(OS_MAC)
    ConfigParsePosixResult error = DnsConfigWatcher::CheckDnsConfig();
 diff --git a/net/dns/dns_reloader.cc b/net/dns/dns_reloader.cc
 index 952cff4..4b366f4 100644
@@ -28,8 +28,8 @@ index 952cff4..4b366f4 100644
  
  #include "net/dns/dns_reloader.h"
  
--#if defined(OS_POSIX) && !defined(OS_MACOSX) && !defined(OS_OPENBSD) && \
-+#if defined(OS_POSIX) && defined(__GLIBC__) && !defined(OS_MACOSX) && !defined(OS_OPENBSD) && \
+-#if defined(OS_POSIX) && !defined(OS_APPLE) && !defined(OS_OPENBSD) && \
++#if defined(OS_POSIX) && defined(__GLIBC__) && !defined(OS_APPLE) && !defined(OS_OPENBSD) && \
      !defined(OS_ANDROID) && !defined(OS_FUCHSIA)
  
  #include <resolv.h>
@@ -41,8 +41,8 @@ index e8dea46..c86a830 100644
    NetworkChangeNotifier::AddConnectionTypeObserver(this);
    if (system_dns_config_notifier_)
      system_dns_config_notifier_->AddObserver(this);
--#if defined(OS_POSIX) && !defined(OS_MACOSX) && !defined(OS_OPENBSD) && \
-+#if defined(OS_POSIX) && defined(__GLIBC__) && !defined(OS_MACOSX) && !defined(OS_OPENBSD) && \
+-#if defined(OS_POSIX) && !defined(OS_APPLE) && !defined(OS_OPENBSD) && \
++#if defined(OS_POSIX) && defined(__GLIBC__) && !defined(OS_APPLE) && !defined(OS_OPENBSD) && \
      !defined(OS_ANDROID)
    EnsureDnsReloaderInit();
  #endif
@@ -54,8 +54,8 @@ index 0824540..3384978 100644
    base::ScopedBlockingCall scoped_blocking_call(FROM_HERE,
                                                  base::BlockingType::WILL_BLOCK);
  
--#if defined(OS_POSIX) && !defined(OS_MACOSX) && !defined(OS_OPENBSD) && \
-+#if defined(OS_POSIX) && defined(__GLIBC__) && !defined(OS_MACOSX) && !defined(OS_OPENBSD) && \
+-#if defined(OS_POSIX) && !defined(OS_APPLE) && !defined(OS_OPENBSD) && \
++#if defined(OS_POSIX) && defined(__GLIBC__) && !defined(OS_APPLE) && !defined(OS_OPENBSD) && \
      !defined(OS_ANDROID) && !defined(OS_FUCHSIA)
    DnsReloaderMaybeReload();
  #endif
