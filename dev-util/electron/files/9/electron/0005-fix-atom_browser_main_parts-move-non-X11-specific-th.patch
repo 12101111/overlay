@@ -1,15 +1,15 @@
-From a4b7eff49898f5d9dc38f68db420cd3dda3fdef1 Mon Sep 17 00:00:00 2001
-From: 12101111 <w12101111@gmail.com>
-Date: Tue, 30 Jun 2020 12:06:22 +0800
-Subject: [PATCH 5/6] fix(atom_browser_main_parts): move non X11 specific
+From 2e2a32758eda2eb966f4b7852695d072377105c5 Mon Sep 17 00:00:00 2001
+From: Daniel Playfair Cal <daniel.playfair.cal@gmail.com>
+Date: Mon, 25 Nov 2019 12:22:45 +1100
+Subject: [PATCH 5/8] fix(atom_browser_main_parts): move non X11 specific
  things out of ifdefs
 
 ---
- shell/browser/electron_browser_main_parts.cc | 39 +++++++++++---------
- 1 file changed, 21 insertions(+), 18 deletions(-)
+ shell/browser/electron_browser_main_parts.cc | 38 +++++++++++---------
+ 1 file changed, 21 insertions(+), 17 deletions(-)
 
 diff --git a/shell/browser/electron_browser_main_parts.cc b/shell/browser/electron_browser_main_parts.cc
-index 6cdf7beb7..87d7e40ca 100644
+index 2e7df14b3..ce4945155 100644
 --- a/shell/browser/electron_browser_main_parts.cc
 +++ b/shell/browser/electron_browser_main_parts.cc
 @@ -10,6 +10,13 @@
@@ -78,14 +78,14 @@ index 6cdf7beb7..87d7e40ca 100644
  
  int BrowserX11ErrorHandler(Display* d, XErrorEvent* error) {
    if (!g_in_x11_io_error_handler && base::ThreadTaskRunnerHandle::IsSet()) {
-@@ -296,14 +298,15 @@ void ElectronBrowserMainParts::RegisterDestructionCallback(
+@@ -296,14 +298,16 @@ void ElectronBrowserMainParts::RegisterDestructionCallback(
  
  int ElectronBrowserMainParts::PreEarlyInitialization() {
    field_trial_list_ = std::make_unique<base::FieldTrialList>(nullptr);
 -#if defined(USE_X11)
 +#if defined(OS_LINUX)
    OverrideLinuxAppDataPath();
--
+ 
 +#if defined(USE_X11)
    // Installs the X11 error handlers for the browser process used during
    // startup. They simply print error messages and exit because
@@ -96,7 +96,7 @@ index 6cdf7beb7..87d7e40ca 100644
  
  #if defined(OS_POSIX)
    HandleSIGCHLD();
-@@ -355,7 +358,7 @@ int ElectronBrowserMainParts::PreCreateThreads() {
+@@ -357,7 +361,7 @@ int ElectronBrowserMainParts::PreCreateThreads() {
  #if defined(USE_AURA)
    display::Screen* screen = views::CreateDesktopScreen();
    display::Screen::SetScreenInstance(screen);
@@ -106,5 +106,5 @@ index 6cdf7beb7..87d7e40ca 100644
  #endif
  #endif
 -- 
-2.27.0
+2.28.0
 

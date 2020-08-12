@@ -1,7 +1,7 @@
-From 925014a52c66dd6a76be83a7faa0a4334013a735 Mon Sep 17 00:00:00 2001
-From: 12101111 <w12101111@gmail.com>
-Date: Tue, 30 Jun 2020 11:44:23 +0800
-Subject: [PATCH 2/6] fix: don't include global_menu_bar_x11 sources in ozone
+From e36a2dbdc40b3e6abe97a077462680bbb5e8ba5e Mon Sep 17 00:00:00 2001
+From: Daniel Playfair Cal <daniel.playfair.cal@gmail.com>
+Date: Mon, 25 Nov 2019 10:18:23 +1100
+Subject: [PATCH 2/8] fix: don't include global_menu_bar_x11 sources in ozone
  builds
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 2/6] fix: don't include global_menu_bar_x11 sources in ozone
  1 file changed, 11 insertions(+), 4 deletions(-)
 
 diff --git a/filenames.gni b/filenames.gni
-index 0c7bac9e1..e83c34cec 100644
+index 7b1e3fbe4..95b857ebd 100644
 --- a/filenames.gni
 +++ b/filenames.gni
 @@ -1,3 +1,5 @@
@@ -27,7 +27,7 @@ index 0c7bac9e1..e83c34cec 100644
      "shell/app/command_line_args.cc",
      "shell/app/command_line_args.h",
      "shell/app/electron_content_client.cc",
-@@ -374,8 +374,6 @@ filenames = {
+@@ -376,8 +376,6 @@ filenames = {
      "shell/browser/ui/views/electron_views_delegate_win.cc",
      "shell/browser/ui/views/frameless_view.cc",
      "shell/browser/ui/views/frameless_view.h",
@@ -36,7 +36,7 @@ index 0c7bac9e1..e83c34cec 100644
      "shell/browser/ui/views/inspectable_web_contents_view_views.cc",
      "shell/browser/ui/views/inspectable_web_contents_view_views.h",
      "shell/browser/ui/views/menu_bar.cc",
-@@ -597,6 +595,15 @@ filenames = {
+@@ -602,6 +600,15 @@ filenames = {
      "shell/utility/electron_content_utility_client.h",
    ]
  
@@ -53,5 +53,5 @@ index 0c7bac9e1..e83c34cec 100644
      "chromium_src/chrome/browser/certificate_manager_model.cc",
      "chromium_src/chrome/browser/certificate_manager_model.h",
 -- 
-2.27.0
+2.28.0
 
