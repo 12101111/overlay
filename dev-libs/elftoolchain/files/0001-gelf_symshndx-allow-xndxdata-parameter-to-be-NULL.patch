@@ -1,0 +1,33 @@
+From 3b0e90b31a9747f0d60c294671e949b462194100 Mon Sep 17 00:00:00 2001
+From: Ethan Sommer <e5ten.arch@gmail.com>
+Date: Mon, 3 Aug 2020 12:47:08 -0400
+Subject: [PATCH] gelf_symshndx: allow xndxdata parameter to be NULL
+
+Only retrieve extended section index for the symbol if xndxdata is
+non-NULL
+
+Signed-off-by: Ethan Sommer <e5ten.arch@gmail.com>
+---
+ libelf/gelf_symshndx.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/libelf/gelf_symshndx.c b/libelf/gelf_symshndx.c
+index 81789521..7ba9f0e1 100644
+--- a/libelf/gelf_symshndx.c
++++ b/libelf/gelf_symshndx.c
+@@ -48,6 +48,12 @@ gelf_getsymshndx(Elf_Data *d, Elf_Data *id, int ndx, GElf_Sym *dst,
+ 	if (gelf_getsym(d, ndx, dst) == 0)
+ 		return (NULL);
+ 
++	if (lid == NULL) {
++		if (shindex)
++			*shindex = 0;
++		return (dst);
++	}
++
+ 	if (lid == NULL || (scn = lid->d_scn) == NULL ||
+ 	    (e = scn->s_elf) == NULL || (e != ld->d_scn->s_elf) ||
+ 	    shindex == NULL) {
+-- 
+2.28.0
+

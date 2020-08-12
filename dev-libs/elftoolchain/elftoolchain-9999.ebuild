@@ -33,31 +33,27 @@ DEPEND="${RDEPEND}
 	)"
 
 PATCHES=(
-	"${FILESDIR}"/elfdefinitions.patch
+	"${FILESDIR}/0001-gelf_symshndx-allow-xndxdata-parameter-to-be-NULL.patch"
+	"${FILESDIR}/elfdefinitions.patch"
 )
 
 src_prepare() {
-	cd ${S}
 	default
 	cp ${FILESDIR}/make-toolchain-version libelftc/ || die
 	rm -rf test || die
 	rm -rf documentation || die
-	rm libelf/os.Linux.mk
 }
 
-multilib_src_compile() {
-	cd ${S}
+src_compile() {
 	$(get_bmake) || die
 }
 
-
-multilib_src_install() {
-	cd ${S}
-	$(get_bmake) install || die
+src_install() {
+	$(get_bmake) DESTDIR=${ED} install || die
 	if ! use utils; then
-        rm -rf "${ED}"/usr/bin || die
-    else
-        mv ${D}/usr/bin/ld ${D}/usr/bin/ld.elf
-    fi
+		rm -rf "${ED}"/usr/bin || die
+	else
+		mv ${ED}/usr/bin/ld ${ED}/usr/bin/ld.elf
+	fi
 	einstalldocs
 }
