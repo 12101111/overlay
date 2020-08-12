@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>w12101111@gmail.com</email>
+	</maintainer>
+	<use>
+		<flag name="kde">Install Aurorae theme, Plasma color schemes and plasma desktop theme</flag>
+		<flag name="konsole">Install konsole color schemes</flag>
+		<flag name="yakuake">Install yakuake theme</flag>
+		<flag name="kvantum">Install Kvantum theme</flag>
+	</use>
+</pkgmetadata>
