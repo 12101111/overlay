@@ -1149,7 +1149,7 @@ ROOT_S="${WORKDIR}/src"
 LICENSE="BSD"
 SLOT="9"
 KEYWORDS="~amd64"
-IUSE="atk custom-cflags lto X pipewire pgo swiftshader vulkan
+IUSE="atk custom-cflags lto X pipewire pgo
 	component-build cups cpu_flags_arm_neon headless kerberos ozone pic +proprietary-codecs
 	pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc wayland"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) ) mirror"
@@ -1573,6 +1573,12 @@ src_prepare() {
 		third_party/SPIRV-Tools
 		third_party/sqlite
 		third_party/swiftshader
+		third_party/swiftshader/third_party/marl
+		third_party/swiftshader/third_party/astc-encoder
+		third_party/swiftshader/third_party/subzero
+		third_party/swiftshader/third_party/llvm-7.0
+		third_party/swiftshader/third_party/llvm-subzero
+		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
 		third_party/unrar
 		third_party/usrsctp
 		third_party/vulkan
@@ -1631,16 +1637,6 @@ src_prepare() {
 	if use ozone && use wayland && ! use headless ; then
 		keeplibs+=( third_party/wayland )
 	fi
-	if use swiftshader ; then
-		keeplibs+=(
-			third_party/swiftshader/third_party/astc-encoder
-			third_party/swiftshader/third_party/llvm-7.0
-			third_party/swiftshader/third_party/llvm-subzero
-			third_party/swiftshader/third_party/marl
-			third_party/swiftshader/third_party/subzero
-			third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
-		)
-    fi
 	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
 		keeplibs+=( third_party/libxml )
 		keeplibs+=( third_party/libxslt )
@@ -1775,13 +1771,6 @@ src_configure() {
 	if use pipewire; then
         myconf_gn+=" rtc_link_pipewire=true"
         myconf_gn+=" rtc_use_pipewire_version=\"0.3\""
-	fi
-	myconf_gn+=" enable_swiftshader=$(usex swiftshader true false)"
-	myconf_gn+=" enable_vulkan=$(usex vulkan true false)"
-	if use vulkan && use swiftshader; then
-        myconf_gn+=" enable_swiftshader_vulkan=true"
-	else
-		myconf_gn+=" enable_swiftshader_vulkan=false"
 	fi
 	myconf_gn+=" use_glib=true"
 
@@ -2059,28 +2048,22 @@ src_install() {
 	doins out/Release/locales/*.pak
 
 	insopts -m755
-	if use swiftshader; then
-		insinto "${install_dir}"/swiftshader
-		doins out/Release/swiftshader/libEGL.so
-		doins out/Release/swiftshader/libGLESv2.so
-	fi
+	insinto "${install_dir}"/swiftshader
+	doins out/Release/swiftshader/libEGL.so
+	doins out/Release/swiftshader/libGLESv2.so
 
 	insinto "${install_dir}"
 	if ! use system-ffmpeg; then
 		doins out/Release/libffmpeg.so
 	fi
 
-	if use swiftshader && use vulkan; then
-		doins out/Release/libvk_swiftshader.so
-	fi
+	doins out/Release/libvk_swiftshader.so
 
 	if ! use ozone; then
 		doins out/Release/libEGL.so
 		doins out/Release/libGLESv2.so
 		insopts -m644
-		if use swiftshader && use vulkan; then
-			doins out/Release/vk_swiftshader_icd.json
-		fi
+		doins out/Release/vk_swiftshader_icd.json
 	fi
 
 	cat >out/Release/node <<EOF
