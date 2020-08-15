@@ -1,0 +1,38 @@
+From 637b144caf364a4d801a82503301971063c8c04c Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 14 Aug 2020 15:24:47 +0800
+Subject: [PATCH 10/12] Don't run `yarn install` for web/remote/test
+
+---
+ build/npm/postinstall.js | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
+index 709e7aa701..42d2ae9531 100644
+--- a/build/npm/postinstall.js
++++ b/build/npm/postinstall.js
+@@ -33,11 +33,6 @@ function yarnInstall(location, opts) {
+ 
+ yarnInstall('extensions'); // node modules shared by all extensions
+ 
+-if (!(process.platform === 'win32' && (process.arch === 'arm64' || process.env['npm_config_arch'] === 'arm64'))) {
+-	yarnInstall('remote'); // node modules used by vscode server
+-	yarnInstall('remote/web'); // node modules used by vscode web
+-}
+-
+ const allExtensionFolders = fs.readdirSync('extensions');
+ const extensions = allExtensionFolders.filter(e => {
+ 	try {
+@@ -69,9 +64,6 @@ runtime "${runtime}"`;
+ }
+ 
+ yarnInstall(`build`); // node modules required for build
+-yarnInstall('test/automation'); // node modules required for smoketest
+-yarnInstall('test/smoke'); // node modules required for smoketest
+-yarnInstall('test/integration/browser'); // node modules required for integration
+ yarnInstallBuildDependencies(); // node modules for watching, specific to host node version, not electron
+ 
+ cp.execSync('git config pull.rebase true');
+-- 
+2.28.0
+

@@ -1,14 +1,14 @@
-From a36c5a6d4660dfb55977891b5141a38e7e55a163 Mon Sep 17 00:00:00 2001
+From 934f2ddc976c3474e0ff74cfc63a6b0612f5fce2 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 12 Jun 2020 13:09:00 +0800
-Subject: [PATCH 10/10] update product.json
+Date: Fri, 14 Aug 2020 15:26:55 +0800
+Subject: [PATCH 11/12] update product.json
 
 ---
- product.json | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ product.json | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
 diff --git a/product.json b/product.json
-index d586d2fc06..2f6e4309dd 100644
+index 2b884d18f3..1355f97a64 100644
 --- a/product.json
 +++ b/product.json
 @@ -1,4 +1,16 @@
@@ -28,16 +28,6 @@ index d586d2fc06..2f6e4309dd 100644
  	"nameShort": "Code - OSS",
  	"nameLong": "Code - OSS",
  	"applicationName": "code-oss",
-@@ -23,6 +35,9 @@
- 	"reportIssueUrl": "https://github.com/Microsoft/vscode/issues/new",
- 	"urlProtocol": "code-oss",
- 	"extensionAllowedProposedApi": [
-+		"ms-vscode-remote.remote-containers",
-+		"ms-vscode-remote.remote-ssh",
-+		"ms-vsliveshare.vsliveshare",
- 		"ms-vscode.vscode-js-profile-flame",
- 		"ms-vscode.vscode-js-profile-table",
- 		"ms-vscode.references-view"
 -- 
-2.27.0
+2.28.0
 

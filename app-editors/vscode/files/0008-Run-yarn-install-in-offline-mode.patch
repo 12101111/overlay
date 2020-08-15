@@ -1,7 +1,7 @@
-From 58f911508d5f00c75711613368e88dce2f167e27 Mon Sep 17 00:00:00 2001
+From 357b7bb093d7ce26341e1a743175e374096df02d Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 10 May 2020 17:43:46 +0800
-Subject: [PATCH 08/10] Run yarn install in offline mode
+Subject: [PATCH 08/12] Run yarn install in offline mode
 
 ---
  extensions/css-language-features/package.json  | 2 +-
@@ -10,7 +10,7 @@ Subject: [PATCH 08/10] Run yarn install in offline mode
  3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/extensions/css-language-features/package.json b/extensions/css-language-features/package.json
-index 2b030a4b53..39e8553ed8 100644
+index 0b632903b5..aac0c4a7e9 100644
 --- a/extensions/css-language-features/package.json
 +++ b/extensions/css-language-features/package.json
 @@ -22,7 +22,7 @@
@@ -23,10 +23,10 @@ index 2b030a4b53..39e8553ed8 100644
    },
    "categories": [
 diff --git a/extensions/html-language-features/package.json b/extensions/html-language-features/package.json
-index c86a74e2cc..93a76c592a 100644
+index e3cf08de8c..8ee8df77cf 100644
 --- a/extensions/html-language-features/package.json
 +++ b/extensions/html-language-features/package.json
-@@ -19,7 +19,7 @@
+@@ -20,7 +20,7 @@
    "scripts": {
      "compile": "npx gulp compile-extension:html-language-features-client compile-extension:html-language-features-server",
      "watch": "npx gulp watch-extension:html-language-features-client watch-extension:html-language-features-server",
@@ -36,10 +36,10 @@ index c86a74e2cc..93a76c592a 100644
    },
    "categories": [
 diff --git a/extensions/json-language-features/package.json b/extensions/json-language-features/package.json
-index 2868c0c01a..18af970f8f 100644
+index db003f0512..d693917465 100644
 --- a/extensions/json-language-features/package.json
 +++ b/extensions/json-language-features/package.json
-@@ -19,7 +19,7 @@
+@@ -20,7 +20,7 @@
      "scripts": {
          "compile": "gulp compile-extension:json-language-features-client compile-extension:json-language-features-server",
          "watch": "gulp watch-extension:json-language-features-client watch-extension:json-language-features-server",
@@ -49,5 +49,5 @@ index 2868c0c01a..18af970f8f 100644
      },
      "categories": [
 -- 
-2.27.0
+2.28.0
 

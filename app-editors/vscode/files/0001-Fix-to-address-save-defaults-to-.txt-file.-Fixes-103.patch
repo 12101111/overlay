@@ -1,0 +1,37 @@
+From 0632f7a671788d895f4385e14e7969a3275a2872 Mon Sep 17 00:00:00 2001
+From: Martin Aeschlimann <martinae@microsoft.com>
+Date: Wed, 12 Aug 2020 14:51:42 +0200
+Subject: [PATCH 01/12] Fix to address save defaults to .txt file. Fixes
+ #103882
+
+---
+ .../services/textfile/browser/textFileService.ts          | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/src/vs/workbench/services/textfile/browser/textFileService.ts b/src/vs/workbench/services/textfile/browser/textFileService.ts
+index 9fe141b27b..bf0805bb0c 100644
+--- a/src/vs/workbench/services/textfile/browser/textFileService.ts
++++ b/src/vs/workbench/services/textfile/browser/textFileService.ts
+@@ -462,13 +462,17 @@ export abstract class AbstractTextFileService extends Disposable implements ITex
+ 	}
+ 
+ 	suggestFilename(mode: string, untitledName: string) {
+-		const extension = this.modeService.getExtensions(mode)[0];
++		const languageName = this.modeService.getLanguageName(mode);
++		if (!languageName) {
++			return untitledName;
++		}
++		const extension = this.modeService.getExtensions(languageName)[0];
+ 		if (extension) {
+ 			if (!untitledName.endsWith(extension)) {
+ 				return untitledName + extension;
+ 			}
+ 		}
+-		const filename = this.modeService.getFilenames(mode)[0];
++		const filename = this.modeService.getFilenames(languageName)[0];
+ 		return filename || untitledName;
+ 	}
+ 
+-- 
+2.28.0
+

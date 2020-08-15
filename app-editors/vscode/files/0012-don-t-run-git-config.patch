@@ -1,0 +1,22 @@
+From 76c72cad7032328e45105d84531106751b5a01c7 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 14 Aug 2020 15:27:50 +0800
+Subject: [PATCH 12/12] don't run git config
+
+---
+ build/npm/postinstall.js | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
+index 42d2ae9531..0c618095c7 100644
+--- a/build/npm/postinstall.js
++++ b/build/npm/postinstall.js
+@@ -65,5 +65,3 @@ runtime "${runtime}"`;
+ 
+ yarnInstall(`build`); // node modules required for build
+ yarnInstallBuildDependencies(); // node modules for watching, specific to host node version, not electron
+-
+-cp.execSync('git config pull.rebase true');
+-- 
+2.28.0
+

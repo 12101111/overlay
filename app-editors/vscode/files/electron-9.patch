@@ -1,0 +1,1275 @@
+From e4296330de2ae1ba69e8ecaacf6588f37a1bd639 Mon Sep 17 00:00:00 2001
+From: Robo <hop2deep@gmail.com>
+Date: Tue, 21 Jul 2020 00:39:34 -0700
+Subject: [PATCH] chore: update to electron 9-x-y (#102011)
+
+Co-authored-by: Benjamin Pasero <benjpas@microsoft.com>
+---
+ .yarnrc                                       |  2 +-
+ .../darwin/continuous-build-darwin.yml        |  2 +-
+ .../darwin/product-build-darwin.yml           |  2 +-
+ build/azure-pipelines/distro-build.yml        |  2 +-
+ build/azure-pipelines/exploration-build.yml   |  2 +-
+ .../linux/continuous-build-linux.yml          |  2 +-
+ .../linux/product-build-linux-multiarch.yml   |  2 +-
+ .../linux/product-build-linux.yml             |  2 +-
+ .../linux/snap-build-linux.yml                |  2 +-
+ build/azure-pipelines/product-compile.yml     |  2 +-
+ .../publish-types/publish-types.yml           |  2 +-
+ build/azure-pipelines/sync-mooncake.yml       |  2 +-
+ .../azure-pipelines/web/product-build-web.yml |  2 +-
+ .../win32/continuous-build-win32.yml          |  2 +-
+ .../win32/product-build-win32-arm64.yml       |  2 +-
+ .../win32/product-build-win32.yml             |  2 +-
+ build/lib/i18n.resources.json                 |  4 -
+ cgmanifest.json                               | 12 +--
+ package.json                                  |  2 +-
+ remote/.yarnrc                                |  2 +-
+ src/main.js                                   | 68 ++++++++------
+ .../contextmenu/electron-main/contextmenu.ts  |  3 +-
+ .../parts/sandbox/common/electronTypes.ts     | 90 ++++++++++++-------
+ .../parts/sandbox/electron-browser/preload.js |  9 +-
+ .../parts/sandbox/electron-sandbox/globals.ts | 39 +++-----
+ src/vs/code/electron-main/app.ts              | 39 ++++++--
+ src/vs/platform/electron/common/electron.ts   |  3 +-
+ .../electron-main/electronMainService.ts      | 12 +--
+ src/vs/platform/environment/node/argv.ts      |  2 +
+ .../environment/node/environmentService.ts    |  2 +-
+ .../launch/electron-main/launchMainService.ts | 16 ++--
+ src/vs/platform/storage/node/storageIpc.ts    | 12 +--
+ src/vs/platform/telemetry/common/telemetry.ts |  1 -
+ .../browser/relauncher.contribution.ts        |  8 --
+ .../browser/telemetryOptOut.ts                | 14 ++-
+ .../electron-sandbox/telemetryOptOut.ts       |  6 +-
+ src/vs/workbench/electron-browser/window.ts   | 69 ++------------
+ .../electron-sandbox/desktop.contribution.ts  |  8 ++
+ .../electron-browser/environmentService.ts    |  2 +-
+ .../localProcessExtensionHost.ts              | 22 +++--
+ .../electron-browser/workbenchTestServices.ts |  1 -
+ test/unit/electron/index.js                   |  4 +
+ yarn.lock                                     |  8 +-
+ 43 files changed, 249 insertions(+), 241 deletions(-)
+
+diff --git a/.yarnrc b/.yarnrc
+index 135e10442a7e..68cb12c12841 100644
+--- a/.yarnrc
++++ b/.yarnrc
+@@ -1,3 +1,3 @@
+ disturl "https://atom.io/download/electron"
+-target "7.3.2"
++target "9.2.0"
+ runtime "electron"
+diff --git a/build/azure-pipelines/darwin/continuous-build-darwin.yml b/build/azure-pipelines/darwin/continuous-build-darwin.yml
+index 447e18e7cb54..631b9af7f106 100644
+--- a/build/azure-pipelines/darwin/continuous-build-darwin.yml
++++ b/build/azure-pipelines/darwin/continuous-build-darwin.yml
+@@ -1,7 +1,7 @@
+ steps:
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/darwin/product-build-darwin.yml b/build/azure-pipelines/darwin/product-build-darwin.yml
+index e231ca3d4f23..58353f1f2832 100644
+--- a/build/azure-pipelines/darwin/product-build-darwin.yml
++++ b/build/azure-pipelines/darwin/product-build-darwin.yml
+@@ -21,7 +21,7 @@ steps:
+ 
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/distro-build.yml b/build/azure-pipelines/distro-build.yml
+index 4689451b54e7..f9bdf7fef8e8 100644
+--- a/build/azure-pipelines/distro-build.yml
++++ b/build/azure-pipelines/distro-build.yml
+@@ -8,7 +8,7 @@ pr:
+ steps:
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: AzureKeyVault@1
+   displayName: 'Azure Key Vault: Get Secrets'
+diff --git a/build/azure-pipelines/exploration-build.yml b/build/azure-pipelines/exploration-build.yml
+index 370c56fa6a16..a8747353c373 100644
+--- a/build/azure-pipelines/exploration-build.yml
++++ b/build/azure-pipelines/exploration-build.yml
+@@ -11,7 +11,7 @@ pr:
+ steps:
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: AzureKeyVault@1
+   displayName: 'Azure Key Vault: Get Secrets'
+diff --git a/build/azure-pipelines/linux/continuous-build-linux.yml b/build/azure-pipelines/linux/continuous-build-linux.yml
+index 3e239caad548..41225110f373 100644
+--- a/build/azure-pipelines/linux/continuous-build-linux.yml
++++ b/build/azure-pipelines/linux/continuous-build-linux.yml
+@@ -10,7 +10,7 @@ steps:
+ 
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/linux/product-build-linux-multiarch.yml b/build/azure-pipelines/linux/product-build-linux-multiarch.yml
+index 485f8dcfba75..258f87ea3d2d 100644
+--- a/build/azure-pipelines/linux/product-build-linux-multiarch.yml
++++ b/build/azure-pipelines/linux/product-build-linux-multiarch.yml
+@@ -21,7 +21,7 @@ steps:
+ 
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/linux/product-build-linux.yml b/build/azure-pipelines/linux/product-build-linux.yml
+index b164e915d7e2..ea6c01959545 100644
+--- a/build/azure-pipelines/linux/product-build-linux.yml
++++ b/build/azure-pipelines/linux/product-build-linux.yml
+@@ -21,7 +21,7 @@ steps:
+ 
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/linux/snap-build-linux.yml b/build/azure-pipelines/linux/snap-build-linux.yml
+index a530499b3130..39c39e86c9e1 100644
+--- a/build/azure-pipelines/linux/snap-build-linux.yml
++++ b/build/azure-pipelines/linux/snap-build-linux.yml
+@@ -1,7 +1,7 @@
+ steps:
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/product-compile.yml b/build/azure-pipelines/product-compile.yml
+index db6524be03be..ab0dbb932c60 100644
+--- a/build/azure-pipelines/product-compile.yml
++++ b/build/azure-pipelines/product-compile.yml
+@@ -16,7 +16,7 @@ steps:
+ 
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+   condition: and(succeeded(), ne(variables['CacheExists-Compilation'], 'true'))
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+diff --git a/build/azure-pipelines/publish-types/publish-types.yml b/build/azure-pipelines/publish-types/publish-types.yml
+index b73cd04a9667..10b6aa4e16af 100644
+--- a/build/azure-pipelines/publish-types/publish-types.yml
++++ b/build/azure-pipelines/publish-types/publish-types.yml
+@@ -9,7 +9,7 @@ pr: none
+ steps:
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/sync-mooncake.yml b/build/azure-pipelines/sync-mooncake.yml
+index 2641830a4130..49dfc9ced80d 100644
+--- a/build/azure-pipelines/sync-mooncake.yml
++++ b/build/azure-pipelines/sync-mooncake.yml
+@@ -1,7 +1,7 @@
+ steps:
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/web/product-build-web.yml b/build/azure-pipelines/web/product-build-web.yml
+index 0c338203b4d6..7f4907aa2d9f 100644
+--- a/build/azure-pipelines/web/product-build-web.yml
++++ b/build/azure-pipelines/web/product-build-web.yml
+@@ -21,7 +21,7 @@ steps:
+ 
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/win32/continuous-build-win32.yml b/build/azure-pipelines/win32/continuous-build-win32.yml
+index 1be638a47944..8600377139c2 100644
+--- a/build/azure-pipelines/win32/continuous-build-win32.yml
++++ b/build/azure-pipelines/win32/continuous-build-win32.yml
+@@ -1,7 +1,7 @@
+ steps:
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/win32/product-build-win32-arm64.yml b/build/azure-pipelines/win32/product-build-win32-arm64.yml
+index 01be34aa9a86..ecb50ad678ed 100644
+--- a/build/azure-pipelines/win32/product-build-win32-arm64.yml
++++ b/build/azure-pipelines/win32/product-build-win32-arm64.yml
+@@ -21,7 +21,7 @@ steps:
+ 
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/azure-pipelines/win32/product-build-win32.yml b/build/azure-pipelines/win32/product-build-win32.yml
+index 1c958ddd1880..779bc8a8d573 100644
+--- a/build/azure-pipelines/win32/product-build-win32.yml
++++ b/build/azure-pipelines/win32/product-build-win32.yml
+@@ -21,7 +21,7 @@ steps:
+ 
+ - task: NodeTool@0
+   inputs:
+-    versionSpec: "12.13.0"
++    versionSpec: "12.14.1"
+ 
+ - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+   inputs:
+diff --git a/build/lib/i18n.resources.json b/build/lib/i18n.resources.json
+index 9bba404c2439..ceef664b85fc 100644
+--- a/build/lib/i18n.resources.json
++++ b/build/lib/i18n.resources.json
+@@ -246,10 +246,6 @@
+ 			"name": "vs/workbench/services/configurationResolver",
+ 			"project": "vscode-workbench"
+ 		},
+-		{
+-			"name": "vs/workbench/services/crashReporter",
+-			"project": "vscode-workbench"
+-		},
+ 		{
+ 			"name": "vs/workbench/services/dialogs",
+ 			"project": "vscode-workbench"
+diff --git a/cgmanifest.json b/cgmanifest.json
+index cb9954628dd5..576724e75afa 100644
+--- a/cgmanifest.json
++++ b/cgmanifest.json
+@@ -6,7 +6,7 @@
+ 				"git": {
+ 					"name": "chromium",
+ 					"repositoryUrl": "https://chromium.googlesource.com/chromium/src",
+-					"commitHash": "e4745133a1d3745f066e068b8033c6a269b59caf"
++					"commitHash": "894fb9eb56c6cbda65e3c3ae9ada6d4cb5850cc9"
+ 				}
+ 			},
+ 			"licenseDetail": [
+@@ -40,7 +40,7 @@
+ 				"SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+ 			],
+ 			"isOnlyProductionDependency": true,
+-			"version": "78.0.3904.130"
++			"version": "83.0.4103.122"
+ 		},
+ 		{
+ 			"component": {
+@@ -48,11 +48,11 @@
+ 				"git": {
+ 					"name": "nodejs",
+ 					"repositoryUrl": "https://github.com/nodejs/node",
+-					"commitHash": "787378879acfb212ed4ff824bf9f767a24a5cb43a"
++					"commitHash": "9622fed3fb2cffcea9efff6c8cb4cc2def99d75d"
+ 				}
+ 			},
+ 			"isOnlyProductionDependency": true,
+-			"version": "12.8.1"
++			"version": "12.14.1"
+ 		},
+ 		{
+ 			"component": {
+@@ -60,12 +60,12 @@
+ 				"git": {
+ 					"name": "electron",
+ 					"repositoryUrl": "https://github.com/electron/electron",
+-					"commitHash": "5f93e889020d279d5a9cd1ecab080ab467312447"
++					"commitHash": "0c2cb59b6283fe8d6bb4b14f8a832e2166aeaa0c"
+ 				}
+ 			},
+ 			"isOnlyProductionDependency": true,
+ 			"license": "MIT",
+-			"version": "7.3.2"
++			"version": "9.2.0"
+ 		},
+ 		{
+ 			"component": {
+diff --git a/package.json b/package.json
+index ddd7346cafb6..302de8a74d21 100644
+--- a/package.json
++++ b/package.json
+@@ -109,7 +109,7 @@
+     "css-loader": "^3.2.0",
+     "debounce": "^1.0.0",
+     "deemon": "^1.4.0",
+-    "electron": "7.3.2",
++    "electron": "9.2.0",
+     "eslint": "6.8.0",
+     "eslint-plugin-jsdoc": "^19.1.0",
+     "event-stream": "3.3.4",
+diff --git a/remote/.yarnrc b/remote/.yarnrc
+index 1e16cde724c7..c1a32ce532af 100644
+--- a/remote/.yarnrc
++++ b/remote/.yarnrc
+@@ -1,3 +1,3 @@
+ disturl "http://nodejs.org/dist"
+-target "12.4.0"
++target "12.14.1"
+ runtime "node"
+diff --git a/src/main.js b/src/main.js
+index f179a6720317..9a49d06217a0 100644
+--- a/src/main.js
++++ b/src/main.js
+@@ -18,7 +18,11 @@ const bootstrap = require('./bootstrap');
+ const paths = require('./paths');
+ /** @type {any} */
+ const product = require('../product.json');
+-const { app, protocol } = require('electron');
++const { app, protocol, crashReporter } = require('electron');
++
++// Disable render process reuse, we still have
++// non-context aware native modules in the renderer.
++app.allowRendererProcessReuse = false;
+ 
+ // Enable portable support
+ const portable = bootstrap.configurePortable(product);
+@@ -31,13 +35,13 @@ const args = parseCLIArgs();
+ const userDataPath = getUserDataPath(args);
+ app.setPath('userData', userDataPath);
+ 
+-// Set temp directory based on crash-reporter-directory CLI argument
+-// The crash reporter will store crashes in temp folder so we need
+-// to change that location accordingly.
++// Configure static command line arguments
++const argvConfig = configureCommandlineSwitchesSync(args);
+ 
+-// If a crash-reporter-directory is specified we setup the crash reporter
+-// right from the beginning as early as possible to monitor all processes.
++// If a crash-reporter-directory is specified we store the crash reports
++// in the specified directory and don't upload them to the crash server.
+ let crashReporterDirectory = args['crash-reporter-directory'];
++let submitURL = '';
+ if (crashReporterDirectory) {
+ 	crashReporterDirectory = path.normalize(crashReporterDirectory);
+ 
+@@ -55,23 +59,41 @@ if (crashReporterDirectory) {
+ 		}
+ 	}
+ 
+-	// Crashes are stored in the temp directory by default, so we
++	// Crashes are stored in the crashDumps directory by default, so we
+ 	// need to change that directory to the provided one
+-	console.log(`Found --crash-reporter-directory argument. Setting temp directory to be '${crashReporterDirectory}'`);
+-	app.setPath('temp', crashReporterDirectory);
+-
+-	// Start crash reporter
+-	const { crashReporter } = require('electron');
+-	const productName = (product.crashReporter && product.crashReporter.productName) || product.nameShort;
+-	const companyName = (product.crashReporter && product.crashReporter.companyName) || 'Microsoft';
+-	crashReporter.start({
+-		companyName: companyName,
+-		productName: process.env['VSCODE_DEV'] ? `${productName} Dev` : productName,
+-		submitURL: '',
+-		uploadToServer: false
+-	});
++	console.log(`Found --crash-reporter-directory argument. Setting crashDumps directory to be '${crashReporterDirectory}'`);
++	app.setPath('crashDumps', crashReporterDirectory);
++} else {
++	const appCenter = product.appCenter;
++	// Disable Appcenter crash reporting if
++	// * --crash-reporter-directory is specified
++	// * enable-crash-reporter runtime argument is set to 'false'
++	// * --disable-crash-reporter command line parameter is set
++	if (appCenter && argvConfig['enable-crash-reporter'] && !args['disable-crash-reporter']) {
++		const isWindows = (process.platform === 'win32');
++		const isLinux = (process.platform === 'linux');
++		const crashReporterId = argvConfig['crash-reporter-id'];
++		const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
++		if (uuidPattern.test(crashReporterId)) {
++			submitURL = isWindows ? appCenter[process.arch === 'ia32' ? 'win32-ia32' : 'win32-x64'] : isLinux ? appCenter[`linux-x64`] : appCenter.darwin;
++			submitURL = submitURL.concat('&uid=', crashReporterId, '&iid=', crashReporterId, '&sid=', crashReporterId);
++			// Send the id for child node process that are explicitly starting crash reporter.
++			// For vscode this is ExtensionHost process currently.
++			process.argv.push('--crash-reporter-id', crashReporterId);
++		}
++	}
+ }
+ 
++// Start crash reporter for all processes
++const productName = (product.crashReporter ? product.crashReporter.productName : undefined) || product.nameShort;
++const companyName = (product.crashReporter ? product.crashReporter.companyName : undefined) || 'Microsoft';
++crashReporter.start({
++	companyName: companyName,
++	productName: process.env['VSCODE_DEV'] ? `${productName} Dev` : productName,
++	submitURL,
++	uploadToServer: !crashReporterDirectory
++});
++
+ // Set logs path before app 'ready' event if running portable
+ // to ensure that no 'logs' folder is created on disk at a
+ // location outside of the portable directory
+@@ -110,9 +132,6 @@ registerListeners();
+ // Cached data
+ const nodeCachedDataDir = getNodeCachedDir();
+ 
+-// Configure static command line arguments
+-const argvConfig = configureCommandlineSwitchesSync(args);
+-
+ // Remove env set by snap https://github.com/microsoft/vscode/issues/85344
+ if (process.env['SNAP']) {
+ 	delete process.env['GDK_PIXBUF_MODULE_FILE'];
+@@ -254,9 +273,6 @@ function configureCommandlineSwitchesSync(cliArgs) {
+ 		app.commandLine.appendSwitch('js-flags', jsFlags);
+ 	}
+ 
+-	// TODO@Deepak Electron 7 workaround for https://github.com/microsoft/vscode/issues/88873
+-	app.commandLine.appendSwitch('disable-features', 'LayoutNG');
+-
+ 	return argvConfig;
+ }
+ 
+diff --git a/src/vs/base/parts/contextmenu/electron-main/contextmenu.ts b/src/vs/base/parts/contextmenu/electron-main/contextmenu.ts
+index 6222be780287..a7fbfc81e6bd 100644
+--- a/src/vs/base/parts/contextmenu/electron-main/contextmenu.ts
++++ b/src/vs/base/parts/contextmenu/electron-main/contextmenu.ts
+@@ -5,13 +5,14 @@
+ 
+ import { Menu, MenuItem, BrowserWindow, ipcMain, IpcMainEvent } from 'electron';
+ import { ISerializableContextMenuItem, CONTEXT_MENU_CLOSE_CHANNEL, CONTEXT_MENU_CHANNEL, IPopupOptions } from 'vs/base/parts/contextmenu/common/contextmenu';
++import { withNullAsUndefined } from 'vs/base/common/types';
+ 
+ export function registerContextMenuListener(): void {
+ 	ipcMain.on(CONTEXT_MENU_CHANNEL, (event: IpcMainEvent, contextMenuId: number, items: ISerializableContextMenuItem[], onClickChannel: string, options?: IPopupOptions) => {
+ 		const menu = createMenu(event, onClickChannel, items);
+ 
+ 		menu.popup({
+-			window: BrowserWindow.fromWebContents(event.sender),
++			window: withNullAsUndefined(BrowserWindow.fromWebContents(event.sender)),
+ 			x: options ? options.x : undefined,
+ 			y: options ? options.y : undefined,
+ 			positioningItem: options ? options.positioningItem : undefined,
+diff --git a/src/vs/base/parts/sandbox/common/electronTypes.ts b/src/vs/base/parts/sandbox/common/electronTypes.ts
+index 8a5f41208620..c7729f338afa 100644
+--- a/src/vs/base/parts/sandbox/common/electronTypes.ts
++++ b/src/vs/base/parts/sandbox/common/electronTypes.ts
+@@ -209,37 +209,6 @@ export interface SaveDialogReturnValue {
+ 	bookmark?: string;
+ }
+ 
+-export interface CrashReporterStartOptions {
+-	companyName: string;
+-	/**
+-	 * URL that crash reports will be sent to as POST.
+-	 */
+-	submitURL: string;
+-	/**
+-	 * Defaults to `app.name`.
+-	 */
+-	productName?: string;
+-	/**
+-	 * Whether crash reports should be sent to the server. Default is `true`.
+-	 */
+-	uploadToServer?: boolean;
+-	/**
+-	 * Default is `false`.
+-	 */
+-	ignoreSystemCrashHandler?: boolean;
+-	/**
+-	 * An object you can define that will be sent along with the report. Only string
+-	 * properties are sent correctly. Nested objects are not supported. When using
+-	 * Windows, the property names and values must be fewer than 64 characters.
+-	 */
+-	extra?: Record<string, string>;
+-	/**
+-	 * Directory to store the crash reports temporarily (only used when the crash
+-	 * reporter is started via `process.crashReporter.start`).
+-	 */
+-	crashesDirectory?: string;
+-}
+-
+ export interface FileFilter {
+ 
+ 	// Docs: http://electronjs.org/docs/api/structures/file-filter
+@@ -281,3 +250,62 @@ export interface MouseInputEvent extends InputEvent {
+ 	x: number;
+ 	y: number;
+ }
++
++export interface CrashReporterStartOptions {
++	/**
++	 * URL that crash reports will be sent to as POST.
++	 */
++	submitURL: string;
++	/**
++	 * Defaults to `app.name`.
++	 */
++	productName?: string;
++	/**
++	 * Deprecated alias for `{ globalExtra: { _companyName: ... } }`.
++	 *
++	 * @deprecated
++	 */
++	companyName?: string;
++	/**
++	 * Whether crash reports should be sent to the server. If false, crash reports will
++	 * be collected and stored in the crashes directory, but not uploaded. Default is
++	 * `true`.
++	 */
++	uploadToServer?: boolean;
++	/**
++	 * If true, crashes generated in the main process will not be forwarded to the
++	 * system crash handler. Default is `false`.
++	 */
++	ignoreSystemCrashHandler?: boolean;
++	/**
++	 * If true, limit the number of crashes uploaded to 1/hour. Default is `false`.
++	 *
++	 * @platform darwin,win32
++	 */
++	rateLimit?: boolean;
++	/**
++	 * If true, crash reports will be compressed and uploaded with `Content-Encoding:
++	 * gzip`. Not all collection servers support compressed payloads. Default is
++	 * `false`.
++	 *
++	 * @platform darwin,win32
++	 */
++	compress?: boolean;
++	/**
++	 * Extra string key/value annotations that will be sent along with crash reports
++	 * that are generated in the main process. Only string values are supported.
++	 * Crashes generated in child processes will not contain these extra parameters to
++	 * crash reports generated from child processes, call `addExtraParameter` from the
++	 * child process.
++	 */
++	extra?: Record<string, string>;
++	/**
++	 * Extra string key/value annotations that will be sent along with any crash
++	 * reports generated in any process. These annotations cannot be changed once the
++	 * crash reporter has been started. If a key is present in both the global extra
++	 * parameters and the process-specific extra parameters, then the global one will
++	 * take precedence. By default, `productName` and the app version are included, as
++	 * well as the Electron version.
++	 */
++	globalExtra?: Record<string, string>;
++}
+diff --git a/src/vs/base/parts/sandbox/electron-browser/preload.js b/src/vs/base/parts/sandbox/electron-browser/preload.js
+index d10c4be3ae1b..4dbe1b48a1de 100644
+--- a/src/vs/base/parts/sandbox/electron-browser/preload.js
++++ b/src/vs/base/parts/sandbox/electron-browser/preload.js
+@@ -74,15 +74,16 @@
+ 		},
+ 
+ 		/**
+-		 *  Support for subset of methods of Electron's `crashReporter` type.
++		 * Support for subset of methods of Electron's `crashReporter` type.
+ 		 */
+ 		crashReporter: {
+ 
+ 			/**
+-			 * @param {Electron.CrashReporterStartOptions} options
++			 * @param {string} key
++			 * @param {string} value
+ 			 */
+-			start(options) {
+-				crashReporter.start(options);
++			addExtraParameter(key, value) {
++				crashReporter.addExtraParameter(key, value);
+ 			}
+ 		},
+ 
+diff --git a/src/vs/base/parts/sandbox/electron-sandbox/globals.ts b/src/vs/base/parts/sandbox/electron-sandbox/globals.ts
+index 573e4735933a..0acd55cb3fe7 100644
+--- a/src/vs/base/parts/sandbox/electron-sandbox/globals.ts
++++ b/src/vs/base/parts/sandbox/electron-sandbox/globals.ts
+@@ -3,8 +3,6 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+ 
+-import { CrashReporterStartOptions } from 'vs/base/parts/sandbox/common/electronTypes';
+-
+ export const ipcRenderer = (window as any).vscode.ipcRenderer as {
+ 
+ 	/**
+@@ -54,32 +52,23 @@ export const webFrame = (window as any).vscode.webFrame as {
+ export const crashReporter = (window as any).vscode.crashReporter as {
+ 
+ 	/**
+-	 * You are required to call this method before using any other `crashReporter` APIs
+-	 * and in each process (main/renderer) from which you want to collect crash
+-	 * reports. You can pass different options to `crashReporter.start` when calling
+-	 * from different processes.
+-	 *
+-	 * **Note** Child processes created via the `child_process` module will not have
+-	 * access to the Electron modules. Therefore, to collect crash reports from them,
+-	 * use `process.crashReporter.start` instead. Pass the same options as above along
+-	 * with an additional one called `crashesDirectory` that should point to a
+-	 * directory to store the crash reports temporarily. You can test this out by
+-	 * calling `process.crash()` to crash the child process.
++	 * Set an extra parameter to be sent with the crash report. The values specified
++	 * here will be sent in addition to any values set via the `extra` option when
++	 * `start` was called.
+ 	 *
+-	 * **Note:** If you need send additional/updated `extra` parameters after your
+-	 * first call `start` you can call `addExtraParameter` on macOS or call `start`
+-	 * again with the new/updated `extra` parameters on Linux and Windows.
++	 * Parameters added in this fashion (or via the `extra` parameter to
++	 * `crashReporter.start`) are specific to the calling process. Adding extra
++	 * parameters in the main process will not cause those parameters to be sent along
++	 * with crashes from renderer or other child processes. Similarly, adding extra
++	 * parameters in a renderer process will not result in those parameters being sent
++	 * with crashes that occur in other renderer processes or in the main process.
+ 	 *
+-	 * **Note:** On macOS and windows, Electron uses a new `crashpad` client for crash
+-	 * collection and reporting. If you want to enable crash reporting, initializing
+-	 * `crashpad` from the main process using `crashReporter.start` is required
+-	 * regardless of which process you want to collect crashes from. Once initialized
+-	 * this way, the crashpad handler collects crashes from all processes. You still
+-	 * have to call `crashReporter.start` from the renderer or child process, otherwise
+-	 * crashes from them will get reported without `companyName`, `productName` or any
+-	 * of the `extra` information.
++	 * **Note:** Parameters have limits on the length of the keys and values. Key names
++	 * must be no longer than 39 bytes, and values must be no longer than 127 bytes.
++	 * Keys with names longer than the maximum will be silently ignored. Key values
++	 * longer than the maximum length will be truncated.
+ 	 */
+-	start(options: CrashReporterStartOptions): void;
++	addExtraParameter(key: string, value: string): void;
+ };
+ 
+ export const process = (window as any).vscode.process as {
+diff --git a/src/vs/code/electron-main/app.ts b/src/vs/code/electron-main/app.ts
+index 8b726400b971..e8ff8dda77ac 100644
+--- a/src/vs/code/electron-main/app.ts
++++ b/src/vs/code/electron-main/app.ts
+@@ -82,6 +82,10 @@ import { WebviewMainService } from 'vs/platform/webview/electron-main/webviewMai
+ import { IWebviewManagerService } from 'vs/platform/webview/common/webviewManagerService';
+ import { createServer, AddressInfo } from 'net';
+ import { IOpenExtensionWindowResult } from 'vs/platform/debug/common/extensionHostDebug';
++import { IFileService } from 'vs/platform/files/common/files';
++import { stripComments } from 'vs/base/common/json';
++import { generateUuid } from 'vs/base/common/uuid';
++import { VSBuffer } from 'vs/base/common/buffer';
+ 
+ export class CodeApplication extends Disposable {
+ 	private windowsMainService: IWindowsMainService | undefined;
+@@ -134,11 +138,6 @@ export class CodeApplication extends Disposable {
+ 		//
+ 		// !!! DO NOT CHANGE without consulting the documentation !!!
+ 		//
+-		app.on('remote-get-guest-web-contents', event => {
+-			this.logService.trace('App#on(remote-get-guest-web-contents): prevented');
+-
+-			event.preventDefault();
+-		});
+ 		app.on('remote-require', (event, sender, module) => {
+ 			this.logService.trace('App#on(remote-require): prevented');
+ 
+@@ -807,7 +806,7 @@ export class CodeApplication extends Disposable {
+ 		return { fileUri: URI.file(path) };
+ 	}
+ 
+-	private afterWindowOpen(accessor: ServicesAccessor): void {
++	private async afterWindowOpen(accessor: ServicesAccessor): Promise<void> {
+ 
+ 		// Signal phase: after window open
+ 		this.lifecycleMainService.phase = LifecycleMainPhase.AfterWindowOpen;
+@@ -820,6 +819,34 @@ export class CodeApplication extends Disposable {
+ 		if (updateService instanceof Win32UpdateService || updateService instanceof LinuxUpdateService || updateService instanceof DarwinUpdateService) {
+ 			updateService.initialize();
+ 		}
++
++		// If enable-crash-reporter argv is undefined then this is a fresh start,
++		// based on telemetry.enableCrashreporter settings, generate a UUID which
++		// will be used as crash reporter id and also update the json file.
++		try {
++			const fileService = accessor.get(IFileService);
++			const argvContent = await fileService.readFile(this.environmentService.argvResource);
++			const argvString = argvContent.value.toString();
++			const argvJSON = JSON.parse(stripComments(argvString));
++			if (argvJSON['enable-crash-reporter'] === undefined) {
++				const enableCrashReporter = this.configurationService.getValue<boolean>('telemetry.enableCrashReporter') ?? true;
++				const additionalArgvContent = [
++					'',
++					'	// Allows to disable crash reporting.',
++					'	// Should restart the app if the value is changed.',
++					`	"enable-crash-reporter": ${enableCrashReporter},`,
++					'',
++					'	// Unique id used for correlating crash reports sent from this instance.',
++					'	// Do not edit this value.',
++					`	"crash-reporter-id": "${generateUuid()}"`,
++					'}'
++				];
++				const newArgvString = argvString.substring(0, argvString.length - 2).concat(',\n', additionalArgvContent.join('\n'));
++				await fileService.writeFile(this.environmentService.argvResource, VSBuffer.fromString(newArgvString));
++			}
++		} catch (error) {
++			this.logService.error(error);
++		}
+ 	}
+ 
+ 	private handleRemoteAuthorities(): void {
+diff --git a/src/vs/platform/electron/common/electron.ts b/src/vs/platform/electron/common/electron.ts
+index 1d65ceea6c6d..759bcd96ab38 100644
+--- a/src/vs/platform/electron/common/electron.ts
++++ b/src/vs/platform/electron/common/electron.ts
+@@ -4,7 +4,7 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ import { Event } from 'vs/base/common/event';
+-import { MessageBoxOptions, MessageBoxReturnValue, OpenDevToolsOptions, SaveDialogOptions, OpenDialogOptions, OpenDialogReturnValue, SaveDialogReturnValue, CrashReporterStartOptions, MouseInputEvent } from 'vs/base/parts/sandbox/common/electronTypes';
++import { MessageBoxOptions, MessageBoxReturnValue, OpenDevToolsOptions, SaveDialogOptions, OpenDialogOptions, OpenDialogReturnValue, SaveDialogReturnValue, MouseInputEvent } from 'vs/base/parts/sandbox/common/electronTypes';
+ import { IOpenedWindow, IWindowOpenable, IOpenEmptyWindowOptions, IOpenWindowOptions } from 'vs/platform/windows/common/windows';
+ import { INativeOpenDialogOptions } from 'vs/platform/dialogs/common/dialogs';
+ import { ISerializableCommandAction } from 'vs/platform/actions/common/actions';
+@@ -98,7 +98,6 @@ export interface ICommonElectronService {
+ 	// Development
+ 	openDevTools(options?: OpenDevToolsOptions): Promise<void>;
+ 	toggleDevTools(): Promise<void>;
+-	startCrashReporter(options: CrashReporterStartOptions): Promise<void>;
+ 	sendInputEvent(event: MouseInputEvent): Promise<void>;
+ 
+ 	// Connectivity
+diff --git a/src/vs/platform/electron/electron-main/electronMainService.ts b/src/vs/platform/electron/electron-main/electronMainService.ts
+index 0976846791fc..0c2f9a735ca5 100644
+--- a/src/vs/platform/electron/electron-main/electronMainService.ts
++++ b/src/vs/platform/electron/electron-main/electronMainService.ts
+@@ -5,7 +5,7 @@
+ 
+ import { Event } from 'vs/base/common/event';
+ import { IWindowsMainService, ICodeWindow } from 'vs/platform/windows/electron-main/windows';
+-import { MessageBoxOptions, MessageBoxReturnValue, shell, OpenDevToolsOptions, SaveDialogOptions, SaveDialogReturnValue, OpenDialogOptions, OpenDialogReturnValue, CrashReporterStartOptions, crashReporter, Menu, BrowserWindow, app, clipboard, powerMonitor } from 'electron';
++import { MessageBoxOptions, MessageBoxReturnValue, shell, OpenDevToolsOptions, SaveDialogOptions, SaveDialogReturnValue, OpenDialogOptions, OpenDialogReturnValue, Menu, BrowserWindow, app, clipboard, powerMonitor } from 'electron';
+ import { OpenContext } from 'vs/platform/windows/node/window';
+ import { ILifecycleMainService } from 'vs/platform/lifecycle/electron-main/lifecycleMainService';
+ import { IOpenedWindow, IOpenWindowOptions, IWindowOpenable, IOpenEmptyWindowOptions } from 'vs/platform/windows/common/windows';
+@@ -20,7 +20,6 @@ import { dirExists } from 'vs/base/node/pfs';
+ import { URI } from 'vs/base/common/uri';
+ import { ITelemetryData, ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
+ import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
+-import { ILogService } from 'vs/platform/log/common/log';
+ import { INativeEnvironmentService } from 'vs/platform/environment/node/environmentService';
+ import { MouseInputEvent } from 'vs/base/parts/sandbox/common/electronTypes';
+ import { totalmem } from 'os';
+@@ -38,8 +37,7 @@ export class ElectronMainService implements IElectronMainService {
+ 		@IDialogMainService private readonly dialogMainService: IDialogMainService,
+ 		@ILifecycleMainService private readonly lifecycleMainService: ILifecycleMainService,
+ 		@IEnvironmentService private readonly environmentService: INativeEnvironmentService,
+-		@ITelemetryService private readonly telemetryService: ITelemetryService,
+-		@ILogService private readonly logService: ILogService
++		@ITelemetryService private readonly telemetryService: ITelemetryService
+ 	) {
+ 	}
+ 
+@@ -479,12 +477,6 @@ export class ElectronMainService implements IElectronMainService {
+ 		}
+ 	}
+ 
+-	async startCrashReporter(windowId: number | undefined, options: CrashReporterStartOptions): Promise<void> {
+-		this.logService.trace('ElectronMainService#crashReporter', JSON.stringify(options));
+-
+-		crashReporter.start(options);
+-	}
+-
+ 	async sendInputEvent(windowId: number | undefined, event: MouseInputEvent): Promise<void> {
+ 		const window = this.windowById(windowId);
+ 		if (window && (event.type === 'mouseDown' || event.type === 'mouseUp')) {
+diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
+index 2379b626c813..92dd2bcf87db 100644
+--- a/src/vs/platform/environment/node/argv.ts
++++ b/src/vs/platform/environment/node/argv.ts
+@@ -64,6 +64,7 @@ export interface ParsedArgs {
+ 	'disable-updates'?: boolean;
+ 	'disable-crash-reporter'?: boolean;
+ 	'crash-reporter-directory'?: string;
++	'crash-reporter-id'?: string;
+ 	'skip-add-to-recently-opened'?: boolean;
+ 	'max-memory'?: string;
+ 	'file-write'?: boolean;
+@@ -182,6 +183,7 @@ export const OPTIONS: OptionDescriptions<Required<ParsedArgs>> = {
+ 	'disable-updates': { type: 'boolean' },
+ 	'disable-crash-reporter': { type: 'boolean' },
+ 	'crash-reporter-directory': { type: 'string' },
++	'crash-reporter-id': { type: 'string' },
+ 	'disable-user-env-probe': { type: 'boolean' },
+ 	'skip-add-to-recently-opened': { type: 'boolean' },
+ 	'unity-launch': { type: 'boolean' },
+diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
+index 5c0dc4ad4ae7..45d5ec2cc027 100644
+--- a/src/vs/platform/environment/node/environmentService.ts
++++ b/src/vs/platform/environment/node/environmentService.ts
+@@ -256,7 +256,7 @@ export class EnvironmentService implements INativeEnvironmentService {
+ 	get serviceMachineIdResource(): URI { return resources.joinPath(URI.file(this.userDataPath), 'machineid'); }
+ 
+ 	get disableUpdates(): boolean { return !!this._args['disable-updates']; }
+-	get disableCrashReporter(): boolean { return !!this._args['disable-crash-reporter']; }
++	get crashReporterId(): string | undefined { return this._args['crash-reporter-id']; }
+ 	get crashReporterDirectory(): string | undefined { return this._args['crash-reporter-directory']; }
+ 
+ 	get driverHandle(): string | undefined { return this._args['driver']; }
+diff --git a/src/vs/platform/launch/electron-main/launchMainService.ts b/src/vs/platform/launch/electron-main/launchMainService.ts
+index 233f1690c98a..f1b54f87e9d6 100644
+--- a/src/vs/platform/launch/electron-main/launchMainService.ts
++++ b/src/vs/platform/launch/electron-main/launchMainService.ts
+@@ -70,14 +70,18 @@ export class LaunchMainService implements ILaunchMainService {
+ 		@IConfigurationService private readonly configurationService: IConfigurationService
+ 	) { }
+ 
+-	start(args: ParsedArgs, userEnv: IProcessEnvironment): Promise<void> {
++	async start(args: ParsedArgs, userEnv: IProcessEnvironment): Promise<void> {
+ 		this.logService.trace('Received data from other instance: ', args, userEnv);
+ 
+-		const urlsToOpen = parseOpenUrl(args);
++		// Since we now start to open a window, make sure the app has focus.
++		// Focussing a window will not ensure that the application itself
++		// has focus, so we use the `steal: true` hint to force focus.
++		app.focus({ steal: true });
+ 
+ 		// Check early for open-url which is handled in URL service
++		const urlsToOpen = parseOpenUrl(args);
+ 		if (urlsToOpen.length) {
+-			let whenWindowReady: Promise<any> = Promise.resolve<any>(null);
++			let whenWindowReady: Promise<unknown> = Promise.resolve();
+ 
+ 			// Create a window if there is none
+ 			if (this.windowsMainService.getWindowCount() === 0) {
+@@ -91,12 +95,12 @@ export class LaunchMainService implements ILaunchMainService {
+ 					this.urlService.open(url);
+ 				}
+ 			});
+-
+-			return Promise.resolve(undefined);
+ 		}
+ 
+ 		// Otherwise handle in windows service
+-		return this.startOpenWindow(args, userEnv);
++		else {
++			return this.startOpenWindow(args, userEnv);
++		}
+ 	}
+ 
+ 	private startOpenWindow(args: ParsedArgs, userEnv: IProcessEnvironment): Promise<void> {
+diff --git a/src/vs/platform/storage/node/storageIpc.ts b/src/vs/platform/storage/node/storageIpc.ts
+index 9db4e9afcdae..8645255d9e7a 100644
+--- a/src/vs/platform/storage/node/storageIpc.ts
++++ b/src/vs/platform/storage/node/storageIpc.ts
+@@ -10,7 +10,7 @@ import { IUpdateRequest, IStorageDatabase, IStorageItemsChangeEvent } from 'vs/b
+ import { Disposable, IDisposable, dispose } from 'vs/base/common/lifecycle';
+ import { ILogService } from 'vs/platform/log/common/log';
+ import { generateUuid } from 'vs/base/common/uuid';
+-import { instanceStorageKey, firstSessionDateStorageKey, lastSessionDateStorageKey, currentSessionDateStorageKey, crashReporterIdStorageKey } from 'vs/platform/telemetry/common/telemetry';
++import { instanceStorageKey, firstSessionDateStorageKey, lastSessionDateStorageKey, currentSessionDateStorageKey } from 'vs/platform/telemetry/common/telemetry';
+ 
+ type Key = string;
+ type Value = string;
+@@ -49,16 +49,6 @@ export class GlobalStorageDatabaseChannel extends Disposable implements IServerC
+ 			this.logService.error(`[storage] init(): Unable to init global storage due to ${error}`);
+ 		}
+ 
+-		// This is unique to the application instance and thereby
+-		// should be written from the main process once.
+-		//
+-		// THIS SHOULD NEVER BE SENT TO TELEMETRY.
+-		//
+-		const crashReporterId = this.storageMainService.get(crashReporterIdStorageKey, undefined);
+-		if (crashReporterId === undefined) {
+-			this.storageMainService.store(crashReporterIdStorageKey, generateUuid());
+-		}
+-
+ 		// Apply global telemetry values as part of the initialization
+ 		// These are global across all windows and thereby should be
+ 		// written from the main process once.
+diff --git a/src/vs/platform/telemetry/common/telemetry.ts b/src/vs/platform/telemetry/common/telemetry.ts
+index 523f81e8d0bc..1acf9259110b 100644
+--- a/src/vs/platform/telemetry/common/telemetry.ts
++++ b/src/vs/platform/telemetry/common/telemetry.ts
+@@ -57,4 +57,3 @@ export const currentSessionDateStorageKey = 'telemetry.currentSessionDate';
+ export const firstSessionDateStorageKey = 'telemetry.firstSessionDate';
+ export const lastSessionDateStorageKey = 'telemetry.lastSessionDate';
+ export const machineIdKey = 'telemetry.machineId';
+-export const crashReporterIdStorageKey = 'crashReporter.guid';
+diff --git a/src/vs/workbench/contrib/relauncher/browser/relauncher.contribution.ts b/src/vs/workbench/contrib/relauncher/browser/relauncher.contribution.ts
+index 7886563a6ada..70e0e6a21374 100644
+--- a/src/vs/workbench/contrib/relauncher/browser/relauncher.contribution.ts
++++ b/src/vs/workbench/contrib/relauncher/browser/relauncher.contribution.ts
+@@ -23,7 +23,6 @@ import { IProductService } from 'vs/platform/product/common/productService';
+ 
+ interface IConfiguration extends IWindowsConfiguration {
+ 	update: { mode: string; };
+-	telemetry: { enableCrashReporter: boolean };
+ 	debug: { console: { wordWrap: boolean } };
+ 	editor: { accessibilitySupport: 'on' | 'off' | 'auto' };
+ }
+@@ -35,7 +34,6 @@ export class SettingsChangeRelauncher extends Disposable implements IWorkbenchCo
+ 	private nativeFullScreen: boolean | undefined;
+ 	private clickThroughInactive: boolean | undefined;
+ 	private updateMode: string | undefined;
+-	private enableCrashReporter: boolean | undefined;
+ 	private debugConsoleWordWrap: boolean | undefined;
+ 	private accessibilitySupport: 'on' | 'off' | 'auto' | undefined;
+ 
+@@ -92,12 +90,6 @@ export class SettingsChangeRelauncher extends Disposable implements IWorkbenchCo
+ 				changed = true;
+ 			}
+ 
+-			// Crash reporter
+-			if (typeof config.telemetry?.enableCrashReporter === 'boolean' && config.telemetry.enableCrashReporter !== this.enableCrashReporter) {
+-				this.enableCrashReporter = config.telemetry.enableCrashReporter;
+-				changed = true;
+-			}
+-
+ 			// On linux turning on accessibility support will also pass this flag to the chrome renderer, thus a restart is required
+ 			if (isLinux && typeof config.editor?.accessibilitySupport === 'string' && config.editor.accessibilitySupport !== this.accessibilitySupport) {
+ 				this.accessibilitySupport = config.editor.accessibilitySupport;
+diff --git a/src/vs/workbench/contrib/welcome/telemetryOptOut/browser/telemetryOptOut.ts b/src/vs/workbench/contrib/welcome/telemetryOptOut/browser/telemetryOptOut.ts
+index 50398d48086e..f21878522bb7 100644
+--- a/src/vs/workbench/contrib/welcome/telemetryOptOut/browser/telemetryOptOut.ts
++++ b/src/vs/workbench/contrib/welcome/telemetryOptOut/browser/telemetryOptOut.ts
+@@ -17,6 +17,8 @@ import { IExtensionGalleryService } from 'vs/platform/extensionManagement/common
+ import { CancellationToken } from 'vs/base/common/cancellation';
+ import { IProductService } from 'vs/platform/product/common/productService';
+ import { IHostService } from 'vs/workbench/services/host/browser/host';
++import { IEnvironmentService } from 'vs/platform/environment/common/environment';
++import { IJSONEditingService } from 'vs/workbench/services/configuration/common/jsonEditing';
+ 
+ export abstract class AbstractTelemetryOptOut implements IWorkbenchContribution {
+ 
+@@ -33,6 +35,8 @@ export abstract class AbstractTelemetryOptOut implements IWorkbenchContribution
+ 		@IConfigurationService private readonly configurationService: IConfigurationService,
+ 		@IExtensionGalleryService private readonly galleryService: IExtensionGalleryService,
+ 		@IProductService private readonly productService: IProductService,
++		@IEnvironmentService private readonly environmentService: IEnvironmentService,
++		@IJSONEditingService private readonly jsonEditingService: IJSONEditingService
+ 	) { }
+ 
+ 	protected async handleTelemetryOptOut(): Promise<void> {
+@@ -136,10 +140,10 @@ export abstract class AbstractTelemetryOptOut implements IWorkbenchContribution
+ 					},
+ 					{
+ 						label: noLabel,
+-						run: () => {
++						run: async () => {
+ 							logTelemetry(true);
+ 							this.configurationService.updateValue('telemetry.enableTelemetry', false);
+-							this.configurationService.updateValue('telemetry.enableCrashReporter', false);
++							await this.jsonEditingService.write(this.environmentService.argvResource, [{ path: ['enable-crash-reporter'], value: false }], true);
+ 						}
+ 					}
+ 				],
+@@ -164,9 +168,11 @@ export class BrowserTelemetryOptOut extends AbstractTelemetryOptOut {
+ 		@IExperimentService experimentService: IExperimentService,
+ 		@IConfigurationService configurationService: IConfigurationService,
+ 		@IExtensionGalleryService galleryService: IExtensionGalleryService,
+-		@IProductService productService: IProductService
++		@IProductService productService: IProductService,
++		@IEnvironmentService environmentService: IEnvironmentService,
++		@IJSONEditingService jsonEditingService: IJSONEditingService
+ 	) {
+-		super(storageService, openerService, notificationService, hostService, telemetryService, experimentService, configurationService, galleryService, productService);
++		super(storageService, openerService, notificationService, hostService, telemetryService, experimentService, configurationService, galleryService, productService, environmentService, jsonEditingService);
+ 
+ 		this.handleTelemetryOptOut();
+ 	}
+diff --git a/src/vs/workbench/contrib/welcome/telemetryOptOut/electron-sandbox/telemetryOptOut.ts b/src/vs/workbench/contrib/welcome/telemetryOptOut/electron-sandbox/telemetryOptOut.ts
+index 0adc911b5146..205e0e00d6a8 100644
+--- a/src/vs/workbench/contrib/welcome/telemetryOptOut/electron-sandbox/telemetryOptOut.ts
++++ b/src/vs/workbench/contrib/welcome/telemetryOptOut/electron-sandbox/telemetryOptOut.ts
+@@ -13,6 +13,8 @@ import { IExtensionGalleryService } from 'vs/platform/extensionManagement/common
+ import { IProductService } from 'vs/platform/product/common/productService';
+ import { IHostService } from 'vs/workbench/services/host/browser/host';
+ import { AbstractTelemetryOptOut } from 'vs/workbench/contrib/welcome/telemetryOptOut/browser/telemetryOptOut';
++import { IEnvironmentService } from 'vs/platform/environment/common/environment';
++import { IJSONEditingService } from 'vs/workbench/services/configuration/common/jsonEditing';
+ import { IElectronService } from 'vs/platform/electron/electron-sandbox/electron';
+ 
+ export class NativeTelemetryOptOut extends AbstractTelemetryOptOut {
+@@ -27,9 +29,11 @@ export class NativeTelemetryOptOut extends AbstractTelemetryOptOut {
+ 		@IConfigurationService configurationService: IConfigurationService,
+ 		@IExtensionGalleryService galleryService: IExtensionGalleryService,
+ 		@IProductService productService: IProductService,
++		@IEnvironmentService environmentService: IEnvironmentService,
++		@IJSONEditingService jsonEditingService: IJSONEditingService,
+ 		@IElectronService private readonly electronService: IElectronService
+ 	) {
+-		super(storageService, openerService, notificationService, hostService, telemetryService, experimentService, configurationService, galleryService, productService);
++		super(storageService, openerService, notificationService, hostService, telemetryService, experimentService, configurationService, galleryService, productService, environmentService, jsonEditingService);
+ 
+ 		this.handleTelemetryOptOut();
+ 	}
+diff --git a/src/vs/workbench/electron-browser/window.ts b/src/vs/workbench/electron-browser/window.ts
+index 793b23945978..17ace9f6abeb 100644
+--- a/src/vs/workbench/electron-browser/window.ts
++++ b/src/vs/workbench/electron-browser/window.ts
+@@ -6,13 +6,13 @@
+ import * as nls from 'vs/nls';
+ import { URI } from 'vs/base/common/uri';
+ import * as errors from 'vs/base/common/errors';
+-import { equals, deepClone } from 'vs/base/common/objects';
++import { equals } from 'vs/base/common/objects';
+ import * as DOM from 'vs/base/browser/dom';
+ import { IAction, Separator } from 'vs/base/common/actions';
+ import { IFileService } from 'vs/platform/files/common/files';
+ import { toResource, IUntitledTextResourceEditorInput, SideBySideEditor, pathsToEditors } from 'vs/workbench/common/editor';
+ import { IEditorService, IResourceEditorInputType } from 'vs/workbench/services/editor/common/editorService';
+-import { ITelemetryService, crashReporterIdStorageKey } from 'vs/platform/telemetry/common/telemetry';
++import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
+ import { IWindowSettings, IOpenFileRequest, IWindowsConfiguration, getTitleBarStyle, IAddFoldersRequest } from 'vs/platform/windows/common/windows';
+ import { IRunActionInWindowRequest, IRunKeybindingInWindowRequest, INativeOpenFileRequest } from 'vs/platform/windows/node/window';
+ import { ITitleService } from 'vs/workbench/services/title/common/titleService';
+@@ -22,8 +22,7 @@ import { setFullscreen, getZoomLevel } from 'vs/base/browser/browser';
+ import { ICommandService, CommandsRegistry } from 'vs/platform/commands/common/commands';
+ import { IResourceEditorInput } from 'vs/platform/editor/common/editor';
+ import { KeyboardMapperFactory } from 'vs/workbench/services/keybinding/electron-browser/nativeKeymapService';
+-import { CrashReporterStartOptions } from 'vs/base/parts/sandbox/common/electronTypes';
+-import { crashReporter, ipcRenderer } from 'vs/base/parts/sandbox/electron-sandbox/globals';
++import { ipcRenderer } from 'vs/base/parts/sandbox/electron-sandbox/globals';
+ import { IWorkspaceEditingService } from 'vs/workbench/services/workspaces/common/workspaceEditing';
+ import { IMenuService, MenuId, IMenu, MenuItemAction, ICommandAction, SubmenuItemAction, MenuRegistry } from 'vs/platform/actions/common/actions';
+ import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
+@@ -33,8 +32,8 @@ import { Disposable, DisposableStore } from 'vs/base/common/lifecycle';
+ import { LifecyclePhase, ILifecycleService } from 'vs/platform/lifecycle/common/lifecycle';
+ import { IWorkspaceFolderCreationData, IWorkspacesService } from 'vs/platform/workspaces/common/workspaces';
+ import { IIntegrityService } from 'vs/workbench/services/integrity/common/integrity';
+-import { isWindows, isMacintosh, isLinux } from 'vs/base/common/platform';
+-import { IProductService, IAppCenterConfiguration } from 'vs/platform/product/common/productService';
++import { isWindows, isMacintosh } from 'vs/base/common/platform';
++import { IProductService } from 'vs/platform/product/common/productService';
+ import { INotificationService } from 'vs/platform/notification/common/notification';
+ import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
+ import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
+@@ -46,7 +45,7 @@ import { IInstantiationService } from 'vs/platform/instantiation/common/instanti
+ import { MenubarControl } from '../browser/parts/titlebar/menubarControl';
+ import { ILabelService } from 'vs/platform/label/common/label';
+ import { IUpdateService } from 'vs/platform/update/common/update';
+-import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
++import { IStorageService } from 'vs/platform/storage/common/storage';
+ import { IPreferencesService } from '../services/preferences/common/preferences';
+ import { IMenubarData, IMenubarMenu, IMenubarKeybinding, IMenubarMenuItemSubmenu, IMenubarMenuItemAction, MenubarMenuItem } from 'vs/platform/menubar/common/menubar';
+ import { IMenubarService } from 'vs/platform/menubar/electron-sandbox/menubar';
+@@ -108,9 +107,8 @@ export class NativeWindow extends Disposable {
+ 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
+ 		@IWorkingCopyService private readonly workingCopyService: IWorkingCopyService,
+ 		@IFilesConfigurationService private readonly filesConfigurationService: IFilesConfigurationService,
+-		@IStorageService private readonly storageService: IStorageService,
+ 		@IProductService private readonly productService: IProductService,
+-		@IRemoteAuthorityResolverService private readonly remoteAuthorityResolverService: IRemoteAuthorityResolverService,
++		@IRemoteAuthorityResolverService private readonly remoteAuthorityResolverService: IRemoteAuthorityResolverService
+ 	) {
+ 		super();
+ 
+@@ -416,23 +414,6 @@ export class NativeWindow extends Disposable {
+ 
+ 		// Touchbar menu (if enabled)
+ 		this.updateTouchbarMenu();
+-
+-		// Crash reporter (if enabled)
+-		if (!this.environmentService.disableCrashReporter && this.configurationService.getValue('telemetry.enableCrashReporter')) {
+-			const companyName = this.productService.crashReporter?.companyName || 'Microsoft';
+-			const productName = this.productService.crashReporter?.productName || this.productService.nameShort;
+-
+-			// With a provided crash reporter directory, crashes
+-			// will be stored only locally in that folder
+-			if (this.environmentService.crashReporterDirectory) {
+-				this.setupCrashReporter(companyName, productName, undefined, this.environmentService.crashReporterDirectory);
+-			}
+-
+-			// With appCenter enabled, crashes will be uploaded
+-			else if (this.productService.appCenter) {
+-				this.setupCrashReporter(companyName, productName, this.productService.appCenter, undefined);
+-			}
+-		}
+ 	}
+ 
+ 	private setupOpenHandlers(): void {
+@@ -550,42 +531,6 @@ export class NativeWindow extends Disposable {
+ 		}
+ 	}
+ 
+-	private async setupCrashReporter(companyName: string, productName: string, appCenter: IAppCenterConfiguration, crashesDirectory: undefined): Promise<void>;
+-	private async setupCrashReporter(companyName: string, productName: string, appCenter: undefined, crashesDirectory: string): Promise<void>;
+-	private async setupCrashReporter(companyName: string, productName: string, appCenter: IAppCenterConfiguration | undefined, crashesDirectory: string | undefined): Promise<void> {
+-		let submitURL: string | undefined = undefined;
+-		if (appCenter) {
+-			submitURL = isWindows ? appCenter[process.arch === 'ia32' ? 'win32-ia32' : 'win32-x64'] : isLinux ? appCenter[`linux-x64`] : appCenter.darwin;
+-		}
+-
+-		const info = await this.telemetryService.getTelemetryInfo();
+-		const crashReporterId = this.storageService.get(crashReporterIdStorageKey, StorageScope.GLOBAL)!;
+-
+-		// base options with product info
+-		const options: CrashReporterStartOptions = {
+-			companyName,
+-			productName,
+-			submitURL: (submitURL?.concat('&uid=', crashReporterId, '&iid=', crashReporterId, '&sid=', info.sessionId)) || '',
+-			extra: {
+-				vscode_version: this.productService.version,
+-				vscode_commit: this.productService.commit || ''
+-			},
+-
+-			// If `crashesDirectory` is specified, we do not upload
+-			uploadToServer: !crashesDirectory,
+-		};
+-
+-		// start crash reporter in the main process first.
+-		// On windows crashpad excepts a name pipe for the client to connect,
+-		// this pipe is created by crash reporter initialization from the main process,
+-		// changing this order of initialization will cause issues.
+-		// For more info: https://chromium.googlesource.com/crashpad/crashpad/+/HEAD/doc/overview_design.md#normal-registration
+-		await this.electronService.startCrashReporter(options);
+-
+-		// start crash reporter right here
+-		crashReporter.start(deepClone(options));
+-	}
+-
+ 	private onAddFoldersRequest(request: IAddFoldersRequest): void {
+ 
+ 		// Buffer all pending requests
+diff --git a/src/vs/workbench/electron-sandbox/desktop.contribution.ts b/src/vs/workbench/electron-sandbox/desktop.contribution.ts
+index 0296383f5602..f608c5ff52d7 100644
+--- a/src/vs/workbench/electron-sandbox/desktop.contribution.ts
++++ b/src/vs/workbench/electron-sandbox/desktop.contribution.ts
+@@ -344,6 +344,14 @@ import { IJSONSchema } from 'vs/base/common/jsonSchema';
+ 				type: 'string',
+ 				markdownDescription: nls.localize('argv.forceColorProfile', 'Allows to override the color profile to use. If you experience colors appear badly, try to set this to `srgb` and restart.')
+ 			},
++			'enable-crash-reporter': {
++				type: 'boolean',
++				markdownDescription: nls.localize('argv.enableCrashReporter', 'Allows to disable crash reporting, should restart the app if the value is changed.')
++			},
++			'crash-reporter-id': {
++				type: 'string',
++				markdownDescription: nls.localize('argv.crashReporterId', 'Unique id used for correlating crash reports sent from this app instance.')
++			},
+ 			'enable-proposed-api': {
+ 				type: 'array',
+ 				description: nls.localize('argv.enebleProposedApi', "Enable proposed APIs for a list of extension ids (such as \`vscode.git\`). Proposed APIs are unstable and subject to breaking without warning at any time. This should only be set for extension development and testing purposes."),
+diff --git a/src/vs/workbench/services/environment/electron-browser/environmentService.ts b/src/vs/workbench/services/environment/electron-browser/environmentService.ts
+index 20da095a4597..46f084aff4ca 100644
+--- a/src/vs/workbench/services/environment/electron-browser/environmentService.ts
++++ b/src/vs/workbench/services/environment/electron-browser/environmentService.ts
+@@ -17,8 +17,8 @@ export interface INativeWorkbenchEnvironmentService extends IWorkbenchEnvironmen
+ 
+ 	readonly configuration: INativeEnvironmentConfiguration;
+ 
+-	readonly disableCrashReporter: boolean;
+ 	readonly crashReporterDirectory?: string;
++	readonly crashReporterId?: string;
+ 
+ 	readonly cliPath: string;
+ 
+diff --git a/src/vs/workbench/services/extensions/electron-browser/localProcessExtensionHost.ts b/src/vs/workbench/services/extensions/electron-browser/localProcessExtensionHost.ts
+index fdf086f74c72..7ec855ce59b6 100644
+--- a/src/vs/workbench/services/extensions/electron-browser/localProcessExtensionHost.ts
++++ b/src/vs/workbench/services/extensions/electron-browser/localProcessExtensionHost.ts
+@@ -44,6 +44,7 @@ import { joinPath } from 'vs/base/common/resources';
+ import { Registry } from 'vs/platform/registry/common/platform';
+ import { IOutputChannelRegistry, Extensions } from 'vs/workbench/services/output/common/output';
+ import { INativeWorkbenchEnvironmentService } from 'vs/workbench/services/environment/electron-browser/environmentService';
++import { isUUID } from 'vs/base/common/uuid';
+ 
+ export interface ILocalProcessExtensionHostInitData {
+ 	readonly autoStart: boolean;
+@@ -182,18 +183,23 @@ export class LocalProcessExtensionHost implements IExtensionHost {
+ 					opts.execArgv = ['--inspect-port=0'];
+ 				}
+ 
+-				// Enable the crash reporter depending on environment for local reporting
+-				const crashesDirectory = this._environmentService.crashReporterDirectory;
+-				if (crashesDirectory) {
+-					const crashReporterOptions: CrashReporterStartOptions = {
++				// On linux crash reporter needs to be started on child node processes explicitly
++				if (platform.isLinux) {
++					const crashReporterStartOptions: CrashReporterStartOptions = {
+ 						companyName: this._productService.crashReporter?.companyName || 'Microsoft',
+ 						productName: this._productService.crashReporter?.productName || this._productService.nameShort,
+ 						submitURL: '',
+-						uploadToServer: false,
+-						crashesDirectory
++						uploadToServer: false
+ 					};
+-
+-					opts.env.CRASH_REPORTER_START_OPTIONS = JSON.stringify(crashReporterOptions);
++					const crashReporterId = this._environmentService.crashReporterId; // crashReporterId is set by the main process only when crash reporting is enabled by the user.
++					const appcenter = this._productService.appCenter;
++					const uploadCrashesToServer = !this._environmentService.crashReporterDirectory; // only upload unless --crash-reporter-directory is provided
++					if (uploadCrashesToServer && appcenter && crashReporterId && isUUID(crashReporterId)) {
++						const submitURL = appcenter[`linux-x64`];
++						crashReporterStartOptions.submitURL = submitURL.concat('&uid=', crashReporterId, '&iid=', crashReporterId, '&sid=', crashReporterId);
++						crashReporterStartOptions.uploadToServer = true;
++					}
++					opts.env.CRASH_REPORTER_START_OPTIONS = JSON.stringify(crashReporterStartOptions);
+ 				}
+ 
+ 				// Run Extension Host as fork of current process
+diff --git a/src/vs/workbench/test/electron-browser/workbenchTestServices.ts b/src/vs/workbench/test/electron-browser/workbenchTestServices.ts
+index 9e555a89207c..e2211240cd08 100644
+--- a/src/vs/workbench/test/electron-browser/workbenchTestServices.ts
++++ b/src/vs/workbench/test/electron-browser/workbenchTestServices.ts
+@@ -215,7 +215,6 @@ export class TestElectronService implements IElectronService {
+ 	async exit(code: number): Promise<void> { }
+ 	async openDevTools(options?: Electron.OpenDevToolsOptions | undefined): Promise<void> { }
+ 	async toggleDevTools(): Promise<void> { }
+-	async startCrashReporter(options: Electron.CrashReporterStartOptions): Promise<void> { }
+ 	async resolveProxy(url: string): Promise<string | undefined> { return undefined; }
+ 	async readClipboardText(type?: 'selection' | 'clipboard' | undefined): Promise<string> { return ''; }
+ 	async writeClipboardText(text: string, type?: 'selection' | 'clipboard' | undefined): Promise<void> { }
+diff --git a/test/unit/electron/index.js b/test/unit/electron/index.js
+index 4b5ce8cb9e9e..440d8812b8f9 100644
+--- a/test/unit/electron/index.js
++++ b/test/unit/electron/index.js
+@@ -12,6 +12,10 @@ const events = require('events');
+ const MochaJUnitReporter = require('mocha-junit-reporter');
+ const url = require('url');
+ 
++// Disable render process reuse, we still have
++// non-context aware native modules in the renderer.
++app.allowRendererProcessReuse = false;
++
+ const defaultReporterName = process.platform === 'win32' ? 'list' : 'spec';
+ 
+ const optimist = require('optimist')
+diff --git a/yarn.lock b/yarn.lock
+index 65f778461164..b760c3752323 100644
+--- a/yarn.lock
++++ b/yarn.lock
+@@ -2744,10 +2744,10 @@ electron-to-chromium@^1.2.7:
+   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.27.tgz#78ecb8a399066187bb374eede35d9c70565a803d"
+   integrity sha1-eOy4o5kGYYe7N07t412ccFZagD0=
+ 
+-electron@7.3.2:
+-  version "7.3.2"
+-  resolved "https://registry.yarnpkg.com/electron/-/electron-7.3.2.tgz#184b69fe9089693e179b3b34effa975dfc8e505d"
+-  integrity sha512-5uSWVfCJogiPiU0G+RKi4ECnNs0gPNjAwYVE9KR7RXaOJYcpNIC5RFejaaUnuRoBssJ5B1n/5WU6wDUxvPajWQ==
++electron@9.2.0:
++  version "9.2.0"
++  resolved "https://registry.yarnpkg.com/electron/-/electron-9.2.0.tgz#d9fc8c8c9e5109669c366bd7b9ba83b06095d7a4"
++  integrity sha512-4ecZ3rcGg//Gk4fAK3Jo61T+uh36JhU6HHR/PTujQqQiBw1g4tNPd4R2hGGth2d+7FkRIs5GdRNef7h64fQEMw==
+   dependencies:
+     "@electron/get" "^1.0.1"
+     "@types/node" "^12.0.12"

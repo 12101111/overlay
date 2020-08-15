@@ -1,7 +1,7 @@
-From dafe68363246c548309dd9f38c82bca24a7dac0c Mon Sep 17 00:00:00 2001
+From 0ee10ac897488825b83b2907647e625c7c137007 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 10 May 2020 17:19:14 +0800
-Subject: [PATCH 07/10] Add install script for Gentoo
+Subject: [PATCH 07/12] Add install script for Gentoo
 
 ---
  build/gulpfile.vscode.linux.js | 51 ++++++++++++++++++++++++++++++++++
@@ -75,5 +75,5 @@ index e8e0c1541d..5bd7fb8add 100644
 +	}
  });
 -- 
-2.27.0
+2.28.0
 
