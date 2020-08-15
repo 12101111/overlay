@@ -27,20 +27,12 @@ jobs:
       with:
         node-version: '12.x'
 
-    - name: Apply patch for vscode
+    - name: Download yarn cache
       working-directory: ${{ github.workspace }}/vscode
       run: |
-        rm ../overlay/app-editors/vscode/files/0008-Run-yarn-install-in-offline-mode.patch
-        git apply ../overlay/app-editors/vscode/files/*.patch
-
-    - name: Download and crate yarn cache
-      working-directory: ${{ github.workspace }}/vscode
-      run: |
-        echo 'yarn-offline-mirror "offline-cache"' >> .yarnrc
         yarn --frozen-lockfile --ignore-scripts
         yarn postinstall --frozen-lockfile
-        tar cJf ../vscode-yarn-offline-cache.tar.xz offline-cache
-        
+
     - name: Download builtin extensions
       working-directory: ${{ github.workspace }}/vscode
       run: |
@@ -57,17 +49,6 @@ jobs:
         tag_name: ${{ github.ref }}
         release_name: Nodejs cache for vscode 1.47.0
         prerelease: true
-
-    - name: Upload yarn offline cache
-      id: upload-release-asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/vscode-yarn-offline-cache.tar.xz
-        asset_name: vscode-yarn-offline-cache.tar.xz
-        asset_content_type: application/x-xz
 
     - name: Upload builtin extensions
       id: upload-release-asset_2
