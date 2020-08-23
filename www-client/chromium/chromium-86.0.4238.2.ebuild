@@ -186,15 +186,12 @@ in /etc/chromium/default.
 "
 
 PATCHES=(
-    "${FILESDIR}/chromium-84-mediaalloc.patch"
 	"${FILESDIR}/build-with-pipewire-0.3.patch"
     "${FILESDIR}/chromium_atk_optional.patch"
     "${FILESDIR}/chromium-fix-vaapi-on-intel.patch"
     "${FILESDIR}/chromium-skia-harmony.patch"
-    "${FILESDIR}/nvidia-vdpau.patch"
     "${FILESDIR}/wayland-egl.patch"
 	"${FILESDIR}/chromium-86-compiler.patch"
-	"${FILESDIR}/vaapi_list.patch"
 )
 
 pre_build_checks() {
