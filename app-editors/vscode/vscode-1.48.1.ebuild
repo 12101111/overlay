@@ -14,7 +14,7 @@ SLOT="0"
 IUSE="system-electron system-ripgrep savedconfig"
 REQUIRED_USE="!system-electron? ( elibc_glibc )"
 
-COMMIT="db40434f562994116e5b21c24015a2e40b2504e6"
+COMMIT="3dd905126b34dcd4de81fa624eb3a8cbe7485f13"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.7.0/lib/postinstall.js#L19
@@ -2164,7 +2164,6 @@ RDEPEND="${DEPEND}
 	)"
 
 PATCHES=(
-	"${FILESDIR}/0001-Fix-to-address-save-defaults-to-.txt-file.-Fixes-103.patch"
 	"${FILESDIR}/0002-remove-playwright-as-it-s-only-used-in-unit-test.patch"
 	"${FILESDIR}/0003-Don-t-download-prebuilt-ffmpeg.patch"
 	"${FILESDIR}/0004-Fix-paths-of-ifconfig-and-ip-command-on-Gentoo-Linux.patch"
