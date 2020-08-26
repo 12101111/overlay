@@ -5,7 +5,7 @@ EAPI=6
 
 inherit java-vm-2 eapi7-ver
 
-MY_ZULU_PV="11.39.15-ca-jdk11.0.7"
+MY_ZULU_PV="11.41.23-ca-jdk11.0.8"
 MY_ZULU_ARCH="linux_musl_x64"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
