@@ -18,7 +18,7 @@ Please follow the [official instruction](https://wiki.gentoo.org/wiki/Ebuild_rep
 - [dev-libs/elftoolchain](https://sourceforge.net/projects/elftoolchain/files/): replacement of elfutils, useful for systems with clang/llvm and musl
 - [dev-qt/qt-creator](https://github.com/qt-creator/qt-creator/): update to newest and fix build with clang 10.
 - [dev-qt/qtwebengine](https://github.com/qt/qtwebengine): allow build GN with CXXFLAGS and patches for musl.
-- [dev-util/electron](https://github.com/electron/electron/): The **newest** Electron (7/8/9) for **Gentoo** and **musl**! (electron-6 is [drop](https://github.com/12101111/overlay/commit/c1d4b0250fcc38268545fb163eb0a3137b809f56)).Patches set: [Gentoo Chromium](https://github.com/gentoo/gentoo/tree/master/www-client/chromium), [Alpine Linux Chromium](https://github.com/alpinelinux/aports/tree/master/community/chromium), [Void Linux Chromium](https://github.com/void-linux/void-packages/tree/master/srcpkgs/chromium), [Electrom Ozone](https://aur.archlinux.org/packages/electron-ozone), [Chromium Ozone](https://aur.archlinux.org/packages/chromium-beta-ozone/)
+- [dev-util/electron](https://github.com/electron/electron/): The **newest** Electron (8/9) for **Gentoo** and **musl**! (You can find electron 6/7 for musl gentoo in commit history).Patches set: [Gentoo Chromium](https://github.com/gentoo/gentoo/tree/master/www-client/chromium), [Alpine Linux Chromium](https://github.com/alpinelinux/aports/tree/master/community/chromium), [Void Linux Chromium](https://github.com/void-linux/void-packages/tree/master/srcpkgs/chromium), [Electrom Ozone](https://aur.archlinux.org/packages/electron-ozone), [Chromium Ozone](https://aur.archlinux.org/packages/chromium-beta-ozone/)
 - [games-emulation/dosbox-x](https://github.com/joncampbell123/dosbox-x): update to newest and fix for musl
 - [gnome-base/dconf](https://gitlab.gnome.org/GNOME/dconf/): new release: dconf 0.35.1
 - [media-libs/libglvnd](https://gitlab.freedesktop.org/glvnd/libglvnd): musl tls fix
@@ -35,7 +35,3 @@ Please follow the [official instruction](https://wiki.gentoo.org/wiki/Ebuild_rep
 - www-client/firefox: Firefox with patches for musl system. Most changes is upstreamed to musl overlay.
 - [www-client/otter](https://github.com/OtterBrowser/otter-browser): A dual backend(qtwebkit and qtwebengine) web browser with classic Opera (12.x) UI
 - x11-apps/igt-gpu-tools: remove sys-libs/libunwind dependence because it conflict with llvm-libunwind
-
-### TODO
-
-- [ ] [dev-qt/qtwebkit](https://github.com/qtwebkit/qtwebkit): goldendict don't work properly with qtwebkit on musl. [upstream issue](https://github.com/qtwebkit/qtwebkit/issues/708) [alpine linux patches](https://github.com/alpinelinux/aports/tree/master/community/qt5-qtwebkit)
