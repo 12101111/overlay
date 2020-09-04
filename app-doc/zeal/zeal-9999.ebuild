@@ -35,7 +35,6 @@ RDEPEND="
 
 src_prepare() {
 	default
-	eapply "${FILESDIR}/0001-libs-enforce-static-linking-of-internal-libs.patch"
 	if ! use vanilla; then
 		eapply "${FILESDIR}/0002-settings-disable-checking-for-updates-by-default.patch"
 	fi
