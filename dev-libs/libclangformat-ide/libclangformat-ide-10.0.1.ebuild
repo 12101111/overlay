@@ -21,8 +21,6 @@ DEPEND="~sys-devel/llvm-${PV}:${SLOT}=[debug=]"
 # least intrusive of all
 CMAKE_BUILD_TYPE=RelWithDebInfo
 
-PATCHES=( "${FILESDIR}/clang-qtcreator-compat.patch" )
-
 pkg_setup() {
 	LLVM_MAX_SLOT=${SLOT} llvm_pkg_setup
 }
