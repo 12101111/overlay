@@ -8,7 +8,6 @@ inherit cmake-utils git-r3
 DESCRIPTION="Plugin for Qv2ray to support Trojan proxy in Qv2ray"
 HOMEPAGE="https://github.com/Qv2ray/QvPlugin-Trojan"
 EGIT_REPO_URI="${HOMEPAGE}.git"
-EGIT_SUBMODULES=( '*' '-*/libsodium' '-*/libuv' )
 EGIT_COMMIT="v${PV}"
 
 KEYWORDS="~amd64 ~x86"
