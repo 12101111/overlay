@@ -3776,7 +3776,7 @@ https://registry.yarnpkg.com/zone.js/-/zone.js-0.7.6.tgz
 
 SRC_URI="
 	https://github.com/microsoft/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz
-	https://github.com/12101111/overlay/releases/download/v2020-08-16/vscode-builtin-extensions.tar.xz -> ${PN}-1.48-builtin-extensions.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-09-11/vscode-builtin-extensions.tar.xz -> ${PN}-1.49-builtin-extensions.tar.xz
 	!system-ripgrep? (
 		amd64? ( ${RG_PREBUILT}/v${RG_VERSION[1]}/ripgrep-v${RG_VERSION[1]}-x86_64-unknown-linux-musl.tar.gz )
 		x86? ( ${RG_PREBUILT}/v${RG_VERSION[1]}/ripgrep-v${RG_VERSION[1]}-i686-unknown-linux-musl.tar.gz )
@@ -3792,12 +3792,12 @@ SRC_URI="
 		arm64? ( ${ELECTRON_PREBUILT}/v${ELECTRON_VERSION}/electron-v${ELECTRON_VERSION}-linux-arm64.zip )
 	)
 	$(yarn_uris ${YARNPKGS})
-  https://codeload.github.com/rmacfarlane/randombytes/tar.gz/b28d4ecee46262801ea09f15fa1f1513a05c5971
-  https://codeload.github.com/ramya-rao-a/css-parser/tar.gz/370c480ac103bd17c7bcfb34bf5d577dc40d3660
-  https://codeload.github.com/kpdecker/istanbul/tar.gz/dd1228d2f0a6e8506cbb5dba398a8297b1dbaf22
-  https://codeload.github.com/googleinterns/tsec/tar.gz/eb8abc0a58b16f97bb499833c21467fc6425260f
-  https://codeload.github.com/mjbvz/ts-server-web-build/tar.gz/1d85be25043f9b5e36a531941ea345dd5a2ca007
-	https://registry.npmjs.com/event-stream/-/event-stream-3.3.4.tgz
+	https://codeload.github.com/rmacfarlane/randombytes/tar.gz/b28d4ecee46262801ea09f15fa1f1513a05c5971
+  	https://codeload.github.com/ramya-rao-a/css-parser/tar.gz/370c480ac103bd17c7bcfb34bf5d577dc40d3660
+  	https://codeload.github.com/kpdecker/istanbul/tar.gz/dd1228d2f0a6e8506cbb5dba398a8297b1dbaf22
+  	https://codeload.github.com/googleinterns/tsec/tar.gz/eb8abc0a58b16f97bb499833c21467fc6425260f
+  	https://codeload.github.com/mjbvz/ts-server-web-build/tar.gz/1d85be25043f9b5e36a531941ea345dd5a2ca007
+  	https://registry.npmjs.com/event-stream/-/event-stream-3.3.4.tgz
 "
 
 RESTRICT="mirror"
@@ -3855,7 +3855,7 @@ src_unpack() {
 	# 1. yarn download-builtin-extensions
 	# 2. cd .build
 	# 3. tar cJf vscode-builtin-extensions.tar.xz builtInExtensions
-	unpack ${PN}-1.48-builtin-extensions.tar.xz
+	unpack ${PN}-1.49-builtin-extensions.tar.xz
 }
 
 src_prepare() {
@@ -3873,15 +3873,15 @@ src_prepare() {
 		sed -i "s/^target .*/target \"${electron_version//v/}\"/" "${S}"/.yarnrc
 
 		# use local electron node headers
-		echo "nodedir $(get_electron_nodedir)" >> ${S}/.yarnrc
-		echo "nodedir /usr/include/node/" >> ${S}/remote/.yarnrc
+		echo "nodedir $(get_electron_nodedir)" >>${S}/.yarnrc
+		echo "nodedir /usr/include/node/" >>${S}/remote/.yarnrc
 
 		einfo "making a ${electron_zip} from local electron"
-		pushd "$(get_electron_dir)" > /dev/null || die
+		pushd "$(get_electron_dir)" >/dev/null || die
 		zip -0yr "${electron_cache_path}/${electron_zip}" * \
 			--exclude="chrome-sandbox" --exclude="chromedriver" --exclude="mksnapshot" \
 			--exclude="npm/*" --exclude="resources/*"
-		popd > /dev/null || die
+		popd >/dev/null || die
 	else
 		# Build native modules for cached electron
 		local electron_zip="$(get_electron_prebuilt_zip_name ${ELECTRON_VERSION})"
@@ -3890,17 +3890,17 @@ src_prepare() {
 
 		# use predownload electron node headers
 		node-gyp install --target="${ELECTRON_VERSION}" --tarball="${DISTDIR}/electron-v${ELECTRON_VERSION}-headers.tar.gz"
-		echo "nodedir /usr/include/node/" >> "${S}/remote/.yarnrc"
+		echo "nodedir /usr/include/node/" >>"${S}/remote/.yarnrc"
 
 		cp "${DISTDIR}/${electron_zip}" "${electron_cache_path}"
 	fi
 
 	# use offline cache
-	echo "yarn-offline-mirror \"${DISTDIR}\"" >> ${S}/.yarnrc
+	echo "yarn-offline-mirror \"${DISTDIR}\"" >>${S}/.yarnrc
 
 	# move ripgrep tarball to cache directory
 	# https://github.com/microsoft/vscode-ripgrep/blob/master/lib/download.js#L14
-	pushd "${WORKDIR}" > /dev/null || die
+	pushd "${WORKDIR}" >/dev/null || die
 	local source_rg_tar_path="${DISTDIR}/$(get_rg_tar_name 1)"
 	if use system-ripgrep; then
 		crate_fake_bin /usr/bin/rg rg
@@ -3912,7 +3912,7 @@ src_prepare() {
 		mkdir -p "${rg_cache_path}"
 		cp "${source_rg_tar_path}" "${rg_cache_path}/$(get_rg_tar_name $i)"
 	done
-	popd > /dev/null || die
+	popd >/dev/null || die
 
 	restore_config product.json
 }
@@ -3954,11 +3954,11 @@ src_install() {
 	fi
 
 	if use system-electron; then
-		pushd "${ED}${vscode_path}" > /dev/null || die
-			find . -type f,d -maxdepth 1 \
-				-not \( -name '.*' -or -name 'bin' -or -name 'resources' \) \
-				-exec rm -r "{}" +
-		popd > /dev/null || die
+		pushd "${ED}${vscode_path}" >/dev/null || die
+		find . -type f,d -maxdepth 1 \
+			-not \( -name '.*' -or -name 'bin' -or -name 'resources' \) \
+			-exec rm -r "{}" +
+		popd >/dev/null || die
 	fi
 	rm -rf "${ED}/usr/local"
 	dosym ${vscode_path}/bin/${app_name} /usr/bin/${app_name}
@@ -3989,22 +3989,22 @@ get_electron_nodedir() {
 
 get_arch() {
 	case ${ABI} in
-		amd64) echo "x64";;
-		arm) echo "arm";;
-		arm64) echo "arm64";;
-		*);;
+	amd64) echo "x64" ;;
+	arm) echo "arm" ;;
+	arm64) echo "arm64" ;;
+	*) ;;
 	esac
 }
 
 get_rg_tar_name() {
 	local myarch=""
 	case ${ABI} in
-		amd64) myarch="x86_64-unknown-linux-musl";;
-		x86) myarch="i686-unknown-linux-musl";;
-		arm) myarch="arm-unknown-linux-gnueabihf";;
-		arm64) myarch="aarch64-unknown-linux-gnu";;
-		ppc64) myarch="powerpc64le-unknown-linux-gnu";;
-		*);;
+	amd64) myarch="x86_64-unknown-linux-musl" ;;
+	x86) myarch="i686-unknown-linux-musl" ;;
+	arm) myarch="arm-unknown-linux-gnueabihf" ;;
+	arm64) myarch="aarch64-unknown-linux-gnu" ;;
+	ppc64) myarch="powerpc64le-unknown-linux-gnu" ;;
+	*) ;;
 	esac
 	echo "ripgrep-v${RG_VERSION[$1]}-${myarch}.tar.gz"
 }
@@ -4012,17 +4012,17 @@ get_rg_tar_name() {
 get_electron_prebuilt_zip_name() {
 	local myarch=""
 	case ${ABI} in
-		amd64) myarch="x64";;
-		x86) myarch="ia32";;
-		arm) myarch="armv7l";;
-		arm64) myarch="arm64";;
-		*);;
+	amd64) myarch="x64" ;;
+	x86) myarch="ia32" ;;
+	arm) myarch="armv7l" ;;
+	arm64) myarch="arm64" ;;
+	*) ;;
 	esac
 	echo "electron-v$1-linux-${myarch}.zip"
 }
 
 crate_fake_bin() {
-	echo "#\!/bin/sh" > "$2"
-	echo "${1} \$@" >> "$2"
+	echo "#\!/bin/sh" >"$2"
+	echo "${1} \$@" >>"$2"
 	chmod +x "$2"
 }
