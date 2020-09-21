@@ -15,13 +15,14 @@ else
 	SRC_URI="https://github.com/Alexays/${PN^}/archive/${PV}.tar.gz -> ${P}.tar.gz"
 	KEYWORDS="~amd64"
 fi
+S="${WORKDIR}/${PN^}-${PV}"
 
 LICENSE="MIT"
 SLOT="0"
-IUSE="mpd +network pulseaudio +tray +udev libcxx"
+IUSE="mpd +network +popups pulseaudio +tray +udev libcxx"
 
 BDEPEND="
-	app-text/scdoc
+	>=app-text/scdoc-1.9.2
 	virtual/pkgconfig
 "
 
@@ -32,35 +33,38 @@ DEPEND="
 	dev-libs/libsigc++:2
 	>=dev-libs/libfmt-5.3.0:=
 	>=dev-libs/spdlog-1.3.1:=
+	dev-libs/date:=
 	dev-libs/wayland
 	dev-libs/wayland-protocols
 	gui-libs/wlroots
-	gui-libs/gtk-layer-shell
-	dev-libs/date
-	dev-util/gdbus-codegen
+	x11-libs/gtk+:3[wayland]
 	mpd? ( media-libs/libmpdclient )
 	network? ( dev-libs/libnl:3 )
+	popups? ( gui-libs/gtk-layer-shell )
 	pulseaudio? ( media-sound/pulseaudio )
-	tray? ( dev-libs/libdbusmenu[gtk3] )
+	tray? (
+		dev-libs/libdbusmenu[gtk3]
+		dev-libs/libappindicator
+	)
 	udev? ( virtual/libudev:= )
 	libcxx? ( sys-libs/libcxx[libcxxabi] )
 "
 
 RDEPEND="${DEPEND}"
 
-if [[ ${PV} != 9999 ]]; then
-	S="${WORKDIR}/${PN^}-${PV}"
-fi
+PATCHES=(
+    "${FILESDIR}/${P}-fix-crash-with-fmt.patch"
+)
 
 src_configure() {
 	local emesonargs=(
 		$(meson_feature mpd)
 		$(meson_feature network libnl)
+		$(meson_feature popups gtk-layer-shell)
 		$(meson_feature pulseaudio)
 		$(meson_feature tray dbusmenu-gtk)
 		$(meson_feature udev libudev)
 		$(meson_use libcxx)
-		-Dgtk-layer-shell=enabled
 	)
 	meson_src_configure
 }
