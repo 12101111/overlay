@@ -12,7 +12,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="1"
+PATCHSET="3"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -58,7 +58,7 @@ COMMON_DEPEND="
 	>=media-libs/harfbuzz-2.4.0:0=[icu(-)]
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
-	system-libvpx? ( >=media-libs/libvpx-1.8.2:=[postproc,svc] )
+	system-libvpx? ( >=media-libs/libvpx-1.8.2:=[postproc] )
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
 		>=media-video/ffmpeg-4.3:=
@@ -187,6 +187,7 @@ PATCHES=(
     "${FILESDIR}/chromium-skia-harmony.patch"
     "${FILESDIR}/wayland-egl.patch"
 	"${FILESDIR}/ldd-10.patch"
+	"${FILESDIR}/dont_include_xlib.patch"
 )
 
 pre_build_checks() {
@@ -234,6 +235,12 @@ pkg_setup() {
 	pre_build_checks
 
 	chromium_suid_sandbox_check_kernel_config
+
+	# nvidia-drivers does not work correctly with Wayland due to unsupported EGLStreams
+	if use wayland && ! use headless && has_version "x11-drivers/nvidia-drivers"; then
+		ewarn "Proprietary nVidia driver does not work with Wayland. You can disable"
+		ewarn "Wayland by setting DISABLE_OZONE_PLATFORM=true in /etc/chromium/default."
+	fi
 }
 
 src_prepare() {
@@ -244,9 +251,12 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-87-AXEventGenerator-include.patch"
-	rm "${WORKDIR}/patches/chromium-87-NGOutOfFlowLayoutPart-floor.patch"
-	rm "${WORKDIR}/patches/chromium-87-QRCodeGenerator-include.patch"
+	eapply "${FILESDIR}/chromium-87-compiler.patch"
+	rm "${WORKDIR}/patches/chromium-86-compiler.patch"
+	rm "${WORKDIR}/patches/chromium-87-CrossThreadPersistent-template.patch"
+	rm "${WORKDIR}/patches/chromium-87-SystemMemoryPressureEvaluator-namespace.patch"
+	rm "${WORKDIR}/patches/chromium-87-Thumbnail-noexcept.patch"
+	rm "${WORKDIR}/patches/chromium-87-anonymous-struct.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -325,6 +335,7 @@ src_prepare() {
 		third_party/devscripts
 		third_party/devtools-frontend
 		third_party/devtools-frontend/src/front_end/third_party/acorn
+		third_party/devtools-frontend/src/front_end/third_party/axe-core
 		third_party/devtools-frontend/src/front_end/third_party/chromium
 		third_party/devtools-frontend/src/front_end/third_party/codemirror
 		third_party/devtools-frontend/src/front_end/third_party/fabricjs
@@ -334,6 +345,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/lit-html
 		third_party/devtools-frontend/src/front_end/third_party/lodash-isequal
 		third_party/devtools-frontend/src/front_end/third_party/marked
+		third_party/devtools-frontend/src/front_end/third_party/puppeteer
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/third_party
 		third_party/dom_distiller_js
