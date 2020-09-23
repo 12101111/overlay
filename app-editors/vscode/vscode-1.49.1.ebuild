@@ -3793,11 +3793,11 @@ SRC_URI="
 	)
 	$(yarn_uris ${YARNPKGS})
 	https://codeload.github.com/rmacfarlane/randombytes/tar.gz/b28d4ecee46262801ea09f15fa1f1513a05c5971
-  	https://codeload.github.com/ramya-rao-a/css-parser/tar.gz/370c480ac103bd17c7bcfb34bf5d577dc40d3660
-  	https://codeload.github.com/kpdecker/istanbul/tar.gz/dd1228d2f0a6e8506cbb5dba398a8297b1dbaf22
-  	https://codeload.github.com/googleinterns/tsec/tar.gz/eb8abc0a58b16f97bb499833c21467fc6425260f
-  	https://codeload.github.com/mjbvz/ts-server-web-build/tar.gz/1d85be25043f9b5e36a531941ea345dd5a2ca007
-  	https://registry.npmjs.com/event-stream/-/event-stream-3.3.4.tgz
+	https://codeload.github.com/ramya-rao-a/css-parser/tar.gz/370c480ac103bd17c7bcfb34bf5d577dc40d3660
+	https://codeload.github.com/kpdecker/istanbul/tar.gz/dd1228d2f0a6e8506cbb5dba398a8297b1dbaf22
+	https://codeload.github.com/googleinterns/tsec/tar.gz/eb8abc0a58b16f97bb499833c21467fc6425260f
+	https://codeload.github.com/mjbvz/ts-server-web-build/tar.gz/1d85be25043f9b5e36a531941ea345dd5a2ca007
+	https://registry.npmjs.com/event-stream/-/event-stream-3.3.4.tgz
 "
 
 RESTRICT="mirror"
@@ -3919,8 +3919,10 @@ src_prepare() {
 
 src_configure() {
 	export ELECTRON_SKIP_BINARY_DOWNLOAD=1
+	export PREFIX=${TMPDIR}
+	export DESTDIR=${TMPDIR}
 	yarn install --ignore-optional --frozen-lockfile --offline \
-		--no-progress --verbose || die
+		--no-progress --verbose --prefix=${TMPDIR} || die
 }
 
 src_compile() {
@@ -3960,7 +3962,7 @@ src_install() {
 			-exec rm -r "{}" +
 		popd >/dev/null || die
 	fi
-	rm -rf "${ED}/usr/local"
+	#rm -rf "${ED}/usr/local"
 	dosym ${vscode_path}/bin/${app_name} /usr/bin/${app_name}
 	save_config product.json
 }
