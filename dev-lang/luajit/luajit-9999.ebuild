@@ -3,13 +3,11 @@
 
 EAPI=7
 
-inherit pax-utils toolchain-funcs
-
-MY_P="moonjit-${PV}"
+inherit pax-utils toolchain-funcs git-r3
 
 DESCRIPTION="Just-In-Time Compiler for the Lua programming language"
 HOMEPAGE="https://github.com/moonjit/moonjit"
-SRC_URI="https://github.com/moonjit/moonjit/archive/${PV}.tar.gz -> ${MY_P}.tar.gz"
+EGIT_REPO_URI="https://github.com/moonjit/moonjit.git"
 
 LICENSE="MIT"
 # this should probably be pkgmoved to 2.0 for sake of consistency.
@@ -17,7 +15,7 @@ SLOT="2"
 KEYWORDS="~amd64"
 IUSE="lua52compat static-libs"
 
-S="${WORKDIR}/${MY_P}"
+S="${WORKDIR}/luajit-${PV}"
 
 _emake() {
 	emake \
