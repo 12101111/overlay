@@ -1,0 +1,52 @@
+From b3e25575db29eeed8254cfd7b9b0bd7be6a1641a Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 9 Oct 2020 09:19:33 +0800
+Subject: [PATCH 01/10] remove playwright as it's only used in unit test
+
+---
+ package.json |  1 -
+ yarn.lock    | 16 ----------------
+ 2 files changed, 17 deletions(-)
+
+diff --git a/package.json b/package.json
+index 770b44b0c1..5e4264927a 100644
+--- a/package.json
++++ b/package.json
+@@ -156,7 +156,6 @@
+     "opn": "^6.0.0",
+     "optimist": "0.3.5",
+     "p-all": "^1.0.0",
+-    "playwright": "1.3.0",
+     "pump": "^1.0.1",
+     "queue": "3.0.6",
+     "rcedit": "^1.1.0",
+diff --git a/yarn.lock b/yarn.lock
+index a38db6751b..652ed08da9 100644
+--- a/yarn.lock
++++ b/yarn.lock
+@@ -6978,22 +6978,6 @@ pkg-dir@^3.0.0:
+   dependencies:
+     find-up "^3.0.0"
+ 
+-playwright@1.3.0:
+-  version "1.3.0"
+-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.3.0.tgz#8c33ed29bc0c7d97f82f8322e99be6d7f0d9ff67"
+-  integrity sha512-W3mwXv2XNFugbepSZTZxI314WfI1SAjdZBEeGOu8S5KnPz4RSlunUFgXn6496o8lobPmORLcJ9VTSGyiFfGpaw==
+-  dependencies:
+-    debug "^4.1.1"
+-    extract-zip "^2.0.0"
+-    https-proxy-agent "^5.0.0"
+-    jpeg-js "^0.4.0"
+-    mime "^2.4.4"
+-    pngjs "^5.0.0"
+-    progress "^2.0.3"
+-    proxy-from-env "^1.1.0"
+-    rimraf "^3.0.2"
+-    ws "^6.1.0"
+-
+ plist@^3.0.1:
+   version "3.0.1"
+   resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.1.tgz#a9b931d17c304e8912ef0ba3bdd6182baf2e1f8c"
+-- 
+2.28.0
+

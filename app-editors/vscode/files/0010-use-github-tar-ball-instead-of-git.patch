@@ -1,7 +1,7 @@
-From c49cb5fddd97d7de84ef8a137b44936b33a65483 Mon Sep 17 00:00:00 2001
+From 9c3e4c1bd8b1de330290f24695f5b9abae488036 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 14 Aug 2020 18:01:03 +0800
-Subject: [PATCH] use github tar ball instead of git
+Date: Fri, 9 Oct 2020 10:13:46 +0800
+Subject: [PATCH 10/10] use github tar ball instead of git
 
 ---
  extensions/typescript-language-features/package.json | 2 +-
@@ -22,18 +22,18 @@ index 70ed27503c..96c39d0591 100644
    },
    "scripts": {
 diff --git a/extensions/typescript-language-features/yarn.lock b/extensions/typescript-language-features/yarn.lock
-index 147be55e1c..27e69d3670 100644
+index 4ef8f03278..b364c37b3d 100644
 --- a/extensions/typescript-language-features/yarn.lock
 +++ b/extensions/typescript-language-features/yarn.lock
-@@ -1151,9 +1151,9 @@ typescript-vscode-sh-plugin@^0.6.14:
+@@ -876,9 +876,9 @@ typescript-vscode-sh-plugin@^0.6.14:
    resolved "https://registry.yarnpkg.com/typescript-vscode-sh-plugin/-/typescript-vscode-sh-plugin-0.6.14.tgz#a81031b502f6346a26ea49ce082438c3e353bb38"
    integrity sha512-AkNlRBbI6K7gk29O92qthNSvc6jjmNQ6isVXoYxkFwPa8D04tIv2SOPd+sd+mNpso4tNdL2gy7nVtrd5yFqvlA==
  
 -"typescript-web-server@git://github.com/mjbvz/ts-server-web-build":
-+typescript-web-server@mjbvz/ts-server-web-build:
++"typescript-web-server@mjbvz/ts-server-web-build":
    version "0.0.0"
--  resolved "git://github.com/mjbvz/ts-server-web-build#1d85be25043f9b5e36a531941ea345dd5a2ca007"
-+  resolved "https://codeload.github.com/mjbvz/ts-server-web-build/tar.gz/1d85be25043f9b5e36a531941ea345dd5a2ca007"
+-  resolved "git://github.com/mjbvz/ts-server-web-build#2a70d88432760118a6aab21da7b819a57e7d4e5e"
++  resolved "https://codeload.github.com/mjbvz/ts-server-web-build/tar.gz/2a70d88432760118a6aab21da7b819a57e7d4e5e"
  
  unique-filename@^1.1.1:
    version "1.1.1"

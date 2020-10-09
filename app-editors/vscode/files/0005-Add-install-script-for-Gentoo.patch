@@ -1,24 +1,24 @@
-From 0ee10ac897488825b83b2907647e625c7c137007 Mon Sep 17 00:00:00 2001
+From 2a8899abd1631ff1fe97a8ec1386615449d67c89 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 10 May 2020 17:19:14 +0800
-Subject: [PATCH 07/12] Add install script for Gentoo
+Date: Fri, 9 Oct 2020 09:37:48 +0800
+Subject: [PATCH 05/10] Add install script for Gentoo
 
 ---
- build/gulpfile.vscode.linux.js | 51 ++++++++++++++++++++++++++++++++++
- 1 file changed, 51 insertions(+)
+ build/gulpfile.vscode.linux.js | 54 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
 diff --git a/build/gulpfile.vscode.linux.js b/build/gulpfile.vscode.linux.js
-index e8e0c1541d..5bd7fb8add 100644
+index 1d8a09e4fe..38c434b499 100644
 --- a/build/gulpfile.vscode.linux.js
 +++ b/build/gulpfile.vscode.linux.js
-@@ -244,6 +244,52 @@ function buildSnapPackage(arch) {
+@@ -254,6 +254,57 @@ function buildSnapPackage(arch) {
  	return shell.task(`cd ${snapBuildPath} && snapcraft`);
  }
  
 +function installGentooPackage(arch) {
 +	const binaryDir = '../VSCode-linux-' + arch;
 +	const destination = process.env.DESTDIR;
-+	const libDir = process.env.LIBDIR;
++    const libDir = process.env.LIBDIR;
 +
 +	return function () {
 +		const desktop = gulp.src('resources/linux/code.desktop', { base: '.' })
@@ -41,6 +41,11 @@ index e8e0c1541d..5bd7fb8add 100644
 +			.pipe(replace('@@LICENSE@@', product.licenseName))
 +			.pipe(rename('usr/share/metainfo/' + product.applicationName + '.appdata.xml'));
 +
++		const workspaceMime = gulp.src('resources/linux/code-workspace.xml', { base: '.' })
++			.pipe(replace('@@NAME_LONG@@', product.nameLong))
++			.pipe(replace('@@NAME@@', product.applicationName))
++			.pipe(rename('usr/share/mime/packages/' + product.applicationName + '-workspace.xml'));
++
 +		const icon = gulp.src('resources/linux/code.png', { base: '.' })
 +			.pipe(rename('usr/share/pixmaps/' + product.linuxIconName + '.png'));
 +
@@ -55,7 +60,7 @@ index e8e0c1541d..5bd7fb8add 100644
 +		const code = gulp.src(binaryDir + '/**/*', { base: binaryDir })
 +			.pipe(rename(function (p) { p.dirname = `usr/${libDir}/vscode/${p.dirname}`; }));
 +
-+		const all = es.merge(code, desktops, appdata, icon, bash_completion, zsh_completion);
++		const all = es.merge(code, desktops, appdata, workspaceMime, icon, bash_completion, zsh_completion);
 +
 +		return all.pipe(vfs.dest(destination));
 +	};
@@ -63,16 +68,14 @@ index e8e0c1541d..5bd7fb8add 100644
 +
  const BUILD_TARGETS = [
  	{ arch: 'x64' },
- 	{ arch: 'arm' },
-@@ -275,4 +321,9 @@ BUILD_TARGETS.forEach((buildTarget) => {
- 		const buildSnapTask = task.define(`vscode-linux-${arch}-build-snap`, task.series(prepareSnapTask, buildSnapPackage(arch)));
- 		gulp.task(buildSnapTask);
- 	}
+ 	{ arch: 'armhf' },
+@@ -275,4 +326,7 @@ BUILD_TARGETS.forEach(({ arch }) => {
+ 	gulp.task(prepareSnapTask);
+ 	const buildSnapTask = task.define(`vscode-linux-${arch}-build-snap`, task.series(prepareSnapTask, buildSnapPackage(arch)));
+ 	gulp.task(buildSnapTask);
 +
-+	{
-+		const installGentooTask = task.define(`vscode-linux-${arch}-install-gentoo`, installGentooPackage(arch));
-+		gulp.task(installGentooTask);
-+	}
++	const installGentooTask = task.define(`vscode-linux-${arch}-install-gentoo`, installGentooPackage(arch));
++	gulp.task(installGentooTask);
  });
 -- 
 2.28.0

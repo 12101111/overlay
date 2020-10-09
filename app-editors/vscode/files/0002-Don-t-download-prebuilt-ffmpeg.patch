@@ -1,0 +1,25 @@
+From f18f5b5821a0bdce7d7343ff4f37daee10ca6c01 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 9 Oct 2020 09:20:48 +0800
+Subject: [PATCH 02/10] Don't download prebuilt ffmpeg
+
+---
+ build/gulpfile.vscode.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
+index d046aa71ed..0740fc225b 100644
+--- a/build/gulpfile.vscode.js
++++ b/build/gulpfile.vscode.js
+@@ -263,7 +263,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+ 		let result = all
+ 			.pipe(util.skipDirectories())
+ 			.pipe(util.fixWin32DirectoryPermissions())
+-			.pipe(electron(_.extend({}, config, { platform, arch: arch === 'armhf' ? 'arm' : arch, ffmpegChromium: true })))
++			.pipe(electron(_.extend({}, config, { platform, arch: arch === 'armhf' ? 'arm' : arch, ffmpegChromium: false })))
+ 			.pipe(filter(['**', '!LICENSE', '!LICENSES.chromium.html', '!version'], { dot: true }));
+ 
+ 		if (platform === 'linux') {
+-- 
+2.28.0
+
