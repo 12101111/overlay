@@ -4195,7 +4195,7 @@ https://registry.yarnpkg.com/zone.js/-/zone.js-0.7.6.tgz
 
 SRC_URI="
 	https://github.com/microsoft/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz
-	https://github.com/12101111/overlay/releases/download/v2020-09-11/vscode-builtin-extensions.tar.xz -> ${PN}-1.49-builtin-extensions.tar.xz
+	https://github.com/12101111/overlay/releases/download/v2020-10-09/vscode-builtin-extensions.tar.xz -> ${PN}-1.50-builtin-extensions.tar.xz
 	!system-ripgrep? (
 		amd64? ( ${RG_PREBUILT}/v${RG_VERSION[1]}/ripgrep-v${RG_VERSION[1]}-x86_64-unknown-linux-musl.tar.gz )
 		x86? ( ${RG_PREBUILT}/v${RG_VERSION[1]}/ripgrep-v${RG_VERSION[1]}-i686-unknown-linux-musl.tar.gz )
@@ -4274,7 +4274,7 @@ src_unpack() {
 	# 1. yarn download-builtin-extensions
 	# 2. cd .build
 	# 3. tar cJf vscode-builtin-extensions.tar.xz builtInExtensions
-	unpack ${PN}-1.49-builtin-extensions.tar.xz
+	unpack ${PN}-1.50-builtin-extensions.tar.xz
 }
 
 src_prepare() {
