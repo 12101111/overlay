@@ -12,10 +12,13 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="3"
+PATCHSET="5"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
+# See chrome/build/linux.pgo.txt
+PGO_PROFILES="chrome-linux-master-1601553580-367c6f76c3cbdd1ced1ecc49db85241195c30ea6.profdata"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
+	https://storage.googleapis.com/chromium-optimization-profiles/pgo_profiles/${PGO_PROFILES}
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
 
 LICENSE="BSD"
@@ -42,6 +45,7 @@ COMMON_X_DEPEND="
 	x11-libs/libXtst:=
 	x11-libs/libXScrnSaver:=
 	x11-libs/libxcb:=
+	vaapi? ( >=x11-libs/libva-2.7:=[X,drm] )
 "
 
 COMMON_DEPEND="
@@ -79,7 +83,6 @@ COMMON_DEPEND="
 	sys-libs/zlib:=[minizip]
 	kerberos? ( virtual/krb5 )
 	pipewire? ( media-video/pipewire:0/0.3 )
-	vaapi? ( x11-libs/libva:= )
 	!headless? (
 		${COMMON_X_DEPEND}
 		atk? (
@@ -183,11 +186,10 @@ in /etc/chromium/default.
 PATCHES=(
 	"${FILESDIR}/build-with-pipewire-0.3.patch"
     "${FILESDIR}/chromium_atk_optional.patch"
-    "${FILESDIR}/chromium-fix-vaapi-on-intel.patch"
     "${FILESDIR}/chromium-skia-harmony.patch"
     "${FILESDIR}/wayland-egl.patch"
-	"${FILESDIR}/ldd-10.patch"
-	"${FILESDIR}/dont_include_xlib.patch"
+	"${FILESDIR}/chromium-87-ozone-deps.patch"
+	"${FILESDIR}/chromium-87-webcodecs-deps.patch"
 )
 
 pre_build_checks() {
@@ -210,7 +212,7 @@ pre_build_checks() {
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="3G"
 	CHECKREQS_DISK_BUILD="7G"
-	if use lto || use pgo; then
+	if use lto; then
 		if ! tc-is-clang; then
 			die "lto or pgo only support clang and lld"
 		fi
@@ -251,16 +253,17 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	eapply "${FILESDIR}/chromium-87-compiler.patch"
-	rm "${WORKDIR}/patches/chromium-86-compiler.patch"
-	rm "${WORKDIR}/patches/chromium-87-CrossThreadPersistent-template.patch"
-	rm "${WORKDIR}/patches/chromium-87-SystemMemoryPressureEvaluator-namespace.patch"
-	rm "${WORKDIR}/patches/chromium-87-Thumbnail-noexcept.patch"
-	rm "${WORKDIR}/patches/chromium-87-anonymous-struct.patch"
+	rm "${WORKDIR}/patches/chromium-87-partition_alloc-include.patch"
+	rm "${WORKDIR}/patches/chromium-87-sandbox-include.patch"
 	eapply "${WORKDIR}/patches"
+	if use vaapi; then
+		eapply "${FILESDIR}/chromium-86-fix-vaapi-on-intel.patch"
+	fi
 
 	default
 
+	mkdir -p "${S}/chrome/build/pgo_profiles/"
+	cp "${DISTDIR}/${PGO_PROFILES}" "${S}/chrome/build/pgo_profiles/${PGO_PROFILES}"
 	mkdir -p third_party/node/linux/node-linux-x64/bin || die
 	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
 
@@ -425,6 +428,7 @@ src_prepare() {
 		third_party/s2cellid
 		third_party/schema_org
 		third_party/securemessage
+		third_party/shaka-player
 		third_party/shell-encryption
 		third_party/simplejson
 		third_party/skia
@@ -667,7 +671,9 @@ src_configure() {
 	fi
 
 	if use pgo; then
-		myconf_gn+=" clang_use_default_sample_profile=true"
+		myconf_gn+=" chrome_pgo_phase = 2"
+	else
+		myconf_gn+=" chrome_pgo_phase = 0"
 	fi
 
 	ffmpeg_branding="$(usex proprietary-codecs Chrome Chromium)"
@@ -944,10 +950,11 @@ pkg_postinst() {
 	xdg_icon_cache_update
 	xdg_desktop_database_update
 	readme.gentoo_print_elog
-	if use vaapi ; then
-        einfo
-        elog "Hardware video acceleration needs additional configuration described in ArchLinux wiki:"
-		elog "https://wiki.archlinux.org/index.php/Chromium#Force_GPU_acceleration"
-		elog "Put command-line flags in /etc/chromium/* or CHROMIUM_USER_FLAGS environment variable"
-    fi
+
+	if use vaapi; then
+		elog "VA-API is disabled by default at runtime. Either enable it"
+		elog "by navigating to chrome://flags/#enable-accelerated-video-decode"
+		elog "inside Chromium or add --enable-accelerated-video-decode"
+		elog "to CHROMIUM_FLAGS in /etc/chromium/default."
+	fi
 }
