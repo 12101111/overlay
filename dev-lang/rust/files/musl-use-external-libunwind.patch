@@ -1,8 +1,8 @@
-diff --git a/src/libunwind/build.rs b/src/libunwind/build.rs
-index 1462639..722d62e 100755
---- a/src/libunwind/build.rs
-+++ b/src/libunwind/build.rs
-@@ -11,8 +11,7 @@ fn main() {
+diff --git a/library/unwind/build.rs b/library/unwind/build.rs
+index ab09a6e..551a7c7 100644
+--- a/library/unwind/build.rs
++++ b/library/unwind/build.rs
+@@ -13,8 +13,7 @@ fn main() {
          llvm_libunwind::compile();
      } else if target.contains("linux") {
          if target.contains("musl") {
@@ -12,11 +12,11 @@ index 1462639..722d62e 100755
          } else if !target.contains("android") {
              println!("cargo:rustc-link-lib=gcc_s");
          }
-diff --git a/src/libunwind/lib.rs b/src/libunwind/lib.rs
-index cc025da..798f666 100755
---- a/src/libunwind/lib.rs
-+++ b/src/libunwind/lib.rs
-@@ -20,7 +20,7 @@ cfg_if::cfg_if! {
+diff --git a/library/unwind/src/lib.rs b/library/unwind/src/lib.rs
+index 20a2ca9..13a74ec 100644
+--- a/library/unwind/src/lib.rs
++++ b/library/unwind/src/lib.rs
+@@ -39,7 +39,7 @@ cfg_if::cfg_if! {
  
  #[cfg(target_env = "musl")]
  #[link(name = "unwind", kind = "static", cfg(target_feature = "crt-static"))]
