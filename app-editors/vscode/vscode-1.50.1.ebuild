@@ -14,7 +14,7 @@ SLOT="0"
 IUSE="system-electron system-ripgrep savedconfig"
 REQUIRED_USE="!system-electron? ( elibc_glibc )"
 
-COMMIT="93c2f0fbf16c5a4b10e4d5f89737d9c2c25488a3"
+COMMIT="d2e414d9e4239a252d1ab117bd7067f125afd80a"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.9.0/lib/postinstall.js#L19
@@ -667,6 +667,7 @@ https://registry.yarnpkg.com/chokidar/-/chokidar-3.2.3.tgz
 https://registry.yarnpkg.com/chokidar/-/chokidar-3.3.0.tgz
 https://registry.yarnpkg.com/chokidar/-/chokidar-3.4.0.tgz
 https://registry.yarnpkg.com/chokidar/-/chokidar-3.4.2.tgz
+https://registry.yarnpkg.com/chokidar/-/chokidar-3.4.3.tgz
 https://registry.yarnpkg.com/chownr/-/chownr-1.0.1.tgz
 https://registry.yarnpkg.com/chownr/-/chownr-1.1.1.tgz
 https://registry.yarnpkg.com/chownr/-/chownr-1.1.2.tgz
@@ -2991,6 +2992,7 @@ https://registry.yarnpkg.com/read-pkg-up/-/read-pkg-up-4.0.0.tgz
 https://registry.yarnpkg.com/read/-/read-1.0.7.tgz
 https://registry.yarnpkg.com/recast/-/recast-0.12.9.tgz
 https://registry.yarnpkg.com/recast/-/recast-0.14.7.tgz
+https://registry.yarnpkg.com/readdirp/-/readdirp-3.5.0.tgz
 https://registry.yarnpkg.com/rechoir/-/rechoir-0.6.2.tgz
 https://registry.yarnpkg.com/redent/-/redent-1.0.0.tgz
 https://registry.yarnpkg.com/redent/-/redent-2.0.0.tgz
