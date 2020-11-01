@@ -1,0 +1,18 @@
+{
+    "policies": {
+		"CaptivePortal": false,
+		"DisableAppUpdate": true,
+		"DisableFeedbackCommands": true,
+		"DisableFirefoxAccounts": true,
+		"DisableFirefoxScreenshots": true,
+		"DisableFirefoxStudies": true,
+		"DisableMasterPasswordCreation": true,
+		"DisablePocket": true,
+		"DisableTelemetry": true,
+		"DisableSetDesktopBackground": true,
+		"DisableSystemAddonUpdate": true,
+		"DontCheckDefaultBrowser": true,
+		"NetworkPrediction": false,
+		"OverridePostUpdatePage": ""
+    }
+}

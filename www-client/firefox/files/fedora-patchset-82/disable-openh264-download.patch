@@ -1,0 +1,39 @@
+diff -up firefox-81.0/toolkit/modules/GMPInstallManager.jsm.old firefox-81.0/toolkit/modules/GMPInstallManager.jsm
+--- firefox-81.0/toolkit/modules/GMPInstallManager.jsm.old	2020-09-25 10:39:04.769458703 +0200
++++ firefox-81.0/toolkit/modules/GMPInstallManager.jsm	2020-09-25 10:39:22.038504747 +0200
+@@ -54,10 +54,6 @@ function getScopedLogger(prefix) {
+ 
+ const LOCAL_GMP_SOURCES = [
+   {
+-    id: "gmp-gmpopenh264",
+-    src: "chrome://global/content/gmp-sources/openh264.json",
+-  },
+-  {
+     id: "gmp-widevinecdm",
+     src: "chrome://global/content/gmp-sources/widevinecdm.json",
+   },
+diff --git a/toolkit/content/jar.mn b/toolkit/content/jar.mn
+--- a/toolkit/content/jar.mn
++++ b/toolkit/content/jar.mn
+@@ -108,7 +108,6 @@ toolkit.jar:
+ #ifdef XP_MACOSX
+    content/global/macWindowMenu.js
+ #endif
+-   content/global/gmp-sources/openh264.json    (gmp-sources/openh264.json)
+    content/global/gmp-sources/widevinecdm.json (gmp-sources/widevinecdm.json)
+ 
+ # Third party files
+diff --git a/toolkit/modules/GMPInstallManager.jsm b/toolkit/modules/GMPInstallManager.jsm
+--- a/toolkit/modules/GMPInstallManager.jsm
++++ b/toolkit/modules/GMPInstallManager.jsm
+@@ -238,6 +234,9 @@ GMPInstallManager.prototype = {
+    *                 downloaderr, verifyerr or previouserrorencountered
+    */
+   installAddon(gmpAddon) {
++    if (gmpAddon.isOpenH264) {
++      return Promise.reject({ type: "disabled" });
++    }
+     if (this._deferred) {
+       let log = getScopedLogger("GMPInstallManager.installAddon");
+       log.error("previous error encountered");
+

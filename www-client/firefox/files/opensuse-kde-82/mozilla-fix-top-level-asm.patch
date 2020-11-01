@@ -1,0 +1,42 @@
+From 91bb79836ee274855393bdf6ab10e24899b1b349 Mon Sep 17 00:00:00 2001
+From: Martin Liska <mliska@suse.cz>
+Date: Fri, 17 May 2019 14:41:35 +0200
+Subject: [PATCH] Fix top-level asm issue.
+
+---
+ security/sandbox/linux/moz.build | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/security/sandbox/linux/moz.build b/security/sandbox/linux/moz.build
+index aae85843e9f6..208368dfd189 100644
+--- a/security/sandbox/linux/moz.build
++++ b/security/sandbox/linux/moz.build
+@@ -61,7 +61,6 @@ UNIFIED_SOURCES += [
+     '../chromium/sandbox/linux/bpf_dsl/policy_compiler.cc',
+     '../chromium/sandbox/linux/bpf_dsl/syscall_set.cc',
+     '../chromium/sandbox/linux/seccomp-bpf/die.cc',
+-    '../chromium/sandbox/linux/seccomp-bpf/syscall.cc',
+     'broker/SandboxBrokerCommon.cpp',
+     'Sandbox.cpp',
+     'SandboxBrokerClient.cpp',
+@@ -77,6 +76,7 @@ UNIFIED_SOURCES += [
+ SOURCES += [
+     '../chromium/base/strings/safe_sprintf.cc',
+     '../chromium/base/third_party/icu/icu_utf.cc',
++    '../chromium/sandbox/linux/seccomp-bpf/syscall.cc',
+     '../chromium/sandbox/linux/seccomp-bpf/trap.cc',
+     '../chromium/sandbox/linux/services/syscall_wrappers.cc',
+ ]
+@@ -96,6 +96,9 @@ if CONFIG['CC_TYPE'] in ('clang', 'gcc'):
+     SOURCES['../chromium/sandbox/linux/services/syscall_wrappers.cc'].flags += [
+         '-Wno-empty-body',
+     ]
++    SOURCES['../chromium/sandbox/linux/seccomp-bpf/syscall.cc'].flags += [
++        '-fno-lto'
++    ]
+ 
+ # gcc lto likes to put the top level asm in syscall.cc in a different partition
+ # from the function using it which breaks the build.  Work around that by
+-- 
+2.23.0
+

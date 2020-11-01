@@ -1,0 +1,15 @@
+diff -up firefox-81.0.1/build/mach_bootstrap.py.old firefox-81.0.1/build/mach_bootstrap.py
+--- firefox-81.0.1/build/mach_bootstrap.py.old	2020-10-06 14:16:06.212974910 +0200
++++ firefox-81.0.1/build/mach_bootstrap.py	2020-10-06 14:19:03.313179557 +0200
+@@ -507,7 +507,10 @@ class ImportHook(object):
+         # doesn't happen or because it doesn't matter).
+         if not os.path.exists(module.__file__[:-1]):
+             if os.path.exists(module.__file__):
+-                os.remove(module.__file__)
++                try:
++                    os.remove(module.__file__)
++                except:
++                    pass
+             del sys.modules[module.__name__]
+             module = self(name, globals, locals, fromlist, level)
+ 

@@ -1,0 +1,54 @@
+# HG changeset patch
+# Parent  e42a036a5533ea6a60ebc22fd2a150c384d42fda
+This fixes a broken build for gcc < 9 on ppc64le.
+This patch can be removed for newer gcc-versions.
+
+diff --git a/js/xpconnect/src/XPCWrappedNative.cpp b/js/xpconnect/src/XPCWrappedNative.cpp
+--- a/js/xpconnect/src/XPCWrappedNative.cpp
++++ b/js/xpconnect/src/XPCWrappedNative.cpp
+@@ -1080,17 +1080,21 @@ class MOZ_STACK_CLASS CallMethodHelper f
+                                                uint32_t* result);
+ 
+   MOZ_ALWAYS_INLINE bool GetInterfaceTypeFromParam(const nsXPTType& type,
+                                                    nsID* result) const;
+ 
+   MOZ_ALWAYS_INLINE bool GetOutParamSource(uint8_t paramIndex,
+                                            MutableHandleValue srcp) const;
+ 
+-  MOZ_ALWAYS_INLINE bool GatherAndConvertResults();
++#if !(__GNUC__ && __linux__ && __PPC64__ && _LITTLE_ENDIAN)
++// Work around a compiler bug on ppc64le (bug 1512162).
++  MOZ_ALWAYS_INLINE
++#endif
++  bool GatherAndConvertResults();
+ 
+   MOZ_ALWAYS_INLINE bool QueryInterfaceFastPath();
+ 
+   nsXPTCVariant* GetDispatchParam(uint8_t paramIndex) {
+     if (paramIndex >= mJSContextIndex) {
+       paramIndex += 1;
+     }
+     if (paramIndex >= mOptArgcIndex) {
+@@ -1127,17 +1131,21 @@ class MOZ_STACK_CLASS CallMethodHelper f
+ 
+   {
+     // Success checked later.
+     mIFaceInfo->GetMethodInfo(mVTableIndex, &mMethodInfo);
+   }
+ 
+   ~CallMethodHelper();
+ 
+-  MOZ_ALWAYS_INLINE bool Call();
++#if !(__GNUC__ && __linux__ && __PPC64__ && _LITTLE_ENDIAN)
++// Work around a compiler bug on ppc64le (bug 1512162).
++  MOZ_ALWAYS_INLINE
++#endif
++  bool Call();
+ 
+   // Trace implementation so we can put our CallMethodHelper in a Rooted<T>.
+   void trace(JSTracer* aTrc);
+ };
+ 
+ // static
+ bool XPCWrappedNative::CallMethod(XPCCallContext& ccx,
+                                   CallMode mode /*= CALL_METHOD */) {

@@ -1,0 +1,21 @@
+From: Mike Hommey <glandium@debian.org>
+Date: Thu, 13 Mar 2008 20:30:19 +0100
+Subject: Set DPI to system settings
+
+---
+ modules/libpref/init/all.js | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/libpref/init/all.js b/modules/libpref/init/all.js
+index 51e9272d0f4..5bd51f182ff 100644
+--- a/modules/libpref/init/all.js
++++ b/modules/libpref/init/all.js
+@@ -2437,7 +2437,7 @@ pref("bidi.browser.ui", false);
+ // A value of 0 means use the system DPI. A positive value is used as the DPI.
+ // This sets the physical size of a device pixel and thus controls the
+ // interpretation of physical units such as "pt".
+-pref("layout.css.dpi", -1);
++pref("layout.css.dpi", 0);
+ 
+ // pref for which side vertical scrollbars should be on
+ // 0 = end-side in UI direction

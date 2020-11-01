@@ -1,0 +1,12 @@
+diff -up firefox-75.0/intl/locale/LocaleService.cpp.locale-debug firefox-75.0/intl/locale/LocaleService.cpp
+--- firefox-75.0/intl/locale/LocaleService.cpp.locale-debug	2020-04-06 22:42:20.196799809 +0200
++++ firefox-75.0/intl/locale/LocaleService.cpp	2020-04-06 22:43:02.522530317 +0200
+@@ -372,8 +372,6 @@ LocaleService::GetDefaultLocale(nsACStri
+     // just use our hard-coded default below.
+     GetGREFileContents("update.locale", &locale);
+     locale.Trim(" \t\n\r");
+-    // This should never be empty.
+-    MOZ_ASSERT(!locale.IsEmpty());
+     if (CanonicalizeLanguageId(locale)) {
+       mDefaultLocale.Assign(locale);
+     }

@@ -1,0 +1,49 @@
+Author: Bernhard M. Wiedemann <bwiedemann suse de>
+Date: 2019-07-22
+
+Allow to override build date with SOURCE_DATE_EPOCH
+in order to make builds reproducible.
+See https://reproducible-builds.org/ for why this is good
+and https://reproducible-builds.org/specs/source-date-epoch/
+for the definition of this variable.
+
+diff --git a/python/mozbuild/mozbuild/action/langpack_manifest.py b/python/mozbuild/mozbuild/action/langpack_manifest.py
+--- a/python/mozbuild/mozbuild/action/langpack_manifest.py
++++ b/python/mozbuild/mozbuild/action/langpack_manifest.py
+@@ -11,16 +11,17 @@
+ from __future__ import absolute_import, print_function, unicode_literals
+ 
+ import argparse
+ import sys
+ import os
+ import json
+ import io
+ import datetime
++import time
+ import requests
+ import mozversioncontrol
+ import mozpack.path as mozpath
+ from mozpack.chrome.manifest import (
+     Manifest,
+     ManifestLocale,
+     parse_manifest,
+ )
+@@ -94,17 +95,17 @@ def get_dt_from_hg(path):
+ #    ts == "20170914215617"
+ ###
+ def get_timestamp_for_locale(path):
+     dt = None
+     if os.path.isdir(os.path.join(path, '.hg')):
+         dt = get_dt_from_hg(path)
+ 
+     if dt is None:
+-        dt = datetime.datetime.utcnow()
++        dt = datetime.datetime.utcfromtimestamp(int(os.environ.get('SOURCE_DATE_EPOCH', time.time())))
+ 
+     dt = dt.replace(microsecond=0)
+     return dt.strftime("%Y%m%d%H%M%S")
+ 
+ 
+ ###
+ # Parses multiple defines files into a single key-value pair object.
+ #
