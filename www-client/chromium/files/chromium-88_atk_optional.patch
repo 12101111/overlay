@@ -1,0 +1,15 @@
+diff --git a/build/config/ui.gni b/build/config/ui.gni
+index 2d281ef..a166fd3 100644
+--- a/build/config/ui.gni
++++ b/build/config/ui.gni
+@@ -49,7 +49,9 @@ declare_args() {
+ assert(!use_glib || (is_linux && !is_chromeos && !is_chromecast))
+ 
+ # Whether to use atk, the Accessibility ToolKit library
+-use_atk = is_linux && !is_chromecast && use_glib
++declare_args() {
++  use_atk = is_linux && !is_chromecast && use_glib
++}
+ 
+ # Whether using Xvfb to provide a display server for a test might be
+ # necessary.

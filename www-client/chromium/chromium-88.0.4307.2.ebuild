@@ -12,13 +12,10 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="5"
+PATCHSET="1"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
-# See chrome/build/linux.pgo.txt
-PGO_PROFILES="chrome-linux-master-1601553580-367c6f76c3cbdd1ced1ecc49db85241195c30ea6.profdata"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
-	https://storage.googleapis.com/chromium-optimization-profiles/pgo_profiles/${PGO_PROFILES}
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
 
 LICENSE="BSD"
@@ -185,9 +182,8 @@ in /etc/chromium/default.
 
 PATCHES=(
 	"${FILESDIR}/build-with-pipewire-0.3.patch"
-    "${FILESDIR}/chromium_atk_optional.patch"
+    "${FILESDIR}/chromium-88_atk_optional.patch"
     "${FILESDIR}/chromium-skia-harmony.patch"
-    "${FILESDIR}/wayland-egl.patch"
 	"${FILESDIR}/chromium-87-ozone-deps.patch"
 	"${FILESDIR}/chromium-87-webcodecs-deps.patch"
 )
@@ -253,17 +249,11 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-87-partition_alloc-include.patch"
-	rm "${WORKDIR}/patches/chromium-87-sandbox-include.patch"
+	rm "${WORKDIR}/patches/chromium-88-views-namespace.patch"
 	eapply "${WORKDIR}/patches"
-	if use vaapi; then
-		eapply "${FILESDIR}/chromium-86-fix-vaapi-on-intel.patch"
-	fi
 
 	default
 
-	mkdir -p "${S}/chrome/build/pgo_profiles/"
-	cp "${DISTDIR}/${PGO_PROFILES}" "${S}/chrome/build/pgo_profiles/${PGO_PROFILES}"
 	mkdir -p third_party/node/linux/node-linux-x64/bin || die
 	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
 
@@ -334,6 +324,7 @@ src_prepare() {
 		third_party/cros_system_api
 		third_party/dav1d
 		third_party/dawn
+		third_party/dawn/third_party/khronos
 		third_party/depot_tools
 		third_party/devscripts
 		third_party/devtools-frontend
@@ -355,6 +346,7 @@ src_prepare() {
 		third_party/emoji-segmenter
 		third_party/flatbuffers
 		third_party/freetype
+		third_party/fusejs
 		third_party/libgifcodec
 		third_party/glslang
 		third_party/google_input_tools
@@ -384,6 +376,8 @@ src_prepare() {
 		third_party/libudev
 		third_party/libwebm
 		third_party/libxml/chromium
+		third_party/libx11
+		third_party/libxcb-keysyms
 		third_party/libyuv
 		third_party/llvm
 		third_party/lottie
@@ -437,9 +431,11 @@ src_prepare() {
 		third_party/skia/third_party/skcms
 		third_party/skia/third_party/vulkan
 		third_party/smhasher
+		third_party/spirv-cross/spirv-cross
 		third_party/spirv-headers
 		third_party/SPIRV-Tools
 		third_party/sqlite
+		third_party/tint
 		third_party/ukey2
 		third_party/unrar
 		third_party/usrsctp
@@ -458,6 +454,7 @@ src_prepare() {
 		third_party/woff2
 		third_party/wuffs
 		third_party/xcbproto
+		third_party/x11proto
 		third_party/zxcvbn-cpp
 		third_party/zlib/google
 		tools/grit/third_party/six
