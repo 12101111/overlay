@@ -14,6 +14,7 @@ LICENSE="MIT"
 SLOT="2"
 KEYWORDS="~amd64"
 IUSE="lua52compat static-libs"
+PATCHES=( "${FILESDIR}/"lualreg.patch )
 
 S="${WORKDIR}/luajit-${PV}"
 

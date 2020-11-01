@@ -1,0 +1,12 @@
+diff --git a/src/lauxlib.h b/src/lauxlib.h
+index 64e0181a..5c8b4a72 100644
+--- a/src/lauxlib.h
++++ b/src/lauxlib.h
+@@ -17,6 +17,7 @@
+ 
+ /* extra error code for `luaL_load' */
+ #define LUA_ERRFILE     (LUA_ERRERR+1)
++#define luaL_reg luaL_Reg
+ 
+ typedef struct luaL_Reg {
+   const char *name;
