@@ -85,6 +85,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.15.0-disable-fatal-warnings.patch" # bug 695446
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
 	"${FILESDIR}/yasm-nls.patch"
+	"${FILESDIR}/qtwebengine-5.15.1-fix-clang11.patch"
 )
 
 src_prepare() {
