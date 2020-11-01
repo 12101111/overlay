@@ -39,7 +39,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
-IUSE="clippy cpu_flags_x86_sse2 debug doc libressl miri nightly parallel-compiler rls rustfmt +system-bootstrap system-llvm test wasm default-libcxx ${ALL_LLVM_TARGETS[*]}"
+IUSE="clippy cpu_flags_x86_sse2 debug doc libressl miri nightly parallel-compiler rls rustfmt +system-bootstrap system-llvm test wasm default-libcxx +profile +sanitizers ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -126,6 +126,7 @@ PATCHES=(
 	#"${FILESDIR}"/gentoo-musl-target-specs.patch break firefox build
 	"${FILESDIR}"/musl-use-external-libunwind.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
+	"${FILESDIR}"/profiler.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
@@ -273,9 +274,9 @@ src_configure() {
 		vendor = true
 		extended = true
 		tools = [${tools}]
-		verbose = 2
-		sanitizers = false
-		profiler = false
+		verbose = 1
+		sanitizers = $(toml_usex sanitizers)
+		profiler = $(toml_usex profile)
 		cargo-native-static = false
 		[install]
 		prefix = "${EPREFIX}/usr/lib/${PN}/${PV}"
@@ -340,6 +341,8 @@ src_configure() {
 		cat <<- _EOF_ >> "${S}"/config.toml
 			[target.wasm32-unknown-unknown]
 			linker = "$(usex system-llvm lld rust-lld)"
+			profiler = false
+			sanitizers = false
 		_EOF_
 	fi
 
