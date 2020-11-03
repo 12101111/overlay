@@ -184,7 +184,6 @@ PATCHES=(
 	"${FILESDIR}/build-with-pipewire-0.3.patch"
     "${FILESDIR}/chromium-88_atk_optional.patch"
     "${FILESDIR}/chromium-skia-harmony.patch"
-	"${FILESDIR}/chromium-87-ozone-deps.patch"
 	"${FILESDIR}/chromium-87-webcodecs-deps.patch"
 )
 
@@ -250,6 +249,7 @@ src_prepare() {
 	fi
 
 	rm "${WORKDIR}/patches/chromium-88-views-namespace.patch"
+	rm "${WORKDIR}/patches/chromium-88-TraceSourceLocation-qualification.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
