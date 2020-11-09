@@ -11,11 +11,11 @@ SRC_URI="https://www.freedesktop.org/software/${PN}/releases/${P}.tar.gz"
 
 LICENSE="LGPL-2"
 SLOT="0"
-KEYWORDS="~alpha amd64 arm arm64 ~hppa ~ia64 ~mips ppc ppc64 ~s390 sparc x86"
-IUSE="consolekit elogind examples gtk +introspection jit kde nls pam selinux systemd test"
+KEYWORDS="~amd64 ~arm ~arm64 ~mips ~ppc64 ~s390 ~x86"
+IUSE="elogind examples gtk +introspection jit kde nls pam selinux systemd test"
 RESTRICT="!test? ( test )"
 
-REQUIRED_USE="^^ ( consolekit elogind systemd )"
+REQUIRED_USE="^^ ( elogind systemd )"
 
 BDEPEND="
 	acct-user/polkitd
@@ -31,7 +31,7 @@ BDEPEND="
 	introspection? ( dev-libs/gobject-introspection )
 "
 DEPEND="
-	dev-lang/spidermonkey:68[-debug]
+	dev-lang/duktape
 	dev-libs/glib:2
 	dev-libs/expat
 	elogind? ( sys-auth/elogind )
@@ -46,7 +46,6 @@ RDEPEND="${DEPEND}
 	selinux? ( sec-policy/selinux-policykit )
 "
 PDEPEND="
-	consolekit? ( sys-auth/consolekit[policykit] )
 	gtk? ( || (
 		>=gnome-extra/polkit-gnome-0.105
 		>=lxde-base/lxsession-0.5.2
@@ -59,8 +58,9 @@ DOCS=( docs/TODO HACKING NEWS README )
 PATCHES=(
 	# bug 660880
 	"${FILESDIR}"/polkit-0.115-elogind.patch
-	"${FILESDIR}"/ensure_to_use_C++14.patch
-	"${FILESDIR}"/mozjs68-support.patch
+	#https://bugs.gentoo.org/698910
+	"${FILESDIR}"/polkit-0.118-duktape.patch
+	"${FILESDIR}"/polkit-0.116-make-netgroup-support-optional-2.patch
 )
 
 QA_MULTILIB_PATHS="
@@ -94,6 +94,7 @@ src_configure() {
 		--enable-man-pages
 		--disable-gtk-doc
 		--disable-examples
+		--with-duktape
 		$(use_enable elogind libelogind)
 		$(use_enable introspection)
 		$(use_enable nls)
@@ -118,8 +119,8 @@ src_install() {
 	default
 
 	if use examples; then
-		insinto /usr/share/doc/${PF}/examples
-		doins src/examples/{*.c,*.policy*}
+		docinto examples
+		dodoc src/examples/{*.c,*.policy*}
 	fi
 
 	diropts -m 0700 -o polkitd
