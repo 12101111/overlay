@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-82-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-82-patches-03.tar.xz"
 
 LLVM_MAX_SLOT=11
 
@@ -65,7 +65,7 @@ IUSE="clang cpu_flags_arm_neon dbus debug eme-free geckodriver +gmp-autoupdate
 	hardened hwaccel jack lto +openh264 pgo pulseaudio screencast selinux
 	+system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent
 	+system-libvpx +system-webp wayland wifi
-	+jit +kde privacy"
+	+jit privacy"
 
 REQUIRED_USE="screencast? ( wayland )"
 
@@ -169,8 +169,7 @@ RDEPEND="${CDEPEND}
 		)
 	)
 	selinux? ( sec-policy/selinux-mozilla )
-	kde? ( kde-apps/kdialog
-		kde-misc/kmozillahelper )"
+"
 
 DEPEND="${CDEPEND}
 	pulseaudio? (
@@ -510,21 +509,6 @@ src_prepare() {
 
 	####### My stuff
 	eapply "${FILESDIR}/${PN}-$(ver_cut 1)-no-gtk2.patch" 
-	### OpenSUSE-KDE patchset
-	einfo Applying OpenSUSE-KDE patches
-	use kde && for p in $(cat "${FILESDIR}/opensuse-kde-$(ver_cut 1)"/series);do
-		patch --dry-run --silent -p1 -i "${FILESDIR}/opensuse-kde-$(ver_cut 1)"/$p 2>/dev/null
-		if [ $? -eq 0 ]; then
-			eapply "${FILESDIR}/opensuse-kde-$(ver_cut 1)"/$p;
-			einfo +++++++++++++++++++++++++;
-			einfo Patch $p is APPLIED;
-			einfo +++++++++++++++++++++++++
-		else
-			einfo -------------------------;
-			einfo Patch $p is NOT applied and IGNORED;
-			einfo -------------------------
-		fi
-	done
 	### Privacy-esr patches
 	einfo Applying privacy patches
 	for i in $(cat "${FILESDIR}/privacy-patchset-$(ver_cut 1)/series"); do eapply "${FILESDIR}/privacy-patchset-$(ver_cut 1)/$i"; done
@@ -982,15 +966,6 @@ src_install() {
 		sticky_pref("gfx.font_rendering.graphite.enabled", true);
 		EOF
 	fi
-
-	#######
-	if use kde; then
-		cat "${FILESDIR}"/opensuse-kde-$(ver_cut 1)/kde.js >> \
-		"${GENTOO_PREFS}" \
-		|| die
-	fi
-
-	#######
 
 	# Install language packs
 	local langpacks=( $(find "${WORKDIR}/language_packs" -type f -name '*.xpi') )
