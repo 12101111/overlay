@@ -348,7 +348,7 @@ RESTRICT="mirror"
 SRC_URI="https://github.com/v2fly/v2ray-core/archive/v${PV}.tar.gz -> ${P}.tar.gz
     ${EGO_SUM_SRC_URI}"
 
-LICENSE="MIT"
+LICENSE="MIT XTLS"
 SLOT="0"
 KEYWORDS="~amd64 ~x86 ~arm ~arm64"
 IUSE=""
