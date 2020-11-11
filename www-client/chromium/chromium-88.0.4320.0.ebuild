@@ -3,6 +3,7 @@
 
 EAPI=7
 PYTHON_COMPAT=( python2_7 )
+PYTHON_REQ_USE="xml"
 
 CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
@@ -12,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="1"
+PATCHSET="2"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -21,11 +22,10 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="atk lto pgo pipewire vaapi swiftshader vulkan component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos official pic +proprietary-codecs pulseaudio selinux +suid +system-ffmpeg +system-icu +system-libvpx +tcmalloc wayland widevine"
+IUSE="atk lto pgo pipewire swiftshader vulkan component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos official pic +proprietary-codecs pulseaudio selinux +suid +system-ffmpeg +system-icu +tcmalloc vaapi wayland widevine"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
-	vaapi? ( !system-libvpx )
 "
 
 COMMON_X_DEPEND="
@@ -59,7 +59,6 @@ COMMON_DEPEND="
 	>=media-libs/harfbuzz-2.4.0:0=[icu(-)]
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
-	system-libvpx? ( >=media-libs/libvpx-1.8.2:=[postproc] )
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
 		>=media-video/ffmpeg-4.3:=
@@ -185,6 +184,9 @@ PATCHES=(
     "${FILESDIR}/chromium-88_atk_optional.patch"
     "${FILESDIR}/chromium-skia-harmony.patch"
 	"${FILESDIR}/chromium-87-webcodecs-deps.patch"
+	"${FILESDIR}/chromium-88-ozone-deps.patch"
+	"${FILESDIR}/chromium-88-compiler.patch"
+	"${FILESDIR}/chromium-88-icu.patch"
 )
 
 pre_build_checks() {
@@ -248,8 +250,9 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-88-views-namespace.patch"
-	rm "${WORKDIR}/patches/chromium-88-TraceSourceLocation-qualification.patch"
+	rm "${WORKDIR}/patches/chromium-87-compiler.patch"
+	rm "${WORKDIR}/patches/chromium-87-ServiceWorkerContainerHost-crash.patch"
+	rm "${WORKDIR}/patches/chromium-88-voting-permissive.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -374,10 +377,12 @@ src_prepare() {
 		third_party/libsrtp
 		third_party/libsync
 		third_party/libudev
+		third_party/libvpx
+		third_party/libvpx/source/libvpx/third_party/x86inc
 		third_party/libwebm
-		third_party/libxml/chromium
 		third_party/libx11
 		third_party/libxcb-keysyms
+		third_party/libxml/chromium
 		third_party/libyuv
 		third_party/llvm
 		third_party/lottie
@@ -453,8 +458,8 @@ src_prepare() {
 		third_party/widevine
 		third_party/woff2
 		third_party/wuffs
-		third_party/xcbproto
 		third_party/x11proto
+		third_party/xcbproto
 		third_party/zxcvbn-cpp
 		third_party/zlib/google
 		tools/grit/third_party/six
@@ -477,19 +482,6 @@ src_prepare() {
 	fi
 	if ! use system-icu; then
 		keeplibs+=( third_party/icu )
-	fi
-	if ! use system-libvpx; then
-		keeplibs+=( third_party/libvpx )
-		keeplibs+=( third_party/libvpx/source/libvpx/third_party/x86inc )
-
-		# we need to generate ppc64 stuff because upstream does not ship it yet
-		# it has to be done before unbundling.
-		if use ppc64; then
-			pushd third_party/libvpx >/dev/null || die
-			mkdir -p source/config/linux/ppc64 || die
-			./generate_gni.sh || die
-			popd >/dev/null || die
-		fi
 	fi
 	if use tcmalloc; then
 		keeplibs+=( third_party/tcmalloc )
@@ -519,6 +511,14 @@ src_prepare() {
 		if use system-icu; then
 			keeplibs+=( third_party/icu )
 		fi
+	fi
+	# we need to generate ppc64 stuff because upstream does not ship it yet
+	# it has to be done before unbundling.
+	if use ppc64; then
+		pushd third_party/libvpx >/dev/null || die
+		mkdir -p source/config/linux/ppc64 || die
+		./generate_gni.sh || die
+		popd >/dev/null || die
 	fi
 	ebegin "Remove bundled libraries"
 	# Remove most bundled libraries. Some are still needed.
@@ -609,9 +609,6 @@ src_configure() {
 	fi
 	if use system-icu; then
 		gn_system_libraries+=( icu )
-	fi
-	if use system-libvpx; then
-		gn_system_libraries+=( libvpx )
 	fi
 	if [[ ${CHROMIUM_FORCE_LIBCXX} != yes ]]; then
 		# unbundle only without libc++, because libc++ is not fully ABI compatible with libstdc++
@@ -783,6 +780,7 @@ src_configure() {
 		myconf_gn+=" ozone_platform_headless=true"
 		if use headless; then
 			myconf_gn+=" ozone_platform=\"headless\""
+			myconf_gn+=" use_x11=false"
 		else
 			myconf_gn+=" ozone_platform_wayland=true"
 			myconf_gn+=" use_system_libdrm=true"
