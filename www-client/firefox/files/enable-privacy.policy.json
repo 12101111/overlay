@@ -1,5 +1,5 @@
 {
-    "policies": {
+	"policies": {
 		"CaptivePortal": false,
 		"DisableAppUpdate": true,
 		"DisableFeedbackCommands": true,
@@ -13,6 +13,10 @@
 		"DisableSystemAddonUpdate": true,
 		"DontCheckDefaultBrowser": true,
 		"NetworkPrediction": false,
-		"OverridePostUpdatePage": ""
-    }
+		"OverridePostUpdatePage": "",
+		"SearchSuggestEnabled": false,
+		"SearchEngines": {
+			"PreventInstalls": true
+		}
+	}
 }

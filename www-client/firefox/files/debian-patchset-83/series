@@ -1,4 +1,5 @@
 fixes/Allow-.js-preference-files-to-set-locked-prefs-with-.patch
+fixes/Bug-1495733-Fix-elfhack-for-files-2GiB-and-4GiB.patch
 prefs/Set-javascript.options.showInConsole.patch
 prefs/Set-DPI-to-system-settings.patch
 prefs/Don-t-auto-disable-extensions-in-system-directories.patch

@@ -1,0 +1,53 @@
+From: Mike Hommey <mh@glandium.org>
+Date: Wed, 21 Oct 2020 11:52:50 +0900
+Subject: Bug 1495733 - Fix elfhack for files > 2GiB and < 4GiB
+
+---
+ build/unix/elfhack/elf.cpp | 6 +++---
+ build/unix/elfhack/elfxx.h | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/build/unix/elfhack/elf.cpp b/build/unix/elfhack/elf.cpp
+index 78de2312c02..679770fcbaa 100644
+--- a/build/unix/elfhack/elf.cpp
++++ b/build/unix/elfhack/elf.cpp
+@@ -509,7 +509,7 @@ ElfSection::ElfSection(Elf_Shdr& s, std::ifstream* file, Elf* parent)
+     if (!data) {
+       throw std::runtime_error("Could not malloc ElfSection data");
+     }
+-    int pos = file->tellg();
++    auto pos = file->tellg();
+     file->seekg(shdr.sh_offset);
+     file->read(data, shdr.sh_size);
+     file->seekg(pos);
+@@ -722,7 +722,7 @@ bool ElfDynamic_Section::setValueForType(unsigned int tag, ElfValue* val) {
+ ElfDynamic_Section::ElfDynamic_Section(Elf_Shdr& s, std::ifstream* file,
+                                        Elf* parent)
+     : ElfSection(s, file, parent) {
+-  int pos = file->tellg();
++  auto pos = file->tellg();
+   dyns.resize(s.sh_size / s.sh_entsize);
+   file->seekg(shdr.sh_offset);
+   // Here we assume tags refer to only one section (e.g. DT_RELSZ accounts
+@@ -823,7 +823,7 @@ void ElfDynamic_Section::serialize(std::ofstream& file, char ei_class,
+ ElfSymtab_Section::ElfSymtab_Section(Elf_Shdr& s, std::ifstream* file,
+                                      Elf* parent)
+     : ElfSection(s, file, parent) {
+-  int pos = file->tellg();
++  auto pos = file->tellg();
+   syms.resize(s.sh_size / s.sh_entsize);
+   ElfStrtab_Section* strtab = (ElfStrtab_Section*)getLink();
+   file->seekg(shdr.sh_offset);
+diff --git a/build/unix/elfhack/elfxx.h b/build/unix/elfhack/elfxx.h
+index 91e9bbfb837..c309e88c72b 100644
+--- a/build/unix/elfhack/elfxx.h
++++ b/build/unix/elfhack/elfxx.h
+@@ -583,7 +583,7 @@ class ElfRel_Section : public ElfSection {
+  public:
+   ElfRel_Section(Elf_Shdr& s, std::ifstream* file, Elf* parent)
+       : ElfSection(s, file, parent) {
+-    int pos = file->tellg();
++    auto pos = file->tellg();
+     file->seekg(shdr.sh_offset);
+     for (unsigned int i = 0; i < s.sh_size / s.sh_entsize; i++) {
+       Rel r(*file, parent->getClass(), parent->getData());
