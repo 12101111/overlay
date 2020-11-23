@@ -170,6 +170,7 @@ src_prepare() {
 	eapply "${FILESDIR}"/2.28.2-non-jumbo-fix.patch
 	eapply "${FILESDIR}"/2.28.4-non-jumbo-fix2.patch
 	eapply "${FILESDIR}"/remove-at-spi2.patch
+	eapply "${FILESDIR}"/clang11-fix.patch
 	if use elibc_musl ; then
 		eapply "${FILESDIR}/${PN}-2.28.1-musl.patch"
 		eapply "${FILESDIR}/${PN}-2.28.1-lower-stack-usage.patch"
