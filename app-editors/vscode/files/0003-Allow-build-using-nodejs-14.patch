@@ -17,8 +17,8 @@ index cb88d37ade..b0bbb96341 100644
  
 -if (majorNodeVersion < 10 || majorNodeVersion >= 13) {
 -	console.error('\033[1;31m*** Please use node >=10 and <=12.\033[0;0m');
-+if (majorNodeVersion < 10 || majorNodeVersion >= 15) {
-+	console.error('\033[1;31m*** Please use node >=10 and <=14.\033[0;0m');
++if (majorNodeVersion < 10 || majorNodeVersion >= 16) {
++	console.error('\033[1;31m*** Please use node >=10 and <=15.\033[0;0m');
  	err = true;
  }
  
