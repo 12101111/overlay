@@ -1,0 +1,4 @@
+diff --git a/patches/chromium/add_trustedauthclient_to_urlloaderfactory.patch b/patches/chromium/zzzz_add_trustedauthclient_to_urlloaderfactory.patch
+similarity index 100%
+rename from patches/chromium/add_trustedauthclient_to_urlloaderfactory.patch
+rename to patches/chromium/zzzz_add_trustedauthclient_to_urlloaderfactory.patch
