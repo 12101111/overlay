@@ -1,5 +1,5 @@
 diff --git a/library/unwind/build.rs b/library/unwind/build.rs
-index ab09a6e..551a7c7 100644
+index ab09a6e324d..551a7c7e721 100644
 --- a/library/unwind/build.rs
 +++ b/library/unwind/build.rs
 @@ -13,8 +13,7 @@ fn main() {
@@ -13,7 +13,7 @@ index ab09a6e..551a7c7 100644
              println!("cargo:rustc-link-lib=gcc_s");
          }
 diff --git a/library/unwind/src/lib.rs b/library/unwind/src/lib.rs
-index 20a2ca9..13a74ec 100644
+index 20a2ca98405..13a74ecd0a0 100644
 --- a/library/unwind/src/lib.rs
 +++ b/library/unwind/src/lib.rs
 @@ -39,7 +39,7 @@ cfg_if::cfg_if! {
