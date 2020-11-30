@@ -1,17 +1,17 @@
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc
-index b242164..1a0b519 100644
+index 1aaaa1c60..a9ae0853e 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc
-@@ -29,7 +29,7 @@ size_t GetUnderestimatedStackSize() {
+@@ -28,7 +28,7 @@ size_t GetUnderestimatedStackSize() {
  // FIXME: On Mac OSX and Linux, this method cannot estimate stack size
  // correctly for the main thread.
  
--#if defined(__GLIBC__) || defined(OS_ANDROID) || defined(OS_FREEBSD) || \
-+#if defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_FREEBSD) || \
+-#elif defined(__GLIBC__) || defined(OS_ANDROID) || defined(OS_FREEBSD) || \
++#elif defined(OS_LINUX) || defined(OS_ANDROID) || defined(OS_FREEBSD) || \
      defined(OS_FUCHSIA)
    // pthread_getattr_np() can fail if the thread is not invoked by
    // pthread_create() (e.g., the main thread of blink_unittests).
-@@ -55,6 +55,9 @@ size_t GetUnderestimatedStackSize() {
+@@ -54,6 +54,9 @@ size_t GetUnderestimatedStackSize() {
    pthread_attr_destroy(&attr);
  #endif
  
@@ -21,16 +21,15 @@ index b242164..1a0b519 100644
    // Return a 512k stack size, (conservatively) assuming the following:
    //  - that size is much lower than the pthreads default (x86 pthreads has a 2M
    //    default.)
-@@ -62,6 +65,8 @@ size_t GetUnderestimatedStackSize() {
+@@ -61,6 +64,7 @@ size_t GetUnderestimatedStackSize() {
    //    low as 512k.
    //
    return 512 * 1024;
 +#endif
-+
  #elif defined(OS_MACOSX)
    // pthread_get_stacksize_np() returns too low a value for the main thread on
    // OSX 10.9,
-@@ -97,7 +102,7 @@ return Threading::ThreadStackSize();
+@@ -96,7 +100,7 @@ return Threading::ThreadStackSize();
  }
  
  void* GetStackStart() {
