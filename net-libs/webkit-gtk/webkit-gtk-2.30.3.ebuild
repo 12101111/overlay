@@ -3,7 +3,7 @@
 
 EAPI=6
 CMAKE_MAKEFILE_GENERATOR="ninja"
-PYTHON_COMPAT=( python{3_6,3_7,3_8} )
+PYTHON_COMPAT=( python3_{6..8} )
 USE_RUBY="ruby24 ruby25 ruby26 ruby27"
 CMAKE_MIN_VERSION=3.10
 
@@ -16,9 +16,9 @@ SRC_URI="https://www.webkitgtk.org/releases/${MY_P}.tar.xz"
 
 LICENSE="LGPL-2+ BSD"
 SLOT="4/37" # soname version of libwebkit2gtk-4.0
-KEYWORDS="~amd64 ~arm arm64 ~ppc64 ~sparc ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~sparc ~x86"
 
-IUSE="aqua +egl +geolocation gles2-only gnome-keyring +gstreamer gtk-doc +introspection +jpeg2k +jumbo-build libnotify +opengl seccomp spell wayland +X"
+IUSE="aqua +egl gamepad +geolocation gles2-only gnome-keyring +gstreamer gtk-doc +introspection +jpeg2k +jumbo-build libnotify +opengl seccomp spell systemd wayland +X"
 
 # gstreamer with opengl/gles2 needs egl
 REQUIRED_USE="
@@ -35,11 +35,11 @@ RESTRICT="test"
 # Aqua support in gtk3 is untested
 # Dependencies found at Source/cmake/OptionsGTK.cmake
 # Various compile-time optionals for gtk+-3.22.0 - ensure it
-# Missing WebRTC support, but ENABLE_MEDIA_STREAM/ENABLE_WEB_RTC is experimental upstream (PRIVATE OFF) and shouldn't be used yet in 2.26
+# Missing WebRTC support, but ENABLE_MEDIA_STREAM/ENABLE_WEB_RTC is experimental upstream (PRIVATE OFF) and shouldn't be used yet in 2.30
 # >=gst-plugins-opus-1.14.4-r1 for opusparse (required by MSE)
 wpe_depend="
-	>=gui-libs/libwpe-1.3.0:1.0
-	>=gui-libs/wpebackend-fdo-1.3.1:1.0
+	>=gui-libs/libwpe-1.5.0:1.0
+	>=gui-libs/wpebackend-fdo-1.7.0:1.0
 "
 # TODO: gst-plugins-base[X] is only needed when build configuration ends up with GLX set, but that's a bit automagic too to fix
 RDEPEND="
@@ -49,7 +49,7 @@ RDEPEND="
 	>=dev-libs/libgcrypt-1.7.0:0=
 	>=x11-libs/gtk+-3.22.0:3[aqua?,introspection?,wayland?,X?]
 	>=media-libs/harfbuzz-1.4.2:=[icu(+)]
-	>=dev-libs/icu-3.8.1-r1:=
+	>=dev-libs/icu-60.2:=
 	virtual/jpeg:0=
 	>=net-libs/libsoup-2.54:2.4[introspection?]
 	>=dev-libs/libxml2-2.8.0:2
@@ -99,6 +99,9 @@ RDEPEND="
 		sys-libs/libseccomp
 		sys-apps/xdg-dbus-proxy
 	)
+
+	systemd? ( sys-apps/systemd:= )
+	gamepad? ( >=dev-libs/libmanette-0.2.4 )
 "
 unset wpe_depend
 # paxctl needed for bug #407085
@@ -165,15 +168,16 @@ pkg_setup() {
 }
 
 src_prepare() {
-	eapply "${FILESDIR}/${PN}-2.24.4-eglmesaext-include.patch" # bug 699054 # https://bugs.webkit.org/show_bug.cgi?id=204108
+	eapply "${FILESDIR}"/${PV}-icu68.patch
+	eapply "${FILESDIR}"/${PN}-2.24.4-eglmesaext-include.patch # bug 699054 # https://bugs.webkit.org/show_bug.cgi?id=204108
 	eapply "${FILESDIR}"/2.28.2-opengl-without-X-fixes.patch
 	eapply "${FILESDIR}"/2.28.2-non-jumbo-fix.patch
 	eapply "${FILESDIR}"/2.28.4-non-jumbo-fix2.patch
 	eapply "${FILESDIR}"/remove-at-spi2.patch
-	eapply "${FILESDIR}"/clang11-fix.patch
 	if use elibc_musl ; then
 		eapply "${FILESDIR}/${PN}-2.28.1-musl.patch"
 		eapply "${FILESDIR}/${PN}-2.28.1-lower-stack-usage.patch"
+		eapply "${FILESDIR}/webkit-gtk-2.30.3-musl-locale.patch"
 	fi
 	cmake-utils_src_prepare
 	gnome2_src_prepare
@@ -249,12 +253,14 @@ src_configure() {
 		-DUSE_OPENJPEG=$(usex jpeg2k)
 		-DUSE_WOFF2=ON
 		-DENABLE_SPELLCHECK=$(usex spell)
+		-DUSE_SYSTEMD=$(usex systemd) # Whether to enable journald logging
+		-DENABLE_GAMEPAD=$(usex gamepad)
 		-DENABLE_WAYLAND_TARGET=$(usex wayland)
 		-DUSE_WPE_RENDERER=${use_wpe_renderer} # WPE renderer is used to implement accelerated compositing under wayland
 		$(cmake-utils_use_find_package egl EGL)
 		$(cmake-utils_use_find_package opengl OpenGL)
 		-DENABLE_X11_TARGET=$(usex X)
-		-DENABLE_OPENGL=${opengl_enabled}
+		-DENABLE_GRAPHICS_CONTEXT_GL=${opengl_enabled}
 		-DENABLE_WEBGL=${opengl_enabled}
 		-DENABLE_BUBBLEWRAP_SANDBOX=$(usex seccomp)
 		-DBWRAP_EXECUTABLE="${EPREFIX}"/usr/bin/bwrap # If bubblewrap[suid] then portage makes it go-r and cmake find_program fails with that
