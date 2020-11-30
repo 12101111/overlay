@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-83-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-83-patches-03.tar.xz"
 
 LLVM_MAX_SLOT=11
 
@@ -507,7 +507,7 @@ src_prepare() {
 	echo -n "${MOZ_API_KEY_GOOGLE//gGaPi/}" > "${S}"/api-google.key || die
 
 	####### My stuff
-	#eapply "${FILESDIR}/${PN}-$(ver_cut 1)-no-gtk2.patch" 
+	eapply "${FILESDIR}/${PN}-$(ver_cut 1)-no-gtk2.patch"
 	### Debian patches
 	einfo "Applying Debian's patches"
 	for p in $(cat "${FILESDIR}/debian-patchset-$(ver_cut 1)"/series);do
