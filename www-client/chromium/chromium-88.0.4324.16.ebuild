@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="2"
+PATCHSET="3"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -185,8 +185,6 @@ PATCHES=(
     "${FILESDIR}/chromium-skia-harmony.patch"
 	"${FILESDIR}/chromium-87-webcodecs-deps.patch"
 	"${FILESDIR}/chromium-88-ozone-deps.patch"
-	"${FILESDIR}/chromium-88-compiler.patch"
-	"${FILESDIR}/chromium-88-icu.patch"
 )
 
 pre_build_checks() {
@@ -250,9 +248,6 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-87-compiler.patch"
-	rm "${WORKDIR}/patches/chromium-87-ServiceWorkerContainerHost-crash.patch"
-	rm "${WORKDIR}/patches/chromium-88-voting-permissive.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
