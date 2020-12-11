@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="3"
+PATCHSET="1"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -124,6 +124,7 @@ BDEPEND="
 	js-type-check? ( virtual/jre )
 "
 
+# These are intended for ebuild maintainer use to force clang if GCC is broken.
 : ${CHROMIUM_FORCE_CLANG=no}
 : ${CHROMIUM_FORCE_LIBCXX=no}
 
@@ -140,7 +141,7 @@ else
 		dev-libs/libxslt:=
 		>=dev-libs/re2-0.2019.08.01:=
 		>=media-libs/openh264-1.6.0:=
-		system-icu? ( >=dev-libs/icu-67.1:= )
+		system-icu? ( >=dev-libs/icu-68.1:= )
 	"
 	RDEPEND+="${COMMON_DEPEND}"
 	DEPEND+="${COMMON_DEPEND}"
@@ -180,11 +181,9 @@ in /etc/chromium/default.
 "
 
 PATCHES=(
-	"${FILESDIR}/build-with-pipewire-0.3.patch"
     "${FILESDIR}/chromium-88_atk_optional.patch"
     "${FILESDIR}/chromium-skia-harmony.patch"
-	"${FILESDIR}/chromium-87-webcodecs-deps.patch"
-	"${FILESDIR}/chromium-88-ozone-deps.patch"
+	"${FILESDIR}/v8-fix.patch"
 )
 
 pre_build_checks() {
@@ -248,6 +247,16 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
+	rm "${WORKDIR}/patches/chromium-89-ANGLE-Display.patch"
+	rm "${WORKDIR}/patches/chromium-89-CursorFactory-include.patch"
+	rm "${WORKDIR}/patches/chromium-89-HangWatcher-type.patch"
+	rm "${WORKDIR}/patches/chromium-89-RenderFrameHostManager-dcheck_ne.patch"
+	rm "${WORKDIR}/patches/chromium-89-flat_tree-noexcept1.patch"
+	rm "${WORKDIR}/patches/chromium-89-flat_tree-noexcept2.patch"
+	rm "${WORKDIR}/patches/chromium-89-pcscan-include.patch"
+	rm "${WORKDIR}/patches/chromium-88-AXTreeFormatter-include.patch"
+	rm "${WORKDIR}/patches/chromium-89-stringstream-cast.patch"
+	rm "${WORKDIR}/patches/chromium-89-unbundle-icu.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -372,6 +381,8 @@ src_prepare() {
 		third_party/libsrtp
 		third_party/libsync
 		third_party/libudev
+		third_party/liburlpattern
+		third_party/libva_protected_content
 		third_party/libvpx
 		third_party/libvpx/source/libvpx/third_party/x86inc
 		third_party/libwebm
@@ -632,7 +643,7 @@ src_configure() {
 	myconf_gn+=" rtc_use_pipewire=$(usex pipewire true false)"
 	if use pipewire; then
         myconf_gn+=" rtc_link_pipewire=true"
-        myconf_gn+=" rtc_use_pipewire_version=\"0.3\""
+		myconf_gn+=" rtc_pipewire_version=\"0.3\""
 	fi
 	myconf_gn+=" use_vaapi=$(usex vaapi true false)"
 	myconf_gn+=" enable_swiftshader=$(usex swiftshader true false)"
@@ -890,7 +901,7 @@ src_install() {
 	doins out/Release/*.pak
 	(
 		shopt -s nullglob
-		local files=(out/Release/*.so)
+		local files=(out/Release/*.so out/Release/*.so.[0-9])
 		[[ ${#files[@]} -gt 0 ]] && doins "${files[@]}"
 	)
 

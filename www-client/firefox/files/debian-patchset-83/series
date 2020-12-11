@@ -7,5 +7,3 @@ debian-hacks/Avoid-wrong-sessionstore-data-to-keep-windows-out-of.patch
 debian-hacks/Don-t-register-plugins-if-the-MOZILLA_DISABLE_PLUGIN.patch
 debian-hacks/Add-a-2-minutes-timeout-on-xpcshell-tests.patch
 debian-hacks/Don-t-build-image-gtests.patch
-debian-hacks/Set-program-name-from-the-remoting-name.patch
-debian-hacks/Use-remoting-name-for-call-to-gdk_set_program_class.patch
