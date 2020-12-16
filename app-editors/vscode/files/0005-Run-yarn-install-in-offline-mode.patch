@@ -1,7 +1,7 @@
-From c3f37cf7110342d22f833fcb787fc85c1d2e41a0 Mon Sep 17 00:00:00 2001
+From eea0df16ab0d0db1fe1a0c153a92a61cb015cf23 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Oct 2020 09:40:05 +0800
-Subject: [PATCH 06/10] Run yarn install in offline mode
+Subject: [PATCH 5/9] Run yarn install in offline mode
 
 ---
  extensions/css-language-features/package.json  | 2 +-
@@ -23,7 +23,7 @@ index 29f056e413..a304c0a0a3 100644
    },
    "categories": [
 diff --git a/extensions/html-language-features/package.json b/extensions/html-language-features/package.json
-index 204ae49b1c..800e569f3e 100644
+index c2c211ccba..139ea6e9a5 100644
 --- a/extensions/html-language-features/package.json
 +++ b/extensions/html-language-features/package.json
 @@ -20,7 +20,7 @@
@@ -36,7 +36,7 @@ index 204ae49b1c..800e569f3e 100644
    },
    "categories": [
 diff --git a/extensions/json-language-features/package.json b/extensions/json-language-features/package.json
-index db003f0512..d693917465 100644
+index a8e3231a93..6582230bca 100644
 --- a/extensions/json-language-features/package.json
 +++ b/extensions/json-language-features/package.json
 @@ -20,7 +20,7 @@
@@ -49,5 +49,5 @@ index db003f0512..d693917465 100644
      },
      "categories": [
 -- 
-2.28.0
+2.29.2
 

@@ -1,7 +1,7 @@
-From c022552769722397ff5e064d20534a3c6e05342e Mon Sep 17 00:00:00 2001
+From 8ffc8b194b45ebdb5d4ae3282dfa37d5e27a137f Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Oct 2020 09:26:46 +0800
-Subject: [PATCH 04/10] Allow --offline in args
+Subject: [PATCH 3/9] Allow --offline in args
 
 ---
  build/npm/postinstall.js | 3 ++-
@@ -22,5 +22,5 @@ index 8f8b0019a7..4ae62d6951 100644
  	console.log(`Installing dependencies in ${location}...`);
  	console.log(`$ yarn ${args.join(' ')}`);
 -- 
-2.28.0
+2.29.2
 
