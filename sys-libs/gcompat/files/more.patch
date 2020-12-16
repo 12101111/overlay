@@ -1,0 +1,200 @@
+diff --git a/Makefile b/Makefile
+index e421055..184b828 100644
+--- a/Makefile
++++ b/Makefile
+@@ -7,6 +7,7 @@ LIBGCOMPAT_SRC = \
+ 	libgcompat/dlfcn.c		\
+ 	libgcompat/error.c		\
+ 	libgcompat/execinfo.c		\
++	libgcompat/fcntl.c		\
+ 	libgcompat/gnulib.c		\
+ 	libgcompat/grp.c		\
+ 	libgcompat/internal.c		\
+@@ -21,6 +22,7 @@ LIBGCOMPAT_SRC = \
+ 	libgcompat/realpath.c		\
+ 	libgcompat/resolv.c		\
+ 	libgcompat/resource.c		\
++	libgcompat/scandirat.c		\
+ 	libgcompat/setjmp.c		\
+ 	libgcompat/signal.c		\
+ 	libgcompat/socket.c		\
+@@ -60,17 +62,29 @@ WITH_OBSTACK = $(shell \
+   done; echo "no")
+ endif
+ 
++ifndef WITH_FTS
++WITH_OBSTACK = $(shell \
++  for pkg in musl-fts fts-standalone; do \
++    ${PKG_CONFIG} --exists "$$pkg" && { echo "$$pkg"; exit 0; } \
++  done; echo "no")
++endif
++
+ ifneq (${WITH_OBSTACK},no)
+ OBSTACK_CFLAGS = $(shell ${PKG_CONFIG} --cflags ${WITH_OBSTACK}) -DWITH_OBSTACK
+ OBSTACK_LIBS   = $(shell ${PKG_CONFIG} --libs ${WITH_OBSTACK})
+ endif
+ 
++ifneq (${WITH_FTS},no)
++FTS_CFLAGS = $(shell ${PKG_CONFIG} --cflags ${WITH_FTS})
++FTS_LIBS   = $(shell ${PKG_CONFIG} --libs ${WITH_FTS})
++endif
++
+ all: ${LIBGCOMPAT_NAME} ${LOADER_NAME}
+ 
+ ${LIBGCOMPAT_NAME}: ${LIBGCOMPAT_OBJ}
+ 	${CC} ${CFLAGS} ${LDFLAGS} -shared -Wl,-soname,${LIBGCOMPAT_NAME} \
+ 		-o ${LIBGCOMPAT_NAME} ${LIBGCOMPAT_OBJ} \
+-		-Wl,--no-as-needed ${LIBUCONTEXT_LIBS} ${OBSTACK_LIBS}
++		-Wl,--no-as-needed ${LIBUCONTEXT_LIBS} ${OBSTACK_LIBS} ${FTS_LIBS}
+ 
+ ${LIBGCOMPAT_OBJ}: ${LIBGCOMPAT_INCLUDE}
+ 
+@@ -83,7 +97,7 @@ ${LOADER_NAME}: ${LOADER_OBJ}
+ 		-DLINKER='"${LINKER_PATH}"' -DLOADER='"${LOADER_NAME}"' \
+ 		-fPIC -Ilibgcompat -std=c99 \
+ 		-Wall -Wextra -Wno-frame-address -Wno-unused-parameter \
+-		${LIBUCONTEXT_CFLAGS} ${OBSTACK_CFLAGS} -o $@ $<
++		${LIBUCONTEXT_CFLAGS} ${OBSTACK_CFLAGS} ${FTS_CFLAGS} -o $@ $<
+ 
+ clean:
+ 	rm -f libgcompat/*.o loader/*.o ${LIBGCOMPAT_NAME} ${LOADER_NAME}
+diff --git a/libgcompat/fcntl.c b/libgcompat/fcntl.c
+new file mode 100644
+index 0000000..6cd3894
+--- /dev/null
++++ b/libgcompat/fcntl.c
+@@ -0,0 +1,35 @@
++#include <fcntl.h> /* fcntl, openat */
++#include <stdarg.h> /* va_list, va_start, va_end */
++#include <linux/stat.h> /* statx */
++#include <unistd.h> /* syscall */
++#include <sys/syscall.h> /* SYS_statx */
++
++int fcntl64(int fd, int cmd, ...)
++{
++	int ret;
++	va_list ap;
++
++	va_start(ap, cmd);
++	ret = fcntl(fd,cmd,ap);
++	va_end(ap);
++
++	return ret;
++}
++
++int __openat_2(int fd, const char *filename, int flags, ...)
++{
++	int ret;
++	va_list ap;
++
++	va_start(ap, flags);
++	ret = openat(fd, filename, flags, ap);
++	va_end(ap);
++
++	return ret;
++}
++
++int statx(int dirfd, const char *pathname, int flags,
++	unsigned int mask, struct statx *statxbuf)
++{
++	return syscall(SYS_statx, dirfd, pathname, flags, mask, statxbuf);
++}
+diff --git a/libgcompat/misc.c b/libgcompat/misc.c
+index 0677550..684b400 100644
+--- a/libgcompat/misc.c
++++ b/libgcompat/misc.c
+@@ -1,6 +1,7 @@
+ #include <stdlib.h>        /* abort, at_quick_exit */
+ #include <sys/stat.h>      /* dev_t */
+ #include <sys/sysmacros.h> /* major, makedev, minor */
++#include <string.h> /* memset */
+ 
+ /**
+  * Terminate a function in case of buffer overflow.
+@@ -33,3 +34,12 @@ unsigned int gnu_dev_minor(dev_t dev)
+ }
+ 
+ void *__libc_stack_end = NULL;
++
++void __explicit_bzero_chk(void *dst, size_t len, size_t dstlen)
++{
++	if (dstlen < len){
++		__chk_fail();
++	}
++	memset(dst, 0, len);
++	__asm__ __volatile__ ("" ::: "memory");
++}
+diff --git a/libgcompat/scandirat.c b/libgcompat/scandirat.c
+new file mode 100644
+index 0000000..70b0061
+--- /dev/null
++++ b/libgcompat/scandirat.c
+@@ -0,0 +1,48 @@
++#include <dirent.h>
++#include <string.h>
++#include <stdlib.h>
++#include <stdint.h>
++#include <errno.h>
++#include <stddef.h>
++#include <fcntl.h>
++
++#define FLAGS O_RDONLY|O_DIRECTORY|O_CLOEXEC|O_LARGEFILE|O_NDELAY
++
++int scandirat(int dirfd, const char *path,  struct  dirent ***res,
++        int (*sel)(const struct dirent *),
++        int (*cmp)(const struct dirent **, const struct dirent **))
++{
++	int fd = openat(dirfd, path, FLAGS);
++        DIR *d = fdopendir(fd);
++        struct dirent *de, **names=0, **tmp;
++        size_t cnt=0, len=0;
++        int old_errno = errno;
++
++        if (!d) return -1;
++
++        while ((errno=0), (de = readdir(d))) {
++                if (sel && !sel(de)) continue;
++                if (cnt >= len) {
++                        len = 2*len+1;
++                        if (len > SIZE_MAX/sizeof *names) break;
++                        tmp = realloc(names, len * sizeof *names);
++                        if (!tmp) break;
++                        names = tmp;
++                }
++                names[cnt] = malloc(de->d_reclen);
++                if (!names[cnt]) break;
++                memcpy(names[cnt++], de, de->d_reclen);
++        }
++        closedir(d);
++
++        if (errno) {
++                if (names) while (cnt-->0) free(names[cnt]);
++                free(names);
++                return -1;
++        }
++        errno = old_errno;
++
++        if (cmp) qsort(names, cnt, sizeof *names, (int (*)(const void *, const void *))cmp);
++        *res = names;
++        return cnt;
++}
+diff --git a/libgcompat/unistd.c b/libgcompat/unistd.c
+index e40fb6e..964c92b 100644
+--- a/libgcompat/unistd.c
++++ b/libgcompat/unistd.c
+@@ -7,6 +7,7 @@
+ #include <stdlib.h> /* calloc */
+ #include <dlfcn.h>  /* dlsym */
+ #include <string.h> /* strcmp */
++#include <sys/syscall.h> /* SYS_xxx */
+ 
+ #include "alias.h" /* alias */
+ 
+@@ -234,3 +235,7 @@ int execv(const char *pathname, char *const argv[]) {
+ int execvp(const char *file, char *const argv[]) {
+ 	return execv(file, argv);
+ }
++
++int renameat2(int oldfd, const char *old, int newfd, const char *new, unsigned int flags){
++	return syscall(SYS_renameat2, oldfd, old, newfd, new, flags);
++}

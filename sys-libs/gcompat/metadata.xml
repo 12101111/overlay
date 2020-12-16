@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>w12101111@gmail.com</email>
+	</maintainer>
+	<use>
+		<flag name="obstack">Use <pkg>sys-libs/obstack-standalone</pkg> for greater compatibility</flag>
+		<flag name="libucontext">Use <pkg>sys-libs/libucontext</pkg> for greater compatibility</flag>
+		<flag name="fts">Use <pkg>sys-libs/fts-standalone</pkg> for greater compatibility</flag>
+	</use>
+</pkgmetadata>
