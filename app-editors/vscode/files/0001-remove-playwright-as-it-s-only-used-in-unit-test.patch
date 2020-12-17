@@ -20,13 +20,6 @@ index f4c487c907..b5c20f315c 100644
      "pump": "^1.0.1",
      "queue": "3.0.6",
      "rcedit": "^1.1.0",
-@@ -197,4 +196,4 @@
-     "windows-mutex": "0.3.0",
-     "windows-process-tree": "0.2.4"
-   }
--}
-\ No newline at end of file
-+}
 diff --git a/yarn.lock b/yarn.lock
 index dd5e3e4eea..26e08de955 100644
 --- a/yarn.lock

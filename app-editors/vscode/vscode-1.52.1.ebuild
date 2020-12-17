@@ -14,7 +14,7 @@ SLOT="0"
 IUSE="system-electron system-ripgrep savedconfig"
 REQUIRED_USE="!system-electron? ( elibc_glibc )"
 
-COMMIT="940b5f4bb5fa47866a54529ed759d95d09ee80be"
+COMMIT="ea3859d4ba2f3e577a159bc91e3074c5d85c0523"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.11.1/lib/postinstall.js#L19
