@@ -7,10 +7,10 @@ Subject: Set DPI to system settings
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/modules/libpref/init/all.js b/modules/libpref/init/all.js
-index 51e9272d0f4..5bd51f182ff 100644
+index e57c07b..e2fe174 100644
 --- a/modules/libpref/init/all.js
 +++ b/modules/libpref/init/all.js
-@@ -2437,7 +2437,7 @@ pref("bidi.browser.ui", false);
+@@ -2434,7 +2434,7 @@ pref("bidi.browser.ui", false);
  // A value of 0 means use the system DPI. A positive value is used as the DPI.
  // This sets the physical size of a device pixel and thus controls the
  // interpretation of physical units such as "pt".

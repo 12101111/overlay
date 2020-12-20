@@ -1,7 +1,6 @@
 mozilla-nongnome-proxies.patch
 mozilla-kde.patch
 mozilla-sandbox-fips.patch
-mozilla-fix-aarch64-libopus.patch
 mozilla-reduce-rust-debuginfo.patch
 mozilla-bmo1005535.patch
 mozilla-bmo1568145.patch
@@ -10,7 +9,6 @@ mozilla-bmo1504834-part2.patch
 mozilla-bmo1504834-part3.patch
 mozilla-bmo1554971.patch
 mozilla-bmo1512162.patch
-mozilla-fix-top-level-asm.patch
 mozilla-bmo1504834-part4.patch
 mozilla-bmo849632.patch
 mozilla-bmo1602730.patch

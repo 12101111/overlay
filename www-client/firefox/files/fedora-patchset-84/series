@@ -1,14 +1,10 @@
 build-disable-elfhack.patch
 mozilla-1669639.patch
+firefox-testing.patch
 
-rhbz-1173156.patch
 mozilla-1170092.patch
 rhbz-1354671.patch
 firefox-locale-debug.patch
 disable-openh264-download.patch
 
-mozilla-1667096.patch
-mozilla-1663844.patch
-mozilla-1670333.patch
-mozilla-1673202.patch
-mozilla-1885133.patch
+mozilla-1680505.patch

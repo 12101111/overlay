@@ -28,12 +28,12 @@ diff --git a/python/mozbuild/mozbuild/action/langpack_manifest.py b/python/mozbu
      ManifestLocale,
      parse_manifest,
  )
-@@ -94,17 +95,17 @@ def get_dt_from_hg(path):
+@@ -100,17 +101,17 @@ def get_dt_from_hg(path):
  #    ts == "20170914215617"
  ###
  def get_timestamp_for_locale(path):
      dt = None
-     if os.path.isdir(os.path.join(path, '.hg')):
+     if os.path.isdir(os.path.join(path, ".hg")):
          dt = get_dt_from_hg(path)
  
      if dt is None:

@@ -3,7 +3,7 @@
 # Date 1559300151 -7200
 #      Fri May 31 12:55:51 2019 +0200
 # Node ID 54d41b0033b8d649d842a1f862c6fed8b9874dec
-# Parent  3804871eac4171b99e9049dbc881b5304b5ac207
+# Parent  8310cc1a162e9dd066a20f6a3bbd271993b67fc6
 How to apply this patch:
 1. Import and apply it
 2. cp browser/base/content/browser.xul browser/base/content/browser-kde.xul
@@ -14,7 +14,7 @@ How to apply this patch:
 diff --git a/browser/components/preferences/main.js b/browser/components/preferences/main.js
 --- a/browser/components/preferences/main.js
 +++ b/browser/components/preferences/main.js
-@@ -335,16 +335,23 @@ var gMainPane = {
+@@ -347,16 +347,23 @@ var gMainPane = {
          }, backoffTimes[this._backoffIndex + 1 < backoffTimes.length ? this._backoffIndex++ : backoffTimes.length - 1]);
        };
  
@@ -38,7 +38,7 @@ diff --git a/browser/components/preferences/main.js b/browser/components/prefere
      );
      let performanceSettingsUrl =
        Services.urlFormatter.formatURLPref("app.support.baseURL") +
-@@ -1291,16 +1298,27 @@ var gMainPane = {
+@@ -1326,16 +1333,27 @@ var gMainPane = {
        this._backoffIndex = 0;
  
        let shellSvc = getShellService();
@@ -69,24 +69,24 @@ diff --git a/browser/components/preferences/main.js b/browser/components/prefere
 diff --git a/browser/components/shell/moz.build b/browser/components/shell/moz.build
 --- a/browser/components/shell/moz.build
 +++ b/browser/components/shell/moz.build
-@@ -34,16 +34,18 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'coco
+@@ -32,16 +32,18 @@ if CONFIG["MOZ_WIDGET_TOOLKIT"] == "coco
      ]
- elif CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gtk':
+ elif CONFIG["MOZ_WIDGET_TOOLKIT"] == "gtk":
      XPIDL_SOURCES += [
-         'nsIGNOMEShellService.idl',
+         "nsIGNOMEShellService.idl",
      ]
  
      SOURCES += [
-         'nsGNOMEShellService.cpp',
-+        'nsKDEShellService.cpp',
-+        'nsUnixShellService.cpp',
+         "nsGNOMEShellService.cpp",
++        "nsKDEShellService.cpp",
++        "nsUnixShellService.cpp",
      ]
-     if CONFIG['MOZ_ENABLE_DBUS']:
+     if CONFIG["MOZ_ENABLE_DBUS"]:
          SOURCES += [
-             'nsGNOMEShellDBusHelper.cpp',
-             'nsGNOMEShellSearchProvider.cpp',
+             "nsGNOMEShellDBusHelper.cpp",
+             "nsGNOMEShellSearchProvider.cpp",
          ]
-         include('/ipc/chromium/chromium-config.mozbuild')
+         include("/ipc/chromium/chromium-config.mozbuild")
  
 diff --git a/browser/components/shell/nsKDEShellService.cpp b/browser/components/shell/nsKDEShellService.cpp
 new file mode 100644

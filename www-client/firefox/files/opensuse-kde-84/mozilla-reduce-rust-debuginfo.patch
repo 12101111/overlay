@@ -3,7 +3,7 @@
 # Date 1560754926 -7200
 #      Mon Jun 17 09:02:06 2019 +0200
 # Node ID 428161c3b9599083e1b8710eda1760f1f707ab11
-# Parent  83625bab561d09fb68aa2c71cea7cbafd9ec09b4
+# Parent  f5e9431a99bb1d122ccd76411f08ac6f3236c19f
 #Description: reduce the rust debuginfo level on selected architectures where
 # compiling with debuginfo=2 causes the OOM killer to interrupt the build on
 # launchpad builders. Initially this was only on 32 bit architectures, but with
@@ -12,18 +12,19 @@
 diff --git a/build/moz.configure/toolchain.configure b/build/moz.configure/toolchain.configure
 --- a/build/moz.configure/toolchain.configure
 +++ b/build/moz.configure/toolchain.configure
-@@ -1823,18 +1823,18 @@ imply_option('RUSTC_OPT_LEVEL', '2', whe
- @depends('RUSTC_OPT_LEVEL', moz_optimize)
+@@ -2138,19 +2138,19 @@ imply_option("RUSTC_OPT_LEVEL", "2", whe
  def rustc_opt_level(opt_level_option, moz_optimize):
      if opt_level_option:
          return opt_level_option[0]
      else:
-         return '1' if moz_optimize.optimize else '0'
+         return "1" if moz_optimize.optimize else "0"
  
  
--@depends(rustc_opt_level, debug_rust, '--enable-debug-symbols', '--enable-frame-pointers')
+ @depends(
+-    rustc_opt_level, debug_rust, "--enable-debug-symbols", "--enable-frame-pointers"
++    rustc_opt_level, debug_rust, "--enable-debug-symbols", "--enable-frame-pointers", host
+ )
 -def rust_compile_flags(opt_level, debug_rust, debug_symbols, frame_pointers):
-+@depends(rustc_opt_level, debug_rust, '--enable-debug-symbols', '--enable-frame-pointers', host)
 +def rust_compile_flags(opt_level, debug_rust, debug_symbols, frame_pointers, host):
      # Cargo currently supports only two interesting profiles for building:
      # development and release. Those map (roughly) to --enable-debug and
@@ -33,22 +34,22 @@ diff --git a/build/moz.configure/toolchain.configure b/build/moz.configure/toolc
      # optimization level. Since Cargo only supports 2 profiles, we're in
      # a bit of a bind.
      #
-@@ -1847,16 +1847,18 @@ def rust_compile_flags(opt_level, debug_
+@@ -2163,16 +2163,18 @@ def rust_compile_flags(opt_level, debug_
  
      # opt-level=0 implies -C debug-assertions, which may not be desired
      # unless Rust debugging is enabled.
-     if opt_level == '0' and not debug_rust:
+     if opt_level == "0" and not debug_rust:
          debug_assertions = False
  
      if debug_symbols:
-         debug_info = '2'
+         debug_info = "2"
 +        if host.bitness == 32 or host.cpu == 'aarch64' or host.cpu == 'ppc64':
 +            debug_info = '1'
  
      opts = []
  
      if opt_level is not None:
-         opts.append('opt-level=%s' % opt_level)
+         opts.append("opt-level=%s" % opt_level)
      if debug_assertions is not None:
-         opts.append('debug-assertions=%s' %
-                     ('yes' if debug_assertions else 'no'))
+         opts.append("debug-assertions=%s" % ("yes" if debug_assertions else "no"))
+     if debug_info is not None:

@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-83-patches-03.tar.xz"
+FIREFOX_PATCHSET="firefox-84-patches-02.tar.xz"
 
 LLVM_MAX_SLOT=11
 
@@ -61,7 +61,7 @@ KEYWORDS="~amd64 ~arm64 ~ppc64 ~x86"
 
 SLOT="0/$(ver_cut 1)"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
-IUSE="clang cpu_flags_arm_neon dbus debug eme-free geckodriver +gmp-autoupdate
+IUSE="+clang cpu_flags_arm_neon dbus debug eme-free geckodriver +gmp-autoupdate
 	hardened hwaccel jack lto +openh264 pgo pulseaudio screencast selinux
 	+system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent
 	+system-libvpx +system-webp wayland wifi"
@@ -73,9 +73,9 @@ BDEPEND="${PYTHON_DEPS}
 	app-arch/unzip
 	app-arch/zip
 	>=dev-util/cbindgen-0.15.0
-	>=net-libs/nodejs-10.19.0
+	>=net-libs/nodejs-10.22.1
 	virtual/pkgconfig
-	>=virtual/rust-1.43.0
+	>=virtual/rust-1.44.0
 	|| (
 		(
 			sys-devel/clang:11
@@ -105,7 +105,7 @@ BDEPEND="${PYTHON_DEPS}
 	)"
 
 CDEPEND="
-	>=dev-libs/nss-3.58
+	>=dev-libs/nss-3.59
 	>=dev-libs/nspr-4.29
 	dev-libs/atk
 	dev-libs/expat
@@ -507,7 +507,7 @@ src_prepare() {
 	echo -n "${MOZ_API_KEY_GOOGLE//gGaPi/}" > "${S}"/api-google.key || die
 
 	####### My stuff
-	eapply "${FILESDIR}/${PN}-$(ver_cut 1)-no-gtk2.patch"
+	#eapply "${FILESDIR}/${PN}-$(ver_cut 1)-no-gtk2.patch"
 	### Debian patches
 	einfo "Applying Debian's patches"
 	for p in $(cat "${FILESDIR}/debian-patchset-$(ver_cut 1)"/series);do
@@ -837,7 +837,9 @@ src_configure() {
 	export MOZ_NOSPAM=1
 
 	# Build system requires xargs but is unable to find it
-	mozconfig_add_options_mk 'Gentoo default' "XARGS=${EPREFIX}/usr/bin/xargs"
+	# Portage sets XARGS environment variable to "xargs -r" by default which
+	# breaks build system's check_prog() function which doesn't support arguments
+	mozconfig_add_options_ac 'Gentoo default' "XARGS=${EPREFIX}/usr/bin/xargs"
 
 	# Set build dir
 	mozconfig_add_options_mk 'Gentoo default' "MOZ_OBJDIR=${BUILD_DIR}"
@@ -901,7 +903,7 @@ src_install() {
 	# xpcshell is getting called during install
 	pax-mark m \
 		"${BUILD_DIR}"/dist/bin/xpcshell \
-		"${BUILD_DIR}"/dist/bin/firefox \
+		"${BUILD_DIR}"/dist/bin/${PN} \
 		"${BUILD_DIR}"/dist/bin/plugin-container
 
 	DESTDIR="${D}" ./mach install || die
@@ -917,6 +919,7 @@ src_install() {
 
 	# Install policy (currently only used to disable application updates)
 	insinto "${MOZILLA_FIVE_HOME}/distribution"
+	newins "${FILESDIR}"/distribution.ini distribution.ini
 	newins "${FILESDIR}"/disable-auto-update.policy.json policies.json
 
 	# Install system-wide preferences

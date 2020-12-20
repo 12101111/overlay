@@ -1,0 +1,12 @@
+diff -up firefox-84.0/toolkit/moz.configure.disable-elfhack firefox-84.0/toolkit/moz.configure
+--- firefox-84.0/toolkit/moz.configure.disable-elfhack	2020-12-10 12:37:30.727243266 +0100
++++ firefox-84.0/toolkit/moz.configure	2020-12-10 12:39:42.771967894 +0100
+@@ -1280,7 +1280,7 @@ with only_when("--enable-compile-environ
+             help="{Enable|Disable} elf hacks",
+         )
+ 
+-        set_config("USE_ELF_HACK", depends_if("--enable-elf-hack")(lambda _: True))
++        set_config("USE_ELF_HACK", depends_if("--enable-elf-hack")(lambda _: False))
+ 
+ 
+ @depends(check_build_environment)
