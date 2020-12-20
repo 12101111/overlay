@@ -70,6 +70,8 @@ EGO_SUM=(
 	"golang.org/x/tools v0.0.0-20200731060945-b5fad4ed8dd6/go.mod"
 	"golang.org/x/tools v0.0.0-20201211192254-72fbef54948b"
 	"golang.org/x/tools v0.0.0-20201211192254-72fbef54948b/go.mod"
+	"golang.org/x/tools v0.0.0-20201217163546-c88dec5c6b05"
+	"golang.org/x/tools v0.0.0-20201217163546-c88dec5c6b05/go.mod"
 	"golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod"
 	"golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod"
 	"golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod"
