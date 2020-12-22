@@ -1453,6 +1453,8 @@ src_prepare() {
 	rm "${WORKDIR}/src/electron/patches/chromium/cherry-pick-8f5a08079948.patch"
 	rm "${WORKDIR}/src/electron/patches/chromium/cherry-pick-47e21abe349a.patch"
 	rm "${WORKDIR}/src/electron/patches/chromium/mas_no_private_api.patch"
+	# can't apply
+	rm "${WORKDIR}/src/electron/patches/node/allow_preventing_preparestacktracecallback.patch"
 	# Apply Chromium patches from Electron.
 	local patchespath repopath
 	("${EPYTHON}" "${FILESDIR}/list_patch_targets.py" \
