@@ -7,16 +7,20 @@ inherit qmake-utils xdg
 
 DESCRIPTION="Vim-inspired note taking application that knows programmers and Markdown better"
 HOMEPAGE="https://github.com/tamlok/vnote"
-VTEXTEDIT_COMMIT="86cf8e0e6d840b923dc30046d12ab3c6e634f6b9"
-SYNTAX_COMMIT="8c420383d1b76ab575559f59bfbca9579bd27483"
-MY_PV="3.0.0-beta.2"
+VTEXTEDIT_COMMIT="12a74cb32438b28f002dea51c484133d3058a882"
+SYNTAX_COMMIT="0f63ff8ce3f7135ffafd62bc464c355960f56cfd"
+MY_PV="3.0.0-beta.3"
 SRC_URI="
-	${HOMEPAGE}/archive/v${MY_PV}.tar.gz -> ${P}.tar.gz
+	${HOMEPAGE}/archive/v${MY_PV}.tar.gz -> ${PN}-${MY_PV}.tar.gz
 	https://codeload.github.com/vnotex/vtextedit/tar.gz/${VTEXTEDIT_COMMIT} -> vtextedit-${MY_PV}.tar.gz
 	https://codeload.github.com/vnotex/syntax-highlighting/tar.gz/${SYNTAX_COMMIT} -> vnotex-syntax-highlighting-${MY_PV}.tar.gz
 "
 
 KEYWORDS=""
+
+PATCHES=(
+	"${FILESDIR}/remove_gold_linker.patch"
+)
 
 LICENSE="MIT"
 SLOT="0"
