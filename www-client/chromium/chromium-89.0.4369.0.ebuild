@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="1"
+PATCHSET="3"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -22,10 +22,11 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="atk lto pgo pipewire swiftshader vulkan component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos official pic +proprietary-codecs pulseaudio selinux +suid +system-ffmpeg +system-icu +tcmalloc vaapi wayland widevine"
+IUSE="atk lto pgo swiftshader vulkan component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-icu +tcmalloc vaapi wayland widevine"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
+	screencast? ( wayland )
 "
 
 COMMON_X_DEPEND="
@@ -78,7 +79,6 @@ COMMON_DEPEND="
 	>=media-libs/libwebp-0.4.0:=
 	sys-libs/zlib:=[minizip]
 	kerberos? ( virtual/krb5 )
-	pipewire? ( media-video/pipewire:0/0.3 )
 	!headless? (
 		${COMMON_X_DEPEND}
 		atk? (
@@ -90,6 +90,7 @@ COMMON_DEPEND="
 		wayland? (
 			dev-libs/wayland:=
 			dev-libs/libffi:=
+			screencast? ( media-video/pipewire:0/0.3 )
 			x11-libs/gtk+:3[wayland,X]
 			x11-libs/libdrm:=
 			x11-libs/libxkbcommon:=
@@ -183,7 +184,6 @@ in /etc/chromium/default.
 PATCHES=(
     "${FILESDIR}/chromium-88_atk_optional.patch"
     "${FILESDIR}/chromium-skia-harmony.patch"
-	"${FILESDIR}/v8-fix.patch"
 )
 
 pre_build_checks() {
@@ -247,16 +247,8 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-89-ANGLE-Display.patch"
-	rm "${WORKDIR}/patches/chromium-89-CursorFactory-include.patch"
-	rm "${WORKDIR}/patches/chromium-89-HangWatcher-type.patch"
-	rm "${WORKDIR}/patches/chromium-89-RenderFrameHostManager-dcheck_ne.patch"
-	rm "${WORKDIR}/patches/chromium-89-flat_tree-noexcept1.patch"
-	rm "${WORKDIR}/patches/chromium-89-flat_tree-noexcept2.patch"
-	rm "${WORKDIR}/patches/chromium-89-pcscan-include.patch"
-	rm "${WORKDIR}/patches/chromium-88-AXTreeFormatter-include.patch"
-	rm "${WORKDIR}/patches/chromium-89-stringstream-cast.patch"
-	rm "${WORKDIR}/patches/chromium-89-unbundle-icu.patch"
+	rm "${WORKDIR}/patches/chromium-88-CompositorFrameReporter-dcheck.patch"
+	rm "${WORKDIR}/patches/chromium-89-stringstream.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -292,13 +284,6 @@ src_prepare() {
 		third_party/angle/src/third_party/libXNVCtrl
 		third_party/angle/src/third_party/trace_event
 		third_party/angle/src/third_party/volk
-		third_party/angle/third_party/glslang
-		third_party/angle/third_party/spirv-headers
-		third_party/angle/third_party/spirv-tools
-		third_party/angle/third_party/vulkan-headers
-		third_party/angle/third_party/vulkan-loader
-		third_party/angle/third_party/vulkan-tools
-		third_party/angle/third_party/vulkan-validation-layers
 		third_party/apple_apsl
 		third_party/axe-core
 		third_party/blink
@@ -355,7 +340,7 @@ src_prepare() {
 		third_party/freetype
 		third_party/fusejs
 		third_party/libgifcodec
-		third_party/glslang
+		third_party/liburlpattern
 		third_party/google_input_tools
 		third_party/google_input_tools/third_party/closure_library
 		third_party/google_input_tools/third_party/closure_library/third_party/closure
@@ -381,7 +366,6 @@ src_prepare() {
 		third_party/libsrtp
 		third_party/libsync
 		third_party/libudev
-		third_party/liburlpattern
 		third_party/libva_protected_content
 		third_party/libvpx
 		third_party/libvpx/source/libvpx/third_party/x86inc
@@ -442,9 +426,6 @@ src_prepare() {
 		third_party/skia/third_party/skcms
 		third_party/skia/third_party/vulkan
 		third_party/smhasher
-		third_party/spirv-cross/spirv-cross
-		third_party/spirv-headers
-		third_party/SPIRV-Tools
 		third_party/sqlite
 		third_party/tint
 		third_party/ukey2
@@ -640,11 +621,7 @@ src_configure() {
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
 	myconf_gn+=" use_atk=$(usex atk true false)"
-	myconf_gn+=" rtc_use_pipewire=$(usex pipewire true false)"
-	if use pipewire; then
-        myconf_gn+=" rtc_link_pipewire=true"
-		myconf_gn+=" rtc_pipewire_version=\"0.3\""
-	fi
+	myconf_gn+=" rtc_use_pipewire=$(usex screencast true false) rtc_pipewire_version=\"0.3\" rtc_link_pipewire=true"
 	myconf_gn+=" use_vaapi=$(usex vaapi true false)"
 	myconf_gn+=" enable_swiftshader=$(usex swiftshader true false)"
 	myconf_gn+=" enable_vulkan=$(usex vulkan true false)"
@@ -956,6 +933,12 @@ pkg_postinst() {
 		elog "VA-API is disabled by default at runtime. Either enable it"
 		elog "by navigating to chrome://flags/#enable-accelerated-video-decode"
 		elog "inside Chromium or add --enable-accelerated-video-decode"
+		elog "to CHROMIUM_FLAGS in /etc/chromium/default."
+	fi
+	if use screencast; then
+		elog "Screencast is disabled by default at runtime. Either enable it"
+		elog "by navigating to chrome://flags/#enable-webrtc-pipewire-capturer"
+		elog "inside Chromium or add --enable-webrtc-pipewire-capturer"
 		elog "to CHROMIUM_FLAGS in /etc/chromium/default."
 	fi
 }
