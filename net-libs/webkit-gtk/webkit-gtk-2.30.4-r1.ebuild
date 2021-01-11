@@ -174,10 +174,10 @@ src_prepare() {
 	eapply "${FILESDIR}"/2.28.4-non-jumbo-fix2.patch
 	eapply "${FILESDIR}"/2.30.3-fix-noGL-build.patch
 	eapply "${FILESDIR}"/remove-at-spi2.patch
+	eapply "${FILESDIR}/webkit-gtk-2.30.3-musl-locale.patch"
 	if use elibc_musl ; then
 		eapply "${FILESDIR}/${PN}-2.28.1-musl.patch"
 		eapply "${FILESDIR}/${PN}-2.28.1-lower-stack-usage.patch"
-		eapply "${FILESDIR}/webkit-gtk-2.30.3-musl-locale.patch"
 	fi
 	cmake_src_prepare
 	gnome2_src_prepare
