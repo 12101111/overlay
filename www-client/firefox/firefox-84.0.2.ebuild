@@ -1,4 +1,4 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="7"
@@ -105,7 +105,7 @@ BDEPEND="${PYTHON_DEPS}
 	)"
 
 CDEPEND="
-	>=dev-libs/nss-3.59
+	>=dev-libs/nss-3.59.1
 	>=dev-libs/nspr-4.29
 	dev-libs/atk
 	dev-libs/expat
@@ -550,6 +550,7 @@ src_prepare() {
 src_configure() {
 	# Show flags set at the beginning
 	einfo "Current CFLAGS:    ${CFLAGS}"
+	einfo "Current CXXFLAGS:  ${CXXFLAGS}"
 	einfo "Current LDFLAGS:   ${LDFLAGS}"
 	einfo "Current RUSTFLAGS: ${RUSTFLAGS}"
 
@@ -707,7 +708,7 @@ src_configure() {
 			if use clang ; then
 				# Used in build/pgo/profileserver.py
 				export LLVM_PROFDATA="llvm-profdata"
-				mozconfig_annotate '+pgo-rust' MOZ_PGO_RUST=1
+				mozconfig_add_options_ac '+pgo-rust' MOZ_PGO_RUST=1
 			fi
 		fi
 	else
@@ -799,6 +800,11 @@ src_configure() {
 		if [[ -n ${disable_elf_hack} ]] ; then
 			mozconfig_add_options_ac 'elf-hack is broken when using Clang' --disable-elf-hack
 		fi
+	elif tc-is-gcc ; then
+		if ver_test $(gcc-fullversion) -ge 10 ; then
+			einfo "Forcing -fno-tree-loop-vectorize to workaround GCC bug, see bug 758446 ..."
+			append-cxxflags -fno-tree-loop-vectorize
+		fi
 	fi
 
 	# Additional ARCH support
@@ -836,7 +842,6 @@ src_configure() {
 	# Disable notification when build system has finished
 	export MOZ_NOSPAM=1
 
-	# Build system requires xargs but is unable to find it
 	# Portage sets XARGS environment variable to "xargs -r" by default which
 	# breaks build system's check_prog() function which doesn't support arguments
 	mozconfig_add_options_ac 'Gentoo default' "XARGS=${EPREFIX}/usr/bin/xargs"
@@ -846,6 +851,7 @@ src_configure() {
 
 	# Show flags we will use
 	einfo "Build CFLAGS:    ${CFLAGS}"
+	einfo "Build CXXFLAGS:  ${CXXFLAGS}"
 	einfo "Build LDFLAGS:   ${LDFLAGS}"
 	einfo "Build RUSTFLAGS: ${RUSTFLAGS}"
 
