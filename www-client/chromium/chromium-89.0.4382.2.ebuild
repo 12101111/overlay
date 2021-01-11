@@ -249,6 +249,7 @@ src_prepare() {
 
 	rm "${WORKDIR}/patches/chromium-88-CompositorFrameReporter-dcheck.patch"
 	rm "${WORKDIR}/patches/chromium-89-stringstream.patch"
+	rm "${WORKDIR}/patches/chromium-89-quiche-dcheck.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -404,6 +405,7 @@ src_prepare() {
 		third_party/pdfium/third_party/libtiff
 		third_party/pdfium/third_party/skia_shared
 		third_party/perfetto
+		third_party/perfetto/protos/third_party/chromium
 		third_party/pffft
 		third_party/ply
 		third_party/polymer
