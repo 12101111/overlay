@@ -1,13 +1,12 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
-inherit multilib-minimal toolchain-funcs git-r3 portability
+inherit multilib-minimal flag-o-matic toolchain-funcs git-r3 portability
 
 DESCRIPTION="Libraries/utilities to handle ELF objects (BSD drop in replacement for libelf)"
 HOMEPAGE="https://wiki.freebsd.org/LibElf"
-SRC_URI=""
 EGIT_REPO_URI="https://github.com/elftoolchain/elftoolchain.git"
 EGIT_BRANCH="trunk"
 
@@ -25,6 +24,7 @@ RDEPEND=">=sys-libs/zlib-1.2.8-r1[${MULTILIB_USEDEP}]
 
 DEPEND="${RDEPEND}
 	virtual/yacc
+	virtual/pmake
 	sys-apps/lsb-release
 	elibc_musl? (
 		sys-libs/argp-standalone
@@ -42,14 +42,16 @@ src_prepare() {
 	cp ${FILESDIR}/make-toolchain-version libelftc/ || die
 	rm -rf test || die
 	rm -rf documentation || die
+	strip-unsupported-flags
+	filter-flags -fomit-frame-pointer
 }
 
 src_compile() {
-	$(get_bmake) || die
+	MAKE="$(get_bmake)" emake CC="$(tc-getCC)" LD="$(tc-getLD)" || die
 }
 
 src_install() {
-	$(get_bmake) DESTDIR=${ED} install || die
+	MAKE="$(get_bmake)" emake DESTDIR=${ED} install || die
 	if ! use utils; then
 		rm -rf "${ED}"/usr/bin || die
 	else
