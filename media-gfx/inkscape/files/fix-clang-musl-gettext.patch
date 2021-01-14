@@ -1,0 +1,31 @@
+diff --git a/src/extension/effect.h b/src/extension/effect.h
+index ce0484a954..406214dab7 100644
+--- a/src/extension/effect.h
++++ b/src/extension/effect.h
+@@ -67,7 +67,7 @@ class Effect : public Extension {
+                        gchar const * image,
+                        Effect *      effect,
+                        bool          showPrefs) :
+-                    Verb(id, _(name), _(tip), image, _("Extensions")),
++                    Verb(id, _(name), tip ? _(tip) : nullptr, image, _("Extensions")),
+                     _effect(effect),
+                     _showPrefs(showPrefs),
+                     _elip_name(nullptr) {
+
+diff --git a/src/verbs.cpp b/src/verbs.cpp
+index 75f3c966f5..716ea4f511 100644
+--- a/src/verbs.cpp
++++ b/src/verbs.cpp
+@@ -598,10 +598,9 @@ SPAction *TextVerb::make_action(Inkscape::ActionContext const & context)
+ SPAction *Verb::make_action_helper(Inkscape::ActionContext const & context, void (*perform_fun)(SPAction *, void *), void *in_pntr)
+ {
+     SPAction *action;
+-
+     //std::cout << "Adding action: " << _code << std::endl;
+     action = sp_action_new(context, _id, _(_name),
+-                           _(_tip), _image, this);
++                           _tip ? _(_tip) : nullptr, _image, this);
+
+     if (action == nullptr) return nullptr;
+
+
