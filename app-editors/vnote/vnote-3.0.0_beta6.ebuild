@@ -9,7 +9,7 @@ DESCRIPTION="Qt-based, free and open source note-taking application, focusing on
 HOMEPAGE="https://vnotex.github.io/vnote"
 VTEXTEDIT_COMMIT="3e45827ae9a662bdc61da1090f4e51fdff24af85"
 SYNTAX_COMMIT="0f63ff8ce3f7135ffafd62bc464c355960f56cfd"
-MY_PV="3.0.0-beta.5"
+MY_PV="3.0.0-beta.6"
 SRC_URI="
 	https://github.com/vnotex/vnote/archive/v${MY_PV}.tar.gz -> ${PN}-${MY_PV}.tar.gz
 	https://codeload.github.com/vnotex/vtextedit/tar.gz/${VTEXTEDIT_COMMIT} -> vtextedit-${MY_PV}.tar.gz
