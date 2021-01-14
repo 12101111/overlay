@@ -1,0 +1,40 @@
+--- a/ld/amd64.h
++++ b/ld/amd64.h
+@@ -23,9 +23,9 @@
+  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  * SUCH DAMAGE.
+  *
+- * $Id: amd64.h 2500 2012-04-29 18:07:43Z kaiwang27 $
++ * $Id: amd64.h 3879 2020-11-07 18:50:43Z jkoshy $
+  */
+ 
+-char *amd64_script;
++extern char *amd64_script;
+ 
+ void	amd64_register(struct ld *);
+--- a/ld/i386.h
++++ b/ld/i386.h
+@@ -23,9 +23,9 @@
+  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  * SUCH DAMAGE.
+  *
+- * $Id: i386.h 2500 2012-04-29 18:07:43Z kaiwang27 $
++ * $Id: i386.h 3879 2020-11-07 18:50:43Z jkoshy $
+  */
+ 
+-char *i386_script;
++extern char *i386_script;
+ 
+ void	i386_register(struct ld *);
+--- a/ld/mips.h
++++ b/ld/mips.h
+@@ -23,7 +23,7 @@
+  * SUCH DAMAGE.
+  */
+ 
+-char *littlemips_script;
+-char *bigmips_script;
++extern char *littlemips_script;
++extern char *bigmips_script;
+ 
+ void	mips_register(struct ld *);

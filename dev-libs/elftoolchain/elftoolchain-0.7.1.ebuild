@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit multilib-minimal toolchain-funcs portability
+inherit multilib-minimal flag-o-matic toolchain-funcs portability
 
 DESCRIPTION="Libraries/utilities to handle ELF objects (BSD drop in replacement for libelf)"
 HOMEPAGE="https://wiki.freebsd.org/LibElf"
@@ -36,6 +36,7 @@ DEPEND="${RDEPEND}
 PATCHES=(
 	"${FILESDIR}/0001-gelf_symshndx-allow-xndxdata-parameter-to-be-NULL.patch"
 	"${FILESDIR}/elfdefinitions.patch"
+	"${FILESDIR}/fix-fno-common.patch"
 )
 
 src_prepare() {
@@ -43,14 +44,16 @@ src_prepare() {
 	cp ${FILESDIR}/make-toolchain-version libelftc/ || die
 	rm -rf test || die
 	rm -rf documentation || die
+	strip-unsupported-flags
+	filter-flags -fomit-frame-pointer
 }
 
 src_compile() {
-	$(get_bmake) || die
+	MAKE="$(get_bmake)" emake CC="$(tc-getCC)" LD="$(tc-getLD)" || die
 }
 
 src_install() {
-	$(get_bmake) DESTDIR=${ED} install || die
+	MAKE="$(get_bmake)" emake DESTDIR=${ED} install || die
 	if ! use utils; then
 		rm -rf "${ED}"/usr/bin || die
 	else
