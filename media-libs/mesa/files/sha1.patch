@@ -1,0 +1,7 @@
+diff --git a/include/git_sha1.h b/include/git_sha1.h
+new file mode 100644
+index 0000000..9b19ec7
+--- /dev/null
++++ b/include/git_sha1.h
+@@ -0,0 +1 @@
++#define MESA_GIT_SHA1 ""
