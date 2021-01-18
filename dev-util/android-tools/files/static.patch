@@ -1,0 +1,39 @@
+diff --git a/vendor/CMakeLists.fastboot.txt b/vendor/CMakeLists.fastboot.txt
+index 66cbd61..e16eafd 100644
+--- a/vendor/CMakeLists.fastboot.txt
++++ b/vendor/CMakeLists.fastboot.txt
+@@ -80,7 +80,7 @@ target_compile_definitions(libselinux PRIVATE
+ target_include_directories(libselinux PUBLIC
+ 	selinux/libselinux/include selinux/libsepol/include)
+ 
+-add_library(libsepol
++add_library(libsepol STATIC
+ 	selinux/libsepol/src/assertion.c
+ 	selinux/libsepol/src/avrule_block.c
+ 	selinux/libsepol/src/avtab.c
+diff --git a/vendor/boringssl/crypto/CMakeLists.txt b/vendor/boringssl/crypto/CMakeLists.txt
+index c6073d2..5f8d9e7 100644
+--- a/vendor/boringssl/crypto/CMakeLists.txt
++++ b/vendor/boringssl/crypto/CMakeLists.txt
+@@ -190,7 +190,7 @@ add_custom_command(
+ )
+ 
+ add_library(
+-  crypto
++  crypto STATIC
+ 
+   asn1/a_bitstr.c
+   asn1/a_bool.c
+diff --git a/vendor/boringssl/ssl/CMakeLists.txt b/vendor/boringssl/ssl/CMakeLists.txt
+index 0fb532e..2bd1c52 100644
+--- a/vendor/boringssl/ssl/CMakeLists.txt
++++ b/vendor/boringssl/ssl/CMakeLists.txt
+@@ -1,7 +1,7 @@
+ include_directories(../include)
+
+ add_library(
+-  ssl
++  ssl STATIC
+
+   bio_ssl.cc
+   d1_both.cc
