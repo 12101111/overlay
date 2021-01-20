@@ -1,27 +1,28 @@
+From 2284c40613c77ba37bb738ddb30bc887a5b55d6d Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sat, 9 Jan 2021 02:23:02 +0800
+Subject: [PATCH 2/2] Don't build in-tree llvm-libunwind if
+ system-llvm-libunwind is enable
+
+---
+ library/unwind/build.rs | 4 ++++
+ 1 file changed, 4 insertions(+)
+
 diff --git a/library/unwind/build.rs b/library/unwind/build.rs
-index ab09a6e324d..551a7c7e721 100644
+index 24bcd40c3a8..5c486d2a7e3 100644
 --- a/library/unwind/build.rs
 +++ b/library/unwind/build.rs
-@@ -13,8 +13,7 @@ fn main() {
-         llvm_libunwind::compile();
-     } else if target.contains("linux") {
-         if target.contains("musl") {
--            // linking for musl is handled in lib.rs
--            llvm_libunwind::compile();
-+            println!("cargo:rustc-link-lib=unwind");
-         } else if !target.contains("android") {
-             println!("cargo:rustc-link-lib=gcc_s");
-         }
-diff --git a/library/unwind/src/lib.rs b/library/unwind/src/lib.rs
-index 20a2ca98405..13a74ecd0a0 100644
---- a/library/unwind/src/lib.rs
-+++ b/library/unwind/src/lib.rs
-@@ -39,7 +39,7 @@ cfg_if::cfg_if! {
+@@ -4,6 +4,10 @@ fn main() {
+     println!("cargo:rerun-if-changed=build.rs");
+     let target = env::var("TARGET").expect("TARGET was not set");
  
- #[cfg(target_env = "musl")]
- #[link(name = "unwind", kind = "static", cfg(target_feature = "crt-static"))]
--#[link(name = "gcc_s", cfg(not(target_feature = "crt-static")))]
-+#[link(name = "unwind", cfg(not(target_feature = "crt-static")))]
- extern "C" {}
- 
- #[cfg(target_os = "redox")]
++    if cfg!(feature = "system-llvm-libunwind") {
++        return;
++    }
++
+     if cfg!(feature = "llvm-libunwind")
+         && ((target.contains("linux") && !target.contains("musl")) || target.contains("fuchsia"))
+     {
+-- 
+2.30.0
+

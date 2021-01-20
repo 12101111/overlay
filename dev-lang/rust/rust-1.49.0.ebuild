@@ -3,7 +3,7 @@
 
 EAPI=7
 
-PYTHON_COMPAT=( python3_{6..9} )
+PYTHON_COMPAT=( python3_{7..9} )
 
 inherit bash-completion-r1 check-reqs estack flag-o-matic llvm multiprocessing multilib-build python-any-r1 rust-toolchain toolchain-funcs
 
@@ -39,7 +39,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
-IUSE="clippy cpu_flags_x86_sse2 debug doc libressl miri nightly parallel-compiler rls rustfmt +system-bootstrap system-llvm test wasm default-libcxx +profile +sanitizers ${ALL_LLVM_TARGETS[*]}"
+IUSE="clippy cpu_flags_x86_sse2 debug doc libressl miri nightly parallel-compiler rls rustfmt +system-bootstrap system-llvm test wasm default-libcxx +profile +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -58,7 +58,19 @@ LLVM_DEPEND="
 "
 LLVM_MAX_SLOT=11
 
-BOOTSTRAP_DEPEND="|| ( >=dev-lang/rust-1.$(($(ver_cut 2) - 1)) >=dev-lang/rust-bin-1.$(($(ver_cut 2) - 1)) )"
+# to bootstrap we need at least exactly previous version, or same.
+# most of the time previous versions fail to bootstrap with newer
+# for example 1.47.x, requires at least 1.46.x, 1.47.x is ok,
+# but it fails to bootstrap with 1.48.x
+# https://github.com/rust-lang/rust/blob/${PV}/src/stage0.txt
+BOOTSTRAP_DEPEND="||
+	(
+		=dev-lang/rust-$(ver_cut 1).$(($(ver_cut 2) - 1))*
+		=dev-lang/rust-bin-$(ver_cut 1).$(($(ver_cut 2) - 1))*
+		=dev-lang/rust-$(ver_cut 1).$(ver_cut 2)*
+		=dev-lang/rust-bin-$(ver_cut 1).$(ver_cut 2)*
+	)
+"
 
 BDEPEND="${PYTHON_DEPS}
 	app-eselect/eselect-rust
@@ -74,19 +86,19 @@ BDEPEND="${PYTHON_DEPS}
 "
 
 DEPEND="
-	>=dev-libs/libgit2-1.1.0:=
+	>=app-arch/xz-utils-5.2
 	net-misc/curl:=[http2,ssl]
 	sys-libs/zlib:=
 	!libressl? ( dev-libs/openssl:0= )
 	libressl? ( dev-libs/libressl:0= )
-	elibc_musl? ( || ( sys-libs/llvm-libunwind sys-libs/libunwind:= ) )
 	default-libcxx? ( sys-devel/clang[default-libcxx] )
+	llvm-libunwind? ( sys-libs/llvm-libunwind )
 	system-llvm? (
 		${LLVM_DEPEND}
 	)
 "
 
-# we need to block versions older than 1.47.0 due to layout changes.
+# we need to block older versions due to layout changes.
 RDEPEND="${DEPEND}
 	app-eselect/eselect-rust
 	!<dev-lang/rust-1.47.0-r1
@@ -99,6 +111,7 @@ REQUIRED_USE="|| ( ${ALL_LLVM_TARGETS[*]} )
 	test? ( ${ALL_LLVM_TARGETS[*]} )
 	wasm? ( llvm_targets_WebAssembly )
 	x86? ( cpu_flags_x86_sse2 )
+	elibc_musl? ( llvm-libunwind )
 "
 
 # we don't use cmake.eclass, but can get a warnings
@@ -117,13 +130,13 @@ QA_SONAME="
 "
 
 # causes double bootstrap
-RESTRICT="test"
+RESTRICT="test mirror"
 
 PATCHES=(
-	"${FILESDIR}"/1.47.0-libressl.patch
+	#"${FILESDIR}"/1.47.0-libressl.patch
 	"${FILESDIR}"/1.46.0-don-t-create-prefix-at-time-of-check.patch
 	"${FILESDIR}"/1.47.0-ignore-broken-and-non-applicable-tests.patch
-	"${FILESDIR}"/1.47.0-llvm-tensorflow-fix.patch
+	#"${FILESDIR}"/1.47.0-llvm-tensorflow-fix.patch
 	#"${FILESDIR}"/1.48.0-gentoo-musl-target-specs.patch
 	"${FILESDIR}"/musl-use-external-libunwind.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
@@ -133,23 +146,28 @@ PATCHES=(
 S="${WORKDIR}/${MY_P}-src"
 
 toml_usex() {
-	usex "$1" true false
+	usex "${1}" true false
 }
 
 boostrap_rust_version_check() {
 	# never call from pkg_pretend. eselect-rust may be not installed yet.
 	[[ ${MERGE_TYPE} == binary ]] && return
 	local rustc_wanted="$(ver_cut 1).$(($(ver_cut 2) - 1))"
+	local rustc_toonew="$(ver_cut 1).$(($(ver_cut 2) + 1))"
 	local rustc_version=( $(eselect --brief rust show 2>/dev/null) )
 	rustc_version=${rustc_version[0]#rust-bin-}
 	rustc_version=${rustc_version#rust-}
 
-	[[ -z "${rustc_version}" ]] && die "Failed to determine rustc version!"
+	[[ -z "${rustc_version}" ]] && die "Failed to determine rust version, check 'eselect rust' output"
 
 	if ver_test "${rustc_version}" -lt "${rustc_wanted}" ; then
 		eerror "Rust >=${rustc_wanted} is required"
-		eerror "please run \'eselect rust\' and set correct rust version"
-		die
+		eerror "please run 'eselect rust' and set correct rust version"
+		die "selected rust version is too old"
+	elif ver_test "${rustc_version}" -ge "${rustc_toonew}" ; then
+		eerror "Rust <${rustc_toonew} is required"
+		eerror "please run 'eselect rust' and set correct rust version"
+		die "selected rust version is too new"
 	else
 		einfo "Using rust ${rustc_version} to build"
 	fi
@@ -181,6 +199,8 @@ pkg_pretend() {
 pkg_setup() {
 	pre_build_checks
 	python-any-r1_pkg_setup
+
+	export LIBGIT2_NO_PKG_CONFIG=1 #749381
 
 	use system-bootstrap && boostrap_rust_version_check
 
@@ -301,6 +321,7 @@ src_configure() {
 		lld = $(usex system-llvm false $(toml_usex wasm))
 		backtrace-on-ice = true
 		jemalloc = false
+		llvm-libunwind = "$(usex llvm-libunwind system no)"
 		[dist]
 		src-tarball = false
 	_EOF_
@@ -498,8 +519,8 @@ src_install() {
 	)
 
 	# bug #689562, #689160
-	rm -v "${D}/usr/lib/${PN}/${PV}/etc/bash_completion.d/cargo" || die
-	rmdir -v "${D}/usr/lib/${PN}/${PV}"/etc{/bash_completion.d,} || die
+	rm -v "${ED}/usr/lib/${PN}/${PV}/etc/bash_completion.d/cargo" || die
+	rmdir -v "${ED}/usr/lib/${PN}/${PV}"/etc{/bash_completion.d,} || die
 	dobashcomp build/tmp/dist/cargo-image/etc/bash_completion.d/cargo
 
 	local symlinks=(
@@ -537,7 +558,7 @@ src_install() {
 	dosym "${PV}/lib" "/usr/lib/${PN}/lib-${PV}"
 	dosym "${PV}/share/man" "/usr/lib/${PN}/man-${PV}"
 	dosym "rust/${PV}/lib/rustlib" "/usr/lib/rustlib-${PV}"
-	dosym "../../lib/${PN}/${PV}/share/doc" "/usr/share/doc/${P}"
+	dosym "../../lib/${PN}/${PV}/share/doc/rust" "/usr/share/doc/${P}"
 
 	newenvd - "50${P}" <<-_EOF_
 		LDPATH="${EPREFIX}/usr/lib/rust/lib"
