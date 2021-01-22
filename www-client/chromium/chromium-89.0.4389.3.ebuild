@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="3"
+PATCHSET="5"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -123,6 +123,10 @@ BDEPEND="
 	sys-devel/flex
 	virtual/pkgconfig
 	js-type-check? ( virtual/jre )
+	pgo? (
+		sys-devel/clang:12
+		>=sys-devel/lld-12.0.0
+	)
 "
 
 # These are intended for ebuild maintainer use to force clang if GCC is broken.
@@ -184,6 +188,7 @@ in /etc/chromium/default.
 PATCHES=(
     "${FILESDIR}/chromium-88_atk_optional.patch"
     "${FILESDIR}/chromium-skia-harmony.patch"
+	"${FILESDIR}/chromium-shim_headers.patch"
 )
 
 pre_build_checks() {
@@ -247,9 +252,10 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-88-CompositorFrameReporter-dcheck.patch"
-	rm "${WORKDIR}/patches/chromium-89-stringstream.patch"
-	rm "${WORKDIR}/patches/chromium-89-quiche-dcheck.patch"
+	rm "${WORKDIR}/patches/chromium-89-FramebufferCache-incomplete-type.patch"
+	rm "${WORKDIR}/patches/chromium-89-dawn-include.patch"
+	rm "${WORKDIR}/patches/chromium-89-webui_config-include.patch"
+	rm "${WORKDIR}/patches/chromium-fix-char_traits-r1.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -419,7 +425,6 @@ src_prepare() {
 		third_party/s2cellid
 		third_party/schema_org
 		third_party/securemessage
-		third_party/shaka-player
 		third_party/shell-encryption
 		third_party/simplejson
 		third_party/skia
@@ -461,7 +466,6 @@ src_prepare() {
 
 		# gyp -> gn leftovers
 		base/third_party/libevent
-		third_party/adobe
 		third_party/speech-dispatcher
 		third_party/usb_ids
 		third_party/xdg-utils
@@ -771,6 +775,8 @@ src_configure() {
 			myconf_gn+=" use_system_libdrm=true"
 			myconf_gn+=" use_system_minigbm=true"
 			myconf_gn+=" use_xkbcommon=true"
+			myconf_gn+=" use_glib=true"
+			myconf_gn+=" use_gtk=true"
 			myconf_gn+=" ozone_platform=\"wayland\""
 		fi
 	else
