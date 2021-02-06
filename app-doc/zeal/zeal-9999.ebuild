@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit cmake-utils xdg-utils git-r3
+inherit cmake xdg-utils git-r3
 
 DESCRIPTION="Offline documentation browser inspired by Dash"
 HOMEPAGE="https://zealdocs.org/"
@@ -12,34 +12,32 @@ EGIT_REPO_URI="https://github.com/zealdocs/${PN}.git"
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-
-IUSE="vanilla"
+IUSE=""
 
 DEPEND="
-	app-arch/libarchive
+	app-arch/libarchive:=
+	dev-db/sqlite:3
 	dev-qt/qtconcurrent:5
+	dev-qt/qtcore:5
 	dev-qt/qtgui:5
 	dev-qt/qtnetwork:5
 	dev-qt/qtsql:5[sqlite]
-	dev-qt/qtwebengine:5
+	dev-qt/qtwebchannel:5
+	dev-qt/qtwebengine:5[widgets]
 	dev-qt/qtwidgets:5
 	dev-qt/qtx11extras:5
 	kde-frameworks/extra-cmake-modules:5
+	x11-libs/libX11
+	x11-libs/libxcb:=
 	>=x11-libs/xcb-util-keysyms-0.3.9
 "
-
-RDEPEND="
-	${DEPEND}
+RDEPEND="${DEPEND}
 	x11-themes/hicolor-icon-theme
 "
 
-src_prepare() {
-	default
-	if ! use vanilla; then
-		eapply "${FILESDIR}/0002-settings-disable-checking-for-updates-by-default.patch"
-	fi
-	cmake-utils_src_prepare
-}
+PATCHES=(
+	"${FILESDIR}/0002-settings-disable-checking-for-updates-by-default.patch"
+)
 
 pkg_postinst() {
 	xdg_icon_cache_update
