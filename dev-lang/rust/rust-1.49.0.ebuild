@@ -1,4 +1,4 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -130,14 +130,15 @@ QA_SONAME="
 "
 
 # causes double bootstrap
-RESTRICT="test mirror"
+RESTRICT="test"
 
 PATCHES=(
-	#"${FILESDIR}"/1.47.0-libressl.patch
+	"${FILESDIR}"/1.47.0-libressl.patch
 	"${FILESDIR}"/1.46.0-don-t-create-prefix-at-time-of-check.patch
 	"${FILESDIR}"/1.47.0-ignore-broken-and-non-applicable-tests.patch
-	#"${FILESDIR}"/1.47.0-llvm-tensorflow-fix.patch
-	#"${FILESDIR}"/1.48.0-gentoo-musl-target-specs.patch
+	"${FILESDIR}"/1.47.0-llvm-tensorflow-fix.patch
+	#"${FILESDIR}"/1.49.0-gentoo-musl-target-specs.patch
+	"${FILESDIR}"/1.49.0-llvm-ver-display.patch
 	"${FILESDIR}"/musl-use-external-libunwind.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
 	"${FILESDIR}"/profiler.patch
