@@ -8,6 +8,7 @@ inherit multilib-minimal flag-o-matic toolchain-funcs portability
 DESCRIPTION="Libraries/utilities to handle ELF objects (BSD drop in replacement for libelf)"
 HOMEPAGE="https://wiki.freebsd.org/LibElf"
 #sourceforge has a crappy download url system, I hope this will work
+#SRC_URI="mirror://sourceforge/${PN}/${P}.tar.bz2"
 SRC_URI="https://netcologne.dl.sourceforge.net/project/elftoolchain/Sources/elftoolchain-0.7.1/elftoolchain-0.7.1.tar.bz2"
 
 LICENSE="|| ( BSD ) "
