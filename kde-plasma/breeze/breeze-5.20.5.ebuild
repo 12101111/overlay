@@ -21,6 +21,7 @@ RDEPEND="
 	>=dev-qt/qtdeclarative-${QTMIN}:5
 	>=dev-qt/qtgui-${QTMIN}:5
 	>=dev-qt/qtwidgets-${QTMIN}:5
+	>=dev-qt/qtx11extras-${QTMIN}:5
 	>=kde-frameworks/frameworkintegration-${KFMIN}:5
 	>=kde-frameworks/kcmutils-${KFMIN}:5
 	>=kde-frameworks/kconfig-${KFMIN}:5
@@ -28,6 +29,7 @@ RDEPEND="
 	>=kde-frameworks/kcoreaddons-${KFMIN}:5
 	>=kde-frameworks/kguiaddons-${KFMIN}:5
 	>=kde-frameworks/ki18n-${KFMIN}:5
+	>=kde-frameworks/kiconthemes-${KFMIN}:5
 	>=kde-frameworks/kwidgetsaddons-${KFMIN}:5
 	>=kde-frameworks/kwindowsystem-${KFMIN}:5
 	kwin? (
@@ -35,10 +37,7 @@ RDEPEND="
 		sci-libs/fftw:3.0=
 	)
 	wayland? ( >=kde-frameworks/kwayland-${KFMIN}:5 )
-	X? (
-		>=dev-qt/qtx11extras-${QTMIN}:5
-		x11-libs/libxcb
-	)
+	X? ( x11-libs/libxcb )
 "
 DEPEND="${RDEPEND}
 	>=kde-frameworks/kpackage-${KFMIN}:5
