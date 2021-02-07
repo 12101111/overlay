@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-84-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-85-patches-03.tar.xz"
 
 LLVM_MAX_SLOT=11
 
@@ -75,7 +75,7 @@ BDEPEND="${PYTHON_DEPS}
 	>=dev-util/cbindgen-0.15.0
 	>=net-libs/nodejs-10.22.1
 	virtual/pkgconfig
-	>=virtual/rust-1.44.0
+	>=virtual/rust-1.47.0
 	|| (
 		(
 			sys-devel/clang:11
@@ -93,9 +93,14 @@ BDEPEND="${PYTHON_DEPS}
 				pgo? ( =sys-libs/compiler-rt-sanitizers-10*[profile] )
 			)
 		)
-	)
-	lto? (
-		!clang? ( sys-devel/binutils[gold] )
+		(
+			sys-devel/clang:9
+			sys-devel/llvm:9
+			clang? (
+				=sys-devel/lld-9*
+				pgo? ( =sys-libs/compiler-rt-sanitizers-9*[profile] )
+			)
+		)
 	)
 	amd64? ( >=dev-lang/yasm-1.1 )
 	x86? ( >=dev-lang/yasm-1.1 )
@@ -105,7 +110,7 @@ BDEPEND="${PYTHON_DEPS}
 	)"
 
 CDEPEND="
-	>=dev-libs/nss-3.59.1
+	>=dev-libs/nss-3.60
 	>=dev-libs/nspr-4.29
 	dev-libs/atk
 	dev-libs/expat
@@ -475,7 +480,7 @@ src_prepare() {
 		|| die "sed failed to disable ccache stats call"
 
 	einfo "Removing pre-built binaries ..."
-	find "${S}"/third_party -type f \( -name '*.so' -o -name '*.o' -o -name '*.la' -o -name '*.a' \) -print -delete || die
+	find "${S}"/third_party -type f \( -name '*.so' -o -name '*.o' \) -print -delete || die
 
 	# Clearing checksums where we have applied patches
 	moz_clear_vendor_checksums target-lexicon-0.9.0
@@ -487,53 +492,16 @@ src_prepare() {
 	# Write API keys to disk
 	echo -n "${MOZ_API_KEY_GOOGLE//gGaPi/}" > "${S}"/api-google.key || die
 
-	####### My stuff
-	eapply "${FILESDIR}/${PN}-$(ver_cut 1)-no-gtk2.patch"
-	### Debian patches
-	einfo "Applying Debian's patches"
-	for p in $(cat "${FILESDIR}/debian-patchset-$(ver_cut 1)"/series);do
-		patch --dry-run --silent -p1 -i "${FILESDIR}/debian-patchset-$(ver_cut 1)"/$p 2>/dev/null
-		if [ $? -eq 0 ]; then
-			eapply "${FILESDIR}/debian-patchset-$(ver_cut 1)"/$p;
-			einfo +++++++++++++++++++++++++;
-			einfo Patch $p is APPLIED;
-			einfo +++++++++++++++++++++++++
-		else
-			einfo -------------------------;
-			einfo Patch $p is NOT applied and IGNORED;
-			einfo -------------------------
-		fi
-	done
-	### FreeBSD patches
-	einfo "Applying FreeBSD's patches"
-	for i in $(cat "${FILESDIR}/freebsd-patchset-$(ver_cut 1)/series"); do eapply "${FILESDIR}/freebsd-patchset-$(ver_cut 1)/$i";	done
-
-	### Fedora patches
-	einfo "Applying Fedora's patches"
-	for p in $(cat "${FILESDIR}/fedora-patchset-$(ver_cut 1)"/series);do
-		patch --dry-run --silent -p1 -i "${FILESDIR}/fedora-patchset-$(ver_cut 1)"/$p 2>/dev/null
-		if [ $? -eq 0 ]; then
-			eapply "${FILESDIR}/fedora-patchset-$(ver_cut 1)"/$p;
-			einfo +++++++++++++++++++++++++;
-			einfo Patch $p is APPLIED;
-			einfo +++++++++++++++++++++++++
-		else
-			einfo -------------------------;
-			einfo Patch $p is NOT applied and IGNORED;
-			einfo -------------------------
-		fi
-	done
-	#######
-
 	xdg_src_prepare
 }
 
 src_configure() {
 	# Show flags set at the beginning
-	einfo "Current CFLAGS:    ${CFLAGS}"
-	einfo "Current CXXFLAGS:  ${CXXFLAGS}"
-	einfo "Current LDFLAGS:   ${LDFLAGS}"
-	einfo "Current RUSTFLAGS: ${RUSTFLAGS}"
+	einfo "Current BINDGEN_CFLAGS:\t${BINDGEN_CFLAGS:-no value set}"
+	einfo "Current CFLAGS:\t\t${CFLAGS:-no value set}"
+	einfo "Current CXXFLAGS:\t\t${CXXFLAGS:-no value set}"
+	einfo "Current LDFLAGS:\t\t${LDFLAGS:-no value set}"
+	einfo "Current RUSTFLAGS:\t\t${RUSTFLAGS:-no value set}"
 
 	local have_switched_compiler=
 	if use clang && ! tc-is-clang ; then
@@ -566,6 +534,11 @@ src_configure() {
 	export HOST_CC="$(tc-getBUILD_CC)"
 	export HOST_CXX="$(tc-getBUILD_CXX)"
 	tc-export CC CXX LD AR NM OBJDUMP RANLIB PKG_CONFIG
+
+	# Pass the correct toolchain paths through cbindgen
+	if tc-is-cross-compiler ; then
+		export BINDGEN_CFLAGS="${SYSROOT:+--sysroot=${ESYSROOT}} --target=${CHOST} ${BINDGEN_CFLAGS-}"
+	fi
 
 	# Set MOZILLA_FIVE_HOME
 	export MOZILLA_FIVE_HOME="/usr/$(get_libdir)/${PN}"
@@ -673,8 +646,6 @@ src_configure() {
 			mozconfig_add_options_ac "forcing ld=lld due to USE=clang and USE=lto" --enable-linker=lld
 
 			mozconfig_add_options_ac '+lto' --enable-lto=cross
-			mozconfig_add_options_ac '+lto-cross' MOZ_LTO=cross
-			mozconfig_add_options_ac '+lto-cross' MOZ_LTO_RUST=1
 		else
 			# ThinLTO is currently broken, see bmo#1644409
 			mozconfig_add_options_ac '+lto' --enable-lto=full
@@ -686,6 +657,7 @@ src_configure() {
 			if use clang ; then
 				# Used in build/pgo/profileserver.py
 				export LLVM_PROFDATA="llvm-profdata"
+
 				mozconfig_add_options_ac '+pgo-rust' MOZ_PGO_RUST=1
 			fi
 		fi
@@ -826,10 +798,11 @@ src_configure() {
 	mozconfig_add_options_mk 'Gentoo default' "MOZ_OBJDIR=${BUILD_DIR}"
 
 	# Show flags we will use
-	einfo "Build CFLAGS:    ${CFLAGS}"
-	einfo "Build CXXFLAGS:  ${CXXFLAGS}"
-	einfo "Build LDFLAGS:   ${LDFLAGS}"
-	einfo "Build RUSTFLAGS: ${RUSTFLAGS}"
+	einfo "Build BINDGEN_CFLAGS:\t${BINDGEN_CFLAGS:-no value set}"
+	einfo "Build CFLAGS:\t\t${CFLAGS:-no value set}"
+	einfo "Build CXXFLAGS:\t\t${CXXFLAGS:-no value set}"
+	einfo "Build LDFLAGS:\t\t${LDFLAGS:-no value set}"
+	einfo "Build RUSTFLAGS:\t\t${RUSTFLAGS:-no value set}"
 
 	# Handle EXTRA_CONF and show summary
 	local ac opt hash reason
@@ -841,13 +814,6 @@ src_configure() {
 			mozconfig_add_options_ac "EXTRA_ECONF" --${opt#--}
 		done
 	fi
-
-	### Enable good features
-	mozconfig_add_options_ac '' --enable-icf
-	mozconfig_add_options_ac '' --enable-install-strip
-	mozconfig_add_options_ac '' --enable-rust-simd
-	mozconfig_add_options_ac '' --enable-strip
-	mozconfig_add_options_ac '' --enable-webrtc
 
 	echo
 	echo "=========================================================="
