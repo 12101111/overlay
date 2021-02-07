@@ -1,8 +1,8 @@
 diff --git a/patches/config.json b/patches/config.json
-index f6d387f6d..2f72d3ab0 100644
+index 2a99d01ab..1108fd7f5 100644
 --- a/patches/config.json
 +++ b/patches/config.json
-@@ -7,9 +7,5 @@
+@@ -7,15 +7,9 @@
  
    "src/electron/patches/node": "src/third_party/electron_node",
  
@@ -10,5 +10,11 @@ index f6d387f6d..2f72d3ab0 100644
 -
 -  "src/electron/patches/ReactiveObjC": "src/third_party/squirrel.mac/vendor/ReactiveObjC",
 -
-   "src/electron/patches/depot_tools": "src/third_party/depot_tools"
+   "src/electron/patches/depot_tools": "src/third_party/depot_tools",
+ 
+   "src/electron/patches/sqlite": "src/third_party/sqlite/src",
+ 
+-  "src/electron/patches/icu": "src/third_party/icu",
+-
+   "src/electron/patches/usrsctp": "src/third_party/usrsctp/usrsctplib"
  }
