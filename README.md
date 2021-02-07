@@ -7,6 +7,7 @@ Please follow the [official instruction](https://wiki.gentoo.org/wiki/Ebuild_rep
 
 ## Packages
 
+- [app-arch/rpm]: musl fix, use sqlite instead of sys-libs/db
 - [app-doc/zeal](https://github.com/zealdocs/zeal): live ebuild, use qtwebengine as backend
 - [app-editors/vnote](https://github.com/tamlok/vnote): copy from Jorgicio overlay but fix build issue (add marked to SRC_URI)
 - [app-editors/vscode](https://github.com/microsoft/vscode/): build vscode from source code
