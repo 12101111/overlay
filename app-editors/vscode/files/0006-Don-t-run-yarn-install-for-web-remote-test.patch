@@ -1,0 +1,45 @@
+From dc4915d9a3898d826c5f4578ade260d2a5b312af Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sun, 7 Feb 2021 18:29:00 +0800
+Subject: [PATCH 6/6] Don't run `yarn install` for web/remote/test
+
+---
+ build/npm/dirs.js        | 7 -------
+ build/npm/postinstall.js | 1 -
+ 2 files changed, 8 deletions(-)
+
+diff --git a/build/npm/dirs.js b/build/npm/dirs.js
+index 17e97a0c6d4..ce27e829933 100644
+--- a/build/npm/dirs.js
++++ b/build/npm/dirs.js
+@@ -14,7 +14,6 @@ exports.dirs = [
+ 	'extensions/css-language-features/server',
+ 	'extensions/debug-auto-launch',
+ 	'extensions/debug-server-ready',
+-	'extensions/emmet',
+ 	'extensions/extension-editing',
+ 	'extensions/git',
+ 	'extensions/git-ui',
+@@ -42,10 +41,4 @@ exports.dirs = [
+ 	'extensions/vscode-custom-editor-tests',
+ 	'extensions/vscode-notebook-tests',
+ 	'extensions/vscode-test-resolver',
+-	'remote',
+-	'remote/web',
+-	'test/automation',
+-	'test/integration/browser',
+-	'test/monaco',
+-	'test/smoke',
+ ];
+diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
+index a4f063d45b1..423e1cc7b2c 100644
+--- a/build/npm/postinstall.js
++++ b/build/npm/postinstall.js
+@@ -89,4 +89,3 @@ runtime "${runtime}"`;
+ 	yarnInstall(watchPath);
+ }
+ 
+-cp.execSync('git config pull.rebase true');
+-- 
+2.30.0
+

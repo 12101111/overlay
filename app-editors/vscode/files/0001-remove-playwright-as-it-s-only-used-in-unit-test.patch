@@ -1,37 +1,45 @@
-From bb0f1c283d270831bd87f9e7e5a52c85822a7364 Mon Sep 17 00:00:00 2001
+From 1dc7140dc1d7d7caf12d8f51e34de740c7b8f509 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Wed, 16 Dec 2020 10:42:39 +0800
-Subject: [PATCH 1/9] remove playwright as it's only used in unit test
+Date: Sun, 7 Feb 2021 14:22:03 +0800
+Subject: [PATCH 1/8] remove playwright as it's only used in unit test
 
 ---
- package.json |  3 +--
+ package.json |  2 --
  yarn.lock    | 17 -----------------
- 2 files changed, 1 insertion(+), 19 deletions(-)
+ 2 files changed, 19 deletions(-)
 
 diff --git a/package.json b/package.json
-index f4c487c907..b5c20f315c 100644
+index 1352c4355d4..8d06514083e 100644
 --- a/package.json
 +++ b/package.json
-@@ -160,7 +160,6 @@
+@@ -47,7 +47,6 @@
+     "watch-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js watch-web",
+     "eslint": "node build/eslint",
+     "electron-rebuild": "electron-rebuild --arch=arm64 --force --version=11.2.1",
+-    "playwright-install": "node build/azure-pipelines/common/installPlaywright.js",
+     "compile-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-build",
+     "compile-extensions-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-extensions-build",
+     "minify-vscode": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js minify-vscode",
+@@ -181,7 +180,6 @@
      "opn": "^6.0.0",
      "optimist": "0.3.5",
      "p-all": "^1.0.0",
--    "playwright": "1.6.2",
+-    "playwright": "1.7.1",
      "pump": "^1.0.1",
      "queue": "3.0.6",
      "rcedit": "^1.1.0",
 diff --git a/yarn.lock b/yarn.lock
-index dd5e3e4eea..26e08de955 100644
+index d5462673939..a1b99ee6865 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -7233,23 +7233,6 @@ pkg-dir@^3.0.0:
+@@ -7263,23 +7263,6 @@ pkg-dir@^4.1.0:
    dependencies:
-     find-up "^3.0.0"
+     find-up "^4.0.0"
  
--playwright@1.6.2:
--  version "1.6.2"
--  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.6.2.tgz#8631aec4d16b081d8ac414637b006099814a69d1"
--  integrity sha512-KiMmQuANG4O/ozpwxP8EwBBap0/liS3+wwkGo6nBJ4O4951y4ZsRPR1dqwsMOUD9wjsWf3ER+bAmQH5XmEO4Ig==
+-playwright@1.7.1:
+-  version "1.7.1"
+-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.7.1.tgz#841638811bc39eb2fed792ffaacbcc959a0aaf5e"
+-  integrity sha512-dOSWME42wDedJ/PXv8k0zG0Kxd6d6R2OKA51/05++Z2ISdA4N58gHlWqlVKPDkBog1MI6lu/KNt7QDn19AybWQ==
 -  dependencies:
 -    debug "^4.1.1"
 -    extract-zip "^2.0.1"
@@ -49,5 +57,5 @@ index dd5e3e4eea..26e08de955 100644
    version "3.0.1"
    resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.1.tgz#a9b931d17c304e8912ef0ba3bdd6182baf2e1f8c"
 -- 
-2.29.2
+2.30.0
 

@@ -1,26 +1,26 @@
-From 8ffc8b194b45ebdb5d4ae3282dfa37d5e27a137f Mon Sep 17 00:00:00 2001
+From c176abe5b6b57a965ba261f64b9a1848ed1080bc Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 9 Oct 2020 09:26:46 +0800
-Subject: [PATCH 3/9] Allow --offline in args
+Date: Sun, 7 Feb 2021 14:24:11 +0800
+Subject: [PATCH 3/8] Allow --offline in args
 
 ---
  build/npm/postinstall.js | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index 8f8b0019a7..4ae62d6951 100644
+index 18ccef884a9..a4f063d45b1 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -20,7 +20,8 @@ function yarnInstall(location, opts) {
+@@ -21,7 +21,8 @@ function yarnInstall(location, opts) {
  	const raw = process.env['npm_config_argv'] || '{}';
  	const argv = JSON.parse(raw);
  	const original = argv.original || [];
 -	const args = original.filter(arg => arg === '--ignore-optional' || arg === '--frozen-lockfile');
 +	const passargs = ['--ignore-optional', '--frozen-lockfile', '--offline', '--no-progress', '--verbose'];
 +	const args = original.filter(arg => passargs.includes(arg));
- 
- 	console.log(`Installing dependencies in ${location}...`);
- 	console.log(`$ yarn ${args.join(' ')}`);
+ 	if (opts.ignoreEngines) {
+ 		args.push('--ignore-engines');
+ 		delete opts.ignoreEngines;
 -- 
-2.29.2
+2.30.0
 
