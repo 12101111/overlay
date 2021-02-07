@@ -1,11 +1,11 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
 inherit meson
 
-DESCRIPTION="Highly customizable Wayland bar for Sway and Wlroots based compositors."
+DESCRIPTION="Highly customizable Wayland bar for Sway and Wlroots based compositors"
 HOMEPAGE="https://github.com/Alexays/Waybar"
 
 if [[ ${PV} == 9999 ]]; then
@@ -19,7 +19,7 @@ S="${WORKDIR}/${PN^}-${PV}"
 
 LICENSE="MIT"
 SLOT="0"
-IUSE="mpd +network +popups pulseaudio +tray +udev libcxx"
+IUSE="mpd +network +popups pulseaudio +tray +udev wifi libcxx"
 
 BDEPEND="
 	>=app-text/scdoc-1.9.2
@@ -32,7 +32,7 @@ DEPEND="
 	dev-libs/libinput:=
 	dev-libs/libsigc++:2
 	>=dev-libs/libfmt-5.3.0:=
-	>=dev-libs/spdlog-1.3.1:=
+	>=dev-libs/spdlog-1.8.0:=
 	dev-libs/date:=
 	dev-libs/wayland
 	dev-libs/wayland-protocols
@@ -47,6 +47,7 @@ DEPEND="
 		dev-libs/libappindicator
 	)
 	udev? ( virtual/libudev:= )
+	wifi? ( || ( sys-apps/util-linux net-wireless/rfkill ) )
 	libcxx? ( sys-libs/libcxx[libcxxabi] )
 "
 
@@ -61,6 +62,8 @@ src_configure() {
 		$(meson_feature tray dbusmenu-gtk)
 		$(meson_feature udev libudev)
 		$(meson_use libcxx)
+		$(meson_feature wifi rfkill)
+		-Dsndio=disabled
 	)
 	meson_src_configure
 }
