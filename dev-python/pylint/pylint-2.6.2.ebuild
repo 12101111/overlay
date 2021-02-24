@@ -1,4 +1,4 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -18,13 +18,13 @@ SRC_URI="mirror://pypi/${PN:0:1}/${PN}/${P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="~alpha amd64 arm arm64 ~ia64 ppc ppc64 sparc x86"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~ia64 ~ppc ~ppc64 ~sparc ~x86"
 IUSE="examples"
 
 # Mirror requirements from pylint/__pkginfo__.py
 RDEPEND="
 	>=dev-python/astroid-2.4.0[${PYTHON_USEDEP}]
-	<=dev-python/astroid-2.5[${PYTHON_USEDEP}]
+	<dev-python/astroid-2.5[${PYTHON_USEDEP}]
 	>=dev-python/isort-4.2.5[${PYTHON_USEDEP}]
 	<dev-python/isort-6[${PYTHON_USEDEP}]
 	>=dev-python/mccabe-0.6[${PYTHON_USEDEP}]
