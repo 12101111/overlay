@@ -2166,8 +2166,8 @@ https://registry.yarnpkg.com/typescript/-/typescript-2.8.1.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-3.5.3.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-3.7.5.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-3.9.7.tgz
-https://registry.yarnpkg.com/typescript/-/typescript-4.1.2.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.1.3.tgz
+https://registry.yarnpkg.com/typescript/-/typescript-4.1.5.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.2.0-dev.20201207.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.2.0-dev.20201209.tgz
 https://registry.yarnpkg.com/typical/-/typical-4.0.0.tgz
@@ -2247,7 +2247,7 @@ https://registry.yarnpkg.com/vsce/-/vsce-1.48.0.tgz
 https://registry.yarnpkg.com/vscode-codicons/-/vscode-codicons-0.0.12.tgz
 https://registry.yarnpkg.com/vscode-css-languageservice/-/vscode-css-languageservice-5.0.3.tgz
 https://registry.yarnpkg.com/vscode-debugprotocol/-/vscode-debugprotocol-1.44.0.tgz
-https://registry.yarnpkg.com/vscode-emmet-helper/-/vscode-emmet-helper-2.2.4-2.tgz
+https://registry.yarnpkg.com/vscode-emmet-helper/-/vscode-emmet-helper-2.2.4.tgz
 https://registry.yarnpkg.com/vscode-extension-telemetry/-/vscode-extension-telemetry-0.1.1.tgz
 https://registry.yarnpkg.com/vscode-gulp-watch/-/vscode-gulp-watch-5.0.3.tgz
 https://registry.yarnpkg.com/vscode-html-languageservice/-/vscode-html-languageservice-4.0.1.tgz
