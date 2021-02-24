@@ -52,11 +52,12 @@ IUSE="clippy cpu_flags_x86_sse2 debug doc libressl miri nightly parallel-compile
 LLVM_DEPEND="
 	|| (
 		sys-devel/llvm:11[${LLVM_TARGET_USEDEPS// /,}]
+		sys-devel/llvm:12[${LLVM_TARGET_USEDEPS// /,}]
 	)
-	<sys-devel/llvm-12:=
+	<sys-devel/llvm-13:=
 	wasm? ( sys-devel/lld )
 "
-LLVM_MAX_SLOT=11
+LLVM_MAX_SLOT=12
 
 # to bootstrap we need at least exactly previous version, or same.
 # most of the time previous versions fail to bootstrap with newer
@@ -119,6 +120,7 @@ CMAKE_WARN_UNUSED_CLI=no
 
 QA_FLAGS_IGNORED="
 	usr/lib/${PN}/${PV}/bin/.*
+	usr/lib/${PN}/${PV}/libexec/.*
 	usr/lib/${PN}/${PV}/lib/lib.*.so
 	usr/lib/${PN}/${PV}/lib/rustlib/.*/bin/.*
 	usr/lib/${PN}/${PV}/lib/rustlib/.*/lib/lib.*.so
@@ -134,14 +136,15 @@ RESTRICT="test"
 
 PATCHES=(
 	"${FILESDIR}"/1.47.0-libressl.patch
-	"${FILESDIR}"/1.46.0-don-t-create-prefix-at-time-of-check.patch
 	"${FILESDIR}"/1.47.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.47.0-llvm-tensorflow-fix.patch
 	#"${FILESDIR}"/1.49.0-gentoo-musl-target-specs.patch
 	"${FILESDIR}"/1.49.0-llvm-ver-display.patch
 	"${FILESDIR}"/musl-use-external-libunwind.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
-	"${FILESDIR}"/profiler.patch
+	"${FILESDIR}"/rust-1.50.0-llvm12.patch
+	"${FILESDIR}"/sanitizers-enable-musl-support.patch
+	"${FILESDIR}"/llvm-12-compiler-rt.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
@@ -522,7 +525,7 @@ src_install() {
 	# bug #689562, #689160
 	rm -v "${ED}/usr/lib/${PN}/${PV}/etc/bash_completion.d/cargo" || die
 	rmdir -v "${ED}/usr/lib/${PN}/${PV}"/etc{/bash_completion.d,} || die
-	dobashcomp build/tmp/dist/cargo-image/etc/bash_completion.d/cargo
+	newbashcomp src/tools/cargo/src/etc/cargo.bashcomp.sh cargo
 
 	local symlinks=(
 		cargo
@@ -557,6 +560,7 @@ src_install() {
 
 	# symlinks to switch components to active rust in eselect
 	dosym "${PV}/lib" "/usr/lib/${PN}/lib-${PV}"
+	dosym "${PV}/libexec" "/usr/lib/${PN}/libexec-${PV}"
 	dosym "${PV}/share/man" "/usr/lib/${PN}/man-${PV}"
 	dosym "rust/${PV}/lib/rustlib" "/usr/lib/rustlib-${PV}"
 	dosym "../../lib/${PN}/${PV}/share/doc/rust" "/usr/share/doc/${P}"
@@ -564,7 +568,8 @@ src_install() {
 	newenvd - "50${P}" <<-_EOF_
 		LDPATH="${EPREFIX}/usr/lib/rust/lib"
 		MANPATH="${EPREFIX}/usr/lib/rust/man"
-		$(usex elibc_musl 'CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS="-C target-feature=-crt-static"' '')
+		$(use amd64 && usex elibc_musl 'CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS="-C target-feature=-crt-static"' '')
+		$(use arm64 && usex elibc_musl 'CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_RUSTFLAGS="-C target-feature=-crt-static"' '')
 	_EOF_
 
 	rm -rf "${ED}/usr/lib/${PN}/${PV}"/*.old || die
@@ -579,6 +584,7 @@ src_install() {
 		/usr/bin/rust-lldb
 		/usr/lib/rustlib
 		/usr/lib/rust/lib
+		/usr/lib/rust/libexec
 		/usr/lib/rust/man
 		/usr/share/doc/rust
 	_EOF_
