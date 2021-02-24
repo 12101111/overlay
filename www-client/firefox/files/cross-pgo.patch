@@ -1,0 +1,25 @@
+diff --git a/build/moz.configure/lto-pgo.configure b/build/moz.configure/lto-pgo.configure
+index 31fba2ab9a..fe7fd7fdf6 100644
+--- a/build/moz.configure/lto-pgo.configure
++++ b/build/moz.configure/lto-pgo.configure
+@@ -139,20 +139,9 @@ def moz_pgo_rust(pgo, profile_use, profile_generate, c_compiler):
+     if not pgo:
+         return
+ 
+-    # Enabling PGO through MOZ_PGO only and not --enable* flags.
+-    if not profile_use and not profile_generate:
+-        return
+-
+     if profile_use and profile_generate:
+         die("Cannot build with --enable-profile-use and --enable-profile-generate.")
+ 
+-    want_cross = (len(profile_use) and profile_use[0] == "cross") or (
+-        len(profile_generate) and profile_generate[0] == "cross"
+-    )
+-
+-    if not want_cross:
+-        return
+-
+     if c_compiler.type == "gcc":
+         die("Cannot use cross-language PGO with GCC.")
+ 
