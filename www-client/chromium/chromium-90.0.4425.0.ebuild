@@ -1,4 +1,4 @@
-# Copyright 2009-2020 Gentoo Authors
+# Copyright 2009-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="5"
+PATCHSET="4"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -23,7 +23,6 @@ LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64 ~x86"
 IUSE="atk lto pgo swiftshader vulkan component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-icu +tcmalloc vaapi wayland widevine"
-RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) )"
 REQUIRED_USE="
 	component-build? ( !suid )
 	screencast? ( wayland )
@@ -125,7 +124,11 @@ BDEPEND="
 	js-type-check? ( virtual/jre )
 	pgo? (
 		sys-devel/clang:12
-		>=sys-devel/lld-12.0.0
+		>=sys-devel/lld-12.0.0_rc1
+	)
+	lto? (
+		sys-devel/clang:12
+		>=sys-devel/lld-12.0.0_rc1
 	)
 "
 
@@ -134,12 +137,12 @@ BDEPEND="
 : ${CHROMIUM_FORCE_LIBCXX=no}
 
 if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
-	BDEPEND+=" >=sys-devel/clang-10"
+	BDEPEND+=" >=sys-devel/clang-12"
 fi
 
 if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
-	RDEPEND+=" >=sys-libs/libcxx-10"
-	DEPEND+=" >=sys-libs/libcxx-10"
+	RDEPEND+=" >=sys-libs/libcxx-12"
+	DEPEND+=" >=sys-libs/libcxx-12"
 else
 	COMMON_DEPEND="
 		app-arch/snappy:=
@@ -186,9 +189,10 @@ in /etc/chromium/default.
 "
 
 PATCHES=(
-    "${FILESDIR}/chromium-88_atk_optional.patch"
-    "${FILESDIR}/chromium-skia-harmony.patch"
+	"${FILESDIR}/chromium-88_atk_optional.patch"
+	"${FILESDIR}/chromium-skia-harmony.patch"
 	"${FILESDIR}/chromium-shim_headers.patch"
+	"${FILESDIR}/chromium-89-EnumTable-crash.patch"
 )
 
 pre_build_checks() {
@@ -202,15 +206,16 @@ pre_build_checks() {
 			die "Component build with tcmalloc requires FEATURES=-usersandbox."
 		fi
 		if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || tc-is-clang; then
-			if use component-build; then
-				die "Component build with clang requires fuzzer headers."
+			CPP="${CHOST}-clang++ -E"
+			if ! ver_test "$(clang-major-version)" -ge 12; then
+				die "At least clang 12 is required"
 			fi
 		fi
 	fi
 
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="3G"
-	CHECKREQS_DISK_BUILD="7G"
+	CHECKREQS_DISK_BUILD="8G"
 	if use lto; then
 		if ! tc-is-clang; then
 			die "lto or pgo only support clang and lld"
@@ -252,10 +257,7 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-89-FramebufferCache-incomplete-type.patch"
-	rm "${WORKDIR}/patches/chromium-89-dawn-include.patch"
-	rm "${WORKDIR}/patches/chromium-89-webui_config-include.patch"
-	rm "${WORKDIR}/patches/chromium-fix-char_traits-r1.patch"
+	rm "${WORKDIR}/patches/chromium-90-FrameToken-constexpr.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -343,6 +345,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/third_party
 		third_party/dom_distiller_js
 		third_party/emoji-segmenter
+		third_party/fdlibm
 		third_party/flatbuffers
 		third_party/freetype
 		third_party/fusejs
@@ -364,9 +367,11 @@ src_prepare() {
 		third_party/libXNVCtrl
 		third_party/libaddressinput
 		third_party/libaom
+		third_party/libaom/source/libaom/third_party/fastfeat
 		third_party/libaom/source/libaom/third_party/vector
 		third_party/libaom/source/libaom/third_party/x86inc
 		third_party/libavif
+		third_party/libgav1
 		third_party/libjingle
 		third_party/libphonenumber
 		third_party/libsecret
@@ -389,6 +394,7 @@ src_prepare() {
 		third_party/markupsafe
 		third_party/mesa
 		third_party/metrics_proto
+		third_party/minigbm
 		third_party/modp_b64
 		third_party/nasm
 		third_party/nearby
@@ -792,6 +798,9 @@ src_configure() {
 		# Disable CFI: unsupported for GCC, requires clang+lto+lld
 		myconf_gn+=" is_cfi=false"
 	fi
+
+	# Disable building Tensorflow library cause tarball is incomplete
+	myconf_gn+=" build_with_tflite_lib=false"
 
 	einfo "Configuring Chromium..."
 	set -- gn gen --args="${myconf_gn} ${EXTRA_GN}" out/Release
