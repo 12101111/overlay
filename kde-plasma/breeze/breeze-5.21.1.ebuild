@@ -3,9 +3,9 @@
 
 EAPI=7
 
-KFMIN=5.74.0
+KFMIN=5.78.0
 PVCUT=$(ver_cut 1-3)
-QTMIN=5.15.1
+QTMIN=5.15.2
 inherit ecm kde.org
 
 DESCRIPTION="Breeze visual style for the Plasma desktop"
