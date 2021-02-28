@@ -1,21 +1,26 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
 PYTHON_COMPAT=( python2_7 )
+QTVER=$(ver_cut 1-3)
 inherit multiprocessing python-any-r1 qt5-build
 
 DESCRIPTION="Library for rendering dynamic web content in Qt5 C++ and QML applications"
 
-# patchset based on https://github.com/chromium-ppc64le releases
-SRC_URI+=" ppc64? ( https://dev.gentoo.org/~gyakovlev/distfiles/${PN}-5.15.0-ppc64.tar.xz )"
-
 if [[ ${QT5_BUILD_TYPE} == release ]]; then
-	KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
+	KEYWORDS="~amd64 ~arm ~arm64 ~x86"
+	if [[ ${PV} == ${QTVER}_p* ]]; then
+		SRC_URI="https://dev.gentoo.org/~asturm/distfiles/${P}.tar.xz"
+		S="${WORKDIR}/${P}"
+	fi
 fi
 
-IUSE="alsa bindist designer geolocation kerberos pulseaudio +system-ffmpeg +system-icu widgets"
+# patchset based on https://github.com/chromium-ppc64le releases
+SRC_URI+=" ppc64? ( https://dev.gentoo.org/~gyakovlev/distfiles/${PN}-5.15.2-ppc64.tar.xz )"
+
+IUSE="alsa bindist designer geolocation +jumbo-build kerberos pulseaudio +system-ffmpeg +system-icu widgets"
 REQUIRED_USE="designer? ( widgets )"
 
 RDEPEND="
@@ -23,17 +28,17 @@ RDEPEND="
 	dev-libs/glib:2
 	dev-libs/nspr
 	dev-libs/nss
-	~dev-qt/qtcore-${PV}
-	~dev-qt/qtdeclarative-${PV}
-	~dev-qt/qtgui-${PV}
-	~dev-qt/qtnetwork-${PV}
-	~dev-qt/qtprintsupport-${PV}
-	~dev-qt/qtwebchannel-${PV}[qml]
 	dev-libs/expat
 	dev-libs/libevent:=
 	dev-libs/libxml2[icu]
 	dev-libs/libxslt
 	dev-libs/re2:=
+	~dev-qt/qtcore-${QTVER}
+	~dev-qt/qtdeclarative-${QTVER}
+	~dev-qt/qtgui-${QTVER}
+	~dev-qt/qtnetwork-${QTVER}
+	~dev-qt/qtprintsupport-${QTVER}
+	~dev-qt/qtwebchannel-${QTVER}[qml]
 	media-libs/fontconfig
 	media-libs/freetype
 	media-libs/harfbuzz:=
@@ -61,15 +66,15 @@ RDEPEND="
 	x11-libs/libXScrnSaver
 	x11-libs/libXtst
 	alsa? ( media-libs/alsa-lib )
-	designer? ( ~dev-qt/designer-${PV} )
-	geolocation? ( ~dev-qt/qtpositioning-${PV} )
+	designer? ( ~dev-qt/designer-${QTVER} )
+	geolocation? ( ~dev-qt/qtpositioning-${QTVER} )
 	kerberos? ( virtual/krb5 )
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? ( media-video/ffmpeg:0= )
-	system-icu? ( >=dev-libs/icu-60.2:= )
+	system-icu? ( >=dev-libs/icu-68.2:= )
 	widgets? (
-		~dev-qt/qtdeclarative-${PV}[widgets]
-		~dev-qt/qtwidgets-${PV}
+		~dev-qt/qtdeclarative-${QTVER}[widgets]
+		~dev-qt/qtwidgets-${QTVER}
 	)
 "
 DEPEND="${RDEPEND}
@@ -78,14 +83,15 @@ DEPEND="${RDEPEND}
 	dev-util/gperf
 	dev-util/ninja
 	dev-util/re2c
+	net-libs/nodejs
 	sys-devel/bison
 "
 
 PATCHES=(
 	"${FILESDIR}/${PN}-5.15.0-disable-fatal-warnings.patch" # bug 695446
-	"${FILESDIR}/${P}-icu-68.patch" # bug 751997, QTBUG-88116
+	"${FILESDIR}/${P}-chromium-87-v8-icu68.patch" # bug 757606
+	"${FILESDIR}/${P}-disable-git.patch" # downstream snapshot fix
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
-	"${FILESDIR}/yasm-nls.patch"
 )
 
 src_prepare() {
@@ -94,7 +100,6 @@ src_prepare() {
 			"${FILESDIR}/musl-default-pthread-stacksize.patch"
 			"${FILESDIR}/musl-cdefs.patch"
 			"${FILESDIR}/musl-execinfo.patch"
-			"${FILESDIR}/musl-fpstate.patch"
 			"${FILESDIR}/musl-mallinfo.patch"
 			"${FILESDIR}/musl-pvalloc.patch"
 			"${FILESDIR}/musl-resolve.patch"
@@ -108,17 +113,22 @@ src_prepare() {
 			"${FILESDIR}/musl_stack_size.patch"
 			"${FILESDIR}/musl_stack_trace.patch"
 			"${FILESDIR}/musl_remove_check_for_glibc.patch"
-        )
-    fi
-	if use ppc64; then
-		eapply "${WORKDIR}/${PN}-ppc64"
+        	)
+    	fi
+	if [[ ${PV} == ${QTVER}_p* ]]; then
+		# This is made from git, and for some reason will fail w/o .git directories.
+		mkdir -p .git src/3rdparty/chromium/.git || die
+
+		# We need to make sure this integrates well into Qt 5.15.2 installation.
+		# Otherwise revdeps fail w/o heavy changes. This is the simplest way to do it.
+		sed -e "/^MODULE_VERSION/s/5.*/${QTVER}/" -i .qmake.conf || die
 	fi
 
-	# QTBUG-88657 - jumbo-build is broken
-	#if ! use jumbo-build; then
+	# QTBUG-88657 - jumbo-build could still make trouble
+	if ! use jumbo-build; then
 		sed -i -e 's|use_jumbo_build=true|use_jumbo_build=false|' \
 			src/buildtools/config/common.pri || die
-	#fi
+	fi
 
 	# bug 630834 - pass appropriate options to ninja when building GN
 	sed -e "s/\['ninja'/&, '-j$(makeopts_jobs)', '-l$(makeopts_loadavg "${MAKEOPTS}" 0)', '-v'/" \
@@ -149,6 +159,18 @@ src_prepare() {
 	qt_use_disable_mod widgets widgets src/src.pro
 
 	qt5-build_src_prepare
+
+	# we need to generate ppc64 stuff because upstream does not ship it yet
+	if use ppc64; then
+		einfo "Patching for ppc64le and generating build files"
+		eapply "${WORKDIR}/${PN}-ppc64"
+		pushd src/3rdparty/chromium/third_party/libvpx > /dev/null || die
+		mkdir -vp source/config/linux/ppc64 || die
+		mkdir -p source/libvpx/test || die
+		touch source/libvpx/test/test.mk || die
+		./generate_gni.sh || die
+		popd >/dev/null || die
+	fi
 }
 
 src_configure() {

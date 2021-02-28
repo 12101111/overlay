@@ -1,5 +1,5 @@
 diff --git a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc
-index 1aaaa1c60..a9ae0853e 100644
+index 1aaaa1c60d..e99d09a323 100644
 --- a/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc
 +++ b/src/3rdparty/chromium/third_party/blink/renderer/platform/wtf/stack_util.cc
 @@ -28,7 +28,7 @@ size_t GetUnderestimatedStackSize() {
@@ -25,8 +25,8 @@ index 1aaaa1c60..a9ae0853e 100644
    //    low as 512k.
    //
    return 512 * 1024;
-+#endif
- #elif defined(OS_MACOSX)
++#endif // defined(OS_LINUX) && !defined(__GLIBC__)
+ #elif defined(OS_MAC)
    // pthread_get_stacksize_np() returns too low a value for the main thread on
    // OSX 10.9,
 @@ -96,7 +100,7 @@ return Threading::ThreadStackSize();
