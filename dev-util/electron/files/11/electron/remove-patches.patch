@@ -1,8 +1,8 @@
 diff --git a/patches/config.json b/patches/config.json
-index 2a99d01ab..1108fd7f5 100644
+index 1991caedf..dd269d086 100644
 --- a/patches/config.json
 +++ b/patches/config.json
-@@ -7,15 +7,9 @@
+@@ -7,16 +7,10 @@
  
    "src/electron/patches/node": "src/third_party/electron_node",
  
@@ -15,6 +15,7 @@ index 2a99d01ab..1108fd7f5 100644
    "src/electron/patches/sqlite": "src/third_party/sqlite/src",
  
 -  "src/electron/patches/icu": "src/third_party/icu",
--
+-  
+   "src/electron/patches/skia": "src/third_party/skia",
+ 
    "src/electron/patches/usrsctp": "src/third_party/usrsctp/usrsctplib"
- }

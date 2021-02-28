@@ -126,3 +126,51 @@ index 49ce81c6b..db5a37dfe 100644
 -+  arr.concat(Number, arr)
 -+}
 -+eval(``);
+diff --git a/patches/v8/merged_interpreter_store_accumulator_to_callee_after_optional.patch b/patches/v8/merged_interpreter_store_accumulator_to_callee_after_optional.patch
+index f1004a7a0..732e33cb6 100644
+--- a/patches/v8/merged_interpreter_store_accumulator_to_callee_after_optional.patch
++++ b/patches/v8/merged_interpreter_store_accumulator_to_callee_after_optional.patch
+@@ -34,43 +34,3 @@ index 6b29add333e31e51eb8c63e41baf9f88300b9548..406a3966fe776731c6499ab55ee5883d
+        break;
+      }
+      case Call::SUPER_CALL:
+-diff --git a/test/mjsunit/regress/regress-crbug-1038178.js b/test/mjsunit/regress/regress-crbug-1038178.js
+-index 0362f69bcda3ad1807d70de04b31deb8eea13af6..3a84066b837d514bffa5e96c6aca060f85232e02 100644
+---- a/test/mjsunit/regress/regress-crbug-1038178.js
+-+++ b/test/mjsunit/regress/regress-crbug-1038178.js
+-@@ -15,7 +15,7 @@ function opt(){
+-     (((function(){})())?.v)()
+- }
+- %PrepareFunctionForOptimization(opt)
+--assertThrows(opt());
+--assertThrows(opt());
+-+assertThrows(() => opt());
+-+assertThrows(() => opt());
+- %OptimizeFunctionOnNextCall(opt)
+--assertThrows(opt());
+-+assertThrows(() => opt());
+-diff --git a/test/mjsunit/regress/regress-crbug-1171954.js b/test/mjsunit/regress/regress-crbug-1171954.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..94fbb329bc47b4885d87d3e570a05e02909321c7
+---- /dev/null
+-+++ b/test/mjsunit/regress/regress-crbug-1171954.js
+-@@ -0,0 +1,19 @@
+-+// Copyright 2021 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --always-opt
+-+
+-+// This causes the register used by the call in the later try-catch block to be
+-+// used by the ToName conversion for null which causes a DCHECK fail when
+-+// compiling. If register allocation changes, this test may no longer reproduce
+-+// the crash but it is not easy write a proper test because it is linked to
+-+// register allocation. This test should always work, so shouldn't cause any
+-+// flakes.
+-+try {
+-+  var { [null]: __v_12, } = {};
+-+} catch (e) {}
+-+
+-+try {
+-+  assertEquals((__v_40?.o?.m)().p);
+-+} catch (e) {}
