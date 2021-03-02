@@ -10,8 +10,7 @@
  
  // https://sourceware.org/bugzilla/show_bug.cgi?id=22433
  #if !defined(PTRACE_GET_THREAD_AREA) && !defined(PT_GET_THREAD_AREA) && \
-diff --git a/base/allocator/allocator_shim_internals.h b/base/allocator/allocator_shim_internal
-s.h
+diff --git a/base/allocator/allocator_shim_internals.h b/base/allocator/allocator_shim_internals.h
 index 0196f89..bb42b5d 100644
 --- a/base/allocator/allocator_shim_internals.h
 +++ b/base/allocator/allocator_shim_internals.h
