@@ -1,7 +1,7 @@
-diff --git a/src/3rdparty/chromium/base/debug/stack_trace_posix.cc b/src/3rdparty/chromium/base/debug/stack_trace_posix.cc
-index f4ddf9c1e..aef993613 100644
---- a/src/3rdparty/chromium/base/debug/stack_trace_posix.cc
-+++ b/src/3rdparty/chromium/base/debug/stack_trace_posix.cc
+diff --git a/base/debug/stack_trace_posix.cc b/base/debug/stack_trace_posix.cc
+index de2f356..f697c66 100644
+--- a/base/debug/stack_trace_posix.cc
++++ b/base/debug/stack_trace_posix.cc
 @@ -27,7 +27,7 @@
  #if !defined(USE_SYMBOLIZE)
  #include <cxxabi.h>
@@ -72,3 +72,19 @@ index f4ddf9c1e..aef993613 100644
  void StackTrace::OutputToStreamWithPrefix(std::ostream* os,
                                            const char* prefix_string) const {
    StreamBacktraceOutputHandler handler(os);
+--- a/v8/src/codegen/external-reference-table.cc
++++ b/v8/src/codegen/external-reference-table.cc
+@@ -9,11 +9,11 @@
+ #include "src/ic/stub-cache.h"
+ #include "src/logging/counters.h"
+ 
+-#if defined(DEBUG) && defined(V8_OS_LINUX) && !defined(V8_OS_ANDROID)
++#if defined(DEBUG) && defined(V8_OS_LINUX) && !defined(V8_OS_ANDROID) && defined(__GLIBC__)
+ #define SYMBOLIZE_FUNCTION
+ #include <execinfo.h>
+ #include <vector>
+-#endif  // DEBUG && V8_OS_LINUX && !V8_OS_ANDROID
++#endif  // DEBUG && V8_OS_LINUX && !V8_OS_ANDROID && defined(__GLIBC__)
+ 
+ namespace v8 {
+ namespace internal {

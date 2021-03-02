@@ -96,25 +96,12 @@ PATCHES=(
 
 src_prepare() {
 	if use elibc_musl;then
-		PATCHES+=(
-			"${FILESDIR}/musl-default-pthread-stacksize.patch"
-			"${FILESDIR}/musl-cdefs.patch"
-			"${FILESDIR}/musl-execinfo.patch"
-			"${FILESDIR}/musl-mallinfo.patch"
-			"${FILESDIR}/musl-pvalloc.patch"
-			"${FILESDIR}/musl-resolve.patch"
-			"${FILESDIR}/musl-sandbox-sched_getparam.patch"
-			"${FILESDIR}/musl-sandbox.patch"
-			"${FILESDIR}/musl-sysreg-for__WORDSIZE.patch"
-			"${FILESDIR}/musl_canonicalize_file_name.patch"
-			"${FILESDIR}/musl_pread_pwrite64.patch"
-			"${FILESDIR}/musl_push_back.patch"
-			"${FILESDIR}/musl_si_fields.patch"
-			"${FILESDIR}/musl_stack_size.patch"
-			"${FILESDIR}/musl_stack_trace.patch"
-			"${FILESDIR}/musl_remove_check_for_glibc.patch"
-        	)
-    	fi
+		pushd ${S}/src/3rdparty/chromium > /dev/null
+		eapply ${FILESDIR}/musl
+		popd > /dev/null
+		eapply "${FILESDIR}/musl_remove_check_for_glibc.patch"
+		eapply "${FILESDIR}/musl-pvalloc.patch"
+    fi
 	if [[ ${PV} == ${QTVER}_p* ]]; then
 		# This is made from git, and for some reason will fail w/o .git directories.
 		mkdir -p .git src/3rdparty/chromium/.git || die
@@ -178,7 +165,7 @@ src_configure() {
 	export NINJAFLAGS="${NINJAFLAGS:--j$(makeopts_jobs) -l$(makeopts_loadavg "${MAKEOPTS}" 0) -v}"
 
 	if use elibc_musl;then
-		append-cxxflags	-D_POSIX_THREAD_ATTR_STACKSIZE=2097152
+		append-cxxflags	-D_POSIX_THREAD_ATTR_STACKSIZE=8388608
 	fi
 
 	local myqmakeargs=(

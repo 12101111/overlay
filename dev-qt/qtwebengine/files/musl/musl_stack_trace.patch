@@ -1,7 +1,7 @@
-diff --git a/src/3rdparty/chromium/base/debug/stack_trace.cc b/src/3rdparty/chromium/base/debug/stack_trace.cc
+diff --git a/base/debug/stack_trace.cc b/base/debug/stack_trace.cc
 index d8ca822..ffe1f08 100644
---- a/src/3rdparty/chromium/base/debug/stack_trace.cc
-+++ b/src/3rdparty/chromium/base/debug/stack_trace.cc
+--- a/base/debug/stack_trace.cc
++++ b/base/debug/stack_trace.cc
 @@ -225,7 +225,9 @@ void StackTrace::Print() const {
  }
 
@@ -29,10 +29,10 @@ index d8ca822..ffe1f08 100644
    s.OutputToStream(&os);
  #else
    os << "StackTrace::OutputToStream not implemented.";
-diff --git a/src/3rdparty/chromium/base/logging.cc b/src/3rdparty/chromium/base/logging.cc
+diff --git a/base/logging.cc b/base/logging.cc
 index 36b8bfc..dd830fe 100644
---- a/src/3rdparty/chromium/base/logging.cc
-+++ b/src/3rdparty/chromium/base/logging.cc
+--- a/base/logging.cc
++++ b/base/logging.cc
 @@ -607,7 +607,7 @@ LogMessage::LogMessage(const char* file, int line, LogSeverity severity,
  LogMessage::~LogMessage() {
    size_t stack_start = stream_.tellp();

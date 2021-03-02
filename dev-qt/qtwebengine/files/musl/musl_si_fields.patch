@@ -1,7 +1,7 @@
-diff --git a/src/3rdparty/chromium/sandbox/linux/seccomp-bpf/trap.cc b/src/3rdparty/chromium/sandbox/linux/seccomp-bpf/trap.cc
-index 9884be8bb..d675174f6 100644
---- a/src/3rdparty/chromium/sandbox/linux/seccomp-bpf/trap.cc
-+++ b/src/3rdparty/chromium/sandbox/linux/seccomp-bpf/trap.cc
+diff --git a/sandbox/linux/seccomp-bpf/trap.cc b/sandbox/linux/seccomp-bpf/trap.cc
+index 9884be8bb2..d675174f69 100644
+--- a/sandbox/linux/seccomp-bpf/trap.cc
++++ b/sandbox/linux/seccomp-bpf/trap.cc
 @@ -174,7 +174,7 @@ void Trap::SigSys(int nr, LinuxSigInfo* info, ucontext_t* ctx) {
    // If the version of glibc doesn't include this information in
    // siginfo_t (older than 2.17), we need to explicitly copy it

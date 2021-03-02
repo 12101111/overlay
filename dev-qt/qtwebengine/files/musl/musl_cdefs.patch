@@ -1,20 +1,19 @@
---- a/src/3rdparty/chromium/third_party/crashpad/crashpad/compat/linux/sys/ptrace.h
-+++ b/src/3rdparty/chromium/third_party/crashpad/crashpad/compat/linux/sys/ptrace.h
+--- a/third_party/crashpad/crashpad/compat/linux/sys/ptrace.h
++++ b/third_party/crashpad/crashpad/compat/linux/sys/ptrace.h
 @@ -17,7 +17,9 @@
-
+ 
  #include_next <sys/ptrace.h>
-
+ 
 +#if defined(__GLIBC__)
  #include <sys/cdefs.h>
 +#endif
-
+ 
  // https://sourceware.org/bugzilla/show_bug.cgi?id=22433
  #if !defined(PTRACE_GET_THREAD_AREA) && !defined(PT_GET_THREAD_AREA) && \
-diff --git a/src/3rdparty/chromium/base/allocator/allocator_shim_internals.h b/src/3rdparty/chromium/base/allocator/allocator_shim_internal
-s.h
+diff --git a/base/allocator/allocator_shim_internals.h b/base/allocator/allocator_shim_internals.h
 index 0196f89..bb42b5d 100644
---- a/src/3rdparty/chromium/base/allocator/allocator_shim_internals.h
-+++ b/src/3rdparty/chromium/base/allocator/allocator_shim_internals.h
+--- a/base/allocator/allocator_shim_internals.h
++++ b/base/allocator/allocator_shim_internals.h
 @@ -7,7 +7,9 @@
 
  #if defined(__GNUC__)
@@ -25,10 +24,10 @@ index 0196f89..bb42b5d 100644
 
  #ifndef __THROW  // Not a glibc system
  #ifdef _NOEXCEPT  // LLVM libc++ uses noexcept instead
-diff --git a/src/3rdparty/chromium/third_party/libsync/src/include/sync/sync.h b/src/3rdparty/chromium/third_party/libsync/src/include/sync/sync.h
+diff --git a/third_party/libsync/src/include/sync/sync.h b/third_party/libsync/src/include/sync/sync.h
 index 50ed0ac..7552a49 100644
---- a/src/3rdparty/chromium/third_party/libsync/src/include/sync/sync.h
-+++ b/src/3rdparty/chromium/third_party/libsync/src/include/sync/sync.h
+--- a/third_party/libsync/src/include/sync/sync.h
++++ b/third_party/libsync/src/include/sync/sync.h
 @@ -19,12 +19,13 @@
  #ifndef __SYS_CORE_SYNC_H
  #define __SYS_CORE_SYNC_H
