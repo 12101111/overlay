@@ -11,11 +11,10 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 
 inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-utils portability python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils yarn
 
-MY_PV="12.0.0-beta.30"
 # Keep this in sync with DEPS:chromium_version
-CHROMIUM_VERSION="89.0.4389.58"
+CHROMIUM_VERSION="89.0.4389.69"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="14.15.1"
+NODE_VERSION="14.16.0"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 NODE_P="node-${NODE_VERSION}"
 PATCHSET="6"
@@ -1183,7 +1182,7 @@ https://registry.yarnpkg.com/yn/-/yn-2.0.0.tgz
 
 SRC_URI="
 	https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
-	https://github.com/electron/electron/archive/v${MY_PV}.tar.gz -> ${PN}-${MY_PV}.tar.gz
+	https://github.com/electron/electron/archive/v${PV}.tar.gz -> ${P}.tar.gz
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
@@ -1193,11 +1192,10 @@ SRC_URI="
 CHROMIUM_S="${WORKDIR}/${CHROMIUM_P}"
 NODE_S="${CHROMIUM_S}/third_party/electron_node"
 ROOT_S="${WORKDIR}/src"
-S="${WORKDIR}/${PN}-${MY_PV}"
 
 LICENSE="BSD"
 SLOT="12"
-KEYWORDS=""
+KEYWORDS="~amd64"
 IUSE="atk lto pgo component-build cups custom-cflags cpu_flags_arm_neon
 headless kerberos pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-icu +tcmalloc vaapi wayland"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) ) mirror"
@@ -1412,7 +1410,7 @@ _get_install_dir() {
 
 src_unpack() {
 	unpack "${CHROMIUM_P}.tar.xz"
-	unpack ${PN}-${MY_PV}.tar.gz
+	unpack ${P}.tar.gz
 	unpack "electron-${NODE_P}.tar.gz"
 	unpack "setuptools-44.1.0.zip"
 	unpack "${PATCHSET_NAME}.tar.xz"
