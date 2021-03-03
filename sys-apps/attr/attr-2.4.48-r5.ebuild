@@ -1,66 +1,78 @@
-# Copyright 1999-2019 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="6"
+EAPI="7"
 
 inherit autotools flag-o-matic libtool toolchain-funcs multilib-minimal usr-ldscript
 
+if [[ ${PV} == 9999 ]] ; then
+	EGIT_REPO_URI="https://git.savannah.gnu.org/git/${PN}.git"
+
+	inherit git-r3
+else
+	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86 ~amd64-linux ~x86-linux"
+	SRC_URI="mirror://nongnu/${PN}/${P}.tar.gz"
+fi
+
 DESCRIPTION="Extended attributes tools"
 HOMEPAGE="https://savannah.nongnu.org/projects/attr"
-SRC_URI="mirror://nongnu/${PN}/${P}.tar.gz"
-
 LICENSE="LGPL-2.1"
 SLOT="0"
-KEYWORDS="~alpha amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sh ~sparc ~x86 ~amd64-linux ~x86-linux"
+
 IUSE="debug nls static-libs"
 
-DEPEND="nls? ( sys-devel/gettext )"
-
-PATCHES=(
-	"${FILESDIR}/${P}-perl-5.26.patch"
-	"${FILESDIR}/${P}-switch-back-to-syscall.patch"
-	"${FILESDIR}/${P}-use-asm-symver.patch"
-)
+BDEPEND="nls? ( sys-devel/gettext )"
 
 src_prepare() {
+	local PATCHES=(
+		"${FILESDIR}/${P}-perl-5.26.patch"
+		"${FILESDIR}/${P}-switch-back-to-syscall.patch"
+		"${FILESDIR}/${P}-use-asm-symver.patch"
+	)
+
 	default
+	eautopoint
 	eautoreconf
-	elibtoolize #580792
+}
+
+src_configure() {
+	# Remove -flto* from flags as this breaks binaries (bug #644048)
+	filter-flags -flto*
+	append-ldflags "-Wl,--no-gc-sections" #700116
+	tc-ld-disable-gold #644048
+	append-lfs-flags #760857
+	multilib-minimal_src_configure
 }
 
 multilib_src_configure() {
-	unset PLATFORM #184564
-	export OPTIMIZER=${CFLAGS}
-	export DEBUG=-DNDEBUG
-
 	local myeconfargs=(
-		--bindir="${EPREFIX%/}"/bin
+		--bindir="${EPREFIX}"/bin
 		--enable-shared
 		$(use_enable static-libs static)
 		$(use_enable nls)
-		--libexecdir="${EPREFIX%/}"/usr/$(get_libdir)
+		--libexecdir="${EPREFIX}"/usr/$(get_libdir)
 		$(use_enable debug)
 	)
 	ECONF_SOURCE="${S}" econf "${myeconfargs[@]}"
 }
 
 multilib_src_install() {
-	emake DESTDIR="${D%/}" install
+	emake DESTDIR="${D}" install
 
 	# Sanity check until we track down why this is happening. #644048
-	local lib="${ED%/}/usr/$(get_libdir)/libattr.so.1"
+	local lib="${ED}/usr/$(get_libdir)/libattr.so.1"
 	if [[ -e ${lib} ]] ; then
-		local versions=$(readelf -V "${lib}")
-		local symbol=$(readelf -sW "${lib}" | grep '\sgetxattr@\+ATTR')
+		local versions=$($(tc-getREADELF) -V "${lib}")
+		local symbols=$($(tc-getREADELF) -sW "${lib}")
 		if [[ "${versions}" != *"ATTR_1.0"* || \
 		      "${versions}" != *"ATTR_1.1"* || \
 		      "${versions}" != *"ATTR_1.2"* || \
 		      "${versions}" != *"ATTR_1.3"* || \
-		      "${symbol}" != *"FUNC"*"getxattr@ATTR_1.0"* ]] ; then
+		      "${symbols}" != *"getxattr@ATTR_1.0"* ]] ; then
 			echo "# readelf -V ${lib}"
 			echo "${versions}"
 			echo "# readelf -sW ${lib}"
-			readelf -sW "${lib}"
+			echo "${symbols}"
 			die "symbol version sanity check failed; please comment on https://bugs.gentoo.org/644048"
 		else
 			einfo "${lib} passed symbol checks"
@@ -79,9 +91,8 @@ multilib_src_install() {
 
 multilib_src_install_all() {
 	if ! use static-libs; then
-		find "${ED%/}" -name '*.la' -delete || die
+		find "${ED}" -name '*.la' -delete || die
 	fi
 
 	einstalldocs
 }
-
