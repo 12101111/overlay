@@ -1,4 +1,4 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -8,7 +8,7 @@ inherit eutils libtool flag-o-matic gnuconfig multilib toolchain-funcs
 DESCRIPTION="Tools necessary to build programs"
 HOMEPAGE="https://sourceware.org/binutils/"
 LICENSE="GPL-3+"
-IUSE="+ld +gas +binutils +gprof default-gold doc +gold multitarget +nls +plugins static-libs test vanilla"
+IUSE="+ld +gas +binutils +gprof cet default-gold doc +gold multitarget +nls +plugins static-libs test vanilla"
 REQUIRED_USE="default-gold? ( gold )"
 
 # Variables that can be set here  (ignored for live ebuilds)
@@ -32,7 +32,6 @@ else
 	[[ -z ${PATCH_VER} ]] || SRC_URI="${SRC_URI}
 		https://dev.gentoo.org/~${PATCH_DEV}/distfiles/binutils-${PATCH_BINUTILS_VER}-patches-${PATCH_VER}.tar.xz"
 	SLOT=$(ver_cut 1-2)
-	# live ebuild
 	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
 fi
 
@@ -57,13 +56,18 @@ RDEPEND="
 DEPEND="${RDEPEND}"
 BDEPEND="
 	doc? ( sys-apps/texinfo )
-	test? ( dev-util/dejagnu )
+	test? (
+		dev-util/dejagnu
+		sys-devel/bc
+	)
 	nls? ( sys-devel/gettext )
 	sys-devel/flex
 	virtual/yacc
 "
 
 RESTRICT="!test? ( test )"
+
+PATCHES=("${FILESDIR}"/${PN}-2.35.1-cet.patch)
 
 MY_BUILDDIR=${WORKDIR}/build
 
@@ -250,10 +254,6 @@ src_configure() {
 		--disable-werror
 		--with-bugurl="$(toolchain-binutils_bugurl)"
 		--with-pkgversion="$(toolchain-binutils_pkgversion)"
-		$(use_enable ld)
-		$(use_enable gas)
-		$(use_enable binutils)
-		$(use_enable gprof)
 		$(use_enable static-libs static)
 		${EXTRA_ECONF}
 		# Disable modules that are in a combined binutils/gdb tree. #490566
@@ -264,6 +264,19 @@ src_configure() {
 		# Change SONAME to avoid conflict across
 		# {native,cross}/binutils, binutils-libs. #666100
 		--with-extra-soversion-suffix=gentoo-${CATEGORY}-${PN}-$(usex multitarget mt st)
+
+		# avoid automagic dependency on (currently prefix) systems
+		# systems with debuginfod library, bug #754753
+		--without-debuginfod
+
+		# Allow user to opt into CET for host libraries.
+		# Ideally we would like automagic-or-disabled here.
+		# But the check does not quite work on i686: bug #760926.
+		$(use_enable cet)
+		$(use_enable ld)
+		$(use_enable gas)
+		$(use_enable binutils)
+		$(use_enable gprof)
 	)
 	echo ./configure "${myconf[@]}"
 	"${S}"/configure "${myconf[@]}" || die
