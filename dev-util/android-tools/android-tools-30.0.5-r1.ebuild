@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-inherit cmake-utils
+inherit cmake
 
 MY_PV="30.0.5p1"
 DESCRIPTION="Android platform tools (adb, fastboot, and mkbootimg)"
