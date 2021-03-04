@@ -33,7 +33,7 @@ RDEPEND="
 	media-fonts/open-sans
 	media-libs/alsa-lib
 	media-libs/fontconfig:=
-	~media-libs/libtgvoip-2.4.4_p20201030[pulseaudio=]
+	~media-libs/libtgvoip-2.4.4_p20201217[pulseaudio=]
 	media-libs/openal[alsa]
 	media-libs/opus:=
 	media-video/ffmpeg:=[alsa,opus]
@@ -51,11 +51,12 @@ RDEPEND="
 		x11-libs/gtk+:3[X?]
 		x11-libs/libX11
 	)
+	wayland? ( kde-frameworks/kwayland )
 	hunspell? ( >=app-text/hunspell-1.7:= )
 	!pulseaudio? ( media-sound/apulse[sdk] )
 	pulseaudio? ( media-sound/pulseaudio )
 	media-libs/libjpeg-turbo:=
-	~media-libs/tg_owt-0_pre20201112[pulseaudio=]
+	~media-libs/tg_owt-0_pre20210203[pulseaudio=]
 "
 
 DEPEND="
