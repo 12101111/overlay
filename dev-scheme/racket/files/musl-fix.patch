@@ -1,0 +1,11 @@
+--- a/ChezScheme/c/externs.h
++++ b/ChezScheme/c/externs.h
+@@ -26,6 +26,7 @@
+
+ #ifndef WIN32
+ #include <unistd.h>
++#include <time.h>
+
+ #if (machine_type == machine_type_i3qnx || machine_type == machine_type_ti3qnx)
+ off64_t lseek64(int,off64_t,int);
+

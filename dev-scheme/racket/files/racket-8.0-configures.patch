@@ -1,0 +1,26 @@
+diff --git a/bc/configure b/bc/configure
+index f9d8567454..5b41045ad7 100755
+--- a/bc/configure
++++ b/bc/configure
+@@ -7283,7 +7283,7 @@ for fixup_arg
+ do
+   case $fixup_arg in
+   # Strip away all feature choices
+-  -enable* | --enable* | -disable* | --disable*)
++  -enable* | --enable* | -disable* | --disable* | -collect* | --collect*)
+     ;;
+   *)
+     case $fixup_arg in
+diff --git a/cs/c/configure b/cs/c/configure
+index 81fc52f3b8..167120cc50 100755
+--- a/cs/c/configure
++++ b/cs/c/configure
+@@ -5643,7 +5643,7 @@ for fixup_arg
+ do
+   case $fixup_arg in
+   # Strip away all feature choices
+-  -enable* | --enable* | -disable* | --disable*)
++  -enable* | --enable* | -disable* | --disable* | -collect* | --collect*)
+     ;;
+   *)
+     case $fixup_arg in
