@@ -1,4 +1,4 @@
-# Copyright 2020 Gentoo Authors
+# Copyright 2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -18,24 +18,35 @@ IUSE="test"
 
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
-DEPEND="test? (
-	app-shells/bash
-	$(python_gen_cond_dep '
-		dev-python/lit[${PYTHON_USEDEP}]
-	')
-)"
+BEPEND="test? (
+		app-shells/bash
+		>=dev-cpp/gtest-1.10.0
+		$(python_gen_cond_dep '
+			dev-python/lit[${PYTHON_USEDEP}]
+		')
+	)"
 
-RDEPEND="${PYTHON_DEPS}"
+RDEPEND="
+	>=net-libs/grpc-1.26:=
+	>=dev-libs/libfmt-6.2:=
+	>=dev-libs/spdlog-1.5.0:=
+	>=dev-cpp/nlohmann_json-3.7.0:=
+	dev-db/sqlite
+${PYTHON_DEPS}
+"
 
 RESTRICT="!test? ( test )"
 
 S="${WORKDIR}/${P^}"
 
-src_compile() {
-	cmake_src_compile
-	# need to fix it now, before tests are run
-	python_fix_shebang "${BUILD_DIR}"/bear/bear
-	python_fix_shebang test/functional/tools/cdb_diff.py
+
+src_configure() {
+	local mycmakeargs=(
+		-DENABLE_UNIT_TESTS=$(usex test)
+		-DENABLE_FUNC_TESTS=$(usex test)
+		-DCMAKE_INSTALL_LIBEXECDIR="libexec/bear"
+	)
+	cmake_src_configure
 }
 
 src_test() {
@@ -52,10 +63,5 @@ src_test() {
 		ewarn "\'sys-devel/gcc-config[-native-symlinks]\' detected, tests call /usr/bin/cc directly (hardcoded)"
 		ewarn "and will fail without generic cc symlink"
 		ewarn "Skipping tests"
-	else
-		einfo "removing unwanted/unsupported/xfail tests"
-		rm -v test/functional/cases/{end-to-end/scons.ft,intercept/cuda/successful_build.fts,run_pep8.ft} || die
-		einfo "test may use optional tools if found: qmake gfortran"
-		cmake_build check
 	fi
 }
