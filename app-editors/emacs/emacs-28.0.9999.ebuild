@@ -40,11 +40,11 @@ DESCRIPTION="The extensible, customizable, self-documenting real-time display ed
 HOMEPAGE="https://www.gnu.org/software/emacs/"
 
 LICENSE="GPL-3+ FDL-1.3+ BSD HPND MIT W3C unicode PSF-2"
-IUSE="pgtk nativecomp fastboot acl alsa aqua athena cairo dbus dynamic-loading games gconf gfile gif +gmp gpm gsettings gtk gtk2 gui gzip-el harfbuzz imagemagick +inotify jpeg json kerberos lcms libxml2 livecd m17n-lib mailutils motif png selinux sound source ssl svg systemd +threads tiff toolkit-scroll-bars wide-int Xaw3d xft +xpm xwidgets zlib"
+IUSE="pgtk nativecomp fastboot acl alsa aqua athena cairo dbus dynamic-loading games gconf gfile gif +gmp gpm gsettings gtk gui gzip-el harfbuzz imagemagick +inotify jpeg json kerberos lcms libxml2 livecd m17n-lib mailutils png selinux sound source ssl svg systemd +threads tiff toolkit-scroll-bars wide-int Xaw3d xft +xpm xwidgets zlib"
 RESTRICT="test"
 REQUIRED_USE="
 	fastboot? ( nativecomp )
-	pgtk? ( gtk	!gtk2 )
+	pgtk? ( gtk	)
 "
 
 RDEPEND="app-emacs/emacs-common-gentoo[games?,gui(-)?]
@@ -99,34 +99,23 @@ RDEPEND="app-emacs/emacs-common-gentoo[games?,gui(-)?]
 			)
 		)
 		gtk? (
-			gtk2? ( x11-libs/gtk+:2 )
-			!gtk2? (
-				x11-libs/gtk+:3
-				xwidgets? (
-					net-libs/webkit-gtk:4=
-					x11-libs/libXcomposite
-				)
+			x11-libs/gtk+:3
+			xwidgets? (
+				net-libs/webkit-gtk:4=
+				x11-libs/libXcomposite
 			)
 		)
 		!gtk? (
-			motif? (
-				>=x11-libs/motif-2.3:0
-				x11-libs/libXpm
+			Xaw3d? (
+				x11-libs/libXaw3d
 				x11-libs/libXmu
 				x11-libs/libXt
 			)
-			!motif? (
-				Xaw3d? (
-					x11-libs/libXaw3d
-					x11-libs/libXmu
-					x11-libs/libXt
-				)
-				!Xaw3d? ( athena? (
-					x11-libs/libXaw
-					x11-libs/libXmu
-					x11-libs/libXt
-				) )
-			)
+			!Xaw3d? ( athena? (
+				x11-libs/libXaw
+				x11-libs/libXmu
+				x11-libs/libXt
+			) )
 		)
 	) )"
 
@@ -227,31 +216,19 @@ src_configure() {
 				Your version of GTK+ will have problems with closing open
 				displays. This is no problem if you just use one display, but
 				if you use more than one and close one of them Emacs may crash.
-				See <https://bugzilla.gnome.org/show_bug.cgi?id=85715>.
+				See <https://gitlab.gnome.org/GNOME/gtk/-/issues/221> and
+				<https://gitlab.gnome.org/GNOME/gtk/-/issues/2315>.
 				If you intend to use more than one display, then it is strongly
-				recommended that you compile Emacs with the Athena/Lucid or the
-				Motif toolkit instead.
+				recommended that you compile Emacs with the Athena/Lucid
+				toolkit instead.
 			EOF
-			if use gtk2; then
-				myconf+=" --with-x-toolkit=gtk2 --without-xwidgets"
-				use xwidgets && ewarn \
-					"USE flag \"xwidgets\" has no effect if \"gtk2\" is set."
-			else
-				myconf+=" --with-x-toolkit=gtk3 $(use_with xwidgets)"
-				if use pgtk; then
-					myconf+=" --with-pgtk"
-				fi
+			myconf+=" --with-x-toolkit=gtk3 $(use_with xwidgets)"
+			if use pgtk; then
+				myconf+=" --with-pgtk"
 			fi
-			for f in motif Xaw3d athena; do
-				use ${f} && ewarn \
-					"USE flag \"${f}\" has no effect if \"gtk\" is set."
-			done
-		elif use motif; then
-			einfo "Configuring to build with Motif toolkit"
-			myconf+=" --with-x-toolkit=motif"
 			for f in Xaw3d athena; do
 				use ${f} && ewarn \
-					"USE flag \"${f}\" has no effect if \"motif\" is set."
+					"USE flag \"${f}\" has no effect if \"gtk\" is set."
 			done
 		elif use athena || use Xaw3d; then
 			einfo "Configuring to build with Athena/Lucid toolkit"
@@ -260,12 +237,8 @@ src_configure() {
 			einfo "Configuring to build with no toolkit"
 			myconf+=" --with-x-toolkit=no"
 		fi
-		if ! use gtk; then
-			use gtk2 && ewarn \
-				"USE flag \"gtk2\" has no effect if \"gtk\" is not set."
-			use xwidgets && ewarn \
-				"USE flag \"xwidgets\" has no effect if \"gtk\" is not set."
-		fi
+		! use gtk && use xwidgets && ewarn \
+			"USE flag \"xwidgets\" has no effect if \"gtk\" is not set."
 	fi
 
 	if tc-is-cross-compiler; then
@@ -307,7 +280,7 @@ src_configure() {
 		$(use_with threads) \
 		$(use_with wide-int) \
 		$(use_with zlib) \
-		$(use_with nativecomp) \
+		$(use_with nativecomp native-compilation) \
 		${myconf}
 }
 
@@ -319,6 +292,15 @@ src_compile() {
 			emake NATIVE_FULL_AOT=1
 		fi
 	else
+		if tc-is-cross-compiler; then
+			# Build native tools for compiling lisp etc.
+			emake -C "${S}-build" src
+			emake lib       # Cross-compile dependencies first for timestamps
+			# Save native build tools in the cross-directory
+			cp "${S}-build"/lib-src/make-{docfile,fingerprint} lib-src || die
+			# Specify the native Emacs to compile lisp
+			emake -C lisp all EMACS="${S}-build/src/emacs"
+		fi
 		emake
 	fi
 }
