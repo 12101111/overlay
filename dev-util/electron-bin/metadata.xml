@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>w12101111@gmail.com</email>
+	</maintainer>
+	<longdescription>Electron is a cross platform application development framework based on web technologies based on Chromium</longdescription>
+	<upstream>
+		<remote-id type="github">electron/electron/</remote-id>
+	</upstream>
+</pkgmetadata>
