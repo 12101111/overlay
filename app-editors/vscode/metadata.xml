@@ -5,7 +5,6 @@
 		<email>w12101111@gmail.com</email>
 	</maintainer>
 	<use>
-		<flag name="system-electron">Use system <pkg>dev-util/electron</pkg> instead of the bundled one</flag>
 		<flag name="system-ripgrep">Use system <pkg>sys-apps/ripgrep</pkg> instead of the bundled one</flag>
 	</use>
 </pkgmetadata>

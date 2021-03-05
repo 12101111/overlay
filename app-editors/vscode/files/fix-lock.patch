@@ -1,0 +1,78 @@
+diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
+index f9157b7cbc6..6b20cf3b2b3 100644
+--- a/build/gulpfile.vscode.js
++++ b/build/gulpfile.vscode.js
+@@ -143,6 +143,14 @@ function computeChecksum(filename) {
+ 	return hash;
+ }
+ 
++function moveApp() {
++  var appPath = "resources/app";
++
++  return rename(function (path) {
++    path.dirname = appPath + (path.dirname === "." ? "" : "/" + path.dirname);
++  });
++}
++
+ function packageTask(platform, arch, sourceFolderName, destinationFolderName, opts) {
+ 	opts = opts || {};
+ 
+@@ -150,7 +158,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+ 	platform = platform || process.platform;
+ 
+ 	return () => {
+-		const electron = require('gulp-atom-electron');
+ 		const json = require('gulp-json-editor');
+ 
+ 		const out = sourceFolderName;
+@@ -285,7 +292,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+ 			.pipe(util.skipDirectories())
+ 			.pipe(util.fixWin32DirectoryPermissions())
+ 			.pipe(filter(['**', '!**/.github/**'], { dot: true })) // https://github.com/microsoft/vscode/issues/116523
+-			.pipe(electron(_.extend({}, config, { platform, arch: arch === 'armhf' ? 'arm' : arch, ffmpegChromium: false })))
++			.pipe(moveApp())
+ 			.pipe(filter(['**', '!LICENSE', '!LICENSES.chromium.html', '!version'], { dot: true }));
+ 
+ 		if (platform === 'linux') {
+@@ -324,15 +331,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+ 				.pipe(rename('bin/' + product.applicationName)));
+ 		}
+ 
+-		// submit all stats that have been collected
+-		// during the build phase
+-		if (opts.stats) {
+-			result.on('end', () => {
+-				const { submitAllStats } = require('./lib/stats');
+-				submitAllStats(product, commit).then(() => console.log('Submitted bundle stats!'));
+-			});
+-		}
+-
+ 		return result.pipe(vfs.dest(destination));
+ 	};
+ }
+diff --git a/yarn.lock b/yarn.lock
+index d706d61971f..dd342eb1d82 100644
+--- a/yarn.lock
++++ b/yarn.lock
+@@ -1430,8 +1430,8 @@ bcrypt-pbkdf@^1.0.0:
+ 
+ before-after-hook@^2.1.0:
+   version "2.1.0"
+-  resolved "https://pkgs.dev.azure.com/terrapin-prod/Terrapin/_packaging/open-source-packages-2/npm/registry/before-after-hook/-/before-after-hook-2.1.0.tgz#0bb562539c98af6479c3e423df1880d022bd9c76"
+-  integrity sha1-C7ViU5yYr2R5w+Qj3xiA0CK9nHY=
++  resolved "https://pkgs.dev.azure.com/terrapin-prod/Terrapin/_packaging/open-source-packages-2/npm/registry/before-after-hook/-/before-after-hook-2.1.0.tgz#b6c03487f44e24200dd30ca5e6a1979c5d2fb635"
++  integrity sha512-IWIbu7pMqyw3EAJHzzHbWa85b6oud/yfKYg5rqB5hNE8CeMi3nX+2C2sj0HswfblST86hpVEOAb9x34NZd6P7A==
+ 
+ big.js@^3.1.3:
+   version "3.2.0"
+@@ -6624,8 +6624,8 @@ node-addon-api@^3.0.0, node-addon-api@^3.0.2:
+ 
+ node-fetch@^2.6.1:
+   version "2.6.1"
+-  resolved "https://pkgs.dev.azure.com/terrapin-prod/Terrapin/_packaging/open-source-packages-2/npm/registry/node-fetch/-/node-fetch-2.6.1.tgz#71da3def292fc21adc5670825461ea36c316643c"
+-  integrity sha1-cdo97ykvwhrcVnCCVGHqNsMWZDw=
++  resolved "https://pkgs.dev.azure.com/terrapin-prod/Terrapin/_packaging/open-source-packages-2/npm/registry/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
++  integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
+ 
+ node-gyp@^7.1.0:
+   version "7.1.0"
