@@ -6,17 +6,19 @@ EAPI=7
 inherit cmake
 
 DESCRIPTION="Generic driver for the .NET Core Command Line Interface"
-HOMEPAGE="https://github.com/dotnet/core-setup"
-SRC_URI="https://github.com/dotnet/core-setup/archive/v${PV}.tar.gz -> core-setup-${PV}.tar.gz"
+HOMEPAGE="https://github.com/dotnet/runtime"
+SRC_URI="https://github.com/dotnet/runtime/archive/v${PV}.tar.gz -> runtime-${PV}.tar.gz"
 
-COMMIT="0267ad09c6f2e2a37b23b7d230ffbf9e787dd388"
-SDK="3.1.406"
+COMMIT="c636bbdc8a2d393d07c0e9407a4f8923ba1a21cb"
+SDK="5.0.200"
 
 LICENSE="MIT"
-SLOT="3.1"
+SLOT="5.0"
 KEYWORDS="~amd64"
 
 DEPEND="
+	~dev-dotnet/coreclr-${PV}
+	~dev-dotnet/corefx-${PV}
 	net-misc/curl:=
 	dev-libs/icu:=
 	virtual/krb5
@@ -29,9 +31,15 @@ DEPEND="
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
-S="${WORKDIR}/core-setup-${PV}/src/corehost"
+PATCHES=( "${FILESDIR}/corehost-5.0-add-missing-lib.patch" )
+S="${WORKDIR}/runtime-${PV}/src/installer/corehost"
 
 src_prepare() {
+	pushd "${WORKDIR}/runtime-${PV}" > /dev/null || die
+		eapply "${FILESDIR}"/corehost-5.0-fix-lld.patch
+		eapply "${FILESDIR}"/corehost-5.0-strip.patch
+	popd > /dev/null || die
+
 	# don't build test
 	sed -i \
 		-e "/add_subdirectory(test_fx_ver)/d" \
@@ -54,8 +62,10 @@ src_configure() {
 	esac
 
 	mycmakeargs=(
+		-DCLR_ENG_NATIVE_DIR="${WORKDIR}/runtime-${PV}/eng/native"
+		-DCORECLR_ARTIFACTS="/opt/dotnet/shared/Microsoft.NETCore.App/${PV}"
+		-DNATIVE_LIBS_ARTIFACTS="/opt/dotnet/shared/Microsoft.NETCore.App/${PV}"
 		-DCLI_CMAKE_PORTABLE_BUILD=1
-		-DCLI_CMAKE_PLATFORM_ARCH_$arch=1
 		-DVERSION_FILE_PATH:STRING="${WORKDIR}/version_file.c"
 		-DCLI_CMAKE_HOST_VER:STRING="${PV}"
 		-DCLI_CMAKE_COMMON_HOST_VER:STRING="${PV}"
@@ -80,11 +90,15 @@ src_install() {
 	mv "${prefix}/corehost/libhostpolicy.so" "${framework}"
 	mkdir -p "${native}"
 	mv "${prefix}/corehost/apphost" "${native}"
+	mv "${prefix}/corehost/singlefilehost" "${native}"
 	mkdir -p "${template}"
 	ln -s "${native}/apphost" "${template}"
 	mv "${prefix}/corehost/libnethost.so" "${native}"
-	mv "${prefix}/corehost/nethost.h" "${framework}"
-	ln -s "${framework}/nethost.h" "${native}"
+	for p in nethost.h coreclr_delegates.h hostfxr.h libnethost.a;do
+		mv "${prefix}/corehost/$p" "${framework}"
+		ln -s "${framework}/$p" "${native}"
+	done
+
 	mkdir -p "${prefix}/host/fxr/${PV}"
 	mv "${prefix}/corehost/libhostfxr.so" "${prefix}/host/fxr/${PV}/"
 	rm -rfv "${prefix}/corehost"
