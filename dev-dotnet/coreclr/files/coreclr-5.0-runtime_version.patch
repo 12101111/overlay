@@ -1,0 +1,17 @@
+diff --git a/src/inc/runtime_version.h b/src/inc/runtime_version.h
+new file mode 100644
+index 0000000..7c0b416
+--- /dev/null
++++ b/src/inc/runtime_version.h
+@@ -0,0 +1,11 @@
++#define RuntimeAssemblyMajorVersion 0
++#define RuntimeAssemblyMinorVersion 0
++#define RuntimeFileMajorVersion 0
++#define RuntimeFileMinorVersion 0
++#define RuntimeFileBuildVersion 0
++#define RuntimeFileRevisionVersion 0
++#define RuntimeProductMajorVersion 0
++#define RuntimeProductMinorVersion 0
++#define RuntimeProductPatchVersion 0
++#define RuntimeProductVersion
++

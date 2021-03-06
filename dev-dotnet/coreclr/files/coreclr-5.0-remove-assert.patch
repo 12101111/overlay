@@ -1,0 +1,50 @@
+diff --git a/src/gc/gc.cpp b/src/gc/gc.cpp
+index b5de2fc..750503e 100644
+--- a/src/gc/gc.cpp
++++ b/src/gc/gc.cpp
+@@ -6273,9 +6273,10 @@ void gc_heap::fix_uoh_allocation_area()
+         alloc_context* acontext =
+ #endif // _DEBUG
+         generation_alloc_context (generation_of (i));
++#ifdef _DEBUG
+         assert (acontext->alloc_ptr == 0);
+         assert (acontext->alloc_limit == 0); 
+-
++#endif
+ #if 0
+         dprintf (3, ("UOH alloc context: gen: %Ix, ptr: %Ix, limit %Ix",
+                      i, (size_t)acontext->alloc_ptr, (size_t)acontext->alloc_limit));
+@@ -8700,8 +8701,10 @@ void gc_heap::sort_mark_list()
+             heap_num++;
+             if (heap_num >= n_heaps)
+                 heap_num = 0;
++#ifdef _DEBUG
+             assert(heap_num != last_heap_num); // we should always find the heap - infinite loop if not!
+-            heap = g_heaps[heap_num];
++#endif //_DEBUG
++	    heap = g_heaps[heap_num];
+         }
+         while (!(*x >= heap->ephemeral_low && *x < heap->ephemeral_high));
+ 
+@@ -32562,8 +32565,9 @@ bool gc_heap::decommit_step ()
+ size_t gc_heap::decommit_ephemeral_segment_pages_step ()
+ {
+     // we rely on desired allocation not being changed outside of GC
++#ifdef _DEBUG
+     assert (ephemeral_heap_segment->saved_desired_allocation == dd_desired_allocation (dynamic_data_of (0)));
+-
++#endif // _DEBUG
+     uint8_t* decommit_target = heap_segment_decommit_target (ephemeral_heap_segment);
+     size_t EXTRA_SPACE = 2 * OS_PAGE_SIZE;
+     decommit_target += EXTRA_SPACE;
+@@ -32571,8 +32575,9 @@ size_t gc_heap::decommit_ephemeral_segment_pages_step ()
+     if (decommit_target < committed)
+     {
+         // we rely on other threads not messing with committed if we are about to trim it down
++#ifdef _DEBUG
+         assert (ephemeral_heap_segment->saved_committed == heap_segment_committed (ephemeral_heap_segment));
+-
++#endif // _DEBUG
+         // how much would we need to decommit to get to decommit_target in one step?
+         size_t full_decommit_size = (committed - decommit_target);
+ 

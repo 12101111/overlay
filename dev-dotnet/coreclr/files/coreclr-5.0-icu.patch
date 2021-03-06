@@ -1,0 +1,14 @@
+diff --git a/pal_icushim_internal.h b/pal_icushim_internal.h
+index abe0f38..a8f482e 100644
+--- a/pal_icushim_internal.h
++++ b/pal_icushim_internal.h
+@@ -40,6 +40,9 @@
+ #include <unicode/urename.h>
+ #include <unicode/ustring.h>
+ 
++#define TRUE  1
++#define FALSE 0
++
+ #endif
+ 
+ #elif defined(TARGET_WINDOWS)
