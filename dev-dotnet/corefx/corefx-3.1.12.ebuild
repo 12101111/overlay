@@ -20,7 +20,7 @@ BDEPEND=""
 S="${WORKDIR}/${P}/src/Native/Unix"
 
 PATCHES=(
-    "${FILESDIR}/gentoo-fix.patch"
+    "${FILESDIR}/gentoo-fix-3.1.12.patch"
 )
 
 src_configure() {
@@ -29,7 +29,7 @@ src_configure() {
 
 	mycmakeargs=(
 		-DVERSION_FILE_PATH:STRING="${WORKDIR}/version_file.c"
-		-DCMAKE_INSTALL_PREFIX="/opt/dotnetcore-sdk-bin-${PV}/shared/Microsoft.NETCore.App/${PV}"
+		-DCMAKE_INSTALL_PREFIX="/opt/dotnet/shared/Microsoft.NETCore.App/${PV}"
 	)
 
 	cmake_src_configure
