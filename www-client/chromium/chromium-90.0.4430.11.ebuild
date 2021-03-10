@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="4"
+PATCHSET="6"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -257,7 +257,6 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-90-FrameToken-constexpr.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -344,13 +343,18 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/third_party
 		third_party/dom_distiller_js
+		third_party/eigen3
 		third_party/emoji-segmenter
+		third_party/farmhash
 		third_party/fdlibm
+		third_party/fft2d
 		third_party/flatbuffers
 		third_party/freetype
 		third_party/fusejs
 		third_party/libgifcodec
 		third_party/liburlpattern
+		third_party/libzip
+		third_party/gemmlowp
 		third_party/google_input_tools
 		third_party/google_input_tools/third_party/closure_library
 		third_party/google_input_tools/third_party/closure_library/third_party/closure
@@ -398,6 +402,7 @@ src_prepare() {
 		third_party/modp_b64
 		third_party/nasm
 		third_party/nearby
+		third_party/neon_2_sse
 		third_party/node
 		third_party/node/node_modules/polymer-bundler/lib/third_party/UglifyJS2
 		third_party/one_euro_filter
@@ -440,10 +445,17 @@ src_prepare() {
 		third_party/skia/third_party/vulkan
 		third_party/smhasher
 		third_party/sqlite
+		third_party/tensorflow-text
+		third_party/tflite
+		third_party/tflite/src/third_party/eigen3
+		third_party/tflite/src/third_party/fft2d
+		third_party/tflite-support
 		third_party/tint
+		third_party/ruy
 		third_party/ukey2
 		third_party/unrar
 		third_party/usrsctp
+		third_party/utf
 		third_party/vulkan
 		third_party/web-animations-js
 		third_party/webdriver
@@ -638,7 +650,7 @@ src_configure() {
 	myconf_gn+=" enable_swiftshader=$(usex swiftshader true false)"
 	myconf_gn+=" enable_vulkan=$(usex vulkan true false)"
 	if use vulkan && use swiftshader; then
-        myconf_gn+=" enable_swiftshader_vulkan=true"
+		myconf_gn+=" enable_swiftshader_vulkan=true"
 	fi
 
 	# TODO: link_pulseaudio=true for GN.

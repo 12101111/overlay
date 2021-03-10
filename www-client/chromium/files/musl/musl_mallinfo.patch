@@ -58,3 +58,17 @@ index f60b2fa..798f150 100644
  
  /* Define to 1 if you have the <malloc.h> header file. */
  #define HAVE_MALLOC_H 1
+diff --git a/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc b/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc
+index f60b2fa..798f150 100644
+--- a/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc
++++ b/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc
+@@ -35,7 +35,7 @@
+
+ MemoryUsage GetMemoryUsage() {
+   MemoryUsage result;
+-#ifdef __linux__
++#ifdef __GLIBC__
+   rusage res;
+   if (getrusage(RUSAGE_SELF, &res) == 0) {
+     result.max_rss_kb = res.ru_maxrss;
+
