@@ -1,0 +1,39 @@
+From 8e9c5db5501512822ecf77cd90b60d4ac08fbf4a Mon Sep 17 00:00:00 2001
+From: Daniel Playfair Cal <daniel.playfair.cal@gmail.com>
+Date: Mon, 25 Nov 2019 10:14:30 +1100
+Subject: [PATCH 1/8] fix: use ozone version of global_shortcut_listener when
+ use_ozone is set
+
+---
+ chromium_src/BUILD.gn | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/chromium_src/BUILD.gn b/chromium_src/BUILD.gn
+index ab6b3fc56..08749078d 100644
+--- a/chromium_src/BUILD.gn
++++ b/chromium_src/BUILD.gn
+@@ -78,9 +78,19 @@ static_library("chrome") {
+ 
+   if (is_linux) {
+     sources += [ "//chrome/browser/icon_loader_auralinux.cc" ]
++    if (use_ozone) {
++      sources += [
++        "//chrome/browser/extensions/global_shortcut_listener_ozone.cc",
++        "//chrome/browser/extensions/global_shortcut_listener_ozone.h",
++      ]
++    }
++    else {
++      sources += [
++        "//chrome/browser/extensions/global_shortcut_listener_x11.cc",
++        "//chrome/browser/extensions/global_shortcut_listener_x11.h",
++      ]
++    }
+     sources += [
+-      "//chrome/browser/extensions/global_shortcut_listener_x11.cc",
+-      "//chrome/browser/extensions/global_shortcut_listener_x11.h",
+       "//chrome/browser/ui/views/status_icons/concat_menu_model.cc",
+       "//chrome/browser/ui/views/status_icons/concat_menu_model.h",
+       "//chrome/browser/ui/views/status_icons/status_icon_linux_dbus.cc",
+-- 
+2.28.0
+
