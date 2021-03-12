@@ -1,0 +1,22 @@
+diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
+index d36a3dfc49c..d25ecbadc97 100644
+--- a/src/vs/platform/environment/common/argv.ts
++++ b/src/vs/platform/environment/common/argv.ts
+@@ -97,4 +97,5 @@ export interface NativeParsedArgs {
+ 	'ignore-certificate-errors'?: boolean;
+ 	'allow-insecure-localhost'?: boolean;
+ 	'log-net-log'?: string;
++	'app'?: string;
+ }
+diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
+index 6f532262ae0..a0cd405e56c 100644
+--- a/src/vs/platform/environment/node/argv.ts
++++ b/src/vs/platform/environment/node/argv.ts
+@@ -132,6 +132,7 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
+ 	'allow-insecure-localhost': { type: 'boolean' },
+ 	'log-net-log': { type: 'string' },
+ 	'_urls': { type: 'string[]' },
++	'app': { type: 'string' },
+ 
+ 	_: { type: 'string[]' } // main arguments
+ };

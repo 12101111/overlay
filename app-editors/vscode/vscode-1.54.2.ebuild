@@ -29,7 +29,7 @@ declare -A BUILTINEXTS=(
 ["node-debug2"]="1.42.5"
 ["references-view"]="0.0.77"
 ["js-debug-companion"]="1.0.8"
-["js-debug"]="1.54.3"
+["js-debug"]="1.54.5"
 ["vscode-js-profile-table"]="0.0.11"
 )
 
@@ -2161,6 +2161,7 @@ https://registry.yarnpkg.com/typescript/-/typescript-3.7.5.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-3.9.7.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.1.3.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.2.2.tgz
+https://registry.yarnpkg.com/typescript/-/typescript-4.2.3.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.3.0-dev.20210216.tgz
 https://registry.yarnpkg.com/typical/-/typical-4.0.0.tgz
 https://registry.yarnpkg.com/uc.micro/-/uc.micro-1.0.3.tgz
@@ -2415,6 +2416,7 @@ PATCHES=(
 	"${FILESDIR}/0006-Don-t-run-yarn-install-for-web-remote-test.patch"
 	"${FILESDIR}/0007-update-product.json.patch"
 	"${FILESDIR}/fix-lock.patch"
+	"${FILESDIR}/allow-app-argv.patch"
 )
 
 src_unpack() {
@@ -2490,10 +2492,9 @@ src_install() {
 	done
 
 	sed -i "2i	\"commit\": \"${COMMIT}\"," "${ED}${vscode_path}/resources/app/product.json"
-	cp "${FILESDIR}/code.js" "${ED}${vscode_path}/resources/app"
 	sed -i "s/ELECTRON=\"\$VSCODE_PATH\/${app_name}\"/ELECTRON=\"\/usr\/$(get_libdir)\/electron-${ELECTRON_SLOT}\/electron\"/g" \
 		"${ED}${vscode_path}/bin/${app_name}"
-	sed -i "s/\"\$CLI\"/\"\$CLI\" \"\${VSCODE_PATH}\/resources\/app\/code.js\"/g" \
+	sed -i "s/\"\$CLI\"/\"\$CLI\" --app=\"\${VSCODE_PATH}\/resources\/app\"/g" \
 		"${ED}${vscode_path}/bin/${app_name}"
 
 	if use system-ripgrep; then
