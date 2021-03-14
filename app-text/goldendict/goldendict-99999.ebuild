@@ -1,4 +1,4 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -13,7 +13,7 @@ EGIT_SUBMODULES=()
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS=""
-IUSE="debug ffmpeg libav opencc zim multimedia"
+IUSE="debug ffmpeg opencc zim multimedia"
 
 RDEPEND="
 	app-arch/bzip2
@@ -38,8 +38,7 @@ RDEPEND="
 	x11-libs/libXtst
 	ffmpeg? (
 		media-libs/libao
-		libav? ( media-video/libav:0= )
-		!libav? ( media-video/ffmpeg:0= )
+		media-video/ffmpeg:0=
 	)
 	opencc? ( app-i18n/opencc )
 	zim? ( app-arch/xz-utils )
@@ -59,7 +58,7 @@ src_prepare() {
 	default
 
 	# add trailing semicolon
-	sed -i -e '/^Categories/s/$/;/' redist/${PN}.desktop || die
+	sed -i -e '/^Categories/s/$/;/' redist/org.goldendict.GoldenDict.desktop || die
 
 	# fix flags
 	echo "QMAKE_CXXFLAGS_RELEASE = ${CFLAGS}" >> goldendict.pro
@@ -78,7 +77,7 @@ src_configure() {
 
 src_install() {
 	dobin ${PN}
-	domenu redist/${PN}.desktop
+	domenu redist/org.goldendict.GoldenDict.desktop
 	doicon redist/icons/${PN}.png
 
 	insinto /usr/share/apps/${PN}/locale
