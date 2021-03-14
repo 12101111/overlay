@@ -28,7 +28,6 @@ RDEPEND="
 	sys-libs/zlib
 	alsa? ( media-libs/alsa-lib )
 	cups? ( net-print/cups )
-	doc? ( dev-java/java-sdk-docs:${SLOT} )
 	selinux? ( sec-policy/selinux-java )
 	!headless-awt? (
 		x11-libs/libX11
@@ -79,6 +78,9 @@ src_install() {
 
 	dodir "${dest}"
 	cp -pPR * "${ddest}" || die
+
+	# provide stable symlink
+	dosym "${P}" "/opt/${PN}-${SLOT}"
 
 	use gentoo-vm && java-vm_install-env "${FILESDIR}"/${PN}-${SLOT}.env.sh
 	java-vm_set-pax-markings "${ddest}"
