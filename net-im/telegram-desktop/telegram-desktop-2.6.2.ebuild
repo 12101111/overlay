@@ -56,7 +56,7 @@ RDEPEND="
 	!pulseaudio? ( media-sound/apulse[sdk] )
 	pulseaudio? ( media-sound/pulseaudio )
 	media-libs/libjpeg-turbo:=
-	~media-libs/tg_owt-0_pre20210203[pulseaudio=]
+	~media-libs/tg_owt-0_pre20210310[pulseaudio=]
 "
 
 DEPEND="
