@@ -43,6 +43,7 @@ RDEPEND="
 	opencc? ( app-i18n/opencc )
 	zim? ( app-arch/xz-utils )
 	multimedia? ( dev-qt/qtmultimedia[gstreamer] )
+	elibc_musl? ( sys-libs/libexecinfo )
 "
 DEPEND="${RDEPEND}"
 BDEPEND="
