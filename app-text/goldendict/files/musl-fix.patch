@@ -24,29 +24,66 @@ index f6a85c07..ae9759a5 100644
  {
  #ifdef Q_OS_UNIX
 diff --git a/mdictparser.cc b/mdictparser.cc
-index 5139ad7c..1afd1297 100644
+index 5139ad7c..4d26b1d8 100644
 --- a/mdictparser.cc
 +++ b/mdictparser.cc
-@@ -184,9 +184,11 @@ QString MdictParser::toUtf16( const char * fromCode, const char * from, size_t f
+@@ -22,7 +22,6 @@
+ 
+ #include <errno.h>
+ #include <zlib.h>
+-#include <iconv.h>
+ #include <lzo/lzo1x.h>
+ 
+ #include <QtEndian>
+@@ -37,6 +36,8 @@
+ #include <QDomDocument>
+ #include <QTextDocumentFragment>
+ #include <QDataStream>
++#include <QTextCodec>
++#include <QByteArray>
+ 
+ #include "decompress.hh"
+ #include "gddebug.hh"
+@@ -184,38 +185,10 @@ QString MdictParser::toUtf16( const char * fromCode, const char * from, size_t f
    if ( !fromCode || !from )
      return QString();
  
 -  iconv_t conv = iconv_open( "UTF-16//IGNORE", fromCode );
 -  if ( conv == ( iconv_t ) - 1 )
-+  iconv_t conv = iconv_open( "utf8", fromCode );
-+  if ( conv == ( iconv_t ) - 1 ){
-+    perror("iconv failed");
-     return QString();
-+  }
- 
-   vector<char> result;
-   const static int CHUNK_SIZE = 512;
-@@ -215,7 +217,7 @@ QString MdictParser::toUtf16( const char * fromCode, const char * from, size_t f
-   iconv_close( conv );
-   if ( result.size() <= 2 )
-     return QString();
+-    return QString();
+-
+-  vector<char> result;
+-  const static int CHUNK_SIZE = 512;
+-  char buf[CHUNK_SIZE];
+-  char ** inBuf = ( char ** )&from;
+-
+-  while ( fromSize )
+-  {
+-    char * outBuf = buf;
+-    size_t outBytesLeft = CHUNK_SIZE;
+-    size_t ret = iconv( conv, inBuf, &fromSize, &outBuf, &outBytesLeft );
+-
+-    if ( ret == ( size_t ) - 1 )
+-    {
+-      if ( errno != E2BIG )
+-      {
+-        // Real problem
+-        result.clear();
+-        break;
+-      }
+-    }
+-
+-    result.insert( result.end(), buf, buf + CHUNK_SIZE - outBytesLeft );
+-  }
+-
+-  iconv_close( conv );
+-  if ( result.size() <= 2 )
+-    return QString();
 -  return QString::fromUtf16( ( const ushort * )&result.front() );
-+  return QString::fromUtf8( ( const char * )&result.front() );
++  QByteArray encodedString = QByteArray(from);
++  QTextCodec *codec = QTextCodec::codecForName(fromCode);
++  QString result = codec->toUnicode(encodedString);
++  return result;
  }
  
  bool MdictParser::decryptHeadWordIndex(char * buffer, qint64 len)
