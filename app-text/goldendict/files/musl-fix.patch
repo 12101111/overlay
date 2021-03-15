@@ -1,0 +1,52 @@
+diff --git a/goldendict.pro b/goldendict.pro
+index 4a4a3094..b4985daa 100644
+--- a/goldendict.pro
++++ b/goldendict.pro
+@@ -165,6 +165,7 @@ unix:!mac {
+     } else {
+         LIBS += -lX11 -lXtst
+     }
++    LIBS += -lexecinfo
+ 
+     # Install prefix: first try to use qmake's PREFIX variable,
+     # then $PREFIX from system environment, and if both fails,
+diff --git a/main.cc b/main.cc
+index f6a85c07..ae9759a5 100644
+--- a/main.cc
++++ b/main.cc
+@@ -210,6 +210,8 @@ public:
+   ~LogFilePtrGuard() { logFilePtr = 0; }
+ };
+ 
++#include <locale.h>
++
+ int main( int argc, char ** argv )
+ {
+ #ifdef Q_OS_UNIX
+diff --git a/mdictparser.cc b/mdictparser.cc
+index 5139ad7c..1afd1297 100644
+--- a/mdictparser.cc
++++ b/mdictparser.cc
+@@ -184,9 +184,11 @@ QString MdictParser::toUtf16( const char * fromCode, const char * from, size_t f
+   if ( !fromCode || !from )
+     return QString();
+ 
+-  iconv_t conv = iconv_open( "UTF-16//IGNORE", fromCode );
+-  if ( conv == ( iconv_t ) - 1 )
++  iconv_t conv = iconv_open( "utf8", fromCode );
++  if ( conv == ( iconv_t ) - 1 ){
++    perror("iconv failed");
+     return QString();
++  }
+ 
+   vector<char> result;
+   const static int CHUNK_SIZE = 512;
+@@ -215,7 +217,7 @@ QString MdictParser::toUtf16( const char * fromCode, const char * from, size_t f
+   iconv_close( conv );
+   if ( result.size() <= 2 )
+     return QString();
+-  return QString::fromUtf16( ( const ushort * )&result.front() );
++  return QString::fromUtf8( ( const char * )&result.front() );
+ }
+ 
+ bool MdictParser::decryptHeadWordIndex(char * buffer, qint64 len)

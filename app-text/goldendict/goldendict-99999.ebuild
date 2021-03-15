@@ -57,6 +57,8 @@ PATCHES=(
 src_prepare() {
 	default
 
+	use elibc_musl && eapply "${FILESDIR}/musl-fix.patch"
+
 	# add trailing semicolon
 	sed -i -e '/^Categories/s/$/;/' redist/org.goldendict.GoldenDict.desktop || die
 
