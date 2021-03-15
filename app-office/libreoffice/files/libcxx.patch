@@ -1,0 +1,12 @@
+diff --git a/libreofficekit/qa/gtktiledviewer/gtv-lok-dialog.cxx b/libreofficekit/qa/gtktiledviewer/gtv-lok-dialog.cxx
+index bb70a1515..a67d3427e 100644
+--- a/libreofficekit/qa/gtktiledviewer/gtv-lok-dialog.cxx
++++ b/libreofficekit/qa/gtktiledviewer/gtv-lok-dialog.cxx
+@@ -11,6 +11,7 @@
+ #include <gdk/gdkkeysyms.h>
+ 
+ #include <iostream>
++#include <sstream>
+ 
+ #include <LibreOfficeKit/LibreOfficeKitGtk.h>
+ #include <LibreOfficeKit/LibreOfficeKitEnums.h>
