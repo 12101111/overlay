@@ -20,7 +20,7 @@ HOMEPAGE="https://github.com/kovidgoyal/kitty"
 
 LICENSE="GPL-3"
 SLOT="0"
-IUSE="debug wayland"
+IUSE="debug wayland asan"
 REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 
 RDEPEND="
@@ -79,7 +79,7 @@ src_prepare() {
 
 src_compile() {
 	"${EPYTHON}" setup.py \
-		--verbose $(usex debug --debug "") \
+		--verbose $(usex debug --debug "") $(usex asan --sanitize "") \
 		--libdir-name $(get_libdir) \
 		--update-check-interval=0 \
 		linux-package || die "Failed to compile kitty."
