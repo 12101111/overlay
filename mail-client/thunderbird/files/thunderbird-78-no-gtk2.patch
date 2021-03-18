@@ -1,0 +1,3580 @@
+diff --git a/.gitignore b/.gitignore
+index 7fdb280335..86f1329e8a 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -27,8 +27,6 @@ ID
+ # User files that may appear at the root
+ /.mozconfig*
+ /mozconfig*
+-/configure
+-/old-configure
+ /config.cache
+ /config.log
+ /.clang_complete
+diff --git a/browser/installer/package-manifest.in b/browser/installer/package-manifest.in
+index e011b74cc4..53741622f1 100644
+--- a/browser/installer/package-manifest.in
++++ b/browser/installer/package-manifest.in
+@@ -100,7 +100,6 @@
+ #endif
+ #ifdef MOZ_GTK
+ @BINPATH@/@DLL_PREFIX@mozgtk@DLL_SUFFIX@
+-@BINPATH@/gtk2/@DLL_PREFIX@mozgtk@DLL_SUFFIX@
+ #ifdef MOZ_WAYLAND
+ @BINPATH@/@DLL_PREFIX@mozwayland@DLL_SUFFIX@
+ #endif
+diff --git a/dom/moz.build b/dom/moz.build
+index c4c446fefb..8ee206039c 100644
+--- a/dom/moz.build
++++ b/dom/moz.build
+@@ -118,7 +118,7 @@ TEST_DIRS += [
+     'imptests',
+ ]
+ 
+-if CONFIG['MOZ_WIDGET_TOOLKIT'] in ('gtk', 'cocoa', 'windows'):
++if CONFIG['MOZ_WIDGET_TOOLKIT'] in ('cocoa', 'windows'):
+     TEST_DIRS += ['plugins/test']
+ 
+ SPHINX_TREES['/dom'] = 'docs'
+diff --git a/dom/plugins/base/npapi.h b/dom/plugins/base/npapi.h
+index d6b189baef..f6d9022c1f 100644
+--- a/dom/plugins/base/npapi.h
++++ b/dom/plugins/base/npapi.h
+@@ -41,9 +41,9 @@
+ #  endif
+ #endif
+ 
+-#if defined(XP_UNIX)
++#if defined(MOZ_X11)
+ #  include <stdio.h>
+-#  if defined(MOZ_X11)
++#  if 0
+ #    include <X11/Xlib.h>
+ #    include <X11/Xutil.h>
+ #    include "X11UndefineNone.h"
+@@ -211,7 +211,7 @@ typedef struct _NPAsyncSurface {
+ /* Exact meaning must be spec'd in event model. */
+ #  define kNPEventStartIME 2
+ 
+-#  if defined(XP_UNIX)
++#  if 0
+ /*
+  * Unix specific structures and definitions
+  */
+@@ -229,7 +229,7 @@ typedef struct {
+ 
+ typedef struct {
+   int32_t type;
+-#    if defined(MOZ_X11)
++#    if 0
+   Display* display;
+   Visual* visual;
+   Colormap colormap;
+@@ -291,7 +291,7 @@ typedef enum {
+   ,
+   NPDrawingModelSyncWin = 5
+ #  endif
+-#  if defined(MOZ_X11)
++#  if 0
+   ,
+   NPDrawingModelSyncX = 6
+ #  endif
+@@ -330,7 +330,7 @@ typedef enum {
+  *   gcc 3.x generated vtables on UNIX and OSX are incompatible with
+  *   previous compilers.
+  */
+-#  if (defined(XP_UNIX) && defined(__GNUC__) && (__GNUC__ >= 3))
++#  if 0
+ #    define _NP_ABI_MIXIN_FOR_GCC3 NP_ABI_GCC3_MASK
+ #  else
+ #    define _NP_ABI_MIXIN_FOR_GCC3 0
+@@ -530,7 +530,7 @@ typedef struct _NPWindow {
+   uint32_t width; /* Maximum window size */
+   uint32_t height;
+   NPRect clipRect; /* Clipping rectangle in port coordinates */
+-#  if (defined(XP_UNIX) || defined(XP_SYMBIAN)) && !defined(XP_MACOSX)
++#  if (defined(XP_SYMBIAN)) && !defined(XP_MACOSX)
+   void* ws_info;     /* Platform-dependent additional data */
+ #  endif             /* XP_UNIX */
+   NPWindowType type; /* Is this a window or a drawable? */
+@@ -583,7 +583,7 @@ typedef struct _NPEvent {
+   uintptr_t wParam;
+   intptr_t lParam;
+ } NPEvent;
+-#  elif defined(XP_UNIX) && defined(MOZ_X11)
++#  elif 0
+ typedef XEvent NPEvent;
+ #  else
+ typedef void* NPEvent;
+@@ -597,7 +597,7 @@ typedef RgnHandle NPQDRegion;
+ typedef CGPathRef NPCGRegion;
+ #  elif defined(XP_WIN)
+ typedef HRGN NPRegion;
+-#  elif defined(XP_UNIX) && defined(MOZ_X11)
++#  elif 0
+ typedef Region NPRegion;
+ #  elif defined(XP_SYMBIAN)
+ typedef QRegion* NPRegion;
+@@ -828,7 +828,7 @@ extern "C" {
+ 
+ /* NPP_* functions are provided by the plugin and called by the navigator. */
+ 
+-#  if defined(XP_UNIX)
++#  if 0
+ const char* NPP_GetMIMEDescription(void);
+ #  endif
+ 
+diff --git a/dom/plugins/base/nsNPAPIPlugin.cpp b/dom/plugins/base/nsNPAPIPlugin.cpp
+index dddfa33b15..db470acf81 100644
+--- a/dom/plugins/base/nsNPAPIPlugin.cpp
++++ b/dom/plugins/base/nsNPAPIPlugin.cpp
+@@ -54,7 +54,7 @@
+ #endif
+ 
+ // needed for nppdf plugin
+-#if (MOZ_WIDGET_GTK)
++#if 0
+ #  include <gdk/gdk.h>
+ #  include <gdk/gdkx.h>
+ #endif
+@@ -73,7 +73,7 @@ using mozilla::PluginLibrary;
+ using mozilla::plugins::PluginModuleChromeParent;
+ using mozilla::plugins::PluginModuleContentParent;
+ 
+-#ifdef MOZ_X11
++#if 0
+ #  include "mozilla/X11Util.h"
+ #endif
+ 
+@@ -1223,7 +1223,7 @@ NPError _getvalue(NPP npp, NPNVariable variable, void* result) {
+   // Cast NPNVariable enum to int to avoid warnings about including switch
+   // cases for android_npapi.h's non-standard ANPInterface values.
+   switch (static_cast<int>(variable)) {
+-#if defined(XP_UNIX) && !defined(XP_MACOSX)
++#if 0
+     case NPNVxDisplay: {
+ #  if defined(MOZ_X11)
+       if (npp) {
+@@ -1259,7 +1259,7 @@ NPError _getvalue(NPP npp, NPNVariable variable, void* result) {
+       return NPERR_GENERIC_ERROR;
+ #endif
+ 
+-#if defined(XP_WIN) || defined(MOZ_WIDGET_GTK)
++#if defined(XP_WIN)
+     case NPNVnetscapeWindow: {
+       if (!npp || !npp->ndata) return NPERR_INVALID_INSTANCE_ERROR;
+ 
+@@ -1301,7 +1301,7 @@ NPError _getvalue(NPP npp, NPNVariable variable, void* result) {
+     }
+ 
+     case NPNVToolkit: {
+-#ifdef MOZ_WIDGET_GTK
++#if 0
+       *((NPNToolkitType*)result) = NPNVGtk2;
+ #endif
+ 
+@@ -1311,7 +1311,7 @@ NPError _getvalue(NPP npp, NPNVariable variable, void* result) {
+     }
+ 
+     case NPNVSupportsXEmbedBool: {
+-#ifdef MOZ_WIDGET_GTK
++#if 0
+       *(NPBool*)result = true;
+ #else
+       *(NPBool*)result = false;
+@@ -1332,8 +1332,7 @@ NPError _getvalue(NPP npp, NPNVariable variable, void* result) {
+     }
+ 
+     case NPNVSupportsWindowless: {
+-#if defined(XP_WIN) || defined(XP_MACOSX) || \
+-    (defined(MOZ_X11) && defined(MOZ_WIDGET_GTK))
++#if defined(XP_WIN) || defined(XP_MACOSX)
+       *(NPBool*)result = true;
+ #else
+       *(NPBool*)result = false;
+diff --git a/dom/plugins/base/nsNPAPIPluginInstance.cpp b/dom/plugins/base/nsNPAPIPluginInstance.cpp
+index 530f070a84..53061c8dfc 100644
+--- a/dom/plugins/base/nsNPAPIPluginInstance.cpp
++++ b/dom/plugins/base/nsNPAPIPluginInstance.cpp
+@@ -317,7 +317,7 @@ nsresult nsNPAPIPluginInstance::SetWindow(NPWindow* window) {
+   // NPAPI plugins don't want a SetWindow(nullptr).
+   if (!window || RUNNING != mRunning) return NS_OK;
+ 
+-#if MOZ_WIDGET_GTK
++#if 0
+   // bug 108347, flash plugin on linux doesn't like window->width <= 0
+   return NS_OK;
+ #endif
+diff --git a/dom/plugins/base/nsNPAPIPluginInstance.h b/dom/plugins/base/nsNPAPIPluginInstance.h
+index 0dca093ff7..b2ac323d7e 100644
+--- a/dom/plugins/base/nsNPAPIPluginInstance.h
++++ b/dom/plugins/base/nsNPAPIPluginInstance.h
+@@ -38,7 +38,7 @@ class Element;
+ 
+ #if defined(OS_WIN)
+ const NPDrawingModel kDefaultDrawingModel = NPDrawingModelSyncWin;
+-#elif defined(MOZ_X11)
++#elif 0
+ const NPDrawingModel kDefaultDrawingModel = NPDrawingModelSyncX;
+ #elif defined(XP_MACOSX)
+ #  ifndef NP_NO_QUICKDRAW
+diff --git a/dom/plugins/base/nsPluginHost.cpp b/dom/plugins/base/nsPluginHost.cpp
+index ad37e0001e..c94c36bb34 100644
+--- a/dom/plugins/base/nsPluginHost.cpp
++++ b/dom/plugins/base/nsPluginHost.cpp
+@@ -85,7 +85,7 @@
+ #  include "windows.h"
+ #  include "winbase.h"
+ #endif
+-#if (MOZ_WIDGET_GTK)
++#if 0
+ #  include <gdk/gdk.h>
+ #  include <gdk/gdkx.h>
+ #endif
+@@ -278,7 +278,7 @@ nsPluginHost::nsPluginHost()
+   }
+ 
+   bool waylandBackend = false;
+-#if MOZ_WIDGET_GTK
++#if 0
+   GdkDisplay* display = gdk_display_get_default();
+   if (display) {
+     waylandBackend = !GDK_IS_X11_DISPLAY(display);
+diff --git a/dom/plugins/base/nsPluginInstanceOwner.cpp b/dom/plugins/base/nsPluginInstanceOwner.cpp
+index cb95cf0dd1..aaef4d7d0b 100644
+--- a/dom/plugins/base/nsPluginInstanceOwner.cpp
++++ b/dom/plugins/base/nsPluginInstanceOwner.cpp
+@@ -4,7 +4,7 @@
+  * License, v. 2.0. If a copy of the MPL was not distributed with this
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+-#ifdef MOZ_X11
++#if 0
+ #  include <cairo-xlib.h>
+ #  include "gfxXlibSurface.h"
+ /* X headers suck */
+@@ -622,7 +622,7 @@ NS_IMETHODIMP nsPluginInstanceOwner::GetNetscapeWindow(void* value) {
+   }
+ 
+   return NS_OK;
+-#elif defined(MOZ_WIDGET_GTK) && defined(MOZ_X11)
++#elif 0
+   // X11 window managers want the toplevel window for WM_TRANSIENT_FOR.
+   nsIWidget* win = mPluginFrame->GetNearestWidget();
+   if (!win) return NS_ERROR_FAILURE;
+@@ -1744,7 +1744,7 @@ nsresult nsPluginInstanceOwner::HandleEvent(Event* aEvent) {
+   return NS_OK;
+ }
+ 
+-#ifdef MOZ_X11
++#if 0
+ static unsigned int XInputEventState(const WidgetInputEvent& anEvent) {
+   unsigned int state = 0;
+   if (anEvent.IsShift()) state |= ShiftMask;
+@@ -2226,7 +2226,7 @@ nsEventStatus nsPluginInstanceOwner::ProcessEvent(
+   }
+ #endif
+ 
+-#ifdef MOZ_X11
++#if 0
+   // this code supports windowless plugins
+   nsIWidget* widget = anEvent.mWidget;
+   XEvent pluginEvent = XEvent();
+@@ -2257,7 +2257,7 @@ nsEventStatus nsPluginInstanceOwner::ProcessEvent(
+       if (widget) {
+         rootPoint = anEvent.mRefPoint + widget->WidgetToScreenOffset();
+       }
+-#  ifdef MOZ_WIDGET_GTK
++#  if 0
+       Window root = GDK_ROOT_WINDOW();
+ #  else
+       Window root = X11None;  // Could XQueryTree, but this is not important.
+@@ -2335,7 +2335,7 @@ nsEventStatus nsPluginInstanceOwner::ProcessEvent(
+     case eKeyboardEventClass:
+       if (anEvent.mPluginEvent) {
+         XKeyEvent& event = pluginEvent.xkey;
+-#  ifdef MOZ_WIDGET_GTK
++#  if 0
+         event.root = GDK_ROOT_WINDOW();
+         event.time = anEvent.mTime;
+         const GdkEventKey* gdkEvent =
+@@ -2521,7 +2521,7 @@ void nsPluginInstanceOwner::Paint(const RECT& aDirty, HDC aDC) {
+ }
+ #endif
+ 
+-#if defined(MOZ_X11)
++#if 0
+ void nsPluginInstanceOwner::Paint(gfxContext* aContext,
+                                   const gfxRect& aFrameRect,
+                                   const gfxRect& aDirtyRect) {
+@@ -2655,7 +2655,7 @@ nsresult nsPluginInstanceOwner::Renderer::DrawWithXlib(
+ 
+   NPSetWindowCallbackStruct* ws_info =
+       static_cast<NPSetWindowCallbackStruct*>(mWindow->ws_info);
+-#  ifdef MOZ_X11
++#  if 0
+   if (ws_info->visual != visual || ws_info->colormap != colormap) {
+     ws_info->visual = visual;
+     ws_info->colormap = colormap;
+@@ -2872,7 +2872,7 @@ NS_IMETHODIMP nsPluginInstanceOwner::CreateWidget(void) {
+     // passing HDC till paint event when it is really
+     // needed. Change spec?
+     mPluginWindow->window = nullptr;
+-#ifdef MOZ_X11
++#if 0
+     // Fill in the display field.
+     NPSetWindowCallbackStruct* ws_info =
+         static_cast<NPSetWindowCallbackStruct*>(mPluginWindow->ws_info);
+diff --git a/dom/plugins/base/nsPluginInstanceOwner.h b/dom/plugins/base/nsPluginInstanceOwner.h
+index fbb87b6113..2355f63740 100644
+--- a/dom/plugins/base/nsPluginInstanceOwner.h
++++ b/dom/plugins/base/nsPluginInstanceOwner.h
+@@ -31,7 +31,7 @@ class nsPluginDOMContextMenuListener;
+ class nsPluginFrame;
+ class nsDisplayListBuilder;
+ 
+-#if defined(MOZ_X11)
++#if 0
+ class gfxContext;
+ #endif
+ 
+@@ -48,7 +48,7 @@ class PuppetWidget;
+ 
+ using mozilla::widget::PuppetWidget;
+ 
+-#ifdef MOZ_X11
++#if 0
+ #  include "gfxXlibNativeRenderer.h"
+ #endif
+ 
+@@ -112,7 +112,7 @@ class nsPluginInstanceOwner final : public nsIPluginInstanceOwner,
+   void Paint(const gfxRect& aDirtyRect, CGContextRef cgContext);
+   void RenderCoreAnimation(CGContextRef aCGContext, int aWidth, int aHeight);
+   void DoCocoaEventDrawRect(const gfxRect& aDrawRect, CGContextRef cgContext);
+-#elif defined(MOZ_X11)
++#elif 0
+   void Paint(gfxContext* aContext, const gfxRect& aFrameRect,
+              const gfxRect& aDirtyRect);
+ #endif
+@@ -193,7 +193,7 @@ class nsPluginInstanceOwner final : public nsIPluginInstanceOwner,
+     return "";
+   }
+ 
+-#ifdef MOZ_X11
++#if 0
+   void GetPluginDescription(nsACString& aDescription) {
+     aDescription.Truncate();
+     if (mInstance && mPluginHost) {
+@@ -214,7 +214,7 @@ class nsPluginInstanceOwner final : public nsIPluginInstanceOwner,
+     return mPluginWindow->type == NPWindowTypeDrawable &&
+            (MatchPluginName("Shockwave Flash") ||
+             MatchPluginName("Test Plug-in"));
+-#elif defined(MOZ_X11) || defined(XP_MACOSX)
++#elif defined(XP_MACOSX)
+     return true;
+ #else
+     return false;
+@@ -325,7 +325,7 @@ class nsPluginInstanceOwner final : public nsIPluginInstanceOwner,
+   uint32_t mLastEventloopNestingLevel;
+   bool mContentFocused;
+   bool mWidgetVisible;  // used on Mac to store our widget's visible state
+-#ifdef MOZ_X11
++#if  0
+   // Used with windowless plugins only, initialized in CreateWidget().
+   bool mFlash10Quirks;
+ #endif
+@@ -371,7 +371,7 @@ class nsPluginInstanceOwner final : public nsIPluginInstanceOwner,
+ 
+   int mLastMouseDownButtonType;
+ 
+-#ifdef MOZ_X11
++#if 0
+   class Renderer : public gfxXlibNativeRenderer {
+    public:
+     Renderer(NPWindow* aWindow, nsPluginInstanceOwner* aInstanceOwner,
+diff --git a/dom/plugins/base/nsPluginNativeWindow.cpp b/dom/plugins/base/nsPluginNativeWindow.cpp
+index 6aea8d28fc..aa65153f06 100644
+--- a/dom/plugins/base/nsPluginNativeWindow.cpp
++++ b/dom/plugins/base/nsPluginNativeWindow.cpp
+@@ -17,7 +17,7 @@ class nsPluginNativeWindowImpl : public nsPluginNativeWindow {
+   nsPluginNativeWindowImpl();
+   virtual ~nsPluginNativeWindowImpl();
+ 
+-#ifdef MOZ_WIDGET_GTK
++#if 0
+   NPSetWindowCallbackStruct mWsInfo;
+ #endif
+ };
+@@ -32,14 +32,14 @@ nsPluginNativeWindowImpl::nsPluginNativeWindowImpl() : nsPluginNativeWindow() {
+   memset(&clipRect, 0, sizeof(clipRect));
+   type = NPWindowTypeWindow;
+ 
+-#ifdef MOZ_WIDGET_GTK
++#if 0
+   ws_info = &mWsInfo;
+   mWsInfo.type = 0;
+   mWsInfo.display = nullptr;
+   mWsInfo.visual = nullptr;
+   mWsInfo.colormap = 0;
+   mWsInfo.depth = 0;
+-#elif defined(XP_UNIX) && !defined(XP_MACOSX)
++#elif 0
+   ws_info = nullptr;
+ #endif
+ }
+diff --git a/dom/plugins/ipc/NPEventUnix.h b/dom/plugins/ipc/NPEventUnix.h
+index 55494b4d8c..91032642a1 100644
+--- a/dom/plugins/ipc/NPEventUnix.h
++++ b/dom/plugins/ipc/NPEventUnix.h
+@@ -9,7 +9,7 @@
+ 
+ #include "npapi.h"
+ 
+-#ifdef MOZ_X11
++#if 0
+ #  include "mozilla/X11Util.h"
+ #endif
+ 
+@@ -59,7 +59,7 @@ struct ParamTraits<mozilla::plugins::NPRemoteEvent>  // synonym for XEvent
+       return false;
+     }
+ 
+-#ifdef MOZ_X11
++#if 0
+     SetXDisplay(aResult->event);
+ #endif
+     return true;
+@@ -70,7 +70,7 @@ struct ParamTraits<mozilla::plugins::NPRemoteEvent>  // synonym for XEvent
+     aLog->append(L"(XEvent)");
+   }
+ 
+-#ifdef MOZ_X11
++#if 0
+  private:
+   static void SetXDisplay(XEvent& ev) {
+     Display* display = mozilla::DefaultXDisplay();
+diff --git a/dom/plugins/ipc/PluginInstanceChild.cpp b/dom/plugins/ipc/PluginInstanceChild.cpp
+index 9e179b2dad..dfb6a2cb56 100644
+--- a/dom/plugins/ipc/PluginInstanceChild.cpp
++++ b/dom/plugins/ipc/PluginInstanceChild.cpp
+@@ -15,7 +15,7 @@
+ #include "gfx2DGlue.h"
+ #include "nsNPAPIPluginInstance.h"
+ #include "mozilla/gfx/2D.h"
+-#ifdef MOZ_X11
++#if 0
+ #  include "gfxXlibSurface.h"
+ #endif
+ #ifdef XP_WIN
+@@ -44,7 +44,7 @@ using namespace mozilla::layers;
+ using namespace mozilla::gfx;
+ using namespace mozilla::widget;
+ 
+-#ifdef MOZ_WIDGET_GTK
++#if 0
+ 
+ #  include <gtk/gtk.h>
+ #  include <gdk/gdkx.h>
+@@ -188,7 +188,7 @@ PluginInstanceChild::PluginInstanceChild(const NPPluginFuncs* aPluginIface,
+   mWindow.type = NPWindowTypeWindow;
+   mData.ndata = (void*)this;
+   mData.pdata = nullptr;
+-#if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
++#if 0
+   mWindow.ws_info = &mWsInfo;
+   memset(&mWsInfo, 0, sizeof(mWsInfo));
+ #  ifdef MOZ_WIDGET_GTK
+@@ -356,7 +356,7 @@ NPError PluginInstanceChild::NPN_GetValue(NPNVariable aVar, void* aValue) {
+   AutoStackHelper guard(this);
+ 
+   switch (aVar) {
+-#if defined(MOZ_X11)
++#if 0
+     case NPNVToolkit:
+       *((NPNToolkitType*)aValue) = NPNVGtk2;
+       return NPERR_NO_ERROR;
+@@ -428,7 +428,7 @@ NPError PluginInstanceChild::NPN_GetValue(NPNVariable aVar, void* aValue) {
+         *static_cast<HWND*>(aValue) = mPluginWindowHWND;
+         return NPERR_NO_ERROR;
+       }
+-#elif defined(MOZ_X11)
++#elif 0
+       NPError result;
+       CallNPN_GetValue_NPNVnetscapeWindow(static_cast<XID*>(aValue), &result);
+       return result;
+@@ -842,7 +842,7 @@ mozilla::ipc::IPCResult PluginInstanceChild::AnswerNPP_HandleEvent(
+   AssertPluginThread();
+   AutoStackHelper guard(this);
+ 
+-#if defined(MOZ_X11) && defined(DEBUG)
++#if 0
+   if (GraphicsExpose == event.event.type)
+     PLUGIN_LOG_DEBUG(
+         ("  received drawable 0x%lx\n", event.event.xgraphicsexpose.drawable));
+@@ -899,7 +899,7 @@ mozilla::ipc::IPCResult PluginInstanceChild::AnswerNPP_HandleEvent(
+   }
+ #endif
+ 
+-#ifdef MOZ_X11
++#if 0
+   if (GraphicsExpose == event.event.type) {
+     // Make sure the X server completes the drawing before the parent
+     // draws on top and destroys the Drawable.
+@@ -1154,7 +1154,7 @@ mozilla::ipc::IPCResult PluginInstanceChild::AnswerNPP_SetWindow(
+   AssertPluginThread();
+   AutoStackHelper guard(this);
+ 
+-#if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
++#if 0
+   NS_ASSERTION(mWsInfo.display, "We should have a valid display!");
+ 
+   // The minimum info is sent over IPC to allow this
+@@ -1250,14 +1250,14 @@ mozilla::ipc::IPCResult PluginInstanceChild::AnswerNPP_SetWindow(
+ #elif defined(MOZ_WIDGET_UIKIT)
+   // Don't care
+ #else
+-#  error Implement me for your OS
++//#  error Implement me for your OS
+ #endif
+ 
+   return IPC_OK();
+ }
+ 
+ bool PluginInstanceChild::Initialize() {
+-#ifdef MOZ_WIDGET_GTK
++#if 0
+   if (mWsInfo.display) {
+     // Already initialized
+     return true;
+@@ -2870,7 +2870,7 @@ bool PluginInstanceChild::CreateOptSurface(void) {
+                               ? SurfaceFormat::A8R8G8B8_UINT32
+                               : SurfaceFormat::X8R8G8B8_UINT32;
+ 
+-#ifdef MOZ_X11
++#if 0
+   Display* dpy = mWsInfo.display;
+   Screen* screen = DefaultScreenOfDisplay(dpy);
+   if (format == SurfaceFormat::X8R8G8B8_UINT32 &&
+@@ -2926,7 +2926,7 @@ bool PluginInstanceChild::MaybeCreatePlatformHelperSurface(void) {
+     return false;
+   }
+ 
+-#ifdef MOZ_X11
++#if 0
+   bool supportNonDefaultVisual = false;
+   Screen* screen = DefaultScreenOfDisplay(mWsInfo.display);
+   Visual* defaultVisual = DefaultVisualOfScreen(screen);
+@@ -3078,12 +3078,12 @@ bool PluginInstanceChild::EnsureCurrentBuffer(void) {
+ }
+ 
+ void PluginInstanceChild::UpdateWindowAttributes(bool aForceSetWindow) {
+-#if defined(MOZ_X11) || defined(XP_WIN)
++#if 0
+   RefPtr<gfxASurface> curSurface =
+       mHelperSurface ? mHelperSurface : mCurrentSurface;
+ #endif  // Only used within MOZ_X11 or XP_WIN blocks. Unused variable otherwise
+   bool needWindowUpdate = aForceSetWindow;
+-#ifdef MOZ_X11
++#if 0
+   Visual* visual = nullptr;
+   Colormap colormap = 0;
+   if (curSurface && curSurface->GetType() == gfxSurfaceType::Xlib) {
+@@ -3182,7 +3182,7 @@ void PluginInstanceChild::PaintRectToPlatformSurface(const nsIntRect& aRect,
+   // We should not send an async surface if we're using direct rendering.
+   MOZ_ASSERT(!IsUsingDirectDrawing());
+ 
+-#ifdef MOZ_X11
++#if 0
+   {
+     NS_ASSERTION(aSurface->GetType() == gfxSurfaceType::Xlib,
+                  "Non supported platform surface type");
+@@ -3230,7 +3230,7 @@ void PluginInstanceChild::PaintRectToSurface(const nsIntRect& aRect,
+   // Render using temporary X surface, with copy to image surface
+   nsIntRect plPaintRect(aRect);
+   RefPtr<gfxASurface> renderSurface = aSurface;
+-#ifdef MOZ_X11
++#if 0
+   if (mIsTransparent && (GetQuirks() & QUIRK_FLASH_EXPOSE_COORD_TRANSLATION)) {
+     // Work around a bug in Flash up to 10.1 d51 at least, where expose event
+     // top left coordinates within the plugin-rect and not at the drawable
+@@ -3573,7 +3573,7 @@ bool PluginInstanceChild::ShowPluginFrame() {
+   NPRect r = {(uint16_t)rect.y, (uint16_t)rect.x, (uint16_t)rect.YMost(),
+               (uint16_t)rect.XMost()};
+   SurfaceDescriptor currSurf;
+-#ifdef MOZ_X11
++#if 0
+   if (mCurrentSurface->GetType() == gfxSurfaceType::Xlib) {
+     gfxXlibSurface* xsurf = static_cast<gfxXlibSurface*>(mCurrentSurface.get());
+     currSurf = SurfaceDescriptorX11(xsurf);
+@@ -3621,7 +3621,7 @@ bool PluginInstanceChild::ReadbackDifferenceRect(const nsIntRect& rect) {
+ 
+     // We can read safely from XSurface,SharedDIBSurface and Unsafe
+     // SharedMemory, because PluginHost is not able to modify that surface
+-#if defined(MOZ_X11)
++#if 0
+   if (mBackSurface->GetType() != gfxSurfaceType::Xlib &&
+       !gfxSharedImageSurface::IsSharedImage(mBackSurface))
+     return false;
+@@ -3629,7 +3629,7 @@ bool PluginInstanceChild::ReadbackDifferenceRect(const nsIntRect& rect) {
+   if (!SharedDIBSurface::IsSharedDIBSurface(mBackSurface)) return false;
+ #endif
+ 
+-#if defined(MOZ_X11) || defined(XP_WIN)
++#if 0
+   if (mCurrentSurface->GetContentType() != mBackSurface->GetContentType())
+     return false;
+ 
+@@ -3747,7 +3747,7 @@ mozilla::ipc::IPCResult PluginInstanceChild::RecvUpdateBackground(
+   if (!mBackground) {
+     // XXX refactor me
+     switch (aBackground.type()) {
+-#ifdef MOZ_X11
++#if 0
+       case SurfaceDescriptor::TSurfaceDescriptorX11: {
+         mBackground = aBackground.get_SurfaceDescriptorX11().OpenForeign();
+         break;
+diff --git a/dom/plugins/ipc/PluginInstanceChild.h b/dom/plugins/ipc/PluginInstanceChild.h
+index 479c060f91..512a0cb4d9 100644
+--- a/dom/plugins/ipc/PluginInstanceChild.h
++++ b/dom/plugins/ipc/PluginInstanceChild.h
+@@ -363,7 +363,7 @@ class PluginInstanceChild : public PPluginInstanceChild {
+   PluginScriptableObjectChild* mCachedWindowActor;
+   PluginScriptableObjectChild* mCachedElementActor;
+ 
+-#if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
++#if 0
+   NPSetWindowCallbackStruct mWsInfo;
+ #elif defined(OS_WIN)
+   HWND mPluginWindowHWND;
+diff --git a/dom/plugins/ipc/PluginInstanceParent.cpp b/dom/plugins/ipc/PluginInstanceParent.cpp
+index 108c9b3a1f..3bf356b0ef 100644
+--- a/dom/plugins/ipc/PluginInstanceParent.cpp
++++ b/dom/plugins/ipc/PluginInstanceParent.cpp
+@@ -25,7 +25,7 @@
+ #include "nsNPAPIPluginInstance.h"
+ #include "nsPluginInstanceOwner.h"
+ #include "nsFocusManager.h"
+-#ifdef MOZ_X11
++#if 0
+ #  include "gfxXlibSurface.h"
+ #endif
+ #include "gfxUtils.h"
+@@ -61,7 +61,7 @@
+ #  include "GPUVideoImage.h"
+ #  include "mozilla/layers/SynchronousTask.h"
+ extern const wchar_t* kFlashFullscreenClass;
+-#elif defined(MOZ_WIDGET_GTK)
++#elif 0
+ #  include "mozilla/dom/ContentChild.h"
+ #  include <gdk/gdk.h>
+ #elif defined(XP_MACOSX)
+@@ -182,7 +182,7 @@ void PluginInstanceParent::ActorDestroy(ActorDestroyReason why) {
+     if (mImageContainer) {
+       mImageContainer->ClearAllImages();
+     }
+-#ifdef MOZ_X11
++#if 0
+     FinishX(DefaultXDisplay());
+ #endif
+   }
+@@ -227,7 +227,7 @@ PluginInstanceParent::AnswerNPN_GetValue_NPNVnetscapeWindow(
+ #ifdef XP_WIN
+   HWND id;
+ #elif defined(MOZ_X11)
+-  XID id;
++  int id;
+ #elif defined(XP_DARWIN)
+   intptr_t id;
+ #elif defined(ANDROID)
+@@ -401,7 +401,7 @@ PluginInstanceParent::AnswerNPN_SetValue_NPPVpluginDrawingModel(
+     case NPDrawingModelAsyncWindowsDXGISurface:
+       allowed = SupportsPluginDirectDXGISurfaceDrawing();
+       break;
+-#elif defined(MOZ_X11)
++#elif 0
+     case NPDrawingModelSyncX:
+       allowed = true;
+       break;
+@@ -964,7 +964,7 @@ mozilla::ipc::IPCResult PluginInstanceParent::RecvShow(
+     return IPC_OK();
+   }
+ #endif
+-#ifdef MOZ_X11
++#if 0
+   else if (newSurface.type() == SurfaceDescriptor::TSurfaceDescriptorX11) {
+     surface = newSurface.get_SurfaceDescriptorX11().OpenForeign();
+   }
+@@ -981,7 +981,7 @@ mozilla::ipc::IPCResult PluginInstanceParent::RecvShow(
+     // This is the "old front buffer" we're about to hand back to
+     // the plugin.  We might still have drawing operations
+     // referencing it.
+-#ifdef MOZ_X11
++#if  0
+     if (mFrontSurface->GetType() == gfxSurfaceType::Xlib) {
+       // Finish with the surface and XSync here to ensure the server has
+       // finished operations on the surface before the plugin starts
+@@ -1220,7 +1220,7 @@ nsresult PluginInstanceParent::EndUpdateBackground(const nsIntRect& aRect) {
+       ("[InstanceParent][%p] EndUpdateBackground for <x=%d,y=%d, w=%d,h=%d>",
+        this, aRect.x, aRect.y, aRect.width, aRect.height));
+ 
+-#ifdef MOZ_X11
++#if 0
+   // Have to XSync here to avoid the plugin trying to draw with this
+   // surface racing with its creation in the X server.  We also want
+   // to avoid the plugin drawing onto stale pixels, then handing us
+@@ -1266,7 +1266,7 @@ bool PluginInstanceParent::CreateBackground(const nsIntSize& aSize) {
+ 
+   // XXX refactor me
+ 
+-#if defined(MOZ_X11)
++#if 0
+   Screen* screen = DefaultScreenOfDisplay(DefaultXDisplay());
+   Visual* visual = DefaultVisualOfScreen(screen);
+   mBackground = gfxXlibSurface::Create(
+@@ -1306,7 +1306,7 @@ PluginInstanceParent::BackgroundDescriptor() {
+ 
+   // XXX refactor me
+ 
+-#ifdef MOZ_X11
++#if 0
+   gfxXlibSurface* xsurf = static_cast<gfxXlibSurface*>(mBackground.get());
+   return SurfaceDescriptorX11(xsurf);
+ #endif
+@@ -1423,7 +1423,7 @@ NPError PluginInstanceParent::NPP_SetWindow(const NPWindow* aWindow) {
+   }
+ #endif
+ 
+-#if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
++#if 0
+   const NPSetWindowCallbackStruct* ws_info =
+       static_cast<NPSetWindowCallbackStruct*>(aWindow->ws_info);
+   window.visualID = ws_info->visual ? ws_info->visual->visualid : 0;
+@@ -1617,7 +1617,7 @@ int16_t PluginInstanceParent::NPP_HandleEvent(void* event) {
+   }
+ #endif
+ 
+-#if defined(MOZ_X11)
++#if 0
+   switch (npevent->type) {
+     case GraphicsExpose:
+       PLUGIN_LOG_DEBUG(("  schlepping drawable 0x%lx across the pipe\n",
+diff --git a/dom/plugins/ipc/PluginMessageUtils.cpp b/dom/plugins/ipc/PluginMessageUtils.cpp
+index e77d3721f5..39f50552e6 100644
+--- a/dom/plugins/ipc/PluginMessageUtils.cpp
++++ b/dom/plugins/ipc/PluginMessageUtils.cpp
+@@ -50,7 +50,7 @@ NPRemoteWindow::NPRemoteWindow()
+       width(0),
+       height(0),
+       type(NPWindowTypeDrawable)
+-#if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
++#if 0
+       ,
+       visualID(0),
+       colormap(0)
+@@ -82,7 +82,7 @@ ipc::RacyInterruptPolicy MediateRace(const MessageChannel::MessageInfo& parent,
+   }
+ }
+ 
+-#if defined(OS_LINUX) || defined(OS_SOLARIS)
++#if defined(OS_SOLARIS)
+ static string ReplaceAll(const string& haystack, const string& needle,
+                          const string& with) {
+   string munged = haystack;
+@@ -98,7 +98,7 @@ static string ReplaceAll(const string& haystack, const string& needle,
+ #endif
+ 
+ string MungePluginDsoPath(const string& path) {
+-#if defined(OS_LINUX) || defined(OS_SOLARIS)
++#if defined(OS_SOLARIS)
+   // https://bugzilla.mozilla.org/show_bug.cgi?id=519601
+   return ReplaceAll(path, "netscape", "netsc@pe");
+ #else
+@@ -107,7 +107,7 @@ string MungePluginDsoPath(const string& path) {
+ }
+ 
+ string UnmungePluginDsoPath(const string& munged) {
+-#if defined(OS_LINUX) || defined(OS_SOLARIS)
++#if defined(OS_SOLARIS)
+   return ReplaceAll(munged, "netsc@pe", "netscape");
+ #else
+   return munged;
+diff --git a/dom/plugins/ipc/PluginMessageUtils.h b/dom/plugins/ipc/PluginMessageUtils.h
+index 87747b115b..08fc35d3b3 100644
+--- a/dom/plugins/ipc/PluginMessageUtils.h
++++ b/dom/plugins/ipc/PluginMessageUtils.h
+@@ -87,7 +87,7 @@ struct NPRemoteWindow {
+   uint32_t height;
+   NPRect clipRect;
+   NPWindowType type;
+-#if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
++#if 0
+   VisualID visualID;
+   Colormap colormap;
+ #endif /* XP_UNIX */
+@@ -113,9 +113,9 @@ struct NPAudioDeviceStateChangedIPC {
+ 
+ #ifdef XP_WIN
+ typedef HWND NativeWindowHandle;
+-#elif defined(MOZ_X11)
++#elif 0
+ typedef XID NativeWindowHandle;
+-#elif defined(XP_DARWIN) || defined(ANDROID)
++#elif defined(XP_DARWIN) || defined(ANDROID) || defined(MOZ_WAYLAND) || defined(MOZ_X11)
+ typedef intptr_t NativeWindowHandle;  // never actually used, will always be 0
+ #else
+ #  error Need NativeWindowHandle for this platform
+@@ -323,7 +323,7 @@ struct ParamTraits<mozilla::plugins::NPRemoteWindow> {
+     WriteParam(aMsg, aParam.height);
+     WriteParam(aMsg, aParam.clipRect);
+     WriteParam(aMsg, aParam.type);
+-#if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
++#if 0
+     aMsg->WriteULong(aParam.visualID);
+     aMsg->WriteULong(aParam.colormap);
+ #endif
+@@ -345,7 +345,7 @@ struct ParamTraits<mozilla::plugins::NPRemoteWindow> {
+           ReadParam(aMsg, aIter, &clipRect) && ReadParam(aMsg, aIter, &type)))
+       return false;
+ 
+-#if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
++#if 0
+     unsigned long visualID;
+     unsigned long colormap;
+     if (!(aMsg->ReadULong(aIter, &visualID) &&
+@@ -365,7 +365,7 @@ struct ParamTraits<mozilla::plugins::NPRemoteWindow> {
+     aResult->height = height;
+     aResult->clipRect = clipRect;
+     aResult->type = type;
+-#if defined(MOZ_X11) && defined(XP_UNIX) && !defined(XP_MACOSX)
++#if 0
+     aResult->visualID = visualID;
+     aResult->colormap = colormap;
+ #endif
+diff --git a/dom/plugins/ipc/PluginModuleChild.cpp b/dom/plugins/ipc/PluginModuleChild.cpp
+index 5811141417..8302d55157 100644
+--- a/dom/plugins/ipc/PluginModuleChild.cpp
++++ b/dom/plugins/ipc/PluginModuleChild.cpp
+@@ -12,7 +12,7 @@
+ 
+ #include "mozilla/ipc/MessageChannel.h"
+ 
+-#ifdef MOZ_WIDGET_GTK
++#if 0
+ #  include <gtk/gtk.h>
+ #  include <gdk/gdkx.h>
+ #endif
+@@ -25,7 +25,7 @@
+ #include "nsPluginsDir.h"
+ #include "nsXULAppAPI.h"
+ 
+-#ifdef MOZ_X11
++#if 0
+ #  include "nsX11ErrorHandler.h"
+ #  include "mozilla/X11Util.h"
+ #endif
+@@ -100,7 +100,7 @@ PluginModuleChild::PluginModuleChild(bool aIsChrome)
+ #if defined(OS_WIN) || defined(OS_MACOSX)
+       ,
+       mGetEntryPointsFunc(0)
+-#elif defined(MOZ_WIDGET_GTK)
++#elif 0
+       ,
+       mNestedLoopTimerId(0)
+ #endif
+@@ -254,7 +254,7 @@ bool PluginModuleChild::InitForChrome(const std::string& aPluginFilename,
+   // XXX quirks isn't initialized yet
+   mAsyncRenderSupport = info.fSupportsAsyncRender;
+ #endif
+-#if defined(MOZ_X11)
++#if 0
+   NS_NAMED_LITERAL_CSTRING(flash10Head, "Shockwave Flash 10.");
+   if (StringBeginsWith(nsDependentCString(info.fDescription), flash10Head)) {
+     AddQuirk(QUIRK_FLASH_EXPOSE_COORD_TRANSLATION);
+@@ -267,7 +267,7 @@ bool PluginModuleChild::InitForChrome(const std::string& aPluginFilename,
+   mozilla::plugins::PluginUtilsOSX::SetProcessName(nameBuffer);
+ #endif
+   pluginFile.FreePluginInfo(info);
+-#if defined(MOZ_X11) || defined(XP_MACOSX)
++#if 0
+   if (!mLibrary)
+ #endif
+   {
+@@ -330,7 +330,7 @@ bool PluginModuleChild::InitForChrome(const std::string& aPluginFilename,
+   return true;
+ }
+ 
+-#if defined(MOZ_WIDGET_GTK)
++#if 0
+ 
+ typedef void (*GObjectDisposeFn)(GObject*);
+ typedef gboolean (*GtkWidgetScrollEventFn)(GtkWidget*, GdkEventScroll*);
+@@ -550,7 +550,7 @@ bool PluginModuleChild::ShouldContinueFromReplyTimeout() {
+ }
+ 
+ bool PluginModuleChild::InitGraphics() {
+-#if defined(MOZ_WIDGET_GTK)
++#if 0
+   // Work around plugins that don't interact well with GDK
+   // client-side windows.
+   PR_SetEnv("GDK_NATIVE_WINDOWS=1");
+@@ -588,7 +588,7 @@ bool PluginModuleChild::InitGraphics() {
+ #else
+   // may not be necessary on all platforms
+ #endif
+-#ifdef MOZ_X11
++#if 0
+   // Do this after initializing GDK, or GDK will install its own handler.
+   InstallX11ErrorHandler();
+ #endif
+@@ -596,7 +596,7 @@ bool PluginModuleChild::InitGraphics() {
+ }
+ 
+ void PluginModuleChild::DeinitGraphics() {
+-#if defined(MOZ_X11) && defined(NS_FREE_PERMANENT_DATA)
++#if 0
+   // We free some data off of XDisplay close hooks, ensure they're
+   // run.  Closing the display is pretty scary, so we only do it to
+   // silence leak checkers.
+@@ -1000,7 +1000,7 @@ NPError _getvalue(NPP aNPP, NPNVariable aVariable, void* aValue) {
+   switch (aVariable) {
+     // Copied from nsNPAPIPlugin.cpp
+     case NPNVToolkit:
+-#if defined(MOZ_WIDGET_GTK)
++#if 0
+       *static_cast<NPNToolkitType*>(aValue) = NPNVGtk2;
+       return NPERR_NO_ERROR;
+ #endif
+@@ -1026,7 +1026,7 @@ NPError _getvalue(NPP aNPP, NPNVariable aVariable, void* aValue) {
+     case NPNVSupportsWindowless:
+       *(NPBool*)aValue = true;
+       return NPERR_NO_ERROR;
+-#if defined(MOZ_WIDGET_GTK)
++#if 0
+     case NPNVxDisplay: {
+       if (!aNPP) {
+         return NPERR_INVALID_INSTANCE_ERROR;
+@@ -1556,7 +1556,7 @@ NPError PluginModuleChild::DoNP_Initialize(const PluginSettings& aSettings) {
+   SetEventHooks();
+ #endif
+ 
+-#ifdef MOZ_X11
++#if 0
+ #  ifdef MOZ_WIDGET_GTK
+   if (!GDK_IS_X11_DISPLAY(gdk_display_get_default())) {
+     // We don't support NPAPI plugins on Wayland.
+diff --git a/dom/plugins/ipc/PluginModuleChild.h b/dom/plugins/ipc/PluginModuleChild.h
+index 84df35e5d8..4f5562ada3 100644
+--- a/dom/plugins/ipc/PluginModuleChild.h
++++ b/dom/plugins/ipc/PluginModuleChild.h
+@@ -206,7 +206,7 @@ class PluginModuleChild : public PPluginModuleChild {
+   bool InitGraphics();
+   void DeinitGraphics();
+ 
+-#if defined(MOZ_WIDGET_GTK)
++#if 0
+   static gboolean DetectNestedEventLoop(gpointer data);
+   static gboolean ProcessBrowserEvents(gpointer data);
+ 
+@@ -238,7 +238,7 @@ class PluginModuleChild : public PPluginModuleChild {
+ 
+   PluginSettings mCachedSettings;
+ 
+-#if defined(MOZ_WIDGET_GTK)
++#if 0
+   // If a plugin spins a nested glib event loop in response to a
+   // synchronous IPC message from the browser, the loop might break
+   // only after the browser responds to a request sent by the
+diff --git a/dom/plugins/ipc/PluginModuleParent.cpp b/dom/plugins/ipc/PluginModuleParent.cpp
+index 5d207bdb3e..3efab5afae 100644
+--- a/dom/plugins/ipc/PluginModuleParent.cpp
++++ b/dom/plugins/ipc/PluginModuleParent.cpp
+@@ -50,7 +50,7 @@
+ #  include "PluginUtilsWin.h"
+ #endif
+ 
+-#ifdef MOZ_WIDGET_GTK
++#if 0
+ #  include <glib.h>
+ #elif XP_MACOSX
+ #  include "PluginInterposeOSX.h"
+@@ -1595,7 +1595,7 @@ mozilla::ipc::IPCResult PluginModuleChromeParent::
+ 
+ mozilla::ipc::IPCResult PluginModuleParent::RecvBackUpXResources(
+     const FileDescriptor& aXSocketFd) {
+-#ifndef MOZ_X11
++#if 1
+   MOZ_CRASH("This message only makes sense on X11 platforms");
+ #else
+   MOZ_ASSERT(0 > mPluginXSocketFdDup.get(), "Already backed up X resources??");
+@@ -1785,56 +1785,15 @@ void PluginModuleChromeParent::CachedSettingChanged(const char* aPref,
+ nsresult PluginModuleParent::NP_Initialize(NPNetscapeFuncs* bFuncs,
+                                            NPPluginFuncs* pFuncs,
+                                            NPError* error) {
+-  PLUGIN_LOG_DEBUG_METHOD;
+-
+-  mNPNIface = bFuncs;
+-  mNPPIface = pFuncs;
+-
+-  if (mShutdown) {
+-    *error = NPERR_GENERIC_ERROR;
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-  *error = NPERR_NO_ERROR;
+-  SetPluginFuncs(pFuncs);
+-
+-  return NS_OK;
++  *error = NPERR_GENERIC_ERROR;
++  return NS_ERROR_FAILURE;
+ }
+ 
+ nsresult PluginModuleChromeParent::NP_Initialize(NPNetscapeFuncs* bFuncs,
+                                                  NPPluginFuncs* pFuncs,
+                                                  NPError* error) {
+-  PLUGIN_LOG_DEBUG_METHOD;
+-
+-  if (mShutdown) {
+-    *error = NPERR_GENERIC_ERROR;
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-  *error = NPERR_NO_ERROR;
+-
+-  mNPNIface = bFuncs;
+-  mNPPIface = pFuncs;
+-
+-  PluginSettings settings;
+-  GetSettings(&settings);
+-
+-  if (!CallNP_Initialize(settings, error)) {
+-    Close();
+-    return NS_ERROR_FAILURE;
+-  } else if (*error != NPERR_NO_ERROR) {
+-    Close();
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-  if (*error != NPERR_NO_ERROR) {
+-    OnInitFailure();
+-    return NS_OK;
+-  }
+-
+-  SetPluginFuncs(mNPPIface);
+-
+-  return NS_OK;
++  *error = NPERR_GENERIC_ERROR;
++  return NS_ERROR_FAILURE;
+ }
+ 
+ #else
+@@ -2039,7 +1998,7 @@ class nsCaseInsensitiveUTF8StringArrayComparator {
+   }
+ };
+ 
+-#if defined(XP_WIN) || defined(MOZ_WIDGET_GTK)
++#if defined(XP_WIN)
+ static void ForceWindowless(nsTArray<nsCString>& names,
+                             nsTArray<nsCString>& values) {
+   nsCaseInsensitiveUTF8StringArrayComparator comparator;
+@@ -2122,7 +2081,7 @@ nsresult PluginModuleParent::NPP_NewInternal(
+ #  endif
+       ForceWindowless(names, values);
+     }
+-#elif defined(MOZ_WIDGET_GTK)
++#elif 0
+     // We no longer support windowed mode on Linux.
+     ForceWindowless(names, values);
+ #endif
+@@ -2236,7 +2195,7 @@ mozilla::ipc::IPCResult PluginModuleParent::AnswerProcessSomeEvents() {
+   return IPC_OK();
+ }
+ 
+-#elif !defined(MOZ_WIDGET_GTK)
++#elif 1
+ mozilla::ipc::IPCResult PluginModuleParent::AnswerProcessSomeEvents() {
+   MOZ_CRASH("unreached");
+ }
+diff --git a/dom/plugins/ipc/PluginModuleParent.h b/dom/plugins/ipc/PluginModuleParent.h
+index 9fd74904a2..b77279b7f5 100644
+--- a/dom/plugins/ipc/PluginModuleParent.h
++++ b/dom/plugins/ipc/PluginModuleParent.h
+@@ -288,7 +288,7 @@ class PluginModuleParent : public PPluginModuleParent,
+   int32_t mSandboxLevel;
+   bool mIsFlashPlugin;
+ 
+-#ifdef MOZ_X11
++#if 0
+   // Dup of plugin's X socket, used to scope its resources to this
+   // object instead of the plugin process's lifetime
+   ScopedClose mPluginXSocketFdDup;
+diff --git a/dom/plugins/ipc/moz.build b/dom/plugins/ipc/moz.build
+index 49f1e27670..e97c75d72a 100644
+--- a/dom/plugins/ipc/moz.build
++++ b/dom/plugins/ipc/moz.build
+@@ -142,9 +142,6 @@ DEFINES['FORCE_PR_LOG'] = True
+ 
+ if CONFIG['MOZ_WIDGET_TOOLKIT'] != 'gtk':
+     CXXFLAGS += CONFIG['TK_CFLAGS']
+-else:
+-    # Force build against gtk+2 for struct offsets and such.
+-    CXXFLAGS += CONFIG['MOZ_GTK2_CFLAGS']
+ 
+ CXXFLAGS += CONFIG['MOZ_CAIRO_CFLAGS']
+ 
+diff --git a/dom/plugins/test/moz.build b/dom/plugins/test/moz.build
+index 032db35387..dde5c1c31b 100644
+--- a/dom/plugins/test/moz.build
++++ b/dom/plugins/test/moz.build
+@@ -8,7 +8,7 @@ DIRS += ['testplugin']
+ 
+ XPCSHELL_TESTS_MANIFESTS += ['unit/xpcshell.ini']
+ 
+-if CONFIG['MOZ_WIDGET_TOOLKIT'] in ('gtk', 'cocoa', 'windows'):
++if CONFIG['MOZ_WIDGET_TOOLKIT'] in ('cocoa', 'windows'):
+     MOCHITEST_MANIFESTS += ['mochitest/mochitest.ini']
+     MOCHITEST_CHROME_MANIFESTS += ['mochitest/chrome.ini']
+     BROWSER_CHROME_MANIFESTS += ['mochitest/browser.ini']
+diff --git a/dom/plugins/test/testplugin/nptest.cpp b/dom/plugins/test/testplugin/nptest.cpp
+index 2a9d20cdca..d9b6d06397 100644
+--- a/dom/plugins/test/testplugin/nptest.cpp
++++ b/dom/plugins/test/testplugin/nptest.cpp
+@@ -2692,7 +2692,7 @@ bool stallPlugin(NPObject* npobj, const NPVariant* args, uint32_t argCount,
+   return true;
+ }
+ 
+-#if defined(MOZ_WIDGET_GTK)
++#if 0
+ bool getClipboardText(NPObject* npobj, const NPVariant* args, uint32_t argCount,
+                       NPVariant* result) {
+   NPP npp = static_cast<TestNPObject*>(npobj)->npp;
+diff --git a/dom/plugins/test/testplugin/testplugin.mozbuild b/dom/plugins/test/testplugin/testplugin.mozbuild
+index 7d3c5213b6..c49a05f015 100644
+--- a/dom/plugins/test/testplugin/testplugin.mozbuild
++++ b/dom/plugins/test/testplugin/testplugin.mozbuild
+@@ -18,10 +18,6 @@ if toolkit == 'cocoa':
+     UNIFIED_SOURCES += [
+         'nptest_macosx.mm'
+     ]
+-elif toolkit == 'gtk':
+-    UNIFIED_SOURCES += [
+-        'nptest_gtk2.cpp',
+-    ]
+ elif toolkit == 'windows':
+     UNIFIED_SOURCES += [
+         'nptest_windows.cpp',
+@@ -47,14 +43,6 @@ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'windows':
+ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa' and CONFIG['TARGET_CPU'] == 'x86_64':
+     OS_LIBS += ['-framework Carbon']
+ 
+-if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'gtk':
+-    CXXFLAGS += CONFIG['MOZ_GTK2_CFLAGS']
+-    CFLAGS += CONFIG['MOZ_GTK2_CFLAGS']
+-    OS_LIBS += CONFIG['MOZ_GTK2_LIBS']
+-    OS_LIBS += CONFIG['XLDFLAGS']
+-    OS_LIBS += CONFIG['XLIBS']
+-    OS_LIBS += CONFIG['XEXT_LIBS']
+-
+ if CONFIG['MOZ_WIDGET_TOOLKIT'] == 'cocoa':
+     FINAL_TARGET = 'dist/plugins/%s.plugin/Contents/MacOS' % cocoa_name
+     OBJDIR_FILES.dist.plugins['%s.plugin' % cocoa_name].Contents += ['%s/Info.plist' % relative_path]
+diff --git a/old-configure b/old-configure
+index d37324e996..1c39a4deb0 100644
+--- a/old-configure
++++ b/old-configure
+@@ -762,7 +762,6 @@ GLIB_VERSION=2.22
+ # The macro won't be used when compiling with earlier versions anyway.
+ GLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_26
+ CAIRO_VERSION=1.10
+-GTK2_VERSION=2.18.0
+ GTK3_VERSION=3.4.0
+ GDK_VERSION_MAX_ALLOWED=GDK_VERSION_3_4
+ W32API_VERSION=3.14
+@@ -3898,46 +3897,22 @@ else
+   echo "$ac_t""no" 1>&6
+                   LDFLAGS=$_SAVE_LDFLAGS
+ fi
+-rm -f conftest*
+-
+-    echo $ac_n "checking for --build-id=sha1 option to ld""... $ac_c" 1>&6
+-echo "configure:3905: checking for --build-id=sha1 option to ld" >&5
+-    _SAVE_LDFLAGS=$LDFLAGS
+-    LDFLAGS="$LDFLAGS -Wl,--build-id=sha1"
+-    cat > conftest.$ac_ext <<EOF
+-#line 3909 "configure"
+-#include "confdefs.h"
+-
+-int main() {
+-
+-; return 0; }
+-EOF
+-if { (eval echo configure:3916: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+-  rm -rf conftest*
+-  echo "$ac_t""yes" 1>&6
+-else
+-  echo "configure: failed program was:" >&5
+-  cat conftest.$ac_ext >&5
+-  rm -rf conftest*
+-  echo "$ac_t""no" 1>&6
+-                  LDFLAGS=$_SAVE_LDFLAGS
+-fi
+ rm -f conftest*
+ 
+     echo $ac_n "checking for --ignore-unresolved-symbol option to ld""... $ac_c" 1>&6
+-echo "configure:3929: checking for --ignore-unresolved-symbol option to ld" >&5
++echo "configure:3905: checking for --ignore-unresolved-symbol option to ld" >&5
+     HAVE_LINKER_SUPPORT_IGNORE_UNRESOLVED=
+     _SAVE_LDFLAGS=$LDFLAGS
+     LDFLAGS="$LDFLAGS -Wl,--ignore-unresolved-symbol,environ"
+     cat > conftest.$ac_ext <<EOF
+-#line 3934 "configure"
++#line 3910 "configure"
+ #include "confdefs.h"
+ 
+ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:3941: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:3917: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   echo "$ac_t""yes" 1>&6
+                   HAVE_LINKER_SUPPORT_IGNORE_UNRESOLVED=1
+@@ -3952,19 +3927,19 @@ rm -f conftest*
+ 
+     # Check for -mssse3 on $CC
+     echo $ac_n "checking if toolchain supports -mssse3 option""... $ac_c" 1>&6
+-echo "configure:3956: checking if toolchain supports -mssse3 option" >&5
++echo "configure:3932: checking if toolchain supports -mssse3 option" >&5
+     HAVE_TOOLCHAIN_SUPPORT_MSSSE3=
+     _SAVE_CFLAGS=$CFLAGS
+     CFLAGS="$CFLAGS -mssse3"
+     cat > conftest.$ac_ext <<EOF
+-#line 3961 "configure"
++#line 3937 "configure"
+ #include "confdefs.h"
+ asm ("pmaddubsw %xmm2,%xmm3");
+ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:3968: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:3944: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   echo "$ac_t""yes" 1>&6
+                      HAVE_TOOLCHAIN_SUPPORT_MSSSE3=1
+@@ -3979,19 +3954,19 @@ rm -f conftest*
+ 
+     # Check for -msse4.1 on $CC
+     echo $ac_n "checking if toolchain supports -msse4.1 option""... $ac_c" 1>&6
+-echo "configure:3983: checking if toolchain supports -msse4.1 option" >&5
++echo "configure:3959: checking if toolchain supports -msse4.1 option" >&5
+     HAVE_TOOLCHAIN_SUPPORT_MSSE4_1=
+     _SAVE_CFLAGS=$CFLAGS
+     CFLAGS="$CFLAGS -msse4.1"
+     cat > conftest.$ac_ext <<EOF
+-#line 3988 "configure"
++#line 3964 "configure"
+ #include "confdefs.h"
+ asm ("pmulld %xmm6,%xmm0");
+ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:3995: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:3971: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   echo "$ac_t""yes" 1>&6
+                      HAVE_TOOLCHAIN_SUPPORT_MSSE4_1=1
+@@ -4007,16 +3982,16 @@ rm -f conftest*
+     case "${CPU_ARCH}" in
+     x86 | x86_64)
+       echo $ac_n "checking for x86 AVX2 asm support in compiler""... $ac_c" 1>&6
+-echo "configure:4011: checking for x86 AVX2 asm support in compiler" >&5
++echo "configure:3987: checking for x86 AVX2 asm support in compiler" >&5
+       cat > conftest.$ac_ext <<EOF
+-#line 4013 "configure"
++#line 3989 "configure"
+ #include "confdefs.h"
+ 
+ int main() {
+ asm volatile ("vpermq      \$0xd8,%ymm0,%ymm0 \n");
+ ; return 0; }
+ EOF
+-if { (eval echo configure:4020: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:3996: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   result="yes"
+ else
+@@ -4034,19 +4009,19 @@ rm -f conftest*
+ 
+     ppc*)
+       echo $ac_n "checking whether we can enable AltiVec support""... $ac_c" 1>&6
+-echo "configure:4038: checking whether we can enable AltiVec support" >&5
++echo "configure:4014: checking whether we can enable AltiVec support" >&5
+       HAVE_ALTIVEC=
+       _SAVE_CFLAGS=$CFLAGS
+       CFLAGS="$CFLAGS -maltivec"
+       cat > conftest.$ac_ext <<EOF
+-#line 4043 "configure"
++#line 4019 "configure"
+ #include "confdefs.h"
+ 
+ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:4050: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:4026: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   echo "$ac_t""yes" 1>&6
+                        HAVE_ALTIVEC=1
+@@ -4159,18 +4134,18 @@ case "$target" in
+         echo "Skipping -dead_strip because DTrace is enabled. See bug 403132."
+     else
+                 echo $ac_n "checking for -dead_strip option to ld""... $ac_c" 1>&6
+-echo "configure:4163: checking for -dead_strip option to ld" >&5
++echo "configure:4139: checking for -dead_strip option to ld" >&5
+         _SAVE_LDFLAGS=$LDFLAGS
+         LDFLAGS="$LDFLAGS -Wl,-dead_strip"
+         cat > conftest.$ac_ext <<EOF
+-#line 4167 "configure"
++#line 4143 "configure"
+ #include "confdefs.h"
+ 
+ int main() {
+ return 0;
+ ; return 0; }
+ EOF
+-if { (eval echo configure:4174: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:4150: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   _HAVE_DEAD_STRIP=1
+ else
+@@ -4212,14 +4187,14 @@ rm -f conftest*
+             _SAVE_CFLAGS=$CFLAGS
+             CFLAGS="$CFLAGS $DISABLE_OUTLINER"
+             cat > conftest.$ac_ext <<EOF
+-#line 4216 "configure"
++#line 4192 "configure"
+ #include "confdefs.h"
+ 
+ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:4223: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:4199: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   MOZ_OPTIMIZE_FLAGS="$MOZ_OPTIMIZE_FLAGS $DISABLE_OUTLINER"
+ else
+@@ -4233,14 +4208,14 @@ rm -f conftest*
+             _SAVE_LDFLAGS=$LDFLAGS
+             LDFLAGS="$LDFLAGS $MOZ_LTO_LDFLAGS $DISABLE_OUTLINER"
+             cat > conftest.$ac_ext <<EOF
+-#line 4237 "configure"
++#line 4213 "configure"
+ #include "confdefs.h"
+ 
+ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:4244: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:4220: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   MOZ_OPTIMIZE_LDFLAGS="$MOZ_OPTIMIZE_LDFLAGS $DISABLE_OUTLINER"
+ else
+@@ -4573,7 +4548,7 @@ do
+ # Extract the first word of "$ac_prog", so it can be a program name with args.
+ set dummy $ac_prog; ac_word=$2
+ echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+-echo "configure:4577: checking for $ac_word" >&5
++echo "configure:4553: checking for $ac_word" >&5
+ if eval "test \"`echo '$''{'ac_cv_prog_XZ'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+@@ -4618,18 +4593,18 @@ fi
+ if test -n "$MOZ_DEBUG"; then
+     if test -n "$COMPILE_ENVIRONMENT"; then
+         echo $ac_n "checking for valid debug flags""... $ac_c" 1>&6
+-echo "configure:4622: checking for valid debug flags" >&5
++echo "configure:4598: checking for valid debug flags" >&5
+         _SAVE_CFLAGS=$CFLAGS
+         CFLAGS="$CFLAGS $MOZ_DEBUG_FLAGS"
+         cat > conftest.$ac_ext <<EOF
+-#line 4626 "configure"
++#line 4602 "configure"
+ #include "confdefs.h"
+ #include <stdio.h>
+ int main() {
+ printf("Hello World\n");
+ ; return 0; }
+ EOF
+-if { (eval echo configure:4633: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:4609: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   _results=yes
+ else
+@@ -4660,18 +4635,18 @@ fi
+ if test -n "$MOZ_DEBUG"; then
+     if test -n "$COMPILE_ENVIRONMENT"; then
+         echo $ac_n "checking for valid debug flags""... $ac_c" 1>&6
+-echo "configure:4664: checking for valid debug flags" >&5
++echo "configure:4640: checking for valid debug flags" >&5
+         _SAVE_CFLAGS=$CFLAGS
+         CFLAGS="$CFLAGS $MOZ_DEBUG_FLAGS"
+         cat > conftest.$ac_ext <<EOF
+-#line 4668 "configure"
++#line 4644 "configure"
+ #include "confdefs.h"
+ #include <stdio.h>
+ int main() {
+ printf("Hello World\n");
+ ; return 0; }
+ EOF
+-if { (eval echo configure:4675: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:4651: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   _results=yes
+ else
+@@ -4718,7 +4693,7 @@ fi
+ 
+ if test "$GNU_CC" -a "$GCC_USE_GNU_LD" -a -z "$MOZ_DISABLE_ICF" -a -z "$DEVELOPER_OPTIONS"; then
+     echo $ac_n "checking whether the linker supports Identical Code Folding""... $ac_c" 1>&6
+-echo "configure:4722: checking whether the linker supports Identical Code Folding" >&5
++echo "configure:4698: checking whether the linker supports Identical Code Folding" >&5
+ if eval "test \"`echo '$''{'LD_SUPPORTS_ICF'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+@@ -4727,7 +4702,7 @@ else
+               'int main() {return foo() - bar();}' > conftest.${ac_ext}
+         # If the linker supports ICF, foo and bar symbols will have
+         # the same address
+-        if { ac_try='${CC-cc} -o conftest${ac_exeext} $LDFLAGS -Wl,--icf=safe -ffunction-sections conftest.${ac_ext} $LIBS 1>&2'; { (eval echo configure:4731: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } &&
++        if { ac_try='${CC-cc} -o conftest${ac_exeext} $LDFLAGS -Wl,--icf=safe -ffunction-sections conftest.${ac_ext} $LIBS 1>&2'; { (eval echo configure:4707: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } &&
+            test -s conftest${ac_exeext} &&
+            $LLVM_OBJDUMP -t conftest${ac_exeext} | awk '{a[$6] = $1} END {if (a["foo"] && (a["foo"] != a["bar"])) { exit 1 }}'; then
+             LD_SUPPORTS_ICF=yes
+@@ -4742,14 +4717,14 @@ echo "$ac_t""$LD_SUPPORTS_ICF" 1>&6
+         _SAVE_LDFLAGS="$LDFLAGS -Wl,--icf=safe"
+         LDFLAGS="$LDFLAGS -Wl,--icf=safe -Wl,--print-icf-sections"
+         cat > conftest.$ac_ext <<EOF
+-#line 4746 "configure"
++#line 4722 "configure"
+ #include "confdefs.h"
+ 
+ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:4753: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:4729: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   LD_PRINT_ICF_SECTIONS=-Wl,--print-icf-sections
+ else
+@@ -4768,15 +4743,15 @@ fi
+ if test "$GNU_CC" -a "$GCC_USE_GNU_LD" -a -z "$DEVELOPER_OPTIONS"; then
+     if test -n "$MOZ_DEBUG_FLAGS"; then
+                 echo $ac_n "checking whether removing dead symbols breaks debugging""... $ac_c" 1>&6
+-echo "configure:4772: checking whether removing dead symbols breaks debugging" >&5
++echo "configure:4748: checking whether removing dead symbols breaks debugging" >&5
+ if eval "test \"`echo '$''{'GC_SECTIONS_BREAKS_DEBUG_RANGES'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   echo 'int foo() {return 42;}' \
+                   'int bar() {return 1;}' \
+                   'int main() {return foo();}' > conftest.${ac_ext}
+-            if { ac_try='${CC-cc} -o conftest.${ac_objext} $CFLAGS $MOZ_DEBUG_FLAGS -c conftest.${ac_ext} 1>&2'; { (eval echo configure:4779: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } &&
+-                { ac_try='${CC-cc} -o conftest${ac_exeext} $LDFLAGS $MOZ_DEBUG_FLAGS -Wl,--gc-sections conftest.${ac_objext} $LIBS 1>&2'; { (eval echo configure:4780: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } &&
++            if { ac_try='${CC-cc} -o conftest.${ac_objext} $CFLAGS $MOZ_DEBUG_FLAGS -c conftest.${ac_ext} 1>&2'; { (eval echo configure:4755: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } &&
++                { ac_try='${CC-cc} -o conftest${ac_exeext} $LDFLAGS $MOZ_DEBUG_FLAGS -Wl,--gc-sections conftest.${ac_objext} $LIBS 1>&2'; { (eval echo configure:4756: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } &&
+                 test -s conftest${ac_exeext} -a -s conftest.${ac_objext}; then
+                  if test "`$PYTHON3 -m mozbuild.configure.check_debug_ranges conftest.${ac_objext} conftest.${ac_ext}`" = \
+                          "`$PYTHON3 -m mozbuild.configure.check_debug_ranges conftest${ac_exeext} conftest.${ac_ext}`"; then
+@@ -4818,12 +4793,12 @@ fi # COMPILE_ENVIRONMENT
+ 
+ if test -z "$SKIP_COMPILER_CHECKS"; then
+ echo $ac_n "checking for working const""... $ac_c" 1>&6
+-echo "configure:4822: checking for working const" >&5
++echo "configure:4798: checking for working const" >&5
+ if eval "test \"`echo '$''{'ac_cv_c_const'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 4827 "configure"
++#line 4803 "configure"
+ #include "confdefs.h"
+ 
+ int main() {
+@@ -4872,7 +4847,7 @@ ccp = (char const *const *) p;
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:4876: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:4852: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   ac_cv_c_const=yes
+ else
+@@ -4898,12 +4873,12 @@ fi
+ 
+ 
+ echo $ac_n "checking for mode_t""... $ac_c" 1>&6
+-echo "configure:4902: checking for mode_t" >&5
++echo "configure:4878: checking for mode_t" >&5
+ if eval "test \"`echo '$''{'ac_cv_type_mode_t'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 4907 "configure"
++#line 4883 "configure"
+ #include "confdefs.h"
+ #include <sys/types.h>
+ #if STDC_HEADERS
+@@ -4936,12 +4911,12 @@ fi
+ 
+ 
+ echo $ac_n "checking for off_t""... $ac_c" 1>&6
+-echo "configure:4940: checking for off_t" >&5
++echo "configure:4916: checking for off_t" >&5
+ if eval "test \"`echo '$''{'ac_cv_type_off_t'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 4945 "configure"
++#line 4921 "configure"
+ #include "confdefs.h"
+ #include <sys/types.h>
+ #if STDC_HEADERS
+@@ -4974,12 +4949,12 @@ fi
+ 
+ 
+ echo $ac_n "checking for pid_t""... $ac_c" 1>&6
+-echo "configure:4978: checking for pid_t" >&5
++echo "configure:4954: checking for pid_t" >&5
+ if eval "test \"`echo '$''{'ac_cv_type_pid_t'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 4983 "configure"
++#line 4959 "configure"
+ #include "confdefs.h"
+ #include <sys/types.h>
+ #if STDC_HEADERS
+@@ -5012,12 +4987,12 @@ fi
+ 
+ 
+ echo $ac_n "checking for size_t""... $ac_c" 1>&6
+-echo "configure:5016: checking for size_t" >&5
++echo "configure:4992: checking for size_t" >&5
+ if eval "test \"`echo '$''{'ac_cv_type_size_t'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 5021 "configure"
++#line 4997 "configure"
+ #include "confdefs.h"
+ #include <sys/types.h>
+ #if STDC_HEADERS
+@@ -5096,7 +5071,7 @@ fi
+ 
+ if test "$GNU_CXX"; then
+     echo $ac_n "checking whether 64-bits std::atomic requires -latomic""... $ac_c" 1>&6
+-echo "configure:5100: checking whether 64-bits std::atomic requires -latomic" >&5
++echo "configure:5076: checking whether 64-bits std::atomic requires -latomic" >&5
+ if eval "test \"`echo '$''{'ac_cv_needs_atomic'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+@@ -5104,7 +5079,7 @@ else
+             ac_cv_needs_atomic=yes
+         else
+             cat > conftest.$ac_ext <<EOF
+-#line 5108 "configure"
++#line 5084 "configure"
+ #include "confdefs.h"
+ #include <cstdint>
+                  #include <atomic>
+@@ -5112,7 +5087,7 @@ int main() {
+  std::atomic<uint64_t> foo; foo = 1; 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5116: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5092: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   ac_cv_needs_atomic=no
+ else
+@@ -5122,7 +5097,7 @@ else
+   _SAVE_LIBS="$LIBS"
+                 LIBS="$LIBS -latomic"
+                 cat > conftest.$ac_ext <<EOF
+-#line 5126 "configure"
++#line 5102 "configure"
+ #include "confdefs.h"
+ #include <cstdint>
+                      #include <atomic>
+@@ -5130,7 +5105,7 @@ int main() {
+  std::atomic<uint64_t> foo; foo = 1; 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5134: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5110: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   ac_cv_needs_atomic=yes
+ else
+@@ -5199,12 +5174,12 @@ for ac_hdr in dirent.h sys/ndir.h sys/dir.h ndir.h
+ do
+ ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
+ echo $ac_n "checking for $ac_hdr that defines DIR""... $ac_c" 1>&6
+-echo "configure:5203: checking for $ac_hdr that defines DIR" >&5
++echo "configure:5179: checking for $ac_hdr that defines DIR" >&5
+ if eval "test \"`echo '$''{'ac_cv_header_dirent_$ac_safe'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 5208 "configure"
++#line 5184 "configure"
+ #include "confdefs.h"
+ #include <sys/types.h>
+ #include <$ac_hdr>
+@@ -5212,7 +5187,7 @@ int main() {
+ DIR *dirp = 0;
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5216: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:5192: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   eval "ac_cv_header_dirent_$ac_safe=yes"
+ else
+@@ -5240,7 +5215,7 @@ done
+ # Two versions of opendir et al. are in -ldir and -lx on SCO Xenix.
+ if test $ac_header_dirent = dirent.h; then
+ echo $ac_n "checking for opendir in -ldir""... $ac_c" 1>&6
+-echo "configure:5244: checking for opendir in -ldir" >&5
++echo "configure:5220: checking for opendir in -ldir" >&5
+ ac_lib_var=`echo dir'_'opendir | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -5248,7 +5223,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-ldir  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5252 "configure"
++#line 5228 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5259,7 +5234,7 @@ int main() {
+ opendir()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5263: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5239: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -5281,7 +5256,7 @@ fi
+ 
+ else
+ echo $ac_n "checking for opendir in -lx""... $ac_c" 1>&6
+-echo "configure:5285: checking for opendir in -lx" >&5
++echo "configure:5261: checking for opendir in -lx" >&5
+ ac_lib_var=`echo x'_'opendir | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -5289,7 +5264,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lx  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5293 "configure"
++#line 5269 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5300,7 +5275,7 @@ int main() {
+ opendir()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5304: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5280: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -5330,12 +5305,12 @@ bitrig*|dragonfly*|freebsd*|openbsd*)
+ esac
+ 
+ echo $ac_n "checking for sockaddr_in.sin_len""... $ac_c" 1>&6
+-echo "configure:5334: checking for sockaddr_in.sin_len" >&5
++echo "configure:5310: checking for sockaddr_in.sin_len" >&5
+ if eval "test \"`echo '$''{'ac_cv_sockaddr_in_sin_len'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 5339 "configure"
++#line 5315 "configure"
+ #include "confdefs.h"
+ #ifdef HAVE_SYS_TYPES_H
+                                     #include <sys/types.h>
+@@ -5347,7 +5322,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5351: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:5327: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   ac_cv_sockaddr_in_sin_len=true
+ else
+@@ -5378,12 +5353,12 @@ EOF
+ fi
+ 
+ echo $ac_n "checking for sockaddr_in6.sin6_len""... $ac_c" 1>&6
+-echo "configure:5382: checking for sockaddr_in6.sin6_len" >&5
++echo "configure:5358: checking for sockaddr_in6.sin6_len" >&5
+ if eval "test \"`echo '$''{'ac_cv_sockaddr_in6_sin6_len'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 5387 "configure"
++#line 5363 "configure"
+ #include "confdefs.h"
+ #ifdef HAVE_SYS_TYPES_H
+                                 #include <sys/types.h>
+@@ -5395,7 +5370,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5399: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:5375: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   ac_cv_sockaddr_in6_sin6_len=true
+ else
+@@ -5419,12 +5394,12 @@ EOF
+ fi
+ 
+ echo $ac_n "checking for sockaddr.sa_len""... $ac_c" 1>&6
+-echo "configure:5423: checking for sockaddr.sa_len" >&5
++echo "configure:5399: checking for sockaddr.sa_len" >&5
+ if eval "test \"`echo '$''{'ac_cv_sockaddr_sa_len'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 5428 "configure"
++#line 5404 "configure"
+ #include "confdefs.h"
+ #ifdef HAVE_SYS_TYPES_H
+                                 #include <sys/types.h>
+@@ -5436,7 +5411,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5440: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:5416: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   ac_cv_sockaddr_sa_len=true
+ else
+@@ -5460,7 +5435,7 @@ EOF
+ fi
+ 
+ echo $ac_n "checking for gethostbyname_r in -lc_r""... $ac_c" 1>&6
+-echo "configure:5464: checking for gethostbyname_r in -lc_r" >&5
++echo "configure:5440: checking for gethostbyname_r in -lc_r" >&5
+ ac_lib_var=`echo c_r'_'gethostbyname_r | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -5468,7 +5443,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lc_r  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5472 "configure"
++#line 5448 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5479,7 +5454,7 @@ int main() {
+ gethostbyname_r()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5483: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5459: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -5516,14 +5491,14 @@ case $target in
+ *)
+     
+ echo $ac_n "checking for library containing dlopen""... $ac_c" 1>&6
+-echo "configure:5520: checking for library containing dlopen" >&5
++echo "configure:5496: checking for library containing dlopen" >&5
+ if eval "test \"`echo '$''{'ac_cv_search_dlopen'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   ac_func_search_save_LIBS="$LIBS"
+ ac_cv_search_dlopen="no"
+ cat > conftest.$ac_ext <<EOF
+-#line 5527 "configure"
++#line 5503 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5534,7 +5509,7 @@ int main() {
+ dlopen()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5538: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5514: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   ac_cv_search_dlopen="none required"
+ else
+@@ -5545,7 +5520,7 @@ rm -f conftest*
+ test "$ac_cv_search_dlopen" = "no" && for i in dl; do
+ LIBS="-l$i  $ac_func_search_save_LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5549 "configure"
++#line 5525 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5556,7 +5531,7 @@ int main() {
+ dlopen()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5560: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5536: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   ac_cv_search_dlopen="-l$i"
+ break
+@@ -5574,12 +5549,12 @@ if test "$ac_cv_search_dlopen" != "no"; then
+   test "$ac_cv_search_dlopen" = "none required" || LIBS="$ac_cv_search_dlopen $LIBS"
+      ac_safe=`echo "dlfcn.h" | sed 'y%./+-%__p_%'`
+   echo $ac_n "checking for dlfcn.h""... $ac_c" 1>&6
+-echo "configure:5578: checking for dlfcn.h" >&5
++echo "configure:5554: checking for dlfcn.h" >&5
+   if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+    cat > conftest.$ac_ext <<EOF
+-#line 5583 "configure"
++#line 5559 "configure"
+ #include "confdefs.h"
+ 
+ #include <dlfcn.h>
+@@ -5587,7 +5562,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5591: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:5567: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   eval "ac_cv_header_$ac_safe=yes"
+ else
+@@ -5624,12 +5599,12 @@ CFLAGS="$CFLAGS -D_GNU_SOURCE"
+ for ac_func in dladdr memmem
+ do
+ echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+-echo "configure:5628: checking for $ac_func" >&5
++echo "configure:5604: checking for $ac_func" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 5633 "configure"
++#line 5609 "configure"
+ #define $ac_func innocuous_$ac_func
+ #include "confdefs.h"
+ #undef $ac_func
+@@ -5656,7 +5631,7 @@ $ac_func();
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5660: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5636: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_func_$ac_func=yes"
+ else
+@@ -5687,7 +5662,7 @@ CFLAGS="$_SAVE_CFLAGS"
+ 
+ if test ! "$GNU_CXX"; then
+     echo $ac_n "checking for demangle in -lC""... $ac_c" 1>&6
+-echo "configure:5691: checking for demangle in -lC" >&5
++echo "configure:5667: checking for demangle in -lC" >&5
+ ac_lib_var=`echo C'_'demangle | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -5695,7 +5670,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lC  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5699 "configure"
++#line 5675 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5706,7 +5681,7 @@ int main() {
+ demangle()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5710: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5686: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -5739,7 +5714,7 @@ fi
+ fi
+ 
+ echo $ac_n "checking for socket in -lsocket""... $ac_c" 1>&6
+-echo "configure:5743: checking for socket in -lsocket" >&5
++echo "configure:5719: checking for socket in -lsocket" >&5
+ ac_lib_var=`echo socket'_'socket | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -5747,7 +5722,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lsocket  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5751 "configure"
++#line 5727 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5758,7 +5733,7 @@ int main() {
+ socket()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5762: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5738: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -5804,7 +5779,7 @@ EOF
+     _SAVE_LIBS="$LIBS"
+     LDFLAGS="$XLDFLAGS $LDFLAGS"
+     echo $ac_n "checking for XDrawLines in -lX11""... $ac_c" 1>&6
+-echo "configure:5808: checking for XDrawLines in -lX11" >&5
++echo "configure:5784: checking for XDrawLines in -lX11" >&5
+ ac_lib_var=`echo X11'_'XDrawLines | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -5812,7 +5787,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lX11 $XLIBS $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5816 "configure"
++#line 5792 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5823,7 +5798,7 @@ int main() {
+ XDrawLines()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5827: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5803: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -5845,7 +5820,7 @@ MISSING_X="$MISSING_X -lX11"
+ fi
+ 
+     echo $ac_n "checking for XextAddDisplay in -lXext""... $ac_c" 1>&6
+-echo "configure:5849: checking for XextAddDisplay in -lXext" >&5
++echo "configure:5825: checking for XextAddDisplay in -lXext" >&5
+ ac_lib_var=`echo Xext'_'XextAddDisplay | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -5853,7 +5828,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lXext $XLIBS $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5857 "configure"
++#line 5833 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5864,7 +5839,7 @@ int main() {
+ XextAddDisplay()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5868: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5844: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -5887,7 +5862,7 @@ fi
+ 
+ 
+     echo $ac_n "checking for XtFree in -lXt""... $ac_c" 1>&6
+-echo "configure:5891: checking for XtFree in -lXt" >&5
++echo "configure:5867: checking for XtFree in -lXt" >&5
+ ac_lib_var=`echo Xt'_'XtFree | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -5895,7 +5870,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lXt  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5899 "configure"
++#line 5875 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5906,7 +5881,7 @@ int main() {
+ XtFree()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5910: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5886: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -5927,7 +5902,7 @@ else
+ 
+         unset ac_cv_lib_Xt_XtFree
+         echo $ac_n "checking for IceFlush in -lICE""... $ac_c" 1>&6
+-echo "configure:5931: checking for IceFlush in -lICE" >&5
++echo "configure:5907: checking for IceFlush in -lICE" >&5
+ ac_lib_var=`echo ICE'_'IceFlush | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -5935,7 +5910,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lICE $XT_LIBS $XLIBS $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5939 "configure"
++#line 5915 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5946,7 +5921,7 @@ int main() {
+ IceFlush()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5950: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5926: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -5967,7 +5942,7 @@ else
+ fi
+ 
+         echo $ac_n "checking for SmcCloseConnection in -lSM""... $ac_c" 1>&6
+-echo "configure:5971: checking for SmcCloseConnection in -lSM" >&5
++echo "configure:5947: checking for SmcCloseConnection in -lSM" >&5
+ ac_lib_var=`echo SM'_'SmcCloseConnection | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -5975,7 +5950,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lSM $XT_LIBS $XLIBS $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 5979 "configure"
++#line 5955 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -5986,7 +5961,7 @@ int main() {
+ SmcCloseConnection()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:5990: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:5966: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -6007,7 +5982,7 @@ else
+ fi
+ 
+         echo $ac_n "checking for XtFree in -lXt""... $ac_c" 1>&6
+-echo "configure:6011: checking for XtFree in -lXt" >&5
++echo "configure:5987: checking for XtFree in -lXt" >&5
+ ac_lib_var=`echo Xt'_'XtFree | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -6015,7 +5990,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lXt $X_PRE_LIBS $XT_LIBS $XLIBS $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 6019 "configure"
++#line 5995 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -6026,7 +6001,7 @@ int main() {
+ XtFree()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6030: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6006: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -6052,7 +6027,7 @@ fi
+ 
+ 
+                 echo $ac_n "checking for xcb_connect in -lxcb""... $ac_c" 1>&6
+-echo "configure:6056: checking for xcb_connect in -lxcb" >&5
++echo "configure:6032: checking for xcb_connect in -lxcb" >&5
+ ac_lib_var=`echo xcb'_'xcb_connect | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -6060,7 +6035,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lxcb $XLIBS $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 6064 "configure"
++#line 6040 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -6071,7 +6046,7 @@ int main() {
+ xcb_connect()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6075: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6051: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -6093,7 +6068,7 @@ MISSING_X="$MISSING_X -lxcb"
+ fi
+ 
+     echo $ac_n "checking for xcb_shm_query_version in -lxcb-shm""... $ac_c" 1>&6
+-echo "configure:6097: checking for xcb_shm_query_version in -lxcb-shm" >&5
++echo "configure:6073: checking for xcb_shm_query_version in -lxcb-shm" >&5
+ ac_lib_var=`echo xcb-shm'_'xcb_shm_query_version | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -6101,7 +6076,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lxcb-shm $XLIBS $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 6105 "configure"
++#line 6081 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -6112,7 +6087,7 @@ int main() {
+ xcb_shm_query_version()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6116: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6092: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -6134,7 +6109,7 @@ MISSING_X="$MISSING_X -lxcb-shm"
+ fi
+ 
+     echo $ac_n "checking for XGetXCBConnection in -lX11-xcb""... $ac_c" 1>&6
+-echo "configure:6138: checking for XGetXCBConnection in -lX11-xcb" >&5
++echo "configure:6114: checking for XGetXCBConnection in -lX11-xcb" >&5
+ ac_lib_var=`echo X11-xcb'_'XGetXCBConnection | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -6142,7 +6117,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lX11-xcb $XLIBS $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 6146 "configure"
++#line 6122 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -6153,7 +6128,7 @@ int main() {
+ XGetXCBConnection()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6157: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6133: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -6191,7 +6166,7 @@ darwin*)
+     ;;
+ *)
+     echo $ac_n "checking for pthread_create in -lpthreads""... $ac_c" 1>&6
+-echo "configure:6195: checking for pthread_create in -lpthreads" >&5
++echo "configure:6171: checking for pthread_create in -lpthreads" >&5
+ ac_lib_var=`echo pthreads'_'pthread_create | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -6199,7 +6174,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lpthreads  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 6203 "configure"
++#line 6179 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -6210,7 +6185,7 @@ int main() {
+ pthread_create()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6214: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6190: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -6229,7 +6204,7 @@ if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+ else
+   echo "$ac_t""no" 1>&6
+ echo $ac_n "checking for pthread_create in -lpthread""... $ac_c" 1>&6
+-echo "configure:6233: checking for pthread_create in -lpthread" >&5
++echo "configure:6209: checking for pthread_create in -lpthread" >&5
+ ac_lib_var=`echo pthread'_'pthread_create | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -6237,7 +6212,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lpthread  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 6241 "configure"
++#line 6217 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -6248,7 +6223,7 @@ int main() {
+ pthread_create()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6252: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6228: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -6267,7 +6242,7 @@ if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+ else
+   echo "$ac_t""no" 1>&6
+ echo $ac_n "checking for pthread_create in -lc_r""... $ac_c" 1>&6
+-echo "configure:6271: checking for pthread_create in -lc_r" >&5
++echo "configure:6247: checking for pthread_create in -lc_r" >&5
+ ac_lib_var=`echo c_r'_'pthread_create | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -6275,7 +6250,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lc_r  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 6279 "configure"
++#line 6255 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -6286,7 +6261,7 @@ int main() {
+ pthread_create()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6290: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6266: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -6305,7 +6280,7 @@ if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
+ else
+   echo "$ac_t""no" 1>&6
+ echo $ac_n "checking for pthread_create in -lc""... $ac_c" 1>&6
+-echo "configure:6309: checking for pthread_create in -lc" >&5
++echo "configure:6285: checking for pthread_create in -lc" >&5
+ ac_lib_var=`echo c'_'pthread_create | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -6313,7 +6288,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lc  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 6317 "configure"
++#line 6293 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -6324,7 +6299,7 @@ int main() {
+ pthread_create()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6328: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6304: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -6362,7 +6337,7 @@ then
+                 rm -f conftest*
+     ac_cv_have_dash_pthread=no
+     echo $ac_n "checking whether ${CC-cc} accepts -pthread""... $ac_c" 1>&6
+-echo "configure:6366: checking whether ${CC-cc} accepts -pthread" >&5
++echo "configure:6342: checking whether ${CC-cc} accepts -pthread" >&5
+     echo 'int main() { return 0; }' | cat > conftest.c
+     ${CC-cc} -pthread -o conftest conftest.c > conftest.out 2>&1
+     if test $? -eq 0; then
+@@ -6385,7 +6360,7 @@ echo "configure:6366: checking whether ${CC-cc} accepts -pthread" >&5
+                 ac_cv_have_dash_pthreads=no
+     if test "$ac_cv_have_dash_pthread" = "no"; then
+         echo $ac_n "checking whether ${CC-cc} accepts -pthreads""... $ac_c" 1>&6
+-echo "configure:6389: checking whether ${CC-cc} accepts -pthreads" >&5
++echo "configure:6365: checking whether ${CC-cc} accepts -pthreads" >&5
+         echo 'int main() { return 0; }' | cat > conftest.c
+         ${CC-cc} -pthreads -o conftest conftest.c > conftest.out 2>&1
+         if test $? -eq 0; then
+@@ -6457,12 +6432,12 @@ EOF
+   do
+        ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
+   echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
+-echo "configure:6461: checking for $ac_hdr" >&5
++echo "configure:6437: checking for $ac_hdr" >&5
+   if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+    cat > conftest.$ac_ext <<EOF
+-#line 6466 "configure"
++#line 6442 "configure"
+ #include "confdefs.h"
+ 
+ #include <$ac_hdr>
+@@ -6470,7 +6445,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6474: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:6450: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   eval "ac_cv_header_$ac_safe=yes"
+ else
+@@ -6505,12 +6480,12 @@ fi
+ for ac_func in stat64 lstat64 truncate64 statvfs64 statvfs statfs64 statfs getpagesize gmtime_r localtime_r arc4random arc4random_buf mallinfo gettid lchown setpriority strerror syscall
+ do
+ echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+-echo "configure:6509: checking for $ac_func" >&5
++echo "configure:6485: checking for $ac_func" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 6514 "configure"
++#line 6490 "configure"
+ #define $ac_func innocuous_$ac_func
+ #include "confdefs.h"
+ #undef $ac_func
+@@ -6537,7 +6512,7 @@ $ac_func();
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6541: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6517: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_func_$ac_func=yes"
+ else
+@@ -6566,7 +6541,7 @@ done
+ 
+ 
+ echo $ac_n "checking for clock_gettime(CLOCK_MONOTONIC)""... $ac_c" 1>&6
+-echo "configure:6570: checking for clock_gettime(CLOCK_MONOTONIC)" >&5
++echo "configure:6546: checking for clock_gettime(CLOCK_MONOTONIC)" >&5
+ if eval "test \"`echo '$''{'ac_cv_clock_monotonic'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+@@ -6576,7 +6551,7 @@ else
+                     LIBS="$LIBS $libs"
+                     CFLAGS="$CFLAGS $DSO_PIC_CFLAGS"
+                     cat > conftest.$ac_ext <<EOF
+-#line 6580 "configure"
++#line 6556 "configure"
+ #include "confdefs.h"
+ #define availability(os, ...) availability(os, strict, __VA_ARGS)
+                                  #include <time.h>
+@@ -6585,7 +6560,7 @@ int main() {
+                                    clock_gettime(CLOCK_MONOTONIC, &ts); 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6589: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6565: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   ac_cv_clock_monotonic=$libs
+                                  LIBS="$_SAVE_LIBS"
+@@ -6621,19 +6596,19 @@ fi
+ _SAVE_CFLAGS="$CFLAGS"
+ CFLAGS="$CFLAGS $WARNINGS_AS_ERRORS"
+ echo $ac_n "checking for pthread_cond_timedwait_monotonic_np""... $ac_c" 1>&6
+-echo "configure:6625: checking for pthread_cond_timedwait_monotonic_np" >&5
++echo "configure:6601: checking for pthread_cond_timedwait_monotonic_np" >&5
+ if eval "test \"`echo '$''{'ac_cv_pthread_cond_timedwait_monotonic_np'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 6630 "configure"
++#line 6606 "configure"
+ #include "confdefs.h"
+ #include <pthread.h>
+ int main() {
+ pthread_cond_timedwait_monotonic_np(0, 0, 0);
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6637: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6613: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   ac_cv_pthread_cond_timewait_monotonic_np=yes
+ else
+@@ -6658,7 +6633,7 @@ fi
+ CFLAGS=$_SAVE_CFLAGS
+ 
+ echo $ac_n "checking for res_ninit()""... $ac_c" 1>&6
+-echo "configure:6662: checking for res_ninit()" >&5
++echo "configure:6638: checking for res_ninit()" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_res_ninit'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+@@ -6666,7 +6641,7 @@ else
+                 ac_cv_func_res_ninit=no
+      else
+         cat > conftest.$ac_ext <<EOF
+-#line 6670 "configure"
++#line 6646 "configure"
+ #include "confdefs.h"
+ 
+             #ifdef linux
+@@ -6681,7 +6656,7 @@ int main() {
+ int foo = res_ninit(&_res);
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6685: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6661: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   ac_cv_func_res_ninit=yes
+ else
+@@ -6720,12 +6695,12 @@ fi
+ 
+ 
+ echo $ac_n "checking for an implementation of va_copy()""... $ac_c" 1>&6
+-echo "configure:6724: checking for an implementation of va_copy()" >&5
++echo "configure:6700: checking for an implementation of va_copy()" >&5
+ if eval "test \"`echo '$''{'ac_cv_va_copy'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 6729 "configure"
++#line 6705 "configure"
+ #include "confdefs.h"
+ #include <stdarg.h>
+                      #include <stdlib.h>
+@@ -6741,7 +6716,7 @@ int main() {
+ f(0, 42); return 0
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6745: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:6721: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   ac_cv_va_copy=yes
+ else
+@@ -6757,12 +6732,12 @@ fi
+ 
+ echo "$ac_t""$ac_cv_va_copy" 1>&6
+ echo $ac_n "checking whether va_list can be copied by value""... $ac_c" 1>&6
+-echo "configure:6761: checking whether va_list can be copied by value" >&5
++echo "configure:6737: checking whether va_list can be copied by value" >&5
+ if eval "test \"`echo '$''{'ac_cv_va_val_copy'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 6766 "configure"
++#line 6742 "configure"
+ #include "confdefs.h"
+ #include <stdarg.h>
+                      #include <stdlib.h>
+@@ -6778,7 +6753,7 @@ int main() {
+ f(0, 42); return 0
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6782: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:6758: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   ac_cv_va_val_copy=yes
+ else
+@@ -6835,12 +6810,12 @@ ARM_ABI_PREFIX=
+ if test "$GNU_CC"; then
+   if test "$CPU_ARCH" = "arm" ; then
+     echo $ac_n "checking for ARM EABI""... $ac_c" 1>&6
+-echo "configure:6839: checking for ARM EABI" >&5
++echo "configure:6815: checking for ARM EABI" >&5
+ if eval "test \"`echo '$''{'ac_cv_gcc_arm_eabi'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 6844 "configure"
++#line 6820 "configure"
+ #include "confdefs.h"
+ 
+ int main() {
+@@ -6853,7 +6828,7 @@ int main() {
+                         
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6857: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:6833: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   ac_cv_gcc_arm_eabi="yes"
+ else
+@@ -6884,19 +6859,19 @@ fi
+ _SAVE_LDFLAGS=$LDFLAGS
+ LDFLAGS="$LDFLAGS $DSO_PIC_CFLAGS $DSO_LDOPTS $MOZ_OPTIMIZE_LDFLAGS"
+ echo $ac_n "checking for __thread keyword for TLS variables""... $ac_c" 1>&6
+-echo "configure:6888: checking for __thread keyword for TLS variables" >&5
++echo "configure:6864: checking for __thread keyword for TLS variables" >&5
+ if eval "test \"`echo '$''{'ac_cv_thread_keyword'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 6893 "configure"
++#line 6869 "configure"
+ #include "confdefs.h"
+ __thread bool tlsIsMainThread = false;
+ int main() {
+ return tlsIsMainThread;
+ ; return 0; }
+ EOF
+-if { (eval echo configure:6900: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6876: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   ac_cv_thread_keyword=yes
+ else
+@@ -6966,12 +6941,12 @@ fi
+ for ac_func in localeconv
+ do
+ echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+-echo "configure:6970: checking for $ac_func" >&5
++echo "configure:6946: checking for $ac_func" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 6975 "configure"
++#line 6951 "configure"
+ #define $ac_func innocuous_$ac_func
+ #include "confdefs.h"
+ #undef $ac_func
+@@ -6998,7 +6973,7 @@ $ac_func();
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:7002: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:6978: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_func_$ac_func=yes"
+ else
+@@ -7040,12 +7015,12 @@ MALLOC_H=
+ for file in $MALLOC_HEADERS; do
+      ac_safe=`echo "$file" | sed 'y%./+-%__p_%'`
+   echo $ac_n "checking for $file""... $ac_c" 1>&6
+-echo "configure:7044: checking for $file" >&5
++echo "configure:7020: checking for $file" >&5
+   if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+    cat > conftest.$ac_ext <<EOF
+-#line 7049 "configure"
++#line 7025 "configure"
+ #include "confdefs.h"
+ 
+ #include <$file>
+@@ -7053,7 +7028,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:7057: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:7033: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   eval "ac_cv_header_$ac_safe=yes"
+ else
+@@ -7088,12 +7063,12 @@ done
+ for ac_func in strndup posix_memalign memalign
+ do
+ echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+-echo "configure:7092: checking for $ac_func" >&5
++echo "configure:7068: checking for $ac_func" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 7097 "configure"
++#line 7073 "configure"
+ #define $ac_func innocuous_$ac_func
+ #include "confdefs.h"
+ #undef $ac_func
+@@ -7120,7 +7095,7 @@ $ac_func();
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:7124: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:7100: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_func_$ac_func=yes"
+ else
+@@ -7151,12 +7126,12 @@ done
+ for ac_func in malloc_usable_size
+ do
+ echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+-echo "configure:7155: checking for $ac_func" >&5
++echo "configure:7131: checking for $ac_func" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 7160 "configure"
++#line 7136 "configure"
+ #define $ac_func innocuous_$ac_func
+ #include "confdefs.h"
+ #undef $ac_func
+@@ -7183,7 +7158,7 @@ $ac_func();
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:7187: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:7163: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_func_$ac_func=yes"
+ else
+@@ -7213,9 +7188,9 @@ done
+ MALLOC_USABLE_SIZE_CONST_PTR=const
+ if test -n "$HAVE_MALLOC_H"; then
+   echo $ac_n "checking whether malloc_usable_size definition can use const argument""... $ac_c" 1>&6
+-echo "configure:7217: checking whether malloc_usable_size definition can use const argument" >&5
++echo "configure:7193: checking whether malloc_usable_size definition can use const argument" >&5
+   cat > conftest.$ac_ext <<EOF
+-#line 7219 "configure"
++#line 7195 "configure"
+ #include "confdefs.h"
+ #include <malloc.h>
+                   #include <stddef.h>
+@@ -7224,7 +7199,7 @@ int main() {
+ return malloc_usable_size(0);
+ ; return 0; }
+ EOF
+-if { (eval echo configure:7228: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:7204: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   echo "$ac_t""yes" 1>&6
+ else
+@@ -7246,9 +7221,9 @@ EOF
+ 
+ 
+ echo $ac_n "checking for valloc in malloc.h""... $ac_c" 1>&6
+-echo "configure:7250: checking for valloc in malloc.h" >&5
++echo "configure:7226: checking for valloc in malloc.h" >&5
+ cat > conftest.$ac_ext <<EOF
+-#line 7252 "configure"
++#line 7228 "configure"
+ #include "confdefs.h"
+ #include <malloc.h>
+ EOF
+@@ -7271,9 +7246,9 @@ rm -f conftest*
+ 
+ 
+ echo $ac_n "checking for valloc in unistd.h""... $ac_c" 1>&6
+-echo "configure:7275: checking for valloc in unistd.h" >&5
++echo "configure:7251: checking for valloc in unistd.h" >&5
+ cat > conftest.$ac_ext <<EOF
+-#line 7277 "configure"
++#line 7253 "configure"
+ #include "confdefs.h"
+ #include <unistd.h>
+ EOF
+@@ -7296,9 +7271,9 @@ rm -f conftest*
+ 
+ 
+ echo $ac_n "checking for _aligned_malloc in malloc.h""... $ac_c" 1>&6
+-echo "configure:7300: checking for _aligned_malloc in malloc.h" >&5
++echo "configure:7276: checking for _aligned_malloc in malloc.h" >&5
+ cat > conftest.$ac_ext <<EOF
+-#line 7302 "configure"
++#line 7278 "configure"
+ #include "confdefs.h"
+ #include <malloc.h>
+ EOF
+@@ -7386,19 +7361,19 @@ if test "$LIBEVENT_DIR" = yes; then
+      PKG_CONFIG_MIN_VERSION=0.9.0
+      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+         echo $ac_n "checking for libevent""... $ac_c" 1>&6
+-echo "configure:7390: checking for libevent" >&5
++echo "configure:7366: checking for libevent" >&5
+ 
+         if $PKG_CONFIG --exists "libevent" ; then
+             echo "$ac_t""yes" 1>&6
+             succeeded=yes
+ 
+             echo $ac_n "checking MOZ_LIBEVENT_CFLAGS""... $ac_c" 1>&6
+-echo "configure:7397: checking MOZ_LIBEVENT_CFLAGS" >&5
++echo "configure:7373: checking MOZ_LIBEVENT_CFLAGS" >&5
+             MOZ_LIBEVENT_CFLAGS=`$PKG_CONFIG --cflags "libevent"`
+             echo "$ac_t""$MOZ_LIBEVENT_CFLAGS" 1>&6
+ 
+             echo $ac_n "checking MOZ_LIBEVENT_LIBS""... $ac_c" 1>&6
+-echo "configure:7402: checking MOZ_LIBEVENT_LIBS" >&5
++echo "configure:7378: checking MOZ_LIBEVENT_LIBS" >&5
+             ## Remove evil flags like -Wl,--export-dynamic
+             MOZ_LIBEVENT_LIBS="`$PKG_CONFIG --libs \"libevent\" |sed s/-Wl,--export-dynamic//g`"
+             echo "$ac_t""$MOZ_LIBEVENT_LIBS" 1>&6
+@@ -7435,12 +7410,12 @@ elif test -z "$MOZ_SYSTEM_LIBEVENT"; then
+     LDFLAGS="-L${LIBEVENT_DIR}/lib $LDFLAGS"
+        ac_safe=`echo "event.h" | sed 'y%./+-%__p_%'`
+   echo $ac_n "checking for event.h""... $ac_c" 1>&6
+-echo "configure:7439: checking for event.h" >&5
++echo "configure:7415: checking for event.h" >&5
+   if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+    cat > conftest.$ac_ext <<EOF
+-#line 7444 "configure"
++#line 7420 "configure"
+ #include "confdefs.h"
+ 
+ #include <event.h>
+@@ -7448,7 +7423,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:7452: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:7428: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   eval "ac_cv_header_$ac_safe=yes"
+ else
+@@ -7471,7 +7446,7 @@ fi
+   fi
+ 
+     echo $ac_n "checking for event_init in -levent""... $ac_c" 1>&6
+-echo "configure:7475: checking for event_init in -levent" >&5
++echo "configure:7451: checking for event_init in -levent" >&5
+ ac_lib_var=`echo event'_'event_init | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -7479,7 +7454,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-levent  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 7483 "configure"
++#line 7459 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -7490,7 +7465,7 @@ int main() {
+ event_init()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:7494: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:7470: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -7540,7 +7515,7 @@ if test -z "$PNG_DIR" -o "$PNG_DIR" = no; then
+     MOZ_SYSTEM_PNG=
+ else
+     echo $ac_n "checking for png_get_valid in -lpng""... $ac_c" 1>&6
+-echo "configure:7544: checking for png_get_valid in -lpng" >&5
++echo "configure:7520: checking for png_get_valid in -lpng" >&5
+ ac_lib_var=`echo png'_'png_get_valid | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -7548,7 +7523,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lpng  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 7552 "configure"
++#line 7528 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -7559,7 +7534,7 @@ int main() {
+ png_get_valid()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:7563: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:7539: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -7581,7 +7556,7 @@ else
+ fi
+ 
+     echo $ac_n "checking for png_get_acTL in -lpng""... $ac_c" 1>&6
+-echo "configure:7585: checking for png_get_acTL in -lpng" >&5
++echo "configure:7561: checking for png_get_acTL in -lpng" >&5
+ ac_lib_var=`echo png'_'png_get_acTL | sed 'y%./+-%__p_%'`
+ if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+@@ -7589,7 +7564,7 @@ else
+   ac_save_LIBS="$LIBS"
+ LIBS="-lpng  $LIBS"
+ cat > conftest.$ac_ext <<EOF
+-#line 7593 "configure"
++#line 7569 "configure"
+ #include "confdefs.h"
+ /* Override any gcc2 internal prototype to avoid an error.  */
+ /* We use char because int might match the return type of a gcc2
+@@ -7600,7 +7575,7 @@ int main() {
+ png_get_acTL()
+ ; return 0; }
+ EOF
+-if { (eval echo configure:7604: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:7580: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_lib_$ac_lib_var=yes"
+ else
+@@ -7634,7 +7609,7 @@ fi
+ fi
+ if test "$MOZ_SYSTEM_PNG" = 1; then
+     cat > conftest.$ac_ext <<EOF
+-#line 7638 "configure"
++#line 7614 "configure"
+ #include "confdefs.h"
+  #include <stdio.h>
+                      #include <sys/types.h>
+@@ -7648,7 +7623,7 @@ int main() {
+                      #endif 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:7652: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:7628: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   MOZ_SYSTEM_PNG=1
+ else
+@@ -7736,7 +7711,7 @@ fi
+ 
+ # Allow the application to influence configure with a confvars.sh script.
+ echo $ac_n "checking if app-specific confvars.sh exists""... $ac_c" 1>&6
+-echo "configure:7740: checking if app-specific confvars.sh exists" >&5
++echo "configure:7716: checking if app-specific confvars.sh exists" >&5
+ if test -f "${srcdir}/${MOZ_BUILD_APP}/confvars.sh" ; then
+   echo "$ac_t""${srcdir}/${MOZ_BUILD_APP}/confvars.sh" 1>&6
+   . "${srcdir}/${MOZ_BUILD_APP}/confvars.sh"
+@@ -7858,19 +7833,19 @@ if test "$COMPILE_ENVIRONMENT"; then
+      PKG_CONFIG_MIN_VERSION=0.9.0
+      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+         echo $ac_n "checking for gtk+-3.0 >= $GTK3_VERSION gtk+-unix-print-3.0 glib-2.0 gobject-2.0 gio-unix-2.0 $GDK_PACKAGES""... $ac_c" 1>&6
+-echo "configure:7862: checking for gtk+-3.0 >= $GTK3_VERSION gtk+-unix-print-3.0 glib-2.0 gobject-2.0 gio-unix-2.0 $GDK_PACKAGES" >&5
++echo "configure:7838: checking for gtk+-3.0 >= $GTK3_VERSION gtk+-unix-print-3.0 glib-2.0 gobject-2.0 gio-unix-2.0 $GDK_PACKAGES" >&5
+ 
+         if $PKG_CONFIG --exists "gtk+-3.0 >= $GTK3_VERSION gtk+-unix-print-3.0 glib-2.0 gobject-2.0 gio-unix-2.0 $GDK_PACKAGES" ; then
+             echo "$ac_t""yes" 1>&6
+             succeeded=yes
+ 
+             echo $ac_n "checking MOZ_GTK3_CFLAGS""... $ac_c" 1>&6
+-echo "configure:7869: checking MOZ_GTK3_CFLAGS" >&5
++echo "configure:7845: checking MOZ_GTK3_CFLAGS" >&5
+             MOZ_GTK3_CFLAGS=`$PKG_CONFIG --cflags "gtk+-3.0 >= $GTK3_VERSION gtk+-unix-print-3.0 glib-2.0 gobject-2.0 gio-unix-2.0 $GDK_PACKAGES"`
+             echo "$ac_t""$MOZ_GTK3_CFLAGS" 1>&6
+ 
+             echo $ac_n "checking MOZ_GTK3_LIBS""... $ac_c" 1>&6
+-echo "configure:7874: checking MOZ_GTK3_LIBS" >&5
++echo "configure:7850: checking MOZ_GTK3_LIBS" >&5
+             ## Remove evil flags like -Wl,--export-dynamic
+             MOZ_GTK3_LIBS="`$PKG_CONFIG --libs \"gtk+-3.0 >= $GTK3_VERSION gtk+-unix-print-3.0 glib-2.0 gobject-2.0 gio-unix-2.0 $GDK_PACKAGES\" |sed s/-Wl,--export-dynamic//g`"
+             echo "$ac_t""$MOZ_GTK3_LIBS" 1>&6
+@@ -7911,79 +7886,6 @@ EOF
+ 
+     GLIB_VERSION_MAX_ALLOWED=GLIB_VERSION_2_32
+   fi
+-  if test "$MOZ_ENABLE_GTK"; then
+-    if test "$MOZ_X11"; then
+-      GDK_PACKAGES=gdk-x11-2.0
+-    fi
+-    cat >> confdefs.pytmp <<EOF
+-    (''' GLIB_VERSION_MIN_REQUIRED ''', r''' $GLIB_VERSION_MIN_REQUIRED ''')
+-EOF
+-cat >> confdefs.h <<EOF
+-#define GLIB_VERSION_MIN_REQUIRED $GLIB_VERSION_MIN_REQUIRED
+-EOF
+-
+-    cat >> confdefs.pytmp <<EOF
+-    (''' GLIB_VERSION_MAX_ALLOWED ''', r''' $GLIB_VERSION_MAX_ALLOWED ''')
+-EOF
+-cat >> confdefs.h <<EOF
+-#define GLIB_VERSION_MAX_ALLOWED $GLIB_VERSION_MAX_ALLOWED
+-EOF
+-
+-
+-    succeeded=no
+-
+-  if test -z "$PKG_CONFIG"; then
+-     echo "*** The pkg-config script could not be found. Make sure it is"
+-     echo "*** in your path, or set the PKG_CONFIG environment variable"
+-     echo "*** to the full path to pkg-config."
+-     echo "*** Or see http://www.freedesktop.org/software/pkgconfig to get pkg-config."
+-  else
+-     PKG_CONFIG_MIN_VERSION=0.9.0
+-     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+-        echo $ac_n "checking for gtk+-2.0 >= $GTK2_VERSION gtk+-unix-print-2.0 glib-2.0 >= $GLIB_VERSION gobject-2.0 gio-unix-2.0 $GDK_PACKAGES""... $ac_c" 1>&6
+-echo "configure:7945: checking for gtk+-2.0 >= $GTK2_VERSION gtk+-unix-print-2.0 glib-2.0 >= $GLIB_VERSION gobject-2.0 gio-unix-2.0 $GDK_PACKAGES" >&5
+-
+-        if $PKG_CONFIG --exists "gtk+-2.0 >= $GTK2_VERSION gtk+-unix-print-2.0 glib-2.0 >= $GLIB_VERSION gobject-2.0 gio-unix-2.0 $GDK_PACKAGES" ; then
+-            echo "$ac_t""yes" 1>&6
+-            succeeded=yes
+-
+-            echo $ac_n "checking MOZ_GTK2_CFLAGS""... $ac_c" 1>&6
+-echo "configure:7952: checking MOZ_GTK2_CFLAGS" >&5
+-            MOZ_GTK2_CFLAGS=`$PKG_CONFIG --cflags "gtk+-2.0 >= $GTK2_VERSION gtk+-unix-print-2.0 glib-2.0 >= $GLIB_VERSION gobject-2.0 gio-unix-2.0 $GDK_PACKAGES"`
+-            echo "$ac_t""$MOZ_GTK2_CFLAGS" 1>&6
+-
+-            echo $ac_n "checking MOZ_GTK2_LIBS""... $ac_c" 1>&6
+-echo "configure:7957: checking MOZ_GTK2_LIBS" >&5
+-            ## Remove evil flags like -Wl,--export-dynamic
+-            MOZ_GTK2_LIBS="`$PKG_CONFIG --libs \"gtk+-2.0 >= $GTK2_VERSION gtk+-unix-print-2.0 glib-2.0 >= $GLIB_VERSION gobject-2.0 gio-unix-2.0 $GDK_PACKAGES\" |sed s/-Wl,--export-dynamic//g`"
+-            echo "$ac_t""$MOZ_GTK2_LIBS" 1>&6
+-        else
+-            MOZ_GTK2_CFLAGS=""
+-            MOZ_GTK2_LIBS=""
+-            ## If we have a custom action on failure, don't print errors, but 
+-            ## do set a variable so people can do so.
+-            MOZ_GTK2_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gtk+-2.0 >= $GTK2_VERSION gtk+-unix-print-2.0 glib-2.0 >= $GLIB_VERSION gobject-2.0 gio-unix-2.0 $GDK_PACKAGES"`
+-            echo $MOZ_GTK2_PKG_ERRORS
+-        fi
+-
+-        
+-        
+-     else
+-        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+-        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+-     fi
+-  fi
+-
+-  if test $succeeded = yes; then
+-     :
+-  else
+-     if test "$COMPILE_ENVIRONMENT"; then 
+-       { echo "configure: error: Library requirements (gtk+-2.0 >= $GTK2_VERSION gtk+-unix-print-2.0 glib-2.0 >= $GLIB_VERSION gobject-2.0 gio-unix-2.0 $GDK_PACKAGES) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." 1>&2; echo "configure: error: Library requirements (gtk+-2.0 >= $GTK2_VERSION gtk+-unix-print-2.0 glib-2.0 >= $GLIB_VERSION gobject-2.0 gio-unix-2.0 $GDK_PACKAGES) not met; consider adjusting the PKG_CONFIG_PATH environment variable if your libraries are in a nonstandard prefix so pkg-config can find them." 1>&5; exit 1; }
+-     fi
+-  fi
+-
+-    MOZ_GTK2_CFLAGS="-I${_topsrcdir}/widget/gtk/compat $MOZ_GTK2_CFLAGS"
+-  fi
+ fi # COMPILE_ENVIRONMENT
+ 
+ 
+@@ -8081,19 +7983,19 @@ fi
+      PKG_CONFIG_MIN_VERSION=0.9.0
+      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+         echo $ac_n "checking for libproxy-1.0""... $ac_c" 1>&6
+-echo "configure:8085: checking for libproxy-1.0" >&5
++echo "configure:8061: checking for libproxy-1.0" >&5
+ 
+         if $PKG_CONFIG --exists "libproxy-1.0" ; then
+             echo "$ac_t""yes" 1>&6
+             succeeded=yes
+ 
+             echo $ac_n "checking MOZ_LIBPROXY_CFLAGS""... $ac_c" 1>&6
+-echo "configure:8092: checking MOZ_LIBPROXY_CFLAGS" >&5
++echo "configure:8068: checking MOZ_LIBPROXY_CFLAGS" >&5
+             MOZ_LIBPROXY_CFLAGS=`$PKG_CONFIG --cflags "libproxy-1.0"`
+             echo "$ac_t""$MOZ_LIBPROXY_CFLAGS" 1>&6
+ 
+             echo $ac_n "checking MOZ_LIBPROXY_LIBS""... $ac_c" 1>&6
+-echo "configure:8097: checking MOZ_LIBPROXY_LIBS" >&5
++echo "configure:8073: checking MOZ_LIBPROXY_LIBS" >&5
+             ## Remove evil flags like -Wl,--export-dynamic
+             MOZ_LIBPROXY_LIBS="`$PKG_CONFIG --libs \"libproxy-1.0\" |sed s/-Wl,--export-dynamic//g`"
+             echo "$ac_t""$MOZ_LIBPROXY_LIBS" 1>&6
+@@ -8164,19 +8066,19 @@ fi
+      PKG_CONFIG_MIN_VERSION=0.9.0
+      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+         echo $ac_n "checking for dbus-1 >= $DBUS_VERSION""... $ac_c" 1>&6
+-echo "configure:8168: checking for dbus-1 >= $DBUS_VERSION" >&5
++echo "configure:8144: checking for dbus-1 >= $DBUS_VERSION" >&5
+ 
+         if $PKG_CONFIG --exists "dbus-1 >= $DBUS_VERSION" ; then
+             echo "$ac_t""yes" 1>&6
+             succeeded=yes
+ 
+             echo $ac_n "checking MOZ_DBUS_CFLAGS""... $ac_c" 1>&6
+-echo "configure:8175: checking MOZ_DBUS_CFLAGS" >&5
++echo "configure:8151: checking MOZ_DBUS_CFLAGS" >&5
+             MOZ_DBUS_CFLAGS=`$PKG_CONFIG --cflags "dbus-1 >= $DBUS_VERSION"`
+             echo "$ac_t""$MOZ_DBUS_CFLAGS" 1>&6
+ 
+             echo $ac_n "checking MOZ_DBUS_LIBS""... $ac_c" 1>&6
+-echo "configure:8180: checking MOZ_DBUS_LIBS" >&5
++echo "configure:8156: checking MOZ_DBUS_LIBS" >&5
+             ## Remove evil flags like -Wl,--export-dynamic
+             MOZ_DBUS_LIBS="`$PKG_CONFIG --libs \"dbus-1 >= $DBUS_VERSION\" |sed s/-Wl,--export-dynamic//g`"
+             echo "$ac_t""$MOZ_DBUS_LIBS" 1>&6
+@@ -8216,19 +8118,19 @@ echo "configure:8180: checking MOZ_DBUS_LIBS" >&5
+      PKG_CONFIG_MIN_VERSION=0.9.0
+      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+         echo $ac_n "checking for dbus-glib-1 >= $DBUS_VERSION""... $ac_c" 1>&6
+-echo "configure:8220: checking for dbus-glib-1 >= $DBUS_VERSION" >&5
++echo "configure:8196: checking for dbus-glib-1 >= $DBUS_VERSION" >&5
+ 
+         if $PKG_CONFIG --exists "dbus-glib-1 >= $DBUS_VERSION" ; then
+             echo "$ac_t""yes" 1>&6
+             succeeded=yes
+ 
+             echo $ac_n "checking MOZ_DBUS_GLIB_CFLAGS""... $ac_c" 1>&6
+-echo "configure:8227: checking MOZ_DBUS_GLIB_CFLAGS" >&5
++echo "configure:8203: checking MOZ_DBUS_GLIB_CFLAGS" >&5
+             MOZ_DBUS_GLIB_CFLAGS=`$PKG_CONFIG --cflags "dbus-glib-1 >= $DBUS_VERSION"`
+             echo "$ac_t""$MOZ_DBUS_GLIB_CFLAGS" 1>&6
+ 
+             echo $ac_n "checking MOZ_DBUS_GLIB_LIBS""... $ac_c" 1>&6
+-echo "configure:8232: checking MOZ_DBUS_GLIB_LIBS" >&5
++echo "configure:8208: checking MOZ_DBUS_GLIB_LIBS" >&5
+             ## Remove evil flags like -Wl,--export-dynamic
+             MOZ_DBUS_GLIB_LIBS="`$PKG_CONFIG --libs \"dbus-glib-1 >= $DBUS_VERSION\" |sed s/-Wl,--export-dynamic//g`"
+             echo "$ac_t""$MOZ_DBUS_GLIB_LIBS" 1>&6
+@@ -8279,14 +8181,14 @@ EOF
+ fi
+ 
+ cat > conftest.$ac_ext <<EOF
+-#line 8283 "configure"
++#line 8259 "configure"
+ #include "confdefs.h"
+ #include <linux/ethtool.h>
+ int main() {
+  struct ethtool_cmd cmd; cmd.speed_hi = 0; 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:8290: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:8266: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   MOZ_WEBRTC_HAVE_ETHTOOL_SPEED_HI=1
+ else
+@@ -8315,17 +8217,17 @@ for ac_hdr in CoreMedia/CoreMedia.h VideoToolbox/VideoToolbox.h
+ do
+ ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
+ echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
+-echo "configure:8319: checking for $ac_hdr" >&5
++echo "configure:8295: checking for $ac_hdr" >&5
+ if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 8324 "configure"
++#line 8300 "configure"
+ #include "confdefs.h"
+ #include <$ac_hdr>
+ EOF
+ ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
+-{ (eval echo configure:8329: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
++{ (eval echo configure:8305: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+ ac_err=`grep -v '^ *+' conftest.out | grep -v "^conftest.${ac_ext}\$"`
+ if test -z "$ac_err"; then
+   rm -rf conftest*
+@@ -8437,12 +8339,12 @@ if test "$COMPILE_ENVIRONMENT" ; then
+ if test "$OS_TARGET" = "Linux"; then
+        ac_safe=`echo "linux/joystick.h" | sed 'y%./+-%__p_%'`
+   echo $ac_n "checking for linux/joystick.h""... $ac_c" 1>&6
+-echo "configure:8441: checking for linux/joystick.h" >&5
++echo "configure:8417: checking for linux/joystick.h" >&5
+   if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+    cat > conftest.$ac_ext <<EOF
+-#line 8446 "configure"
++#line 8422 "configure"
+ #include "confdefs.h"
+ 
+ #include <linux/joystick.h>
+@@ -8450,7 +8352,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:8454: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:8430: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   eval "ac_cv_header_$ac_safe=yes"
+ else
+@@ -8538,19 +8440,19 @@ EOF
+      PKG_CONFIG_MIN_VERSION=0.9.0
+      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+         echo $ac_n "checking for gthread-2.0""... $ac_c" 1>&6
+-echo "configure:8542: checking for gthread-2.0" >&5
++echo "configure:8518: checking for gthread-2.0" >&5
+ 
+         if $PKG_CONFIG --exists "gthread-2.0" ; then
+             echo "$ac_t""yes" 1>&6
+             succeeded=yes
+ 
+             echo $ac_n "checking MOZ_GTHREAD_CFLAGS""... $ac_c" 1>&6
+-echo "configure:8549: checking MOZ_GTHREAD_CFLAGS" >&5
++echo "configure:8525: checking MOZ_GTHREAD_CFLAGS" >&5
+             MOZ_GTHREAD_CFLAGS=`$PKG_CONFIG --cflags "gthread-2.0"`
+             echo "$ac_t""$MOZ_GTHREAD_CFLAGS" 1>&6
+ 
+             echo $ac_n "checking MOZ_GTHREAD_LIBS""... $ac_c" 1>&6
+-echo "configure:8554: checking MOZ_GTHREAD_LIBS" >&5
++echo "configure:8530: checking MOZ_GTHREAD_LIBS" >&5
+             ## Remove evil flags like -Wl,--export-dynamic
+             MOZ_GTHREAD_LIBS="`$PKG_CONFIG --libs \"gthread-2.0\" |sed s/-Wl,--export-dynamic//g`"
+             echo "$ac_t""$MOZ_GTHREAD_LIBS" 1>&6
+@@ -8648,7 +8550,7 @@ do
+ # Extract the first word of "$ac_prog", so it can be a program name with args.
+ set dummy $ac_prog; ac_word=$2
+ echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
+-echo "configure:8652: checking for $ac_word" >&5
++echo "configure:8628: checking for $ac_word" >&5
+ if eval "test \"`echo '$''{'ac_cv_prog_WGET'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+@@ -8797,12 +8699,12 @@ fi
+ # Individual module options
+ 
+ echo $ac_n "checking for fdatasync""... $ac_c" 1>&6
+-echo "configure:8801: checking for fdatasync" >&5
++echo "configure:8777: checking for fdatasync" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_fdatasync'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 8806 "configure"
++#line 8782 "configure"
+ #define fdatasync innocuous_fdatasync
+ #include "confdefs.h"
+ #undef fdatasync
+@@ -8829,7 +8731,7 @@ fdatasync();
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:8833: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:8809: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_func_fdatasync=yes"
+ else
+@@ -8912,18 +8814,18 @@ fi
+ if test "$COMPILE_ENVIRONMENT"; then
+ if test -n "$MOZ_OPTIMIZE"; then
+     echo $ac_n "checking for valid C compiler optimization flags""... $ac_c" 1>&6
+-echo "configure:8916: checking for valid C compiler optimization flags" >&5
++echo "configure:8892: checking for valid C compiler optimization flags" >&5
+     _SAVE_CFLAGS=$CFLAGS
+     CFLAGS="$CFLAGS $MOZ_OPTIMIZE_FLAGS"
+     cat > conftest.$ac_ext <<EOF
+-#line 8920 "configure"
++#line 8896 "configure"
+ #include "confdefs.h"
+ #include <stdio.h>
+ int main() {
+ printf("Hello World\n");
+ ; return 0; }
+ EOF
+-if { (eval echo configure:8927: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:8903: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   _results=yes
+ else
+@@ -9083,7 +8985,7 @@ if test -n "$ENABLE_CLANG_PLUGIN"; then
+     fi
+ 
+     echo $ac_n "checking for llvm-config""... $ac_c" 1>&6
+-echo "configure:9087: checking for llvm-config" >&5
++echo "configure:9063: checking for llvm-config" >&5
+     if test -z "$LLVMCONFIG"; then
+       if test -n "$CLANG_CL"; then
+           CXX_COMPILER="$(dirname "$CXX")/clang"
+@@ -9249,12 +9151,12 @@ fi
+     for ac_func in __cxa_demangle
+ do
+ echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+-echo "configure:9253: checking for $ac_func" >&5
++echo "configure:9229: checking for $ac_func" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 9258 "configure"
++#line 9234 "configure"
+ #define $ac_func innocuous_$ac_func
+ #include "confdefs.h"
+ #undef $ac_func
+@@ -9284,7 +9186,7 @@ $ac_func();
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:9288: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:9264: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_func_$ac_func=yes"
+ else
+@@ -9354,12 +9256,12 @@ fi
+ 
+        ac_safe=`echo "unwind.h" | sed 'y%./+-%__p_%'`
+   echo $ac_n "checking for unwind.h""... $ac_c" 1>&6
+-echo "configure:9358: checking for unwind.h" >&5
++echo "configure:9334: checking for unwind.h" >&5
+   if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+    cat > conftest.$ac_ext <<EOF
+-#line 9363 "configure"
++#line 9339 "configure"
+ #include "confdefs.h"
+ 
+ #include <unwind.h>
+@@ -9367,7 +9269,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:9371: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:9347: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   eval "ac_cv_header_$ac_safe=yes"
+ else
+@@ -9384,12 +9286,12 @@ fi
+     for ac_func in _Unwind_Backtrace
+ do
+ echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+-echo "configure:9388: checking for $ac_func" >&5
++echo "configure:9364: checking for $ac_func" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 9393 "configure"
++#line 9369 "configure"
+ #define $ac_func innocuous_$ac_func
+ #include "confdefs.h"
+ #undef $ac_func
+@@ -9421,7 +9323,7 @@ $ac_func();
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:9425: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:9401: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_func_$ac_func=yes"
+ else
+@@ -9489,7 +9391,7 @@ if test -z "$SKIP_COMPILER_CHECKS"; then
+ # Compiler Options
+ 
+ echo $ac_n "checking for -pipe support""... $ac_c" 1>&6
+-echo "configure:9493: checking for -pipe support" >&5
++echo "configure:9469: checking for -pipe support" >&5
+ if test -n "$GNU_CC" -a -n "$GNU_CXX"; then
+         CFLAGS="$CFLAGS -pipe"
+     CXXFLAGS="$CXXFLAGS -pipe"
+@@ -9516,25 +9418,25 @@ if test "$COMPILE_ENVIRONMENT"; then
+ 
+ 
+ echo $ac_n "checking what kind of list files are supported by the linker""... $ac_c" 1>&6
+-echo "configure:9520: checking what kind of list files are supported by the linker" >&5
++echo "configure:9496: checking what kind of list files are supported by the linker" >&5
+ if eval "test \"`echo '$''{'EXPAND_LIBS_LIST_STYLE'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   echo "int main() {return 0;}" > conftest.${ac_ext}
+-                         if { ac_try='${CC-cc} -o conftest.${OBJ_SUFFIX} -c $MOZ_LTO_CFLAGS $CFLAGS $CPPFLAGS conftest.${ac_ext} 1>&5'; { (eval echo configure:9525: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } && test -s conftest.${OBJ_SUFFIX}; then
++                         if { ac_try='${CC-cc} -o conftest.${OBJ_SUFFIX} -c $MOZ_LTO_CFLAGS $CFLAGS $CPPFLAGS conftest.${ac_ext} 1>&5'; { (eval echo configure:9501: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } && test -s conftest.${OBJ_SUFFIX}; then
+          echo "INPUT(conftest.${OBJ_SUFFIX})" > conftest.list
+          if test "$CC_TYPE" = "clang-cl"; then
+              link="$LINKER -OUT:conftest${ac_exeext}"
+          else
+              link="${CC-cc} -o conftest${ac_exeext}"
+          fi
+-         if { ac_try='$link $MOZ_LTO_LDFLAGS $LDFLAGS conftest.list $LIBS 1>&5'; { (eval echo configure:9532: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } && test -s conftest${ac_exeext}; then
++         if { ac_try='$link $MOZ_LTO_LDFLAGS $LDFLAGS conftest.list $LIBS 1>&5'; { (eval echo configure:9508: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } && test -s conftest${ac_exeext}; then
+              EXPAND_LIBS_LIST_STYLE=linkerscript
+          else
+              echo "conftest.${OBJ_SUFFIX}" > conftest.list
+-                                                                 if { ac_try='$link $MOZ_LTO_LDFLAGS $LDFLAGS -Wl,-filelist,conftest.list $LIBS 1>&5'; { (eval echo configure:9536: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } && test -s conftest${ac_exeext}; then
++                                                                 if { ac_try='$link $MOZ_LTO_LDFLAGS $LDFLAGS -Wl,-filelist,conftest.list $LIBS 1>&5'; { (eval echo configure:9512: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } && test -s conftest${ac_exeext}; then
+                  EXPAND_LIBS_LIST_STYLE=filelist
+-             elif { ac_try='$link $MOZ_LTO_LDFLAGS $LDFLAGS @conftest.list $LIBS 1>&5'; { (eval echo configure:9538: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } && test -s conftest${ac_exeext}; then
++             elif { ac_try='$link $MOZ_LTO_LDFLAGS $LDFLAGS @conftest.list $LIBS 1>&5'; { (eval echo configure:9514: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }; } && test -s conftest${ac_exeext}; then
+                  EXPAND_LIBS_LIST_STYLE=list
+              else
+                  { echo "configure: error: Couldn't find one that works" 1>&2; echo "configure: error: Couldn't find one that works" 1>&5; exit 1; }
+@@ -9587,19 +9489,19 @@ if test -z "${GLIB_CFLAGS}" -o -z "${GLIB_LIBS}" ; then
+      PKG_CONFIG_MIN_VERSION=0.9.0
+      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+         echo $ac_n "checking for glib-2.0 >= 1.3.7 gobject-2.0""... $ac_c" 1>&6
+-echo "configure:9591: checking for glib-2.0 >= 1.3.7 gobject-2.0" >&5
++echo "configure:9567: checking for glib-2.0 >= 1.3.7 gobject-2.0" >&5
+ 
+         if $PKG_CONFIG --exists "glib-2.0 >= 1.3.7 gobject-2.0" ; then
+             echo "$ac_t""yes" 1>&6
+             succeeded=yes
+ 
+             echo $ac_n "checking GLIB_CFLAGS""... $ac_c" 1>&6
+-echo "configure:9598: checking GLIB_CFLAGS" >&5
++echo "configure:9574: checking GLIB_CFLAGS" >&5
+             GLIB_CFLAGS=`$PKG_CONFIG --cflags "glib-2.0 >= 1.3.7 gobject-2.0"`
+             echo "$ac_t""$GLIB_CFLAGS" 1>&6
+ 
+             echo $ac_n "checking GLIB_LIBS""... $ac_c" 1>&6
+-echo "configure:9603: checking GLIB_LIBS" >&5
++echo "configure:9579: checking GLIB_LIBS" >&5
+             ## Remove evil flags like -Wl,--export-dynamic
+             GLIB_LIBS="`$PKG_CONFIG --libs \"glib-2.0 >= 1.3.7 gobject-2.0\" |sed s/-Wl,--export-dynamic//g`"
+             echo "$ac_t""$GLIB_LIBS" 1>&6
+@@ -9650,12 +9552,12 @@ if test "$USE_FC_FREETYPE"; then
+             CFLAGS="$CFLAGS $FT2_CFLAGS"
+ 
+             echo $ac_n "checking for FT_Bitmap_Size.y_ppem""... $ac_c" 1>&6
+-echo "configure:9654: checking for FT_Bitmap_Size.y_ppem" >&5
++echo "configure:9630: checking for FT_Bitmap_Size.y_ppem" >&5
+ if eval "test \"`echo '$''{'ac_cv_member_FT_Bitmap_Size_y_ppem'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 9659 "configure"
++#line 9635 "configure"
+ #include "confdefs.h"
+ #include <ft2build.h>
+                                  #include FT_FREETYPE_H
+@@ -9665,7 +9567,7 @@ FT_Bitmap_Size s;
+                                  return 1
+ ; return 0; }
+ EOF
+-if { (eval echo configure:9669: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:9645: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   ac_cv_member_FT_Bitmap_Size_y_ppem=yes
+ else
+@@ -9694,12 +9596,12 @@ EOF
+             for ac_func in FT_GlyphSlot_Embolden FT_Load_Sfnt_Table
+ do
+ echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+-echo "configure:9698: checking for $ac_func" >&5
++echo "configure:9674: checking for $ac_func" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 9703 "configure"
++#line 9679 "configure"
+ #define $ac_func innocuous_$ac_func
+ #include "confdefs.h"
+ #undef $ac_func
+@@ -9726,7 +9628,7 @@ $ac_func();
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:9730: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:9706: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_func_$ac_func=yes"
+ else
+@@ -9764,12 +9666,12 @@ done
+   do
+        ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
+   echo $ac_n "checking for $ac_hdr""... $ac_c" 1>&6
+-echo "configure:9768: checking for $ac_hdr" >&5
++echo "configure:9744: checking for $ac_hdr" >&5
+   if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+    cat > conftest.$ac_ext <<EOF
+-#line 9773 "configure"
++#line 9749 "configure"
+ #include "confdefs.h"
+ #include <fontconfig/fontconfig.h>
+ #include <$ac_hdr>
+@@ -9777,7 +9679,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:9781: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:9757: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   eval "ac_cv_header_$ac_safe=yes"
+ else
+@@ -9810,6 +9712,38 @@ EOF
+     fi
+ fi
+ 
++if test -n "$MOZ_SYSTEM_GRAPHITE2"; then
++        _SAVE_CFLAGS=$CFLAGS
++    CFLAGS="$CFLAGS $MOZ_GRAPHITE2_CFLAGS"
++    cat > conftest.$ac_ext <<EOF
++#line 9794 "configure"
++#include "confdefs.h"
++ #include <graphite2/Font.h>
++                     #define GR2_VERSION_REQUIRE(major,minor,bugfix)  \
++                             ( GR2_VERSION_MAJOR * 10000 + GR2_VERSION_MINOR \
++                               * 100 + GR2_VERSION_BUGFIX >= \
++                               (major) * 10000 + (minor) * 100 + (bugfix) )
++                   
++int main() {
++
++                     #if !GR2_VERSION_REQUIRE(1,3,8)
++                     #error "Insufficient graphite2 version."
++                     #endif
++                   
++; return 0; }
++EOF
++if { (eval echo configure:9810: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++  :
++else
++  echo "configure: failed program was:" >&5
++  cat conftest.$ac_ext >&5
++  rm -rf conftest*
++  { echo "configure: error: --with-system-graphite2 requested but no working libgraphite2 found" 1>&2; echo "configure: error: --with-system-graphite2 requested but no working libgraphite2 found" 1>&5; exit 1; }
++fi
++rm -f conftest*
++    CFLAGS=$_SAVE_CFLAGS
++fi
++
+ 
+ 
+ 
+@@ -9864,19 +9798,19 @@ else
+      PKG_CONFIG_MIN_VERSION=0.9.0
+      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+         echo $ac_n "checking for pixman-1 >= 0.19.2""... $ac_c" 1>&6
+-echo "configure:9868: checking for pixman-1 >= 0.19.2" >&5
++echo "configure:9876: checking for pixman-1 >= 0.19.2" >&5
+ 
+         if $PKG_CONFIG --exists "pixman-1 >= 0.19.2" ; then
+             echo "$ac_t""yes" 1>&6
+             succeeded=yes
+ 
+             echo $ac_n "checking MOZ_PIXMAN_CFLAGS""... $ac_c" 1>&6
+-echo "configure:9875: checking MOZ_PIXMAN_CFLAGS" >&5
++echo "configure:9883: checking MOZ_PIXMAN_CFLAGS" >&5
+             MOZ_PIXMAN_CFLAGS=`$PKG_CONFIG --cflags "pixman-1 >= 0.19.2"`
+             echo "$ac_t""$MOZ_PIXMAN_CFLAGS" 1>&6
+ 
+             echo $ac_n "checking MOZ_PIXMAN_LIBS""... $ac_c" 1>&6
+-echo "configure:9880: checking MOZ_PIXMAN_LIBS" >&5
++echo "configure:9888: checking MOZ_PIXMAN_LIBS" >&5
+             ## Remove evil flags like -Wl,--export-dynamic
+             MOZ_PIXMAN_LIBS="`$PKG_CONFIG --libs \"pixman-1 >= 0.19.2\" |sed s/-Wl,--export-dynamic//g`"
+             echo "$ac_t""$MOZ_PIXMAN_LIBS" 1>&6
+@@ -9955,12 +9889,12 @@ case "$MOZ_WIDGET_TOOLKIT" in
+     if test "$COMPILE_ENVIRONMENT"; then
+          ac_safe=`echo "d3d10.h" | sed 'y%./+-%__p_%'`
+   echo $ac_n "checking for d3d10.h""... $ac_c" 1>&6
+-echo "configure:9959: checking for d3d10.h" >&5
++echo "configure:9967: checking for d3d10.h" >&5
+   if eval "test \"`echo '$''{'ac_cv_header_$ac_safe'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+    cat > conftest.$ac_ext <<EOF
+-#line 9964 "configure"
++#line 9972 "configure"
+ #include "confdefs.h"
+ 
+ #include <d3d10.h>
+@@ -9968,7 +9902,7 @@ int main() {
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:9972: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:9980: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   rm -rf conftest*
+   eval "ac_cv_header_$ac_safe=yes"
+ else
+@@ -10472,12 +10406,12 @@ if test -n "$COMPILE_ENVIRONMENT"; then
+ for ac_func in posix_fadvise posix_fallocate
+ do
+ echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
+-echo "configure:10476: checking for $ac_func" >&5
++echo "configure:10484: checking for $ac_func" >&5
+ if eval "test \"`echo '$''{'ac_cv_func_$ac_func'+set}'`\" = set"; then
+   echo $ac_n "(cached) $ac_c" 1>&6
+ else
+   cat > conftest.$ac_ext <<EOF
+-#line 10481 "configure"
++#line 10489 "configure"
+ #define $ac_func innocuous_$ac_func
+ #include "confdefs.h"
+ #undef $ac_func
+@@ -10504,7 +10438,7 @@ $ac_func();
+ 
+ ; return 0; }
+ EOF
+-if { (eval echo configure:10508: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
++if { (eval echo configure:10516: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+   rm -rf conftest*
+   eval "ac_cv_func_$ac_func=yes"
+ else
+@@ -10536,7 +10470,7 @@ if test "$MOZ_X11"; then
+                 _SAVE_CFLAGS=$CFLAGS
+     CFLAGS="$CFLAGS $XCFLAGS"
+     cat > conftest.$ac_ext <<EOF
+-#line 10540 "configure"
++#line 10548 "configure"
+ #include "confdefs.h"
+ 
+         #include <stdio.h>
+@@ -10555,7 +10489,7 @@ int main() {
+     
+ ; return 0; }
+ EOF
+-if { (eval echo configure:10559: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
++if { (eval echo configure:10567: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+   :
+ else
+   echo "configure: failed program was:" >&5
+@@ -10818,8 +10752,6 @@ sed 's/$/,/' >> $CONFIG_STATUS <<EOF
+     (''' MOZ_ANDROID_MAX_SDK_VERSION ''', r''' $MOZ_ANDROID_MAX_SDK_VERSION ''')
+     (''' MOZ_GTK3_CFLAGS ''', list(split(r''' $MOZ_GTK3_CFLAGS ''')))
+     (''' MOZ_GTK3_LIBS ''', list(split(r''' $MOZ_GTK3_LIBS ''')))
+-    (''' MOZ_GTK2_CFLAGS ''', list(split(r''' $MOZ_GTK2_CFLAGS ''')))
+-    (''' MOZ_GTK2_LIBS ''', list(split(r''' $MOZ_GTK2_LIBS ''')))
+     (''' MOZ_FS_LAYOUT ''', r''' $MOZ_FS_LAYOUT ''')
+     (''' TK_CFLAGS ''', list(split(r''' $TK_CFLAGS ''')))
+     (''' TK_LIBS ''', list(split(r''' $TK_LIBS ''')))
+diff --git a/widget/gtk/mozgtk/gtk3/moz.build b/widget/gtk/mozgtk/gtk3/moz.build
+index 4e9379565d..92c8e52858 100644
+--- a/widget/gtk/mozgtk/gtk3/moz.build
++++ b/widget/gtk/mozgtk/gtk3/moz.build
+@@ -8,8 +8,6 @@ SOURCES += [
+     '../mozgtk.c',
+ ]
+ 
+-DEFINES['GTK2_SYMBOLS'] = True
+-
+ SharedLibrary('mozgtk')
+ 
+ SONAME = 'mozgtk'
+diff --git a/widget/gtk/mozgtk/moz.build b/widget/gtk/mozgtk/moz.build
+index 528e2e9d0f..d32ee829e7 100644
+--- a/widget/gtk/mozgtk/moz.build
++++ b/widget/gtk/mozgtk/moz.build
+@@ -4,4 +4,4 @@
+ # License, v. 2.0. If a copy of the MPL was not distributed with this
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+-DIRS += ['stub', 'gtk2', 'gtk3']
++DIRS += ['stub', 'gtk3']
+diff --git a/widget/gtk/mozgtk/mozgtk.c b/widget/gtk/mozgtk/mozgtk.c
+index 9d63e2cb4a..8644363f9a 100644
+--- a/widget/gtk/mozgtk/mozgtk.c
++++ b/widget/gtk/mozgtk/mozgtk.c
+@@ -641,7 +641,7 @@ STUB(gtk_color_chooser_get_rgba)
+ STUB(gtk_color_chooser_set_use_alpha)
+ #endif
+ 
+-#ifdef GTK2_SYMBOLS
++#if 0
+ STUB(gdk_drawable_get_screen)
+ STUB(gdk_rgb_get_colormap)
+ STUB(gdk_rgb_get_visual)
+diff --git a/widget/gtk/mozgtk/stub/moz.build b/widget/gtk/mozgtk/stub/moz.build
+index 1a8e210018..3ed3d1be48 100644
+--- a/widget/gtk/mozgtk/stub/moz.build
++++ b/widget/gtk/mozgtk/stub/moz.build
+@@ -8,7 +8,7 @@ SOURCES += [
+     '../mozgtk.c',
+ ]
+ 
+-for var in ('COMMON_SYMBOLS', 'GTK2_SYMBOLS', 'GTK3_SYMBOLS'):
++for var in ('COMMON_SYMBOLS', 'GTK3_SYMBOLS'):
+     DEFINES[var] = True
+ 
+ SharedLibrary('mozgtk_stub')
+diff --git a/comm/mail/installer/package-manifest.in b/comm/mail/installer/package-manifest.in
+index cb937a7..4255d9a 100644
+--- a/comm/mail/installer/package-manifest.in
++++ b/comm/mail/installer/package-manifest.in
+@@ -112,7 +112,6 @@
+ #endif
+ #ifdef MOZ_GTK
+ @BINPATH@/@DLL_PREFIX@mozgtk@DLL_SUFFIX@
+-@BINPATH@/gtk2/@DLL_PREFIX@mozgtk@DLL_SUFFIX@
+ #ifdef MOZ_WAYLAND
+ @BINPATH@/@DLL_PREFIX@mozwayland@DLL_SUFFIX@
+ #endif
+diff --git a/comm/suite/installer/package-manifest.in b/comm/suite/installer/package-manifest.in
+index c69e374..a2d1cab 100644
+--- a/comm/suite/installer/package-manifest.in
++++ b/comm/suite/installer/package-manifest.in
+@@ -138,7 +138,6 @@
+ #endif
+ #ifdef MOZ_GTK
+ @BINPATH@/@DLL_PREFIX@mozgtk@DLL_SUFFIX@
+-@BINPATH@/gtk2/@DLL_PREFIX@mozgtk@DLL_SUFFIX@
+ #ifdef MOZ_WAYLAND
+ @BINPATH@/@DLL_PREFIX@mozwayland@DLL_SUFFIX@
+ #endif
