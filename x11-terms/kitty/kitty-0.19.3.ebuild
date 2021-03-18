@@ -61,6 +61,7 @@ PATCHES=(
 	"${FILESDIR}"/${PN}-0.14.4-svg-icon.patch
 	"${FILESDIR}"/${PN}-0.16.0-remove-terminfo.patch
 	"${FILESDIR}"/${PN}-0.19.1-tests.patch
+	"${FILESDIR}"/musl.patch
 )
 
 src_prepare() {
