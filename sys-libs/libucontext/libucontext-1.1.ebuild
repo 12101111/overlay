@@ -16,22 +16,16 @@ S="${WORKDIR}/${PN}-${P}"
 
 src_prepare() {
 	default
-
-	sed -i \
-		-e 's;^LIBUCONTEXT_PATH = ;\0 /usr;' \
-		-e 's;^LIBUCONTEXT_STATIC_PATH = ;\0 /usr;' \
-		-e 's;ln -sf ${LIBUCONTEXT_SONAME} ${DESTDIR};\0/usr;' \
-		"${S}/Makefile" || die "Failed adjusting prefix to /usr"
 }
 
 src_compile() {
-	emake
+	emake LIBDIR="${EPREFIX}/usr/lib"
 }
 
 src_test() {
-	emake check
+	emake LIBDIR="${EPREFIX}/usr/lib" check
 }
 
 src_install() {
-	emake DESTDIR="${ED}" install
+	emake DESTDIR="${ED}" LIBDIR="${EPREFIX}/usr/lib" install
 }
