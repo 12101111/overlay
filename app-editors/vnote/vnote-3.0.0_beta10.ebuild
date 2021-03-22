@@ -7,9 +7,9 @@ inherit qmake-utils xdg
 
 DESCRIPTION="Qt-based, free and open source note-taking application, focusing on Markdown"
 HOMEPAGE="https://vnotex.github.io/vnote"
-VTEXTEDIT_COMMIT="279cfe3bced0b614915a6531a4bf01278c89532c"
+VTEXTEDIT_COMMIT="c86f8bfbf6140b67290ca9229f1145dba5bfc092"
 SYNTAX_COMMIT="0f63ff8ce3f7135ffafd62bc464c355960f56cfd"
-MY_PV="3.0.0-beta.9"
+MY_PV="3.0.0-beta.10"
 SRC_URI="
 	https://github.com/vnotex/vnote/archive/v${MY_PV}.tar.gz -> ${PN}-${MY_PV}.tar.gz
 	https://codeload.github.com/vnotex/vtextedit/tar.gz/${VTEXTEDIT_COMMIT} -> vtextedit-${MY_PV}.tar.gz
