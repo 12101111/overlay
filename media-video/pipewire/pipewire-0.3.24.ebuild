@@ -114,7 +114,7 @@ src_configure() {
 		$(meson_feature systemd systemd-user-service)
 		$(meson_feature test test)
 		$(meson_feature test tests)
-		-Dpw-cat=enabled
+		$(meson_feature sndfile pw-cat)
 	)
 	meson_src_configure
 }
