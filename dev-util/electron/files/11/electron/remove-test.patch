@@ -174,3 +174,202 @@ index f1004a7a0..732e33cb6 100644
 -+try {
 -+  assertEquals((__v_40?.o?.m)().p);
 -+} catch (e) {}
+diff --git a/patches/v8/regexp_throw_when_length_of_text_nodes_in_alternatives_is_too.patch b/patches/v8/regexp_throw_when_length_of_text_nodes_in_alternatives_is_too.patch
+index 7f8909927..87326844f 100644
+--- a/patches/v8/regexp_throw_when_length_of_text_nodes_in_alternatives_is_too.patch
++++ b/patches/v8/regexp_throw_when_length_of_text_nodes_in_alternatives_is_too.patch
+@@ -54,13 +54,3 @@ index ce1197a55bc4c9f360423c246e906a92ca60afcc..acf24b9f60a9fbd78bb8397e3b9eee86
+  }
+  
+  void LoopChoiceNode::AddLoopAlternative(GuardedAlternative alt) {
+-diff --git a/test/mjsunit/regress/regress-1166138.js b/test/mjsunit/regress/regress-1166138.js
+-index b1a5d6b7bb8651cce349fd1685ff76d6379e10e3..f3e4bde83e2769666512d6eda34aca46fbbf17d8 100644
+---- a/test/mjsunit/regress/regress-1166138.js
+-+++ b/test/mjsunit/regress/regress-1166138.js
+-@@ -4,4 +4,4 @@
+- 
+- let badregexp =  "(?:" +  " ".repeat(32768*2)+  ")*";
+- reg = RegExp(badregexp);
+--reg.test()
+-+assertThrows(() => reg.test(), SyntaxError);
+diff --git a/patches/v8/reland_regexp_hard-crash_on_invalid_offsets_in.patch b/patches/v8/reland_regexp_hard-crash_on_invalid_offsets_in.patch
+index 083cd5632..d1f6b2036 100644
+--- a/patches/v8/reland_regexp_hard-crash_on_invalid_offsets_in.patch
++++ b/patches/v8/reland_regexp_hard-crash_on_invalid_offsets_in.patch
+@@ -97,30 +97,3 @@ index 9c4b6057c23d318e78278cd1dd550bd51f20ca09..6307a802d9408309fe6e04e94a240919
+    // Bytecode buffer.
+    int length();
+    void Copy(byte* a);
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index 277b48fc66c4024d9bea8c8dc1e6c2e36669f55c..75628071ba68b696eafb5398215439519870b354 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -78,6 +78,9 @@
+-   'wasm/shared-memory-worker-explicit-gc-stress': [PASS, SLOW],
+-   'wasm/shared-memory-worker-gc-stress': [PASS, SLOW],
+- 
+-+  # https://crbug.com/1166138
+-+  'regress/regress-1166138': SKIP,
+-+
+-   # https://crbug.com/1129854
+-   'tools/log': ['arch == arm or arch == arm64', SKIP],
+- 
+-diff --git a/test/mjsunit/regress/regress-1166138.js b/test/mjsunit/regress/regress-1166138.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..b1a5d6b7bb8651cce349fd1685ff76d6379e10e3
+---- /dev/null
+-+++ b/test/mjsunit/regress/regress-1166138.js
+-@@ -0,0 +1,7 @@
+-+// Copyright 2020 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+let badregexp =  "(?:" +  " ".repeat(32768*2)+  ")*";
+-+reg = RegExp(badregexp);
+-+reg.test()
+diff --git a/patches/chromium/cherry-pick-93ce5606cd9a.patch b/patches/chromium/cherry-pick-93ce5606cd9a.patch
+index 035f85512..8a441d0f5 100644
+--- a/patches/chromium/cherry-pick-93ce5606cd9a.patch
++++ b/patches/chromium/cherry-pick-93ce5606cd9a.patch
+@@ -129,11 +129,3 @@ index a74382f01612d53d39b8972bd21a49e26bac980a..732ea48c6d7b62d2fcc715a33dec009e
+      // Check that the current RenderFrameHost has stopped loading.
+      EXPECT_FALSE(root->child_at(0)->current_frame_host()->is_loading());
+  
+-diff --git a/third_party/blink/web_tests/http/tests/security/XFrameOptions/x-frame-options-deny-delete-frame-in-load-event-expected.txt b/third_party/blink/web_tests/http/tests/security/XFrameOptions/x-frame-options-deny-delete-frame-in-load-event-expected.txt
+-index f2e5b68c997ca33da841aa7ba5795ef3b96fa02f..f7eea4a189ae8913921444428e26389dfd4de4da 100644
+---- a/third_party/blink/web_tests/http/tests/security/XFrameOptions/x-frame-options-deny-delete-frame-in-load-event-expected.txt
+-+++ b/third_party/blink/web_tests/http/tests/security/XFrameOptions/x-frame-options-deny-delete-frame-in-load-event-expected.txt
+-@@ -1,2 +1,2 @@
+--CONSOLE ERROR: Refused to display 'http://127.0.0.1:8000/security/XFrameOptions/resources/x-frame-options-deny.cgi' in a frame because it set 'X-Frame-Options' to 'deny'.
+-+CONSOLE ERROR: Refused to display 'http://127.0.0.1:8000/' in a frame because it set 'X-Frame-Options' to 'deny'.
+- Test that if an iframe is denied, we don't crash if the load event detaches the frame.
+diff --git a/patches/chromium/cherry-pick-e1505713dc31.patch b/patches/chromium/cherry-pick-e1505713dc31.patch
+index 5c6ade8ba..ef3e4d6e2 100644
+--- a/patches/chromium/cherry-pick-e1505713dc31.patch
++++ b/patches/chromium/cherry-pick-e1505713dc31.patch
+@@ -323,125 +323,3 @@ index 727caa18bacb3b35a8b97e418bb173ae7ac4fd03..351917da34031171175c0e961b79d2a6
+          ResourceFetchRestriction::kOnlyDataUrls);
+      auto* style_sheet_contents =
+          MakeGarbageCollected<StyleSheetContents>(parser_context);
+-diff --git a/third_party/blink/web_tests/TestExpectations b/third_party/blink/web_tests/TestExpectations
+-index d2e5595ab8e78ff08c18adeb13911877482cde7b..d7b198add4ffb021613109a0f42afa50a7916b3a 100644
+---- a/third_party/blink/web_tests/TestExpectations
+-+++ b/third_party/blink/web_tests/TestExpectations
+-@@ -2978,6 +2978,7 @@ crbug.com/1131471 external/wpt/web-locks/clientids.tentative.https.html [ Failur
+- # See also crbug.com/920100 (sheriff 2019-01-09).
+- crbug.com/626703 external/wpt/referrer-policy/css-integration/svg/external-stylesheet.html [ Timeout Failure ]
+- crbug.com/626703 external/wpt/referrer-policy/css-integration/svg/inline-style.html [ Timeout Failure ]
+-+crbug.com/626703 external/wpt/referrer-policy/css-integration/svg/inline-style-with-differentorigin-base-tag.tentative.html [ Timeout Failure ]
+- crbug.com/626703 external/wpt/referrer-policy/css-integration/svg/internal-stylesheet.html [ Timeout Failure ]
+- crbug.com/626703 external/wpt/referrer-policy/css-integration/svg/presentation-attribute.html [ Timeout Failure ]
+- crbug.com/626703 external/wpt/referrer-policy/css-integration/svg/processing-instruction.html [ Timeout Failure ]
+-diff --git a/third_party/blink/web_tests/external/wpt/referrer-policy/css-integration/image/inline-style-with-differentorigin-base-tag.tentative.html b/third_party/blink/web_tests/external/wpt/referrer-policy/css-integration/image/inline-style-with-differentorigin-base-tag.tentative.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..091afd832ab35a76136b4242df1c1ec73aee109d
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/referrer-policy/css-integration/image/inline-style-with-differentorigin-base-tag.tentative.html
+-@@ -0,0 +1,45 @@
+-+<!DOCTYPE html>
+-+<title>CSS integration - image from inline style from document with base tag</title>
+-+<link rel="help" href="https://crbug.com/1158645" />
+-+
+-+<head>
+-+  <meta name="referrer" content="origin">
+-+</head>
+-+
+-+<script src="/resources/testharness.js"></script>
+-+<script src="/resources/testharnessreport.js"></script>
+-+<script src="/common/utils.js"></script>
+-+<!-- Common global functions for referrer-policy tests. -->
+-+<script src="/common/security-features/resources/common.sub.js"></script>
+-+
+-+<!-- This has to follow the <script> tags, or it will make the js files fail to load. -->
+-+<base href="http://other-site.example" />
+-+
+-+<p>Check that resources from inline styles are loaded with
+-+  the referrer and referrer policy from the document and, in
+-+  particular, not with the different base URL set in the base tag.</p>
+-+
+-+<div class="styled"></div>
+-+
+-+<script>
+-+  'use strict';
+-+  promise_test(function(css_test) {
+-+    var id = token();
+-+    var css_url = location.protocol + "//www1." + location.hostname + ":" + location.port + "/common/security-features/subresource/image.py" + "?id=" + id;
+-+    var img_url = css_url + "&report-headers";
+-+
+-+    var div = document.querySelector("div.styled");
+-+    div.style = "content:url(" + css_url + ")";
+-+    return timeoutPromise(css_test, 1000)
+-+      .then(() => requestViaXhr(img_url))
+-+      .then(function(message) {
+-+        assert_own_property(message, "headers");
+-+        assert_own_property(message, "referrer");
+-+        assert_equals(message.referrer, location.origin + "/");
+-+      });
+-+  }, "Image from inline styles.");
+-+</script>
+-+
+-+<div id="log"></div>
+-+
+-+</html>
+-diff --git a/third_party/blink/web_tests/external/wpt/referrer-policy/css-integration/svg/inline-style-with-differentorigin-base-tag.tentative.html b/third_party/blink/web_tests/external/wpt/referrer-policy/css-integration/svg/inline-style-with-differentorigin-base-tag.tentative.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..9a8bc6da418bc7302138daba8cf06cb449bd2dfe
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/referrer-policy/css-integration/svg/inline-style-with-differentorigin-base-tag.tentative.html
+-@@ -0,0 +1,40 @@
+-+<!DOCTYPE html>
+-+<html>
+-+
+-+<head>
+-+  <title>CSS integration - styling SVG from inline style on page with different-origin base tag</title>
+-+  <script src="/resources/testharness.js"></script>
+-+  <script src="/resources/testharnessreport.js"></script>
+-+  <script src="/common/utils.js"></script>
+-+  <!-- Common global functions for referrer-policy tests. -->
+-+  <script src="/common/security-features/resources/common.sub.js"></script>
+-+  <!-- Helper functions for referrer-policy css tests. -->
+-+  <script src="/referrer-policy/css-integration/css-test-helper.js"></script>
+-+  <meta name="referrer" content="origin">
+-+</head>
+-+
+-+<base href="http://other-page.example/" />
+-+
+-+<body>
+-+  <p>Check that resources from inline styles are loaded with
+-+    the referrer and referrer policy from the document and, in
+-+    particular, not from the document's overridden base URL.</p>
+-+  <script>
+-+    function setInlineStyle(test) {
+-+      test.expected = location.origin + "/";
+-+      let svg = createSvg();
+-+      document.body.appendChild(svg);
+-+      let element = svg.getElementsByTagName('path')[0];
+-+      element.style = test.property + ": url(" + url_prefix + "svg.py?id=" +
+-+        test.id + "#invalidFragment);";
+-+    }
+-+
+-+    runSvgTests(svg_test_properties,
+-+      "Styling SVG from inline styles",
+-+      setInlineStyle);
+-+  </script>
+-+
+-+  <div id="log"></div>
+-+</body>
+-+
+-+</html>
+-diff --git a/third_party/blink/web_tests/http/tests/css/resources/referrer-check.php b/third_party/blink/web_tests/http/tests/css/resources/referrer-check.php
+-index 69483e01544c842f56a51d00d1b2ee5dc24b4162..7a517de692f418c3c8b365d0f7aefb9e585c9da0 100644
+---- a/third_party/blink/web_tests/http/tests/css/resources/referrer-check.php
+-+++ b/third_party/blink/web_tests/http/tests/css/resources/referrer-check.php
+-@@ -31,7 +31,7 @@ $expectedReferrerPaths = array(
+-     "document" => "/css/css-resources-referrer.html",
+-     "sheet" => "/css/resources/css-resources-referrer.css",
+-     "importedSheet" => "/css/resources/css-resources-referrer-import.css",
+--    "iframe" => "/from/iframe.html"
+-+    "iframe" => "/css/css-resources-referrer-srcdoc.html"
+- );
+- 
+- $from = $_GET["from"];
