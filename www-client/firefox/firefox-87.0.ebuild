@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-86-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-87-patches-01.tar.xz"
 
 LLVM_MAX_SLOT=12
 
@@ -73,7 +73,7 @@ BDEPEND="${PYTHON_DEPS}
 	app-arch/unzip
 	app-arch/zip
 	>=dev-util/cbindgen-0.16.0
-	>=net-libs/nodejs-10.22.1
+	>=net-libs/nodejs-10.23.1
 	virtual/pkgconfig
 	>=virtual/rust-1.47.0
 	|| (
@@ -104,7 +104,7 @@ BDEPEND="${PYTHON_DEPS}
 	)"
 
 CDEPEND="
-	>=dev-libs/nss-3.61
+	>=dev-libs/nss-3.62
 	>=dev-libs/nspr-4.29
 	dev-libs/atk
 	dev-libs/expat
@@ -136,7 +136,7 @@ CDEPEND="
 	)
 	screencast? ( media-video/pipewire:0/0.3 )
 	system-av1? (
-		>=media-libs/dav1d-0.3.0:=
+		>=media-libs/dav1d-0.8.1:=
 		>=media-libs/libaom-1.0.0:=
 	)
 	system-harfbuzz? (
@@ -217,7 +217,7 @@ MOZ_LANGS=(
 	fa ff fi fr fy-NL ga-IE gd gl gn gu-IN he hi-IN hr hsb hu hy-AM
 	ia id is it ja ka kab kk km kn ko lij lt lv mk mr ms my
 	nb-NO ne-NP nl nn-NO oc pa-IN pl pt-BR pt-PT rm ro ru
-	si sk sl son sq sr sv-SE ta te th tl tr trs uk ur uz vi
+	si sk sl son sq sr sv-SE szl ta te th tl tr trs uk ur uz vi
 	xh zh-CN zh-TW
 )
 
@@ -457,9 +457,10 @@ src_unpack() {
 src_prepare() {
 	use lto && rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch
 	eapply "${WORKDIR}/firefox-patches"
-	eapply "${FILESDIR}/firefox-86-no-gtk2.patch"
+	eapply "${FILESDIR}/firefox-87-no-gtk2.patch"
 	eapply "${FILESDIR}/cross-pgo.patch"
 	eapply "${FILESDIR}/fix-lincxx12.patch"
+	use elibc_musl && eapply "${FILESDIR}/firefox-87-disable-oxidized_breakpad.patch"
 	use elibc_musl && eapply "${FILESDIR}/mutex-musl.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
