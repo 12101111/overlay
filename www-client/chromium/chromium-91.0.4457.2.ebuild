@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="6"
+PATCHSET="2"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -22,7 +22,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="atk lto pgo swiftshader vulkan component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-icu +tcmalloc vaapi wayland widevine"
+IUSE="atk lto pgo swiftshader vulkan component-build cups cpu_flags_arm_neon +hangouts headless kerberos official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-icu +tcmalloc vaapi wayland widevine"
 REQUIRED_USE="
 	component-build? ( !suid )
 	screencast? ( wayland )
@@ -121,14 +121,13 @@ BDEPEND="
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
-	js-type-check? ( virtual/jre )
 	pgo? (
 		sys-devel/clang:12
-		>=sys-devel/lld-12.0.0_rc1
+		>=sys-devel/lld-12.0.0_rc3
 	)
 	lto? (
 		sys-devel/clang:12
-		>=sys-devel/lld-12.0.0_rc1
+		>=sys-devel/lld-12.0.0_rc3
 	)
 "
 
@@ -257,6 +256,9 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
+	rm "${WORKDIR}/patches/chromium-91-EffectPaintPropertyNode-type-confusion.patch"
+	rm "${WORKDIR}/patches/chromium-91-ToV8Traits-fixes.patch"
+	rm "${WORKDIR}/patches/chromium-91-pcscan-type-confusion.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -459,6 +461,7 @@ src_prepare() {
 		third_party/vulkan
 		third_party/web-animations-js
 		third_party/webdriver
+		third_party/webgpu-cts
 		third_party/webrtc
 		third_party/webrtc/common_audio/third_party/ooura
 		third_party/webrtc/common_audio/third_party/spl_sqrt_floor
@@ -638,7 +641,7 @@ src_configure() {
 	myconf_gn+=" use_gnome_keyring=false"
 
 	# Optional dependencies.
-	myconf_gn+=" enable_js_type_check=$(usex js-type-check true false)"
+	myconf_gn+=" enable_js_type_check=false" # 6951c37cecd05979b232a39e5c10e6346a0f74ef java only allowed in android builds
 	myconf_gn+=" enable_hangout_services_extension=$(usex hangouts true false)"
 	myconf_gn+=" enable_widevine=$(usex widevine true false)"
 	myconf_gn+=" use_cups=$(usex cups true false)"
@@ -782,9 +785,9 @@ src_configure() {
 	fi
 
 	# Enable ozone wayland and/or headless support
+	myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
+	myconf_gn+=" ozone_platform_headless=true"
 	if use wayland || use headless; then
-		myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
-		myconf_gn+=" ozone_platform_headless=true"
 		if use headless; then
 			myconf_gn+=" ozone_platform=\"headless\""
 			myconf_gn+=" use_x11=false"
@@ -797,8 +800,6 @@ src_configure() {
 			myconf_gn+=" use_gtk=true"
 			myconf_gn+=" ozone_platform=\"wayland\""
 		fi
-	else
-		myconf_gn+=" use_ozone=false"
 	fi
 
 	# Enable official builds
@@ -810,9 +811,6 @@ src_configure() {
 		# Disable CFI: unsupported for GCC, requires clang+lto+lld
 		myconf_gn+=" is_cfi=false"
 	fi
-
-	# Disable building Tensorflow library cause tarball is incomplete
-	myconf_gn+=" build_with_tflite_lib=false"
 
 	einfo "Configuring Chromium..."
 	set -- gn gen --args="${myconf_gn} ${EXTRA_GN}" out/Release
