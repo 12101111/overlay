@@ -1,5 +1,5 @@
 diff --git a/src/llvm-project/compiler-rt/CMakeLists.txt b/src/llvm-project/compiler-rt/CMakeLists.txt
-index fa62814b6..355fd33ab 100644
+index fa62814b6..b44ad2c21 100644
 --- a/src/llvm-project/compiler-rt/CMakeLists.txt
 +++ b/src/llvm-project/compiler-rt/CMakeLists.txt
 @@ -3,11 +3,7 @@
@@ -242,42 +242,10 @@ index fa62814b6..355fd33ab 100644
      # If we have a valid source tree, generate llvm-lit into the bin directory.
      # The user can still choose to have the check targets *use* a different lit
      # by specifying -DLLVM_EXTERNAL_LIT, but we generate it regardless.
-@@ -560,3 +630,14 @@ if(COMPILER_RT_INCLUDE_TESTS)
- endif()
- 
- add_subdirectory(tools)
-+
-+message(STATUS "<<< Gentoo configuration >>>
-+Build type      ${CMAKE_BUILD_TYPE}
-+Install path    ${CMAKE_INSTALL_PREFIX}
-+Compiler flags:
-+C               ${CMAKE_C_FLAGS}
-+C++             ${CMAKE_CXX_FLAGS}
-+Linker flags:
-+Executable      ${CMAKE_EXE_LINKER_FLAGS}
-+Module          ${CMAKE_MODULE_LINKER_FLAGS}
-+Shared          ${CMAKE_SHARED_LINKER_FLAGS}\n")
 diff --git a/src/llvm-project/compiler-rt/cmake/Modules/AddCompilerRT.cmake b/src/llvm-project/compiler-rt/cmake/Modules/AddCompilerRT.cmake
-index dab557073..361538a58 100644
+index 7c127a93d..361538a58 100644
 --- a/src/llvm-project/compiler-rt/cmake/Modules/AddCompilerRT.cmake
 +++ b/src/llvm-project/compiler-rt/cmake/Modules/AddCompilerRT.cmake
-@@ -109,11 +109,11 @@ endfunction()
- 
- function(add_asm_sources output)
-   set(${output} ${ARGN} PARENT_SCOPE)
--  # Xcode will try to compile asm files as C ('clang -x c'), and that will fail.
--  if (${CMAKE_GENERATOR} STREQUAL "Xcode")
--    enable_language(ASM)
--  else()
--    # Pass ASM file directly to the C++ compiler.
-+  # CMake doesn't pass the correct architecture for Apple prior to CMake 3.19. https://gitlab.kitware.com/cmake/cmake/-/issues/20771
-+  # MinGW didn't work correctly with assembly prior to CMake 3.17. https://gitlab.kitware.com/cmake/cmake/-/merge_requests/4287 and https://reviews.llvm.org/rGb780df052dd2b246a760d00e00f7de9ebdab9d09
-+  # Workaround these two issues by compiling as C.
-+  # Same workaround used in libunwind. Also update there if changed here.
-+  if((APPLE AND CMAKE_VERSION VERSION_LESS 3.19) OR (MINGW AND CMAKE_VERSION VERSION_LESS 3.17))
-     set_source_files_properties(${ARGN} PROPERTIES LANGUAGE C)
-   endif()
- endfunction()
 @@ -140,6 +140,7 @@ endmacro()
  #                         CFLAGS <compile flags>
  #                         LINK_FLAGS <linker flags>
@@ -627,7 +595,7 @@ index 8de901513..ad3b98799 100644
    ${WASM32} ${WASM64} ${VE})
  
 diff --git a/src/llvm-project/compiler-rt/cmake/config-ix.cmake b/src/llvm-project/compiler-rt/cmake/config-ix.cmake
-index 2edc1dabd..29543475f 100644
+index 2edc1dabd..f81b8384c 100644
 --- a/src/llvm-project/compiler-rt/cmake/config-ix.cmake
 +++ b/src/llvm-project/compiler-rt/cmake/config-ix.cmake
 @@ -106,6 +106,7 @@ check_cxx_compiler_flag("-Werror -Wnon-virtual-dtor"   COMPILER_RT_HAS_WNON_VIRT
@@ -801,13 +769,7 @@ index 2edc1dabd..29543475f 100644
    set(COMPILER_RT_HAS_LSAN TRUE)
  else()
    set(COMPILER_RT_HAS_LSAN FALSE)
-@@ -679,13 +703,20 @@ endif()
- 
- if (COMPILER_RT_HAS_SANITIZER_COMMON AND HWASAN_SUPPORTED_ARCH AND
-     OS_NAME MATCHES "Linux|Android")
--  set(COMPILER_RT_HAS_HWASAN TRUE)
-+  set(COMPILER_RT_HAS_HWASAN FALSE)
- else()
+@@ -684,8 +708,15 @@ else()
    set(COMPILER_RT_HAS_HWASAN FALSE)
  endif()
  
@@ -858,24 +820,6 @@ index 2edc1dabd..29543475f 100644
    set(COMPILER_RT_HAS_FUZZER TRUE)
  else()
    set(COMPILER_RT_HAS_FUZZER FALSE)
-@@ -756,7 +787,7 @@ endif()
- 
- if (COMPILER_RT_HAS_SANITIZER_COMMON AND SHADOWCALLSTACK_SUPPORTED_ARCH AND
-     OS_NAME MATCHES "Linux|Android")
--  set(COMPILER_RT_HAS_SHADOWCALLSTACK TRUE)
-+  set(COMPILER_RT_HAS_SHADOWCALLSTACK FALSE)
- else()
-   set(COMPILER_RT_HAS_SHADOWCALLSTACK FALSE)
- endif()
-@@ -768,7 +799,7 @@ endif()
- # for Scudo and GWP-ASan, further testing needed.
- if (COMPILER_RT_HAS_SANITIZER_COMMON AND GWP_ASAN_SUPPORTED_ARCH AND
-     OS_NAME MATCHES "Linux")
--  set(COMPILER_RT_HAS_GWP_ASAN TRUE)
-+  set(COMPILER_RT_HAS_GWP_ASAN FALSE)
- else()
-   set(COMPILER_RT_HAS_GWP_ASAN FALSE)
- endif()
 diff --git a/src/llvm-project/compiler-rt/include/CMakeLists.txt b/src/llvm-project/compiler-rt/include/CMakeLists.txt
 index d47d7baeb..b00e8caa1 100644
 --- a/src/llvm-project/compiler-rt/include/CMakeLists.txt
@@ -3024,7 +2968,7 @@ index 3f784b90c..e2c9be037 100644
           (!__asan::asan_inited || __asan::asan_init_is_running);
  }
 diff --git a/src/llvm-project/compiler-rt/lib/asan/asan_mapping.h b/src/llvm-project/compiler-rt/lib/asan/asan_mapping.h
-index 41fb49ee4..f239c3ee2 100644
+index b85add6a2..f239c3ee2 100644
 --- a/src/llvm-project/compiler-rt/lib/asan/asan_mapping.h
 +++ b/src/llvm-project/compiler-rt/lib/asan/asan_mapping.h
 @@ -79,6 +79,20 @@
@@ -3056,18 +3000,16 @@ index 41fb49ee4..f239c3ee2 100644
  static const u64 kMIPS32_ShadowOffset32 = 0x0aaa0000;
  static const u64 kMIPS64_ShadowOffset64 = 1ULL << 37;
  static const u64 kPPC64_ShadowOffset64 = 1ULL << 44;
-@@ -206,6 +221,10 @@ static const u64 kMyriadCacheBitMask32 = 0x40000000ULL;
- #else
- #  if SANITIZER_IOS
+@@ -208,6 +223,8 @@ static const u64 kMyriadCacheBitMask32 = 0x40000000ULL;
  #    define SHADOW_OFFSET __asan_shadow_memory_dynamic_address
-+#  elif SANITIZER_MAC && defined(__aarch64__)
-+#    define SHADOW_OFFSET __asan_shadow_memory_dynamic_address
+ #  elif SANITIZER_MAC && defined(__aarch64__)
+ #    define SHADOW_OFFSET __asan_shadow_memory_dynamic_address
 +#elif SANITIZER_RISCV64
 +#define SHADOW_OFFSET kRiscv64_ShadowOffset64
  #  elif defined(__aarch64__)
  #    define SHADOW_OFFSET kAArch64_ShadowOffset64
  #  elif defined(__powerpc64__)
-@@ -355,6 +374,8 @@ static inline bool AddrIsInShadowGap(uptr a) {
+@@ -357,6 +374,8 @@ static inline bool AddrIsInShadowGap(uptr a) {
  
  namespace __asan {
  
@@ -3562,7 +3504,7 @@ index edc98ed18..c0b79bba4 100644
  // This test case fails
  // Clang optimizes memcpy/memset calls which lead to unaligned access
 diff --git a/src/llvm-project/compiler-rt/lib/builtins/CMakeLists.txt b/src/llvm-project/compiler-rt/lib/builtins/CMakeLists.txt
-index 3a66dd9c3..b511a9a98 100644
+index 3a66dd9c3..73b6bead8 100644
 --- a/src/llvm-project/compiler-rt/lib/builtins/CMakeLists.txt
 +++ b/src/llvm-project/compiler-rt/lib/builtins/CMakeLists.txt
 @@ -3,7 +3,7 @@
@@ -3800,7 +3742,7 @@ index 3a66dd9c3..b511a9a98 100644
    ${arm_Thumb1_icache_SOURCES}
  )
  
-@@ -469,9 +507,34 @@ endif()
+@@ -469,9 +507,40 @@ endif()
  set(aarch64_SOURCES
    ${GENERIC_TF_SOURCES}
    ${GENERIC_SOURCES}
@@ -3812,6 +3754,12 @@ index 3a66dd9c3..b511a9a98 100644
 +set(OA_HELPERS_DIR "${CMAKE_CURRENT_BINARY_DIR}/outline_atomic_helpers.dir")
 +file(MAKE_DIRECTORY "${OA_HELPERS_DIR}")
 +
++if(CMAKE_HOST_UNIX)
++  set(COMPILER_RT_LINK_OR_COPY create_symlink)
++else()
++  set(COMPILER_RT_LINK_OR_COPY copy)
++endif()
++
 +foreach(pat cas swp ldadd ldclr ldeor ldset)
 +  foreach(size 1 2 4 8 16)
 +    foreach(model 1 2 3 4)
@@ -3819,7 +3767,7 @@ index 3a66dd9c3..b511a9a98 100644
 +        set(helper_asm "${OA_HELPERS_DIR}/outline_atomic_${pat}${size}_${model}.S")
 +        add_custom_command(
 +          OUTPUT ${helper_asm}
-+          COMMAND ${CMAKE_COMMAND} -E create_symlink "${CMAKE_CURRENT_SOURCE_DIR}/aarch64/lse.S" "${helper_asm}"
++          COMMAND ${CMAKE_COMMAND} -E ${COMPILER_RT_LINK_OR_COPY} "${CMAKE_CURRENT_SOURCE_DIR}/aarch64/lse.S" "${helper_asm}"
 +        )
 +        set_source_files_properties("${helper_asm}"
 +          PROPERTIES
@@ -3835,7 +3783,7 @@ index 3a66dd9c3..b511a9a98 100644
  if (MINGW)
    set(aarch64_SOURCES
      ${aarch64_SOURCES}
-@@ -531,13 +594,12 @@ set(mips64_SOURCES ${GENERIC_TF_SOURCES}
+@@ -531,13 +600,12 @@ set(mips64_SOURCES ${GENERIC_TF_SOURCES}
  set(mips64el_SOURCES ${GENERIC_TF_SOURCES}
                       ${mips_SOURCES})
  
@@ -3851,7 +3799,7 @@ index 3a66dd9c3..b511a9a98 100644
    ppc/floatditf.c
    ppc/floatunditf.c
    ppc/gcc_qadd.c
-@@ -547,6 +609,15 @@ set(powerpc64_SOURCES
+@@ -547,6 +615,15 @@ set(powerpc64_SOURCES
    ppc/multc3.c
    ${GENERIC_SOURCES}
  )
@@ -3867,7 +3815,7 @@ index 3a66dd9c3..b511a9a98 100644
  set(powerpc64le_SOURCES ${powerpc64_SOURCES})
  
  set(riscv_SOURCES ${GENERIC_SOURCES} ${GENERIC_TF_SOURCES})
-@@ -554,7 +625,10 @@ set(riscv32_SOURCES
+@@ -554,7 +631,10 @@ set(riscv32_SOURCES
    riscv/mulsi3.S
    ${riscv_SOURCES}
  )
@@ -3879,7 +3827,7 @@ index 3a66dd9c3..b511a9a98 100644
  
  set(sparc_SOURCES ${GENERIC_SOURCES} ${GENERIC_TF_SOURCES})
  set(sparcv9_SOURCES ${GENERIC_SOURCES} ${GENERIC_TF_SOURCES})
-@@ -584,6 +658,8 @@ if (APPLE)
+@@ -584,6 +664,8 @@ if (APPLE)
  else ()
    set(BUILTIN_CFLAGS "")
  
@@ -3888,7 +3836,7 @@ index 3a66dd9c3..b511a9a98 100644
    append_list_if(COMPILER_RT_HAS_STD_C11_FLAG -std=c11 BUILTIN_CFLAGS)
  
    # These flags would normally be added to CMAKE_C_FLAGS by the llvm
-@@ -593,7 +669,7 @@ else ()
+@@ -593,7 +675,7 @@ else ()
        append_list_if(COMPILER_RT_HAS_FPIC_FLAG -fPIC BUILTIN_CFLAGS)
      endif()
      append_list_if(COMPILER_RT_HAS_FNO_BUILTIN_FLAG -fno-builtin BUILTIN_CFLAGS)
@@ -3897,7 +3845,7 @@ index 3a66dd9c3..b511a9a98 100644
        append_list_if(COMPILER_RT_HAS_VISIBILITY_HIDDEN_FLAG -fvisibility=hidden BUILTIN_CFLAGS)
      endif()
      if(NOT COMPILER_RT_DEBUG)
-@@ -603,18 +679,29 @@ else ()
+@@ -603,18 +685,29 @@ else ()
  
    set(BUILTIN_DEFS "")
  
@@ -11538,6 +11486,72 @@ index 0e6059896..28fd22fa7 100644
  }
 -
  } // namespace gwp_asan
+diff --git a/src/llvm-project/compiler-rt/lib/gwp_asan/random.cpp b/src/llvm-project/compiler-rt/lib/gwp_asan/random.cpp
+deleted file mode 100644
+index 2180f9204..000000000
+--- a/src/llvm-project/compiler-rt/lib/gwp_asan/random.cpp
++++ /dev/null
+@@ -1,31 +0,0 @@
+-//===-- random.cpp ----------------------------------------------*- C++ -*-===//
+-//
+-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+-// See https://llvm.org/LICENSE.txt for license information.
+-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+-//
+-//===----------------------------------------------------------------------===//
+-
+-#include "gwp_asan/random.h"
+-#include "gwp_asan/common.h"
+-
+-#include <time.h>
+-
+-// Initialised to a magic constant so that an uninitialised GWP-ASan won't
+-// regenerate its sample counter for as long as possible. The xorshift32()
+-// algorithm used below results in getRandomUnsigned32(0xff82eb50) ==
+-// 0xfffffea4.
+-GWP_ASAN_TLS_INITIAL_EXEC uint32_t RandomState = 0xff82eb50;
+-
+-namespace gwp_asan {
+-void initPRNG() {
+-  RandomState = time(nullptr) + getThreadID();
+-}
+-
+-uint32_t getRandomUnsigned32() {
+-  RandomState ^= RandomState << 13;
+-  RandomState ^= RandomState >> 17;
+-  RandomState ^= RandomState << 5;
+-  return RandomState;
+-}
+-} // namespace gwp_asan
+diff --git a/src/llvm-project/compiler-rt/lib/gwp_asan/random.h b/src/llvm-project/compiler-rt/lib/gwp_asan/random.h
+deleted file mode 100644
+index 953b98909..000000000
+--- a/src/llvm-project/compiler-rt/lib/gwp_asan/random.h
++++ /dev/null
+@@ -1,23 +0,0 @@
+-//===-- random.h ------------------------------------------------*- C++ -*-===//
+-//
+-// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+-// See https://llvm.org/LICENSE.txt for license information.
+-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+-//
+-//===----------------------------------------------------------------------===//
+-
+-#ifndef GWP_ASAN_RANDOM_H_
+-#define GWP_ASAN_RANDOM_H_
+-
+-#include <stdint.h>
+-
+-namespace gwp_asan {
+-// Initialise the PRNG, using time and thread ID as the seed.
+-void initPRNG();
+-
+-// xorshift (32-bit output), extremely fast PRNG that uses arithmetic operations
+-// only. Seeded using walltime.
+-uint32_t getRandomUnsigned32();
+-} // namespace gwp_asan
+-
+-#endif // GWP_ASAN_RANDOM_H_
 diff --git a/src/llvm-project/compiler-rt/lib/gwp_asan/tests/CMakeLists.txt b/src/llvm-project/compiler-rt/lib/gwp_asan/tests/CMakeLists.txt
 index feac23df9..abc02a496 100644
 --- a/src/llvm-project/compiler-rt/lib/gwp_asan/tests/CMakeLists.txt
@@ -11896,26 +11910,31 @@ index 000000000..ffa4bca5a
 +               "Invalid integer value 'NOT_A_NUMBER' for option 'SampleRate'");
 +  RunErrorTest("NOT_A_VALUE=0", "Unknown option 'NOT_A_VALUE");
 +}
-diff --git a/src/llvm-project/compiler-rt/lib/gwp_asan/tests/platform_specific/printf_sanitizer_common.cpp b/src/llvm-project/compiler-rt/lib/gwp_asan/tests/platform_specific/printf_sanitizer_common.cpp
-new file mode 100644
-index 000000000..102b1dbfe
---- /dev/null
+diff --git a/src/llvm-project/compiler-rt/lib/gwp_asan/tests/optional/printf_sanitizer_common.cpp b/src/llvm-project/compiler-rt/lib/gwp_asan/tests/platform_specific/printf_sanitizer_common.cpp
+similarity index 52%
+rename from src/llvm-project/compiler-rt/lib/gwp_asan/tests/optional/printf_sanitizer_common.cpp
+rename to src/llvm-project/compiler-rt/lib/gwp_asan/tests/platform_specific/printf_sanitizer_common.cpp
+index ea7141b46..102b1dbfe 100644
+--- a/src/llvm-project/compiler-rt/lib/gwp_asan/tests/optional/printf_sanitizer_common.cpp
 +++ b/src/llvm-project/compiler-rt/lib/gwp_asan/tests/platform_specific/printf_sanitizer_common.cpp
-@@ -0,0 +1,19 @@
-+//===-- printf_sanitizer_common.cpp -----------------------------*- C++ -*-===//
-+//
-+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
-+// See https://llvm.org/LICENSE.txt for license information.
-+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-+//
-+//===----------------------------------------------------------------------===//
-+
+@@ -6,15 +6,14 @@
+ //
+ //===----------------------------------------------------------------------===//
+ 
+-#include "gwp_asan/optional/segv_handler.h"
 +#include "gwp_asan/optional/printf.h"
 +
-+#include "sanitizer_common/sanitizer_common.h"
-+
-+namespace gwp_asan {
-+namespace test {
+ #include "sanitizer_common/sanitizer_common.h"
+ 
+ namespace gwp_asan {
+ namespace test {
+-// This printf-function getter allows other platforms (e.g. Android) to define
+-// their own signal-safe Printf function. In LLVM, we use
+-// `optional/printf_sanitizer_common.cpp` which supplies the __sanitizer::Printf
+-// for this purpose.
+-crash_handler::Printf_t getPrintfFunction() { return __sanitizer::Printf; }
+-}; // namespace test
+-}; // namespace gwp_asan
 +
 +Printf_t getPrintfFunction() { return __sanitizer::Printf; }
 +
@@ -18310,7 +18329,7 @@ index 541356fc6..de3d95094 100644
  endmacro()
  
 diff --git a/src/llvm-project/compiler-rt/lib/msan/tests/msan_test.cpp b/src/llvm-project/compiler-rt/lib/msan/tests/msan_test.cpp
-index 53b9a3e56..7378b237a 100644
+index 53b9a3e56..5dc9090f3 100644
 --- a/src/llvm-project/compiler-rt/lib/msan/tests/msan_test.cpp
 +++ b/src/llvm-project/compiler-rt/lib/msan/tests/msan_test.cpp
 @@ -33,6 +33,10 @@ int shmdt(const void *);
@@ -18563,15 +18582,18 @@ index 53b9a3e56..7378b237a 100644
  TEST(MemorySanitizer, getgrent_r) {
    struct group grp;
    struct group *grpres;
-@@ -3694,7 +3708,6 @@ TEST(MemorySanitizer, getgrent_r) {
+@@ -3693,8 +3707,9 @@ TEST(MemorySanitizer, getgrent_r) {
+   EXPECT_NOT_POISONED(grp.gr_gid);
    EXPECT_NOT_POISONED(grpres);
  }
++#endif
  
 -#if !defined(__FreeBSD__) && !defined(__NetBSD__)
++#ifdef __GLIBC__
  TEST(MemorySanitizer, fgetgrent_r) {
    FILE *fp = fopen("/etc/group", "r");
    struct group grp;
-@@ -4302,7 +4315,7 @@ TEST(MemorySanitizerOrigins, InitializedStoreDoesNotChangeOrigin) {
+@@ -4302,7 +4317,7 @@ TEST(MemorySanitizerOrigins, InitializedStoreDoesNotChangeOrigin) {
  }  // namespace
  
  template<class T, class BinaryOp>
@@ -18580,7 +18602,7 @@ index 53b9a3e56..7378b237a 100644
  void BinaryOpOriginTest(BinaryOp op) {
    U4 ox = rand();  //NOLINT
    U4 oy = rand();  //NOLINT
-@@ -4335,12 +4348,12 @@ void BinaryOpOriginTest(BinaryOp op) {
+@@ -4335,12 +4350,12 @@ void BinaryOpOriginTest(BinaryOp op) {
    EXPECT_ORIGIN(ox, __msan_get_origin(z));
  }
  
@@ -18599,7 +18621,7 @@ index 53b9a3e56..7378b237a 100644
  
  TEST(MemorySanitizerOrigins, BinaryOp) {
    if (!TrackingOrigins()) return;
-@@ -4694,7 +4707,7 @@ static void TestBZHI() {
+@@ -4694,7 +4709,7 @@ static void TestBZHI() {
        __builtin_ia32_bzhi_di(0xABCDABCDABCDABCD, Poisoned<U8>(1, 0xFFFFFFFF00000000ULL)));
  }
  
@@ -19165,6 +19187,28 @@ index c34e110a6..16ad965ff 100644
  #ifdef _MSC_VER
  /* For _alloca */
  #include <malloc.h>
+diff --git a/src/llvm-project/compiler-rt/lib/sanitizer_common/.clang-tidy b/src/llvm-project/compiler-rt/lib/sanitizer_common/.clang-tidy
+deleted file mode 100644
+index 6c71abff0..000000000
+--- a/src/llvm-project/compiler-rt/lib/sanitizer_common/.clang-tidy
++++ /dev/null
+@@ -1,16 +0,0 @@
+-Checks: '-*,clang-diagnostic-*,llvm-*,misc-*,readability-identifier-naming'
+-CheckOptions:
+-  - key:             readability-identifier-naming.ClassCase
+-    value:           CamelCase
+-  - key:             readability-identifier-naming.EnumCase
+-    value:           CamelCase
+-  - key:             readability-identifier-naming.FunctionCase
+-    value:           CamelCase
+-  - key:             readability-identifier-naming.UnionCase
+-    value:           CamelCase
+-  - key:             readability-identifier-naming.GlobalConstantCase
+-    value:           CamelCase
+-  - key:             readability-identifier-naming.GlobalConstantPrefix
+-    value:           "k"
+-  - key:             readability-identifier-naming.VariableCase
+-    value:           lower_case
 diff --git a/src/llvm-project/compiler-rt/lib/sanitizer_common/CMakeLists.txt b/src/llvm-project/compiler-rt/lib/sanitizer_common/CMakeLists.txt
 index 97e6b1ac9..674835aba 100644
 --- a/src/llvm-project/compiler-rt/lib/sanitizer_common/CMakeLists.txt
@@ -22694,7 +22738,7 @@ index f0b1e04d1..96c01bad8 100644
  #else
  # define SANITIZER_MADVISE_DONTNEED MADV_DONTNEED
 diff --git a/src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_platform_interceptors.h b/src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_platform_interceptors.h
-index e28bb937a..7f7b38d42 100644
+index e28bb937a..068fc9829 100644
 --- a/src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_platform_interceptors.h
 +++ b/src/llvm-project/compiler-rt/lib/sanitizer_common/sanitizer_platform_interceptors.h
 @@ -15,133 +15,133 @@
@@ -22969,7 +23013,7 @@ index e28bb937a..7f7b38d42 100644
 +  (SI_FREEBSD || SI_NETBSD || SI_MAC || SI_LINUX_NOT_ANDROID || SI_SOLARIS)
 +#define SANITIZER_INTERCEPT_GETPWENT \
 +  (SI_FREEBSD || SI_NETBSD || SI_MAC || SI_LINUX_NOT_ANDROID || SI_SOLARIS)
-+#define SANITIZER_INTERCEPT_FGETGRENT_R (SI_FREEBSD || SI_GLIBC || SI_SOLARIS)
++#define SANITIZER_INTERCEPT_FGETGRENT_R (SI_GLIBC || SI_SOLARIS)
  #define SANITIZER_INTERCEPT_FGETPWENT SI_LINUX_NOT_ANDROID || SI_SOLARIS
  #define SANITIZER_INTERCEPT_GETPWENT_R \
 -  (SI_FREEBSD || SI_NETBSD || SI_OPENBSD || SI_LINUX_NOT_ANDROID || SI_SOLARIS)
@@ -32055,15 +32099,10 @@ index ffe068430..b1e19be57 100644
  
    Callback(Thread *thr);
 diff --git a/src/llvm-project/compiler-rt/lib/tsan/go/buildgo.sh b/src/llvm-project/compiler-rt/lib/tsan/go/buildgo.sh
-index 2238caf53..803caef14 100755
+index 2238caf53..2e19c5205 100755
 --- a/src/llvm-project/compiler-rt/lib/tsan/go/buildgo.sh
 +++ b/src/llvm-project/compiler-rt/lib/tsan/go/buildgo.sh
-@@ -60,10 +60,18 @@ if [ "`uname -a | grep Linux`" != "" ]; then
- 	elif [ "`uname -a | grep x86_64`" != "" ]; then
- 		SUFFIX="linux_amd64"
- 		ARCHCFLAGS="-m64"
--		OSCFLAGS="$OSCFLAGS -ffreestanding -Wno-unused-const-variable -Werror -Wno-unknown-warning-option"
-+		OSCFLAGS="$OSCFLAGS -ffreestanding -Wno-unused-const-variable  -Wno-unknown-warning-option"
+@@ -64,6 +64,14 @@ if [ "`uname -a | grep Linux`" != "" ]; then
  	elif [ "`uname -a | grep aarch64`" != "" ]; then
  		SUFFIX="linux_arm64"
  		ARCHCFLAGS=""
@@ -32078,24 +32117,6 @@ index 2238caf53..803caef14 100755
  	fi
  elif [ "`uname -a | grep FreeBSD`" != "" ]; then
  	# The resulting object still depends on libc.
-@@ -71,7 +79,7 @@ elif [ "`uname -a | grep FreeBSD`" != "" ]; then
- 	# and we should remove it for FreeBSD as well, but there is no pressing need.
- 	DEPENDS_ON_LIBC=1
- 	SUFFIX="freebsd_amd64"
--	OSCFLAGS="-fno-strict-aliasing -fPIC -Werror"
-+	OSCFLAGS="-fno-strict-aliasing -fPIC "
- 	ARCHCFLAGS="-m64"
- 	OSLDFLAGS="-lpthread -fPIC -fpie"
- 	SRCS="
-@@ -92,7 +100,7 @@ elif [ "`uname -a | grep NetBSD`" != "" ]; then
- 	# and we should remove it for NetBSD as well, but there is no pressing need.
- 	DEPENDS_ON_LIBC=1
- 	SUFFIX="netbsd_amd64"
--	OSCFLAGS="-fno-strict-aliasing -fPIC -Werror"
-+	OSCFLAGS="-fno-strict-aliasing -fPIC "
- 	ARCHCFLAGS="-m64"
- 	OSLDFLAGS="-lpthread -fPIC -fpie"
- 	SRCS="
 @@ -108,40 +116,25 @@ elif [ "`uname -a | grep NetBSD`" != "" ]; then
  		../../sanitizer_common/sanitizer_stoptheworld_linux_libcdep.cpp
  		../../sanitizer_common/sanitizer_stoptheworld_netbsd_libcdep.cpp
@@ -36852,111 +36873,54 @@ index d1a41e002..77af9a2b9 100644
      if (test__mulsf3vfp(0.5, 10.0))
          return 1;
      if (test__mulsf3vfp(-0.5, -2.0))
-diff --git a/src/llvm-project/compiler-rt/test/builtins/Unit/mulsi3_test.c b/src/llvm-project/compiler-rt/test/builtins/Unit/mulsi3_test.c
-new file mode 100644
-index 000000000..0b0c14204
---- /dev/null
+diff --git a/src/llvm-project/compiler-rt/test/builtins/Unit/riscv/mulsi3_test.c b/src/llvm-project/compiler-rt/test/builtins/Unit/mulsi3_test.c
+similarity index 90%
+rename from src/llvm-project/compiler-rt/test/builtins/Unit/riscv/mulsi3_test.c
+rename to src/llvm-project/compiler-rt/test/builtins/Unit/mulsi3_test.c
+index d4621acbb..0b0c14204 100644
+--- a/src/llvm-project/compiler-rt/test/builtins/Unit/riscv/mulsi3_test.c
 +++ b/src/llvm-project/compiler-rt/test/builtins/Unit/mulsi3_test.c
-@@ -0,0 +1,99 @@
-+// RUN: %clang_builtins %s %librt -o %t && %run %t
+@@ -1,13 +1,10 @@
+-// REQUIRES: riscv32-target-arch
+ // RUN: %clang_builtins %s %librt -o %t && %run %t
 +// REQUIRES: librt_has_mulsi3
-+
-+#include "int_lib.h"
-+#include <stdio.h>
-+#include <limits.h>
-+
-+COMPILER_RT_ABI si_int __mulsi3(si_int a, si_int b);
-+
-+int test__mulsi3(si_int a, si_int b, si_int expected)
-+{
-+    si_int x = __mulsi3(a, b);
-+    if (x != expected)
-+        printf("error in __mulsi3: %d * %d = %d, expected %d\n",
+ 
+ #include "int_lib.h"
+ #include <stdio.h>
+ #include <limits.h>
+ 
+-#if !defined(__riscv_mul) && __riscv_xlen == 32
+-// Based on mulsi3_test.c
+-
+ COMPILER_RT_ABI si_int __mulsi3(si_int a, si_int b);
+ 
+ int test__mulsi3(si_int a, si_int b, si_int expected)
+@@ -15,14 +12,12 @@ int test__mulsi3(si_int a, si_int b, si_int expected)
+     si_int x = __mulsi3(a, b);
+     if (x != expected)
+         printf("error in __mulsi3: %d * %d = %d, expected %d\n",
+-               a, b, __mulsi3(a, b), expected);
 +               a, b, x, expected);
-+    return x != expected;
-+}
-+
-+int main()
-+{
-+    if (test__mulsi3(0, 0, 0))
-+        return 1;
-+    if (test__mulsi3(0, 1, 0))
-+        return 1;
-+    if (test__mulsi3(1, 0, 0))
-+        return 1;
-+    if (test__mulsi3(0, 10, 0))
-+        return 1;
-+    if (test__mulsi3(10, 0, 0))
-+        return 1;
-+    if (test__mulsi3(0, INT_MAX, 0))
-+        return 1;
-+    if (test__mulsi3(INT_MAX, 0, 0))
-+        return 1;
-+
-+    if (test__mulsi3(0, -1, 0))
-+        return 1;
-+    if (test__mulsi3(-1, 0, 0))
-+        return 1;
-+    if (test__mulsi3(0, -10, 0))
-+        return 1;
-+    if (test__mulsi3(-10, 0, 0))
-+        return 1;
-+    if (test__mulsi3(0, INT_MIN, 0))
-+        return 1;
-+    if (test__mulsi3(INT_MIN, 0, 0))
-+        return 1;
-+
-+    if (test__mulsi3(1, 1, 1))
-+        return 1;
-+    if (test__mulsi3(1, 10, 10))
-+        return 1;
-+    if (test__mulsi3(10, 1, 10))
-+        return 1;
-+    if (test__mulsi3(1, INT_MAX, INT_MAX))
-+        return 1;
-+    if (test__mulsi3(INT_MAX, 1, INT_MAX))
-+        return 1;
-+
-+    if (test__mulsi3(1, -1, -1))
-+        return 1;
-+    if (test__mulsi3(1, -10, -10))
-+        return 1;
-+    if (test__mulsi3(-10, 1, -10))
-+        return 1;
-+    if (test__mulsi3(1, INT_MIN, INT_MIN))
-+        return 1;
-+    if (test__mulsi3(INT_MIN, 1, INT_MIN))
-+        return 1;
-+
-+    if (test__mulsi3(46340, 46340, 2147395600))
-+        return 1;
-+    if (test__mulsi3(-46340, 46340, -2147395600))
-+        return 1;
-+    if (test__mulsi3(46340, -46340, -2147395600))
-+        return 1;
-+    if (test__mulsi3(-46340, -46340, 2147395600))
-+        return 1;
-+
-+    if (test__mulsi3(4194303, 8192, 34359730176))
-+        return 1;
-+    if (test__mulsi3(-4194303, 8192, -34359730176))
-+        return 1;
-+    if (test__mulsi3(4194303, -8192, -34359730176))
-+        return 1;
-+    if (test__mulsi3(-4194303, -8192, 34359730176))
-+        return 1;
-+
-+    if (test__mulsi3(8192, 4194303, 34359730176))
-+        return 1;
-+    if (test__mulsi3(-8192, 4194303, -34359730176))
-+        return 1;
-+    if (test__mulsi3(8192, -4194303, -34359730176))
-+        return 1;
-+    if (test__mulsi3(-8192, -4194303, 34359730176))
-+        return 1;
-+
-+    return 0;
-+}
+     return x != expected;
+ }
+-#endif
+ 
+ int main()
+ {
+-#if !defined(__riscv_mul) && __riscv_xlen == 32
+     if (test__mulsi3(0, 0, 0))
+         return 1;
+     if (test__mulsi3(0, 1, 0))
+@@ -99,9 +94,6 @@ int main()
+         return 1;
+     if (test__mulsi3(-8192, -4194303, 34359730176))
+         return 1;
+-#else
+-    printf("skipped\n");
+-#endif
+ 
+     return 0;
+ }
 diff --git a/src/llvm-project/compiler-rt/test/builtins/Unit/nedf2vfp_test.c b/src/llvm-project/compiler-rt/test/builtins/Unit/nedf2vfp_test.c
 index 99e81a7f4..7a1474f4c 100644
 --- a/src/llvm-project/compiler-rt/test/builtins/Unit/nedf2vfp_test.c
@@ -41825,6 +41789,236 @@ index 3f4a4f6cc..416b90384 100644
      return EXIT_FAILURE;
    }
  
+diff --git a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-dlclose-main.c.gcov b/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-dlclose-main.c.gcov
+deleted file mode 100644
+index 2d538f63e..000000000
+--- a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-dlclose-main.c.gcov
++++ /dev/null
+@@ -1,91 +0,0 @@
+-// CHECK:        -:    0:Source:{{.*}}Inputs/instrprof-dlopen-dlclose-main.c
+-// CHECK-NEXT:        -:    0:Graph:instrprof-dlopen-dlclose-main.gcno
+-// CHECK-NEXT:        -:    0:Data:instrprof-dlopen-dlclose-main.gcda
+-// CHECK-NEXT:        -:    0:Runs:1
+-// CHECK-NEXT:        -:    0:Programs:1
+-// CHECK-NEXT:        -:    1:#include <dlfcn.h>
+-// CHECK-NEXT:        -:    2:#include <stdio.h>
+-// CHECK-NEXT:        -:    3:#include <stdlib.h>
+-// CHECK-NEXT:        -:    4:
+-// CHECK-NEXT:        1:    5:int main(int argc, char *argv[]) {
+-// CHECK-NEXT:        1:    6:  dlerror();
+-// CHECK-NEXT:        1:    7:  void *f1_handle = dlopen("func.shared", RTLD_LAZY | RTLD_GLOBAL);
+-// CHECK-NEXT:        1:    8:  if (f1_handle == NULL) {
+-// CHECK-NEXT:    #####:    9:    fprintf(stderr, "unable to open 'func.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   10:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   11:  }
+-// CHECK-NEXT:        -:   12:
+-// CHECK-NEXT:        1:   13:  void (*func)(void) = (void (*)(void))dlsym(f1_handle, "func");
+-// CHECK-NEXT:        1:   14:  if (func == NULL) {
+-// CHECK-NEXT:    #####:   15:    fprintf(stderr, "unable to lookup symbol 'func': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   16:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   17:  }
+-// CHECK-NEXT:        -:   18:
+-// CHECK-NEXT:        1:   19:  dlerror();
+-// CHECK-NEXT:        1:   20:  void *f2_handle = dlopen("func2.shared", RTLD_LAZY | RTLD_GLOBAL);
+-// CHECK-NEXT:        1:   21:  if (f2_handle == NULL) {
+-// CHECK-NEXT:    #####:   22:    fprintf(stderr, "unable to open 'func2.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   23:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   24:  }
+-// CHECK-NEXT:        -:   25:
+-// CHECK-NEXT:        1:   26:  void (*func2)(void) = (void (*)(void))dlsym(f2_handle, "func2");
+-// CHECK-NEXT:        1:   27:  if (func2 == NULL) {
+-// CHECK-NEXT:    #####:   28:    fprintf(stderr, "unable to lookup symbol 'func2': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   29:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   30:  }
+-// CHECK-NEXT:        1:   31:  func2();
+-// CHECK-NEXT:        -:   32:
+-// CHECK-NEXT:        -:   33:#ifdef USE_LIB3
+-// CHECK-NEXT:        -:   34:  void *f3_handle = dlopen("func3.shared", RTLD_LAZY | RTLD_GLOBAL);
+-// CHECK-NEXT:        -:   35:  if (f3_handle == NULL) {
+-// CHECK-NEXT:        -:   36:    fprintf(stderr, "unable to open 'func3.shared': %s\n", dlerror());
+-// CHECK-NEXT:        -:   37:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   38:  }
+-// CHECK-NEXT:        -:   39:
+-// CHECK-NEXT:        -:   40:  void (*func3)(void) = (void (*)(void))dlsym(f3_handle, "func3");
+-// CHECK-NEXT:        -:   41:  if (func3 == NULL) {
+-// CHECK-NEXT:        -:   42:    fprintf(stderr, "unable to lookup symbol 'func3': %s\n", dlerror());
+-// CHECK-NEXT:        -:   43:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   44:  }
+-// CHECK-NEXT:        -:   45:  func3();
+-// CHECK-NEXT:        -:   46:#endif
+-// CHECK-NEXT:        -:   47:
+-// CHECK-NEXT:        1:   48:  dlerror();
+-// CHECK-NEXT:        1:   49:  void (*gcov_flush1)() = (void (*)())dlsym(f1_handle, "__gcov_flush");
+-// CHECK-NEXT:        1:   50:  if (gcov_flush1 == NULL) {
+-// CHECK-NEXT:    #####:   51:    fprintf(stderr, "unable to find __gcov_flush in func.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   52:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   53:  }
+-// CHECK-NEXT:        -:   54:
+-// CHECK-NEXT:        1:   55:  dlerror();
+-// CHECK-NEXT:        1:   56:  void (*gcov_flush2)() = (void (*)())dlsym(f2_handle, "__gcov_flush");
+-// CHECK-NEXT:        1:   57:  if (gcov_flush2 == NULL) {
+-// CHECK-NEXT:    #####:   58:    fprintf(stderr, "unable to find __gcov_flush in func2.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   59:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   60:  }
+-// CHECK-NEXT:        -:   61:
+-// CHECK-NEXT:        1:   62:  if (gcov_flush1 == gcov_flush2) {
+-// CHECK-NEXT:    #####:   63:    fprintf(stderr, "Same __gcov_flush found in func.shared and func2.shared\n");
+-// CHECK-NEXT:    #####:   64:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   65:  }
+-// CHECK-NEXT:        -:   66:
+-// CHECK-NEXT:        1:   67:  dlerror();
+-// CHECK-NEXT:        1:   68:  if (dlclose(f2_handle) != 0) {
+-// CHECK-NEXT:    #####:   69:    fprintf(stderr, "unable to close 'func2.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   70:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   71:  }
+-// CHECK-NEXT:        -:   72:
+-// CHECK-NEXT:        1:   73:  func();
+-// CHECK-NEXT:        -:   74:
+-// CHECK-NEXT:        1:   75:  int g1 = 0;
+-// CHECK-NEXT:        1:   76:  int g2 = 0;
+-// CHECK-NEXT:        1:   77:  int n = 10;
+-// CHECK-NEXT:        -:   78:
+-// CHECK-NEXT:        1:   79:  if (n % 5 == 0)
+-// CHECK-NEXT:        1:   80:    g1++;
+-// CHECK-NEXT:        -:   81:  else
+-// CHECK-NEXT:    #####:   82:    g2++;
+-// CHECK-NEXT:        -:   83:
+-// CHECK-NEXT:        1:   84:  return EXIT_SUCCESS;
+-// CHECK-NEXT:        1:   85:}
+-// CHECK-NEXT:        -:   86:
+diff --git a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-dlclose-main_three-libs.c.gcov b/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-dlclose-main_three-libs.c.gcov
+deleted file mode 100644
+index f1dd17571..000000000
+--- a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-dlclose-main_three-libs.c.gcov
++++ /dev/null
+@@ -1,91 +0,0 @@
+-// CHECK:        -:    0:Source:{{.*}}Inputs/instrprof-dlopen-dlclose-main.c
+-// CHECK-NEXT:        -:    0:Graph:instrprof-dlopen-dlclose-main.gcno
+-// CHECK-NEXT:        -:    0:Data:instrprof-dlopen-dlclose-main.gcda
+-// CHECK-NEXT:        -:    0:Runs:1
+-// CHECK-NEXT:        -:    0:Programs:1
+-// CHECK-NEXT:        -:    1:#include <dlfcn.h>
+-// CHECK-NEXT:        -:    2:#include <stdio.h>
+-// CHECK-NEXT:        -:    3:#include <stdlib.h>
+-// CHECK-NEXT:        -:    4:
+-// CHECK-NEXT:        1:    5:int main(int argc, char *argv[]) {
+-// CHECK-NEXT:        1:    6:  dlerror();
+-// CHECK-NEXT:        1:    7:  void *f1_handle = dlopen("func.shared", RTLD_LAZY | RTLD_GLOBAL);
+-// CHECK-NEXT:        1:    8:  if (f1_handle == NULL) {
+-// CHECK-NEXT:    #####:    9:    fprintf(stderr, "unable to open 'func.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   10:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   11:  }
+-// CHECK-NEXT:        -:   12:
+-// CHECK-NEXT:        1:   13:  void (*func)(void) = (void (*)(void))dlsym(f1_handle, "func");
+-// CHECK-NEXT:        1:   14:  if (func == NULL) {
+-// CHECK-NEXT:    #####:   15:    fprintf(stderr, "unable to lookup symbol 'func': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   16:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   17:  }
+-// CHECK-NEXT:        -:   18:
+-// CHECK-NEXT:        1:   19:  dlerror();
+-// CHECK-NEXT:        1:   20:  void *f2_handle = dlopen("func2.shared", RTLD_LAZY | RTLD_GLOBAL);
+-// CHECK-NEXT:        1:   21:  if (f2_handle == NULL) {
+-// CHECK-NEXT:    #####:   22:    fprintf(stderr, "unable to open 'func2.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   23:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   24:  }
+-// CHECK-NEXT:        -:   25:
+-// CHECK-NEXT:        1:   26:  void (*func2)(void) = (void (*)(void))dlsym(f2_handle, "func2");
+-// CHECK-NEXT:        1:   27:  if (func2 == NULL) {
+-// CHECK-NEXT:    #####:   28:    fprintf(stderr, "unable to lookup symbol 'func2': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   29:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   30:  }
+-// CHECK-NEXT:        1:   31:  func2();
+-// CHECK-NEXT:        -:   32:
+-// CHECK-NEXT:        -:   33:#ifdef USE_LIB3
+-// CHECK-NEXT:        1:   34:  void *f3_handle = dlopen("func3.shared", RTLD_LAZY | RTLD_GLOBAL);
+-// CHECK-NEXT:        1:   35:  if (f3_handle == NULL) {
+-// CHECK-NEXT:    #####:   36:    fprintf(stderr, "unable to open 'func3.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   37:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   38:  }
+-// CHECK-NEXT:        -:   39:
+-// CHECK-NEXT:        1:   40:  void (*func3)(void) = (void (*)(void))dlsym(f3_handle, "func3");
+-// CHECK-NEXT:        1:   41:  if (func3 == NULL) {
+-// CHECK-NEXT:    #####:   42:    fprintf(stderr, "unable to lookup symbol 'func3': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   43:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   44:  }
+-// CHECK-NEXT:        1:   45:  func3();
+-// CHECK-NEXT:        -:   46:#endif
+-// CHECK-NEXT:        -:   47:
+-// CHECK-NEXT:        1:   48:  dlerror();
+-// CHECK-NEXT:        1:   49:  void (*gcov_flush1)() = (void (*)())dlsym(f1_handle, "__gcov_flush");
+-// CHECK-NEXT:        1:   50:  if (gcov_flush1 == NULL) {
+-// CHECK-NEXT:    #####:   51:    fprintf(stderr, "unable to find __gcov_flush in func.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   52:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   53:  }
+-// CHECK-NEXT:        -:   54:
+-// CHECK-NEXT:        1:   55:  dlerror();
+-// CHECK-NEXT:        1:   56:  void (*gcov_flush2)() = (void (*)())dlsym(f2_handle, "__gcov_flush");
+-// CHECK-NEXT:        1:   57:  if (gcov_flush2 == NULL) {
+-// CHECK-NEXT:    #####:   58:    fprintf(stderr, "unable to find __gcov_flush in func2.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   59:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   60:  }
+-// CHECK-NEXT:        -:   61:
+-// CHECK-NEXT:        1:   62:  if (gcov_flush1 == gcov_flush2) {
+-// CHECK-NEXT:    #####:   63:    fprintf(stderr, "Same __gcov_flush found in func.shared and func2.shared\n");
+-// CHECK-NEXT:    #####:   64:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   65:  }
+-// CHECK-NEXT:        -:   66:
+-// CHECK-NEXT:        1:   67:  dlerror();
+-// CHECK-NEXT:        1:   68:  if (dlclose(f2_handle) != 0) {
+-// CHECK-NEXT:    #####:   69:    fprintf(stderr, "unable to close 'func2.shared': %s\n", dlerror());
+-// CHECK-NEXT:    #####:   70:    return EXIT_FAILURE;
+-// CHECK-NEXT:        -:   71:  }
+-// CHECK-NEXT:        -:   72:
+-// CHECK-NEXT:        1:   73:  func();
+-// CHECK-NEXT:        -:   74:
+-// CHECK-NEXT:        1:   75:  int g1 = 0;
+-// CHECK-NEXT:        1:   76:  int g2 = 0;
+-// CHECK-NEXT:        1:   77:  int n = 10;
+-// CHECK-NEXT:        -:   78:
+-// CHECK-NEXT:        1:   79:  if (n % 5 == 0)
+-// CHECK-NEXT:        1:   80:    g1++;
+-// CHECK-NEXT:        -:   81:  else
+-// CHECK-NEXT:    #####:   82:    g2++;
+-// CHECK-NEXT:        -:   83:
+-// CHECK-NEXT:        1:   84:  return EXIT_SUCCESS;
+-// CHECK-NEXT:        1:   85:}
+-// CHECK-NEXT:        -:   86:
+diff --git a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-func.c.gcov b/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-func.c.gcov
+deleted file mode 100644
+index 3af4ec94a..000000000
+--- a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-func.c.gcov
++++ /dev/null
+@@ -1,6 +0,0 @@
+-// CHECK:        -:    0:Source:{{.*}}Inputs/instrprof-dlopen-func.c
+-// CHECK-NEXT:        -:    0:Graph:instrprof-dlopen-func.gcno
+-// CHECK-NEXT:        -:    0:Data:instrprof-dlopen-func.gcda
+-// CHECK-NEXT:        -:    0:Runs:1
+-// CHECK-NEXT:        -:    0:Programs:1
+-// CHECK-NEXT:        1:    1:void func(int K) {}
+diff --git a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-func2.c.gcov b/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-func2.c.gcov
+deleted file mode 100644
+index 7101f74b9..000000000
+--- a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-func2.c.gcov
++++ /dev/null
+@@ -1,6 +0,0 @@
+-// CHECK:        -:    0:Source:{{.*}}Inputs/instrprof-dlopen-func2.c
+-// CHECK-NEXT:        -:    0:Graph:instrprof-dlopen-func2.gcno
+-// CHECK-NEXT:        -:    0:Data:instrprof-dlopen-func2.gcda
+-// CHECK-NEXT:        -:    0:Runs:1
+-// CHECK-NEXT:        -:    0:Programs:1
+-// CHECK-NEXT:        1:    1:void func2(int K) {}
+diff --git a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-func3.c.gcov b/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-func3.c.gcov
+deleted file mode 100644
+index 7101f74b9..000000000
+--- a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-dlopen-func3.c.gcov
++++ /dev/null
+@@ -1,6 +0,0 @@
+-// CHECK:        -:    0:Source:{{.*}}Inputs/instrprof-dlopen-func2.c
+-// CHECK-NEXT:        -:    0:Graph:instrprof-dlopen-func2.gcno
+-// CHECK-NEXT:        -:    0:Data:instrprof-dlopen-func2.gcda
+-// CHECK-NEXT:        -:    0:Runs:1
+-// CHECK-NEXT:        -:    0:Programs:1
+-// CHECK-NEXT:        1:    1:void func2(int K) {}
 diff --git a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-gcov-multiple-bbs-single-line.c.gcov b/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-gcov-multiple-bbs-single-line.c.gcov
 index d1104b7f5..4debf8fc1 100644
 --- a/src/llvm-project/compiler-rt/test/profile/Inputs/instrprof-gcov-multiple-bbs-single-line.c.gcov
@@ -42119,6 +42313,45 @@ index 97d44ad52..494fb9be7 100644
    bar(5);
  
  #ifdef SHARED_CALL_AFTER_FLUSH
+diff --git a/src/llvm-project/compiler-rt/test/profile/Posix/instrprof-dlopen-dlclose-gcov.test b/src/llvm-project/compiler-rt/test/profile/Posix/instrprof-dlopen-dlclose-gcov.test
+deleted file mode 100644
+index b845303a8..000000000
+--- a/src/llvm-project/compiler-rt/test/profile/Posix/instrprof-dlopen-dlclose-gcov.test
++++ /dev/null
+@@ -1,33 +0,0 @@
+-# atexit(3) not supported in dlopen(3)ed+dlclose(3)d DSO
+-XFAIL: netbsd
+-
+-RUN: mkdir -p %t.d
+-RUN: cd %t.d
+-
+-RUN: %clang --coverage -o func.shared -fPIC -shared %S/../Inputs/instrprof-dlopen-func.c
+-RUN: %clang --coverage -o func2.shared -fPIC -shared %S/../Inputs/instrprof-dlopen-func2.c
+-RUN: %clang --coverage -o func3.shared -fPIC -shared %S/../Inputs/instrprof-dlopen-func3.c
+-RUN: %clang --coverage -o %t -fPIC -rpath %t.d %S/../Inputs/instrprof-dlopen-dlclose-main.c
+-
+-# Test with two dlopened libraries.
+-RUN: rm -f instrprof-dlopen-dlclose-main.gcda instrprof-dlopen-func.gcda instrprof-dlopen-func2.gcda
+-RUN: %run %t
+-RUN: llvm-cov gcov instrprof-dlopen-dlclose-main.gcda
+-RUN: FileCheck --match-full-lines --strict-whitespace --input-file instrprof-dlopen-dlclose-main.c.gcov %S/../Inputs/instrprof-dlopen-dlclose-main.c.gcov
+-RUN: llvm-cov gcov instrprof-dlopen-func.gcda
+-RUN: FileCheck --match-full-lines --strict-whitespace --input-file instrprof-dlopen-func.c.gcov %S/../Inputs/instrprof-dlopen-func.c.gcov
+-RUN: llvm-cov gcov instrprof-dlopen-func2.gcda
+-RUN: FileCheck --match-full-lines --strict-whitespace --input-file instrprof-dlopen-func2.c.gcov %S/../Inputs/instrprof-dlopen-func2.c.gcov
+-
+-# Test with three dlopened libraries.
+-RUN: %clang -DUSE_LIB3 --coverage -o %t -fPIC -rpath %t.d %S/../Inputs/instrprof-dlopen-dlclose-main.c
+-RUN: rm -f instrprof-dlopen-dlclose-main.gcda instrprof-dlopen-func.gcda instrprof-dlopen-func2.gcda instrprof-dlopen-func3.gcda
+-RUN: %run %t
+-RUN: llvm-cov gcov instrprof-dlopen-dlclose-main.gcda
+-RUN: FileCheck --match-full-lines --strict-whitespace --input-file instrprof-dlopen-dlclose-main.c.gcov %S/../Inputs/instrprof-dlopen-dlclose-main_three-libs.c.gcov
+-RUN: llvm-cov gcov instrprof-dlopen-func.gcda
+-RUN: FileCheck --match-full-lines --strict-whitespace --input-file instrprof-dlopen-func.c.gcov %S/../Inputs/instrprof-dlopen-func.c.gcov
+-RUN: llvm-cov gcov instrprof-dlopen-func2.gcda
+-RUN: FileCheck --match-full-lines --strict-whitespace --input-file instrprof-dlopen-func2.c.gcov %S/../Inputs/instrprof-dlopen-func2.c.gcov
+-RUN: llvm-cov gcov instrprof-dlopen-func3.gcda
+-RUN: FileCheck --match-full-lines --strict-whitespace --input-file instrprof-dlopen-func2.c.gcov %S/../Inputs/instrprof-dlopen-func3.c.gcov
 diff --git a/src/llvm-project/compiler-rt/test/profile/coverage_comments.cpp b/src/llvm-project/compiler-rt/test/profile/coverage_comments.cpp
 new file mode 100644
 index 000000000..d206fb608

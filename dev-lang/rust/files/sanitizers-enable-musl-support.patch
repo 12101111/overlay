@@ -1,34 +1,39 @@
 diff --git a/compiler/rustc_codegen_ssa/src/back/link.rs b/compiler/rustc_codegen_ssa/src/back/link.rs
-index a3a2ef04175..7442fb74871 100644
+index 8bc4e644223..e8fe14ea11c 100644
 --- a/compiler/rustc_codegen_ssa/src/back/link.rs
 +++ b/compiler/rustc_codegen_ssa/src/back/link.rs
-@@ -909,7 +909,8 @@ fn link_sanitizer_runtime(sess: &Session, linker: &mut dyn Linker, name: &str) {
+@@ -932,7 +932,8 @@ fn find_sanitizer_runtime(sess: &Session, filename: &String) -> PathBuf {
          | "aarch64-unknown-linux-gnu"
          | "x86_64-fuchsia"
          | "x86_64-unknown-freebsd"
 -        | "x86_64-unknown-linux-gnu" => {
-+        | "x86_64-unknown-linux-gnu"
++        | "x86_64-unknown-linux-gnu" 
 +        | "x86_64-unknown-linux-musl" => {
              let filename = format!("librustc{}_rt.{}.a", channel, name);
-             let path = default_tlib.join(&filename);
+             let path = find_sanitizer_runtime(&sess, &filename).join(&filename);
              linker.link_whole_rlib(&path);
 diff --git a/compiler/rustc_session/src/session.rs b/compiler/rustc_session/src/session.rs
-index 75faab12e3e..ddcdd635ef1 100644
+index 69aa72d899f..9e7ca22f94a 100644
 --- a/compiler/rustc_session/src/session.rs
 +++ b/compiler/rustc_session/src/session.rs
-@@ -1523,16 +1523,18 @@ fn validate_commandline_args_with_session_available(sess: &Session) {
+@@ -1546,21 +1546,24 @@ fn validate_commandline_args_with_session_available(sess: &Session) {
          "x86_64-fuchsia",
          "x86_64-unknown-freebsd",
          "x86_64-unknown-linux-gnu",
 +        "x86_64-unknown-linux-musl",
      ];
-     const LSAN_SUPPORTED_TARGETS: &[&str] =
--        &["aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu"];
-+        &["aarch64-unknown-linux-gnu", "x86_64-apple-darwin", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"];
+     const LSAN_SUPPORTED_TARGETS: &[&str] = &[
+         "aarch64-apple-darwin",
+         "aarch64-unknown-linux-gnu",
+         "x86_64-apple-darwin",
+         "x86_64-unknown-linux-gnu",
++        "x86_64-unknown-linux-musl",
+     ];
      const MSAN_SUPPORTED_TARGETS: &[&str] =
 -        &["aarch64-unknown-linux-gnu", "x86_64-unknown-freebsd", "x86_64-unknown-linux-gnu"];
 +        &["aarch64-unknown-linux-gnu", "x86_64-unknown-freebsd", "x86_64-unknown-linux-gnu", "x86_64-unknown-linux-musl"];
      const TSAN_SUPPORTED_TARGETS: &[&str] = &[
+         "aarch64-apple-darwin",
          "aarch64-unknown-linux-gnu",
          "x86_64-apple-darwin",
          "x86_64-unknown-freebsd",
@@ -38,7 +43,7 @@ index 75faab12e3e..ddcdd635ef1 100644
  
      // Sanitizers can only be used on some tested platforms.
 diff --git a/src/bootstrap/native.rs b/src/bootstrap/native.rs
-index d716b23af60..13eeda9014e 100644
+index 609ac8b3669..204b4106bf7 100644
 --- a/src/bootstrap/native.rs
 +++ b/src/bootstrap/native.rs
 @@ -812,6 +812,9 @@ fn supported_sanitizers(

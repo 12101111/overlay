@@ -1,8 +1,8 @@
 diff --git a/compiler/rustc_target/src/spec/crt_objects.rs b/compiler/rustc_target/src/spec/crt_objects.rs
-index 76c0bf419e8..5ea8a69265f 100644
+index 32da16a2d8c..ec47573ed27 100644
 --- a/compiler/rustc_target/src/spec/crt_objects.rs
 +++ b/compiler/rustc_target/src/spec/crt_objects.rs
-@@ -61,21 +61,6 @@ pub(super) fn all(obj: &str) -> CrtObjects {
+@@ -62,21 +62,6 @@ pub(super) fn all(obj: &str) -> CrtObjects {
      ])
  }
  

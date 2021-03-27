@@ -39,7 +39,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
-IUSE="clippy cpu_flags_x86_sse2 debug doc libressl miri nightly parallel-compiler rls rustfmt +system-bootstrap system-llvm test wasm default-libcxx +profile +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
+IUSE="clippy cpu_flags_x86_sse2 debug doc miri nightly parallel-compiler rls rustfmt +system-bootstrap system-llvm test wasm default-libcxx +profile +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -90,8 +90,7 @@ DEPEND="
 	>=app-arch/xz-utils-5.2
 	net-misc/curl:=[http2,ssl]
 	sys-libs/zlib:=
-	!libressl? ( dev-libs/openssl:0= )
-	libressl? ( dev-libs/libressl:0= )
+	dev-libs/openssl:0=
 	default-libcxx? ( sys-devel/clang[default-libcxx] )
 	llvm-libunwind? ( sys-libs/llvm-libunwind )
 	system-llvm? (
@@ -135,14 +134,10 @@ QA_SONAME="
 RESTRICT="test"
 
 PATCHES=(
-	"${FILESDIR}"/1.47.0-libressl.patch
 	"${FILESDIR}"/1.47.0-ignore-broken-and-non-applicable-tests.patch
-	"${FILESDIR}"/1.47.0-llvm-tensorflow-fix.patch
 	#"${FILESDIR}"/1.49.0-gentoo-musl-target-specs.patch
-	"${FILESDIR}"/1.49.0-llvm-ver-display.patch
-	"${FILESDIR}"/musl-use-external-libunwind.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
-	"${FILESDIR}"/rust-1.50.0-llvm12.patch
+	"${FILESDIR}"/rust-1.51.0-llvm12.patch
 	"${FILESDIR}"/sanitizers-enable-musl-support.patch
 	"${FILESDIR}"/llvm-12-compiler-rt.patch
 )
