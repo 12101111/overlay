@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-87-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-87-patches-02.tar.xz"
 
 LLVM_MAX_SLOT=12
 
@@ -460,7 +460,6 @@ src_prepare() {
 	eapply "${FILESDIR}/firefox-87-no-gtk2.patch"
 	eapply "${FILESDIR}/cross-pgo.patch"
 	eapply "${FILESDIR}/fix-lincxx12.patch"
-	use elibc_musl && eapply "${FILESDIR}/firefox-87-disable-oxidized_breakpad.patch"
 	use elibc_musl && eapply "${FILESDIR}/mutex-musl.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
