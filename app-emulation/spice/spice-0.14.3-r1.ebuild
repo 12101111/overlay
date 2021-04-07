@@ -1,9 +1,9 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
 
-PYTHON_COMPAT=( python3_{6,7,8,9} )
+PYTHON_COMPAT=( python3_{7,8,9} )
 inherit autotools python-any-r1 readme.gentoo-r1 xdg-utils
 
 DESCRIPTION="SPICE server"
@@ -12,8 +12,10 @@ SRC_URI="https://www.spice-space.org/download/releases/spice-server/${P}.tar.bz2
 
 LICENSE="LGPL-2.1"
 SLOT="0"
-KEYWORDS="amd64 arm64 ppc64 x86"
-IUSE="libressl lz4 sasl smartcard static-libs gstreamer"
+KEYWORDS="~amd64 ~arm64 ~ppc64 ~x86"
+IUSE="libressl lz4 sasl smartcard static-libs gstreamer test"
+
+RESTRICT="!test? ( test )"
 
 # the libspice-server only uses the headers of libcacard
 RDEPEND="
@@ -47,6 +49,13 @@ python_check_deps() {
 	has_version -b "dev-python/six[${PYTHON_USEDEP}]"
 }
 
+PATCHES=(
+	"${FILESDIR}"/${P}-CVE-2020-14355-762e0aba.patch
+	"${FILESDIR}"/${P}-CVE-2020-14355-404d7478.patch
+	"${FILESDIR}"/${P}-CVE-2020-14355-ef1b6ff7.patch
+	"${FILESDIR}"/${P}-CVE-2020-14355-b24fe6b6.patch
+)
+
 pkg_setup() {
 	[[ ${MERGE_TYPE} != binary ]] && python-any-r1_pkg_setup
 }
@@ -70,6 +79,7 @@ src_configure() {
 		$(use_enable lz4)
 		$(use_with sasl)
 		$(use_enable smartcard)
+		$(use_enable test tests)
 		--enable-gstreamer=$(usex gstreamer "1.0" "no")
 		--disable-celt051
 		"
