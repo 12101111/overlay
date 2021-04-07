@@ -9,8 +9,8 @@ DESCRIPTION="Generic driver for the .NET Core Command Line Interface"
 HOMEPAGE="https://github.com/dotnet/core-setup"
 SRC_URI="https://github.com/dotnet/core-setup/archive/v${PV}.tar.gz -> core-setup-${PV}.tar.gz"
 
-COMMIT="0267ad09c6f2e2a37b23b7d230ffbf9e787dd388"
-SDK="3.1.406"
+COMMIT="64df28ec4a52d6cc23efffbb918eab87ee42600f"
+SDK="3.1.407"
 
 LICENSE="MIT"
 SLOT="3.1"
