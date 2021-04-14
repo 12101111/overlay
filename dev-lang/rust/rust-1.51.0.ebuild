@@ -140,6 +140,8 @@ PATCHES=(
 	"${FILESDIR}"/rust-1.51.0-llvm12.patch
 	"${FILESDIR}"/sanitizers-enable-musl-support.patch
 	"${FILESDIR}"/llvm-12-compiler-rt.patch
+	"${FILESDIR}"/musl-fix-libunwind.patch
+	"${FILESDIR}"/fix-self-bootstrap.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
@@ -266,6 +268,7 @@ src_configure() {
 
 	cat <<- _EOF_ > "${S}"/config.toml
 		[llvm]
+		download-ci-llvm = false
 		optimize = $(toml_usex !debug)
 		release-debuginfo = $(toml_usex debug)
 		assertions = $(toml_usex debug)
@@ -311,6 +314,7 @@ src_configure() {
 		default-linker = "$(tc-getCC)"
 		parallel-compiler = $(toml_usex parallel-compiler)
 		channel = "$(usex nightly nightly stable)"
+		description = "gentoo"
 		rpath = false
 		verbose-tests = true
 		optimize-tests = $(toml_usex !debug)
