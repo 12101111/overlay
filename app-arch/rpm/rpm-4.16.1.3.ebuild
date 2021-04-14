@@ -1,4 +1,4 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -6,7 +6,7 @@ EAPI=7
 LUA_COMPAT=( lua5-2 )
 PYTHON_COMPAT=( python3_{7,8,9} )
 
-inherit autotools flag-o-matic lua-single perl-module python-single-r1
+inherit autotools flag-o-matic lua-single perl-module python-single-r1 toolchain-funcs
 
 DESCRIPTION="Red Hat Package Management Utils"
 HOMEPAGE="https://rpm.org
@@ -20,7 +20,7 @@ KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sparc ~
 # Tests are broken. See bug 657500
 RESTRICT="test"
 
-IUSE="acl caps doc dbus lua nls python selinux test +zstd"
+IUSE="acl caps doc dbus lua nls openmp python selinux test +zstd"
 REQUIRED_USE="lua? ( ${LUA_REQUIRED_USE} )
 	python? ( ${PYTHON_REQUIRED_USE} )"
 
@@ -35,7 +35,7 @@ CDEPEND="!app-arch/rpm5
 	dev-libs/elfutils
 	virtual/libintl
 	>=dev-lang/perl-5.8.8
-	dev-libs/nss
+	dev-libs/libgcrypt
 	python? ( ${PYTHON_DEPS} )
 	nls? ( virtual/libintl )
 	lua? ( ${LUA_DEPS} )
@@ -53,16 +53,22 @@ RDEPEND="${CDEPEND}
 	selinux? ( sec-policy/selinux-rpm )
 "
 
+pkg_pretend() {
+	[[ ${MERGE_TYPE} != binary ]] && use openmp && tc-check-openmp
+}
+
 pkg_setup() {
 	use lua && lua-single_pkg_setup
 	use python && python-single-r1_pkg_setup
+
+	# Added USE=openmp and this check for bug #779769
+	[[ ${MERGE_TYPE} != binary ]] && use openmp && tc-check-openmp
 }
 
 src_prepare() {
-	eapply "${FILESDIR}"/${P}-autotools.patch
+	eapply "${FILESDIR}"/${PN}-4.16.0-autotools.patch
 	eapply "${FILESDIR}"/${PN}-4.8.1-db-path.patch
 	eapply "${FILESDIR}"/${P}-libdir.patch
-	eapply "${FILESDIR}"/include-fcntl.patch
 	eapply "${FILESDIR}"/musl.patch
 
 	# fix #356769
@@ -73,7 +79,6 @@ src_prepare() {
 	sed -i -e "/_db_backend/ s/ bdb/ sqlite/g" macros.in
 
 	eapply_user
-
 	eautoreconf
 
 	# Prevent automake maintainer mode from kicking in (#450448).
@@ -81,12 +86,12 @@ src_prepare() {
 }
 
 src_configure() {
-	append-cppflags -I"${EPREFIX}/usr/include/nss" -I"${EPREFIX}/usr/include/nspr"
 	econf \
 		--without-selinux \
-		--with-crypto=nss \
+		--with-crypto=libgcrypt \
 		$(use_enable python) \
 		$(use_enable nls) \
+		$(use_enable openmp) \
 		$(use_enable dbus inhibit-plugin) \
 		$(use_with lua) \
 		$(use_with caps cap) \

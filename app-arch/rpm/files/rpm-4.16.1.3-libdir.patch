@@ -1,7 +1,7 @@
-diff -uNr rpm-4.16.0.ORIG/configure.ac rpm-4.16.0/configure.ac
---- rpm-4.16.0.ORIG/configure.ac	2020-10-01 11:08:43.780842602 +0100
-+++ rpm-4.16.0/configure.ac	2020-10-01 11:09:03.533705353 +0100
-@@ -935,13 +935,7 @@
+diff -uNr rpm-4.16.1.3.ORIG/configure.ac rpm-4.16.1.3/configure.ac
+--- rpm-4.16.1.3.ORIG/configure.ac	2021-04-13 19:32:35.630955569 +0100
++++ rpm-4.16.1.3/configure.ac	2021-04-13 19:32:54.939623251 +0100
+@@ -957,13 +957,7 @@
  AC_DEFINE_UNQUOTED([RUNDIR],["${RUNDIR}"],[run-time variable directory])
  AC_SUBST(RUNDIR)
  
@@ -16,9 +16,9 @@ diff -uNr rpm-4.16.0.ORIG/configure.ac rpm-4.16.0/configure.ac
  AC_SUBST(RPMCONFIGDIR)
  
  AC_SUBST(OBJDUMP)
-diff -uNr rpm-4.16.0.ORIG/rpm.am rpm-4.16.0/rpm.am
---- rpm-4.16.0.ORIG/rpm.am	2020-10-01 11:08:43.743842859 +0100
-+++ rpm-4.16.0/rpm.am	2020-10-01 11:09:03.533705353 +0100
+diff -uNr rpm-4.16.1.3.ORIG/rpm.am rpm-4.16.1.3/rpm.am
+--- rpm-4.16.1.3.ORIG/rpm.am	2021-04-13 19:32:35.584956361 +0100
++++ rpm-4.16.1.3/rpm.am	2021-04-13 19:32:54.940623234 +0100
 @@ -1,10 +1,8 @@
  # Internal binaries
 -## HACK: It probably should be $(libexecdir)/rpm or $(libdir)/rpm
@@ -31,4 +31,4 @@ diff -uNr rpm-4.16.0.ORIG/rpm.am rpm-4.16.0/rpm.am
 +rpmconfigdir = $(pkglibexecdir)
  
  # Libtool version (current-revision-age) for all our libraries
- rpm_version_info = 10:0:1
+ rpm_version_info = 10:3:1
