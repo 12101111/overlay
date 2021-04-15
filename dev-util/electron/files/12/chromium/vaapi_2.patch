@@ -1,0 +1,667 @@
+From e0b362edd9b49143b89fc76c4a31dd5603b6fbd0 Mon Sep 17 00:00:00 2001
+From: Jeffrey Kardatzke <jkardatzke@google.com>
+Date: Wed, 17 Feb 2021 21:39:01 +0000
+Subject: [PATCH] vaapi: Remove libva protected content legacy compatibility
+
+This removes the compatibility layer with the downstream version of
+libva protected content that we had before. We are now aligned with the
+upstream APIs, so ChromeOS can update libva/iHD without breaking Chrome.
+
+BUG=b:174951211
+TEST=Protected content playback works on volteer
+
+Change-Id: If6f39d085209087de7b73c5d26c8f85548c07f6a
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/2699067
+Reviewed-by: Jeffrey Kardatzke <jkardatzke@google.com>
+Reviewed-by: J Kardatzke <jkardatzke@chromium.org>
+Reviewed-by: Andres Calderon Jaramillo <andrescj@chromium.org>
+Commit-Queue: J Kardatzke <jkardatzke@chromium.org>
+Cr-Commit-Position: refs/heads/master@{#854937}
+---
+ .../h264_vaapi_video_decoder_delegate.cc      |  21 ++-
+ .../vaapi/h264_vaapi_video_decoder_delegate.h |   3 +
+ .../h265_vaapi_video_decoder_delegate.cc      |  12 +-
+ .../vaapi/h265_vaapi_video_decoder_delegate.h |  10 +-
+ media/gpu/vaapi/va_surface.h                  |   7 -
+ media/gpu/vaapi/vaapi_utils.cc                |   8 +-
+ media/gpu/vaapi/vaapi_utils.h                 |   7 -
+ media/gpu/vaapi/vaapi_video_decoder.h         |   7 -
+ .../gpu/vaapi/vaapi_video_decoder_delegate.cc |  10 +-
+ .../gpu/vaapi/vaapi_video_decoder_delegate.h  |  13 +-
+ media/gpu/vaapi/vaapi_wrapper.cc              |   2 +
+ media/gpu/vaapi/vaapi_wrapper.h               |   7 -
+ .../vaapi/vp9_vaapi_video_decoder_delegate.cc |   9 +-
+ .../va_protected_content.h                    | 149 ------------------
+ 14 files changed, 55 insertions(+), 210 deletions(-)
+
+diff --git a/media/gpu/vaapi/h264_vaapi_video_decoder_delegate.cc b/media/gpu/vaapi/h264_vaapi_video_decoder_delegate.cc
+index ff397d92dc3d4..7940887de44ae 100644
+--- a/media/gpu/vaapi/h264_vaapi_video_decoder_delegate.cc
++++ b/media/gpu/vaapi/h264_vaapi_video_decoder_delegate.cc
+@@ -4,13 +4,6 @@
+ 
+ #include "media/gpu/vaapi/h264_vaapi_video_decoder_delegate.h"
+ 
+-// TODO(jkardatzke): Remove this once the transition to the new upstream
+-// protected content API is complete. This is used to bridge a transition
+-// between the libva pull request we used, and what actually landed upstream.
+-#ifndef LEGACY_UPSTREAM_PROTECTED_LIBVA
+-#define LEGACY_UPSTREAM_PROTECTED_LIBVA
+-#endif
+-
+ #include <va/va.h>
+ 
+ #include "base/memory/aligned_memory.h"
+@@ -103,7 +96,9 @@ DecodeStatus H264VaapiVideoDecoderDelegate::SubmitFrameMetadata(
+                "H264VaapiVideoDecoderDelegate::SubmitFrameMetadata");
+   VAPictureParameterBufferH264 pic_param;
+   memset(&pic_param, 0, sizeof(pic_param));
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   memset(&crypto_params_, 0, sizeof(crypto_params_));
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   full_sample_ = false;
+ 
+ #define FROM_SPS_TO_PP(a) pic_param.a = sps->a
+@@ -224,6 +219,7 @@ DecodeStatus H264VaapiVideoDecoderDelegate::ParseEncryptedSliceHeader(
+   // extract the slice header parameters of interest and return them to the
+   // caller.
+ 
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   VAEncryptionParameters crypto_params = {};
+   // Don't use the VAEncryptionSegmentInfo vector in the class since we do not
+   // need to hold this data across calls.
+@@ -357,6 +353,9 @@ DecodeStatus H264VaapiVideoDecoderDelegate::ParseEncryptedSliceHeader(
+   slice_header_out->full_sample_index =
+       status_buf->status_report_index_feedback;
+   return DecodeStatus::kOk;
++#else  // BUILDFLAG(IS_CHROMEOS_ASH)
++  return DecodeStatus::kFail;
++#endif
+ }
+ 
+ DecodeStatus H264VaapiVideoDecoderDelegate::SubmitSlice(
+@@ -384,6 +383,7 @@ DecodeStatus H264VaapiVideoDecoderDelegate::SubmitSlice(
+                : DecodeStatus::kFail;
+   }
+ 
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   if (IsEncryptedSession()) {
+     const ProtectedSessionState state = SetupDecryptDecode(
+         /*full_sample=*/false, size, &crypto_params_, &encryption_segment_info_,
+@@ -396,6 +396,7 @@ DecodeStatus H264VaapiVideoDecoderDelegate::SubmitSlice(
+       return DecodeStatus::kTryAgain;
+     }
+   }
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   VASliceParameterBufferH264 slice_param;
+   memset(&slice_param, 0, sizeof(slice_param));
+ 
+@@ -496,11 +497,13 @@ DecodeStatus H264VaapiVideoDecoderDelegate::SubmitDecode(
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+   TRACE_EVENT0("media,gpu", "H264VaapiVideoDecoderDelegate::SubmitDecode");
+ 
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   if (IsEncryptedSession() && !full_sample_ &&
+       !vaapi_wrapper_->SubmitBuffer(VAEncryptionParameterBufferType,
+                                     sizeof(crypto_params_), &crypto_params_)) {
+     return DecodeStatus::kFail;
+   }
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   const VaapiH264Picture* vaapi_pic = pic->AsVaapiH264Picture();
+   CHECK(gfx::Rect(vaapi_pic->GetDecodeSize()).Contains(pic->visible_rect()));
+   VAProcPipelineParameterBuffer proc_buffer;
+@@ -516,7 +519,9 @@ DecodeStatus H264VaapiVideoDecoderDelegate::SubmitDecode(
+ 
+   const bool success = vaapi_wrapper_->ExecuteAndDestroyPendingBuffers(
+       vaapi_pic->GetVADecodeSurfaceID());
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   encryption_segment_info_.clear();
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   if (!success && NeedsProtectedSessionRecovery())
+     return DecodeStatus::kTryAgain;
+ 
+@@ -540,7 +545,9 @@ bool H264VaapiVideoDecoderDelegate::OutputPicture(
+ 
+ void H264VaapiVideoDecoderDelegate::Reset() {
+   DETACH_FROM_SEQUENCE(sequence_checker_);
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   encryption_segment_info_.clear();
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   vaapi_wrapper_->DestroyPendingBuffers();
+ }
+ 
+diff --git a/media/gpu/vaapi/h264_vaapi_video_decoder_delegate.h b/media/gpu/vaapi/h264_vaapi_video_decoder_delegate.h
+index 9219c7e586eb2..fbe823e4b0242 100644
+--- a/media/gpu/vaapi/h264_vaapi_video_decoder_delegate.h
++++ b/media/gpu/vaapi/h264_vaapi_video_decoder_delegate.h
+@@ -8,6 +8,7 @@
+ #include "base/atomic_sequence_num.h"
+ #include "base/memory/scoped_refptr.h"
+ #include "base/sequence_checker.h"
++#include "build/chromeos_buildflags.h"
+ #include "media/gpu/h264_decoder.h"
+ #include "media/gpu/vaapi/vaapi_video_decoder_delegate.h"
+ #include "media/video/h264_parser.h"
+@@ -68,6 +69,7 @@ class H264VaapiVideoDecoderDelegate : public H264Decoder::H264Accelerator,
+                              VAPictureH264* va_pics,
+                              int num_pics);
+ 
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   // We need to hold onto this memory here because it's referenced by the
+   // mapped buffer in libva across calls. It is filled in SubmitSlice() and
+   // stays alive until SubmitDecode() or Reset().
+@@ -76,6 +78,7 @@ class H264VaapiVideoDecoderDelegate : public H264Decoder::H264Accelerator,
+   // We need to retain this for the multi-slice case since that will aggregate
+   // the encryption details across all the slices.
+   VAEncryptionParameters crypto_params_;
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+ 
+   // We need to set this so we don't resubmit crypto params on decode.
+   bool full_sample_;
+diff --git a/media/gpu/vaapi/h265_vaapi_video_decoder_delegate.cc b/media/gpu/vaapi/h265_vaapi_video_decoder_delegate.cc
+index 9efb5d30f41d5..eef9044281f3f 100644
+--- a/media/gpu/vaapi/h265_vaapi_video_decoder_delegate.cc
++++ b/media/gpu/vaapi/h265_vaapi_video_decoder_delegate.cc
+@@ -79,7 +79,9 @@ DecodeStatus H265VaapiVideoDecoderDelegate::SubmitFrameMetadata(
+ 
+   VAPictureParameterBufferHEVC pic_param;
+   memset(&pic_param, 0, sizeof(pic_param));
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   memset(&crypto_params_, 0, sizeof(crypto_params_));
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+ 
+   int highest_tid = sps->sps_max_sub_layers_minus1;
+ #define FROM_SPS_TO_PP(a) pic_param.a = sps->a
+@@ -304,6 +306,7 @@ DecodeStatus H265VaapiVideoDecoderDelegate::SubmitSlice(
+     return DecodeStatus::kFail;
+   }
+ 
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   if (IsEncryptedSession()) {
+     const ProtectedSessionState state =
+         SetupDecryptDecode(/*full_sample=*/false, size, &crypto_params_,
+@@ -316,6 +319,7 @@ DecodeStatus H265VaapiVideoDecoderDelegate::SubmitSlice(
+       return DecodeStatus::kTryAgain;
+     }
+   }
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   memset(&slice_param_, 0, sizeof(slice_param_));
+ 
+   slice_param_.slice_data_size = slice_hdr->nalu_size;
+@@ -438,7 +442,7 @@ DecodeStatus H265VaapiVideoDecoderDelegate::SubmitSlice(
+ #if BUILDFLAG(IS_CHROMEOS_ASH)
+   slice_param_.slice_data_num_emu_prevn_bytes =
+       slice_hdr->header_emulation_prevention_bytes;
+-#endif
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+ 
+   last_slice_data_ = data;
+   last_slice_size_ = size;
+@@ -454,11 +458,13 @@ DecodeStatus H265VaapiVideoDecoderDelegate::SubmitDecode(
+     return DecodeStatus::kFail;
+   }
+ 
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   if (IsEncryptedSession() &&
+       !vaapi_wrapper_->SubmitBuffer(VAEncryptionParameterBufferType,
+                                     sizeof(crypto_params_), &crypto_params_)) {
+     return DecodeStatus::kFail;
+   }
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+ 
+   const VaapiH265Picture* vaapi_pic = pic->AsVaapiH265Picture();
+   CHECK(gfx::Rect(vaapi_pic->GetDecodeSize()).Contains(pic->visible_rect()));
+@@ -476,7 +482,9 @@ DecodeStatus H265VaapiVideoDecoderDelegate::SubmitDecode(
+   const bool success = vaapi_wrapper_->ExecuteAndDestroyPendingBuffers(
+       vaapi_pic->GetVADecodeSurfaceID());
+   ref_pic_list_pocs_.clear();
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   encryption_segment_info_.clear();
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   if (!success && NeedsProtectedSessionRecovery())
+     return DecodeStatus::kTryAgain;
+ 
+@@ -503,7 +511,9 @@ void H265VaapiVideoDecoderDelegate::Reset() {
+   DETACH_FROM_SEQUENCE(sequence_checker_);
+   vaapi_wrapper_->DestroyPendingBuffers();
+   ref_pic_list_pocs_.clear();
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   encryption_segment_info_.clear();
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   last_slice_data_ = nullptr;
+ }
+ 
+diff --git a/media/gpu/vaapi/h265_vaapi_video_decoder_delegate.h b/media/gpu/vaapi/h265_vaapi_video_decoder_delegate.h
+index 986c2b530076e..f02871a1b2200 100644
+--- a/media/gpu/vaapi/h265_vaapi_video_decoder_delegate.h
++++ b/media/gpu/vaapi/h265_vaapi_video_decoder_delegate.h
+@@ -5,16 +5,10 @@
+ #ifndef MEDIA_GPU_VAAPI_H265_VAAPI_VIDEO_DECODER_DELEGATE_H_
+ #define MEDIA_GPU_VAAPI_H265_VAAPI_VIDEO_DECODER_DELEGATE_H_
+ 
+-// TODO(jkardatzke): Remove this once the transition to the new upstream
+-// protected content API is complete. This is used to bridge a transition
+-// between the libva pull request we used, and what actually landed upstream.
+-#ifndef LEGACY_UPSTREAM_PROTECTED_LIBVA
+-#define LEGACY_UPSTREAM_PROTECTED_LIBVA
+-#endif
+-
+ #include <va/va.h>
+ 
+ #include "base/memory/scoped_refptr.h"
++#include "build/chromeos_buildflags.h"
+ #include "media/gpu/h265_decoder.h"
+ #include "media/gpu/h265_dpb.h"
+ #include "media/gpu/vaapi/vaapi_video_decoder_delegate.h"
+@@ -95,6 +89,7 @@ class H265VaapiVideoDecoderDelegate : public H265Decoder::H265Accelerator,
+   const uint8_t* last_slice_data_{nullptr};
+   size_t last_slice_size_{0};
+ 
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   // We need to hold onto this memory here because it's referenced by the
+   // mapped buffer in libva across calls. It is filled in SubmitSlice() and
+   // stays alive until SubmitDecode() or Reset().
+@@ -103,6 +98,7 @@ class H265VaapiVideoDecoderDelegate : public H265Decoder::H265Accelerator,
+   // We need to retain this for the multi-slice case since that will aggregate
+   // the encryption details across all the slices.
+   VAEncryptionParameters crypto_params_;
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+ };
+ 
+ }  // namespace media
+diff --git a/media/gpu/vaapi/vaapi_utils.cc b/media/gpu/vaapi/vaapi_utils.cc
+index 876c14498aed1..7d2437069d8b0 100644
+--- a/media/gpu/vaapi/vaapi_utils.cc
++++ b/media/gpu/vaapi/vaapi_utils.cc
+@@ -11,6 +11,7 @@
+ #include "base/memory/ptr_util.h"
+ #include "base/numerics/ranges.h"
+ #include "base/synchronization/lock.h"
++#include "build/chromeos_buildflags.h"
+ #include "media/gpu/vaapi/vaapi_common.h"
+ #include "media/gpu/vaapi/vaapi_wrapper.h"
+ #include "media/gpu/vp8_picture.h"
+@@ -350,7 +351,12 @@ void FillVP8DataStructures(const Vp8FrameHeader& frame_header,
+ }
+ 
+ bool IsValidVABufferType(VABufferType type) {
+-  return type < VABufferTypeMax || type == VAEncryptionParameterBufferType ||
++  return type < VABufferTypeMax ||
++#if BUILDFLAG(IS_CHROMEOS_ASH)
++         // TODO(jkardatzke): Remove this once we update to libva 2.0.10 in
++         // ChromeOS.
++         type == VAEncryptionParameterBufferType ||
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+          type == VACencStatusParameterBufferType;
+ }
+ 
+diff --git a/media/gpu/vaapi/vaapi_utils.h b/media/gpu/vaapi/vaapi_utils.h
+index fd42ad2a148e3..9bcee23ce96d1 100644
+--- a/media/gpu/vaapi/vaapi_utils.h
++++ b/media/gpu/vaapi/vaapi_utils.h
+@@ -5,13 +5,6 @@
+ #ifndef MEDIA_GPU_VAAPI_VAAPI_UTILS_H_
+ #define MEDIA_GPU_VAAPI_VAAPI_UTILS_H_
+ 
+-// TODO(jkardatzke): Remove this once the transition to the new upstream
+-// protected content API is complete. This is used to bridge a transition
+-// between the libva pull request we used, and what actually landed upstream.
+-#ifndef LEGACY_UPSTREAM_PROTECTED_LIBVA
+-#define LEGACY_UPSTREAM_PROTECTED_LIBVA
+-#endif
+-
+ #include <va/va.h>
+ 
+ #include "base/callback_forward.h"
+diff --git a/media/gpu/vaapi/vaapi_video_decoder_delegate.cc b/media/gpu/vaapi/vaapi_video_decoder_delegate.cc
+index 0e0e512b21dea..1c708b58cbfff 100644
+--- a/media/gpu/vaapi/vaapi_video_decoder_delegate.cc
++++ b/media/gpu/vaapi/vaapi_video_decoder_delegate.cc
+@@ -49,7 +49,7 @@ VaapiVideoDecoderDelegate::VaapiVideoDecoderDelegate(
+ #if BUILDFLAG(IS_CHROMEOS_ASH)
+   if (cdm_context)
+     chromeos_cdm_context_ = cdm_context->GetChromeOsCdmContext();
+-#endif
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   memset(&src_region_, 0, sizeof(src_region_));
+   memset(&dst_region_, 0, sizeof(dst_region_));
+ }
+@@ -101,6 +101,7 @@ bool VaapiVideoDecoderDelegate::SetDecryptConfig(
+   return true;
+ }
+ 
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+ VaapiVideoDecoderDelegate::ProtectedSessionState
+ VaapiVideoDecoderDelegate::SetupDecryptDecode(
+     bool full_sample,
+@@ -109,7 +110,6 @@ VaapiVideoDecoderDelegate::SetupDecryptDecode(
+     std::vector<VAEncryptionSegmentInfo>* segments,
+     const std::vector<SubsampleEntry>& subsamples) {
+   DCHECK_CALLED_ON_VALID_SEQUENCE(sequence_checker_);
+-#if BUILDFLAG(IS_CHROMEOS_ASH)
+   DCHECK(crypto_params);
+   DCHECK(segments);
+   if (protected_session_state_ == ProtectedSessionState::kInProcess ||
+@@ -233,11 +233,9 @@ VaapiVideoDecoderDelegate::SetupDecryptDecode(
+          DecryptConfig::kDecryptionKeySize);
+   crypto_params->key_blob_size = DecryptConfig::kDecryptionKeySize;
+   crypto_params->segment_info = &segments->front();
+-#else  // if BUILDFLAG(IS_CHROMEOS_ASH)
+-  protected_session_state_ = ProtectedSessionState::kFailed;
+-#endif
+   return protected_session_state_;
+ }
++#endif  // if BUILDFLAG(IS_CHROMEOS_ASH)
+ 
+ bool VaapiVideoDecoderDelegate::NeedsProtectedSessionRecovery() {
+   if (!IsEncryptedSession() || !vaapi_wrapper_->IsProtectedSessionDead() ||
+diff --git a/media/gpu/vaapi/vaapi_video_decoder_delegate.h b/media/gpu/vaapi/vaapi_video_decoder_delegate.h
+index aeb48a75bd2c9..9d46000ba9d42 100644
+--- a/media/gpu/vaapi/vaapi_video_decoder_delegate.h
++++ b/media/gpu/vaapi/vaapi_video_decoder_delegate.h
+@@ -5,13 +5,6 @@
+ #ifndef MEDIA_GPU_VAAPI_VAAPI_VIDEO_DECODER_DELEGATE_H_
+ #define MEDIA_GPU_VAAPI_VAAPI_VIDEO_DECODER_DELEGATE_H_
+ 
+-// TODO(jkardatzke): Remove this once the transition to the new upstream
+-// protected content API is complete. This is used to bridge a transition
+-// between the libva pull request we used, and what actually landed upstream.
+-#ifndef LEGACY_UPSTREAM_PROTECTED_LIBVA
+-#define LEGACY_UPSTREAM_PROTECTED_LIBVA
+-#endif
+-
+ #include <map>
+ #include <memory>
+ #include <string>
+@@ -32,7 +25,7 @@
+ 
+ #if BUILDFLAG(IS_CHROMEOS_ASH)
+ #include "chromeos/components/cdm_factory_daemon/chromeos_cdm_context.h"
+-#endif
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+ 
+ namespace media {
+ 
+@@ -99,12 +92,14 @@ class VaapiVideoDecoderDelegate {
+   // |subsamples| is for the current slice. |size| is the size of the slice
+   // data. This should be called if IsEncrypted() is true even if the current
+   // data is not encrypted (i.e. |subsamples| is empty).
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   ProtectedSessionState SetupDecryptDecode(
+       bool full_sample,
+       size_t size,
+       VAEncryptionParameters* crypto_params,
+       std::vector<VAEncryptionSegmentInfo>* segments,
+       const std::vector<SubsampleEntry>& subsamples);
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+ 
+   // Returns true if we are handling encrypted content, in which case
+   // SetupDecryptDecode() should be called for every slice.
+@@ -149,7 +144,7 @@ class VaapiVideoDecoderDelegate {
+   ProtectedSessionUpdateCB on_protected_session_update_cb_;
+ #if BUILDFLAG(IS_CHROMEOS_ASH)
+   chromeos::ChromeOsCdmContext* chromeos_cdm_context_{nullptr};  // Not owned.
+-#endif
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+   EncryptionScheme encryption_scheme_;
+   ProtectedSessionState protected_session_state_;
+   std::unique_ptr<DecryptConfig> decrypt_config_;
+diff --git a/media/gpu/vaapi/vaapi_wrapper.cc b/media/gpu/vaapi/vaapi_wrapper.cc
+index 2a1eea0298b67..5cac28746eb19 100644
+--- a/media/gpu/vaapi/vaapi_wrapper.cc
++++ b/media/gpu/vaapi/vaapi_wrapper.cc
+@@ -2796,6 +2796,7 @@ bool VaapiWrapper::Initialize(CodecMode mode,
+     return false;
+   }
+ 
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   if (encryption_scheme != EncryptionScheme::kUnencrypted) {
+     DCHECK(!required_attribs.empty());
+     // We need to adjust the attribute for encryption scheme.
+@@ -2807,6 +2808,7 @@ bool VaapiWrapper::Initialize(CodecMode mode,
+       }
+     }
+   }
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+ 
+   const VAStatus va_res =
+       vaCreateConfig(va_display_, va_profile, entrypoint,
+diff --git a/media/gpu/vaapi/vaapi_wrapper.h b/media/gpu/vaapi/vaapi_wrapper.h
+index f58723a0e852e..29b6864998240 100644
+--- a/media/gpu/vaapi/vaapi_wrapper.h
++++ b/media/gpu/vaapi/vaapi_wrapper.h
+@@ -10,13 +10,6 @@
+ #ifndef MEDIA_GPU_VAAPI_VAAPI_WRAPPER_H_
+ #define MEDIA_GPU_VAAPI_VAAPI_WRAPPER_H_
+ 
+-// TODO(jkardatzke): Remove this once the transition to the new upstream
+-// protected content API is complete. This is used to bridge a transition
+-// between the libva pull request we used, and what actually landed upstream.
+-#ifndef LEGACY_UPSTREAM_PROTECTED_LIBVA
+-#define LEGACY_UPSTREAM_PROTECTED_LIBVA
+-#endif
+-
+ #include <stddef.h>
+ #include <stdint.h>
+ #include <va/va.h>
+diff --git a/media/gpu/vaapi/vp9_vaapi_video_decoder_delegate.cc b/media/gpu/vaapi/vp9_vaapi_video_decoder_delegate.cc
+index 27f26002967cd..34ac822cdeb7a 100644
+--- a/media/gpu/vaapi/vp9_vaapi_video_decoder_delegate.cc
++++ b/media/gpu/vaapi/vp9_vaapi_video_decoder_delegate.cc
+@@ -8,6 +8,7 @@
+ 
+ #include "base/stl_util.h"
+ #include "base/trace_event/trace_event.h"
++#include "build/chromeos_buildflags.h"
+ #include "media/gpu/decode_surface_handler.h"
+ #include "media/gpu/macros.h"
+ #include "media/gpu/vaapi/va_surface.h"
+@@ -91,12 +92,13 @@ DecodeStatus VP9VaapiVideoDecoderDelegate::SubmitDecode(
+   if (!encoded_data)
+     return DecodeStatus::kFail;
+ 
+-  bool uses_crypto = false;
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   const DecryptConfig* decrypt_config = pic->decrypt_config();
+-  std::vector<VAEncryptionSegmentInfo> encryption_segment_info;
+   if (decrypt_config && !SetDecryptConfig(decrypt_config->Clone()))
+     return DecodeStatus::kFail;
+ 
++  bool uses_crypto = false;
++  std::vector<VAEncryptionSegmentInfo> encryption_segment_info;
+   VAEncryptionParameters crypto_param{};
+   if (IsEncryptedSession()) {
+     const ProtectedSessionState state = SetupDecryptDecode(
+@@ -120,6 +122,7 @@ DecodeStatus VP9VaapiVideoDecoderDelegate::SubmitDecode(
+         return DecodeStatus::kFail;
+     }
+   }
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+ 
+   pic_param.frame_width = base::checked_cast<uint16_t>(frame_hdr->frame_width);
+   pic_param.frame_height =
+@@ -215,11 +218,13 @@ DecodeStatus VP9VaapiVideoDecoderDelegate::SubmitDecode(
+         {slice_params_->type(), slice_params_->size(), &slice_param}},
+        {encoded_data->id(),
+         {encoded_data->type(), frame_hdr->frame_size, frame_hdr->data}}};
++#if BUILDFLAG(IS_CHROMEOS_ASH)
+   if (uses_crypto) {
+     buffers.push_back(
+         {crypto_params_->id(),
+          {crypto_params_->type(), crypto_params_->size(), &crypto_param}});
+   }
++#endif  // BUILDFLAG(IS_CHROMEOS_ASH)
+ 
+   const VaapiVP9Picture* vaapi_pic = pic->AsVaapiVP9Picture();
+   VAProcPipelineParameterBuffer proc_buffer;
+diff --git a/third_party/libva_protected_content/va_protected_content.h b/third_party/libva_protected_content/va_protected_content.h
+index c14a77da41389..845e1afde8282 100644
+--- a/third_party/libva_protected_content/va_protected_content.h
++++ b/third_party/libva_protected_content/va_protected_content.h
+@@ -46,98 +46,10 @@ extern "C" {
+  * @{
+  */
+ 
+-#ifdef LEGACY_UPSTREAM_PROTECTED_LIBVA
+-/**
+- *
+- * A protected content function for processing cipher protected content.
+- *
+- **/
+-#define VAEntrypointProtectedContent ((VAEntrypoint)0x1000)
+-
+-/**
+- * \brief Cipher algorithm of the protected session.
+- *
+- * This attribute specifies the cipher algorithm of the protected session. It
+- * could be AES, etc.... It depends on IHV's implementation.
+- */
+-#define VAConfigAttribProtectedContentCipherAlgorithm \
+-  ((VAConfigAttribType)0x10003)
+-/**
+- * \brief Cipher block size of the protected session.
+- *
+- * This attribute specifies the block size of the protected session. It could be
+- * 128, 192, or 256. It depends on IHV's implementation.
+- */
+-#define VAConfigAttribProtectedContentCipherBlockSize \
+-  ((VAConfigAttribType)0x10004)
+-/**
+- * \brief Cipher mode of the protected session.
+- *
+- * This attribute specifies the cipher mode of the protected session. It could
+- * be CBC, CTR, etc... It depends on IHV's implementation.
+- */
+-#define VAConfigAttribProtectedContentCipherMode ((VAConfigAttribType)0x10005)
+-/**
+- * \brief Decryption sample type of the protected session.
+- *
+- * This attribute specifies the decryption sample type of the protected session.
+- * It could be fullsample or subsample. It depends on IHV's implementation.
+- */
+-#define VAConfigAttribProtectedContentCipherSampleType \
+-  ((VAConfigAttribType)0x10006)
+-
+-/**
+- * \brief Special usage attribute of the protected session.
+- *
+- * The attribute specifies the flow for the protected session could be used. For
+- * example, it could be Widevine usages or something else. It dpends on IHV's
+- * implementation.
+- */
+-#define VAConfigAttribProtectedContentUsage ((VAConfigAttribType)0x10007)
+-
+-/** \brief Encryption parameters buffer for content protection usage */
+-#define VAEncryptionParameterBufferType ((VABufferType)0x20001)
+-
+-#endif  // LEGACY_UPSTREAM_PROTECTED_LIBVA
+-
+ /**\brief CENC status paramter, used for vendor content protection only.
+  * The buffer corresponds to #VACencStatusParameters for va/cp*/
+ #define VACencStatusParameterBufferType ((VABufferType)0x20002)
+ 
+-#ifdef LEGACY_UPSTREAM_PROTECTED_LIBVA
+-/** attribute values for VAConfigAttribEncryption */
+-#define VA_ENCRYPTION_TYPE_NONE 0x00000000
+-#define VA_ENCRYPTION_TYPE_FULLSAMPLE_CBC 0x00000002
+-#define VA_ENCRYPTION_TYPE_FULLSAMPLE_CTR 0x00000008
+-#define VA_ENCRYPTION_TYPE_SUBSAMPLE_CTR 0x00000010
+-#define VA_ENCRYPTION_TYPE_SUBSAMPLE_CBC 0x00000020
+-
+-/** attribute values for VAConfigAttribContentProtectionSessionMode */
+-#define VA_PC_SESSION_MODE_NONE 0x00000000
+-
+-/** attribute values for VAConfigAttribContentProtectionSessionType */
+-#define VA_PC_SESSION_TYPE_NONE 0x00000000
+-
+-/** attribute values for VAConfigAttribContentProtectionCipherAlgorithm */
+-#define VA_PC_CIPHER_AES 0x00000001
+-
+-/** attribute values for VAConfigAttribContentProtectionCipherBlockSize */
+-#define VA_PC_BLOCK_SIZE_128 0x00000001
+-#define VA_PC_BLOCK_SIZE_256 0x00000004
+-
+-/** attribute values for VAConfigAttribContentProtectionCipherMode */
+-#define VA_PC_CIPHER_MODE_CBC 0x00000002
+-#define VA_PC_CIPHER_MODE_CTR 0x00000004
+-
+-/** attribute values for VAConfigAttribContentProtectionUsage */
+-#define VA_PC_USAGE_DEFAULT 0x00000000
+-
+-/** attribute values for VAConfigAttribContentProtectionCipherSampleType */
+-#define VA_PC_SAMPLE_TYPE_FULLSAMPLE 0x00000001
+-#define VA_PC_SAMPLE_TYPE_SUBSAMPLE 0x00000002
+-
+-#endif  // LEGACY_UPSTREAM_PROTECTED_LIBVA
+-
+ /** \brief TeeExec Function Codes. */
+ #define VA_TEE_EXEC_TEE_FUNCID_HW_UPDATE 0x40000002
+ #define VA_TEE_EXEC_TEE_FUNCID_IS_SESSION_ALIVE 0x40000103
+@@ -156,67 +68,6 @@ typedef enum {
+   VA_ENCRYPTION_STATUS_UNSUPPORT
+ } VAEncryptionStatus;
+ 
+-#ifdef LEGACY_UPSTREAM_PROTECTED_LIBVA
+-/** \brief structure for encrypted segment info. */
+-typedef struct _VAEncryptionSegmentInfo {
+-  /** \brief  The offset relative to the start of the bitstream input in
+-   *  bytes of the start of the segment*/
+-  uint32_t segment_start_offset;
+-  /** \brief  The length of the segments in bytes*/
+-  uint32_t segment_length;
+-  /** \brief  The length in bytes of the remainder of an incomplete block
+-   *  from a previous segment*/
+-  uint32_t partial_aes_block_size;
+-  /** \brief  The length in bytes of the initial clear data */
+-  uint32_t init_byte_length;
+-  /** \brief  This will be AES 128 counter for secure decode and secure
+-   *  encode when numSegments equals 1 */
+-  uint8_t aes_cbc_iv_or_ctr[16];
+-  /** \brief Reserved bytes for future use, must be zero */
+-  uint32_t va_reserved[VA_PADDING_MEDIUM];
+-} VAEncryptionSegmentInfo;
+-
+-/** \brief encryption parameters, corresponding to
+- * #VAEncryptionParameterBufferType*/
+-typedef struct _VAEncryptionParameters {
+-  /** \brief Encryption type, attribute values. */
+-  uint32_t encryption_type;
+-  /** \brief The number of sengments */
+-  uint32_t num_segments;
+-  /** \brief Pointer of segments */
+-  VAEncryptionSegmentInfo* segment_info;
+-  /** \brief The status report index for CENC workload.
+-   *  The value is to indicate CENC workload and needs to be
+-   *  different for each CENC workload */
+-  uint32_t status_report_index;
+-  /** \brief CENC counter length */
+-  uint32_t size_of_length;
+-  /** \brief Wrapped decrypt blob (Snd)kb */
+-  uint8_t wrapped_decrypt_blob[16];
+-  /** \brief Wrapped Key blob info (Sne)kb */
+-  uint8_t wrapped_encrypt_blob[16];
+-  /** \brief Indicates the number of 16-byte BLOCKS that are encrypted in any
+-   *  given encrypted region of segments.
+-   *  If this value is zero:
+-   *    1. All bytes in encrypted region of segments are encrypted, i.e. the
+-   *       CENC or CBC1 scheme is being used
+-   *    2. blocks_stripe_clear must also be zero.
+-   *  If this value is non-zero, blocks_stripe_clear must also be non-zero. */
+-  uint32_t blocks_stripe_encrypted;
+-  /** \brief Indicates the number of 16-byte BLOCKS that are clear in any given
+-   *  encrypted region of segments, as defined by the CENS and CBCS schemes in
+-   *  the common encryption spec.
+-   *  If this value is zero, all bytes in encrypted region of segments are
+-   *  encrypted, i.e. the CENC or CBC1 scheme is being used.
+-   */
+-  uint32_t blocks_stripe_clear;
+-  /* Forwards compatibility */
+-  uint32_t key_blob_size;
+-  /** \brief Reserved bytes for future use, must be zero */
+-  uint32_t va_reserved[VA_PADDING_MEDIUM - sizeof(uint32_t)];
+-} VAEncryptionParameters;
+-#endif  // LEGACY_UPSTREAM_PROTECTED_LIBVA
+-
+ /** \brief cenc status parameters, corresponding to
+  * #VACencStatusParameterBufferType*/
+ typedef struct _VACencStatusParameters {

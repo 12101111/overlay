@@ -12,12 +12,12 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-utils portability python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils yarn
 
 # Keep this in sync with DEPS:chromium_version
-CHROMIUM_VERSION="89.0.4389.82"
+CHROMIUM_VERSION="89.0.4389.114"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="14.16.0"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 NODE_P="node-${NODE_VERSION}"
-PATCHSET="6"
+PATCHSET="7"
 PATCHSET_NAME="chromium-89-patchset-${PATCHSET}"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
@@ -1640,6 +1640,7 @@ src_prepare() {
 		third_party/swiftshader/third_party/marl
 		third_party/swiftshader/third_party/subzero
 		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
+		third_party/tint
 		third_party/ukey2
 		third_party/unrar
 		third_party/usrsctp
