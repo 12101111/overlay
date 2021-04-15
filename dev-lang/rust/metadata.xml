@@ -19,6 +19,7 @@
 		<flag name="system-bootstrap">Bootstrap using installed rust compiler</flag>
 		<flag name="system-llvm">Use the system LLVM install</flag>
 		<flag name="wasm">Build support for the wasm32-unknown-unknown target</flag>
+		<flag name="wasi">Build support for the wasm32-wasi target</flag>
 		<flag name="default-libcxx">Use libc++ instead of libstdc++ as the default stdlib to LLVM</flag>
 	</use>
 </pkgmetadata>

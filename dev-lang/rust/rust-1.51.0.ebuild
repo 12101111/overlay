@@ -39,7 +39,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
-IUSE="clippy cpu_flags_x86_sse2 debug doc miri nightly parallel-compiler rls rustfmt +system-bootstrap system-llvm test wasm default-libcxx +profile +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
+IUSE="clippy cpu_flags_x86_sse2 debug doc miri nightly parallel-compiler rls rustfmt +system-bootstrap system-llvm test wasm wasi default-libcxx +profile +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -96,6 +96,7 @@ DEPEND="
 	system-llvm? (
 		${LLVM_DEPEND}
 	)
+	wasi? ( dev-libs/wasi-libc )
 "
 
 # we need to block older versions due to layout changes.
@@ -110,6 +111,7 @@ REQUIRED_USE="|| ( ${ALL_LLVM_TARGETS[*]} )
 	parallel-compiler? ( nightly )
 	test? ( ${ALL_LLVM_TARGETS[*]} )
 	wasm? ( llvm_targets_WebAssembly )
+	wasi? ( llvm_targets_WebAssembly wasm )
 	x86? ( cpu_flags_x86_sse2 )
 	elibc_musl? ( llvm-libunwind )
 "
@@ -241,6 +243,9 @@ src_configure() {
 			sed -i '/linker:/ s/rust-lld/wasm-ld/' compiler/rustc_target/src/spec/wasm32_base.rs || die
 		fi
 	fi
+	if use wasi; then
+		rust_targets="${rust_targets},\"wasm32-wasi\""
+	fi
 	rust_targets="${rust_targets#,}"
 
 	local tools="\"cargo\","
@@ -360,6 +365,15 @@ src_configure() {
 		cat <<- _EOF_ >> "${S}"/config.toml
 			[target.wasm32-unknown-unknown]
 			linker = "$(usex system-llvm lld rust-lld)"
+			profiler = false
+			sanitizers = false
+		_EOF_
+	fi
+	if use wasi; then
+		cat <<- _EOF_ >> "${S}"/config.toml
+			[target.wasm32-wasi]
+			linker = "$(usex system-llvm lld rust-lld)"
+			wasi-root = "/opt/wasm32-wasi"
 			profiler = false
 			sanitizers = false
 		_EOF_
