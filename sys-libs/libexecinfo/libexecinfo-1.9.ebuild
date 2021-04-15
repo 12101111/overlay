@@ -4,27 +4,35 @@
 EAPI=7
 
 DESCRIPTION="BSD licensed clone of the GNU libc backtrace facility"
-HOMEPAGE="http://www.freshports.org/devel/libexecinfo"
-SRC_URI="http://distcache.freebsd.org/local-distfiles/itetcu/libexecinfo-${PV}.tar.bz2"
+HOMEPAGE="https://netbsd.org/"
 
 LICENSE="BSD-2"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
 
-DEPEND="sys-libs/musl"
+DEPEND="
+	sys-libs/musl
+	sys-libs/musl-legacy-compat
+	virtual/libelf
+	|| ( sys-libs/llvm-libunwind sys-libs/libunwind )
+"
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
-PATCHES=(
-	"${FILESDIR}/01-execinfo.patch"
-	"${FILESDIR}/02-makefile.patch"
-	"${FILESDIR}/03-define-gnu-source.patch"
-	"${FILESDIR}/libexecinfo_pc.patch"
-)
+S="${WORKDIR}"
+
+src_prepare() {
+	cp -r "${FILESDIR}"/* ${S}
+	default
+}
+
+src_compile() {
+	emake
+}
 
 src_install() {
 	sed -e "/Version:/s@version@${PV}@" -i libexecinfo.pc
-	doheader *.h
+	doheader execinfo.h
 	dolib.so libexecinfo.so.1
 	dosym libexecinfo.so.1 /usr/lib/libexecinfo.so
 	dolib.a libexecinfo.a

@@ -1,0 +1,10 @@
+prefix=/usr
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${exec_prefix}/lib
+
+Name: libexecinfo
+Description: libexecinfo library
+Version: version
+CFlags: -I${includedir}
+Libs: -L${libdir} -lexecinfo -lelf -lunwind
