@@ -13,7 +13,6 @@ IUSE="+experimental"
 
 if [[ ${PV} == 9999 ]]; then
 	EGIT_REPO_URI="https://github.com/ziglang/zig.git"
-	EGIT_BRANCH=llvm12
 	inherit git-r3
 else
 	SRC_URI="https://github.com/ziglang/zig/archive/${PV}.tar.gz -> ${P}.tar.gz"
@@ -33,7 +32,7 @@ LLVM_MAX_SLOT=12
 
 RDEPEND="
 	sys-devel/clang:${LLVM_MAX_SLOT}
-	>=sys-devel/lld-12.0.0_rc3
+	>=sys-devel/lld-12.0.0_rc5
 	<sys-devel/lld-13.0.0
 	sys-devel/llvm:${LLVM_MAX_SLOT}
 	!experimental? ( sys-devel/llvm:${LLVM_MAX_SLOT}[${LLVM_TARGET_USEDEPS// /,}] )
