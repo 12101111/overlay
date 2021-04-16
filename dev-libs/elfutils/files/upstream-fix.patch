@@ -1,0 +1,2268 @@
+From 9414ec8917688cba9dd7eec1827a40ed81c34307 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:42:18 +0100
+Subject: [PATCH 01/16] elflint: Pull pos() info file scope
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Rename it to buffer_pos() to be a bit more descriptive and get rid of a
+nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog | 15 +++++++++++++++
+ src/elflint.c | 39 ++++++++++++++++++++-------------------
+ 2 files changed, 35 insertions(+), 19 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index e65620fd..62c58908 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,18 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* elflint.c (check_attributes): Rename and move pos function...
++	(buffer_pos): ...as static toplevel function taking an extra
++	Elf_Data pointer argument.
++
++2021-02-12  Mark Wielaard  <mark@klomp.org>
++
++	* readelf.c (print_debug_units): Type DIE offset is from start CU.
++
++2021-02-12  Mark Wielaard  <mark@klomp.org>
++
++	* readelf.c (attr_callback): Don't handle blocks as expression
++	blocks for DWARF version 4 or higher.
++
+ 2021-02-03 Timm Bäder <tbaeder@redhat.com>
+ 
+ 	* ar.c (do_oper_extract): Extract should_truncate_fname function
+diff --git a/src/elflint.c b/src/elflint.c
+index 6a946838..4df6f6e5 100644
+--- a/src/elflint.c
++++ b/src/elflint.c
+@@ -3428,6 +3428,12 @@ section [%2d] '%s': unknown parent version '%s'\n"),
+     }
+ }
+ 
++static inline size_t
++buffer_pos (Elf_Data *data, const unsigned char *p)
++{
++  return p - (const unsigned char *) data->d_buf;
++}
++
+ static void
+ check_attributes (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
+ {
+@@ -3446,11 +3452,6 @@ check_attributes (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
+       return;
+     }
+ 
+-  inline size_t pos (const unsigned char *p)
+-  {
+-    return p - (const unsigned char *) data->d_buf;
+-  }
+-
+   const unsigned char *p = data->d_buf;
+   if (*p++ != 'A')
+     {
+@@ -3472,7 +3473,7 @@ check_attributes (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
+       if (len == 0)
+ 	ERROR (_("\
+ section [%2d] '%s': offset %zu: zero length field in attribute section\n"),
+-	       idx, section_name (ebl, idx), pos (p));
++	       idx, section_name (ebl, idx), buffer_pos (data, p));
+ 
+       if (MY_ELFDATA != ehdr->e_ident[EI_DATA])
+ 	CONVERT (len);
+@@ -3481,7 +3482,7 @@ section [%2d] '%s': offset %zu: zero length field in attribute section\n"),
+ 	{
+ 	  ERROR (_("\
+ section [%2d] '%s': offset %zu: invalid length in attribute section\n"),
+-		 idx, section_name (ebl, idx), pos (p));
++		 idx, section_name (ebl, idx), buffer_pos (data, p));
+ 	  break;
+ 	}
+ 
+@@ -3493,7 +3494,7 @@ section [%2d] '%s': offset %zu: invalid length in attribute section\n"),
+ 	{
+ 	  ERROR (_("\
+ section [%2d] '%s': offset %zu: unterminated vendor name string\n"),
+-		 idx, section_name (ebl, idx), pos (p));
++		 idx, section_name (ebl, idx), buffer_pos (data, p));
+ 	  break;
+ 	}
+       ++q;
+@@ -3510,7 +3511,7 @@ section [%2d] '%s': offset %zu: unterminated vendor name string\n"),
+ 	      {
+ 		ERROR (_("\
+ section [%2d] '%s': offset %zu: endless ULEB128 in attribute subsection tag\n"),
+-		       idx, section_name (ebl, idx), pos (chunk));
++		       idx, section_name (ebl, idx), buffer_pos (data, chunk));
+ 		break;
+ 	      }
+ 
+@@ -3519,7 +3520,7 @@ section [%2d] '%s': offset %zu: endless ULEB128 in attribute subsection tag\n"),
+ 	      {
+ 		ERROR (_("\
+ section [%2d] '%s': offset %zu: truncated attribute section\n"),
+-		       idx, section_name (ebl, idx), pos (q));
++		       idx, section_name (ebl, idx), buffer_pos (data, q));
+ 		break;
+ 	      }
+ 
+@@ -3528,7 +3529,7 @@ section [%2d] '%s': offset %zu: truncated attribute section\n"),
+ 	      {
+ 		ERROR (_("\
+ section [%2d] '%s': offset %zu: zero length field in attribute subsection\n"),
+-		       idx, section_name (ebl, idx), pos (q));
++		       idx, section_name (ebl, idx), buffer_pos (data, q));
+ 
+ 		q += sizeof subsection_len;
+ 		continue;
+@@ -3543,7 +3544,7 @@ section [%2d] '%s': offset %zu: zero length field in attribute subsection\n"),
+ 	      {
+ 		ERROR (_("\
+ section [%2d] '%s': offset %zu: invalid length in attribute subsection\n"),
+-		       idx, section_name (ebl, idx), pos (q));
++		       idx, section_name (ebl, idx), buffer_pos (data, q));
+ 		break;
+ 	      }
+ 
+@@ -3554,7 +3555,7 @@ section [%2d] '%s': offset %zu: invalid length in attribute subsection\n"),
+ 	    if (subsection_tag != 1) /* Tag_File */
+ 	      ERROR (_("\
+ section [%2d] '%s': offset %zu: attribute subsection has unexpected tag %u\n"),
+-		     idx, section_name (ebl, idx), pos (chunk), subsection_tag);
++		     idx, section_name (ebl, idx), buffer_pos (data, chunk), subsection_tag);
+ 	    else
+ 	      {
+ 		chunk += sizeof subsection_len;
+@@ -3572,7 +3573,7 @@ section [%2d] '%s': offset %zu: attribute subsection has unexpected tag %u\n"),
+ 			  {
+ 			    ERROR (_("\
+ section [%2d] '%s': offset %zu: endless ULEB128 in attribute tag\n"),
+-				   idx, section_name (ebl, idx), pos (chunk));
++				   idx, section_name (ebl, idx), buffer_pos (data, chunk));
+ 			    break;
+ 			  }
+ 		      }
+@@ -3583,7 +3584,7 @@ section [%2d] '%s': offset %zu: endless ULEB128 in attribute tag\n"),
+ 			  {
+ 			    ERROR (_("\
+ section [%2d] '%s': offset %zu: unterminated string in attribute\n"),
+-				   idx, section_name (ebl, idx), pos (chunk));
++				   idx, section_name (ebl, idx), buffer_pos (data, chunk));
+ 			    break;
+ 			  }
+ 			++r;
+@@ -3596,11 +3597,11 @@ section [%2d] '%s': offset %zu: unterminated string in attribute\n"),
+ 						     &tag_name, &value_name))
+ 		      ERROR (_("\
+ section [%2d] '%s': offset %zu: unrecognized attribute tag %u\n"),
+-			     idx, section_name (ebl, idx), pos (chunk), tag);
++			     idx, section_name (ebl, idx), buffer_pos (data, chunk), tag);
+ 		    else if ((tag & 1) == 0 && value_name == NULL)
+ 		      ERROR (_("\
+ section [%2d] '%s': offset %zu: unrecognized %s attribute value %" PRIu64 "\n"),
+-			     idx, section_name (ebl, idx), pos (chunk),
++			     idx, section_name (ebl, idx), buffer_pos (data, chunk),
+ 			     tag_name, value);
+ 
+ 		    chunk = r;
+@@ -3610,13 +3611,13 @@ section [%2d] '%s': offset %zu: unrecognized %s attribute value %" PRIu64 "\n"),
+       else
+ 	ERROR (_("\
+ section [%2d] '%s': offset %zu: vendor '%s' unknown\n"),
+-	       idx, section_name (ebl, idx), pos (p), name);
++	       idx, section_name (ebl, idx), buffer_pos (data, p), name);
+     }
+ 
+   if (left () != 0)
+     ERROR (_("\
+ section [%2d] '%s': offset %zu: extra bytes after last attribute section\n"),
+-	   idx, section_name (ebl, idx), pos (p));
++	   idx, section_name (ebl, idx), buffer_pos (data, p));
+ }
+ 
+ static bool has_loadable_segment;
+-- 
+2.31.1
+
+
+From c3d8804bfecfa76fbdc541b0e39315bdce3e391b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:42:19 +0100
+Subject: [PATCH 02/16] elflint: Pull left() in file scope
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+And rename it to buffer_left() to be a bit more descriptive
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog |  6 ++++++
+ src/elflint.c | 17 +++++++++--------
+ 2 files changed, 15 insertions(+), 8 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index 62c58908..065fdd58 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,9 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* elflint.c (check_attributes): Rename and move left function...
++	(buffer_left): ...as static toplevel function taking both an
++	Elf_Data pointer argument and the unsigned char pointer p.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* elflint.c (check_attributes): Rename and move pos function...
+diff --git a/src/elflint.c b/src/elflint.c
+index 4df6f6e5..85cc7833 100644
+--- a/src/elflint.c
++++ b/src/elflint.c
+@@ -3434,6 +3434,12 @@ buffer_pos (Elf_Data *data, const unsigned char *p)
+   return p - (const unsigned char *) data->d_buf;
+ }
+ 
++inline size_t
++buffer_left (Elf_Data *data, const unsigned char *p)
++{
++  return (const unsigned char *) data->d_buf + data->d_size - p;
++}
++
+ static void
+ check_attributes (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
+ {
+@@ -3460,12 +3466,7 @@ check_attributes (Ebl *ebl, GElf_Ehdr *ehdr, GElf_Shdr *shdr, int idx)
+       return;
+     }
+ 
+-  inline size_t left (void)
+-  {
+-    return (const unsigned char *) data->d_buf + data->d_size - p;
+-  }
+-
+-  while (left () >= 4)
++  while (buffer_left (data, p) >= 4)
+     {
+       uint32_t len;
+       memcpy (&len, p, sizeof len);
+@@ -3478,7 +3479,7 @@ section [%2d] '%s': offset %zu: zero length field in attribute section\n"),
+       if (MY_ELFDATA != ehdr->e_ident[EI_DATA])
+ 	CONVERT (len);
+ 
+-      if (len > left ())
++      if (len > buffer_left (data, p))
+ 	{
+ 	  ERROR (_("\
+ section [%2d] '%s': offset %zu: invalid length in attribute section\n"),
+@@ -3614,7 +3615,7 @@ section [%2d] '%s': offset %zu: vendor '%s' unknown\n"),
+ 	       idx, section_name (ebl, idx), buffer_pos (data, p), name);
+     }
+ 
+-  if (left () != 0)
++  if (buffer_left (data, p) != 0)
+     ERROR (_("\
+ section [%2d] '%s': offset %zu: extra bytes after last attribute section\n"),
+ 	   idx, section_name (ebl, idx), buffer_pos (data, p));
+-- 
+2.31.1
+
+
+From 023ad574cde6a5886da278dfc11e1aa9caf3dc7c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:43:44 +0100
+Subject: [PATCH 03/16] unstrip: Pull adjust_reloc() into file scope
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Get rid of a nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog |  6 ++++++
+ src/unstrip.c | 28 +++++++++++++++-------------
+ 2 files changed, 21 insertions(+), 13 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index 065fdd58..ea8250c5 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,9 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* unstrip.c (adjust_relocs): Move adjust_reloc function to...
++	(adjust_reloc): ... here as static top-level function taking
++	a map array and size as extra arguments.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* elflint.c (check_attributes): Rename and move left function...
+diff --git a/src/unstrip.c b/src/unstrip.c
+index 85803295..6e874c3a 100644
+--- a/src/unstrip.c
++++ b/src/unstrip.c
+@@ -432,6 +432,19 @@ update_sh_size (Elf_Scn *outscn, const Elf_Data *data)
+   update_shdr (outscn, newshdr);
+ }
+ 
++static inline void
++adjust_reloc (GElf_Xword *info,
++	      size_t map[], size_t map_size)
++{
++  size_t ndx = GELF_R_SYM (*info);
++  if (ndx != STN_UNDEF)
++    {
++      if (ndx > map_size)
++	error (EXIT_FAILURE, 0, "bad symbol ndx section");
++      *info = GELF_R_INFO (map[ndx - 1], GELF_R_TYPE (*info));
++    }
++}
++
+ /* Update relocation sections using the symbol table.  */
+ static void
+ adjust_relocs (Elf_Scn *outscn, Elf_Scn *inscn, const GElf_Shdr *shdr,
+@@ -439,17 +452,6 @@ adjust_relocs (Elf_Scn *outscn, Elf_Scn *inscn, const GElf_Shdr *shdr,
+ {
+   Elf_Data *data = elf_getdata (outscn, NULL);
+ 
+-  inline void adjust_reloc (GElf_Xword *info)
+-    {
+-      size_t ndx = GELF_R_SYM (*info);
+-      if (ndx != STN_UNDEF)
+-	{
+-	  if (ndx > map_size)
+-	    error (EXIT_FAILURE, 0, "bad symbol ndx section");
+-	  *info = GELF_R_INFO (map[ndx - 1], GELF_R_TYPE (*info));
+-	}
+-    }
+-
+   switch (shdr->sh_type)
+     {
+     case SHT_REL:
+@@ -460,7 +462,7 @@ adjust_relocs (Elf_Scn *outscn, Elf_Scn *inscn, const GElf_Shdr *shdr,
+ 	{
+ 	  GElf_Rel rel_mem;
+ 	  GElf_Rel *rel = gelf_getrel (data, i, &rel_mem);
+-	  adjust_reloc (&rel->r_info);
++	  adjust_reloc (&rel->r_info, map, map_size);
+ 	  ELF_CHECK (gelf_update_rel (data, i, rel),
+ 		     _("cannot update relocation: %s"));
+ 	}
+@@ -474,7 +476,7 @@ adjust_relocs (Elf_Scn *outscn, Elf_Scn *inscn, const GElf_Shdr *shdr,
+ 	{
+ 	  GElf_Rela rela_mem;
+ 	  GElf_Rela *rela = gelf_getrela (data, i, &rela_mem);
+-	  adjust_reloc (&rela->r_info);
++	  adjust_reloc (&rela->r_info, map, map_size);
+ 	  ELF_CHECK (gelf_update_rela (data, i, rela),
+ 		     _("cannot update relocation: %s"));
+ 	}
+-- 
+2.31.1
+
+
+From 049e97687d9ff1c20358e01bd51488b87076021f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:43:45 +0100
+Subject: [PATCH 04/16] unstrip: Pull check_match() into file scope
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Get rid of a nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog |  7 +++++++
+ src/unstrip.c | 28 ++++++++++++++++------------
+ 2 files changed, 23 insertions(+), 12 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index ea8250c5..9e7d6cb9 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,10 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* unstrip.c (find_alloc_sections_prelink): Move check_match to...
++	(check_match): Adjusted to return whether there was no match,
++	which indicates a failure. So callers are adjusted to or the
++	result into a local fail boolean.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* unstrip.c (adjust_relocs): Move adjust_reloc function to...
+diff --git a/src/unstrip.c b/src/unstrip.c
+index 6e874c3a..72fabac8 100644
+--- a/src/unstrip.c
++++ b/src/unstrip.c
+@@ -1065,6 +1065,20 @@ get_group_sig (Elf *elf, GElf_Shdr *shdr)
+   return sig;
+ }
+ 
++static inline bool
++check_match (bool match, Elf_Scn *scn, const char *name)
++{
++  if (!match)
++    {
++      error (0, 0, _("cannot find matching section for [%zu] '%s'"),
++	     elf_ndxscn (scn), name);
++      return true;
++    }
++
++  return false;
++}
++
++
+ /* Fix things up when prelink has moved some allocated sections around
+    and the debuginfo file's section headers no longer match up.
+    This fills in SECTIONS[0..NALLOC-1].outscn or exits.
+@@ -1200,16 +1214,6 @@ find_alloc_sections_prelink (Elf *debug, Elf_Data *debug_shstrtab,
+     }
+ 
+   bool fail = false;
+-  inline void check_match (bool match, Elf_Scn *scn, const char *name)
+-    {
+-      if (!match)
+-	{
+-	  fail = true;
+-	  error (0, 0, _("cannot find matching section for [%zu] '%s'"),
+-		 elf_ndxscn (scn), name);
+-	}
+-    }
+-
+   Elf_Scn *scn = NULL;
+   while ((scn = elf_nextscn (debug, scn)) != NULL)
+     {
+@@ -1240,7 +1244,7 @@ find_alloc_sections_prelink (Elf *debug, Elf_Data *debug_shstrtab,
+       for (size_t i = 0; shdr != NULL && i < nalloc; ++i)
+ 	if (sections[i].outscn == scn)
+ 	  shdr = NULL;
+-      check_match (shdr == NULL, scn, name);
++      fail |= check_match (shdr == NULL, scn, name);
+     }
+ 
+   if (fail)
+@@ -1296,7 +1300,7 @@ find_alloc_sections_prelink (Elf *debug, Elf_Data *debug_shstrtab,
+ 	    }
+ 	}
+ 
+-      check_match (undo_sec == NULL, scn, name);
++      fail |= check_match (undo_sec == NULL, scn, name);
+     }
+ 
+   free (undo_sections);
+-- 
+2.31.1
+
+
+From 614643d91a9292d317598832b893bbfd6eac756f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:43:46 +0100
+Subject: [PATCH 05/16] unstrip: Inline find_unalloc_section() into only caller
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Get rid of an unnecessary nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog |  6 ++++++
+ src/unstrip.c | 47 +++++++++++++++++++++--------------------------
+ 2 files changed, 27 insertions(+), 26 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index 9e7d6cb9..f358baa2 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,9 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* unstrip.c (copy_elided_sections): Inline find_unalloc_section
++	function into calling location. The sec pointer is set to NULL
++	before the if-else statement and only set when match is found.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* unstrip.c (find_alloc_sections_prelink): Move check_match to...
+diff --git a/src/unstrip.c b/src/unstrip.c
+index 72fabac8..90e02831 100644
+--- a/src/unstrip.c
++++ b/src/unstrip.c
+@@ -1452,29 +1452,6 @@ more sections in stripped file than debug file -- arguments reversed?"));
+ 	stripped_symtab = &sections[nalloc];
+     }
+ 
+-  /* Locate a matching unallocated section in SECTIONS.  */
+-  inline struct section *find_unalloc_section (const GElf_Shdr *shdr,
+-					       const char *name,
+-					       const char *sig)
+-    {
+-      size_t l = nalloc, u = stripped_shnum - 1;
+-      while (l < u)
+-	{
+-	  size_t i = (l + u) / 2;
+-	  struct section *sec = &sections[i];
+-	  int cmp = compare_unalloc_sections (shdr, &sec->shdr,
+-					      name, sec->name,
+-					      sig, sec->sig);
+-	  if (cmp < 0)
+-	    u = i;
+-	  else if (cmp > 0)
+-	    l = i + 1;
+-	  else
+-	    return sec;
+-	}
+-      return NULL;
+-    }
+-
+   Elf_Data *shstrtab = elf_getdata (elf_getscn (unstripped,
+ 						unstripped_shstrndx), NULL);
+   ELF_CHECK (shstrtab != NULL,
+@@ -1536,9 +1513,27 @@ more sections in stripped file than debug file -- arguments reversed?"));
+ 	}
+       else
+ 	{
+-	  /* Look for the section that matches.  */
+-	  sec = find_unalloc_section (shdr, name,
+-				      get_group_sig (unstripped, shdr));
++	  /* Locate a matching unallocated section in SECTIONS.  */
++	  const char *sig = get_group_sig (unstripped, shdr);
++	  size_t l = nalloc, u = stripped_shnum - 1;
++	  while (l < u)
++	    {
++	      size_t i = (l + u) / 2;
++	      struct section *section = &sections[i];
++	      int cmp = compare_unalloc_sections (shdr, &section->shdr,
++						  name, section->name,
++						  sig, section->sig);
++	      if (cmp < 0)
++		u = i;
++	      else if (cmp > 0)
++		l = i + 1;
++	      else
++		{
++		  sec = section;
++		  break;
++		}
++	    }
++
+ 	  if (sec == NULL)
+ 	    {
+ 	      /* An additional unallocated section is fine if not SHT_NOBITS.
+-- 
+2.31.1
+
+
+From 0355ee0b0289a2556516a56daed1dd5f9d59fcb3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:43:47 +0100
+Subject: [PATCH 06/16] unstrip: Pull warn() into file scope
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Get rid of a nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog |  6 ++++++
+ src/unstrip.c | 35 ++++++++++++++++++++---------------
+ 2 files changed, 26 insertions(+), 15 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index f358baa2..9e0ebd89 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,9 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* unstrip.c (handle_explicit_files): Move warn function...
++	(warn): ...here as top-level static function taking stripped,
++	unstripped files and force flag as extra arguments.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* unstrip.c (copy_elided_sections): Inline find_unalloc_section
+diff --git a/src/unstrip.c b/src/unstrip.c
+index 90e02831..612b7cbf 100644
+--- a/src/unstrip.c
++++ b/src/unstrip.c
+@@ -2225,22 +2225,23 @@ open_file (const char *file, bool writable)
+   return fd;
+ }
+ 
++/* Warn, and exit if not forced to continue, if some ELF header
++   sanity check for the stripped and unstripped files failed.  */
++static void
++warn (const char *msg, bool force,
++      const char *stripped_file, const char *unstripped_file)
++{
++  error (force ? 0 : EXIT_FAILURE, 0, "%s'%s' and '%s' %s%s.",
++	 force ? _("WARNING: ") : "",
++	 stripped_file, unstripped_file, msg,
++	 force ? "" : _(", use --force"));
++}
++
+ /* Handle a pair of files we need to open by name.  */
+ static void
+ handle_explicit_files (const char *output_file, bool create_dirs, bool force,
+ 		       const char *stripped_file, const char *unstripped_file)
+ {
+-
+-  /* Warn, and exit if not forced to continue, if some ELF header
+-     sanity check for the stripped and unstripped files failed.  */
+-  void warn (const char *msg)
+-  {
+-    error (force ? 0 : EXIT_FAILURE, 0, "%s'%s' and '%s' %s%s.",
+-	   force ? _("WARNING: ") : "",
+-	   stripped_file, unstripped_file, msg,
+-	   force ? "" : _(", use --force"));
+-  }
+-
+   int stripped_fd = open_file (stripped_file, false);
+   Elf *stripped = elf_begin (stripped_fd, ELF_C_READ, NULL);
+   GElf_Ehdr stripped_ehdr;
+@@ -2261,16 +2262,20 @@ handle_explicit_files (const char *output_file, bool create_dirs, bool force,
+ 
+       if (memcmp (stripped_ehdr.e_ident,
+ 		  unstripped_ehdr.e_ident, EI_NIDENT) != 0)
+-	warn (_("ELF header identification (e_ident) different"));
++	warn (_("ELF header identification (e_ident) different"), force,
++	      stripped_file, unstripped_file);
+ 
+       if (stripped_ehdr.e_type != unstripped_ehdr.e_type)
+-	warn (_("ELF header type (e_type) different"));
++	warn (_("ELF header type (e_type) different"), force,
++	      stripped_file, unstripped_file);
+ 
+       if (stripped_ehdr.e_machine != unstripped_ehdr.e_machine)
+-	warn (_("ELF header machine type (e_machine) different"));
++	warn (_("ELF header machine type (e_machine) different"), force,
++	      stripped_file, unstripped_file);
+ 
+       if (stripped_ehdr.e_phnum < unstripped_ehdr.e_phnum)
+-	warn (_("stripped program header (e_phnum) smaller than unstripped"));
++	warn (_("stripped program header (e_phnum) smaller than unstripped"),
++	      force, stripped_file, unstripped_file);
+     }
+ 
+   handle_file (output_file, create_dirs, stripped, &stripped_ehdr, unstripped);
+-- 
+2.31.1
+
+
+From fc95069a513cd3d664cf346e7e0a8eb512207778 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:43:48 +0100
+Subject: [PATCH 07/16] unstrip: Remove nested next() function
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This is a simple one-liner, so inline this into the few callers.
+Get rid of a nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog |  6 ++++++
+ src/unstrip.c | 14 ++++++--------
+ 2 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index 9e0ebd89..833d05e4 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,9 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* unstrip.c (handle_implicit_modules): Inline the next function
++	in three places. This is simply dwfl_getmodules with match_module
++	callback providing mmi.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* unstrip.c (handle_explicit_files): Move warn function...
+diff --git a/src/unstrip.c b/src/unstrip.c
+index 612b7cbf..f7742ebd 100644
+--- a/src/unstrip.c
++++ b/src/unstrip.c
+@@ -2498,21 +2498,18 @@ static void
+ handle_implicit_modules (const struct arg_info *info)
+ {
+   struct match_module_info mmi = { info->args, NULL, info->match_files };
+-  inline ptrdiff_t next (ptrdiff_t offset)
+-    {
+-      return dwfl_getmodules (info->dwfl, &match_module, &mmi, offset);
+-    }
+-  ptrdiff_t offset = next (0);
++  ptrdiff_t offset = dwfl_getmodules (info->dwfl, &match_module, &mmi, 0);
+   if (offset == 0)
+     error (EXIT_FAILURE, 0, _("no matching modules found"));
+ 
+   if (info->list)
+     do
+       list_module (mmi.found);
+-    while ((offset = next (offset)) > 0);
++    while ((offset = dwfl_getmodules (info->dwfl, &match_module, &mmi,
++				      offset)) > 0);
+   else if (info->output_dir == NULL)
+     {
+-      if (next (offset) != 0)
++      if (dwfl_getmodules (info->dwfl, &match_module, &mmi, offset) != 0)
+ 	error (EXIT_FAILURE, 0, _("matched more than one module"));
+       handle_dwfl_module (info->output_file, false, info->force, mmi.found,
+ 			  info->all, info->ignore, info->relocate);
+@@ -2522,7 +2519,8 @@ handle_implicit_modules (const struct arg_info *info)
+       handle_output_dir_module (info->output_dir, mmi.found, info->force,
+ 				info->all, info->ignore,
+ 				info->modnames, info->relocate);
+-    while ((offset = next (offset)) > 0);
++    while ((offset = dwfl_getmodules (info->dwfl, &match_module, &mmi,
++				      offset)) > 0);
+ }
+ 
+ int
+-- 
+2.31.1
+
+
+From 45ce2e8a6c548d4a525382f64dd23016e1dcb509 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:45:07 +0100
+Subject: [PATCH 08/16] elfcompress: Pull set_section() into file scope
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Get rid of a nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog     |  6 ++++++
+ src/elfcompress.c | 16 +++++++++-------
+ 2 files changed, 15 insertions(+), 7 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index 833d05e4..0740807c 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,9 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* elfcompress.c (process_file): Move set_section function...
++	(set_section): ...to top-level static function taking a
++	section array.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* unstrip.c (handle_implicit_modules): Inline the next function
+diff --git a/src/elfcompress.c b/src/elfcompress.c
+index 1b5b1e36..65a922a7 100644
+--- a/src/elfcompress.c
++++ b/src/elfcompress.c
+@@ -52,6 +52,8 @@ static const char *foutput = NULL;
+ #define T_DECOMPRESS 1    /* none */
+ #define T_COMPRESS_ZLIB 2 /* zlib */
+ #define T_COMPRESS_GNU  3 /* zlib-gnu */
++#define WORD_BITS (8U * sizeof (unsigned int))
++
+ static int type = T_UNSET;
+ 
+ struct section_pattern
+@@ -242,6 +244,12 @@ compress_section (Elf_Scn *scn, size_t orig_size, const char *name,
+   return res;
+ }
+ 
++static void
++set_section (unsigned int *sections, size_t ndx)
++{
++  sections[ndx / WORD_BITS] |= (1U << (ndx % WORD_BITS));
++}
++
+ static int
+ process_file (const char *fname)
+ {
+@@ -275,12 +283,6 @@ process_file (const char *fname)
+   /* How many sections are we talking about?  */
+   size_t shnum = 0;
+ 
+-#define WORD_BITS (8U * sizeof (unsigned int))
+-  void set_section (size_t ndx)
+-  {
+-    sections[ndx / WORD_BITS] |= (1U << (ndx % WORD_BITS));
+-  }
+-
+   bool get_section (size_t ndx)
+   {
+     return (sections[ndx / WORD_BITS] & (1U << (ndx % WORD_BITS))) != 0;
+@@ -498,7 +500,7 @@ process_file (const char *fname)
+ 	  else if (shdr->sh_type != SHT_NOBITS
+ 	      && (shdr->sh_flags & SHF_ALLOC) == 0)
+ 	    {
+-	      set_section (ndx);
++	      set_section (sections, ndx);
+ 	      /* Check if we might want to change this section name.  */
+ 	      if (! adjust_names
+ 		  && ((type != T_COMPRESS_GNU
+-- 
+2.31.1
+
+
+From e1f4a49899b5f91fed4c525dc5c8c808969694bb Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:45:08 +0100
+Subject: [PATCH 09/16] elfcompress: Pull get_section() into file scope
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Get rid of a nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog     |  6 ++++++
+ src/elfcompress.c | 13 +++++++------
+ 2 files changed, 13 insertions(+), 6 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index 0740807c..d810cf93 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,9 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* elfcompress.c (process_file): Move get_section function...
++	(get_section): ...to top-level static function taking an
++	sections array.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* elfcompress.c (process_file): Move set_section function...
+diff --git a/src/elfcompress.c b/src/elfcompress.c
+index 65a922a7..2dc74a0c 100644
+--- a/src/elfcompress.c
++++ b/src/elfcompress.c
+@@ -250,6 +250,12 @@ set_section (unsigned int *sections, size_t ndx)
+   sections[ndx / WORD_BITS] |= (1U << (ndx % WORD_BITS));
+ }
+ 
++static bool
++get_section (unsigned int *sections, size_t ndx)
++{
++  return (sections[ndx / WORD_BITS] & (1U << (ndx % WORD_BITS))) != 0;
++}
++
+ static int
+ process_file (const char *fname)
+ {
+@@ -283,11 +289,6 @@ process_file (const char *fname)
+   /* How many sections are we talking about?  */
+   size_t shnum = 0;
+ 
+-  bool get_section (size_t ndx)
+-  {
+-    return (sections[ndx / WORD_BITS] & (1U << (ndx % WORD_BITS))) != 0;
+-  }
+-
+   /* How many sections are we going to change?  */
+   size_t get_sections (void)
+   {
+@@ -689,7 +690,7 @@ process_file (const char *fname)
+       /* (de)compress if section matched.  */
+       char *sname = NULL;
+       char *newname = NULL;
+-      if (get_section (ndx))
++      if (get_section (sections, ndx))
+ 	{
+ 	  GElf_Shdr shdr_mem;
+ 	  GElf_Shdr *shdr = gelf_getshdr (scn, &shdr_mem);
+-- 
+2.31.1
+
+
+From b201bf4065e1e70fbbf48c0e723ecef2c6b77336 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:45:09 +0100
+Subject: [PATCH 10/16] elfcompress: Pull get_sections() into file scope
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Get rid of a nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog     |  6 ++++++
+ src/elfcompress.c | 21 +++++++++++----------
+ 2 files changed, 17 insertions(+), 10 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index d810cf93..29f04e71 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,9 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* elfcompress.c (process_file): Move get_sections function...
++	(get_section): ...to top-level static function taking an
++	sections array and shnum.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* elfcompress.c (process_file): Move get_section function...
+diff --git a/src/elfcompress.c b/src/elfcompress.c
+index 2dc74a0c..65e28f0e 100644
+--- a/src/elfcompress.c
++++ b/src/elfcompress.c
+@@ -256,6 +256,16 @@ get_section (unsigned int *sections, size_t ndx)
+   return (sections[ndx / WORD_BITS] & (1U << (ndx % WORD_BITS))) != 0;
+ }
+ 
++/* How many sections are we going to change?  */
++static size_t
++get_sections (unsigned int *sections, size_t shnum)
++{
++  size_t s = 0;
++  for (size_t i = 0; i < shnum / WORD_BITS + 1; i++)
++    s += __builtin_popcount (sections[i]);
++  return s;
++}
++
+ static int
+ process_file (const char *fname)
+ {
+@@ -289,15 +299,6 @@ process_file (const char *fname)
+   /* How many sections are we talking about?  */
+   size_t shnum = 0;
+ 
+-  /* How many sections are we going to change?  */
+-  size_t get_sections (void)
+-  {
+-    size_t s = 0;
+-    for (size_t i = 0; i < shnum / WORD_BITS + 1; i++)
+-      s += __builtin_popcount (sections[i]);
+-    return s;
+-  }
+-
+   int cleanup (int res)
+   {
+     elf_end (elf);
+@@ -552,7 +553,7 @@ process_file (const char *fname)
+ 	  }
+     }
+ 
+-  if (foutput == NULL && get_sections () == 0)
++  if (foutput == NULL && get_sections (sections, shnum) == 0)
+     {
+       if (verbose > 0)
+ 	printf ("Nothing to do.\n");
+-- 
+2.31.1
+
+
+From 9a563eaecc71212158f07a4bdaebcabe500f906a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:46:04 +0100
+Subject: [PATCH 11/16] tests: Pull newsecndx() info file scope for elfstrmerge
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Get rid of a nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ tests/ChangeLog     | 29 +++++++++++++++++
+ tests/elfstrmerge.c | 76 +++++++++++++++++++++++++--------------------
+ 2 files changed, 71 insertions(+), 34 deletions(-)
+
+diff --git a/tests/ChangeLog b/tests/ChangeLog
+index 907b6351..83501344 100644
+--- a/tests/ChangeLog
++++ b/tests/ChangeLog
+@@ -1,3 +1,32 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* elfstrmerge.c (main): Move newsecndx function to...
++	(newsecndx): ...top-level static function adding shdrstrndx,
++	shdrnum and fname as arguments.
++
++2021-02-25  Frank Ch. Eigler <fche@redhat.com>
++
++	* run-debuginfod-find.sh: Add bad webapi artifacttype test.
++
++2021-02-17  Frank Ch. Eigler <fche@redhat.com>
++
++	* run-debuginfod-find.sh: Tweak wait_ready() to also print -vvv log of
++	appropriate debuginfod if metric timeout occurs.  Focus grooming
++	test carefully at a more deterministic metric.
++
++2021-02-12  Mark Wielaard  <mark@klomp.org>
++
++	* run-readelf-types.sh: Add CU start to type offset reference.
++
++2021-02-07  Alexander Miller  <alex.miller@gmx.de>
++
++	* Makefile.am (TESTS_ENVIRONMENT): Quote variables.
++	(valgrind_cmd): Unquote variable.
++
++2021-02-08  Érico Nogueira  <ericonr@disroot.org>
++
++	* run-debuginfod-find.sh: Check for cpio availability.
++
+ 2021-02-04  Frank Ch. Eigler <fche@redhat.com>
+ 
+ 	* run-debuginfod-find.sh: Smoke test --fdcache-mintmp option handling.
+diff --git a/tests/elfstrmerge.c b/tests/elfstrmerge.c
+index abbdf3fd..00f025ec 100644
+--- a/tests/elfstrmerge.c
++++ b/tests/elfstrmerge.c
+@@ -147,6 +147,33 @@ fail_elf_idx (const char *msg, const char *fname, size_t idx)
+   abort();
+ }
+ 
++/* section index mapping and sanity checking.  */
++static size_t
++newsecndx (size_t secndx, size_t shdrstrndx, size_t shdrnum,
++	   const char *fname,
++	   const char *what, size_t widx,
++	   const char *member, size_t midx)
++{
++  if (unlikely (secndx == 0 || secndx == shdrstrndx || secndx >= shdrnum))
++    {
++      /* Don't use fail... too specialized messages.  Call release
++	 outselves and then error.  Ignores midx if widx is
++	 zero.  */
++      release ();
++      if (widx == 0)
++	error (1, 0, "%s: bad section index %zd in %s for %s",
++	       fname, secndx, what, member);
++      else if (midx == 0)
++	error (1, 0, "%s: bad section index %zd in %s %zd for %s",
++	       fname, secndx, what, widx, member);
++      else
++	error (1, 0, "%s: bad section index %zd in %s %zd for %s %zd",
++	       fname, secndx, what, widx, member, midx);
++    }
++
++  return secndx < shdrstrndx ? secndx : secndx - 1;
++}
++
+ int
+ main (int argc, char **argv)
+ {
+@@ -325,30 +352,6 @@ main (int argc, char **argv)
+   if (newstrtabdata.d_size >= shdrstrshdr->sh_size + strtabshdr->sh_size)
+     fail ("Impossible, merged string table is larger", fname);
+ 
+-  /* section index mapping and sanity checking.  */
+-  size_t newsecndx (size_t secndx, const char *what, size_t widx,
+-		    const char *member, size_t midx)
+-  {
+-    if (unlikely (secndx == 0 || secndx == shdrstrndx || secndx >= shdrnum))
+-      {
+-	/* Don't use fail... too specialized messages.  Call release
+-	   ourselves and then error.  Ignores midx if widx is
+-	   zero.  */
+-	release ();
+-	if (widx == 0)
+-	  error (1, 0, "%s: bad section index %zd in %s for %s",
+-		 fname, secndx, what, member);
+-	else if (midx == 0)
+-	  error (1, 0, "%s: bad section index %zd in %s %zd for %s",
+-		 fname, secndx, what, widx, member);
+-	else
+-	  error (1, 0, "%s: bad section index %zd in %s %zd for %s %zd",
+-		 fname, secndx, what, widx, member, midx);
+-      }
+-
+-    return secndx < shdrstrndx ? secndx : secndx - 1;
+-  }
+-
+   struct stat st;
+   if (fstat (fd, &st) != 0)
+     fail_errno("Couldn't fstat", fname);
+@@ -392,7 +395,8 @@ main (int argc, char **argv)
+   newehdr.e_flags = ehdr.e_flags;
+ 
+   /* The new file uses the new strtab as shstrtab.  */
+-  size_t newstrtabndx = newsecndx (strtabndx, "ehdr", 0, "e_shstrndx", 0);
++  size_t newstrtabndx = newsecndx (strtabndx, shdrstrndx, shdrnum,
++				   fname, "ehdr", 0, "e_shstrndx", 0);
+   if (newstrtabndx < SHN_LORESERVE)
+     newehdr.e_shstrndx = newstrtabndx;
+   else
+@@ -460,11 +464,14 @@ main (int argc, char **argv)
+       newshdr.sh_addr = shdr->sh_addr;
+       newshdr.sh_size = shdr->sh_size;
+       if (shdr->sh_link != 0)
+-	newshdr.sh_link = newsecndx (shdr->sh_link, "shdr", ndx, "sh_link", 0);
++	newshdr.sh_link = newsecndx (shdr->sh_link, shdrstrndx, shdrnum,
++				     fname, "shdr", ndx, "sh_link", 0);
+       else
+ 	newshdr.sh_link = 0;
+       if (SH_INFO_LINK_P (shdr) && shdr->sh_info != 0)
+-	newshdr.sh_info = newsecndx (shdr->sh_info, "shdr", ndx, "sh_info", 0);
++	newshdr.sh_info = newsecndx (shdr->sh_info, shdrstrndx, shdrnum,
++				     fname, "shdr", ndx, "sh_info", 0);
++
+       else
+ 	newshdr.sh_info = shdr->sh_info;
+       newshdr.sh_entsize = shdr->sh_entsize;
+@@ -481,7 +488,8 @@ main (int argc, char **argv)
+ 	void *b = malloc (d->d_size);
+ 	if (b == NULL)
+ 	  fail_idx ("Couldn't allocated buffer for section", NULL, ndx);
+-	newscnbufs[newsecndx (ndx, "section", ndx, "d_buf", 0)] = d->d_buf = b;
++	newscnbufs[newsecndx (ndx, shdrstrndx, shdrnum, fname,
++			      "section", ndx, "d_buf", 0)] = d->d_buf = b;
+       }
+ 
+       Elf_Data *newdata = elf_newdata (newscn);
+@@ -526,8 +534,8 @@ main (int argc, char **argv)
+ 			       " for old shdrstrndx %zd\n", ndx, i, shdrstrndx);
+ 		    else if (sym.st_shndx != SHN_UNDEF
+ 			     && sym.st_shndx < SHN_LORESERVE)
+-		      sym.st_shndx = newsecndx (sym.st_shndx, "section", ndx,
+-						"symbol", i);
++		      sym.st_shndx = newsecndx (sym.st_shndx, shdrstrndx, shdrnum,
++					 fname, "section", ndx, "symbol", i);
+ 		    if (update_name && sym.st_name != 0)
+ 		      sym.st_name = dwelf_strent_off (symstrents[i]);
+ 
+@@ -552,8 +560,8 @@ main (int argc, char **argv)
+ 		  fail_idx ("Not enough data in group section", fname, ndx);
+ 		newgroup[0] = group[0];
+ 		for (size_t i = 1; i < words; i++)
+-		  newgroup[i] = newsecndx (group[i], "section", ndx,
+-					   "group", i);
++		  newgroup[i] = newsecndx (group[i], shdrstrndx, shdrnum,
++					   fname, "section", ndx, "group", i);
+ 	      }
+ 	      break;
+ 
+@@ -571,8 +579,8 @@ main (int argc, char **argv)
+ 		  if (shndx[i] == SHN_UNDEF)
+ 		    newshndx[i] = SHN_UNDEF;
+ 		  else
+-		    newshndx[i] = newsecndx (shndx[i], "section", ndx,
+-					     "shndx", i);
++		    newshndx[i] = newsecndx (shndx[i], shdrstrndx, shdrnum,
++					     fname, "section", ndx, "shndx", i);
+ 	      }
+ 	      break;
+ 
+-- 
+2.31.1
+
+
+From 3a3a5505bf7d8dcc038d323561fecb03e9c172c5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 09:46:05 +0100
+Subject: [PATCH 12/16] tests: Pull new_data_buf() into file scope for
+ elfstrmerge.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Get rid of a nested function this way.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ tests/ChangeLog     |  6 ++++++
+ tests/elfstrmerge.c | 32 +++++++++++++++++---------------
+ 2 files changed, 23 insertions(+), 15 deletions(-)
+
+diff --git a/tests/ChangeLog b/tests/ChangeLog
+index 83501344..bb842cb5 100644
+--- a/tests/ChangeLog
++++ b/tests/ChangeLog
+@@ -1,3 +1,9 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* elfstrmerge.c (main): Move new_data_buf function to...
++	(new_data_buf): ...top-level static function adding fname,
++	ndx, shdrstrnd and shdrnum as arguments.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* elfstrmerge.c (main): Move newsecndx function to...
+diff --git a/tests/elfstrmerge.c b/tests/elfstrmerge.c
+index 00f025ec..197c6a5d 100644
+--- a/tests/elfstrmerge.c
++++ b/tests/elfstrmerge.c
+@@ -174,6 +174,20 @@ newsecndx (size_t secndx, size_t shdrstrndx, size_t shdrnum,
+   return secndx < shdrstrndx ? secndx : secndx - 1;
+ }
+ 
++static void
++new_data_buf (Elf_Data *d, const char *fname,
++	      size_t ndx, size_t shdrstrndx, size_t shdrnum)
++{
++  size_t s = d->d_size;
++  if (s == 0)
++    fail_idx ("Expected data in section", fname, ndx);
++  void *b = malloc (d->d_size);
++  if (b == NULL)
++    fail_idx ("Couldn't allocated buffer for section", NULL, ndx);
++  newscnbufs[newsecndx (ndx, shdrstrndx, shdrnum, fname,
++			"section", ndx, "d_buf", 0)] = d->d_buf = b;
++}
++
+ int
+ main (int argc, char **argv)
+ {
+@@ -480,18 +494,6 @@ main (int argc, char **argv)
+ 	 manipulate the original data.  Allocate and check here, so we
+ 	 have a list of all data buffers we might need to release when
+ 	 done.  */
+-      void new_data_buf (Elf_Data *d)
+-      {
+-	size_t s = d->d_size;
+-	if (s == 0)
+-	  fail_idx ("Expected data in section", fname, ndx);
+-	void *b = malloc (d->d_size);
+-	if (b == NULL)
+-	  fail_idx ("Couldn't allocated buffer for section", NULL, ndx);
+-	newscnbufs[newsecndx (ndx, shdrstrndx, shdrnum, fname,
+-			      "section", ndx, "d_buf", 0)] = d->d_buf = b;
+-      }
+-
+       Elf_Data *newdata = elf_newdata (newscn);
+       if (newdata == NULL)
+ 	fail_elf_idx ("Couldn't create new data for section", fnew, ndx);
+@@ -518,7 +520,7 @@ main (int argc, char **argv)
+ 		const bool update_name = shdr->sh_link == strtabndx;
+ 		if (update_name && ndx != symtabndx)
+ 		  fail ("Only one symbol table using strtab expected", fname);
+-		new_data_buf (newdata);
++		new_data_buf (newdata, fname, ndx, shdrstrndx, shdrnum);
+ 		size_t syms = (data->d_size
+ 			       / gelf_fsize (elf, ELF_T_SYM, 1, EV_CURRENT));
+ 		for (size_t i = 0; i < syms; i++)
+@@ -549,7 +551,7 @@ main (int argc, char **argv)
+ 
+ 	    case SHT_GROUP:
+ 	      {
+-		new_data_buf (newdata);
++		new_data_buf (newdata, fname, ndx, shdrstrndx, shdrnum);
+ 		/* A section group contains Elf32_Words. The first
+ 		   word is a flag value, the rest of the words are
+ 		   indexes of the sections belonging to the group.  */
+@@ -567,7 +569,7 @@ main (int argc, char **argv)
+ 
+ 	    case SHT_SYMTAB_SHNDX:
+ 	      {
+-		new_data_buf (newdata);
++		new_data_buf (newdata, fname, ndx, shdrstrndx, shdrnum);
+ 		/* A SHNDX just contains an array of section indexes
+ 		   for the corresponding symbol table.  The entry is
+ 		   SHN_UNDEF unless the corresponding symbol is
+-- 
+2.31.1
+
+
+From cb1d8a82ad387f9f90d8bd4c663d26e4fbc3a4e3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 10:27:06 +0100
+Subject: [PATCH 13/16] build: Check for -Wimplicit-fallthrough=5 separately
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+GCC accepts the =5, which means it doesn't try to parse any comments
+and only accepts the fallthrough attribute in code. Clang does not ever
+parse any comments and always wants the fallthrough attribute anyway.
+Clang also doesn't accept the =n parameter for -Wimplicit-fallthrough.
+
+Test for =5 separately and use it if supported and fall back to just
+-Wimplicit-fallthrough otherwise.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ config/eu.am |  4 ++++
+ configure.ac | 12 ++++++++++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/config/eu.am b/config/eu.am
+index 6c3c444f..e109ffd3 100644
+--- a/config/eu.am
++++ b/config/eu.am
+@@ -64,8 +64,12 @@ endif
+ if HAVE_IMPLICIT_FALLTHROUGH_WARNING
+ # Use strict fallthrough. Only __attribute__((fallthrough)) will prevent the
+ # warning
++if HAVE_IMPLICIT_FALLTHROUGH_5_WARNING
+ IMPLICIT_FALLTHROUGH_WARNING=-Wimplicit-fallthrough=5
+ else
++IMPLICIT_FALLTHROUGH_WARNING=-Wimplicit-fallthrough
++endif
++else
+ IMPLICIT_FALLTHROUGH_WARNING=
+ endif
+ 
+diff --git a/configure.ac b/configure.ac
+index d345495d..e56aeb6a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -519,6 +519,18 @@ CFLAGS="$old_CFLAGS"])
+ AM_CONDITIONAL(HAVE_IMPLICIT_FALLTHROUGH_WARNING,
+ 	       [test "x$ac_cv_implicit_fallthrough" != "xno"])
+ 
++# Check whether the compiler additionally accepts -Wimplicit-fallthrough=5
++# GCC accepts this and 5 means "don't parse any fallthrough comments and
++# only accept the fallthrough attribute"
++AC_CACHE_CHECK([whether the compiler accepts -Wimplicit-fallthrough=5], ac_cv_implicit_fallthrough_5, [dnl
++old_CFLAGS="$CFLAGS"
++CFLAGS="$CFLAGS -Wimplicit-fallthrough=5 -Werror"
++AC_COMPILE_IFELSE([AC_LANG_SOURCE([])],
++		  ac_cv_implicit_fallthrough_5=yes, ac_cv_implicit_fallthrough_5=no)
++CFLAGS="$old_CFLAGS"])
++AM_CONDITIONAL(HAVE_IMPLICIT_FALLTHROUGH_5_WARNING,
++	       [test "x$ac_cv_implicit_fallthrough_5" != "xno"])
++
+ # Assume the fallthrough attribute is supported if -Wimplict-fallthrough is supported
+ if test "$ac_cv_implicit_fallthrough" = "yes"; then
+ 	AC_DEFINE([HAVE_FALLTHROUGH], [1],
+-- 
+2.31.1
+
+
+From 2100d07d95cd12958a8360870e281c655750d0e0 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Tue, 2 Mar 2021 09:05:33 +0100
+Subject: [PATCH 14/16] elfcompress: Replace cleanup() with label
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This unifies the error handling with the rest of the code base and gets
+rid of a nested function.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ src/ChangeLog     |   6 ++
+ src/elfcompress.c | 215 +++++++++++++++++++++++-----------------------
+ 2 files changed, 112 insertions(+), 109 deletions(-)
+
+diff --git a/src/ChangeLog b/src/ChangeLog
+index 29f04e71..791015bb 100644
+--- a/src/ChangeLog
++++ b/src/ChangeLog
+@@ -1,3 +1,9 @@
++2021-03-02  Timm Bäder  <tbaeder@redhat.com>
++
++	* elfcompress.c (process_file): Remove cleanup() function and
++	replace it with a cleanup label at the end of the function.
++	Initialize res to -1.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* elfcompress.c (process_file): Move get_sections function...
+diff --git a/src/elfcompress.c b/src/elfcompress.c
+index 65e28f0e..c5ba6c34 100644
+--- a/src/elfcompress.c
++++ b/src/elfcompress.c
+@@ -298,47 +298,13 @@ process_file (const char *fname)
+ 
+   /* How many sections are we talking about?  */
+   size_t shnum = 0;
+-
+-  int cleanup (int res)
+-  {
+-    elf_end (elf);
+-    close (fd);
+-
+-    elf_end (elfnew);
+-    close (fdnew);
+-
+-    if (fnew != NULL)
+-      {
+-	unlink (fnew);
+-	free (fnew);
+-	fnew = NULL;
+-      }
+-
+-    free (snamebuf);
+-    if (names != NULL)
+-      {
+-	dwelf_strtab_free (names);
+-	free (scnstrents);
+-	free (symstrents);
+-	free (namesbuf);
+-	if (scnnames != NULL)
+-	  {
+-	    for (size_t n = 0; n < shnum; n++)
+-	      free (scnnames[n]);
+-	    free (scnnames);
+-	  }
+-      }
+-
+-    free (sections);
+-
+-    return res;
+-  }
++  int res = -1;
+ 
+   fd = open (fname, O_RDONLY);
+   if (fd < 0)
+     {
+       error (0, errno, "Couldn't open %s\n", fname);
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   elf = elf_begin (fd, ELF_C_READ, NULL);
+@@ -346,7 +312,7 @@ process_file (const char *fname)
+     {
+       error (0, 0, "Couldn't open ELF file %s for reading: %s",
+ 	     fname, elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   /* We don't handle ar files (or anything else), we probably should.  */
+@@ -357,21 +323,21 @@ process_file (const char *fname)
+ 	error (0, 0, "Cannot handle ar files: %s", fname);
+       else
+ 	error (0, 0, "Unknown file type: %s", fname);
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   struct stat st;
+   if (fstat (fd, &st) != 0)
+     {
+       error (0, errno, "Couldn't fstat %s", fname);
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   GElf_Ehdr ehdr;
+   if (gelf_getehdr (elf, &ehdr) == NULL)
+     {
+       error (0, 0, "Couldn't get ehdr for %s: %s", fname, elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   /* Get the section header string table.  */
+@@ -380,7 +346,7 @@ process_file (const char *fname)
+     {
+       error (0, 0, "Couldn't get section header string table index in %s: %s",
+ 	     fname, elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   /* How many sections are we talking about?  */
+@@ -388,13 +354,13 @@ process_file (const char *fname)
+     {
+       error (0, 0, "Couldn't get number of sections in %s: %s",
+ 	     fname, elf_errmsg (1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   if (shnum == 0)
+     {
+       error (0, 0, "ELF file %s has no sections", fname);
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   sections = xcalloc (shnum / 8 + 1, sizeof (unsigned int));
+@@ -403,7 +369,7 @@ process_file (const char *fname)
+   if (elf_getphdrnum (elf, &phnum) != 0)
+     {
+       error (0, 0, "Couldn't get phdrnum: %s", elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   /* Whether we need to adjust any section names (going to/from GNU
+@@ -460,7 +426,7 @@ process_file (const char *fname)
+ 	{
+ 	  error (0, 0, "Unexpected section number %zd, expected only %zd",
+ 		 ndx, shnum);
+-	  cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       GElf_Shdr shdr_mem;
+@@ -468,14 +434,14 @@ process_file (const char *fname)
+       if (shdr == NULL)
+ 	{
+ 	  error (0, 0, "Couldn't get shdr for section %zd", ndx);
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       const char *sname = elf_strptr (elf, shdrstrndx, shdr->sh_name);
+       if (sname == NULL)
+ 	{
+ 	  error (0, 0, "Couldn't get name for section %zd", ndx);
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       if (section_name_matches (sname))
+@@ -536,7 +502,7 @@ process_file (const char *fname)
+ 		{
+ 		  error (0, 0,
+ 			 "Multiple symbol tables (%zd, %zd) using the same string table unsupported", symtabndx, ndx);
+-		  return cleanup (-1);
++		  goto cleanup;
+ 		}
+ 	      symtabndx = ndx;
+ 	    }
+@@ -558,7 +524,7 @@ process_file (const char *fname)
+       if (verbose > 0)
+ 	printf ("Nothing to do.\n");
+       fnew = NULL;
+-      return cleanup (0);
++      goto cleanup;
+     }
+ 
+   if (adjust_names)
+@@ -567,7 +533,7 @@ process_file (const char *fname)
+       if (names == NULL)
+ 	{
+ 	  error (0, 0, "Not enough memory for new strtab");
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+       scnstrents = xmalloc (shnum
+ 			    * sizeof (Dwelf_Strent *));
+@@ -594,7 +560,7 @@ process_file (const char *fname)
+       /* Since we didn't create it we don't want to try to unlink it.  */
+       free (fnew);
+       fnew = NULL;
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   elfnew = elf_begin (fdnew, ELF_C_WRITE, NULL);
+@@ -602,21 +568,21 @@ process_file (const char *fname)
+     {
+       error (0, 0, "Couldn't open new ELF %s for writing: %s",
+ 	     fnew, elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   /* Create the new ELF header and copy over all the data.  */
+   if (gelf_newehdr (elfnew, gelf_getclass (elf)) == 0)
+     {
+       error (0, 0, "Couldn't create new ehdr: %s", elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   GElf_Ehdr newehdr;
+   if (gelf_getehdr (elfnew, &newehdr) == NULL)
+     {
+       error (0, 0, "Couldn't get new ehdr: %s", elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   newehdr.e_ident[EI_DATA] = ehdr.e_ident[EI_DATA];
+@@ -629,7 +595,7 @@ process_file (const char *fname)
+   if (gelf_update_ehdr (elfnew, &newehdr) == 0)
+     {
+       error (0, 0, "Couldn't update ehdr: %s", elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   /* Copy over the phdrs as is.  */
+@@ -638,7 +604,7 @@ process_file (const char *fname)
+       if (gelf_newphdr (elfnew, phnum) == 0)
+ 	{
+ 	  error (0, 0, "Couldn't create phdrs: %s", elf_errmsg (-1));
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       for (size_t cnt = 0; cnt < phnum; ++cnt)
+@@ -648,13 +614,13 @@ process_file (const char *fname)
+ 	  if (phdr == NULL)
+ 	    {
+ 	      error (0, 0, "Couldn't get phdr %zd: %s", cnt, elf_errmsg (-1));
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 	  if (gelf_update_phdr (elfnew, cnt, phdr) == 0)
+ 	    {
+ 	      error (0, 0, "Couldn't create phdr %zd: %s", cnt,
+ 		     elf_errmsg (-1));
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 	}
+     }
+@@ -698,7 +664,7 @@ process_file (const char *fname)
+ 	  if (shdr == NULL)
+ 	    {
+ 	      error (0, 0, "Couldn't get shdr for section %zd", ndx);
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 
+ 	  uint64_t size = shdr->sh_size;
+@@ -706,7 +672,7 @@ process_file (const char *fname)
+ 	  if (sname == NULL)
+ 	    {
+ 	      error (0, 0, "Couldn't get name for section %zd", ndx);
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 
+ 	  /* strdup sname, the shdrstrndx section itself might be
+@@ -728,7 +694,7 @@ process_file (const char *fname)
+ 		{
+ 		  if (compress_section (scn, size, sname, NULL, ndx,
+ 					false, false, verbose > 0) < 0)
+-		    return cleanup (-1);
++		    goto cleanup;
+ 		}
+ 	      else if (strncmp (sname, ".zdebug", strlen (".zdebug")) == 0)
+ 		{
+@@ -737,7 +703,7 @@ process_file (const char *fname)
+ 		  newname = snamebuf;
+ 		  if (compress_section (scn, size, sname, newname, ndx,
+ 					true, false, verbose > 0) < 0)
+-		    return cleanup (-1);
++		    goto cleanup;
+ 		}
+ 	      else if (verbose > 0)
+ 		printf ("[%zd] %s already decompressed\n", ndx, sname);
+@@ -752,7 +718,7 @@ process_file (const char *fname)
+ 			 Don't report even when verbose.  */
+ 		      if (compress_section (scn, size, sname, NULL, ndx,
+ 					    false, false, false) < 0)
+-			return cleanup (-1);
++			goto cleanup;
+ 		    }
+ 
+ 		  snamebuf[0] = '.';
+@@ -779,13 +745,13 @@ process_file (const char *fname)
+ 		    }
+ 		  else
+ 		    {
+-		      int res = compress_section (scn, size, sname, newname,
+-						  ndx, true, true,
+-						  verbose > 0);
+-		      if (res < 0)
+-			return cleanup (-1);
++		      int result = compress_section (scn, size, sname, newname,
++						     ndx, true, true,
++						     verbose > 0);
++		      if (result < 0)
++			goto cleanup;
+ 
+-		      if (res == 0)
++		      if (result == 0)
+ 			newname = NULL;
+ 		    }
+ 		}
+@@ -809,7 +775,7 @@ process_file (const char *fname)
+ 			 Don't report even when verbose.  */
+ 		      if (compress_section (scn, size, sname, NULL, ndx,
+ 					    true, false, false) < 0)
+-			return cleanup (-1);
++			goto cleanup;
+ 
+ 		      snamebuf[0] = '.';
+ 		      strcpy (&snamebuf[1], &sname[2]);
+@@ -837,7 +803,7 @@ process_file (const char *fname)
+ 		    }
+ 		  else if (compress_section (scn, size, sname, newname, ndx,
+ 					     false, true, verbose > 0) < 0)
+-		    return cleanup (-1);
++		    goto cleanup;
+ 		}
+ 	      else if (verbose > 0)
+ 		printf ("[%zd] %s already compressed\n", ndx, sname);
+@@ -851,7 +817,7 @@ process_file (const char *fname)
+       if (newscn == NULL)
+ 	{
+ 	  error (0, 0, "Couldn't create new section %zd", ndx);
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       GElf_Shdr shdr_mem;
+@@ -859,13 +825,13 @@ process_file (const char *fname)
+       if (shdr == NULL)
+ 	{
+ 	  error (0, 0, "Couldn't get shdr for section %zd", ndx);
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       if (gelf_update_shdr (newscn, shdr) == 0)
+         {
+ 	  error (0, 0, "Couldn't update section header %zd", ndx);
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       /* Except for the section header string table all data can be
+@@ -878,14 +844,14 @@ process_file (const char *fname)
+ 	  if (data == NULL)
+ 	    {
+ 	      error (0, 0, "Couldn't get data from section %zd", ndx);
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 
+ 	  Elf_Data *newdata = elf_newdata (newscn);
+ 	  if (newdata == NULL)
+ 	    {
+ 	      error (0, 0, "Couldn't create new data for section %zd", ndx);
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 
+ 	  *newdata = *data;
+@@ -903,7 +869,7 @@ process_file (const char *fname)
+ 	      if (name == NULL)
+ 		{
+ 		  error (0, 0, "Couldn't get name for section [%zd]", ndx);
+-		  return cleanup (-1);
++		  goto cleanup;
+ 		}
+ 	    }
+ 
+@@ -912,7 +878,7 @@ process_file (const char *fname)
+ 	  if ((scnstrents[ndx] = dwelf_strtab_add (names, name)) == NULL)
+ 	    {
+ 	      error (0, 0, "No memory to add section name string table");
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 
+ 	  /* If the symtab shares strings then add those too.  */
+@@ -929,7 +895,7 @@ process_file (const char *fname)
+ 		      /* Don't report the (internal) uncompression.  */
+ 		      if (compress_section (newscn, size, sname, NULL, ndx,
+ 					    false, false, false) < 0)
+-			return cleanup (-1);
++			goto cleanup;
+ 
+ 		      symtab_size = size;
+ 		      symtab_compressed = T_COMPRESS_ZLIB;
+@@ -939,7 +905,7 @@ process_file (const char *fname)
+ 		      /* Don't report the (internal) uncompression.  */
+ 		      if (compress_section (newscn, size, sname, NULL, ndx,
+ 					    true, false, false) < 0)
+-			return cleanup (-1);
++			goto cleanup;
+ 
+ 		      symtab_size = size;
+ 		      symtab_compressed = T_COMPRESS_GNU;
+@@ -951,7 +917,7 @@ process_file (const char *fname)
+ 		{
+ 		  error (0, 0, "Couldn't get symtab data for section [%zd] %s",
+ 			 ndx, name);
+-		  return cleanup (-1);
++		  goto cleanup;
+ 		}
+ 	      size_t elsize = gelf_fsize (elfnew, ELF_T_SYM, 1, EV_CURRENT);
+ 	      size_t syms = symd->d_size / elsize;
+@@ -963,7 +929,7 @@ process_file (const char *fname)
+ 		  if (sym == NULL)
+ 		    {
+ 		      error (0, 0, "Couldn't get symbol %zd", i);
+-		      return cleanup (-1);
++		      goto cleanup;
+ 		    }
+ 		  if (sym->st_name != 0)
+ 		    {
+@@ -975,13 +941,13 @@ process_file (const char *fname)
+ 		      if (symname == NULL)
+ 			{
+ 			  error (0, 0, "Couldn't get symbol %zd name", i);
+-			  return cleanup (-1);
++			  goto cleanup;
+ 			}
+ 		      symstrents[i] = dwelf_strtab_add (names, symname);
+ 		      if (symstrents[i] == NULL)
+ 			{
+ 			  error (0, 0, "No memory to add to symbol name");
+-			  return cleanup (-1);
++			  goto cleanup;
+ 			}
+ 		    }
+ 		}
+@@ -1000,19 +966,19 @@ process_file (const char *fname)
+ 	{
+ 	  error (0, 0, "Couldn't get new section header string table [%zd]",
+ 		 shdrstrndx);
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       Elf_Data *data = elf_newdata (scn);
+       if (data == NULL)
+ 	{
+ 	  error (0, 0, "Couldn't create new section header string table data");
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+       if (dwelf_strtab_finalize (names, data) == NULL)
+ 	{
+ 	  error (0, 0, "Not enough memory to create string table");
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+       namesbuf = data->d_buf;
+ 
+@@ -1022,7 +988,7 @@ process_file (const char *fname)
+ 	{
+ 	  error (0, 0, "Couldn't get shdr for new section strings %zd",
+ 		 shdrstrndx);
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       /* Note that we also might have to compress and possibly set
+@@ -1042,7 +1008,7 @@ process_file (const char *fname)
+ 	{
+ 	  error (0, 0, "Couldn't update new section strings [%zd]",
+ 		 shdrstrndx);
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       /* We might have to compress the data if the user asked us to,
+@@ -1058,7 +1024,7 @@ process_file (const char *fname)
+ 	    {
+ 	      error (0, 0, "Couldn't get section header string table [%zd]",
+ 		     shdrstrndx);
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 
+ 	  shdr = gelf_getshdr (oldscn, &shdr_mem);
+@@ -1066,7 +1032,7 @@ process_file (const char *fname)
+ 	    {
+ 	      error (0, 0, "Couldn't get shdr for old section strings [%zd]",
+ 		     shdrstrndx);
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 
+ 	  shstrtab_name = elf_strptr (elf, shdrstrndx, shdr->sh_name);
+@@ -1074,7 +1040,7 @@ process_file (const char *fname)
+ 	    {
+ 	      error (0, 0, "Couldn't get name for old section strings [%zd]",
+ 		     shdrstrndx);
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 
+ 	  shstrtab_size = shdr->sh_size;
+@@ -1091,7 +1057,7 @@ process_file (const char *fname)
+ 				shstrtab_newname, shdrstrndx,
+ 				shstrtab_compressed == T_COMPRESS_GNU,
+ 				true, verbose > 0) < 0)
+-	    return cleanup (-1);
++	    goto cleanup;
+ 	}
+     }
+ 
+@@ -1100,7 +1066,7 @@ process_file (const char *fname)
+   if (gelf_getehdr (elfnew, &newehdr) == NULL)
+     {
+       error (0, 0, "Couldn't re-get new ehdr: %s", elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   /* Set this after the sections have been created, otherwise section
+@@ -1108,7 +1074,7 @@ process_file (const char *fname)
+   if (setshdrstrndx (elfnew, &newehdr, shdrstrndx) != 0)
+     {
+       error (0, 0, "Couldn't set new shdrstrndx: %s", elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   /* Fixup pass.  Adjust string table references, symbol table and
+@@ -1125,7 +1091,7 @@ process_file (const char *fname)
+ 	  if (shdr == NULL)
+ 	    {
+ 	      error (0, 0, "Couldn't get shdr for section %zd", ndx);
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 
+ 	  /* Keep the offset of allocated sections so they are at the
+@@ -1147,7 +1113,7 @@ process_file (const char *fname)
+ 	  if (gelf_update_shdr (scn, shdr) == 0)
+ 	    {
+ 	      error (0, 0, "Couldn't update section header %zd", ndx);
+-	      return cleanup (-1);
++	      goto cleanup;
+ 	    }
+ 
+ 	  if (adjust_names && ndx == symtabndx)
+@@ -1160,7 +1126,7 @@ process_file (const char *fname)
+ 		{
+ 		  error (0, 0, "Couldn't get new symtab data section [%zd]",
+ 			 ndx);
+-		  return cleanup (-1);
++		  goto cleanup;
+ 		}
+ 	      size_t elsize = gelf_fsize (elfnew, ELF_T_SYM, 1, EV_CURRENT);
+ 	      size_t syms = symd->d_size / elsize;
+@@ -1171,7 +1137,7 @@ process_file (const char *fname)
+ 		  if (sym == NULL)
+ 		    {
+ 		      error (0, 0, "2 Couldn't get symbol %zd", i);
+-		      return cleanup (-1);
++		      goto cleanup;
+ 		    }
+ 
+ 		  if (sym->st_name != 0)
+@@ -1181,7 +1147,7 @@ process_file (const char *fname)
+ 		      if (gelf_update_sym (symd, i, sym) == 0)
+ 			{
+ 			  error (0, 0, "Couldn't update symbol %zd", i);
+-			  return cleanup (-1);
++			  goto cleanup;
+ 			}
+ 		    }
+ 		}
+@@ -1199,7 +1165,7 @@ process_file (const char *fname)
+ 		    {
+ 		      error (0, 0, "Couldn't get symbol table [%zd]",
+ 			     symtabndx);
+-		      return cleanup (-1);
++		      goto cleanup;
+ 		    }
+ 
+ 		  shdr = gelf_getshdr (oldscn, &shdr_mem);
+@@ -1207,7 +1173,7 @@ process_file (const char *fname)
+ 		    {
+ 		      error (0, 0, "Couldn't get old symbol table shdr [%zd]",
+ 			     symtabndx);
+-		      return cleanup (-1);
++		      goto cleanup;
+ 		    }
+ 
+ 		  symtab_name = elf_strptr (elf, shdrstrndx, shdr->sh_name);
+@@ -1215,7 +1181,7 @@ process_file (const char *fname)
+ 		    {
+ 		      error (0, 0, "Couldn't get old symbol table name [%zd]",
+ 			     symtabndx);
+-		      return cleanup (-1);
++		      goto cleanup;
+ 		    }
+ 
+ 		  symtab_size = shdr->sh_size;
+@@ -1233,7 +1199,7 @@ process_file (const char *fname)
+ 					symtab_newname, symtabndx,
+ 					symtab_compressed == T_COMPRESS_GNU,
+ 					true, verbose > 0) < 0)
+-		    return cleanup (-1);
++		    goto cleanup;
+ 		}
+ 	    }
+ 	}
+@@ -1247,7 +1213,7 @@ process_file (const char *fname)
+       if (gelf_getehdr (elfnew, &newehdr) == NULL)
+ 	{
+ 	  error (0, 0, "Couldn't get ehdr: %s", elf_errmsg (-1));
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+ 
+       /* Position the shdrs after the last (unallocated) section.  */
+@@ -1262,7 +1228,7 @@ process_file (const char *fname)
+       if (gelf_update_ehdr (elfnew, &newehdr) == 0)
+ 	{
+ 	  error (0, 0, "Couldn't update ehdr: %s", elf_errmsg (-1));
+-	  return cleanup (-1);
++	  goto cleanup;
+ 	}
+     }
+ 
+@@ -1272,7 +1238,7 @@ process_file (const char *fname)
+   if (elf_update (elfnew, ELF_C_WRITE) < 0)
+     {
+       error (0, 0, "Couldn't write %s: %s", fnew, elf_errmsg (-1));
+-      return cleanup (-1);
++      goto cleanup;
+     }
+ 
+   elf_end (elfnew);
+@@ -1294,14 +1260,45 @@ process_file (const char *fname)
+     if (rename (fnew, fname) != 0)
+       {
+ 	error (0, errno, "Couldn't rename %s to %s", fnew, fname);
+-	return cleanup (-1);
++	goto cleanup;
+       }
+ 
+   /* We are finally done with the new file, don't unlink it now.  */
+   free (fnew);
+   fnew = NULL;
++  res = 0;
++
++cleanup:
++  elf_end (elf);
++  close (fd);
+ 
+-  return cleanup (0);
++  elf_end (elfnew);
++  close (fdnew);
++
++  if (fnew != NULL)
++    {
++      unlink (fnew);
++      free (fnew);
++      fnew = NULL;
++    }
++
++  free (snamebuf);
++  if (names != NULL)
++    {
++      dwelf_strtab_free (names);
++      free (scnstrents);
++      free (symstrents);
++      free (namesbuf);
++      if (scnnames != NULL)
++	{
++	  for (size_t n = 0; n < shnum; n++)
++	    free (scnnames[n]);
++	  free (scnnames);
++	}
++    }
++
++  free (sections);
++  return res;
+ }
+ 
+ int
+-- 
+2.31.1
+
+
+From 92133f4e30988d06db5af1974159f11a4328a9df Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 10:27:07 +0100
+Subject: [PATCH 15/16] build: Check for -Wtrampolines support
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Clang does not support -Wtrampolines, so check if the compiler supports
+it before using it.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ ChangeLog        |  4 ++++
+ config/ChangeLog | 10 ++++++++++
+ config/eu.am     | 10 ++++++++--
+ configure.ac     |  9 +++++++++
+ 4 files changed, 31 insertions(+), 2 deletions(-)
+
+diff --git a/ChangeLog b/ChangeLog
+index d379e713..fdcc082b 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,7 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* configure.ac: Add -Wtrampolines check.
++
+ 2021-02-05  Mark Wielaard  <mark@klomp.org>
+ 
+ 	* configure.ac (AC_INIT): Set version to 0.183.
+diff --git a/config/ChangeLog b/config/ChangeLog
+index d84d38c3..cd8ff74c 100644
+--- a/config/ChangeLog
++++ b/config/ChangeLog
+@@ -1,3 +1,13 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* eu.am (TRAMPOLINES_WARNING): New variable.
++	(AM_CFLAGS): Use TRAMPOLINES_WARNING.
++	(AM_CXXFLAGS): Likewise.
++
++2021-02-12  Mark Wielaard  <mark@klomp.org>
++
++	* elfutils.spec.in: Escape %%check in comment.
++
+ 2021-02-05  Mark Wielaard  <mark@klomp.org>
+ 
+ 	* elfutils.spec.in: Update for 0.183.
+diff --git a/config/eu.am b/config/eu.am
+index e109ffd3..02512570 100644
+--- a/config/eu.am
++++ b/config/eu.am
+@@ -73,8 +73,14 @@ else
+ IMPLICIT_FALLTHROUGH_WARNING=
+ endif
+ 
++if HAVE_TRAMPOLINES_WARNING
++TRAMPOLINES_WARNING=-Wtrampolines
++else
++TRAMPOLINES_WARNING=
++endif
++
+ AM_CFLAGS = -std=gnu99 -Wall -Wshadow -Wformat=2 \
+-	    -Wold-style-definition -Wstrict-prototypes -Wtrampolines \
++	    -Wold-style-definition -Wstrict-prototypes $(TRAMPOLINES_WARNING) \
+ 	    $(LOGICAL_OP_WARNING) $(DUPLICATED_COND_WARNING) \
+ 	    $(NULL_DEREFERENCE_WARNING) $(IMPLICIT_FALLTHROUGH_WARNING) \
+ 	    $(if $($(*F)_no_Werror),,-Werror) \
+@@ -84,7 +90,7 @@ AM_CFLAGS = -std=gnu99 -Wall -Wshadow -Wformat=2 \
+ 	    $($(*F)_CFLAGS)
+ 
+ AM_CXXFLAGS = -std=c++11 -Wall -Wshadow \
+-	   -Wtrampolines \
++	   $(TRAMPOLINES_WARNING) \
+ 	   $(LOGICAL_OP_WARNING) $(DUPLICATED_COND_WARNING) \
+ 	   $(NULL_DEREFERENCE_WARNING) $(IMPLICIT_FALLTHROUGH_WARNING) \
+ 	   $(if $($(*F)_no_Werror),,-Werror) \
+diff --git a/configure.ac b/configure.ac
+index e56aeb6a..5f3321aa 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -537,6 +537,15 @@ if test "$ac_cv_implicit_fallthrough" = "yes"; then
+ 		  [Defined if __attribute__((fallthrough)) is supported])
+ fi
+ 
++AC_CACHE_CHECK([whether the compiler accepts -Wtrampolines], ac_cv_trampolines, [dnl
++old_CFLAGS="$CFLAGS"
++CFLAGS="$CFLAGS -Wtrampolines -Werror"
++AC_COMPILE_IFELSE([AC_LANG_SOURCE([])],
++		  ac_cv_trampolines=yes, ac_cv_trampolines=no)
++CFLAGS="$old_CFLAGS"])
++AM_CONDITIONAL(HAVE_TRAMPOLINES_WARNING,
++	       [test "x$ac_cv_trampolines" != "xno"])
++
+ saved_LIBS="$LIBS"
+ AC_SEARCH_LIBS([argp_parse], [argp])
+ LIBS="$saved_LIBS"
+-- 
+2.31.1
+
+
+From 412d342e6329515daa66ac51ab2624ea57165ce5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Timm=20B=C3=A4der?= <tbaeder@redhat.com>
+Date: Wed, 17 Feb 2021 10:27:08 +0100
+Subject: [PATCH 16/16] build: Check for -Wno-packed-not-aligned support
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Clang does not support this warning, so check for compiler support
+before using it.
+
+Signed-off-by: Timm Bäder <tbaeder@redhat.com>
+---
+ ChangeLog        |  4 ++++
+ config/ChangeLog |  6 ++++++
+ config/eu.am     | 10 ++++++++--
+ configure.ac     |  9 +++++++++
+ 4 files changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/ChangeLog b/ChangeLog
+index fdcc082b..fe7e8498 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,7 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* configure.ac: Add -Wno-packed-not-aligned check.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* configure.ac: Add -Wtrampolines check.
+diff --git a/config/ChangeLog b/config/ChangeLog
+index cd8ff74c..0e179cbc 100644
+--- a/config/ChangeLog
++++ b/config/ChangeLog
+@@ -1,3 +1,9 @@
++2021-02-17  Timm Bäder  <tbaeder@redhat.com>
++
++	* eu.am (NO_PACKED_NOT_ALIGNED_WARNING): New variable.
++	(AM_CFLAGS): Use NO_PACKED_NOT_ALIGNED_WARNING.
++	(AM_CXXFLAGS): Likewise.
++
+ 2021-02-17  Timm Bäder  <tbaeder@redhat.com>
+ 
+ 	* eu.am (TRAMPOLINES_WARNING): New variable.
+diff --git a/config/eu.am b/config/eu.am
+index 02512570..2c3e4571 100644
+--- a/config/eu.am
++++ b/config/eu.am
+@@ -79,6 +79,12 @@ else
+ TRAMPOLINES_WARNING=
+ endif
+ 
++if HAVE_NO_PACKED_NOT_ALIGNED_WARNING
++NO_PACKED_NOT_ALIGNED_WARNING=-Wno-packed-not-aligned
++else
++NO_PACKED_NOT_ALIGNED_WARNING=
++endif
++
+ AM_CFLAGS = -std=gnu99 -Wall -Wshadow -Wformat=2 \
+ 	    -Wold-style-definition -Wstrict-prototypes $(TRAMPOLINES_WARNING) \
+ 	    $(LOGICAL_OP_WARNING) $(DUPLICATED_COND_WARNING) \
+@@ -86,7 +92,7 @@ AM_CFLAGS = -std=gnu99 -Wall -Wshadow -Wformat=2 \
+ 	    $(if $($(*F)_no_Werror),,-Werror) \
+ 	    $(if $($(*F)_no_Wunused),,-Wunused -Wextra) \
+ 	    $(if $($(*F)_no_Wstack_usage),,$(STACK_USAGE_WARNING)) \
+-	    $(if $($(*F)_no_Wpacked_not_aligned),-Wno-packed-not-aligned,) \
++	    $(if $($(*F)_no_Wpacked_not_aligned),$(NO_PACKED_NOT_ALIGNED_WARNING),) \
+ 	    $($(*F)_CFLAGS)
+ 
+ AM_CXXFLAGS = -std=c++11 -Wall -Wshadow \
+@@ -96,7 +102,7 @@ AM_CXXFLAGS = -std=c++11 -Wall -Wshadow \
+ 	   $(if $($(*F)_no_Werror),,-Werror) \
+ 	   $(if $($(*F)_no_Wunused),,-Wunused -Wextra) \
+ 	   $(if $($(*F)_no_Wstack_usage),,$(STACK_USAGE_WARNING)) \
+-	   $(if $($(*F)_no_Wpacked_not_aligned),-Wno-packed-not-aligned,) \
++	   $(if $($(*F)_no_Wpacked_not_aligned),$(NO_PACKED_NOT_ALIGNED_WARNING),) \
+ 	   $($(*F)_CXXFLAGS)
+ 
+ COMPILE.os = $(filter-out -fprofile-arcs -ftest-coverage, $(COMPILE))
+diff --git a/configure.ac b/configure.ac
+index 5f3321aa..aa8439e8 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -546,6 +546,15 @@ CFLAGS="$old_CFLAGS"])
+ AM_CONDITIONAL(HAVE_TRAMPOLINES_WARNING,
+ 	       [test "x$ac_cv_trampolines" != "xno"])
+ 
++AC_CACHE_CHECK([whether the compiler accepts -Wno-packed-not-aligned], ac_cv_no_packed_not_aligned, [dnl
++old_CFLAGS="$CFLAGS"
++CFLAGS="$CFLAGS -Wno-packed-not-aligned -Werror"
++AC_COMPILE_IFELSE([AC_LANG_SOURCE([])],
++		  ac_cv_no_packed_not_aligned=yes, ac_cv_no_packed_not_aligned=no)
++CFLAGS="$old_CFLAGS"])
++AM_CONDITIONAL(HAVE_NO_PACKED_NOT_ALIGNED_WARNING,
++	       [test "x$ac_cv_no_packed_not_aligned" != "xno"])
++
+ saved_LIBS="$LIBS"
+ AC_SEARCH_LIBS([argp_parse], [argp])
+ LIBS="$saved_LIBS"
+-- 
+2.31.1
+
