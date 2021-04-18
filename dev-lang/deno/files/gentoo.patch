@@ -1,0 +1,206 @@
+diff --git a/build.rs b/build.rs
+index 0f53e65..9ca2f38 100644
+--- a/build.rs
++++ b/build.rs
+@@ -60,20 +60,8 @@ fn main() {
+ fn build_v8() {
+   env::set_var("DEPOT_TOOLS_WIN_TOOLCHAIN", "0");
+ 
+-  // cargo publish doesn't like pyc files.
+-  env::set_var("PYTHONDONTWRITEBYTECODE", "1");
+-
+-  // git submodule update --init --recursive
+-  let libcxx_src = PathBuf::from("buildtools/third_party/libc++/trunk/src");
+-  if !libcxx_src.is_dir() {
+-    eprintln!(
+-      "missing source code. Run 'git submodule update --init --recursive'"
+-    );
+-    exit(1);
+-  }
+-
+   if need_gn_ninja_download() {
+-    download_ninja_gn_binaries();
++    panic!("gn and ninja must be installed")
+   }
+ 
+   // On windows, rustc cannot link with a V8 debug build.
+@@ -92,29 +80,10 @@ fn build_v8() {
+     gn_args.push("host_cpu=\"arm64\"".to_string())
+   }
+ 
+-  if let Some(clang_base_path) = find_compatible_system_clang() {
+-    println!("clang_base_path {}", clang_base_path.display());
+-    gn_args.push(format!("clang_base_path={:?}", clang_base_path));
+-    // TODO: Dedupe this with the one from cc_wrapper()
+-    gn_args.push("treat_warnings_as_errors=false".to_string());
+-    // we can't use chromiums clang plugins with a system clang
+-    gn_args.push("clang_use_chrome_plugins=false".to_string());
+-  } else {
+-    let clang_base_path = clang_download();
+-    gn_args.push(format!("clang_base_path={:?}", clang_base_path));
+-  }
+-
+-  if let Some(p) = env::var_os("SCCACHE") {
+-    cc_wrapper(&mut gn_args, &Path::new(&p));
+-  } else if let Ok(p) = which("sccache") {
+-    cc_wrapper(&mut gn_args, &p);
+-  } else if let Some(p) = env::var_os("CCACHE") {
+-    cc_wrapper(&mut gn_args, &Path::new(&p));
+-  } else if let Ok(p) = which("ccache") {
+-    cc_wrapper(&mut gn_args, &p);
+-  } else {
+-    println!("cargo:warning=Not using sccache or ccache");
+-  }
++  // TODO: Dedupe this with the one from cc_wrapper()
++  gn_args.push("treat_warnings_as_errors=false".to_string());
++  // we can't use chromiums clang plugins with a system clang
++  gn_args.push("clang_use_chrome_plugins=false".to_string());
+ 
+   if let Ok(args) = env::var("GN_ARGS") {
+     for arg in args.split_whitespace() {
+@@ -169,33 +138,6 @@ fn platform() -> &'static str {
+   }
+ }
+ 
+-fn download_ninja_gn_binaries() {
+-  let target_dir = build_dir();
+-  let bin_dir = target_dir
+-    .join("ninja_gn_binaries-20210101")
+-    .join(platform());
+-  let gn = bin_dir.join("gn");
+-  let ninja = bin_dir.join("ninja");
+-  #[cfg(windows)]
+-  let gn = gn.with_extension("exe");
+-  #[cfg(windows)]
+-  let ninja = ninja.with_extension("exe");
+-
+-  if !gn.exists() || !ninja.exists() {
+-    let status = Command::new("python")
+-      .arg("./tools/ninja_gn_binaries.py")
+-      .arg("--dir")
+-      .arg(&target_dir)
+-      .status()
+-      .expect("ninja_gn_binaries.py download failed");
+-    assert!(status.success());
+-  }
+-  assert!(gn.exists());
+-  assert!(ninja.exists());
+-  env::set_var("GN", gn);
+-  env::set_var("NINJA", ninja);
+-}
+-
+ fn static_lib_url() -> String {
+   let default_base = "https://github.com/denoland/rusty_v8/releases/download";
+   let base =
+@@ -254,36 +196,11 @@ fn download_file(url: String, filename: PathBuf) {
+     return;
+   }
+ 
+-  // Try downloading with python first. Python is a V8 build dependency,
+-  // so this saves us from adding a Rust HTTP client dependency.
+-  println!("Downloading {}", url);
+-  let status = Command::new("python")
+-    .arg("./tools/download_file.py")
+-    .arg("--url")
+-    .arg(&url)
+-    .arg("--filename")
+-    .arg(&filename)
+-    .status();
+-
+-  // Python is only a required dependency for `V8_FROM_SOURCE` builds.
+-  // If python is not available, try falling back to curl.
+-  let status = match status {
+-    Ok(status) if status.success() => status,
+-    _ => {
+-      println!("Python downloader failed, trying with curl.");
+-      Command::new("curl")
+-        .arg("-L")
+-        .arg("-s")
+-        .arg("-o")
+-        .arg(&filename)
+-        .arg(&url)
+-        .status()
+-        .unwrap()
+-    }
+-  };
+-
+-  assert!(status.success());
+-  assert!(filename.exists());
++  panic!(
++    "Try to download {} to {:?}, \
++         but network access is impossible in portage sandbox!",
++    url, filename
++  );
+ }
+ 
+ fn download_static_lib_binaries() {
+@@ -319,61 +236,6 @@ fn need_gn_ninja_download() -> bool {
+   !has_ninja || !has_gn
+ }
+ 
+-// Chromiums gn arg clang_base_path is currently compatible with:
+-// * Apples clang and clang from homebrew's llvm@x packages
+-// * the official binaries from releases.llvm.org
+-// * unversioned (Linux) packages of clang (if recent enough)
+-// but unfortunately it doesn't work with version-suffixed packages commonly
+-// found in Linux packet managers
+-fn is_compatible_clang_version(clang_path: &Path) -> bool {
+-  if let Ok(o) = Command::new(clang_path).arg("--version").output() {
+-    let _output = String::from_utf8(o.stdout).unwrap();
+-    // TODO check version output to make sure it's supported.
+-    const _MIN_APPLE_CLANG_VER: f32 = 11.0;
+-    const _MIN_LLVM_CLANG_VER: f32 = 8.0;
+-    return true;
+-  }
+-  false
+-}
+-
+-fn find_compatible_system_clang() -> Option<PathBuf> {
+-  if let Ok(p) = env::var("CLANG_BASE_PATH") {
+-    let base_path = Path::new(&p);
+-    let clang_path = base_path.join("bin").join("clang");
+-    if is_compatible_clang_version(&clang_path) {
+-      return Some(base_path.to_path_buf());
+-    }
+-  }
+-
+-  println!("using Chromiums clang");
+-  None
+-}
+-
+-// Download chromium's clang into OUT_DIR because Cargo will not allow us to
+-// modify the source directory.
+-fn clang_download() -> PathBuf {
+-  let clang_base_path = build_dir().join("clang");
+-  println!("clang_base_path {}", clang_base_path.display());
+-  let status = Command::new("python")
+-    .arg("./tools/clang/scripts/update.py")
+-    .arg("--output-dir")
+-    .arg(&clang_base_path)
+-    .status()
+-    .expect("clang download failed");
+-  assert!(status.success());
+-  assert!(clang_base_path.exists());
+-  clang_base_path
+-}
+-
+-fn cc_wrapper(gn_args: &mut Vec<String>, sccache_path: &Path) {
+-  gn_args.push(format!("cc_wrapper={:?}", sccache_path));
+-  // Disable treat_warnings_as_errors until this sccache bug is fixed:
+-  // https://github.com/mozilla/sccache/issues/264
+-  if cfg!(target_os = "windows") {
+-    gn_args.push("treat_warnings_as_errors=false".to_string());
+-  }
+-}
+-
+ struct Dirs {
+   pub out: PathBuf,
+   pub root: PathBuf,
+@@ -501,6 +363,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
+     cmd.arg(format!("--root={}", dirs.root.display()));
+     cmd.arg("gen");
+     cmd.arg(&gn_out_dir);
++    cmd.arg("-vv");
+     cmd.arg("--args=".to_owned() + &args);
+     cmd.stdout(Stdio::inherit());
+     cmd.stderr(Stdio::inherit());
