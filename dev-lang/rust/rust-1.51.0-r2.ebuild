@@ -144,6 +144,11 @@ PATCHES=(
 	"${FILESDIR}"/llvm-12-compiler-rt.patch
 	"${FILESDIR}"/musl-fix-libunwind.patch
 	"${FILESDIR}"/fix-self-bootstrap.patch
+	"${FILESDIR}"/rustc-1.51.0-backport-pr81728.patch
+    "${FILESDIR}"/rustc-1.51.0-backport-pr81741.patch
+    "${FILESDIR}"/rustc-1.51.0-backport-pr82289.patch
+    "${FILESDIR}"/rustc-1.51.0-backport-pr82292.patch
+    "${FILESDIR}"/rustc-1.51.0-backport-pr83629.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
@@ -330,6 +335,7 @@ src_configure() {
 		backtrace-on-ice = true
 		jemalloc = false
 		llvm-libunwind = "$(usex llvm-libunwind system no)"
+		debug-logging = true
 		[dist]
 		src-tarball = false
 	_EOF_
@@ -528,6 +534,7 @@ src_test() {
 src_install() {
 	# https://github.com/rust-lang/rust/issues/77721
 	# also 1.46.0-don-t-create-prefix-at-time-of-check.patch
+	unset RUSTC_WRAPPER
 	dodir "/usr/lib/${PN}/${PV}"
 	(
 	IFS=$'\n'
