@@ -413,11 +413,8 @@ KEYWORDS="~amd64"
 RESTRICT="mirror"
 IUSE="libcxx"
 
-DEPEND="
-	>=dev-libs/glib-2.66.7
-"
-
 BDEPEND="
+	>=dev-libs/glib-2.66.7
 	>=dev-util/gn-0.1807
 	>=dev-util/ninja-1.10.0
 	>=sys-devel/clang-10.0.0
@@ -454,13 +451,12 @@ src_configure() {
 	export V8_FROM_SOURCE=1
 
 	if ! tc-is-clang; then
-		die "rusty_v8 require CC=clang CXX=clang++"
+		die "deno require CC=clang CXX=clang++"
 	fi
-
-	tc-export AR CC CXX NM
 
 	local clang_path=$($(tc-getCC) --print-prog-name clang)
 	local clang_bin=$(dirname ${clang_path})
+	# should be /usr/lib/llvm/12
 	local clang_base=$(dirname ${clang_bin})
 	local myconf_gn=""
 	myconf_gn+="is_clang=true use_gold=false use_sysroot=false use_custom_libcxx=false"
@@ -472,6 +468,7 @@ src_configure() {
 	export GN_ARGS="${myconf_gn}"
 
 	if use libcxx; then
+		# for cc-rs
 		export CXXSTDLIB=c++
 	fi
 	default
@@ -479,7 +476,7 @@ src_configure() {
 
 src_compile() {
 	cd "${S}/cli"
-	cargo build --release -vv || die
+	cargo_src_compile -vv
 }
 
 src_install() {
