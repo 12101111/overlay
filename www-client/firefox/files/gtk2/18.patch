@@ -1,0 +1,110 @@
+From 3104162e833e4f86d60b2250b06505324abfdeb2 Mon Sep 17 00:00:00 2001
+From: David Parks <daparks@mozilla.com>
+Date: Mon, 5 Apr 2021 23:48:41 +0000
+Subject: [PATCH] Bug 1682030 - Remove MIME type table from about:plugins 
+ r=Gijs,mixedpuppy
+
+As part of removing all NPAPI plugin support, plugin MIME type is no longer relevant (it does not apply to GMP plugins) so we remove the table from about:plugins.
+
+Differential Revision: https://phabricator.services.mozilla.com/D107156
+---
+ browser/actors/AboutPluginsParent.jsm         |  1 -
+ toolkit/content/plugins.js                    | 58 -------------------
+ .../extensions/internal/GMPProvider.jsm       |  3 -
+ 3 files changed, 62 deletions(-)
+
+diff --git a/browser/actors/AboutPluginsParent.jsm b/browser/actors/AboutPluginsParent.jsm
+index e38122dc8c4fd..78eaeba58000a 100644
+--- a/browser/actors/AboutPluginsParent.jsm
++++ b/browser/actors/AboutPluginsParent.jsm
+@@ -21,7 +21,6 @@ const NEEDED_PROPS = [
+   "isActive",
+   "blocklistState",
+   "description",
+-  "pluginMimeTypes",
+ ];
+ 
+ class AboutPluginsParent extends JSWindowActorParent {
+diff --git a/toolkit/content/plugins.js b/toolkit/content/plugins.js
+index deba5ebf1bcc3..64a877796d2bd 100644
+--- a/toolkit/content/plugins.js
++++ b/toolkit/content/plugins.js
+@@ -126,64 +126,6 @@ RPMSendQuery("RequestPlugins", {}).then(aPlugins => {
+       var descDd = document.createElement("dd");
+       descDd.appendChild(document.createTextNode(plugin.description));
+       dl.appendChild(descDd);
+-
+-      // MIME Type table
+-      var mimetypeTable = document.createElement("table");
+-      mimetypeTable.setAttribute("border", "1");
+-      mimetypeTable.setAttribute("class", "contenttable");
+-      fragment.appendChild(mimetypeTable);
+-
+-      var thead = document.createElement("thead");
+-      mimetypeTable.appendChild(thead);
+-      var tr = document.createElement("tr");
+-      thead.appendChild(tr);
+-
+-      // "MIME Type" column header
+-      var typeTh = document.createElement("th");
+-      typeTh.setAttribute("class", "type");
+-      document.l10n.setAttributes(typeTh, "mime-type-label");
+-      tr.appendChild(typeTh);
+-
+-      // "Description" column header
+-      var descTh = document.createElement("th");
+-      descTh.setAttribute("class", "desc");
+-      document.l10n.setAttributes(descTh, "description-label");
+-      tr.appendChild(descTh);
+-
+-      // "Suffixes" column header
+-      var suffixesTh = document.createElement("th");
+-      suffixesTh.setAttribute("class", "suff");
+-      document.l10n.setAttributes(suffixesTh, "suffixes-label");
+-      tr.appendChild(suffixesTh);
+-
+-      var tbody = document.createElement("tbody");
+-      mimetypeTable.appendChild(tbody);
+-
+-      var mimeTypes = plugin.pluginMimeTypes;
+-      for (var j = 0; j < mimeTypes.length; j++) {
+-        var mimetype = mimeTypes[j];
+-        if (mimetype) {
+-          var mimetypeRow = document.createElement("tr");
+-          tbody.appendChild(mimetypeRow);
+-
+-          // "application/x-shockwave-flash"
+-          var typename = document.createElement("td");
+-          typename.appendChild(document.createTextNode(mimetype.type));
+-          mimetypeRow.appendChild(typename);
+-
+-          // "Shockwave Flash"
+-          var description = document.createElement("td");
+-          description.appendChild(
+-            document.createTextNode(mimetype.description)
+-          );
+-          mimetypeRow.appendChild(description);
+-
+-          // "swf"
+-          var suffixes = document.createElement("td");
+-          suffixes.appendChild(document.createTextNode(mimetype.suffixes));
+-          mimetypeRow.appendChild(suffixes);
+-        }
+-      }
+     }
+   }
+ 
+diff --git a/toolkit/mozapps/extensions/internal/GMPProvider.jsm b/toolkit/mozapps/extensions/internal/GMPProvider.jsm
+index 4c993f82a740d..faeef3f1e7c74 100644
+--- a/toolkit/mozapps/extensions/internal/GMPProvider.jsm
++++ b/toolkit/mozapps/extensions/internal/GMPProvider.jsm
+@@ -438,9 +438,6 @@ GMPWrapper.prototype = {
+     return this._updateTask;
+   },
+ 
+-  get pluginMimeTypes() {
+-    return [];
+-  },
+   get pluginLibraries() {
+     if (this.isInstalled) {
+       let path = this.version;

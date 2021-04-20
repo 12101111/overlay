@@ -1,0 +1,473 @@
+From 4e9ed6007969572e8f2c8d82c4b54e6ff9c70bd4 Mon Sep 17 00:00:00 2001
+From: David Parks <daparks@mozilla.com>
+Date: Mon, 5 Apr 2021 23:48:43 +0000
+Subject: [PATCH] Bug 1682030 - Remove Windows NPAPI plugin proccess sandbox
+ r=bobowen
+
+Removes Windows NPAPI process sandboxing code, including the code to establish a viable temp directory that was accessible by the sandboxed process.
+
+Differential Revision: https://phabricator.services.mozilla.com/D108688
+---
+ ipc/glue/GeckoChildProcessHost.cpp            |  19 --
+ .../remoteSandboxBroker.cpp                   |   6 -
+ .../remotesandboxbroker/remoteSandboxBroker.h |   1 -
+ .../win/src/sandboxbroker/sandboxBroker.cpp   | 167 ------------------
+ .../win/src/sandboxbroker/sandboxBroker.h     |   3 -
+ toolkit/xre/nsXREDirProvider.cpp              |  68 +------
+ toolkit/xre/nsXREDirProvider.h                |   3 -
+ xpcom/io/nsAppDirectoryServiceDefs.h          |   6 -
+ 8 files changed, 5 insertions(+), 268 deletions(-)
+
+diff --git a/ipc/glue/GeckoChildProcessHost.cpp b/ipc/glue/GeckoChildProcessHost.cpp
+index aa8c62fff4f67..dd5052e301710 100644
+--- a/ipc/glue/GeckoChildProcessHost.cpp
++++ b/ipc/glue/GeckoChildProcessHost.cpp
+@@ -588,9 +588,6 @@ void GeckoChildProcessHost::PrepareLaunch() {
+ #endif
+ 
+ #ifdef XP_WIN
+-  if (mProcessType == GeckoProcessType_Plugin) {
+-    InitWindowsGroupID();
+-  }
+ 
+ #  if defined(MOZ_SANDBOX)
+   // We need to get the pref here as the process is launched off main thread.
+@@ -1128,12 +1125,6 @@ bool PosixProcessLauncher::DoSetup() {
+     const char* ld_library_path = PR_GetEnv("LD_LIBRARY_PATH");
+     nsCString new_ld_lib_path(path.get());
+ 
+-#    ifdef MOZ_WIDGET_GTK
+-    if (mProcessType == GeckoProcessType_Plugin) {
+-      new_ld_lib_path.AppendLiteral("/gtk2:");
+-      new_ld_lib_path.Append(path.get());
+-    }
+-#    endif  // MOZ_WIDGET_GTK
+     if (ld_library_path && *ld_library_path) {
+       new_ld_lib_path.Append(':');
+       new_ld_lib_path.Append(ld_library_path);
+@@ -1422,15 +1413,6 @@ bool WindowsProcessLauncher::DoSetup() {
+         mUseSandbox = true;
+       }
+       break;
+-    case GeckoProcessType_Plugin:
+-      if (mSandboxLevel > 0 && !PR_GetEnv("MOZ_DISABLE_NPAPI_SANDBOX")) {
+-        if (!mResults.mSandboxBroker->SetSecurityLevelForPluginProcess(
+-                mSandboxLevel)) {
+-          return false;
+-        }
+-        mUseSandbox = true;
+-      }
+-      break;
+     case GeckoProcessType_IPDLUnitTest:
+       // XXX: We don't sandbox this process type yet
+       break;
+@@ -1572,7 +1554,6 @@ bool WindowsProcessLauncher::DoFinishLaunch() {
+     switch (mProcessType) {
+       case GeckoProcessType_Default:
+         MOZ_CRASH("shouldn't be launching a parent process");
+-      case GeckoProcessType_Plugin:
+       case GeckoProcessType_IPDLUnitTest:
+         // No handle duplication necessary.
+         break;
+diff --git a/security/sandbox/win/src/remotesandboxbroker/remoteSandboxBroker.cpp b/security/sandbox/win/src/remotesandboxbroker/remoteSandboxBroker.cpp
+index 29bf2d4d11098..de08dd6b37b73 100644
+--- a/security/sandbox/win/src/remotesandboxbroker/remoteSandboxBroker.cpp
++++ b/security/sandbox/win/src/remotesandboxbroker/remoteSandboxBroker.cpp
+@@ -157,12 +157,6 @@ bool RemoteSandboxBroker::SetSecurityLevelForSocketProcess() {
+       "RemoteSandboxBroker::SetSecurityLevelForSocketProcess not Implemented");
+ }
+ 
+-bool RemoteSandboxBroker::SetSecurityLevelForPluginProcess(
+-    int32_t aSandboxLevel) {
+-  MOZ_CRASH(
+-      "RemoteSandboxBroker::SetSecurityLevelForPluginProcess not Implemented");
+-}
+-
+ AbstractSandboxBroker* CreateRemoteSandboxBroker() {
+   return new RemoteSandboxBroker();
+ }
+diff --git a/security/sandbox/win/src/remotesandboxbroker/remoteSandboxBroker.h b/security/sandbox/win/src/remotesandboxbroker/remoteSandboxBroker.h
+index 89456c3a3b7af..3ed2084ad0dee 100644
+--- a/security/sandbox/win/src/remotesandboxbroker/remoteSandboxBroker.h
++++ b/security/sandbox/win/src/remotesandboxbroker/remoteSandboxBroker.h
+@@ -39,7 +39,6 @@ class RemoteSandboxBroker : public AbstractSandboxBroker {
+       int32_t aSandboxLevel, const nsCOMPtr<nsIFile>& aProfileDir) override;
+   bool SetSecurityLevelForRDDProcess() override;
+   bool SetSecurityLevelForSocketProcess() override;
+-  bool SetSecurityLevelForPluginProcess(int32_t aSandboxLevel) override;
+   bool SetSecurityLevelForGMPlugin(SandboxLevel aLevel,
+                                    bool aIsRemoteLaunch = false) override;
+   bool AllowReadFile(wchar_t const* file) override;
+diff --git a/security/sandbox/win/src/sandboxbroker/sandboxBroker.cpp b/security/sandbox/win/src/sandboxbroker/sandboxBroker.cpp
+index 86810bad4f39e..5c07809a6caf6 100644
+--- a/security/sandbox/win/src/sandboxbroker/sandboxBroker.cpp
++++ b/security/sandbox/win/src/sandboxbroker/sandboxBroker.cpp
+@@ -49,7 +49,6 @@ bool SandboxBroker::sRunningFromNetworkDrive = false;
+ static UniquePtr<nsString> sBinDir;
+ static UniquePtr<nsString> sProfileDir;
+ static UniquePtr<nsString> sContentTempDir;
+-static UniquePtr<nsString> sPluginTempDir;
+ static UniquePtr<nsString> sRoamingAppDataDir;
+ static UniquePtr<nsString> sLocalAppDataDir;
+ static UniquePtr<nsString> sUserExtensionsDevDir;
+@@ -157,8 +156,6 @@ void SandboxBroker::GeckoDependentInitialize() {
+     CacheDirAndAutoClear(dirSvc, NS_APP_USER_PROFILE_50_DIR, &sProfileDir);
+     CacheDirAndAutoClear(dirSvc, NS_APP_CONTENT_PROCESS_TEMP_DIR,
+                          &sContentTempDir);
+-    CacheDirAndAutoClear(dirSvc, NS_APP_PLUGIN_PROCESS_TEMP_DIR,
+-                         &sPluginTempDir);
+     CacheDirAndAutoClear(dirSvc, NS_WIN_APPDATA_DIR, &sRoamingAppDataDir);
+     CacheDirAndAutoClear(dirSvc, NS_WIN_LOCAL_APPDATA_DIR, &sLocalAppDataDir);
+     CacheDirAndAutoClear(dirSvc, XRE_USER_SYS_EXTENSION_DEV_DIR,
+@@ -1186,170 +1183,6 @@ bool SandboxBroker::SetSecurityLevelForSocketProcess() {
+   return true;
+ }
+ 
+-bool SandboxBroker::SetSecurityLevelForPluginProcess(int32_t aSandboxLevel) {
+-  if (!mPolicy) {
+-    return false;
+-  }
+-
+-  sandbox::JobLevel jobLevel;
+-  sandbox::TokenLevel accessTokenLevel;
+-  sandbox::IntegrityLevel initialIntegrityLevel;
+-  sandbox::IntegrityLevel delayedIntegrityLevel;
+-
+-  if (aSandboxLevel > 2) {
+-    jobLevel = sandbox::JOB_UNPROTECTED;
+-    accessTokenLevel = sandbox::USER_LIMITED;
+-    initialIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
+-    delayedIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
+-  } else if (aSandboxLevel == 2) {
+-    jobLevel = sandbox::JOB_UNPROTECTED;
+-    accessTokenLevel = sandbox::USER_INTERACTIVE;
+-    initialIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
+-    delayedIntegrityLevel = sandbox::INTEGRITY_LEVEL_LOW;
+-  } else {
+-    jobLevel = sandbox::JOB_NONE;
+-    accessTokenLevel = sandbox::USER_NON_ADMIN;
+-    initialIntegrityLevel = sandbox::INTEGRITY_LEVEL_MEDIUM;
+-    delayedIntegrityLevel = sandbox::INTEGRITY_LEVEL_MEDIUM;
+-  }
+-
+-  sandbox::ResultCode result =
+-      SetJobLevel(mPolicy, jobLevel, 0 /* ui_exceptions */);
+-  SANDBOX_ENSURE_SUCCESS(result,
+-                         "Setting job level failed, have you set memory limit "
+-                         "when jobLevel == JOB_NONE?");
+-
+-  result = mPolicy->SetTokenLevel(sandbox::USER_RESTRICTED_SAME_ACCESS,
+-                                  accessTokenLevel);
+-  SANDBOX_ENSURE_SUCCESS(
+-      result,
+-      "Lockdown level cannot be USER_UNPROTECTED or USER_LAST if initial level "
+-      "was USER_RESTRICTED_SAME_ACCESS");
+-
+-  result = mPolicy->SetIntegrityLevel(initialIntegrityLevel);
+-  SANDBOX_ENSURE_SUCCESS(result,
+-                         "SetIntegrityLevel should never fail, what happened?");
+-
+-  result = mPolicy->SetDelayedIntegrityLevel(delayedIntegrityLevel);
+-  SANDBOX_ENSURE_SUCCESS(
+-      result, "SetDelayedIntegrityLevel should never fail, what happened?");
+-
+-  mPolicy->SetLockdownDefaultDacl();
+-  mPolicy->AddRestrictingRandomSid();
+-
+-  sandbox::MitigationFlags mitigations =
+-      sandbox::MITIGATION_BOTTOM_UP_ASLR | sandbox::MITIGATION_HEAP_TERMINATE |
+-      sandbox::MITIGATION_SEHOP | sandbox::MITIGATION_DEP_NO_ATL_THUNK |
+-      sandbox::MITIGATION_DEP | sandbox::MITIGATION_HARDEN_TOKEN_IL_POLICY |
+-      sandbox::MITIGATION_EXTENSION_POINT_DISABLE |
+-      sandbox::MITIGATION_NONSYSTEM_FONT_DISABLE |
+-      sandbox::MITIGATION_IMAGE_LOAD_PREFER_SYS32;
+-
+-  if (!sRunningFromNetworkDrive) {
+-    mitigations |= sandbox::MITIGATION_IMAGE_LOAD_NO_REMOTE |
+-                   sandbox::MITIGATION_IMAGE_LOAD_NO_LOW_LABEL;
+-  }
+-
+-  result = mPolicy->SetProcessMitigations(mitigations);
+-  SANDBOX_ENSURE_SUCCESS(result, "Invalid flags for SetProcessMitigations.");
+-
+-  sandbox::MitigationFlags delayedMitigations =
+-      sandbox::MITIGATION_DLL_SEARCH_ORDER;
+-
+-  result = mPolicy->SetDelayedProcessMitigations(delayedMitigations);
+-  SANDBOX_ENSURE_SUCCESS(result,
+-                         "Invalid flags for SetDelayedProcessMitigations.");
+-
+-  // Add rule to allow read / write access to a special plugin temp dir.
+-  AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_ANY,
+-                   sPluginTempDir, u"\\*"_ns);
+-
+-  if (aSandboxLevel >= 2) {
+-    // Level 2 and above uses low integrity, so we need to give write access to
+-    // the Flash directories.
+-    AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_ANY,
+-                     sRoamingAppDataDir, u"\\Macromedia\\Flash Player\\*"_ns);
+-    AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_ANY,
+-                     sLocalAppDataDir, u"\\Macromedia\\Flash Player\\*"_ns);
+-    AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_ANY,
+-                     sRoamingAppDataDir, u"\\Adobe\\Flash Player\\*"_ns);
+-
+-    // Access also has to be given to create the parent directories as they may
+-    // not exist.
+-    AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_DIR_ANY,
+-                     sRoamingAppDataDir, u"\\Macromedia"_ns);
+-    AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_QUERY,
+-                     sRoamingAppDataDir, u"\\Macromedia\\"_ns);
+-    AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_DIR_ANY,
+-                     sRoamingAppDataDir, u"\\Macromedia\\Flash Player"_ns);
+-    AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_DIR_ANY,
+-                     sLocalAppDataDir, u"\\Macromedia"_ns);
+-    AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_DIR_ANY,
+-                     sLocalAppDataDir, u"\\Macromedia\\Flash Player"_ns);
+-    AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_DIR_ANY,
+-                     sRoamingAppDataDir, u"\\Adobe"_ns);
+-    AddCachedDirRule(mPolicy, sandbox::TargetPolicy::FILES_ALLOW_DIR_ANY,
+-                     sRoamingAppDataDir, u"\\Adobe\\Flash Player"_ns);
+-  }
+-
+-  // Add the policy for the client side of a pipe. It is just a file
+-  // in the \pipe\ namespace. We restrict it to pipes that start with
+-  // "chrome." so the sandboxed process cannot connect to system services.
+-  result = mPolicy->AddRule(sandbox::TargetPolicy::SUBSYS_FILES,
+-                            sandbox::TargetPolicy::FILES_ALLOW_ANY,
+-                            L"\\??\\pipe\\chrome.*");
+-  SANDBOX_ENSURE_SUCCESS(
+-      result,
+-      "With these static arguments AddRule should never fail, what happened?");
+-
+-  // Add the policy for the client side of the crash server pipe.
+-  result = mPolicy->AddRule(sandbox::TargetPolicy::SUBSYS_FILES,
+-                            sandbox::TargetPolicy::FILES_ALLOW_ANY,
+-                            L"\\??\\pipe\\gecko-crash-server-pipe.*");
+-  SANDBOX_ENSURE_SUCCESS(
+-      result,
+-      "With these static arguments AddRule should never fail, what happened?");
+-
+-  // The NPAPI process needs to be able to duplicate shared memory to the
+-  // content process and broker process, which are Section type handles.
+-  // Content and broker are for e10s and non-e10s cases.
+-  result = mPolicy->AddRule(sandbox::TargetPolicy::SUBSYS_HANDLES,
+-                            sandbox::TargetPolicy::HANDLES_DUP_ANY, L"Section");
+-  SANDBOX_ENSURE_SUCCESS(
+-      result,
+-      "With these static arguments AddRule should never fail, what happened?");
+-
+-  result =
+-      mPolicy->AddRule(sandbox::TargetPolicy::SUBSYS_HANDLES,
+-                       sandbox::TargetPolicy::HANDLES_DUP_BROKER, L"Section");
+-  SANDBOX_ENSURE_SUCCESS(
+-      result,
+-      "With these static arguments AddRule should never fail, what happened?");
+-
+-  // These register keys are used by the file-browser dialog box.  They
+-  // remember the most-recently-used folders.
+-  result = mPolicy->AddRule(sandbox::TargetPolicy::SUBSYS_REGISTRY,
+-                            sandbox::TargetPolicy::REG_ALLOW_ANY,
+-                            L"HKEY_CURRENT_"
+-                            L"USER\\Software\\Microsoft\\Windows\\CurrentVersio"
+-                            L"n\\Explorer\\ComDlg32\\OpenSavePidlMRU\\*");
+-  SANDBOX_ENSURE_SUCCESS(
+-      result,
+-      "With these static arguments AddRule should never fail, what happened?");
+-
+-  result =
+-      mPolicy->AddRule(sandbox::TargetPolicy::SUBSYS_REGISTRY,
+-                       sandbox::TargetPolicy::REG_ALLOW_ANY,
+-                       L"HKEY_CURRENT_"
+-                       L"USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Ex"
+-                       L"plorer\\ComDlg32\\LastVisitedPidlMRULegacy\\*");
+-  SANDBOX_ENSURE_SUCCESS(
+-      result,
+-      "With these static arguments AddRule should never fail, what happened?");
+-
+-  return true;
+-}
+-
+ bool SandboxBroker::SetSecurityLevelForGMPlugin(SandboxLevel aLevel,
+                                                 bool aIsRemoteLaunch) {
+   if (!mPolicy) {
+diff --git a/security/sandbox/win/src/sandboxbroker/sandboxBroker.h b/security/sandbox/win/src/sandboxbroker/sandboxBroker.h
+index b4c1d45d45b38..c74edce68dc68 100644
+--- a/security/sandbox/win/src/sandboxbroker/sandboxBroker.h
++++ b/security/sandbox/win/src/sandboxbroker/sandboxBroker.h
+@@ -46,7 +46,6 @@ class AbstractSandboxBroker {
+   virtual bool SetSecurityLevelForRDDProcess() = 0;
+   virtual bool SetSecurityLevelForSocketProcess() = 0;
+ 
+-  virtual bool SetSecurityLevelForPluginProcess(int32_t aSandboxLevel) = 0;
+   enum SandboxLevel { LockDown, Restricted };
+   virtual bool SetSecurityLevelForGMPlugin(SandboxLevel aLevel,
+                                            bool aIsRemoteLaunch = false) = 0;
+@@ -95,8 +94,6 @@ class SandboxBroker : public AbstractSandboxBroker {
+       int32_t aSandboxLevel, const nsCOMPtr<nsIFile>& aProfileDir) override;
+   bool SetSecurityLevelForRDDProcess() override;
+   bool SetSecurityLevelForSocketProcess() override;
+-
+-  bool SetSecurityLevelForPluginProcess(int32_t aSandboxLevel) override;
+   bool SetSecurityLevelForGMPlugin(SandboxLevel aLevel,
+                                    bool aIsRemoteLaunch = false) override;
+ 
+diff --git a/toolkit/xre/nsXREDirProvider.cpp b/toolkit/xre/nsXREDirProvider.cpp
+index 3c063036d3443..1fae1b0c8febe 100644
+--- a/toolkit/xre/nsXREDirProvider.cpp
++++ b/toolkit/xre/nsXREDirProvider.cpp
+@@ -516,14 +516,6 @@ nsXREDirProvider::GetFile(const char* aProperty, bool* aPersistent,
+     }
+     rv = mContentTempDir->Clone(getter_AddRefs(file));
+   }
+-#endif  // defined(MOZ_SANDBOX)
+-#if defined(MOZ_SANDBOX)
+-  else if (0 == strcmp(aProperty, NS_APP_PLUGIN_PROCESS_TEMP_DIR)) {
+-    if (!mPluginTempDir && NS_FAILED((rv = LoadPluginProcessTempDir()))) {
+-      return rv;
+-    }
+-    rv = mPluginTempDir->Clone(getter_AddRefs(file));
+-  }
+ #endif  // defined(MOZ_SANDBOX)
+   else if (NS_SUCCEEDED(GetProfileStartupDir(getter_AddRefs(file)))) {
+     // We need to allow component, xpt, and chrome registration to
+@@ -677,43 +669,6 @@ nsresult nsXREDirProvider::LoadContentProcessTempDir() {
+   return NS_OK;
+ }
+ 
+-//
+-// Sets mPluginTempDir so that it refers to the appropriate temp dir.
+-// If NS_APP_PLUGIN_PROCESS_TEMP_DIR fails for any reason, NS_OS_TEMP_DIR
+-// is used.
+-//
+-nsresult nsXREDirProvider::LoadPluginProcessTempDir() {
+-  // The parent is responsible for creating the sandbox temp dir.
+-  if (XRE_IsParentProcess()) {
+-    mPluginProcessSandboxTempDir =
+-        CreateProcessSandboxTempDir(GeckoProcessType_Plugin);
+-    mPluginTempDir = mPluginProcessSandboxTempDir;
+-  } else {
+-    MOZ_ASSERT(XRE_IsPluginProcess());
+-    mPluginTempDir = GetProcessSandboxTempDir(GeckoProcessType_Plugin);
+-  }
+-
+-  if (!mPluginTempDir) {
+-    nsresult rv =
+-        NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(mPluginTempDir));
+-    if (NS_WARN_IF(NS_FAILED(rv))) {
+-      return rv;
+-    }
+-  }
+-
+-#  if defined(XP_WIN)
+-  // The temp dir is used in sandbox rules, so we need to make sure
+-  // it doesn't contain any junction points or symlinks or the sandbox will
+-  // reject those rules.
+-  if (!mozilla::widget::WinUtils::ResolveJunctionPointsAndSymLinks(
+-          mPluginTempDir)) {
+-    NS_WARNING("Failed to resolve plugin temp dir.");
+-  }
+-#  endif
+-
+-  return NS_OK;
+-}
+-
+ static bool IsContentSandboxDisabled() {
+   return !mozilla::BrowserTabsRemoteAutostart() ||
+          (!mozilla::IsContentSandboxEnabled());
+@@ -733,13 +688,9 @@ static already_AddRefed<nsIFile> GetProcessSandboxTempDir(
+     return nullptr;
+   }
+ 
+-  MOZ_ASSERT((type == GeckoProcessType_Content) ||
+-             (type == GeckoProcessType_Plugin));
+-
+-  const char* prefKey = (type == GeckoProcessType_Content)
+-                            ? "security.sandbox.content.tempDirSuffix"
+-                            : "security.sandbox.plugin.tempDirSuffix";
++  MOZ_ASSERT(type == GeckoProcessType_Content);
+ 
++  const char* prefKey = "security.sandbox.content.tempDirSuffix";
+   nsAutoString tempDirSuffix;
+   rv = mozilla::Preferences::GetString(prefKey, tempDirSuffix);
+   if (NS_WARN_IF(NS_FAILED(rv)) || tempDirSuffix.IsEmpty()) {
+@@ -757,7 +708,7 @@ static already_AddRefed<nsIFile> GetProcessSandboxTempDir(
+ //
+ // Create a temporary directory for use from sandboxed processes.
+ // Only called in the parent. The path is derived from a UUID stored in a
+-// pref which is available to content and plugin processes. Returns null
++// pref which is available to content processes. Returns null
+ // if the content sandbox is disabled or if an error occurs.
+ //
+ static already_AddRefed<nsIFile> CreateProcessSandboxTempDir(
+@@ -766,13 +717,10 @@ static already_AddRefed<nsIFile> CreateProcessSandboxTempDir(
+     return nullptr;
+   }
+ 
+-  MOZ_ASSERT((procType == GeckoProcessType_Content) ||
+-             (procType == GeckoProcessType_Plugin));
++  MOZ_ASSERT(procType == GeckoProcessType_Content);
+ 
+   // Get (and create if blank) temp directory suffix pref.
+-  const char* pref = (procType == GeckoProcessType_Content)
+-                         ? "security.sandbox.content.tempDirSuffix"
+-                         : "security.sandbox.plugin.tempDirSuffix";
++  const char* pref = "security.sandbox.content.tempDirSuffix";
+ 
+   nsresult rv;
+   nsAutoString tempDirSuffix;
+@@ -1068,11 +1016,6 @@ nsXREDirProvider::DoStartup() {
+     if (!mContentTempDir) {
+       mozilla::Unused << NS_WARN_IF(NS_FAILED(LoadContentProcessTempDir()));
+     }
+-#endif
+-#if defined(MOZ_SANDBOX)
+-    if (!mPluginTempDir) {
+-      mozilla::Unused << NS_WARN_IF(NS_FAILED(LoadPluginProcessTempDir()));
+-    }
+ #endif
+   }
+   return NS_OK;
+@@ -1109,7 +1052,6 @@ void nsXREDirProvider::DoShutdown() {
+   if (XRE_IsParentProcess()) {
+ #if defined(MOZ_SANDBOX)
+     mozilla::Unused << DeleteDirIfExists(mContentProcessSandboxTempDir);
+-    mozilla::Unused << DeleteDirIfExists(mPluginProcessSandboxTempDir);
+ #endif
+   }
+ }
+diff --git a/toolkit/xre/nsXREDirProvider.h b/toolkit/xre/nsXREDirProvider.h
+index e55b4e153c56c..e28a4fef5bc63 100644
+--- a/toolkit/xre/nsXREDirProvider.h
++++ b/toolkit/xre/nsXREDirProvider.h
+@@ -134,7 +134,6 @@ class nsXREDirProvider final : public nsIDirectoryServiceProvider2,
+ #if defined(MOZ_SANDBOX)
+   // Load the temp directory for sandboxed content processes
+   nsresult LoadContentProcessTempDir();
+-  nsresult LoadPluginProcessTempDir();
+ #endif
+ 
+   void Append(nsIFile* aDirectory);
+@@ -153,8 +152,6 @@ class nsXREDirProvider final : public nsIDirectoryServiceProvider2,
+ #if defined(MOZ_SANDBOX)
+   nsCOMPtr<nsIFile> mContentTempDir;
+   nsCOMPtr<nsIFile> mContentProcessSandboxTempDir;
+-  nsCOMPtr<nsIFile> mPluginTempDir;
+-  nsCOMPtr<nsIFile> mPluginProcessSandboxTempDir;
+ #endif
+ 
+  private:
+diff --git a/xpcom/io/nsAppDirectoryServiceDefs.h b/xpcom/io/nsAppDirectoryServiceDefs.h
+index 5fad3e3badbb2..e71a6bd72abef 100644
+--- a/xpcom/io/nsAppDirectoryServiceDefs.h
++++ b/xpcom/io/nsAppDirectoryServiceDefs.h
+@@ -106,10 +106,4 @@
+ #  define NS_APP_CONTENT_PROCESS_TEMP_DIR "TmpD"
+ #endif  // defined(MOZ_SANDBOX)
+ 
+-#if defined(MOZ_SANDBOX)
+-#  define NS_APP_PLUGIN_PROCESS_TEMP_DIR "PluginTmpD"
+-#else
+-#  define NS_APP_PLUGIN_PROCESS_TEMP_DIR "TmpD"
+-#endif
+-
+ #endif  // nsAppDirectoryServiceDefs_h___

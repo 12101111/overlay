@@ -1,0 +1,523 @@
+From aca228b08fb3cb2a40b7a7e92f16890de79dd1f5 Mon Sep 17 00:00:00 2001
+From: David Parks <daparks@mozilla.com>
+Date: Mon, 5 Apr 2021 23:48:36 +0000
+Subject: [PATCH] Bug 1682030 - Remove nsIPluginDocument. r=jmathies,emilio
+
+Removes nsIPluginDocument and its implementation as part of removing all NPAPI plugin support.
+
+Differential Revision: https://phabricator.services.mozilla.com/D107145
+---
+ dom/base/nsFocusManager.cpp            |   8 +-
+ dom/html/HTMLEmbedElement.cpp          |  14 +-
+ dom/html/HTMLObjectElement.cpp         |  26 +--
+ dom/html/HTMLObjectElement.h           |   7 +-
+ dom/html/PluginDocument.cpp            | 260 -------------------------
+ dom/html/moz.build                     |   5 -
+ dom/plugins/base/moz.build             |   1 -
+ dom/plugins/base/nsIPluginDocument.idl |  16 --
+ layout/base/nsDocumentViewer.cpp       |   8 -
+ layout/build/nsContentDLF.cpp          |  19 --
+ 10 files changed, 16 insertions(+), 348 deletions(-)
+ delete mode 100644 dom/html/PluginDocument.cpp
+ delete mode 100644 dom/plugins/base/nsIPluginDocument.idl
+
+diff --git a/dom/base/nsFocusManager.cpp b/dom/base/nsFocusManager.cpp
+index 54fb42c81e306..ee93e6ecd9707 100644
+--- a/dom/base/nsFocusManager.cpp
++++ b/dom/base/nsFocusManager.cpp
+@@ -2574,12 +2574,10 @@ void nsFocusManager::Focus(
+       NotifyFocusStateChange(aElement, nullptr, aFlags,
+                              /* aGettingFocus = */ true, shouldShowFocusRing);
+ 
+-      // if this is an object/plug-in/remote browser, focus its widget.  Note
+-      // that we might no longer be in the same document, due to the events we
+-      // fired above when aIsNewDocument.
++      // If this is a remote browser, focus its widget and activate remote
++      // content.  Note that we might no longer be in the same document,
++      // due to the events we fired above when aIsNewDocument.
+       if (presShell->GetDocument() == aElement->GetComposedDoc()) {
+-        // if the object being focused is a remote browser, activate remote
+-        // content
+         ActivateRemoteFrameIfNeeded(*aElement, aActionId);
+       }
+ 
+diff --git a/dom/html/HTMLEmbedElement.cpp b/dom/html/HTMLEmbedElement.cpp
+index 1c2f29e0c63c2..263b2ec725c77 100644
+--- a/dom/html/HTMLEmbedElement.cpp
++++ b/dom/html/HTMLEmbedElement.cpp
+@@ -11,7 +11,6 @@
+ #include "mozilla/dom/ElementInlines.h"
+ 
+ #include "mozilla/dom/Document.h"
+-#include "nsIPluginDocument.h"
+ #include "nsThreadUtils.h"
+ #include "nsIWidget.h"
+ #include "nsContentUtils.h"
+@@ -73,16 +72,9 @@ nsresult HTMLEmbedElement::BindToTree(BindContext& aContext, nsINode& aParent) {
+   NS_ENSURE_SUCCESS(rv, rv);
+ 
+   if (IsInComposedDoc()) {
+-    // Don't kick off load from being bound to a plugin document - the plugin
+-    // document will call nsObjectLoadingContent::InitializeFromChannel() for
+-    // the initial load.
+-    nsCOMPtr<nsIPluginDocument> pluginDoc =
+-        do_QueryInterface(&aContext.OwnerDoc());
+-    if (!pluginDoc) {
+-      void (HTMLEmbedElement::*start)() = &HTMLEmbedElement::StartObjectLoad;
+-      nsContentUtils::AddScriptRunner(
+-          NewRunnableMethod("dom::HTMLEmbedElement::BindToTree", this, start));
+-    }
++    void (HTMLEmbedElement::*start)() = &HTMLEmbedElement::StartObjectLoad;
++    nsContentUtils::AddScriptRunner(
++        NewRunnableMethod("dom::HTMLEmbedElement::BindToTree", this, start));
+   }
+ 
+   return NS_OK;
+diff --git a/dom/html/HTMLObjectElement.cpp b/dom/html/HTMLObjectElement.cpp
+index e06612ad82021..2c0c6acc54328 100644
+--- a/dom/html/HTMLObjectElement.cpp
++++ b/dom/html/HTMLObjectElement.cpp
+@@ -15,7 +15,6 @@
+ #include "nsGkAtoms.h"
+ #include "nsError.h"
+ #include "mozilla/dom/Document.h"
+-#include "nsIPluginDocument.h"
+ #include "nsNPAPIPluginInstance.h"
+ #include "nsIWidget.h"
+ #include "nsContentUtils.h"
+@@ -98,18 +97,11 @@ nsresult HTMLObjectElement::BindToTree(BindContext& aContext,
+   rv = nsObjectLoadingContent::BindToTree(aContext, aParent);
+   NS_ENSURE_SUCCESS(rv, rv);
+ 
+-  // Don't kick off load from being bound to a plugin document - the plugin
+-  // document will call nsObjectLoadingContent::InitializeFromChannel() for the
+-  // initial load.
+-  if (IsInComposedDoc()) {
+-    nsCOMPtr<nsIPluginDocument> pluginDoc =
+-        do_QueryInterface(&aContext.OwnerDoc());
+-    // If we already have all the children, start the load.
+-    if (mIsDoneAddingChildren && !pluginDoc) {
+-      void (HTMLObjectElement::*start)() = &HTMLObjectElement::StartObjectLoad;
+-      nsContentUtils::AddScriptRunner(
+-          NewRunnableMethod("dom::HTMLObjectElement::BindToTree", this, start));
+-    }
++  // If we already have all the children, start the load.
++  if (IsInComposedDoc() && mIsDoneAddingChildren) {
++    void (HTMLObjectElement::*start)() = &HTMLObjectElement::StartObjectLoad;
++    nsContentUtils::AddScriptRunner(
++        NewRunnableMethod("dom::HTMLObjectElement::BindToTree", this, start));
+   }
+ 
+   return NS_OK;
+@@ -212,14 +204,6 @@ bool HTMLObjectElement::IsHTMLFocusable(bool aWithMouse, bool* aIsFocusable,
+   return false;
+ }
+ 
+-NS_IMETHODIMP
+-HTMLObjectElement::Reset() { return NS_OK; }
+-
+-NS_IMETHODIMP
+-HTMLObjectElement::SubmitNamesValues(HTMLFormSubmission* aFormSubmission) {
+-  return NS_OK;
+-}
+-
+ int32_t HTMLObjectElement::TabIndexDefault() { return 0; }
+ 
+ Nullable<WindowProxyHolder> HTMLObjectElement::GetContentWindow(
+diff --git a/dom/html/HTMLObjectElement.h b/dom/html/HTMLObjectElement.h
+index 2beb9f92a1898..f2166fcce88a2 100644
+--- a/dom/html/HTMLObjectElement.h
++++ b/dom/html/HTMLObjectElement.h
+@@ -47,8 +47,11 @@ class HTMLObjectElement final : public nsGenericHTMLFormElement,
+                                int32_t* aTabIndex) override;
+ 
+   // Overriden nsIFormControl methods
+-  NS_IMETHOD Reset() override;
+-  NS_IMETHOD SubmitNamesValues(HTMLFormSubmission* aFormSubmission) override;
++  NS_IMETHOD Reset() override { return NS_OK; }
++
++  NS_IMETHOD SubmitNamesValues(HTMLFormSubmission* aFormSubmission) override {
++    return NS_OK;
++  }
+ 
+   virtual void DoneAddingChildren(bool aHaveNotified) override;
+   virtual bool IsDoneAddingChildren() override;
+diff --git a/dom/html/PluginDocument.cpp b/dom/html/PluginDocument.cpp
+deleted file mode 100644
+index e8c18830a2c01..0000000000000
+--- a/dom/html/PluginDocument.cpp
++++ /dev/null
+@@ -1,260 +0,0 @@
+-/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* vim: set ts=8 sts=2 et sw=2 tw=80: */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#include "MediaDocument.h"
+-#include "nsIPluginDocument.h"
+-#include "nsGkAtoms.h"
+-#include "nsNPAPIPluginInstance.h"
+-#include "DocumentInlines.h"
+-#include "nsIDocShellTreeItem.h"
+-#include "nsNodeInfoManager.h"
+-#include "nsContentCreatorFunctions.h"
+-#include "nsContentPolicyUtils.h"
+-#include "mozilla/dom/Element.h"
+-#include "mozilla/PresShell.h"
+-#include "mozilla/ProfilerLabels.h"
+-#include "nsObjectLoadingContent.h"
+-
+-namespace mozilla::dom {
+-
+-class PluginDocument final : public MediaDocument, public nsIPluginDocument {
+- public:
+-  PluginDocument();
+-
+-  NS_DECL_ISUPPORTS_INHERITED
+-  NS_DECL_NSIPLUGINDOCUMENT
+-
+-  enum MediaDocumentKind MediaDocumentKind() const override {
+-    return MediaDocumentKind::Plugin;
+-  }
+-
+-  nsresult StartDocumentLoad(const char* aCommand, nsIChannel* aChannel,
+-                             nsILoadGroup* aLoadGroup, nsISupports* aContainer,
+-                             nsIStreamListener** aDocListener,
+-                             bool aReset = true,
+-                             nsIContentSink* aSink = nullptr) override;
+-
+-  void SetScriptGlobalObject(
+-      nsIScriptGlobalObject* aScriptGlobalObject) override;
+-  bool CanSavePresentation(nsIRequest* aNewRequest, uint16_t& aBFCacheStatus,
+-                           bool aIncludeSubdocuments = true) override;
+-
+-  const nsCString& GetType() const { return mMimeType; }
+-  Element* GetPluginContent() { return mPluginContent; }
+-
+-  virtual void Destroy() override {
+-    if (mStreamListener) {
+-      mStreamListener->DropDocumentRef();
+-    }
+-    MediaDocument::Destroy();
+-  }
+-
+-  NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED(PluginDocument, MediaDocument)
+- protected:
+-  ~PluginDocument() override;
+-
+-  nsresult CreateSyntheticPluginDocument();
+-
+-  nsCOMPtr<Element> mPluginContent;
+-  RefPtr<MediaDocumentStreamListener> mStreamListener;
+-  nsCString mMimeType;
+-};
+-
+-class PluginStreamListener : public MediaDocumentStreamListener {
+- public:
+-  explicit PluginStreamListener(PluginDocument* aDoc)
+-      : MediaDocumentStreamListener(aDoc), mPluginDoc(aDoc) {}
+-  NS_IMETHOD OnStartRequest(nsIRequest* request) override;
+-
+- private:
+-  RefPtr<PluginDocument> mPluginDoc;
+-};
+-
+-NS_IMETHODIMP
+-PluginStreamListener::OnStartRequest(nsIRequest* request) {
+-  AUTO_PROFILER_LABEL("PluginStreamListener::OnStartRequest", NETWORK);
+-
+-  nsCOMPtr<nsIContent> embed = mPluginDoc->GetPluginContent();
+-  nsCOMPtr<nsIObjectLoadingContent> objlc = do_QueryInterface(embed);
+-  nsCOMPtr<nsIStreamListener> objListener = do_QueryInterface(objlc);
+-
+-  if (!objListener) {
+-    MOZ_ASSERT_UNREACHABLE(
+-        "PluginStreamListener without appropriate content "
+-        "node");
+-    return NS_BINDING_ABORTED;
+-  }
+-
+-  SetStreamListener(objListener);
+-
+-  // Sets up the ObjectLoadingContent tag as if it is waiting for a
+-  // channel, so it can proceed with a load normally once it gets OnStartRequest
+-  nsresult rv = objlc->InitializeFromChannel(request);
+-  if (NS_FAILED(rv)) {
+-    MOZ_ASSERT_UNREACHABLE("InitializeFromChannel failed");
+-    return rv;
+-  }
+-
+-  // Note that because we're now hooked up to a plugin listener, this will
+-  // likely spawn a plugin, which may re-enter.
+-  return MediaDocumentStreamListener::OnStartRequest(request);
+-}
+-
+-PluginDocument::PluginDocument() = default;
+-
+-PluginDocument::~PluginDocument() = default;
+-
+-NS_IMPL_CYCLE_COLLECTION_INHERITED(PluginDocument, MediaDocument,
+-                                   mPluginContent)
+-
+-NS_IMPL_ISUPPORTS_CYCLE_COLLECTION_INHERITED(PluginDocument, MediaDocument,
+-                                             nsIPluginDocument)
+-
+-void PluginDocument::SetScriptGlobalObject(
+-    nsIScriptGlobalObject* aScriptGlobalObject) {
+-  // Set the script global object on the superclass before doing
+-  // anything that might require it....
+-  MediaDocument::SetScriptGlobalObject(aScriptGlobalObject);
+-
+-  if (aScriptGlobalObject) {
+-    if (!InitialSetupHasBeenDone()) {
+-      // Create synthetic document
+-#ifdef DEBUG
+-      nsresult rv =
+-#endif
+-          CreateSyntheticPluginDocument();
+-      NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create synthetic document");
+-      InitialSetupDone();
+-    }
+-  } else {
+-    mStreamListener = nullptr;
+-  }
+-}
+-
+-bool PluginDocument::CanSavePresentation(nsIRequest* aNewRequest,
+-                                         uint16_t& aBFCacheStatus,
+-                                         bool aIncludeSubdocuments) {
+-  // Full-page plugins cannot be cached, currently, because we don't have
+-  // the stream listener data to feed to the plugin instance.
+-  return false;
+-}
+-
+-nsresult PluginDocument::StartDocumentLoad(const char* aCommand,
+-                                           nsIChannel* aChannel,
+-                                           nsILoadGroup* aLoadGroup,
+-                                           nsISupports* aContainer,
+-                                           nsIStreamListener** aDocListener,
+-                                           bool aReset, nsIContentSink* aSink) {
+-  // do not allow message panes to host full-page plugins
+-  // returning an error causes helper apps to take over
+-  nsCOMPtr<nsIDocShellTreeItem> dsti(do_QueryInterface(aContainer));
+-  if (dsti) {
+-    bool isMsgPane = false;
+-    dsti->NameEquals(u"messagepane"_ns, &isMsgPane);
+-    if (isMsgPane) {
+-      return NS_ERROR_FAILURE;
+-    }
+-  }
+-
+-  nsresult rv = MediaDocument::StartDocumentLoad(
+-      aCommand, aChannel, aLoadGroup, aContainer, aDocListener, aReset, aSink);
+-  if (NS_FAILED(rv)) {
+-    return rv;
+-  }
+-
+-  rv = aChannel->GetContentType(mMimeType);
+-  if (NS_FAILED(rv)) {
+-    return rv;
+-  }
+-
+-  MediaDocument::UpdateTitleAndCharset(mMimeType, aChannel);
+-
+-  mStreamListener = new PluginStreamListener(this);
+-  NS_ASSERTION(aDocListener, "null aDocListener");
+-  NS_ADDREF(*aDocListener = mStreamListener);
+-
+-  return rv;
+-}
+-
+-nsresult PluginDocument::CreateSyntheticPluginDocument() {
+-  NS_ASSERTION(!GetPresShell() || !GetPresShell()->DidInitialize(),
+-               "Creating synthetic plugin document content too late");
+-
+-  // make our generic document
+-  nsresult rv = MediaDocument::CreateSyntheticDocument();
+-  NS_ENSURE_SUCCESS(rv, rv);
+-  // then attach our plugin
+-
+-  RefPtr<Element> body = GetBodyElement();
+-  if (!body) {
+-    NS_WARNING("no body on plugin document!");
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-  // remove margins from body
+-  constexpr auto zero = u"0"_ns;
+-  body->SetAttr(kNameSpaceID_None, nsGkAtoms::marginwidth, zero, false);
+-  body->SetAttr(kNameSpaceID_None, nsGkAtoms::marginheight, zero, false);
+-
+-  // make plugin content
+-  RefPtr<mozilla::dom::NodeInfo> nodeInfo;
+-  nodeInfo = mNodeInfoManager->GetNodeInfo(
+-      nsGkAtoms::embed, nullptr, kNameSpaceID_XHTML, nsINode::ELEMENT_NODE);
+-  rv = NS_NewHTMLElement(getter_AddRefs(mPluginContent), nodeInfo.forget(),
+-                         NOT_FROM_PARSER);
+-  NS_ENSURE_SUCCESS(rv, rv);
+-
+-  // make it a named element
+-  mPluginContent->SetAttr(kNameSpaceID_None, nsGkAtoms::name, u"plugin"_ns,
+-                          false);
+-
+-  // fill viewport and auto-resize
+-  constexpr auto percent100 = u"100%"_ns;
+-  mPluginContent->SetAttr(kNameSpaceID_None, nsGkAtoms::width, percent100,
+-                          false);
+-  mPluginContent->SetAttr(kNameSpaceID_None, nsGkAtoms::height, percent100,
+-                          false);
+-
+-  // set URL
+-  nsAutoCString src;
+-  mDocumentURI->GetSpec(src);
+-  mPluginContent->SetAttr(kNameSpaceID_None, nsGkAtoms::src,
+-                          NS_ConvertUTF8toUTF16(src), false);
+-
+-  // set mime type
+-  mPluginContent->SetAttr(kNameSpaceID_None, nsGkAtoms::type,
+-                          NS_ConvertUTF8toUTF16(mMimeType), false);
+-
+-  // nsHTML(Shared)ObjectElement does not kick off a load on BindToTree if it is
+-  // to a PluginDocument
+-  body->AppendChildTo(mPluginContent, false);
+-
+-  return NS_OK;
+-}
+-
+-NS_IMETHODIMP
+-PluginDocument::Print() {
+-  NS_ENSURE_TRUE(mPluginContent, NS_ERROR_FAILURE);
+-
+-  return NS_OK;
+-}
+-
+-}  // namespace mozilla::dom
+-
+-nsresult NS_NewPluginDocument(mozilla::dom::Document** aResult) {
+-  auto* doc = new mozilla::dom::PluginDocument();
+-
+-  NS_ADDREF(doc);
+-  nsresult rv = doc->Init();
+-
+-  if (NS_FAILED(rv)) {
+-    NS_RELEASE(doc);
+-  }
+-
+-  *aResult = doc;
+-
+-  return rv;
+-}
+diff --git a/dom/html/moz.build b/dom/html/moz.build
+index d7b63d17ad279..d06ee99991339 100644
+--- a/dom/html/moz.build
++++ b/dom/html/moz.build
+@@ -222,11 +222,6 @@ UNIFIED_SOURCES += [
+     "VideoDocument.cpp",
+ ]
+ 
+-SOURCES += [
+-    # Includes npapi.h.
+-    "PluginDocument.cpp",
+-]
+-
+ EXTRA_JS_MODULES += [
+     "HTMLMenuBuilder.jsm",
+ ]
+diff --git a/dom/plugins/base/moz.build b/dom/plugins/base/moz.build
+index 5b5e10f1f1034..0e6f0af224070 100644
+--- a/dom/plugins/base/moz.build
++++ b/dom/plugins/base/moz.build
+@@ -5,7 +5,6 @@
+ # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ 
+ XPIDL_SOURCES += [
+-    "nsIPluginDocument.idl",
+     "nsIPluginHost.idl",
+     "nsIPluginTag.idl",
+     "nspluginroot.idl",
+diff --git a/dom/plugins/base/nsIPluginDocument.idl b/dom/plugins/base/nsIPluginDocument.idl
+deleted file mode 100644
+index f91aac621dac2..0000000000000
+--- a/dom/plugins/base/nsIPluginDocument.idl
++++ /dev/null
+@@ -1,16 +0,0 @@
+-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#include "nsISupports.idl"
+-#include "nsIStreamListener.idl"
+-
+-[uuid(a93a0f0f-24f0-4206-a21b-56a43dcbdd88)]
+-interface nsIPluginDocument : nsISupports
+-{
+- /**
+-  * Causes the plugin to print in full-page mode
+-  */
+-  void print();
+-};
+diff --git a/layout/base/nsDocumentViewer.cpp b/layout/base/nsDocumentViewer.cpp
+index 68f66a1413741..469e77f3a488f 100644
+--- a/layout/base/nsDocumentViewer.cpp
++++ b/layout/base/nsDocumentViewer.cpp
+@@ -112,8 +112,6 @@
+ #  include "nsIPrintSettingsService.h"
+ #  include "nsISimpleEnumerator.h"
+ 
+-#  include "nsIPluginDocument.h"
+-
+ #endif  // NS_PRINTING
+ 
+ // focus
+@@ -2969,12 +2967,6 @@ nsDocumentViewer::Print(nsIPrintSettings* aPrintSettings,
+     return NS_ERROR_FAILURE;
+   }
+ 
+-  // If we are hosting a full-page plugin, tell it to print
+-  // first. It shows its own native print UI.
+-  if (nsCOMPtr<nsIPluginDocument> pDoc = do_QueryInterface(mDocument)) {
+-    return pDoc->Print();
+-  }
+-
+   if (NS_WARN_IF(mPrintJob && mPrintJob->GetIsPrinting())) {
+     // If we are printing another URL, then exit.
+     // The reason we check here is because this method can be called while
+diff --git a/layout/build/nsContentDLF.cpp b/layout/build/nsContentDLF.cpp
+index a3e22f12739d5..4d536199fc261 100644
+--- a/layout/build/nsContentDLF.cpp
++++ b/layout/build/nsContentDLF.cpp
+@@ -26,9 +26,6 @@
+ #include "nsMimeTypes.h"
+ #include "DecoderTraits.h"
+ 
+-// plugins
+-#include "nsPluginHost.h"
+-
+ // Factory code for creating variations on html documents
+ 
+ #undef NOISY_REGISTRY
+@@ -188,22 +185,6 @@ nsContentDLF::CreateInstance(const char* aCommand, nsIChannel* aChannel,
+         aDocListener, aDocViewer);
+   }
+ 
+-  RefPtr<nsPluginHost> pluginHost = nsPluginHost::GetInst();
+-  // Don't exclude disabled plugins, which will still trigger the "this plugin
+-  // is disabled" placeholder.
+-  if (pluginHost &&
+-      pluginHost->HavePluginForType(contentType, nsPluginHost::eExcludeNone)) {
+-    return CreateDocument(
+-        aCommand, aChannel, aLoadGroup, aContainer,
+-        []() -> already_AddRefed<Document> {
+-          RefPtr<Document> doc;
+-          nsresult rv = NS_NewPluginDocument(getter_AddRefs(doc));
+-          NS_ENSURE_SUCCESS(rv, nullptr);
+-          return doc.forget();
+-        },
+-        aDocListener, aDocViewer);
+-  }
+-
+   // If we get here, then we weren't able to create anything. Sorry!
+   return NS_ERROR_FAILURE;
+ }

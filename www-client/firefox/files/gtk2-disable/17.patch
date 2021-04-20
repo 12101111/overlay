@@ -1,0 +1,369 @@
+From db44f3a7f4990eceaa597aeeaeadbb4780b12ffa Mon Sep 17 00:00:00 2001
+From: David Parks <daparks@mozilla.com>
+Date: Mon, 5 Apr 2021 23:48:41 +0000
+Subject: [PATCH] Bug 1682030 - Remove NPAPI plugin reporting from HangMonitor 
+ r=mconley
+
+Removes the methods for handling NPAPI plugin process hangs, as we are eliminating all NPAPI behavior.
+
+Differential Revision: https://phabricator.services.mozilla.com/D107155
+---
+ dom/ipc/PProcessHangMonitor.ipdl             |   7 --
+ dom/ipc/ProcessHangMonitor.cpp               | 119 +------------------
+ dom/ipc/nsIHangReport.idl                    |  10 +-
+ toolkit/crashreporter/nsExceptionHandler.cpp |  37 ------
+ toolkit/crashreporter/nsExceptionHandler.h   |  11 --
+ 5 files changed, 5 insertions(+), 179 deletions(-)
+
+diff --git a/dom/ipc/PProcessHangMonitor.ipdl b/dom/ipc/PProcessHangMonitor.ipdl
+index 947c2ca786bb5..60b8ece6c3484 100644
+--- a/dom/ipc/PProcessHangMonitor.ipdl
++++ b/dom/ipc/PProcessHangMonitor.ipdl
+@@ -23,16 +23,9 @@ struct SlowScriptData
+   double duration;
+ };
+ 
+-struct PluginHangData
+-{
+-  uint32_t pluginId;
+-  ProcessId contentProcessId;
+-};
+-
+ union HangData
+ {
+   SlowScriptData;
+-  PluginHangData;
+ };
+ 
+ protocol PProcessHangMonitor
+diff --git a/dom/ipc/ProcessHangMonitor.cpp b/dom/ipc/ProcessHangMonitor.cpp
+index 01c8789c40678..3a08bb794bd93 100644
+--- a/dom/ipc/ProcessHangMonitor.cpp
++++ b/dom/ipc/ProcessHangMonitor.cpp
+@@ -98,9 +98,6 @@ class HangMonitorChild : public PProcessHangMonitorChild,
+ 
+   bool IsDebuggerStartupComplete();
+ 
+-  void NotifyPluginHang(uint32_t aPluginId);
+-  void NotifyPluginHangAsync(uint32_t aPluginId);
+-
+   void ClearHang();
+   void ClearHangAsync();
+   void ClearPaintWhileInterruptingJS(const LayersObserverEpoch& aEpoch);
+@@ -260,7 +257,6 @@ class HangMonitorParent : public PProcessHangMonitorParent,
+   void TerminateScript();
+   void BeginStartingDebugger();
+   void EndStartingDebugger();
+-  void CleanupPluginHang(uint32_t aPluginId, bool aRemoveFiles);
+ 
+   /**
+    * Update the dump for the specified plugin. This method is thread-safe and
+@@ -275,10 +271,8 @@ class HangMonitorParent : public PProcessHangMonitorParent,
+   bool IsOnThread() { return mHangMonitor->IsOnThread(); }
+ 
+  private:
+-  bool TakeBrowserMinidump(const PluginHangData& aPhd, nsString& aCrashId);
+-
+   void SendHangNotification(const HangData& aHangData,
+-                            const nsString& aBrowserDumpId, bool aTakeMinidump);
++                            const nsString& aBrowserDumpId);
+ 
+   void ClearHangNotification();
+ 
+@@ -639,28 +633,6 @@ bool HangMonitorChild::IsDebuggerStartupComplete() {
+   return false;
+ }
+ 
+-void HangMonitorChild::NotifyPluginHang(uint32_t aPluginId) {
+-  // main thread in the child
+-  MOZ_RELEASE_ASSERT(NS_IsMainThread());
+-
+-  mSentReport = true;
+-
+-  // bounce to background thread
+-  Dispatch(NewNonOwningRunnableMethod<uint32_t>(
+-      "HangMonitorChild::NotifyPluginHangAsync", this,
+-      &HangMonitorChild::NotifyPluginHangAsync, aPluginId));
+-}
+-
+-void HangMonitorChild::NotifyPluginHangAsync(uint32_t aPluginId) {
+-  MOZ_RELEASE_ASSERT(IsOnThread());
+-
+-  // bounce back to parent on background thread
+-  if (mIPCOpen) {
+-    Unused << SendHangEvidence(
+-        PluginHangData(aPluginId, base::GetCurrentProcId()));
+-  }
+-}
+-
+ void HangMonitorChild::ClearHang() {
+   MOZ_ASSERT(NS_IsMainThread());
+ 
+@@ -817,13 +789,11 @@ void HangMonitorParent::Bind(Endpoint<PProcessHangMonitorParent>&& aEndpoint) {
+ }
+ 
+ void HangMonitorParent::SendHangNotification(const HangData& aHangData,
+-                                             const nsString& aBrowserDumpId,
+-                                             bool aTakeMinidump) {
++                                             const nsString& aBrowserDumpId) {
+   // chrome process, main thread
+   MOZ_RELEASE_ASSERT(NS_IsMainThread());
+ 
+   nsString dumpId;
+-  MOZ_ASSERT(aHangData.type() != HangData::TPluginHangData);
+ 
+   // We already have a full minidump; go ahead and use it.
+   dumpId = aBrowserDumpId;
+@@ -846,36 +816,6 @@ void HangMonitorParent::ClearHangNotification() {
+   mProcess->ClearHang();
+ }
+ 
+-// Take a minidump of the browser process if one wasn't already taken for the
+-// plugin that caused the hang. Return false if a dump was already available or
+-// true if new one has been taken.
+-bool HangMonitorParent::TakeBrowserMinidump(const PluginHangData& aPhd,
+-                                            nsString& aCrashId) {
+-  MutexAutoLock lock(mBrowserCrashDumpHashLock);
+-  return mBrowserCrashDumpIds.WithEntryHandle(
+-      aPhd.pluginId(), [&](auto&& entry) {
+-        if (entry) {
+-          aCrashId = entry.Data();
+-        } else {
+-          nsCOMPtr<nsIFile> browserDump;
+-          if (CrashReporter::TakeMinidump(getter_AddRefs(browserDump), true)) {
+-            if (!CrashReporter::GetIDFromMinidump(browserDump, aCrashId) ||
+-                aCrashId.IsEmpty()) {
+-              browserDump->Remove(false);
+-              NS_WARNING(
+-                  "Failed to generate timely browser stack, "
+-                  "this is bad for plugin hang analysis!");
+-            } else {
+-              entry.Insert(aCrashId);
+-              return true;
+-            }
+-          }
+-        }
+-
+-        return false;
+-      });
+-}
+-
+ mozilla::ipc::IPCResult HangMonitorParent::RecvHangEvidence(
+     const HangData& aHangData) {
+   // chrome process, background thread
+@@ -896,18 +836,13 @@ mozilla::ipc::IPCResult HangMonitorParent::RecvHangEvidence(
+   // Before we wake up the browser main thread we want to take a
+   // browser minidump.
+   nsAutoString crashId;
+-  bool takeMinidump = false;
+-  if (aHangData.type() == HangData::TPluginHangData) {
+-    takeMinidump = TakeBrowserMinidump(aHangData.get_PluginHangData(), crashId);
+-  }
+ 
+   mHangMonitor->InitiateCPOWTimeout();
+ 
+   MonitorAutoLock lock(mMonitor);
+ 
+   NS_DispatchToMainThread(mMainThreadTaskFactory.NewRunnableMethod(
+-      &HangMonitorParent::SendHangNotification, aHangData, crashId,
+-      takeMinidump));
++      &HangMonitorParent::SendHangNotification, aHangData, crashId));
+ 
+   return IPC_OK();
+ }
+@@ -954,20 +889,6 @@ void HangMonitorParent::EndStartingDebugger() {
+   }
+ }
+ 
+-void HangMonitorParent::CleanupPluginHang(uint32_t aPluginId,
+-                                          bool aRemoveFiles) {
+-  MutexAutoLock lock(mBrowserCrashDumpHashLock);
+-  nsAutoString crashId;
+-  if (!mBrowserCrashDumpIds.Get(aPluginId, &crashId)) {
+-    return;
+-  }
+-  mBrowserCrashDumpIds.Remove(aPluginId);
+-
+-  if (aRemoveFiles && !crashId.IsEmpty()) {
+-    CrashReporter::DeleteMinidumpFilesForID(crashId);
+-  }
+-}
+-
+ void HangMonitorParent::UpdateMinidump(uint32_t aPluginId,
+                                        const nsString& aDumpId) {
+   if (aDumpId.IsEmpty()) {
+@@ -989,9 +910,6 @@ HangMonitoredProcess::GetHangType(uint32_t* aHangType) {
+     case HangData::TSlowScriptData:
+       *aHangType = SLOW_SCRIPT;
+       break;
+-    case HangData::TPluginHangData:
+-      *aHangType = PLUGIN_HANG;
+-      break;
+     default:
+       MOZ_ASSERT_UNREACHABLE("Unexpected HangData type");
+       return NS_ERROR_UNEXPECTED;
+@@ -1060,16 +978,6 @@ HangMonitoredProcess::GetAddonId(nsAString& aAddonId) {
+   return NS_OK;
+ }
+ 
+-NS_IMETHODIMP
+-HangMonitoredProcess::GetPluginName(nsACString& aPluginName) {
+-  MOZ_RELEASE_ASSERT(NS_IsMainThread());
+-  if (mHangData.type() != HangData::TPluginHangData) {
+-    return NS_ERROR_NOT_AVAILABLE;
+-  }
+-
+-  return NS_ERROR_UNEXPECTED;
+-}
+-
+ NS_IMETHODIMP
+ HangMonitoredProcess::TerminateScript() {
+   MOZ_RELEASE_ASSERT(NS_IsMainThread());
+@@ -1121,9 +1029,6 @@ HangMonitoredProcess::EndStartingDebugger() {
+   return NS_OK;
+ }
+ 
+-NS_IMETHODIMP
+-HangMonitoredProcess::TerminatePlugin() { return NS_ERROR_UNEXPECTED; }
+-
+ NS_IMETHODIMP
+ HangMonitoredProcess::IsReportForBrowserOrChildren(nsFrameLoader* aFrameLoader,
+                                                    bool* aResult) {
+@@ -1157,18 +1062,7 @@ HangMonitoredProcess::IsReportForBrowserOrChildren(nsFrameLoader* aFrameLoader,
+ }
+ 
+ NS_IMETHODIMP
+-HangMonitoredProcess::UserCanceled() {
+-  MOZ_RELEASE_ASSERT(NS_IsMainThread());
+-  if (mHangData.type() != HangData::TPluginHangData) {
+-    return NS_OK;
+-  }
+-
+-  if (mActor) {
+-    uint32_t id = mHangData.get_PluginHangData().pluginId();
+-    mActor->CleanupPluginHang(id, true);
+-  }
+-  return NS_OK;
+-}
++HangMonitoredProcess::UserCanceled() { return NS_OK; }
+ 
+ NS_IMETHODIMP
+ HangMonitoredProcess::GetChildID(uint64_t* aChildID) {
+@@ -1274,11 +1168,6 @@ void ProcessHangMonitor::InitiateCPOWTimeout() {
+   mCPOWTimeout = true;
+ }
+ 
+-void ProcessHangMonitor::NotifyPluginHang(uint32_t aPluginId) {
+-  MOZ_RELEASE_ASSERT(NS_IsMainThread());
+-  return HangMonitorChild::Get()->NotifyPluginHang(aPluginId);
+-}
+-
+ static PProcessHangMonitorParent* CreateHangMonitorParent(
+     ContentParent* aContentParent,
+     Endpoint<PProcessHangMonitorParent>&& aEndpoint) {
+diff --git a/dom/ipc/nsIHangReport.idl b/dom/ipc/nsIHangReport.idl
+index 11efe7a9ba088..83d50ba4cc625 100644
+--- a/dom/ipc/nsIHangReport.idl
++++ b/dom/ipc/nsIHangReport.idl
+@@ -22,9 +22,8 @@ webidl Element;
+ interface nsIHangReport : nsISupports
+ {
+   const unsigned long SLOW_SCRIPT = 1;
+-  const unsigned long PLUGIN_HANG = 2;
+ 
+-  // The type of hang being reported: SLOW_SCRIPT or PLUGIN_HANG.
++  // The type of hang being reported: must be SLOW_SCRIPT.
+   readonly attribute unsigned long hangType;
+ 
+   // For SLOW_SCRIPT reports, these fields contain information about the
+@@ -36,10 +35,6 @@ interface nsIHangReport : nsISupports
+   readonly attribute double hangDuration;
+   readonly attribute AString addonId;
+ 
+-  // For PLUGIN_HANGs, this field contains information about the plugin.
+-  // Only valid for PLUGIN_HANG reports.
+-  readonly attribute ACString pluginName;
+-
+   // The child id of the process in which the hang happened.
+   readonly attribute unsigned long long childID;
+ 
+@@ -51,9 +46,6 @@ interface nsIHangReport : nsISupports
+   // Only valid for SLOW_SCRIPT reports.
+   void terminateScript();
+ 
+-  // Terminate the plugin if it is still hung.
+-  // Only valid for PLUGIN_HANG reports.
+-  void terminatePlugin();
+ 
+   // Ask the content process to start up the slow script debugger.
+   // Only valid for SLOW_SCRIPT reports.
+diff --git a/toolkit/crashreporter/nsExceptionHandler.cpp b/toolkit/crashreporter/nsExceptionHandler.cpp
+index 68de07d3225b5..60ef41d2c06be 100644
+--- a/toolkit/crashreporter/nsExceptionHandler.cpp
++++ b/toolkit/crashreporter/nsExceptionHandler.cpp
+@@ -3680,43 +3680,6 @@ static mach_port_t GetChildThread(ProcessHandle childPid,
+ }
+ #endif
+ 
+-bool TakeMinidump(nsIFile** aResult, bool aMoveToPending) {
+-  if (!GetEnabled()) return false;
+-
+-#if defined(DEBUG) && defined(HAS_DLL_BLOCKLIST)
+-  DllBlocklist_Shutdown();
+-#endif
+-
+-  AutoIOInterposerDisable disableIOInterposition;
+-
+-  xpstring dump_path;
+-#ifndef XP_LINUX
+-  dump_path = gExceptionHandler->dump_path();
+-#else
+-  dump_path = gExceptionHandler->minidump_descriptor().directory();
+-#endif
+-
+-  // capture the dump
+-  if (!google_breakpad::ExceptionHandler::WriteMinidump(
+-          dump_path,
+-#ifdef XP_MACOSX
+-          true,
+-#endif
+-          PairedDumpCallback, static_cast<void*>(aResult)
+-#ifdef XP_WIN
+-                                  ,
+-          GetMinidumpType()
+-#endif
+-              )) {
+-    return false;
+-  }
+-
+-  if (aMoveToPending) {
+-    MoveToPending(*aResult, nullptr, nullptr);
+-  }
+-  return true;
+-}
+-
+ bool CreateMinidumpsAndPair(ProcessHandle aTargetHandle,
+                             ThreadId aTargetBlamedThread,
+                             const nsACString& aIncomingPairName,
+diff --git a/toolkit/crashreporter/nsExceptionHandler.h b/toolkit/crashreporter/nsExceptionHandler.h
+index 9a73935408d5d..f7125710de0f0 100644
+--- a/toolkit/crashreporter/nsExceptionHandler.h
++++ b/toolkit/crashreporter/nsExceptionHandler.h
+@@ -170,17 +170,6 @@ nsresult SetSubmitReports(bool aSubmitReport);
+ // thread.
+ void OOPInit();
+ 
+-/*
+- * Takes a minidump for the current process and returns the dump file.
+- * Callers are responsible for managing the resulting file.
+- *
+- * @param aResult - file pointer that holds the resulting minidump.
+- * @param aMoveToPending - if true move the report to the report
+- *   pending directory.
+- * @returns boolean indicating success or failure.
+- */
+-bool TakeMinidump(nsIFile** aResult, bool aMoveToPending = false);
+-
+ // Return true if a dump was found for |childPid|, and return the
+ // path in |dump|.  The caller owns the last reference to |dump| if it
+ // is non-nullptr. The annotations for the crash will be stored in

@@ -1,0 +1,2849 @@
+From 3f9712f20f913ab3a00f939ab6bda25c70cd7c6d Mon Sep 17 00:00:00 2001
+From: David Parks <daparks@mozilla.com>
+Date: Mon, 5 Apr 2021 23:48:32 +0000
+Subject: [PATCH] Bug 1682030 - Remove NPAPI from tests outside of dom/plugins.
+  r=Gijs,cmartin
+
+Removes NPAPI plugin features from tests outside of dom/plugins.  Some tests are updated to avoid NPAPI behavior and others are deleted if they no longer offer anthing useful.
+
+Differential Revision: https://phabricator.services.mozilla.com/D107134
+---
+ .../test/general/browser_tab_dragdrop.js      |   2 -
+ browser/base/content/test/general/head.js     |  27 --
+ .../test/plugins/BlocklistTestProxy.jsm       |  10 -
+ browser/base/content/test/plugins/head.js     | 231 -----------------
+ .../browser_ProcessHangNotifications.js       |  82 +-----
+ caps/tests/mochitest/test_bug292789.html      |  17 +-
+ dom/base/test/browser.ini                     |   1 -
+ dom/base/test/mochitest.ini                   |   2 -
+ dom/base/test/plugin.js                       |  39 ---
+ dom/base/test/test_bug429157.html             |  54 ----
+ dom/html/test/mochitest.ini                   |   1 -
+ layout/base/tests/mochitest.ini               |   1 -
+ layout/generic/test/mochitest.ini             |   1 -
+ layout/reftests/reftest.list                  |   3 -
+ layout/tools/reftest/reftest.jsm              |  34 ---
+ .../content/SpecialPowersChild.jsm            |   7 -
+ .../content/SpecialPowersParent.jsm           |  23 --
+ .../tests/xpcshell/test_crash_manager.js      |  29 +--
+ .../tests/xpcshell/test_crash_store.js        | 103 +-------
+ .../unit/TelemetryEnvironmentTesting.jsm      | 124 +--------
+ .../tests/unit/test_TelemetryEnvironment.js   | 126 +--------
+ .../unit/test_TelemetryEnvironment_search.js  |   5 +-
+ toolkit/content/tests/browser/head.js         |  38 ---
+ .../extensions/internal/AddonTestUtils.jsm    |  29 +--
+ .../extensions/test/browser/browser.ini       |   4 -
+ .../test/browser/browser_bug523784.js         | 153 -----------
+ .../test/browser/browser_gmpProvider.js       |  11 -
+ .../browser/browser_html_warning_messages.js  |  65 +----
+ .../mozapps/extensions/test/browser/head.js   |  17 --
+ .../xpcshell/data/test_pluginBlocklistCtp.xml |  10 +-
+ .../data/test_pluginBlocklistCtpUndo.xml      |   2 +-
+ .../extensions/test/xpcshell/head_addons.js   |  51 ----
+ .../rs-blocklist/test_blocklist_clients.js    |   7 +-
+ .../test_blocklist_targetapp_filter.js        |  52 ++--
+ .../rs-blocklist/test_blocklist_telemetry.js  |  13 -
+ .../test/xpcshell/test_duplicateplugins.js    | 160 ------------
+ .../extensions/test/xpcshell/test_general.js  |  10 -
+ .../test/xpcshell/test_gmpProvider.js         |   6 -
+ .../test/xpcshell/test_pluginchange.js        | 242 ------------------
+ .../test/xpcshell/test_temporary.js           |   9 -
+ .../extensions/test/xpcshell/xpcshell.ini     |   6 -
+ widget/tests/chrome.ini                       |   1 -
+ widget/tests/mochitest.ini                    |   3 -
+ widget/tests/test_imestate.html               |   1 -
+ .../tests/test_plugin_scroll_consistency.html |  59 -----
+ widget/tests/utils.js                         |  27 --
+ 46 files changed, 73 insertions(+), 1825 deletions(-)
+ delete mode 100644 dom/base/test/plugin.js
+ delete mode 100644 dom/base/test/test_bug429157.html
+ delete mode 100644 toolkit/mozapps/extensions/test/browser/browser_bug523784.js
+ delete mode 100644 toolkit/mozapps/extensions/test/xpcshell/test_duplicateplugins.js
+ delete mode 100644 toolkit/mozapps/extensions/test/xpcshell/test_pluginchange.js
+ delete mode 100644 widget/tests/test_plugin_scroll_consistency.html
+ delete mode 100644 widget/tests/utils.js
+
+diff --git a/browser/base/content/test/general/browser_tab_dragdrop.js b/browser/base/content/test/general/browser_tab_dragdrop.js
+index a26a8f355cd5e..2cf52572ecbf8 100644
+--- a/browser/base/content/test/general/browser_tab_dragdrop.js
++++ b/browser/base/content/test/general/browser_tab_dragdrop.js
+@@ -113,8 +113,6 @@ async function checkObjectValue(browser) {
+ }
+ 
+ add_task(async function() {
+-  setTestPluginEnabledState(Ci.nsIPluginTag.STATE_ENABLED);
+-
+   // create a few tabs
+   let tabs = [
+     gBrowser.tabs[0],
+diff --git a/browser/base/content/test/general/head.js b/browser/base/content/test/general/head.js
+index f3080e2fb19ff..cb729540e1d59 100644
+--- a/browser/base/content/test/general/head.js
++++ b/browser/base/content/test/general/head.js
+@@ -170,33 +170,6 @@ function promiseWaitForFocus(aWindow) {
+   });
+ }
+ 
+-function getTestPlugin(aName) {
+-  var pluginName = aName || "Test Plug-in";
+-  var ph = Cc["@mozilla.org/plugin/host;1"].getService(Ci.nsIPluginHost);
+-  var tags = ph.getPluginTags();
+-
+-  // Find the test plugin
+-  for (var i = 0; i < tags.length; i++) {
+-    if (tags[i].name == pluginName) {
+-      return tags[i];
+-    }
+-  }
+-  ok(false, "Unable to find plugin");
+-  return null;
+-}
+-
+-// call this to set the test plugin(s) initially expected enabled state.
+-// it will automatically be reset to it's previous value after the test
+-// ends
+-function setTestPluginEnabledState(newEnabledState, pluginName) {
+-  var plugin = getTestPlugin(pluginName);
+-  var oldEnabledState = plugin.enabledState;
+-  plugin.enabledState = newEnabledState;
+-  SimpleTest.registerCleanupFunction(function() {
+-    getTestPlugin(pluginName).enabledState = oldEnabledState;
+-  });
+-}
+-
+ function pushPrefs(...aPrefs) {
+   return SpecialPowers.pushPrefEnv({ set: aPrefs });
+ }
+diff --git a/browser/base/content/test/plugins/BlocklistTestProxy.jsm b/browser/base/content/test/plugins/BlocklistTestProxy.jsm
+index cd13352f4a841..4575bb33264d8 100644
+--- a/browser/base/content/test/plugins/BlocklistTestProxy.jsm
++++ b/browser/base/content/test/plugins/BlocklistTestProxy.jsm
+@@ -62,16 +62,6 @@ var BlocklistProxy = {
+     await new Promise(r => setTimeout(r, 150));
+     return 0; // STATE_NOT_BLOCKED
+   },
+-
+-  async getPluginBlocklistState(aPluginTag, aAppVersion, aToolkitVersion) {
+-    await new Promise(r => setTimeout(r, 150));
+-    return 0; // STATE_NOT_BLOCKED
+-  },
+-
+-  async getPluginBlockURL(aPluginTag) {
+-    await new Promise(r => setTimeout(r, 150));
+-    return "";
+-  },
+ };
+ 
+ class BlocklistTestProxyChild extends JSProcessActorChild {
+diff --git a/browser/base/content/test/plugins/head.js b/browser/base/content/test/plugins/head.js
+index d00bd4a446341..e8dfc9f45bb03 100644
+--- a/browser/base/content/test/plugins/head.js
++++ b/browser/base/content/test/plugins/head.js
+@@ -114,38 +114,6 @@ function promiseForCondition(aConditionFn, aMessage, aTries, aWait) {
+   });
+ }
+ 
+-// Returns the chrome side nsIPluginTag for this plugin
+-function getTestPlugin(aName) {
+-  let pluginName = aName || "Test Plug-in";
+-  let ph = Cc["@mozilla.org/plugin/host;1"].getService(Ci.nsIPluginHost);
+-  let tags = ph.getPluginTags();
+-
+-  // Find the test plugin
+-  for (let i = 0; i < tags.length; i++) {
+-    if (tags[i].name == pluginName) {
+-      return tags[i];
+-    }
+-  }
+-  ok(false, "Unable to find plugin");
+-  return null;
+-}
+-
+-// Set the 'enabledState' on the nsIPluginTag stored in the main or chrome
+-// process.
+-function setTestPluginEnabledState(newEnabledState, pluginName) {
+-  let name = pluginName || "Test Plug-in";
+-  let plugin = getTestPlugin(name);
+-  plugin.enabledState = newEnabledState;
+-}
+-
+-// Get the 'enabledState' on the nsIPluginTag stored in the main or chrome
+-// process.
+-function getTestPluginEnabledState(pluginName) {
+-  let name = pluginName || "Test Plug-in";
+-  let plugin = getTestPlugin(name);
+-  return plugin.enabledState;
+-}
+-
+ // Returns a promise for nsIObjectLoadingContent props data.
+ function promiseForPluginInfo(aId, aBrowser) {
+   let browser = aBrowser || gTestBrowser;
+@@ -163,183 +131,6 @@ function promiseForPluginInfo(aId, aBrowser) {
+   });
+ }
+ 
+-// Return a promise and call the plugin's playPlugin() method.
+-function promisePlayObject(aId, aBrowser) {
+-  let browser = aBrowser || gTestBrowser;
+-  return SpecialPowers.spawn(browser, [aId], async function(contentId) {
+-    content.document.getElementById(contentId).playPlugin();
+-  });
+-}
+-
+-function promiseCrashObject(aId, aBrowser) {
+-  let browser = aBrowser || gTestBrowser;
+-  return SpecialPowers.spawn(browser, [aId], async function(contentId) {
+-    let plugin = content.document.getElementById(contentId);
+-    Cu.waiveXrays(plugin).crash();
+-  });
+-}
+-
+-// Return a promise and call the plugin's getObjectValue() method.
+-function promiseObjectValueResult(aId, aBrowser) {
+-  let browser = aBrowser || gTestBrowser;
+-  return SpecialPowers.spawn(browser, [aId], async function(contentId) {
+-    let plugin = content.document.getElementById(contentId);
+-    return Cu.waiveXrays(plugin).getObjectValue();
+-  });
+-}
+-
+-// Return a promise and reload the target plugin in the page
+-function promiseReloadPlugin(aId, aBrowser) {
+-  let browser = aBrowser || gTestBrowser;
+-  return SpecialPowers.spawn(browser, [aId], async function(contentId) {
+-    let plugin = content.document.getElementById(contentId);
+-    // eslint-disable-next-line no-self-assign
+-    plugin.src = plugin.src;
+-  });
+-}
+-
+-// after a test is done using the plugin doorhanger, we should just clear
+-// any permissions that may have crept in
+-function clearAllPluginPermissions() {
+-  for (let perm of Services.perms.all) {
+-    if (perm.type.startsWith("plugin")) {
+-      info(
+-        "removing permission:" + perm.principal.origin + " " + perm.type + "\n"
+-      );
+-      Services.perms.removePermission(perm);
+-    }
+-  }
+-}
+-
+-// Ported from AddonTestUtils.jsm
+-let JSONBlocklistWrapper = {
+-  /**
+-   * Load the data from the specified files into the *real* blocklist providers.
+-   * Loads using loadBlocklistRawData, which will treat this as an update.
+-   *
+-   * @param {nsIFile} dir
+-   *        The directory in which the files live.
+-   * @param {string} prefix
+-   *        a prefix for the files which ought to be loaded.
+-   *        This method will suffix -extensions.json and -plugins.json
+-   *        to the prefix it is given, and attempt to load both.
+-   *        Insofar as either exists, their data will be dumped into
+-   *        the respective store, and the respective update handlers
+-   *        will be called.
+-   */
+-  async loadBlocklistData(url) {
+-    const fullURL = `${url}-plugins.json`;
+-    let jsonObj;
+-    try {
+-      jsonObj = await (await fetch(fullURL)).json();
+-    } catch (ex) {
+-      ok(false, ex);
+-    }
+-    info(`Loaded ${fullURL}`);
+-
+-    return this.loadBlocklistRawData({ plugins: jsonObj });
+-  },
+-
+-  /**
+-   * Load the following data into the *real* blocklist providers.
+-   * While `overrideBlocklist` replaces the blocklist entirely with a mock
+-   * that returns dummy data, this method instead loads data into the actual
+-   * blocklist, fires update methods as would happen if this data came from
+-   * an actual blocklist update, etc.
+-   *
+-   * @param {object} data
+-   *        An object that can optionally have `extensions` and/or `plugins`
+-   *        properties, each being an array of blocklist items.
+-   *        This code only uses plugin blocks, that can look something like:
+-   *
+-   * {
+-   *   "matchFilename": "libnptest\\.so|nptest\\.dll|Test\\.plugin",
+-   *   "versionRange": [
+-   *     {
+-   *       "severity": "0",
+-   *       "vulnerabilityStatus": "1"
+-   *     }
+-   *   ],
+-   *   "blockID": "p9999"
+-   * }
+-   *
+-   */
+-  async loadBlocklistRawData(data) {
+-    const bsPass = ChromeUtils.import(
+-      "resource://gre/modules/Blocklist.jsm",
+-      null
+-    );
+-    const blocklistMapping = {
+-      extensions: bsPass.ExtensionBlocklistRS,
+-      plugins: bsPass.PluginBlocklistRS,
+-    };
+-
+-    for (const [dataProp, blocklistObj] of Object.entries(blocklistMapping)) {
+-      let newData = data[dataProp];
+-      if (!newData) {
+-        continue;
+-      }
+-      if (!Array.isArray(newData)) {
+-        throw new Error(
+-          "Expected an array of new items to put in the " +
+-            dataProp +
+-            " blocklist!"
+-        );
+-      }
+-      for (let item of newData) {
+-        if (!item.id) {
+-          item.id = uuidGen.generateUUID().number.slice(1, -1);
+-        }
+-        if (!item.last_modified) {
+-          item.last_modified = Date.now();
+-        }
+-      }
+-      await blocklistObj.ensureInitialized();
+-      let db = await blocklistObj._client.db;
+-      await db.importChanges({}, 42, newData, { clear: true });
+-      // We manually call _onUpdate... which is evil, but at the moment kinto doesn't have
+-      // a better abstraction unless you want to mock your own http server to do the update.
+-      await blocklistObj._onUpdate();
+-    }
+-  },
+-};
+-
+-// An async helper that insures a new blocklist is loaded (in both
+-// processes if applicable).
+-async function asyncSetAndUpdateBlocklist(aURL, aBrowser) {
+-  let doTestRemote = aBrowser ? aBrowser.isRemoteBrowser : false;
+-  let localPromise = TestUtils.topicObserved("plugin-blocklist-updated");
+-  info("*** loading blocklist: " + aURL);
+-  await JSONBlocklistWrapper.loadBlocklistData(aURL);
+-  info("*** waiting on local load");
+-  await localPromise;
+-  if (doTestRemote) {
+-    info("*** waiting on remote load");
+-    // Ensure content has been updated with the blocklist
+-    await SpecialPowers.spawn(aBrowser, [], () => {});
+-  }
+-  info("*** blocklist loaded.");
+-}
+-
+-// Insure there's a popup notification present. This test does not indicate
+-// open state. aBrowser can be undefined.
+-function promisePopupNotification(aName, aBrowser) {
+-  return new Promise(resolve => {
+-    waitForCondition(
+-      () => PopupNotifications.getNotification(aName, aBrowser),
+-      () => {
+-        ok(
+-          !!PopupNotifications.getNotification(aName, aBrowser),
+-          aName + " notification appeared"
+-        );
+-
+-        resolve();
+-      },
+-      "timeout waiting for popup notification " + aName
+-    );
+-  });
+-}
+-
+ /**
+  * Allows setting focus on a window, and waiting for that window to achieve
+  * focus.
+@@ -428,25 +219,3 @@ function promiseForNotificationShown(notification) {
+     waitForNotificationShown(notification, resolve);
+   });
+ }
+-
+-/**
+- * Due to layout being async, "PluginBindAttached" may trigger later. This
+- * returns a Promise that resolves once we've forced a layout flush, which
+- * triggers the PluginBindAttached event to fire. This trick only works if
+- * there is some sort of plugin in the page.
+- * @param browser
+- *        The browser to force plugin bindings in.
+- * @return Promise
+- */
+-function promiseUpdatePluginBindings(browser) {
+-  return SpecialPowers.spawn(browser, [], async function() {
+-    let doc = content.document;
+-    let elems = doc.getElementsByTagName("embed");
+-    if (!elems || elems.length < 1) {
+-      elems = doc.getElementsByTagName("object");
+-    }
+-    if (elems && elems.length) {
+-      elems[0].clientTop;
+-    }
+-  });
+-}
+diff --git a/caps/tests/mochitest/test_bug292789.html b/caps/tests/mochitest/test_bug292789.html
+index 855ca3bce2f6a..d386719448fe5 100644
+--- a/caps/tests/mochitest/test_bug292789.html
++++ b/caps/tests/mochitest/test_bug292789.html
+@@ -13,7 +13,7 @@
+ <p id="display"></p>
+ <div id="content" style="display: none">
+   <script src="chrome://global/content/treeUtils.js"></script>
+-  <script type="application/javascript" src="chrome://mozapps/content/extensions/blocklist.js"></script>
++  <script type="application/javascript" src="chrome://mozapps/content/update/history.js"></script>
+   <script id="resjs" type="application/javascript"></script>
+ </div>
+ <pre id="test">
+@@ -26,6 +26,7 @@
+  **/
+ 
+ /* import-globals-from ../../../toolkit/content/treeUtils.js */
++/* import-globals-from ../../../toolkit/mozapps/update/content/history.js */
+ 
+ SimpleTest.waitForExplicitFinish();
+ 
+@@ -37,20 +38,24 @@
+ function testScriptSrc(aCallback) {
+     is(typeof gTreeUtils.sort, "function",
+        "content can still load <script> from chrome://global");
+-    is(typeof Startup, "undefined",
++
++    /** Try to find an export from history.js.  We will find it if it is
++     ** improperly not blocked, otherwise it will be "undefined".
++     **/
++    is(typeof gUpdateHistory, "undefined",
+        "content should not be able to load <script> from chrome://mozapps");
+ 
+     /** make sure the last one didn't pass because someone
+-     ** moved the resource
++     ** moved history.js
+      **/
+     var resjs = document.getElementById("resjs");
+     resjs.onload = scriptOnload;
+-    resjs.src = "resource://gre/chrome/toolkit/content/mozapps/extensions/blocklist.js";
++    resjs.src = "resource://gre/chrome/toolkit/content/mozapps/update/history.js";
+     document.getElementById("content").appendChild(resjs);
+ 
+     function scriptOnload() {
+-      is(typeof init, "function",
+-         "blocklist.js has not moved unexpectedly");
++      is(typeof gUpdateHistory.onLoad, "function",
++         "history.js has not moved unexpectedly");
+ 
+       // trigger the callback
+       if (aCallback)
+diff --git a/dom/base/test/browser.ini b/dom/base/test/browser.ini
+index dc38c9edfc081..3f836a8b8ab61 100644
+--- a/dom/base/test/browser.ini
++++ b/dom/base/test/browser.ini
+@@ -34,7 +34,6 @@ support-files =
+   file_use_counter_svg_fill_pattern_internal.svg
+   file_use_counter_svg_fill_pattern_data.svg
+   file_webaudio_startstop.html
+-  plugin.js
+   !/image/test/mochitest/shaver.png
+ 
+ [browser_blocking_image.js]
+diff --git a/dom/base/test/mochitest.ini b/dom/base/test/mochitest.ini
+index eb5eee9547b45..fecb11cbcb73f 100644
+--- a/dom/base/test/mochitest.ini
++++ b/dom/base/test/mochitest.ini
+@@ -187,7 +187,6 @@ support-files =
+   formReset.html
+   invalid_accesscontrol.resource
+   invalid_accesscontrol.resource^headers^
+-  plugin.js
+   script-1_bug597345.sjs
+   script-2_bug597345.js
+   script_bug602838.sjs
+@@ -380,7 +379,6 @@ support-files = test_bug402150.html^headers^
+ [test_bug426308.html]
+ [test_bug426646.html]
+ [test_bug428847.html]
+-[test_bug429157.html]
+ [test_bug431082.html]
+ [test_bug431701.html]
+ [test_bug431833.html]
+diff --git a/dom/base/test/plugin.js b/dom/base/test/plugin.js
+deleted file mode 100644
+index 47aa87f120946..0000000000000
+--- a/dom/base/test/plugin.js
++++ /dev/null
+@@ -1,39 +0,0 @@
+-// Copied from /dom/plugins/test/mochitest/utils.js
+-function getTestPlugin(pluginName) {
+-  var ph = SpecialPowers.Cc["@mozilla.org/plugin/host;1"].getService(
+-    SpecialPowers.Ci.nsIPluginHost
+-  );
+-  var tags = ph.getPluginTags();
+-  var name = pluginName || "Test Plug-in";
+-  for (var tag of tags) {
+-    if (tag.name == name) {
+-      return tag;
+-    }
+-  }
+-
+-  ok(false, "Could not find plugin tag with plugin name '" + name + "'");
+-  return null;
+-}
+-// Copied from /dom/plugins/test/mochitest/utils.js
+-async function setTestPluginEnabledState(newEnabledState, pluginName) {
+-  var oldEnabledState = await SpecialPowers.setTestPluginEnabledState(
+-    newEnabledState,
+-    pluginName
+-  );
+-  if (!oldEnabledState) {
+-    return;
+-  }
+-  var plugin = getTestPlugin(pluginName);
+-  // Run a nested event loop to wait for the preference change to
+-  // propagate to the child. Yuck!
+-  SpecialPowers.Services.tm.spinEventLoopUntil(
+-    "Test(plugin.js->setTestPluginEnabledState)",
+-    () => {
+-      return plugin.enabledState == newEnabledState;
+-    }
+-  );
+-  SimpleTest.registerCleanupFunction(function() {
+-    return SpecialPowers.setTestPluginEnabledState(oldEnabledState, pluginName);
+-  });
+-}
+-setTestPluginEnabledState(SpecialPowers.Ci.nsIPluginTag.STATE_ENABLED);
+diff --git a/dom/base/test/test_bug429157.html b/dom/base/test/test_bug429157.html
+deleted file mode 100644
+index 4d1324ad89690..0000000000000
+--- a/dom/base/test/test_bug429157.html
++++ /dev/null
+@@ -1,54 +0,0 @@
+-<!DOCTYPE HTML>
+-<html>
+-<!--
+-https://bugzilla.mozilla.org/show_bug.cgi?id=429157
+--->
+-<head>
+-  <title>Test for Bug 429157</title>
+-  <script src="/tests/SimpleTest/SimpleTest.js"></script>
+-  <link rel="stylesheet" type="text/css" href="/tests/SimpleTest/test.css" />
+-</head>
+-<body onload="runtests();">
+-
+-<a target="_blank" href="https://bugzilla.mozilla.org/show_bug.cgi?id=429157">Mozilla Bug 429157</a>
+-<br>
+-
+-<script>
+-var missingPlugins = new Array();
+-const OBJLC = SpecialPowers.Ci.nsIObjectLoadingContent;
+-
+-function pluginBindingAttached(event)
+-{
+-  var plugin = event.target;
+-  plugin instanceof OBJLC;
+-  if (SpecialPowers.wrap(plugin).pluginFallbackType == OBJLC.PLUGIN_UNSUPPORTED)
+-    missingPlugins.push(plugin);
+-}
+-
+-document.addEventListener("PluginBindingAttached", pluginBindingAttached, true);
+-</script>
+-
+-<object id="obj1" type="image/png"    >ALT image/png</object><br>
+-<object id="obj2" type="image/svg+xml">ALT image/svg+xml</object><br>
+-<object id="obj3" type="text/html"    >ALT text/html</object><br>
+-<object id="obj4" type="text/plain"   >ALT text/plain</object><br>
+-
+-<script class="testbody" type="text/javascript">
+-function runtests()
+-{
+-  for (var obj of document.querySelectorAll("object")) {
+-    obj.clientTop;
+-  }
+-
+-  SimpleTest.executeSoon(function () {
+-    is(missingPlugins.length, 0, "There should be no missing plugins for this page");
+-
+-    SimpleTest.finish();
+-  });
+-}
+-
+-SimpleTest.waitForExplicitFinish();
+-</script>
+-</pre>
+-</body>
+-</html>
+diff --git a/dom/html/test/mochitest.ini b/dom/html/test/mochitest.ini
+index 9b322256120c1..679de5b8f38d5 100644
+--- a/dom/html/test/mochitest.ini
++++ b/dom/html/test/mochitest.ini
+@@ -44,7 +44,6 @@ support-files =
+   bug1315146-iframe.html
+   bug1315146-main.html
+   dummy_page.html
+-  ../../plugins/test/mochitest/plugin-utils.js
+   test_non-ascii-cookie.html^headers^
+   file_bug209275_1.html
+   file_bug209275_2.html
+diff --git a/layout/base/tests/mochitest.ini b/layout/base/tests/mochitest.ini
+index 59d26f43e427f..72ec7cc3d9e63 100644
+--- a/layout/base/tests/mochitest.ini
++++ b/layout/base/tests/mochitest.ini
+@@ -6,7 +6,6 @@ support-files =
+   file_bug842853.html
+   file_bug842853.sjs
+   selection-utils.js
+-  ../../../dom/plugins/test/mochitest/plugin-utils.js
+   !/gfx/layers/apz/test/mochitest/apz_test_utils.js
+ 
+ [test_after_paint_pref.html]
+diff --git a/layout/generic/test/mochitest.ini b/layout/generic/test/mochitest.ini
+index f745cfd043e04..64348d308568b 100644
+--- a/layout/generic/test/mochitest.ini
++++ b/layout/generic/test/mochitest.ini
+@@ -5,7 +5,6 @@ skip-if = toolkit == 'android' #CRASH_DUMP, RANDOM, ONLY IN CHUNK 10
+ support-files =
+   ../../reftests/backgrounds/blue-32x32.png
+   ../../reftests/backgrounds/fuchsia-32x32.png
+-  ../../../dom/plugins/test/mochitest/plugin-utils.js
+   file_BrokenImageReference.png
+   file_Dolske.png
+   file_IconTestServer.sjs
+diff --git a/layout/reftests/reftest.list b/layout/reftests/reftest.list
+index 5e883d3825134..b78358c9b18b9 100644
+--- a/layout/reftests/reftest.list
++++ b/layout/reftests/reftest.list
+@@ -300,9 +300,6 @@ include percent-overflow-sizing/reftest.list
+ # pixel-rounding/
+ include pixel-rounding/reftest.list
+ 
+-# plugin/
+-include ../../dom/plugins/test/reftest/reftest.list
+-
+ # position-dynamic-changes/
+ include position-dynamic-changes/reftest.list
+ 
+diff --git a/layout/tools/reftest/reftest.jsm b/layout/tools/reftest/reftest.jsm
+index 50340ae95ab1b..2e44e30092028 100644
+--- a/layout/tools/reftest/reftest.jsm
++++ b/layout/tools/reftest/reftest.jsm
+@@ -8,7 +8,6 @@
+ var EXPORTED_SYMBOLS = [
+     "OnRefTestLoad",
+     "OnRefTestUnload",
+-    "getTestPlugin"
+ ];
+ 
+ Cu.import("resource://gre/modules/FileUtils.jsm");
+@@ -132,20 +131,6 @@ function IDForEventTarget(event)
+     }
+ }
+ 
+-function getTestPlugin(aName) {
+-  var ph = Cc["@mozilla.org/plugin/host;1"].getService(Ci.nsIPluginHost);
+-  var tags = ph.getPluginTags();
+-
+-  // Find the test plugin
+-  for (var i = 0; i < tags.length; i++) {
+-    if (tags[i].name == aName)
+-      return tags[i];
+-  }
+-
+-  logger.warning("Failed to find the test-plugin.");
+-  return null;
+-}
+-
+ function OnRefTestLoad(win)
+ {
+     g.crashDumpDir = Cc[NS_DIRECTORY_SERVICE_CONTRACTID]
+@@ -206,17 +191,6 @@ function OnRefTestLoad(win)
+       document.getElementById("reftest-window").appendChild(g.browser);
+     }
+ 
+-    // reftests should have the test plugins enabled, not click-to-play
+-    let plugin1 = getTestPlugin("Test Plug-in");
+-    let plugin2 = getTestPlugin("Second Test Plug-in");
+-    if (plugin1 && plugin2) {
+-      g.testPluginEnabledStates = [plugin1.enabledState, plugin2.enabledState];
+-      plugin1.enabledState = Ci.nsIPluginTag.STATE_ENABLED;
+-      plugin2.enabledState = Ci.nsIPluginTag.STATE_ENABLED;
+-    } else {
+-      logger.warning("Could not get test plugin tags.");
+-    }
+-
+     g.browserMessageManager = g.browser.frameLoader.messageManager;
+     // The content script waits for the initial onload, then notifies
+     // us.
+@@ -579,14 +553,6 @@ function StartTests()
+ 
+ function OnRefTestUnload()
+ {
+-  let plugin1 = getTestPlugin("Test Plug-in");
+-  let plugin2 = getTestPlugin("Second Test Plug-in");
+-  if (plugin1 && plugin2) {
+-    plugin1.enabledState = g.testPluginEnabledStates[0];
+-    plugin2.enabledState = g.testPluginEnabledStates[1];
+-  } else {
+-    logger.warning("Failed to get test plugin tags.");
+-  }
+ }
+ 
+ function AddURIUseCount(uri)
+diff --git a/testing/specialpowers/content/SpecialPowersChild.jsm b/testing/specialpowers/content/SpecialPowersChild.jsm
+index 253f51c891f9b..bef059b8a8e1b 100644
+--- a/testing/specialpowers/content/SpecialPowersChild.jsm
++++ b/testing/specialpowers/content/SpecialPowersChild.jsm
+@@ -870,13 +870,6 @@ class SpecialPowersChild extends JSWindowActorChild {
+     return this.sendQuery("SPObserverService", msg);
+   }
+ 
+-  setTestPluginEnabledState(newEnabledState, pluginName) {
+-    return this.sendQuery("SPSetTestPluginEnabledState", {
+-      newEnabledState,
+-      pluginName,
+-    });
+-  }
+-
+   async pushPrefEnv(inPrefs, callback = null) {
+     await this.sendQuery("PushPrefEnv", inPrefs).then(callback);
+     await this.promiseTimeout(0);
+diff --git a/testing/specialpowers/content/SpecialPowersParent.jsm b/testing/specialpowers/content/SpecialPowersParent.jsm
+index ebaed8ca2df61..815a7730dd72c 100644
+--- a/testing/specialpowers/content/SpecialPowersParent.jsm
++++ b/testing/specialpowers/content/SpecialPowersParent.jsm
+@@ -29,19 +29,6 @@ class SpecialPowersError extends Error {
+   }
+ }
+ 
+-function getTestPlugin(pluginName) {
+-  var ph = Cc["@mozilla.org/plugin/host;1"].getService(Ci.nsIPluginHost);
+-  var tags = ph.getPluginTags();
+-  var name = pluginName || "Test Plug-in";
+-  for (var tag of tags) {
+-    if (tag.name == name) {
+-      return tag;
+-    }
+-  }
+-
+-  return null;
+-}
+-
+ const PREF_TYPES = {
+   [Ci.nsIPrefBranch.PREF_INVALID]: "INVALID",
+   [Ci.nsIPrefBranch.PREF_INT]: "INT",
+@@ -939,16 +926,6 @@ class SpecialPowersParent extends JSWindowActorParent {
+           return undefined; // See comment at the beginning of this function.
+         }
+ 
+-        case "SPSetTestPluginEnabledState": {
+-          var plugin = getTestPlugin(aMessage.data.pluginName);
+-          if (!plugin) {
+-            return undefined;
+-          }
+-          var oldEnabledState = plugin.enabledState;
+-          plugin.enabledState = aMessage.data.newEnabledState;
+-          return oldEnabledState;
+-        }
+-
+         case "SPObserverService": {
+           let topic = aMessage.json.observerTopic;
+           switch (aMessage.json.op) {
+diff --git a/toolkit/components/crashes/tests/xpcshell/test_crash_manager.js b/toolkit/components/crashes/tests/xpcshell/test_crash_manager.js
+index a914defec61ea..138837d81efb9 100644
+--- a/toolkit/components/crashes/tests/xpcshell/test_crash_manager.js
++++ b/toolkit/components/crashes/tests/xpcshell/test_crash_manager.js
+@@ -186,7 +186,7 @@ add_task(async function test_prune_old() {
+   let oldDate = new Date(Date.now() - 86400000);
+   let newDate = new Date(Date.now() - 10000);
+   await m.createEventsFile("1", "crash.main.3", oldDate, "id1", "{}");
+-  await m.addCrash(m.PROCESS_TYPE_PLUGIN, m.CRASH_TYPE_CRASH, "id2", newDate);
++  await m.addCrash(m.PROCESS_TYPE_CONTENT, m.CRASH_TYPE_CRASH, "id2", newDate);
+ 
+   await m.aggregateEventsFiles();
+ 
+@@ -455,18 +455,6 @@ add_task(async function test_addCrash() {
+     "content-hang",
+     DUMMY_DATE
+   );
+-  await m.addCrash(
+-    m.PROCESS_TYPE_PLUGIN,
+-    m.CRASH_TYPE_CRASH,
+-    "plugin-crash",
+-    DUMMY_DATE
+-  );
+-  await m.addCrash(
+-    m.PROCESS_TYPE_PLUGIN,
+-    m.CRASH_TYPE_HANG,
+-    "plugin-hang",
+-    DUMMY_DATE
+-  );
+   await m.addCrash(
+     m.PROCESS_TYPE_GMPLUGIN,
+     m.CRASH_TYPE_CRASH,
+@@ -512,7 +500,7 @@ add_task(async function test_addCrash() {
+   );
+ 
+   crashes = await m.getCrashes();
+-  Assert.equal(crashes.length, 12);
++  Assert.equal(crashes.length, 10);
+ 
+   let map = new Map(crashes.map(crash => [crash.id, crash]));
+ 
+@@ -540,18 +528,6 @@ add_task(async function test_addCrash() {
+   Assert.equal(crash.type, m.PROCESS_TYPE_CONTENT + "-" + m.CRASH_TYPE_HANG);
+   Assert.ok(crash.isOfType(m.PROCESS_TYPE_CONTENT, m.CRASH_TYPE_HANG));
+ 
+-  crash = map.get("plugin-crash");
+-  Assert.ok(!!crash);
+-  Assert.equal(crash.crashDate, DUMMY_DATE);
+-  Assert.equal(crash.type, m.PROCESS_TYPE_PLUGIN + "-" + m.CRASH_TYPE_CRASH);
+-  Assert.ok(crash.isOfType(m.PROCESS_TYPE_PLUGIN, m.CRASH_TYPE_CRASH));
+-
+-  crash = map.get("plugin-hang");
+-  Assert.ok(!!crash);
+-  Assert.equal(crash.crashDate, DUMMY_DATE);
+-  Assert.equal(crash.type, m.PROCESS_TYPE_PLUGIN + "-" + m.CRASH_TYPE_HANG);
+-  Assert.ok(crash.isOfType(m.PROCESS_TYPE_PLUGIN, m.CRASH_TYPE_HANG));
+-
+   crash = map.get("gmplugin-crash");
+   Assert.ok(!!crash);
+   Assert.equal(crash.crashDate, DUMMY_DATE);
+@@ -600,7 +576,6 @@ add_task(async function test_child_process_crash_ping() {
+   ];
+ 
+   const UNEXPECTED_PROCESSES = [
+-    m.PROCESS_TYPE_PLUGIN,
+     m.PROCESS_TYPE_GMPLUGIN,
+     null,
+     12, // non-string process type
+diff --git a/toolkit/components/crashes/tests/xpcshell/test_crash_store.js b/toolkit/components/crashes/tests/xpcshell/test_crash_store.js
+index 8ec803ade077b..d2235bbb115a9 100644
+--- a/toolkit/components/crashes/tests/xpcshell/test_crash_store.js
++++ b/toolkit/components/crashes/tests/xpcshell/test_crash_store.js
+@@ -21,7 +21,6 @@ DUMMY_DATE_2.setMilliseconds(0);
+ const {
+   PROCESS_TYPE_MAIN,
+   PROCESS_TYPE_CONTENT,
+-  PROCESS_TYPE_PLUGIN,
+   PROCESS_TYPE_GMPLUGIN,
+   PROCESS_TYPE_GPU,
+   PROCESS_TYPE_VR,
+@@ -237,60 +236,6 @@ add_task(async function test_add_content_hang() {
+   Assert.equal(crashes.length, 2);
+ });
+ 
+-add_task(async function test_add_plugin_crash() {
+-  let s = await getStore();
+-
+-  Assert.ok(
+-    s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH, "id1", new Date())
+-  );
+-  Assert.equal(s.crashesCount, 1);
+-
+-  let c = s.crashes[0];
+-  Assert.ok(c.crashDate);
+-  Assert.equal(c.type, PROCESS_TYPE_PLUGIN + "-" + CRASH_TYPE_CRASH);
+-  Assert.ok(c.isOfType(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH));
+-
+-  Assert.ok(
+-    s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH, "id2", new Date())
+-  );
+-  Assert.equal(s.crashesCount, 2);
+-
+-  Assert.ok(
+-    s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH, "id1", new Date())
+-  );
+-  Assert.equal(s.crashesCount, 2);
+-
+-  let crashes = s.getCrashesOfType(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH);
+-  Assert.equal(crashes.length, 2);
+-});
+-
+-add_task(async function test_add_plugin_hang() {
+-  let s = await getStore();
+-
+-  Assert.ok(
+-    s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG, "id1", new Date())
+-  );
+-  Assert.equal(s.crashesCount, 1);
+-
+-  let c = s.crashes[0];
+-  Assert.ok(c.crashDate);
+-  Assert.equal(c.type, PROCESS_TYPE_PLUGIN + "-" + CRASH_TYPE_HANG);
+-  Assert.ok(c.isOfType(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG));
+-
+-  Assert.ok(
+-    s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG, "id2", new Date())
+-  );
+-  Assert.equal(s.crashesCount, 2);
+-
+-  Assert.ok(
+-    s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG, "id1", new Date())
+-  );
+-  Assert.equal(s.crashesCount, 2);
+-
+-  let crashes = s.getCrashesOfType(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG);
+-  Assert.equal(crashes.length, 2);
+-});
+-
+ add_task(async function test_add_gmplugin_crash() {
+   let s = await getStore();
+ 
+@@ -421,8 +366,6 @@ add_task(async function test_add_mixed_types() {
+         new Date()
+       ) &&
+       s.addCrash(PROCESS_TYPE_CONTENT, CRASH_TYPE_HANG, "chang", new Date()) &&
+-      s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH, "pcrash", new Date()) &&
+-      s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG, "phang", new Date()) &&
+       s.addCrash(
+         PROCESS_TYPE_GMPLUGIN,
+         CRASH_TYPE_CRASH,
+@@ -440,7 +383,7 @@ add_task(async function test_add_mixed_types() {
+       )
+   );
+ 
+-  Assert.equal(s.crashesCount, 11);
++  Assert.equal(s.crashesCount, 9);
+ 
+   await s.save();
+ 
+@@ -449,7 +392,7 @@ add_task(async function test_add_mixed_types() {
+ 
+   await s.load();
+ 
+-  Assert.equal(s.crashesCount, 11);
++  Assert.equal(s.crashesCount, 9);
+ 
+   let crashes = s.getCrashesOfType(PROCESS_TYPE_MAIN, CRASH_TYPE_CRASH);
+   Assert.equal(crashes.length, 1);
+@@ -459,10 +402,6 @@ add_task(async function test_add_mixed_types() {
+   Assert.equal(crashes.length, 1);
+   crashes = s.getCrashesOfType(PROCESS_TYPE_CONTENT, CRASH_TYPE_HANG);
+   Assert.equal(crashes.length, 1);
+-  crashes = s.getCrashesOfType(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH);
+-  Assert.equal(crashes.length, 1);
+-  crashes = s.getCrashesOfType(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG);
+-  Assert.equal(crashes.length, 1);
+   crashes = s.getCrashesOfType(PROCESS_TYPE_GMPLUGIN, CRASH_TYPE_CRASH);
+   Assert.equal(crashes.length, 1);
+   crashes = s.getCrashesOfType(PROCESS_TYPE_GPU, CRASH_TYPE_CRASH);
+@@ -492,11 +431,7 @@ add_task(async function test_high_water() {
+         s.addCrash(PROCESS_TYPE_CONTENT, CRASH_TYPE_CRASH, "cc1" + i, d1) &&
+         s.addCrash(PROCESS_TYPE_CONTENT, CRASH_TYPE_CRASH, "cc2" + i, d2) &&
+         s.addCrash(PROCESS_TYPE_CONTENT, CRASH_TYPE_HANG, "ch1" + i, d1) &&
+-        s.addCrash(PROCESS_TYPE_CONTENT, CRASH_TYPE_HANG, "ch2" + i, d2) &&
+-        s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH, "pc1" + i, d1) &&
+-        s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH, "pc2" + i, d2) &&
+-        s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG, "ph1" + i, d1) &&
+-        s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG, "ph2" + i, d2)
++        s.addCrash(PROCESS_TYPE_CONTENT, CRASH_TYPE_HANG, "ch2" + i, d2)
+     );
+   }
+ 
+@@ -512,14 +447,9 @@ add_task(async function test_high_water() {
+   Assert.ok(!s.addCrash(PROCESS_TYPE_CONTENT, CRASH_TYPE_HANG, "ch1" + i, d1));
+   Assert.ok(!s.addCrash(PROCESS_TYPE_CONTENT, CRASH_TYPE_HANG, "ch2" + i, d2));
+ 
+-  Assert.ok(!s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH, "pc1" + i, d1));
+-  Assert.ok(!s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH, "pc2" + i, d2));
+-  Assert.ok(!s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG, "ph1" + i, d1));
+-  Assert.ok(!s.addCrash(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG, "ph2" + i, d2));
+-
+-  // We preserve main process crashes and hangs. Content and plugin crashes and
++  // We preserve main process crashes and hangs. Content crashes and
+   // hangs beyond should be discarded.
+-  Assert.equal(s.crashesCount, 12 * s.HIGH_WATER_DAILY_THRESHOLD + 4);
++  Assert.equal(s.crashesCount, 8 * s.HIGH_WATER_DAILY_THRESHOLD + 4);
+ 
+   let crashes = s.getCrashesOfType(PROCESS_TYPE_MAIN, CRASH_TYPE_CRASH);
+   Assert.equal(crashes.length, 2 * s.HIGH_WATER_DAILY_THRESHOLD + 2);
+@@ -531,11 +461,6 @@ add_task(async function test_high_water() {
+   crashes = s.getCrashesOfType(PROCESS_TYPE_CONTENT, CRASH_TYPE_HANG);
+   Assert.equal(crashes.length, 2 * s.HIGH_WATER_DAILY_THRESHOLD);
+ 
+-  crashes = s.getCrashesOfType(PROCESS_TYPE_PLUGIN, CRASH_TYPE_CRASH);
+-  Assert.equal(crashes.length, 2 * s.HIGH_WATER_DAILY_THRESHOLD);
+-  crashes = s.getCrashesOfType(PROCESS_TYPE_PLUGIN, CRASH_TYPE_HANG);
+-  Assert.equal(crashes.length, 2 * s.HIGH_WATER_DAILY_THRESHOLD);
+-
+   // But raw counts should be preserved.
+   let day1 = dateToDays(d1);
+   let day2 = dateToDays(d2);
+@@ -560,15 +485,6 @@ add_task(async function test_high_water() {
+     s.HIGH_WATER_DAILY_THRESHOLD + 1
+   );
+ 
+-  Assert.equal(
+-    s._countsByDay.get(day1).get(PROCESS_TYPE_PLUGIN + "-" + CRASH_TYPE_CRASH),
+-    s.HIGH_WATER_DAILY_THRESHOLD + 1
+-  );
+-  Assert.equal(
+-    s._countsByDay.get(day1).get(PROCESS_TYPE_PLUGIN + "-" + CRASH_TYPE_HANG),
+-    s.HIGH_WATER_DAILY_THRESHOLD + 1
+-  );
+-
+   await s.save();
+   await s.load();
+ 
+@@ -592,15 +508,6 @@ add_task(async function test_high_water() {
+     s._countsByDay.get(day1).get(PROCESS_TYPE_CONTENT + "-" + CRASH_TYPE_HANG),
+     s.HIGH_WATER_DAILY_THRESHOLD + 1
+   );
+-
+-  Assert.equal(
+-    s._countsByDay.get(day1).get(PROCESS_TYPE_PLUGIN + "-" + CRASH_TYPE_CRASH),
+-    s.HIGH_WATER_DAILY_THRESHOLD + 1
+-  );
+-  Assert.equal(
+-    s._countsByDay.get(day1).get(PROCESS_TYPE_PLUGIN + "-" + CRASH_TYPE_HANG),
+-    s.HIGH_WATER_DAILY_THRESHOLD + 1
+-  );
+ });
+ 
+ add_task(async function test_addSubmission() {
+diff --git a/toolkit/components/telemetry/tests/unit/TelemetryEnvironmentTesting.jsm b/toolkit/components/telemetry/tests/unit/TelemetryEnvironmentTesting.jsm
+index 6da9261c29f36..6193659fb0ed1 100644
+--- a/toolkit/components/telemetry/tests/unit/TelemetryEnvironmentTesting.jsm
++++ b/toolkit/components/telemetry/tests/unit/TelemetryEnvironmentTesting.jsm
+@@ -49,12 +49,6 @@ const PROFILE_CREATION_DATE_MS = PROFILE_FIRST_USE_MS - MILLISECONDS_PER_DAY;
+ const GFX_VENDOR_ID = "0xabcd";
+ const GFX_DEVICE_ID = "0x1234";
+ 
+-const FLASH_PLUGIN_NAME = "Shockwave Flash";
+-const FLASH_PLUGIN_DESC = "A mock flash plugin";
+-const FLASH_PLUGIN_VERSION = "\u201c1.1.1.1\u201d";
+-const PLUGIN_MIME_TYPE1 = "application/x-shockwave-flash";
+-const PLUGIN_MIME_TYPE2 = "text/plain";
+-
+ const EXPECTED_HDD_FIELDS = ["profile", "binary", "system"];
+ 
+ // Valid attribution code to write so that settings.attribution can be tested.
+@@ -103,75 +97,12 @@ var SysInfo = {
+   QueryInterface: ChromeUtils.generateQI(["nsIPropertyBag2", "nsISystemInfo"]),
+ };
+ 
+-const pluginHost = Cc["@mozilla.org/plugin/host;1"].getService(
+-  Ci.nsIPluginHost
+-);
+-
+-/**
+- * Used to mock plugin tags in our fake plugin host.
+- */
+-class PluginTag {
+-  constructor(aName, aDescription, aVersion, aEnabled) {
+-    this.mimeTypes = [PLUGIN_MIME_TYPE1, PLUGIN_MIME_TYPE2];
+-    this.pluginTag = pluginHost.createFakePlugin({
+-      handlerURI: "resource://fake-plugin/${Math.random()}.xhtml",
+-      mimeEntries: this.mimeTypes.map(type => ({ type })),
+-      name: aName,
+-      description: aDescription,
+-      fileName: `${aName}.so`,
+-      version: aVersion,
+-    });
+-    this.name = aName;
+-    this.description = aDescription;
+-    this.version = aVersion;
+-    this.disabled = !aEnabled;
+-  }
+-
+-  get disabled() {
+-    return this.pluginTag.enabledState == Ci.nsIPluginTag.STATE_DISABLED;
+-  }
+-
+-  set disabled(val) {
+-    this.pluginTag.enabledState =
+-      Ci.nsIPluginTag[val ? "STATE_DISABLED" : "STATE_CLICKTOPLAY"];
+-  }
+-
+-  getMimeTypes() {
+-    return this.mimeTypes;
+-  }
+-}
+-
+-// A container for the plugins handled by the fake plugin host.
+-var gInstalledPlugins = [
+-  new PluginTag("Java", "A mock Java plugin", "1.0", false /* Disabled */),
+-  new PluginTag(
+-    FLASH_PLUGIN_NAME,
+-    FLASH_PLUGIN_DESC,
+-    FLASH_PLUGIN_VERSION,
+-    true
+-  ),
+-];
+-
+-// A fake plugin host for testing plugin telemetry environment.
+-var PluginHost = {
+-  getPluginTags() {
+-    return gInstalledPlugins.map(plugin => plugin.pluginTag);
+-  },
+-
+-  QueryInterface: ChromeUtils.generateQI(["nsIPluginHost"]),
+-};
+-
+ /**
+  * TelemetryEnvironmentTesting - tools for testing the telemetry environment
+  * reporting.
+  */
+ var TelemetryEnvironmentTesting = {
+   EXPECTED_HDD_FIELDS,
+-  FLASH_PLUGIN_NAME,
+-  FLASH_PLUGIN_DESC,
+-  FLASH_PLUGIN_VERSION,
+-  PLUGIN_MIME_TYPE1,
+-  PLUGIN_MIME_TYPE2,
+ 
+   init(appInfo) {
+     this.appInfo = appInfo;
+@@ -181,18 +112,6 @@ var TelemetryEnvironmentTesting = {
+     SysInfo.overrides = overrides;
+   },
+ 
+-  addPlugin(name, description, version, enabled) {
+-    gInstalledPlugins.push(new PluginTag(name, description, version, enabled));
+-  },
+-
+-  removePlugin(name) {
+-    let plugin = gInstalledPlugins.find(p => p.name == name);
+-    Assert.ok(plugin, "The test plugin must exist.");
+-
+-    // Remove it from the PluginHost.
+-    gInstalledPlugins = gInstalledPlugins.filter(p => p != plugin);
+-  },
+-
+   spoofGfxAdapter() {
+     try {
+       let gfxInfo = Cc["@mozilla.org/gfx/info;1"].getService(
+@@ -250,10 +169,6 @@ var TelemetryEnvironmentTesting = {
+     MockRegistrar.register("@mozilla.org/system-info;1", SysInfo);
+   },
+ 
+-  registerFakePluginHost() {
+-    MockRegistrar.register("@mozilla.org/plugin/host;1", PluginHost);
+-  },
+-
+   /**
+    * Check that a value is a string and not empty.
+    *
+@@ -816,32 +731,6 @@ var TelemetryEnvironmentTesting = {
+     }
+   },
+ 
+-  checkPlugin(data) {
+-    const EXPECTED_PLUGIN_FIELDS_TYPES = {
+-      name: "string",
+-      version: "string",
+-      description: "string",
+-      blocklisted: "boolean",
+-      disabled: "boolean",
+-      clicktoplay: "boolean",
+-      updateDay: "number",
+-    };
+-
+-    for (let f in EXPECTED_PLUGIN_FIELDS_TYPES) {
+-      Assert.ok(f in data, f + " must be available.");
+-      Assert.equal(
+-        typeof data[f],
+-        EXPECTED_PLUGIN_FIELDS_TYPES[f],
+-        f + " must have the correct type."
+-      );
+-    }
+-
+-    Assert.ok(Array.isArray(data.mimeTypes));
+-    for (let type of data.mimeTypes) {
+-      Assert.ok(this.checkString(type));
+-    }
+-  },
+-
+   checkTheme(data) {
+     const EXPECTED_THEME_FIELDS_TYPES = {
+       id: "string",
+@@ -879,12 +768,7 @@ var TelemetryEnvironmentTesting = {
+   },
+ 
+   checkAddonsSection(data, expectBrokenAddons, partialAddonsRecords) {
+-    const EXPECTED_FIELDS = [
+-      "activeAddons",
+-      "theme",
+-      "activePlugins",
+-      "activeGMPlugins",
+-    ];
++    const EXPECTED_FIELDS = ["activeAddons", "theme", "activeGMPlugins"];
+ 
+     Assert.ok(
+       "addons" in data,
+@@ -907,12 +791,6 @@ var TelemetryEnvironmentTesting = {
+       this.checkTheme(data.addons.theme);
+     }
+ 
+-    // Check the active plugins.
+-    Assert.ok(Array.isArray(data.addons.activePlugins));
+-    for (let plugin of data.addons.activePlugins) {
+-      this.checkPlugin(plugin);
+-    }
+-
+     // Check active GMPlugins
+     let activeGMPlugins = data.addons.activeGMPlugins;
+     for (let gmPlugin in activeGMPlugins) {
+diff --git a/toolkit/components/telemetry/tests/unit/test_TelemetryEnvironment.js b/toolkit/components/telemetry/tests/unit/test_TelemetryEnvironment.js
+index 8d752a651ec04..731371c823ab2 100644
+--- a/toolkit/components/telemetry/tests/unit/test_TelemetryEnvironment.js
++++ b/toolkit/components/telemetry/tests/unit/test_TelemetryEnvironment.js
+@@ -38,8 +38,6 @@ var gHttpRoot = null;
+ // The URL of the data directory, on the webserver.
+ var gDataRoot = null;
+ 
+-const PLUGIN_UPDATED_TOPIC = "plugins-list-updated";
+-
+ function MockAddonWrapper(aAddon) {
+   this.addon = aAddon;
+ }
+@@ -174,10 +172,7 @@ add_task(async function setup() {
+   // search service needs it.
+   Services.prefs.clearUserPref("services.settings.default_bucket");
+ 
+-  // Register a fake plugin host for consistent flash version data.
+-  TelemetryEnvironmentTesting.registerFakePluginHost();
+-
+-  // Setup a webserver to serve Addons, Plugins, etc.
++  // Setup a webserver to serve Addons, etc.
+   gHttpServer = new HttpServer();
+   gHttpServer.start(-1);
+   let port = gHttpServer.identity.primaryPort;
+@@ -498,86 +493,6 @@ add_task(async function test_addonsWatch_InterestingChange() {
+   );
+ });
+ 
+-add_task(async function test_pluginsWatch_Add() {
+-  if (!gIsFirefox) {
+-    Assert.ok(true, "Skipping: there is no Plugin Manager on Android.");
+-    return;
+-  }
+-
+-  Assert.equal(
+-    TelemetryEnvironment.currentEnvironment.addons.activePlugins.length,
+-    1
+-  );
+-
+-  TelemetryEnvironmentTesting.addPlugin(
+-    PLUGIN2_NAME,
+-    PLUGIN2_DESC,
+-    PLUGIN2_VERSION,
+-    true
+-  );
+-
+-  let receivedNotifications = 0;
+-  let callback = (reason, data) => {
+-    receivedNotifications++;
+-  };
+-  TelemetryEnvironment.registerChangeListener("testWatchPlugins_Add", callback);
+-
+-  Services.obs.notifyObservers(null, PLUGIN_UPDATED_TOPIC);
+-
+-  await ContentTaskUtils.waitForCondition(() => {
+-    return (
+-      TelemetryEnvironment.currentEnvironment.addons.activePlugins.length == 2
+-    );
+-  });
+-
+-  TelemetryEnvironment.unregisterChangeListener("testWatchPlugins_Add");
+-
+-  Assert.equal(
+-    receivedNotifications,
+-    0,
+-    "We must not receive any notifications."
+-  );
+-});
+-
+-add_task(async function test_pluginsWatch_Remove() {
+-  if (!gIsFirefox) {
+-    Assert.ok(true, "Skipping: there is no Plugin Manager on Android.");
+-    return;
+-  }
+-
+-  Assert.equal(
+-    TelemetryEnvironment.currentEnvironment.addons.activePlugins.length,
+-    2
+-  );
+-
+-  TelemetryEnvironmentTesting.removePlugin(PLUGIN2_NAME);
+-
+-  let receivedNotifications = 0;
+-  let callback = () => {
+-    receivedNotifications++;
+-  };
+-  TelemetryEnvironment.registerChangeListener(
+-    "testWatchPlugins_Remove",
+-    callback
+-  );
+-
+-  Services.obs.notifyObservers(null, PLUGIN_UPDATED_TOPIC);
+-
+-  await ContentTaskUtils.waitForCondition(() => {
+-    return (
+-      TelemetryEnvironment.currentEnvironment.addons.activePlugins.length == 1
+-    );
+-  });
+-
+-  TelemetryEnvironment.unregisterChangeListener("testWatchPlugins_Remove");
+-
+-  Assert.equal(
+-    receivedNotifications,
+-    0,
+-    "We must not receive any notifications."
+-  );
+-});
+-
+ add_task(async function test_addonsWatch_NotInterestingChange() {
+   // We are not interested to dictionary addons changes.
+   const DICTIONARY_ADDON_INSTALL_URL = gDataRoot + "dictionary.xpi";
+@@ -613,7 +528,7 @@ add_task(async function test_addonsWatch_NotInterestingChange() {
+   interestingAddon.uninstall();
+ });
+ 
+-add_task(async function test_addonsAndPlugins() {
++add_task(async function test_addons() {
+   const ADDON_INSTALL_URL = gDataRoot + "restartless.xpi";
+   const ADDON_ID = "tel-restartless-webext@tests.mozilla.org";
+   const ADDON_INSTALL_DATE = truncateToDays(Date.now());
+@@ -676,15 +591,6 @@ add_task(async function test_addonsAndPlugins() {
+     multiprocessCompatible: true,
+   };
+ 
+-  const EXPECTED_PLUGIN_DATA = {
+-    name: TelemetryEnvironmentTesting.FLASH_PLUGIN_NAME,
+-    version: TelemetryEnvironmentTesting.FLASH_PLUGIN_VERSION,
+-    description: TelemetryEnvironmentTesting.FLASH_PLUGIN_DESC,
+-    blocklisted: false,
+-    disabled: false,
+-    clicktoplay: true,
+-  };
+-
+   let deferred = PromiseUtils.defer();
+   TelemetryEnvironment.registerChangeListener(
+     "test_WebExtension",
+@@ -765,34 +671,6 @@ add_task(async function test_addonsAndPlugins() {
+ 
+   await webextension.unload();
+ 
+-  // Check plugin data.
+-  Assert.equal(
+-    data.addons.activePlugins.length,
+-    1,
+-    "We must have only one active plugin."
+-  );
+-  let targetPlugin = data.addons.activePlugins[0];
+-  for (let f in EXPECTED_PLUGIN_DATA) {
+-    Assert.equal(
+-      targetPlugin[f],
+-      EXPECTED_PLUGIN_DATA[f],
+-      f + " must have the correct value."
+-    );
+-  }
+-
+-  // Check plugin mime types.
+-  Assert.ok(
+-    targetPlugin.mimeTypes.find(
+-      m => m == TelemetryEnvironmentTesting.PLUGIN_MIME_TYPE1
+-    )
+-  );
+-  Assert.ok(
+-    targetPlugin.mimeTypes.find(
+-      m => m == TelemetryEnvironmentTesting.PLUGIN_MIME_TYPE2
+-    )
+-  );
+-  Assert.ok(!targetPlugin.mimeTypes.find(m => m == "Not There."));
+-
+   // Uninstall the addon.
+   await addon.startupPromise;
+   await addon.uninstall();
+diff --git a/toolkit/components/telemetry/tests/unit/test_TelemetryEnvironment_search.js b/toolkit/components/telemetry/tests/unit/test_TelemetryEnvironment_search.js
+index 19b81a05da668..4a223c5357b65 100644
+--- a/toolkit/components/telemetry/tests/unit/test_TelemetryEnvironment_search.js
++++ b/toolkit/components/telemetry/tests/unit/test_TelemetryEnvironment_search.js
+@@ -68,10 +68,7 @@ add_task(async function setup() {
+   // search service needs it.
+   Services.prefs.clearUserPref("services.settings.default_bucket");
+ 
+-  // Register a fake plugin host for consistent flash version data.
+-  TelemetryEnvironmentTesting.registerFakePluginHost();
+-
+-  // Setup a webserver to serve Addons, Plugins, etc.
++  // Setup a webserver to serve Addons, etc.
+   gHttpServer = new HttpServer();
+   gHttpServer.start(-1);
+   let port = gHttpServer.identity.primaryPort;
+diff --git a/toolkit/content/tests/browser/head.js b/toolkit/content/tests/browser/head.js
+index c023869117840..2fc12bd11d0ac 100644
+--- a/toolkit/content/tests/browser/head.js
++++ b/toolkit/content/tests/browser/head.js
+@@ -138,44 +138,6 @@ async function waitForTabPlayingEvent(tab, expectPlaying) {
+   }
+ }
+ 
+-function getTestPlugin(pluginName) {
+-  var ph = SpecialPowers.Cc["@mozilla.org/plugin/host;1"].getService(
+-    SpecialPowers.Ci.nsIPluginHost
+-  );
+-  var tags = ph.getPluginTags();
+-  var name = pluginName || "Test Plug-in";
+-  for (var tag of tags) {
+-    if (tag.name == name) {
+-      return tag;
+-    }
+-  }
+-
+-  ok(false, "Could not find plugin tag with plugin name '" + name + "'");
+-  return null;
+-}
+-
+-async function setTestPluginEnabledState(newEnabledState, pluginName) {
+-  var oldEnabledState = await SpecialPowers.setTestPluginEnabledState(
+-    newEnabledState,
+-    pluginName
+-  );
+-  if (!oldEnabledState) {
+-    return;
+-  }
+-  var plugin = getTestPlugin(pluginName);
+-  // Run a nested event loop to wait for the preference change to
+-  // propagate to the child. Yuck!
+-  SpecialPowers.Services.tm.spinEventLoopUntil(
+-    "Test(browser/head.js:setTestPluginEnabledState)",
+-    () => {
+-      return plugin.enabledState == newEnabledState;
+-    }
+-  );
+-  SimpleTest.registerCleanupFunction(function() {
+-    return SpecialPowers.setTestPluginEnabledState(oldEnabledState, pluginName);
+-  });
+-}
+-
+ function disable_non_test_mouse(disable) {
+   let utils = window.windowUtils;
+   utils.disableNonTestMouseEvents(disable);
+diff --git a/toolkit/mozapps/extensions/internal/AddonTestUtils.jsm b/toolkit/mozapps/extensions/internal/AddonTestUtils.jsm
+index 3f6a7bda3edb1..07ba4a495e242 100644
+--- a/toolkit/mozapps/extensions/internal/AddonTestUtils.jsm
++++ b/toolkit/mozapps/extensions/internal/AddonTestUtils.jsm
+@@ -209,11 +209,6 @@ class MockBlocklist {
+     }
+     return null;
+   }
+-
+-  async getPluginBlocklistState(plugin, version, appVersion, toolkitVersion) {
+-    await new Promise(r => setTimeout(r, 150));
+-    return Ci.nsIBlocklistService.STATE_NOT_BLOCKED;
+-  }
+ }
+ 
+ MockBlocklist.prototype.QueryInterface = ChromeUtils.generateQI([
+@@ -789,24 +784,21 @@ var AddonTestUtils = {
+    *        The directory in which the files live.
+    * @param {string} prefix
+    *        a prefix for the files which ought to be loaded.
+-   *        This method will suffix -extensions.json and -plugins.json
+-   *        to the prefix it is given, and attempt to load both.
+-   *        Insofar as either exists, their data will be dumped into
+-   *        the respective store, and the respective update handlers
++   *        This method will suffix -extensions.json
++   *        to the prefix it is given, and attempt to load it.
++   *        If it exists, its data will be dumped into
++   *        the respective store, and the update handler
+    *        will be called.
+    */
+   async loadBlocklistData(dir, prefix) {
+     let loadedData = {};
+-    for (let fileSuffix of ["extensions", "plugins"]) {
+-      const fileName = `${prefix}-${fileSuffix}.json`;
+-      let jsonStr = await OS.File.read(OS.Path.join(dir.path, fileName), {
+-        encoding: "UTF-8",
+-      }).catch(() => {});
+-      if (!jsonStr) {
+-        continue;
+-      }
++    let fileSuffix = "extensions";
++    const fileName = `${prefix}-${fileSuffix}.json`;
++    let jsonStr = await OS.File.read(OS.Path.join(dir.path, fileName), {
++      encoding: "UTF-8",
++    }).catch(() => {});
++    if (jsonStr) {
+       this.info(`Loaded ${fileName}`);
+-
+       loadedData[fileSuffix] = JSON.parse(jsonStr);
+     }
+     return this.loadBlocklistRawData(loadedData);
+@@ -830,7 +822,6 @@ var AddonTestUtils = {
+     const blocklistMapping = {
+       extensions: bsPass.ExtensionBlocklistRS,
+       extensionsMLBF: bsPass.ExtensionBlocklistMLBF,
+-      plugins: bsPass.PluginBlocklistRS,
+     };
+ 
+     // Since we load the specified test data, we shouldn't let the
+diff --git a/toolkit/mozapps/extensions/test/browser/browser.ini b/toolkit/mozapps/extensions/test/browser/browser.ini
+index b1a340cb19bfe..8695757c4a436 100644
+--- a/toolkit/mozapps/extensions/test/browser/browser.ini
++++ b/toolkit/mozapps/extensions/test/browser/browser.ini
+@@ -1,6 +1,4 @@
+ [DEFAULT]
+-prefs =
+-  plugin.load_flash_only=false
+ tags = addons
+ support-files =
+   addons/browser_dragdrop1.xpi
+@@ -44,8 +42,6 @@ generated-files =
+ 
+ [browser_about_debugging_link.js]
+ [browser_addon_list_reordering.js]
+-[browser_bug523784.js]
+-skip-if = (!debug && os == 'win') #Bug 1489496
+ [browser_bug572561.js]
+ [browser_checkAddonCompatibility.js]
+ [browser_dragdrop.js]
+diff --git a/toolkit/mozapps/extensions/test/browser/browser_bug523784.js b/toolkit/mozapps/extensions/test/browser/browser_bug523784.js
+deleted file mode 100644
+index 373b9337245b4..0000000000000
+--- a/toolkit/mozapps/extensions/test/browser/browser_bug523784.js
++++ /dev/null
+@@ -1,153 +0,0 @@
+-/* Any copyright is dedicated to the Public Domain.
+-   http://creativecommons.org/publicdomain/zero/1.0/ */
+-
+-const URI_BLOCKLIST_DIALOG =
+-  "chrome://mozapps/content/extensions/blocklist.xhtml";
+-
+-// This tests that the blocklist dialog still affects soft-blocked add-ons
+-// if the user clicks the "Restart Later" button. It also ensures that the
+-// "Cancel" button is correctly renamed (to "Restart Later").
+-var args = {
+-  restart: false,
+-  list: [
+-    {
+-      name: "Bug 523784 softblocked addon",
+-      version: "1",
+-      icon: "chrome://global/skin/icons/plugin.svg",
+-      disable: false,
+-      blocked: false,
+-      url: "http://example.com/bug523784_1",
+-    },
+-  ],
+-};
+-
+-function test() {
+-  waitForExplicitFinish();
+-
+-  let windowObserver = function(win, aTopic, aData) {
+-    if (aTopic != "domwindowopened") {
+-      return;
+-    }
+-
+-    Services.ww.unregisterNotification(windowObserver);
+-
+-    win.addEventListener(
+-      "load",
+-      function() {
+-        executeSoon(() => bug523784_test1(win));
+-      },
+-      { once: true }
+-    );
+-  };
+-  Services.ww.registerNotification(windowObserver);
+-
+-  args.wrappedJSObject = args;
+-  Services.ww.openWindow(
+-    null,
+-    URI_BLOCKLIST_DIALOG,
+-    "",
+-    "chrome,centerscreen,dialog,titlebar",
+-    args
+-  );
+-}
+-
+-function bug523784_test1(win) {
+-  let bundle = Services.strings.createBundle(
+-    "chrome://mozapps/locale/update/updates.properties"
+-  );
+-  let cancelButton = win.document
+-    .getElementById("BlocklistDialog")
+-    .getButton("cancel");
+-  let moreInfoLink = win.document.getElementById("moreInfo");
+-
+-  is(
+-    cancelButton.getAttribute("label"),
+-    bundle.GetStringFromName("restartLaterButton"),
+-    "Text should be changed on Cancel button"
+-  );
+-  is(
+-    cancelButton.getAttribute("accesskey"),
+-    bundle.GetStringFromName("restartLaterButton.accesskey"),
+-    "Accesskey should also be changed on Cancel button"
+-  );
+-  is(
+-    moreInfoLink.getAttribute("href"),
+-    "http://example.com/bug523784_1",
+-    "More Info link should link to a detailed blocklist page."
+-  );
+-  let windowObserver = function(aSubject, aTopic, aData) {
+-    if (aTopic != "domwindowclosed") {
+-      return;
+-    }
+-
+-    Services.ww.unregisterNotification(windowObserver);
+-
+-    ok(args.list[0].disable, "Should be blocking add-on");
+-    ok(!args.restart, "Should not restart browser immediately");
+-
+-    executeSoon(bug523784_test2);
+-  };
+-  Services.ww.registerNotification(windowObserver);
+-
+-  cancelButton.doCommand();
+-}
+-
+-function bug523784_test2(win) {
+-  let windowObserver = function(win, aTopic, aData) {
+-    if (aTopic != "domwindowopened") {
+-      return;
+-    }
+-
+-    Services.ww.unregisterNotification(windowObserver);
+-    win.addEventListener(
+-      "load",
+-      function() {
+-        executeSoon(function() {
+-          let moreInfoLink = win.document.getElementById("moreInfo");
+-          let cancelButton = win.document
+-            .getElementById("BlocklistDialog")
+-            .getButton("cancel");
+-          is(
+-            moreInfoLink.getAttribute("href"),
+-            Services.urlFormatter.formatURLPref(
+-              "extensions.blocklist.detailsURL"
+-            ),
+-            "More Info link should link to the general blocklist page."
+-          );
+-          cancelButton.doCommand();
+-          executeSoon(finish);
+-        });
+-      },
+-      { once: true }
+-    );
+-  };
+-  Services.ww.registerNotification(windowObserver);
+-
+-  // Add 2 more addons to the blocked list to check that the more info link
+-  // points to the general blocked list page.
+-  args.list.push({
+-    name: "Bug 523784 softblocked addon 2",
+-    version: "2",
+-    icon: "chrome://global/skin/icons/plugin.svg",
+-    disable: false,
+-    blocked: false,
+-    url: "http://example.com/bug523784_2",
+-  });
+-  args.list.push({
+-    name: "Bug 523784 softblocked addon 3",
+-    version: "4",
+-    icon: "chrome://global/skin/icons/plugin.svg",
+-    disable: false,
+-    blocked: false,
+-    url: "http://example.com/bug523784_3",
+-  });
+-
+-  args.wrappedJSObject = args;
+-  Services.ww.openWindow(
+-    null,
+-    URI_BLOCKLIST_DIALOG,
+-    "",
+-    "chrome,centerscreen,dialog,titlebar",
+-    args
+-  );
+-}
+diff --git a/toolkit/mozapps/extensions/test/browser/browser_gmpProvider.js b/toolkit/mozapps/extensions/test/browser/browser_gmpProvider.js
+index 869148e9f630a..3839718c7cefb 100644
+--- a/toolkit/mozapps/extensions/test/browser/browser_gmpProvider.js
++++ b/toolkit/mozapps/extensions/test/browser/browser_gmpProvider.js
+@@ -296,17 +296,6 @@ add_task(async function testInstalledGlobalEmeDisabled() {
+     let item = getAddonCard(win, addon.id);
+     if (addon.isEME) {
+       is(item.parentNode.getAttribute("section"), "1", "Should be disabled");
+-      // Open the options menu (needed to check the disabled buttons).
+-      const pluginOptions = item.querySelector("plugin-options");
+-      pluginOptions.querySelector("panel-list").open = true;
+-      const askActivate = pluginOptions.querySelector(
+-        "panel-item[action=ask-to-activate]"
+-      );
+-      ok(
+-        askActivate.shadowRoot.querySelector("button").disabled,
+-        "ask-to-activate should be disabled"
+-      );
+-      pluginOptions.querySelector("panel-list").open = false;
+     } else {
+       Assert.ok(item, "Got add-on element.");
+     }
+diff --git a/toolkit/mozapps/extensions/test/browser/browser_html_warning_messages.js b/toolkit/mozapps/extensions/test/browser/browser_html_warning_messages.js
+index 5d18f6f639027..d2405273c6a51 100644
+--- a/toolkit/mozapps/extensions/test/browser/browser_html_warning_messages.js
++++ b/toolkit/mozapps/extensions/test/browser/browser_html_warning_messages.js
+@@ -5,13 +5,7 @@
+ "use strict";
+ 
+ let gProvider;
+-const {
+-  STATE_BLOCKED,
+-  STATE_OUTDATED,
+-  STATE_SOFTBLOCKED,
+-  STATE_VULNERABLE_NO_UPDATE,
+-  STATE_VULNERABLE_UPDATE_AVAILABLE,
+-} = Ci.nsIBlocklistService;
++const { STATE_BLOCKED, STATE_SOFTBLOCKED } = Ci.nsIBlocklistService;
+ 
+ const brandBundle = Services.strings.createBundle(
+   "chrome://branding/locale/brand.properties"
+@@ -279,63 +273,6 @@ add_task(async function testSoftBlocked() {
+   });
+ });
+ 
+-add_task(async function testOutdated() {
+-  let id = "outdated@mochi.test";
+-  let linkUrl = "https://example.com/addon-blocked";
+-  gProvider.createAddons([
+-    {
+-      blocklistState: STATE_OUTDATED,
+-      blocklistURL: linkUrl,
+-      id,
+-      name: "Outdated",
+-    },
+-  ]);
+-  await checkMessageState(id, "extension", {
+-    linkText: "Update Now",
+-    linkUrl,
+-    text: "An important update is available for Outdated.",
+-    type: "warning",
+-  });
+-});
+-
+-add_task(async function testVulnerableUpdate() {
+-  let id = "vulnerable-update@mochi.test";
+-  let linkUrl = "https://example.com/addon-blocked";
+-  gProvider.createAddons([
+-    {
+-      blocklistState: STATE_VULNERABLE_UPDATE_AVAILABLE,
+-      blocklistURL: linkUrl,
+-      id,
+-      name: "Vulnerable Update",
+-    },
+-  ]);
+-  await checkMessageState(id, "extension", {
+-    linkText: "Update Now",
+-    linkUrl,
+-    text: "Vulnerable Update is known to be vulnerable and should be updated.",
+-    type: "error",
+-  });
+-});
+-
+-add_task(async function testVulnerableNoUpdate() {
+-  let id = "vulnerable-no-update@mochi.test";
+-  let linkUrl = "https://example.com/addon-blocked";
+-  gProvider.createAddons([
+-    {
+-      blocklistState: STATE_VULNERABLE_NO_UPDATE,
+-      blocklistURL: linkUrl,
+-      id,
+-      name: "Vulnerable No Update",
+-    },
+-  ]);
+-  await checkMessageState(id, "extension", {
+-    linkText: "More Information",
+-    linkUrl,
+-    text: "Vulnerable No Update is known to be vulnerable. Use with caution.",
+-    type: "error",
+-  });
+-});
+-
+ add_task(async function testPluginInstalling() {
+   let id = "plugin-installing@mochi.test";
+   gProvider.createAddons([
+diff --git a/toolkit/mozapps/extensions/test/browser/head.js b/toolkit/mozapps/extensions/test/browser/head.js
+index 29db9f77b9f4a..bed7f3a86ae88 100644
+--- a/toolkit/mozapps/extensions/test/browser/head.js
++++ b/toolkit/mozapps/extensions/test/browser/head.js
+@@ -664,9 +664,6 @@ function MockProvider() {
+       id: "extension",
+       name: "Extensions",
+       uiPriority: 4000,
+-      flags:
+-        AddonManager.TYPE_UI_VIEW_LIST |
+-        AddonManager.TYPE_SUPPORTS_UNDO_RESTARTLESS_UNINSTALL,
+     },
+   ];
+ 
+@@ -1444,20 +1441,6 @@ function waitForCondition(condition, nextTest, errorMsg) {
+   };
+ }
+ 
+-function getTestPluginTag() {
+-  let ph = Cc["@mozilla.org/plugin/host;1"].getService(Ci.nsIPluginHost);
+-  let tags = ph.getPluginTags();
+-
+-  // Find the test plugin
+-  for (let i = 0; i < tags.length; i++) {
+-    if (tags[i].name == "Test Plug-in") {
+-      return tags[i];
+-    }
+-  }
+-  ok(false, "Unable to find plugin");
+-  return null;
+-}
+-
+ // Wait for and then acknowledge (by pressing the primary button) the
+ // given notification.
+ function promiseNotification(id = "addon-webext-permissions") {
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/data/test_pluginBlocklistCtp.xml b/toolkit/mozapps/extensions/test/xpcshell/data/test_pluginBlocklistCtp.xml
+index d3564aebdbd7f..937d8a590186a 100644
+--- a/toolkit/mozapps/extensions/test/xpcshell/data/test_pluginBlocklistCtp.xml
++++ b/toolkit/mozapps/extensions/test/xpcshell/data/test_pluginBlocklistCtp.xml
+@@ -4,23 +4,23 @@
+   <pluginItems>
+     <pluginItem>
+       <match name="name" exp="^test_plugin_0"/>
+-      <versionRange minVersion="0" maxVersion="*" severity="0" vulnerabilitystatus="0"/>
++      <versionRange minVersion="0" maxVersion="*" severity="0"/>
+     </pluginItem>
+     <pluginItem>
+       <match name="name" exp="^test_plugin_1"/>
+-      <versionRange minVersion="0" maxVersion="*" severity="0" vulnerabilitystatus="1"/>
++      <versionRange minVersion="0" maxVersion="*" severity="0"/>
+     </pluginItem>
+     <pluginItem>
+       <match name="name" exp="^test_plugin_2"/>
+-      <versionRange minVersion="0" maxVersion="*" severity="0" vulnerabilitystatus="2"/>
++      <versionRange minVersion="0" maxVersion="*" severity="0"/>
+     </pluginItem>
+     <pluginItem>
+       <match name="name" exp="^test_plugin_3"/>
+-      <versionRange minVersion="0" maxVersion="*" vulnerabilitystatus="2"/>
++      <versionRange minVersion="0" maxVersion="*"/>
+     </pluginItem>
+     <pluginItem>
+       <match name="name" exp="^test_plugin_4"/>
+-      <versionRange minVersion="0" maxVersion="*" severity="1" vulnerabilitystatus="2"/>
++      <versionRange minVersion="0" maxVersion="*" severity="1"/>
+     </pluginItem>
+   </pluginItems>
+ </blocklist>
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/data/test_pluginBlocklistCtpUndo.xml b/toolkit/mozapps/extensions/test/xpcshell/data/test_pluginBlocklistCtpUndo.xml
+index 7cd8496b36a1c..162876230e4bc 100644
+--- a/toolkit/mozapps/extensions/test/xpcshell/data/test_pluginBlocklistCtpUndo.xml
++++ b/toolkit/mozapps/extensions/test/xpcshell/data/test_pluginBlocklistCtpUndo.xml
+@@ -4,7 +4,7 @@
+   <pluginItems>
+     <pluginItem>
+       <match name="name" exp="^Test Plug-in"/>
+-      <versionRange minVersion="0" maxVersion="*" severity="0" vulnerabilitystatus="2"/>
++      <versionRange minVersion="0" maxVersion="*" severity="0"/>
+     </pluginItem>
+   </pluginItems>
+ </blocklist>
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/head_addons.js b/toolkit/mozapps/extensions/test/xpcshell/head_addons.js
+index 204a25594296a..cec0ffb401d6d 100644
+--- a/toolkit/mozapps/extensions/test/xpcshell/head_addons.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/head_addons.js
+@@ -1265,57 +1265,6 @@ async function saveJSON(aData, aFile) {
+   info("Done saving JSON file " + aFile);
+ }
+ 
+-XPCOMUtils.defineLazyServiceGetter(
+-  this,
+-  "pluginHost",
+-  "@mozilla.org/plugin/host;1",
+-  "nsIPluginHost"
+-);
+-
+-class MockPluginTag {
+-  constructor(opts, enabledState = Ci.nsIPluginTag.STATE_ENABLED) {
+-    this.pluginTag = pluginHost.createFakePlugin({
+-      handlerURI: "resource://fake-plugin/${Math.random()}.xhtml",
+-      mimeEntries: [{ type: "application/x-fake-plugin" }],
+-      fileName: `${opts.name}.so`,
+-      ...opts,
+-    });
+-    this.pluginTag.enabledState = enabledState;
+-
+-    this.name = opts.name;
+-    this.version = opts.version;
+-  }
+-  async isBlocklisted() {
+-    let state = await Blocklist.getPluginBlocklistState(this.pluginTag);
+-    return state == Services.blocklist.STATE_BLOCKED;
+-  }
+-  get disabled() {
+-    return this.pluginTag.enabledState == Ci.nsIPluginTag.STATE_DISABLED;
+-  }
+-  set disabled(val) {
+-    this.enabledState =
+-      Ci.nsIPluginTag[val ? "STATE_DISABLED" : "STATE_ENABLED"];
+-  }
+-  get enabledState() {
+-    return this.pluginTag.enabledState;
+-  }
+-  set enabledState(val) {
+-    this.pluginTag.enabledState = val;
+-  }
+-}
+-
+-function mockPluginHost(plugins) {
+-  let PluginHost = {
+-    getPluginTags() {
+-      return plugins.map(p => p.pluginTag);
+-    },
+-
+-    QueryInterface: ChromeUtils.generateQI(["nsIPluginHost"]),
+-  };
+-
+-  MockRegistrar.register("@mozilla.org/plugin/host;1", PluginHost);
+-}
+-
+ async function setInitialState(addon, initialState) {
+   if (initialState.userDisabled) {
+     await addon.disable();
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_clients.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_clients.js
+index 3c03724ebb831..6356381c19805 100644
+--- a/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_clients.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_clients.js
+@@ -30,7 +30,6 @@ add_task(async function setup() {
+ 
+   // This will initialize the remote settings clients for blocklists.
+   BlocklistGlobal.ExtensionBlocklistRS.ensureInitialized();
+-  BlocklistGlobal.PluginBlocklistRS.ensureInitialized();
+   BlocklistGlobal.GfxBlocklistRS._ensureInitialized();
+ 
+   gBlocklistClients = [
+@@ -38,10 +37,6 @@ add_task(async function setup() {
+       client: BlocklistGlobal.ExtensionBlocklistRS._client,
+       testData: ["i808", "i720", "i539"],
+     },
+-    {
+-      client: BlocklistGlobal.PluginBlocklistRS._client,
+-      testData: ["p1044", "p32", "p28"],
+-    },
+     {
+       client: BlocklistGlobal.GfxBlocklistRS._client,
+       testData: ["g204", "g200", "g36"],
+@@ -59,7 +54,7 @@ add_task(
+         client.collectionName !=
+           BlocklistGlobal.ExtensionBlocklistRS._client.collectionName
+       ) {
+-        // On Android we don't ship the dumps of plugins and gfx.
++        // On Android we don't ship the dumps of gfx.
+         continue;
+       }
+       Assert.ok(
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_targetapp_filter.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_targetapp_filter.js
+index 2e28ac37c0ea0..e7fa5cf4a4c14 100644
+--- a/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_targetapp_filter.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_targetapp_filter.js
+@@ -33,9 +33,9 @@ function run_test() {
+   );
+   // This will initialize the remote settings clients for blocklists,
+   // with their specific options etc.
+-  BlocklistGlobal.PluginBlocklistRS.ensureInitialized();
++  BlocklistGlobal.ExtensionBlocklistRS.ensureInitialized();
+   // Obtain one of the instantiated client for our tests.
+-  client = RemoteSettings("plugins", { bucketName: "blocklists" });
++  client = RemoteSettings("addons", { bucketName: "blocklists" });
+ 
+   run_next_test();
+ }
+@@ -43,11 +43,11 @@ function run_test() {
+ add_task(async function test_supports_filter_expressions() {
+   await createRecords([
+     {
+-      matchName: "Adobe Flex",
++      name: "My Extension",
+       filter_expression: 'env.appinfo.ID == "xpcshell@tests.mozilla.org"',
+     },
+     {
+-      matchName: "Adobe Flex",
++      name: "My Extension",
+       filter_expression: "1 == 2",
+     },
+   ]);
+@@ -60,35 +60,33 @@ add_task(clear_state);
+ add_task(async function test_returns_all_without_target() {
+   await createRecords([
+     {
+-      matchName: "Adobe Flex",
++      name: "My Extension",
+     },
+     {
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [],
+     },
+     {
+-      matchName: "PDF reader",
++      name: "My Other Extension",
+       versionRange: [
+         {
+           severity: 0,
+-          vulnerabilityStatus: 1,
+           targetApplication: [],
+         },
+       ],
+     },
+     {
+-      matchName:
++      name:
+         "Java(\\(TM\\))? Plug-in 11\\.(7[6-9]|[8-9]\\d|1([0-6]\\d|70))(\\.\\d+)?([^\\d\\._]|$)",
+       versionRange: [
+         {
+           severity: 0,
+-          vulnerabilityStatus: 1,
+         },
+       ],
+       matchFilename: "libnpjp2\\.so",
+     },
+     {
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [],
+@@ -109,7 +107,7 @@ add_task(async function test_returns_without_guid_or_with_matching_guid() {
+   await createRecords([
+     {
+       willMatch: true,
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [{}],
+@@ -118,7 +116,7 @@ add_task(async function test_returns_without_guid_or_with_matching_guid() {
+     },
+     {
+       willMatch: false,
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [
+@@ -131,7 +129,7 @@ add_task(async function test_returns_without_guid_or_with_matching_guid() {
+     },
+     {
+       willMatch: true,
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [
+@@ -144,7 +142,7 @@ add_task(async function test_returns_without_guid_or_with_matching_guid() {
+     },
+     {
+       willMatch: true,
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [
+@@ -169,7 +167,7 @@ add_task(
+     await createRecords([
+       {
+         willMatch: true,
+-        matchName: "foopydoo",
++        name: "foopydoo",
+         versionRange: [
+           {
+             targetApplication: [
+@@ -182,7 +180,7 @@ add_task(
+       },
+       {
+         willMatch: true,
+-        matchName: "foopydoo",
++        name: "foopydoo",
+         versionRange: [
+           {
+             targetApplication: [
+@@ -196,7 +194,7 @@ add_task(
+       },
+       {
+         willMatch: true,
+-        matchName: "foopydoo",
++        name: "foopydoo",
+         versionRange: [
+           {
+             targetApplication: [
+@@ -211,7 +209,7 @@ add_task(
+       },
+       {
+         willMatch: false,
+-        matchName: "foopydoo",
++        name: "foopydoo",
+         versionRange: [
+           {
+             targetApplication: [
+@@ -226,7 +224,7 @@ add_task(
+       },
+       {
+         willMatch: true,
+-        matchName: "foopydoo",
++        name: "foopydoo",
+         versionRange: [
+           {
+             targetApplication: [
+@@ -240,7 +238,7 @@ add_task(
+       },
+       {
+         willMatch: true,
+-        matchName: "foopydoo",
++        name: "foopydoo",
+         versionRange: [
+           {
+             targetApplication: [
+@@ -268,7 +266,7 @@ add_task(async function test_multiple_version_and_target_applications() {
+   await createRecords([
+     {
+       willMatch: true,
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [
+@@ -290,7 +288,7 @@ add_task(async function test_multiple_version_and_target_applications() {
+     },
+     {
+       willMatch: true,
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [
+@@ -311,7 +309,7 @@ add_task(async function test_multiple_version_and_target_applications() {
+     },
+     {
+       willMatch: false,
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [
+@@ -347,7 +345,7 @@ add_task(async function test_complex_version() {
+   await createRecords([
+     {
+       willMatch: false,
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [
+@@ -361,7 +359,7 @@ add_task(async function test_complex_version() {
+     },
+     {
+       willMatch: true,
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [
+@@ -375,7 +373,7 @@ add_task(async function test_complex_version() {
+     },
+     {
+       willMatch: true,
+-      matchName: "foopydoo",
++      name: "foopydoo",
+       versionRange: [
+         {
+           targetApplication: [
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_telemetry.js b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_telemetry.js
+index 6e15eee91032c..365cdec38adc8 100644
+--- a/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_telemetry.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/rs-blocklist/test_blocklist_telemetry.js
+@@ -43,7 +43,6 @@ add_task(async function test_blocklist_lastModified_rs_scalars() {
+   const lastEntryTimes = {
+     addons: now - 5000,
+     addons_mlbf: now - 4000,
+-    plugins: now - 3000,
+   };
+ 
+   const lastEntryTimesUTC = {};
+@@ -56,7 +55,6 @@ add_task(async function test_blocklist_lastModified_rs_scalars() {
+     BlocklistTelemetry,
+     ExtensionBlocklistRS,
+     ExtensionBlocklistMLBF,
+-    PluginBlocklistRS,
+   } = ChromeUtils.import("resource://gre/modules/Blocklist.jsm", null);
+ 
+   // Return a promise resolved when the recordRSBlocklistLastModified method
+@@ -79,18 +77,9 @@ add_task(async function test_blocklist_lastModified_rs_scalars() {
+     await rsClient.emit("sync");
+   }
+ 
+-  info("Test RS plugins blocklist lastModified scalar");
+-
+-  await PluginBlocklistRS.ensureInitialized();
+-  await Promise.all([
+-    promiseScalarRecorded(),
+-    fakeRemoteSettingsSync(PluginBlocklistRS._client, lastEntryTimes.plugins),
+-  ]);
+-
+   assertTelemetryScalars({
+     "blocklist.lastModified_rs_addons": undefined,
+     "blocklist.lastModified_rs_addons_mlbf": undefined,
+-    "blocklist.lastModified_rs_plugins": lastEntryTimesUTC.plugins,
+   });
+ 
+   info("Test RS addon blocklist lastModified scalar");
+@@ -104,7 +93,6 @@ add_task(async function test_blocklist_lastModified_rs_scalars() {
+   assertTelemetryScalars({
+     "blocklist.lastModified_rs_addons": lastEntryTimesUTC.addons,
+     "blocklist.lastModified_rs_addons_mlbf": undefined,
+-    "blocklist.lastModified_rs_plugins": lastEntryTimesUTC.plugins,
+   });
+ 
+   await ExtensionBlocklistMLBF.ensureInitialized();
+@@ -119,6 +107,5 @@ add_task(async function test_blocklist_lastModified_rs_scalars() {
+   assertTelemetryScalars({
+     "blocklist.lastModified_rs_addons": lastEntryTimesUTC.addons,
+     "blocklist.lastModified_rs_addons_mlbf": lastEntryTimesUTC.addons_mlbf,
+-    "blocklist.lastModified_rs_plugins": lastEntryTimesUTC.plugins,
+   });
+ });
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/test_duplicateplugins.js b/toolkit/mozapps/extensions/test/xpcshell/test_duplicateplugins.js
+deleted file mode 100644
+index 41f070e2d8cdb..0000000000000
+--- a/toolkit/mozapps/extensions/test/xpcshell/test_duplicateplugins.js
++++ /dev/null
+@@ -1,160 +0,0 @@
+-/* Any copyright is dedicated to the Public Domain.
+- * http://creativecommons.org/publicdomain/zero/1.0/
+- */
+-
+-// This verifies that duplicate plugins are coalesced and maintain their ID
+-// across restarts.
+-
+-class MockPlugin extends MockPluginTag {
+-  constructor(opts) {
+-    super(opts, opts.enabledState);
+-    this.blocklisted = opts.blocklisted;
+-  }
+-}
+-
+-var PLUGINS = [
+-  {
+-    name: "Duplicate Plugin 1",
+-    description: "A duplicate plugin",
+-    version: "1",
+-    blocklisted: false,
+-    enabledState: Ci.nsIPluginTag.STATE_ENABLED,
+-    filename: "/home/mozilla/.plugins/dupplugin1.so",
+-  },
+-  {
+-    name: "Duplicate Plugin 1",
+-    description: "A duplicate plugin",
+-    version: "1",
+-    blocklisted: false,
+-    enabledState: Ci.nsIPluginTag.STATE_ENABLED,
+-    filename: "/usr/lib/plugins/dupplugin1.so",
+-  },
+-  {
+-    name: "Duplicate Plugin 2",
+-    description: "Another duplicate plugin",
+-    version: "1",
+-    blocklisted: false,
+-    enabledState: Ci.nsIPluginTag.STATE_ENABLED,
+-    filename: "/home/mozilla/.plugins/dupplugin2.so",
+-  },
+-  {
+-    name: "Duplicate Plugin 2",
+-    description: "Another duplicate plugin",
+-    version: "1",
+-    blocklisted: false,
+-    enabledState: Ci.nsIPluginTag.STATE_ENABLED,
+-    filename: "/usr/lib/plugins/dupplugin2.so",
+-  },
+-  {
+-    name: "Non-duplicate Plugin", // 3
+-    description: "Not a duplicate plugin",
+-    version: "1",
+-    blocklisted: false,
+-    enabledState: Ci.nsIPluginTag.STATE_ENABLED,
+-    filename: "/home/mozilla/.plugins/dupplugin3.so",
+-  },
+-  {
+-    name: "Non-duplicate Plugin", // 4
+-    description: "Not a duplicate because the descriptions are different",
+-    version: "1",
+-    blocklisted: false,
+-    enabledState: Ci.nsIPluginTag.STATE_ENABLED,
+-    filename: "/usr/lib/plugins/dupplugin4.so",
+-  },
+-  {
+-    name: "Another Non-duplicate Plugin", // 5
+-    description: "Not a duplicate plugin",
+-    version: "1",
+-    blocklisted: false,
+-    enabledState: Ci.nsIPluginTag.STATE_ENABLED,
+-    filename: "/home/mozilla/.plugins/dupplugin5.so",
+-  },
+-].map(opts => new MockPlugin(opts));
+-
+-mockPluginHost(PLUGINS);
+-
+-var gPluginIDs = [null, null, null, null, null];
+-
+-async function run_test() {
+-  do_test_pending();
+-  createAppInfo("xpcshell@tests.mozilla.org", "XPCShell", "1", "1.9.2");
+-  Services.prefs.setBoolPref("media.gmp-provider.enabled", false);
+-
+-  await promiseStartupManager();
+-
+-  run_test_1();
+-}
+-
+-function found_plugin(aNum, aId) {
+-  if (gPluginIDs[aNum]) {
+-    do_throw("Found duplicate of plugin " + aNum);
+-  }
+-  gPluginIDs[aNum] = aId;
+-}
+-
+-// Test that the plugins were coalesced and all appear in the returned list
+-async function run_test_1() {
+-  let aAddons = await AddonManager.getAddonsByTypes(["plugin"]);
+-  Assert.equal(aAddons.length, 5);
+-  aAddons.forEach(function(aAddon) {
+-    if (aAddon.name == "Duplicate Plugin 1") {
+-      found_plugin(0, aAddon.id);
+-      Assert.equal(aAddon.description, "A duplicate plugin");
+-    } else if (aAddon.name == "Duplicate Plugin 2") {
+-      found_plugin(1, aAddon.id);
+-      Assert.equal(aAddon.description, "Another duplicate plugin");
+-    } else if (aAddon.name == "Another Non-duplicate Plugin") {
+-      found_plugin(5, aAddon.id);
+-      Assert.equal(aAddon.description, "Not a duplicate plugin");
+-    } else if (aAddon.name == "Non-duplicate Plugin") {
+-      if (aAddon.description == "Not a duplicate plugin") {
+-        found_plugin(3, aAddon.id);
+-      } else if (
+-        aAddon.description ==
+-        "Not a duplicate because the descriptions are different"
+-      ) {
+-        found_plugin(4, aAddon.id);
+-      } else {
+-        do_throw(
+-          "Found unexpected plugin with description " + aAddon.description
+-        );
+-      }
+-    } else {
+-      do_throw("Found unexpected plugin " + aAddon.name);
+-    }
+-  });
+-
+-  run_test_2();
+-}
+-
+-// Test that disabling a coalesced plugin disables all its tags
+-async function run_test_2() {
+-  let p = await AddonManager.getAddonByID(gPluginIDs[0]);
+-  Assert.ok(!p.userDisabled);
+-  await p.disable();
+-  Assert.ok(PLUGINS[0].disabled);
+-  Assert.ok(PLUGINS[1].disabled);
+-
+-  executeSoon(run_test_3);
+-}
+-
+-// Test that IDs persist across restart
+-async function run_test_3() {
+-  await promiseRestartManager();
+-
+-  let p = await AddonManager.getAddonByID(gPluginIDs[0]);
+-  Assert.notEqual(p, null);
+-  Assert.equal(p.name, "Duplicate Plugin 1");
+-  Assert.equal(p.description, "A duplicate plugin");
+-
+-  // Reorder the plugins and restart again
+-  [PLUGINS[0], PLUGINS[1]] = [PLUGINS[1], PLUGINS[0]];
+-  await promiseRestartManager();
+-
+-  let p_2 = await AddonManager.getAddonByID(gPluginIDs[0]);
+-  Assert.notEqual(p_2, null);
+-  Assert.equal(p_2.name, "Duplicate Plugin 1");
+-  Assert.equal(p_2.description, "A duplicate plugin");
+-
+-  executeSoon(do_test_finished);
+-}
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/test_general.js b/toolkit/mozapps/extensions/test/xpcshell/test_general.js
+index 19d6ae4fb6313..896e69d6f82d3 100644
+--- a/toolkit/mozapps/extensions/test/xpcshell/test_general.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/test_general.js
+@@ -12,16 +12,6 @@ var gCount;
+ async function run_test() {
+   do_test_pending();
+   createAppInfo("xpcshell@tests.mozilla.org", "XPCShell", "1", "1.9.2");
+-  // Otherwise the plugins get initialized async and throw off our
+-  // counting.
+-  Services.prefs.setBoolPref("plugin.load_flash_only", false);
+-  // plugin.load_flash_only is only respected if xpc::IsInAutomation is true.
+-  // This is not the case by default in xpcshell tests, unless the following
+-  // pref is also set. Fixing this generically is bug 1598804
+-  Services.prefs.setBoolPref(
+-    "security.turn_off_all_security_so_that_viruses_can_take_over_this_computer",
+-    true
+-  );
+ 
+   await promiseStartupManager();
+   let list = await AddonManager.getAddonsByTypes(null);
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/test_gmpProvider.js b/toolkit/mozapps/extensions/test/xpcshell/test_gmpProvider.js
+index 5a970f54a8ea9..7d6f9aec4f739 100644
+--- a/toolkit/mozapps/extensions/test/xpcshell/test_gmpProvider.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/test_gmpProvider.js
+@@ -137,9 +137,6 @@ add_task(async function test_notInstalled() {
+     Assert.ok(addon.providesUpdatesSecurely);
+     Assert.ok(!addon.foreignInstall);
+ 
+-    let mimetypes = addon.pluginMimeTypes;
+-    Assert.ok(mimetypes);
+-    Assert.equal(mimetypes.length, 0);
+     let libraries = addon.pluginLibraries;
+     Assert.ok(libraries);
+     Assert.equal(libraries.length, 0);
+@@ -192,9 +189,6 @@ add_task(async function test_installed() {
+ 
+     Assert.equal(addon.updateDate.getTime(), TEST_TIME_SEC * 1000);
+ 
+-    let mimetypes = addon.pluginMimeTypes;
+-    Assert.ok(mimetypes);
+-    Assert.equal(mimetypes.length, 0);
+     let libraries = addon.pluginLibraries;
+     Assert.ok(libraries);
+     Assert.equal(libraries.length, 1);
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/test_pluginchange.js b/toolkit/mozapps/extensions/test/xpcshell/test_pluginchange.js
+deleted file mode 100644
+index 645922219e99d..0000000000000
+--- a/toolkit/mozapps/extensions/test/xpcshell/test_pluginchange.js
++++ /dev/null
+@@ -1,242 +0,0 @@
+-/* Any copyright is dedicated to the Public Domain.
+- * http://creativecommons.org/publicdomain/zero/1.0/
+- */
+-
+-const LIST_UPDATED_TOPIC = "plugins-list-updated";
+-
+-class PluginTag extends MockPluginTag {
+-  constructor(name, description) {
+-    super({ name, description, version: "1.0" });
+-    this.description = description;
+-  }
+-}
+-
+-const PLUGINS = [
+-  // A standalone plugin
+-  new PluginTag("Java", "A mock Java plugin"),
+-
+-  // A plugin made up of two plugin files
+-  new PluginTag("Flash", "A mock Flash plugin"),
+-  new PluginTag("Flash", "A mock Flash plugin"),
+-];
+-
+-mockPluginHost(PLUGINS);
+-
+-// This verifies that when the list of plugins changes the add-ons manager
+-// correctly updates
+-async function run_test() {
+-  do_test_pending();
+-  createAppInfo("xpcshell@tests.mozilla.org", "XPCShell", "1", "1.9.2");
+-
+-  Services.prefs.setBoolPref("media.gmp-provider.enabled", false);
+-
+-  await promiseStartupManager();
+-
+-  run_test_1();
+-}
+-
+-function end_test() {
+-  executeSoon(do_test_finished);
+-}
+-
+-function sortAddons(addons) {
+-  addons.sort(function(a, b) {
+-    return a.name.localeCompare(b.name);
+-  });
+-}
+-
+-// Basic check that the mock object works
+-async function run_test_1() {
+-  let addons = await AddonManager.getAddonsByTypes(["plugin"]);
+-  sortAddons(addons);
+-
+-  Assert.equal(addons.length, 2);
+-
+-  Assert.equal(addons[0].name, "Flash");
+-  Assert.ok(!addons[0].userDisabled);
+-  Assert.equal(addons[1].name, "Java");
+-  Assert.ok(!addons[1].userDisabled);
+-
+-  run_test_2();
+-}
+-
+-// No change to the list should not trigger any events or changes in the API
+-async function run_test_2() {
+-  // Reorder the list a bit
+-  let tag = PLUGINS[0];
+-  PLUGINS[0] = PLUGINS[2];
+-  PLUGINS[2] = PLUGINS[1];
+-  PLUGINS[1] = tag;
+-
+-  Services.obs.notifyObservers(null, LIST_UPDATED_TOPIC);
+-
+-  let addons = await AddonManager.getAddonsByTypes(["plugin"]);
+-  sortAddons(addons);
+-
+-  Assert.equal(addons.length, 2);
+-
+-  Assert.equal(addons[0].name, "Flash");
+-  Assert.ok(!addons[0].userDisabled);
+-  Assert.equal(addons[1].name, "Java");
+-  Assert.ok(!addons[1].userDisabled);
+-
+-  run_test_3();
+-}
+-
+-// Tests that a newly detected plugin shows up in the API and sends out events
+-async function run_test_3() {
+-  let tag = new PluginTag("Quicktime", "A mock Quicktime plugin");
+-  PLUGINS.push(tag);
+-  let id = tag.name + tag.description;
+-
+-  await expectEvents(
+-    {
+-      addonEvents: {
+-        [id]: [{ event: "onInstalling" }, { event: "onInstalled" }],
+-      },
+-      installEvents: [{ event: "onExternalInstall" }],
+-    },
+-    async () => {
+-      Services.obs.notifyObservers(null, LIST_UPDATED_TOPIC);
+-    }
+-  );
+-
+-  let addons = await AddonManager.getAddonsByTypes(["plugin"]);
+-  sortAddons(addons);
+-
+-  Assert.equal(addons.length, 3);
+-
+-  Assert.equal(addons[0].name, "Flash");
+-  Assert.ok(!addons[0].userDisabled);
+-  Assert.equal(addons[1].name, "Java");
+-  Assert.ok(!addons[1].userDisabled);
+-  Assert.equal(addons[2].name, "Quicktime");
+-  Assert.ok(!addons[2].userDisabled);
+-
+-  run_test_4();
+-}
+-
+-// Tests that a removed plugin disappears from in the API and sends out events
+-async function run_test_4() {
+-  let tag = PLUGINS.splice(1, 1)[0];
+-  let id = tag.name + tag.description;
+-
+-  await expectEvents(
+-    {
+-      addonEvents: {
+-        [id]: [{ event: "onUninstalling" }, { event: "onUninstalled" }],
+-      },
+-    },
+-    async () => {
+-      Services.obs.notifyObservers(null, LIST_UPDATED_TOPIC);
+-    }
+-  );
+-
+-  let addons = await AddonManager.getAddonsByTypes(["plugin"]);
+-  sortAddons(addons);
+-
+-  Assert.equal(addons.length, 2);
+-
+-  Assert.equal(addons[0].name, "Flash");
+-  Assert.ok(!addons[0].userDisabled);
+-  Assert.equal(addons[1].name, "Quicktime");
+-  Assert.ok(!addons[1].userDisabled);
+-
+-  run_test_5();
+-}
+-
+-// Removing part of the flash plugin should have no effect
+-async function run_test_5() {
+-  PLUGINS.splice(0, 1);
+-
+-  Services.obs.notifyObservers(null, LIST_UPDATED_TOPIC);
+-
+-  let addons = await AddonManager.getAddonsByTypes(["plugin"]);
+-  sortAddons(addons);
+-
+-  Assert.equal(addons.length, 2);
+-
+-  Assert.equal(addons[0].name, "Flash");
+-  Assert.ok(!addons[0].userDisabled);
+-  Assert.equal(addons[1].name, "Quicktime");
+-  Assert.ok(!addons[1].userDisabled);
+-
+-  run_test_6();
+-}
+-
+-// Replacing flash should be detected
+-async function run_test_6() {
+-  let oldTag = PLUGINS.splice(0, 1)[0];
+-  let newTag = new PluginTag("Flash 2", "A new crash-free Flash!");
+-  newTag.disabled = true;
+-  PLUGINS.push(newTag);
+-
+-  await expectEvents(
+-    {
+-      addonEvents: {
+-        [oldTag.name + oldTag.description]: [
+-          { event: "onUninstalling" },
+-          { event: "onUninstalled" },
+-        ],
+-        [newTag.name + newTag.description]: [
+-          { event: "onInstalling" },
+-          { event: "onInstalled" },
+-        ],
+-      },
+-      installEvents: [{ event: "onExternalInstall" }],
+-    },
+-    async () => {
+-      Services.obs.notifyObservers(null, LIST_UPDATED_TOPIC);
+-    }
+-  );
+-
+-  let addons = await AddonManager.getAddonsByTypes(["plugin"]);
+-  sortAddons(addons);
+-
+-  Assert.equal(addons.length, 2);
+-
+-  Assert.equal(addons[0].name, "Flash 2");
+-  Assert.ok(addons[0].userDisabled);
+-  Assert.equal(addons[1].name, "Quicktime");
+-  Assert.ok(!addons[1].userDisabled);
+-
+-  run_test_7();
+-}
+-
+-// If new tags are detected and the disabled state changes then we should send
+-// out appropriate notifications
+-async function run_test_7() {
+-  PLUGINS[0] = new PluginTag("Quicktime", "A mock Quicktime plugin");
+-  PLUGINS[0].disabled = true;
+-  PLUGINS[1] = new PluginTag("Flash 2", "A new crash-free Flash!");
+-
+-  await expectEvents(
+-    {
+-      addonEvents: {
+-        [PLUGINS[0].name + PLUGINS[0].description]: [
+-          { event: "onDisabling" },
+-          { event: "onDisabled" },
+-        ],
+-        [PLUGINS[1].name + PLUGINS[1].description]: [
+-          { event: "onEnabling" },
+-          { event: "onEnabled" },
+-        ],
+-      },
+-    },
+-    async () => {
+-      Services.obs.notifyObservers(null, LIST_UPDATED_TOPIC);
+-    }
+-  );
+-
+-  let addons = await AddonManager.getAddonsByTypes(["plugin"]);
+-  sortAddons(addons);
+-
+-  Assert.equal(addons.length, 2);
+-
+-  Assert.equal(addons[0].name, "Flash 2");
+-  Assert.ok(!addons[0].userDisabled);
+-  Assert.equal(addons[1].name, "Quicktime");
+-  Assert.ok(addons[1].userDisabled);
+-
+-  end_test();
+-}
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/test_temporary.js b/toolkit/mozapps/extensions/test/xpcshell/test_temporary.js
+index 4d4188ecd1aea..d73785c3b33b9 100644
+--- a/toolkit/mozapps/extensions/test/xpcshell/test_temporary.js
++++ b/toolkit/mozapps/extensions/test/xpcshell/test_temporary.js
+@@ -5,15 +5,6 @@
+ const ID = "addon@tests.mozilla.org";
+ 
+ createAppInfo("xpcshell@tests.mozilla.org", "XPCShell", "1", "42");
+-// Force sync plugin loading to avoid spurious install events from plugins.
+-Services.prefs.setBoolPref("plugin.load_flash_only", false);
+-// plugin.load_flash_only is only respected if xpc::IsInAutomation is true.
+-// This is not the case by default in xpcshell tests, unless the following
+-// pref is also set. Fixing this generically is bug 1598804
+-Services.prefs.setBoolPref(
+-  "security.turn_off_all_security_so_that_viruses_can_take_over_this_computer",
+-  true
+-);
+ 
+ function waitForBootstrapEvent(expectedEvent, addonId) {
+   return new Promise(resolve => {
+diff --git a/toolkit/mozapps/extensions/test/xpcshell/xpcshell.ini b/toolkit/mozapps/extensions/test/xpcshell/xpcshell.ini
+index 908c882af3db3..5183c64981766 100644
+--- a/toolkit/mozapps/extensions/test/xpcshell/xpcshell.ini
++++ b/toolkit/mozapps/extensions/test/xpcshell/xpcshell.ini
+@@ -34,9 +34,6 @@ tags = webextensions
+ [test_dependencies.js]
+ [test_dictionary_webextension.js]
+ [test_distribution.js]
+-[test_duplicateplugins.js]
+-run-if = appname == "firefox"
+-reason = PluginProvider.jsm is only shipped with desktop Firefox
+ [test_embedderDisabled.js]
+ [test_error.js]
+ # Bug 1508482
+@@ -64,9 +61,6 @@ head = head_addons.js head_compat.js
+ skip-if = tsan # Times out, bug 1674773
+ [test_permissions.js]
+ [test_permissions_prefs.js]
+-[test_pluginchange.js]
+-run-if = appname == "firefox"
+-reason = PluginProvider.jsm is only shipped with desktop Firefox
+ [test_pref_properties.js]
+ [test_provider_markSafe.js]
+ [test_provider_shutdown.js]
+diff --git a/widget/tests/chrome.ini b/widget/tests/chrome.ini
+index 6fd7801139c10..b0ccf93fb507a 100644
+--- a/widget/tests/chrome.ini
++++ b/widget/tests/chrome.ini
+@@ -4,7 +4,6 @@ prefs =
+ skip-if = os == 'android'
+ support-files =
+   empty_window.xhtml
+-  utils.js
+ 
+ [test_alwaysontop_focus.xhtml]
+ [test_bug343416.xhtml]
+diff --git a/widget/tests/mochitest.ini b/widget/tests/mochitest.ini
+index 534310d279239..929b6ae825bc6 100644
+--- a/widget/tests/mochitest.ini
++++ b/widget/tests/mochitest.ini
+@@ -1,6 +1,3 @@
+-[DEFAULT]
+-support-files = utils.js
+-
+ [test_AltGr_key_events_in_web_content_on_windows.html]
+ skip-if = toolkit != 'windows' || headless # headless: Bug 1410525
+ [test_actionhint.html]
+diff --git a/widget/tests/test_imestate.html b/widget/tests/test_imestate.html
+index 33fb80c067aca..b3f38bd3428a8 100644
+--- a/widget/tests/test_imestate.html
++++ b/widget/tests/test_imestate.html
+@@ -3,7 +3,6 @@
+   <title>Test for IME state controling</title>
+   <script src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"></script>
+   <script src="chrome://mochikit/content/tests/SimpleTest/EventUtils.js"></script>
+-  <script type="text/javascript" src="utils.js"></script>
+   <link rel="stylesheet" type="text/css"
+           href="chrome://mochikit/content/tests/SimpleTest/test.css" />
+ </head>
+diff --git a/widget/tests/test_plugin_scroll_consistency.html b/widget/tests/test_plugin_scroll_consistency.html
+deleted file mode 100644
+index 4e8033d4ac993..0000000000000
+--- a/widget/tests/test_plugin_scroll_consistency.html
++++ /dev/null
+@@ -1,59 +0,0 @@
+-<html>
+-<head>
+-  <title>Test for plugin child widgets not being messed up by scrolling</title>
+-  <script src="chrome://mochikit/content/tests/SimpleTest/SimpleTest.js"></script>
+-  <script type="text/javascript" src="utils.js"></script>
+-  <link rel="stylesheet" type="text/css"
+-          href="chrome://mochikit/content/tests/SimpleTest/test.css" />
+-</head>
+-<body onload="setTimeout(runTests, 0)">
+-<script type="application/javascript">
+-setTestPluginEnabledState(SpecialPowers.Ci.nsIPluginTag.STATE_ENABLED);
+-</script>
+-
+-<p id="display">
+-  <div style="overflow:hidden; height:100px;" id="scroll">
+-    <embed type="application/x-test" wmode="window" width="100" height="800" id="plugin"></object>
+-    <div style="height:1000px;"></div>
+-  </div>
+-</p>
+-<div id="content" style="display: none">
+-
+-</div>
+-<pre id="test">
+-</pre>
+-
+-<script class="testbody" type="application/javascript">
+-SimpleTest.waitForExplicitFinish();
+-
+-var plugin = document.getElementById("plugin");
+-
+-function consistencyCheck(state) {
+-  var s = plugin.doInternalConsistencyCheck();
+-  ok(s == "", "Consistency check: " + state + ": " + s);
+-}
+-
+-function runTests() {
+-  consistencyCheck("Initial state");
+-
+-  var scroll = document.getElementById("scroll");
+-  scroll.scrollTop = 10;
+-  consistencyCheck("Scrolled down a bit");
+-
+-  setTimeout(function() {
+-    consistencyCheck("Before scrolling back to top");
+-    scroll.scrollTop = 0;
+-    consistencyCheck("Scrolled to top");
+-
+-    setTimeout(function() {
+-      consistencyCheck("After scrolling to top");
+-
+-      SimpleTest.finish();
+-    }, 0);
+-  }, 0);
+-}
+-
+-</script>
+-</body>
+-
+-</html>
+diff --git a/widget/tests/utils.js b/widget/tests/utils.js
+deleted file mode 100644
+index d2d68ce8d3d36..0000000000000
+--- a/widget/tests/utils.js
++++ /dev/null
+@@ -1,27 +0,0 @@
+-function getTestPlugin(pluginName) {
+-  var ph = SpecialPowers.Cc["@mozilla.org/plugin/host;1"].getService(
+-    SpecialPowers.Ci.nsIPluginHost
+-  );
+-  var tags = ph.getPluginTags();
+-  var name = pluginName || "Test Plug-in";
+-  for (var tag of tags) {
+-    if (tag.name == name) {
+-      return tag;
+-    }
+-  }
+-
+-  ok(false, "Could not find plugin tag with plugin name '" + name + "'");
+-  return null;
+-}
+-
+-// call this to set the test plugin(s) initially expected enabled state.
+-// it will automatically be reset to it's previous value after the test
+-// ends
+-function setTestPluginEnabledState(newEnabledState, pluginName) {
+-  var plugin = getTestPlugin(pluginName);
+-  var oldEnabledState = plugin.enabledState;
+-  plugin.enabledState = newEnabledState;
+-  SimpleTest.registerCleanupFunction(function() {
+-    getTestPlugin(pluginName).enabledState = oldEnabledState;
+-  });
+-}

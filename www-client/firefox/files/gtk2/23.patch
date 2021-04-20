@@ -1,0 +1,485 @@
+From 3f9c44a9eda4e7f312ace9df95ab27e59062b1b0 Mon Sep 17 00:00:00 2001
+From: David Parks <daparks@mozilla.com>
+Date: Mon, 5 Apr 2021 23:48:43 +0000
+Subject: [PATCH] Bug 1682030 - Remove NPAPI plugin process from
+ GeckoChildProcess r=jld,gsvelto
+
+Eliminates the NPAPI plugin process type from the GeckoChildProcess enum as part of NPAPI removal.  In order to avoid altering enum values when updating the process list, the GECKO_PROCESS_TYPE macro has been updated to include the desired enum value.  We want to resist altering the values as they need to be consistent e.g. in telemetry reports.
+
+We also remove plugins from adjacent spots that need to maintain consistency with GeckoChildProcess -- most notably the nsICrashService.
+
+Differential Revision: https://phabricator.services.mozilla.com/D108689
+---
+ dom/base/ChromeUtils.cpp                      |  4 --
+ dom/chrome-webidl/ChromeUtils.webidl          |  1 -
+ ipc/glue/CrashReporterHost.cpp                | 25 +++----
+ security/sandbox/common/test/SandboxTest.cpp  |  2 +-
+ testing/mozbase/mozleak/mozleak/leaklog.py    |  2 +-
+ toolkit/components/crashes/CrashManager.jsm   |  6 +-
+ toolkit/components/crashes/CrashService.jsm   |  3 -
+ .../components/crashes/nsICrashService.idl    |  2 +-
+ toolkit/components/processtools/ProcInfo.h    |  1 -
+ toolkit/xre/nsAppRunner.cpp                   | 13 ++--
+ toolkit/xre/nsEmbedFunctions.cpp              | 22 +++---
+ toolkit/xre/nsX11ErrorHandler.cpp             |  1 -
+ xpcom/base/nsCycleCollector.cpp               |  8 +--
+ xpcom/build/GeckoProcessTypes.h               | 71 ++++++++++++-------
+ xpcom/build/nsXULAppAPI.h                     | 19 ++---
+ xpcom/components/nsComponentManager.cpp       |  1 -
+ xpcom/system/nsIXULRuntime.idl                |  1 -
+ 17 files changed, 89 insertions(+), 93 deletions(-)
+
+diff --git a/dom/base/ChromeUtils.cpp b/dom/base/ChromeUtils.cpp
+index 3da030b6141b1..14bbc3edeada2 100644
+--- a/dom/base/ChromeUtils.cpp
++++ b/dom/base/ChromeUtils.cpp
+@@ -779,7 +779,6 @@ static WebIDLProcType ProcTypeToWebIDL(mozilla::ProcType aType) {
+     PROCTYPE_TO_WEBIDL_CASE(WebCOOPCOEP, WithCoopCoep);
+     PROCTYPE_TO_WEBIDL_CASE(WebLargeAllocation, WebLargeAllocation);
+     PROCTYPE_TO_WEBIDL_CASE(Browser, Browser);
+-    PROCTYPE_TO_WEBIDL_CASE(Plugin, Plugin);
+     PROCTYPE_TO_WEBIDL_CASE(IPDLUnitTest, IpdlUnitTest);
+     PROCTYPE_TO_WEBIDL_CASE(GMPlugin, GmpPlugin);
+     PROCTYPE_TO_WEBIDL_CASE(GPU, Gpu);
+@@ -863,9 +862,6 @@ already_AddRefed<Promise> ChromeUtils::RequestProcInfo(GlobalObject& aGlobal,
+           case GeckoProcessType::GeckoProcessType_Default:
+             type = mozilla::ProcType::Browser;
+             break;
+-          case GeckoProcessType::GeckoProcessType_Plugin:
+-            type = mozilla::ProcType::Plugin;
+-            break;
+           case GeckoProcessType::GeckoProcessType_GMPlugin:
+             type = mozilla::ProcType::GMPlugin;
+             break;
+diff --git a/dom/chrome-webidl/ChromeUtils.webidl b/dom/chrome-webidl/ChromeUtils.webidl
+index 513bca5432af3..355284891cb7d 100644
+--- a/dom/chrome-webidl/ChromeUtils.webidl
++++ b/dom/chrome-webidl/ChromeUtils.webidl
+@@ -539,7 +539,6 @@ enum WebIDLProcType {
+  "webLargeAllocation",
+  "withCoopCoep",
+  "browser",
+- "plugin",
+  "ipdlUnitTest",
+  "gmpPlugin",
+  "gpu",
+diff --git a/ipc/glue/CrashReporterHost.cpp b/ipc/glue/CrashReporterHost.cpp
+index 8c2581486a10d..98306dba3edcd 100644
+--- a/ipc/glue/CrashReporterHost.cpp
++++ b/ipc/glue/CrashReporterHost.cpp
+@@ -20,9 +20,6 @@
+ static_assert(nsICrashService::PROCESS_TYPE_MAIN ==
+                   (int)GeckoProcessType_Default,
+               "GeckoProcessType enum is out of sync with nsICrashService!");
+-static_assert(nsICrashService::PROCESS_TYPE_PLUGIN ==
+-                  (int)GeckoProcessType_Plugin,
+-              "GeckoProcessType enum is out of sync with nsICrashService!");
+ static_assert(nsICrashService::PROCESS_TYPE_CONTENT ==
+                   (int)GeckoProcessType_Content,
+               "GeckoProcessType enum is out of sync with nsICrashService!");
+@@ -149,22 +146,18 @@ void CrashReporterHost::RecordCrashWithTelemetry(GeckoProcessType aProcessType,
+                                                  int32_t aCrashType) {
+   nsCString key;
+ 
+-  if (aProcessType == GeckoProcessType_Plugin &&
+-      aCrashType == nsICrashService::CRASH_TYPE_HANG) {
+-    key.AssignLiteral("pluginhang");
+-  } else {
+-    switch (aProcessType) {
+-#define GECKO_PROCESS_TYPE(enum_name, string_name, xre_name, bin_type) \
+-  case GeckoProcessType_##enum_name:                                   \
+-    key.AssignLiteral(string_name);                                    \
++  switch (aProcessType) {
++#define GECKO_PROCESS_TYPE(enum_value, enum_name, string_name, xre_name, \
++                           bin_type)                                     \
++  case GeckoProcessType_##enum_name:                                     \
++    key.AssignLiteral(string_name);                                      \
+     break;
+ #include "mozilla/GeckoProcessTypes.h"
+ #undef GECKO_PROCESS_TYPE
+-      // We can't really hit this, thanks to the above switch, but having it
+-      // here will placate the compiler.
+-      default:
+-        MOZ_ASSERT_UNREACHABLE("unknown process type");
+-    }
++    // We can't really hit this, thanks to the above switch, but having it
++    // here will placate the compiler.
++    default:
++      MOZ_ASSERT_UNREACHABLE("unknown process type");
+   }
+ 
+   Telemetry::Accumulate(Telemetry::SUBPROCESS_CRASHES_WITH_DUMP, key, 1);
+diff --git a/security/sandbox/common/test/SandboxTest.cpp b/security/sandbox/common/test/SandboxTest.cpp
+index 5996dabb13b92..c196da686b607 100644
+--- a/security/sandbox/common/test/SandboxTest.cpp
++++ b/security/sandbox/common/test/SandboxTest.cpp
+@@ -26,7 +26,7 @@ GeckoProcessType GeckoProcessStringToType(const nsCString& aString) {
+   for (GeckoProcessType type = GeckoProcessType(0);
+        type < GeckoProcessType::GeckoProcessType_End;
+        type = GeckoProcessType(type + 1)) {
+-    if (aString == kGeckoProcessTypeString[type]) {
++    if (aString == XRE_GeckoProcessTypeToString(type)) {
+       return type;
+     }
+   }
+diff --git a/testing/mozbase/mozleak/mozleak/leaklog.py b/testing/mozbase/mozleak/mozleak/leaklog.py
+index 95d128971005a..27086f10b2dae 100644
+--- a/testing/mozbase/mozleak/mozleak/leaklog.py
++++ b/testing/mozbase/mozleak/mozleak/leaklog.py
+@@ -181,7 +181,7 @@ def process_leak_log(
+     leakThresholds = leak_thresholds or {}
+     ignoreMissingLeaks = ignore_missing_leaks or []
+ 
+-    # This list is based on kGeckoProcessTypeString. ipdlunittest processes likely
++    # This list is based on XRE_GeckoProcessTypeToString. ipdlunittest processes likely
+     # are not going to produce leak logs we will ever see.
+     knownProcessTypes = [
+         "default",
+diff --git a/toolkit/components/crashes/CrashManager.jsm b/toolkit/components/crashes/CrashManager.jsm
+index 5c0fb316970bc..3df3c9f9f9f79 100644
+--- a/toolkit/components/crashes/CrashManager.jsm
++++ b/toolkit/components/crashes/CrashManager.jsm
+@@ -166,9 +166,6 @@ CrashManager.prototype = Object.freeze({
+   // A crash in a content process.
+   PROCESS_TYPE_CONTENT: "content",
+ 
+-  // A crash in a plugin process.
+-  PROCESS_TYPE_PLUGIN: "plugin",
+-
+   // A crash in a Gecko media plugin process.
+   PROCESS_TYPE_GMPLUGIN: "gmplugin",
+ 
+@@ -922,8 +919,7 @@ var gCrashManager;
+  *
+  * The store has a mechanism for ensuring it doesn't grow too large. A ceiling
+  * is placed on the number of daily events that can occur for events that can
+- * occur with relatively high frequency, notably plugin crashes and hangs
+- * (plugins can enter cycles where they repeatedly crash). If we've reached
++ * occur with relatively high frequency. If we've reached
+  * the high water mark and new data arrives, it's silently dropped.
+  * However, the count of actual events is always preserved. This allows
+  * us to report on the severity of problems beyond the storage threshold.
+diff --git a/toolkit/components/crashes/CrashService.jsm b/toolkit/components/crashes/CrashService.jsm
+index 2174845920d64..469026dcd93d9 100644
+--- a/toolkit/components/crashes/CrashService.jsm
++++ b/toolkit/components/crashes/CrashService.jsm
+@@ -177,9 +177,6 @@ CrashService.prototype = Object.freeze({
+       case Ci.nsICrashService.PROCESS_TYPE_CONTENT:
+         processType = Services.crashmanager.PROCESS_TYPE_CONTENT;
+         break;
+-      case Ci.nsICrashService.PROCESS_TYPE_PLUGIN:
+-        processType = Services.crashmanager.PROCESS_TYPE_PLUGIN;
+-        break;
+       case Ci.nsICrashService.PROCESS_TYPE_GMPLUGIN:
+         processType = Services.crashmanager.PROCESS_TYPE_GMPLUGIN;
+         break;
+diff --git a/toolkit/components/crashes/nsICrashService.idl b/toolkit/components/crashes/nsICrashService.idl
+index 7a9c7698ea805..0990d3ec90015 100644
+--- a/toolkit/components/crashes/nsICrashService.idl
++++ b/toolkit/components/crashes/nsICrashService.idl
+@@ -21,8 +21,8 @@ interface nsICrashService : nsISupports
+    */
+   Promise addCrash(in long processType, in long crashType, in AString id);
+ 
++  // This list should be kept in sync with GeckoProcessTypes.h
+   const long PROCESS_TYPE_MAIN = 0;
+-  const long PROCESS_TYPE_PLUGIN = 1;
+   const long PROCESS_TYPE_CONTENT = 2;
+   const long PROCESS_TYPE_IPDLUNITTEST = 3;
+   const long PROCESS_TYPE_GMPLUGIN = 4;
+diff --git a/toolkit/components/processtools/ProcInfo.h b/toolkit/components/processtools/ProcInfo.h
+index 8f0565086c7f4..1fed5d0ab084a 100644
+--- a/toolkit/components/processtools/ProcInfo.h
++++ b/toolkit/components/processtools/ProcInfo.h
+@@ -35,7 +35,6 @@ enum class ProcType {
+   WebCOOPCOEP,
+   // the rest matches GeckoProcessTypes.h
+   Browser,  // Default is named Browser here
+-  Plugin,
+   IPDLUnitTest,
+   GMPlugin,
+   GPU,
+diff --git a/toolkit/xre/nsAppRunner.cpp b/toolkit/xre/nsAppRunner.cpp
+index 39f2a774aae0d..3a9928cee4525 100644
+--- a/toolkit/xre/nsAppRunner.cpp
++++ b/toolkit/xre/nsAppRunner.cpp
+@@ -967,7 +967,6 @@ nsXULAppInfo::GetWidgetToolkit(nsACString& aResult) {
+                 "nsIXULRuntime.idl");
+ 
+ SYNC_ENUMS(DEFAULT, Default)
+-SYNC_ENUMS(PLUGIN, Plugin)
+ SYNC_ENUMS(CONTENT, Content)
+ SYNC_ENUMS(IPDLUNITTEST, IPDLUnitTest)
+ SYNC_ENUMS(GMPLUGIN, GMPlugin)
+@@ -5676,9 +5675,10 @@ bool XRE_IsE10sParentProcess() {
+ #endif
+ }
+ 
+-#define GECKO_PROCESS_TYPE(enum_name, string_name, xre_name, bin_type) \
+-  bool XRE_Is##xre_name##Process() {                                   \
+-    return XRE_GetProcessType() == GeckoProcessType_##enum_name;       \
++#define GECKO_PROCESS_TYPE(enum_value, enum_name, string_name, xre_name, \
++                           bin_type)                                     \
++  bool XRE_Is##xre_name##Process() {                                     \
++    return XRE_GetProcessType() == GeckoProcessType_##enum_name;         \
+   }
+ #include "mozilla/GeckoProcessTypes.h"
+ #undef GECKO_PROCESS_TYPE
+@@ -5783,8 +5783,9 @@ mozilla::BinPathType XRE_GetChildProcBinPathType(
+   }
+ 
+   switch (aProcessType) {
+-#define GECKO_PROCESS_TYPE(enum_name, string_name, xre_name, bin_type) \
+-  case GeckoProcessType_##enum_name:                                   \
++#define GECKO_PROCESS_TYPE(enum_value, enum_name, string_name, xre_name, \
++                           bin_type)                                     \
++  case GeckoProcessType_##enum_name:                                     \
+     return BinPathType::bin_type;
+ #include "mozilla/GeckoProcessTypes.h"
+ #undef GECKO_PROCESS_TYPE
+diff --git a/toolkit/xre/nsEmbedFunctions.cpp b/toolkit/xre/nsEmbedFunctions.cpp
+index 67d5e511a9a1c..40882b6ddd335 100644
+--- a/toolkit/xre/nsEmbedFunctions.cpp
++++ b/toolkit/xre/nsEmbedFunctions.cpp
+@@ -216,16 +216,21 @@ void XRE_TermEmbedding() {
+ }
+ 
+ const char* XRE_GeckoProcessTypeToString(GeckoProcessType aProcessType) {
+-  return (aProcessType < GeckoProcessType_End)
+-             ? kGeckoProcessTypeString[aProcessType]
+-             : "invalid";
++  switch (aProcessType) {
++#define GECKO_PROCESS_TYPE(enum_value, enum_name, string_name, xre_name, \
++                           bin_type)                                     \
++  case GeckoProcessType::GeckoProcessType_##enum_name:                   \
++    return string_name;
++#include "mozilla/GeckoProcessTypes.h"
++#undef GECKO_PROCESS_TYPE
++    default:
++      return "invalid";
++  }
+ }
+ 
+ const char* XRE_ChildProcessTypeToAnnotation(GeckoProcessType aProcessType) {
+   switch (aProcessType) {
+     case GeckoProcessType_GMPlugin:
+-      // The gecko media plugin and normal plugin processes are lumped together
+-      // as a historical artifact.
+       return "plugin";
+     case GeckoProcessType_Default:
+       return "";
+@@ -259,9 +264,10 @@ void XRE_SetProcessType(const char* aProcessTypeString) {
+   called = true;
+ 
+   sChildProcessType = GeckoProcessType_Invalid;
+-  for (int i = 0; i < (int)ArrayLength(kGeckoProcessTypeString); ++i) {
+-    if (!strcmp(kGeckoProcessTypeString[i], aProcessTypeString)) {
+-      sChildProcessType = static_cast<GeckoProcessType>(i);
++  for (GeckoProcessType t :
++       MakeEnumeratedRange(GeckoProcessType::GeckoProcessType_End)) {
++    if (!strcmp(XRE_GeckoProcessTypeToString(t), aProcessTypeString)) {
++      sChildProcessType = t;
+       return;
+     }
+   }
+diff --git a/toolkit/xre/nsX11ErrorHandler.cpp b/toolkit/xre/nsX11ErrorHandler.cpp
+index 3ba6d696fa7a3..cc5f06c1fd992 100644
+--- a/toolkit/xre/nsX11ErrorHandler.cpp
++++ b/toolkit/xre/nsX11ErrorHandler.cpp
+@@ -107,7 +107,6 @@ int X11Error(Display* display, XErrorEvent* event) {
+ 
+   switch (XRE_GetProcessType()) {
+     case GeckoProcessType_Default:
+-    case GeckoProcessType_Plugin:
+     case GeckoProcessType_Content:
+       CrashReporter::AppendAppNotesToCrashReport(notes);
+       break;
+diff --git a/xpcom/base/nsCycleCollector.cpp b/xpcom/base/nsCycleCollector.cpp
+index 8be56243810bd..34f71888bcc5e 100644
+--- a/xpcom/base/nsCycleCollector.cpp
++++ b/xpcom/base/nsCycleCollector.cpp
+@@ -248,9 +248,8 @@ static void SuspectUsingNurseryPurpleBuffer(
+ // MOZ_CC_LOG_ALL or MOZ_CC_LOG_SHUTDOWN for it to do anything.
+ //
+ // MOZ_CC_LOG_PROCESS: If set to "main", only automatically log main process
+-// CCs. If set to "content", only automatically log tab CCs. If set to
+-// "plugins", only automatically log plugin CCs. If set to "all", log
+-// everything. The default value is "all". This must be used with either
++// CCs. If set to "content", only automatically log tab CCs. If set to "all",
++// log everything. The default value is "all". This must be used with either
+ // MOZ_CC_LOG_ALL or MOZ_CC_LOG_SHUTDOWN for it to do anything.
+ //
+ // MOZ_CC_ALL_TRACES: If set to "all", any cycle collector
+@@ -298,9 +297,6 @@ struct nsCycleCollectorParams {
+         case GeckoProcessType_Default:
+           processLogging = !strcmp(logProcessEnv, "main");
+           break;
+-        case GeckoProcessType_Plugin:
+-          processLogging = !strcmp(logProcessEnv, "plugins");
+-          break;
+         case GeckoProcessType_Content:
+           processLogging = !strcmp(logProcessEnv, "content");
+           break;
+diff --git a/xpcom/build/GeckoProcessTypes.h b/xpcom/build/GeckoProcessTypes.h
+index da5822aa06d3f..223bf245ab537 100644
+--- a/xpcom/build/GeckoProcessTypes.h
++++ b/xpcom/build/GeckoProcessTypes.h
+@@ -4,43 +4,66 @@
+  * License, v. 2.0. If a copy of the MPL was not distributed with this
+  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ 
+-// GECKO_PROCESS_TYPE(enum-name, string-name, XRE_Is${NAME}Process,
+-// process-bin-type) Note that string-name is exposed to various things like
++// The entries in this file define support functions for each of the process
++// types present in Gecko.  The format is:
++//
++// GECKO_PROCESS_TYPE(enum-value, enum-name, string-name, proc-typename,
++// process-bin-type)
++//
++// enum-value: Unsigned int value the enum will use to identify the process
++// type.  This value must not be shared by different process types and should
++// never be changed since it is used e.g. in telemetry reporting.  These
++// values should be mirrored in nsIXULRuntime.idl.
++//
++// enum-name: used to name the GeckoChildProcess enum.  E.g. `Foo` will
++// become `GeckoChildProcess_Foo`.  The enum's value will be the enum-value
++// above.
++//
++// string-name: Human-readable name.  It is exposed to things like
+ // telemetry and the crash reporter, so it should not be changed casually.
+ //
+-// process-bin-type should be either Self or PluginContainer, and determines
++// proc-typename: Used as NAME in the `XRE_Is${NAME}Process` function.
++// Ideally, this should match the enum-name.  This is included since there
++// are legacy exceptions to that rule.
++//
++// process-bin-type: either Self or PluginContainer.  Determines
+ // whether the child process may be started using the same binary as the parent
+ // process, or whether to use plugin-container (Note that whether or not this
+ // value is actually obeyed depends on platform and build configuration. Do not
+ // use this value directly, but rather use XRE_GetChildProcBinPathType to
+ // resolve this).
+-//
+-// The values generated for the GeckoProcessType enum are dependent on
+-// the ordering of the GECKO_PROCESS_TYPE invocations in this file, and
+-// said values are exposed to things like telemetry as well, so please
+-// do not reorder lines in this file.
+-//
+-// Please add new process types at the end of this list
+-// and update widget/ProcInfo.h
+-GECKO_PROCESS_TYPE(Default, "default", Parent, Self)
+-GECKO_PROCESS_TYPE(Plugin, "plugin", Plugin, PluginContainer)
+-GECKO_PROCESS_TYPE(Content, "tab", Content, Self)
+-GECKO_PROCESS_TYPE(IPDLUnitTest, "ipdlunittest", IPDLUnitTest, PluginContainer)
++
++GECKO_PROCESS_TYPE(0, Default, "default", Parent, Self)
++GECKO_PROCESS_TYPE(2, Content, "tab", Content, Self)
++GECKO_PROCESS_TYPE(3, IPDLUnitTest, "ipdlunittest", IPDLUnitTest,
++                   PluginContainer)
+ // Gecko Media Plugin process.
+-GECKO_PROCESS_TYPE(GMPlugin, "gmplugin", GMPlugin, PluginContainer)
++GECKO_PROCESS_TYPE(4, GMPlugin, "gmplugin", GMPlugin, PluginContainer)
+ // GPU and compositor process.
+-GECKO_PROCESS_TYPE(GPU, "gpu", GPU, Self)
++GECKO_PROCESS_TYPE(5, GPU, "gpu", GPU, Self)
+ // VR process.
+-GECKO_PROCESS_TYPE(VR, "vr", VR, Self)
++GECKO_PROCESS_TYPE(6, VR, "vr", VR, Self)
+ // Remote Data Decoder process.
+-GECKO_PROCESS_TYPE(RDD, "rdd", RDD, Self)
++GECKO_PROCESS_TYPE(7, RDD, "rdd", RDD, Self)
+ // Socket process
+-GECKO_PROCESS_TYPE(Socket, "socket", Socket, Self)
+-GECKO_PROCESS_TYPE(RemoteSandboxBroker, "sandboxbroker", RemoteSandboxBroker,
++GECKO_PROCESS_TYPE(8, Socket, "socket", Socket, Self)
++GECKO_PROCESS_TYPE(9, RemoteSandboxBroker, "sandboxbroker", RemoteSandboxBroker,
+                    PluginContainer)
+-GECKO_PROCESS_TYPE(ForkServer, "forkserver", ForkServer, Self)
++GECKO_PROCESS_TYPE(10, ForkServer, "forkserver", ForkServer, Self)
+ 
+-// NOTE: if you add new process types, please ensure that you update
+-// widget/ProcInfo.h and any new sandbox environment variables are added
++// Please add new process types at the end of this list.  You will also need
++// to maintain consistency with:
++//
++// * toolkit/components/processtools/ProcInfo.h (ProcType),
++// * xpcom/system/nsIXULRuntime.idl (PROCESS_TYPE constants),
++// * toolkit/xre/nsAppRunner.cpp (SYNC_ENUMS),
++// * dom/base/ChromeUtils.cpp (ProcTypeToWebIDL and
++//   ChromeUtils::RequestProcInfo)
++// * dom/chrome-webidl/ChromeUtils.webidl (WebIDLProcType)
++// * toolkit/components/crashes/nsICrashService.idl and
++//   CrashService.jsm (PROCESS_TYPE constants)
++// * ipc/glue/CrashReporterHost.cpp (assertions)
++//
++// Also, please ensure that any new sandbox environment variables are added
+ // in build/pgo/profileserver.py to ensure your new process participates in
+ // PGO profile generation.
+diff --git a/xpcom/build/nsXULAppAPI.h b/xpcom/build/nsXULAppAPI.h
+index a143bb10be9d7..44519fa96c3bd 100644
+--- a/xpcom/build/nsXULAppAPI.h
++++ b/xpcom/build/nsXULAppAPI.h
+@@ -364,25 +364,17 @@ XRE_API(void, XRE_TermEmbedding, ())
+ XRE_API(nsresult, XRE_ParseAppData,
+         (nsIFile * aINIFile, mozilla::XREAppData& aAppData))
+ 
++// This enum is not dense.  See GeckoProcessTypes.h for details.
+ enum GeckoProcessType {
+-#define GECKO_PROCESS_TYPE(enum_name, string_name, xre_name, bin_type) \
+-  GeckoProcessType_##enum_name,
++#define GECKO_PROCESS_TYPE(enum_value, enum_name, string_name, xre_name, \
++                           bin_type)                                     \
++  GeckoProcessType_##enum_name = enum_value,
+ #include "mozilla/GeckoProcessTypes.h"
+ #undef GECKO_PROCESS_TYPE
+   GeckoProcessType_End,
+   GeckoProcessType_Invalid = GeckoProcessType_End
+ };
+ 
+-static const char* const kGeckoProcessTypeString[] = {
+-#define GECKO_PROCESS_TYPE(enum_name, string_name, xre_name, bin_type) \
+-  string_name,
+-#include "mozilla/GeckoProcessTypes.h"
+-#undef GECKO_PROCESS_TYPE
+-};
+-
+-static_assert(MOZ_ARRAY_LENGTH(kGeckoProcessTypeString) == GeckoProcessType_End,
+-              "Array length mismatch");
+-
+ XRE_API(const char*, XRE_GeckoProcessTypeToString,
+         (GeckoProcessType aProcessType))
+ XRE_API(const char*, XRE_ChildProcessTypeToAnnotation,
+@@ -430,7 +422,8 @@ XRE_API(bool, XRE_IsE10sParentProcess, ())
+  * the e10s parent process or called in the main process when e10s is
+  * disabled.
+  */
+-#define GECKO_PROCESS_TYPE(enum_name, string_name, xre_name, bin_type) \
++#define GECKO_PROCESS_TYPE(enum_value, enum_name, string_name, xre_name, \
++                           bin_type)                                     \
+   XRE_API(bool, XRE_Is##xre_name##Process, ())
+ #include "mozilla/GeckoProcessTypes.h"
+ #undef GECKO_PROCESS_TYPE
+diff --git a/xpcom/components/nsComponentManager.cpp b/xpcom/components/nsComponentManager.cpp
+index 3b8481d85778f..fb5e49afb58fb 100644
+--- a/xpcom/components/nsComponentManager.cpp
++++ b/xpcom/components/nsComponentManager.cpp
+@@ -395,7 +395,6 @@ nsresult nsComponentManagerImpl::Init() {
+     // process types, but presumably only the default (parent) and content
+     // processes really need chrome manifests...?
+     case GeckoProcessType_Default:
+-    case GeckoProcessType_Plugin:
+     case GeckoProcessType_Content:
+     case GeckoProcessType_IPDLUnitTest:
+     case GeckoProcessType_GMPlugin:
+diff --git a/xpcom/system/nsIXULRuntime.idl b/xpcom/system/nsIXULRuntime.idl
+index 82a7093c7ce59..375bf59390e29 100644
+--- a/xpcom/system/nsIXULRuntime.idl
++++ b/xpcom/system/nsIXULRuntime.idl
+@@ -177,7 +177,6 @@ interface nsIXULRuntime : nsISupports
+    * The legal values of processType.
+    */
+   const unsigned long PROCESS_TYPE_DEFAULT = 0;
+-  const unsigned long PROCESS_TYPE_PLUGIN = 1;
+   const unsigned long PROCESS_TYPE_CONTENT = 2;
+   const unsigned long PROCESS_TYPE_IPDLUNITTEST = 3;
+   const unsigned long PROCESS_TYPE_GMPLUGIN = 4;

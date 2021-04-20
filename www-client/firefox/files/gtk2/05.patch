@@ -1,0 +1,339 @@
+From a6245e18b99e14a26ea93281915945441cf68435 Mon Sep 17 00:00:00 2001
+From: David Parks <daparks@mozilla.com>
+Date: Mon, 5 Apr 2021 23:48:35 +0000
+Subject: [PATCH] Bug 1682030 - Remove NPAPI plugin support from accessible. 
+ r=eeejay
+
+Removes NPAPI plugin support from accessible/, as part of removing all of NPAPI plugin support.  This was the only reason for HTMLWin32ObjectAccessible was needed, so we get rid of that, too.
+
+Differential Revision: https://phabricator.services.mozilla.com/D107143
+---
+ accessible/base/nsAccessibilityService.cpp    |  1 -
+ accessible/ipc/DocAccessibleParent.cpp        | 29 ------
+ accessible/ipc/DocAccessibleParent.h          |  3 -
+ accessible/ipc/win/PDocAccessible.ipdl        |  3 -
+ accessible/tests/mochitest/common.js          | 31 ------
+ .../msaa/HTMLWin32ObjectAccessible.cpp        | 96 -------------------
+ .../windows/msaa/HTMLWin32ObjectAccessible.h  | 68 -------------
+ accessible/windows/msaa/moz.build             |  1 -
+ 8 files changed, 232 deletions(-)
+ delete mode 100644 accessible/windows/msaa/HTMLWin32ObjectAccessible.cpp
+ delete mode 100644 accessible/windows/msaa/HTMLWin32ObjectAccessible.h
+
+diff --git a/accessible/base/nsAccessibilityService.cpp b/accessible/base/nsAccessibilityService.cpp
+index e540eee62cfa9..2c3d9391bc17b 100644
+--- a/accessible/base/nsAccessibilityService.cpp
++++ b/accessible/base/nsAccessibilityService.cpp
+@@ -48,7 +48,6 @@
+ #ifdef XP_WIN
+ #  include "mozilla/a11y/Compatibility.h"
+ #  include "mozilla/dom/ContentChild.h"
+-#  include "HTMLWin32ObjectAccessible.h"
+ #  include "mozilla/StaticPtr.h"
+ #endif
+ 
+diff --git a/accessible/ipc/DocAccessibleParent.cpp b/accessible/ipc/DocAccessibleParent.cpp
+index f783a8f3cd180..105f60fe91abb 100644
+--- a/accessible/ipc/DocAccessibleParent.cpp
++++ b/accessible/ipc/DocAccessibleParent.cpp
+@@ -909,35 +909,6 @@ void DocAccessibleParent::SetEmulatedWindowHandle(HWND aWindowHandle) {
+   mEmulatedWindowHandle = aWindowHandle;
+ }
+ 
+-mozilla::ipc::IPCResult DocAccessibleParent::RecvGetWindowedPluginIAccessible(
+-    const WindowsHandle& aHwnd, IAccessibleHolder* aPluginCOMProxy) {
+-#  if defined(MOZ_SANDBOX)
+-  // We don't actually want the accessible object for aHwnd, but rather the
+-  // one that belongs to its child (see HTMLWin32ObjectAccessible).
+-  HWND childWnd = ::GetWindow(reinterpret_cast<HWND>(aHwnd), GW_CHILD);
+-  if (!childWnd) {
+-    // We're seeing this in the wild - the plugin is windowed but we no longer
+-    // have a window.
+-    return IPC_OK();
+-  }
+-
+-  IAccessible* rawAccPlugin = nullptr;
+-  HRESULT hr = ::AccessibleObjectFromWindow(
+-      childWnd, OBJID_WINDOW, IID_IAccessible, (void**)&rawAccPlugin);
+-  if (FAILED(hr)) {
+-    // This might happen if the plugin doesn't handle WM_GETOBJECT properly.
+-    // We should not consider that a failure.
+-    return IPC_OK();
+-  }
+-
+-  aPluginCOMProxy->Set(IAccessibleHolder::COMPtrType(rawAccPlugin));
+-
+-  return IPC_OK();
+-#  else
+-  return IPC_FAIL(this, "Message unsupported in this build configuration");
+-#  endif
+-}
+-
+ mozilla::ipc::IPCResult DocAccessibleParent::RecvFocusEvent(
+     const uint64_t& aID, const LayoutDeviceIntRect& aCaretRect) {
+   if (mShutdown) {
+diff --git a/accessible/ipc/DocAccessibleParent.h b/accessible/ipc/DocAccessibleParent.h
+index 65867aa95eba8..4827880427cde 100644
+--- a/accessible/ipc/DocAccessibleParent.h
++++ b/accessible/ipc/DocAccessibleParent.h
+@@ -234,9 +234,6 @@ class DocAccessibleParent : public RemoteAccessible,
+    */
+   void SendParentCOMProxy(LocalAccessible* aOuterDoc);
+ 
+-  virtual mozilla::ipc::IPCResult RecvGetWindowedPluginIAccessible(
+-      const WindowsHandle& aHwnd, IAccessibleHolder* aPluginCOMProxy) override;
+-
+   /**
+    * Set emulated native window handle for a document.
+    * @param aWindowHandle emulated native window handle
+diff --git a/accessible/ipc/win/PDocAccessible.ipdl b/accessible/ipc/win/PDocAccessible.ipdl
+index 7876e25ac2953..33699dbb25150 100644
+--- a/accessible/ipc/win/PDocAccessible.ipdl
++++ b/accessible/ipc/win/PDocAccessible.ipdl
+@@ -86,9 +86,6 @@ parent:
+    */
+   async BindChildDoc(PDocAccessible aChildDoc, uint64_t aID);
+ 
+-  sync GetWindowedPluginIAccessible(WindowsHandle aHwnd)
+-    returns (IAccessibleHolder aPluginCOMProxy);
+-
+ child:
+   /**
+    * We use IDispatchHolder instead of IAccessibleHolder for the following two
+diff --git a/accessible/tests/mochitest/common.js b/accessible/tests/mochitest/common.js
+index 69014c6cd3026..f997cbfa0e959 100644
+--- a/accessible/tests/mochitest/common.js
++++ b/accessible/tests/mochitest/common.js
+@@ -997,21 +997,6 @@ function getMainChromeWindow(aWindow) {
+   return aWindow.browsingContext.topChromeWindow;
+ }
+ 
+-/** Sets the test plugin(s) initially expected enabled state.
+- * It will automatically be reset to it's previous value after the test
+- * ends.
+- * @param aNewEnabledState [in] the enabled state, e.g. SpecialPowers.Ci.nsIPluginTag.STATE_ENABLED
+- * @param aPluginName [in, optional] The name of the plugin, defaults to "Test Plug-in"
+- */
+-function setTestPluginEnabledState(aNewEnabledState, aPluginName) {
+-  var plugin = getTestPluginTag(aPluginName);
+-  var oldEnabledState = plugin.enabledState;
+-  plugin.enabledState = aNewEnabledState;
+-  SimpleTest.registerCleanupFunction(function() {
+-    getTestPluginTag(aPluginName).enabledState = oldEnabledState;
+-  });
+-}
+-
+ // //////////////////////////////////////////////////////////////////////////////
+ // Private
+ // //////////////////////////////////////////////////////////////////////////////
+@@ -1047,22 +1032,6 @@ function getObjAddress(aObj) {
+   return aObj.toString();
+ }
+ 
+-function getTestPluginTag(aPluginName) {
+-  var ph = SpecialPowers.Cc["@mozilla.org/plugin/host;1"].getService(
+-    SpecialPowers.Ci.nsIPluginHost
+-  );
+-  var tags = ph.getPluginTags();
+-  var name = aPluginName || "Test Plug-in";
+-  for (var tag of tags) {
+-    if (tag.name == name) {
+-      return tag;
+-    }
+-  }
+-
+-  ok(false, "Could not find plugin tag with plugin name '" + name + "'");
+-  return null;
+-}
+-
+ function normalizeAccTreeObj(aObj) {
+   var key = Object.keys(aObj)[0];
+   var roleName = "ROLE_" + key;
+diff --git a/accessible/windows/msaa/HTMLWin32ObjectAccessible.cpp b/accessible/windows/msaa/HTMLWin32ObjectAccessible.cpp
+deleted file mode 100644
+index 007fc532d1bb8..0000000000000
+--- a/accessible/windows/msaa/HTMLWin32ObjectAccessible.cpp
++++ /dev/null
+@@ -1,96 +0,0 @@
+-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#include "HTMLWin32ObjectAccessible.h"
+-
+-#include "Role.h"
+-#include "States.h"
+-
+-using namespace mozilla::a11y;
+-
+-////////////////////////////////////////////////////////////////////////////////
+-// HTMLWin32ObjectOwnerAccessible
+-////////////////////////////////////////////////////////////////////////////////
+-
+-HTMLWin32ObjectOwnerAccessible::HTMLWin32ObjectOwnerAccessible(
+-    nsIContent* aContent, DocAccessible* aDoc, void* aHwnd)
+-    : AccessibleWrap(aContent, aDoc), mHwnd(aHwnd) {
+-  mStateFlags |= eNoKidsFromDOM;
+-
+-  // Our only child is a HTMLWin32ObjectAccessible object.
+-  if (mHwnd) {
+-    mNativeAccessible = new HTMLWin32ObjectAccessible(mHwnd, aDoc);
+-    AppendChild(mNativeAccessible);
+-  }
+-}
+-
+-////////////////////////////////////////////////////////////////////////////////
+-// HTMLWin32ObjectOwnerAccessible: LocalAccessible implementation
+-
+-void HTMLWin32ObjectOwnerAccessible::Shutdown() {
+-  AccessibleWrap::Shutdown();
+-  mNativeAccessible = nullptr;
+-}
+-
+-role HTMLWin32ObjectOwnerAccessible::NativeRole() const {
+-  return roles::EMBEDDED_OBJECT;
+-}
+-
+-bool HTMLWin32ObjectOwnerAccessible::NativelyUnavailable() const {
+-  // XXX: No HWND means this is windowless plugin which is not accessible in
+-  // the meantime.
+-  return !mHwnd;
+-}
+-
+-////////////////////////////////////////////////////////////////////////////////
+-// HTMLWin32ObjectAccessible
+-////////////////////////////////////////////////////////////////////////////////
+-
+-HTMLWin32ObjectAccessible::HTMLWin32ObjectAccessible(void* aHwnd,
+-                                                     DocAccessible* aDoc)
+-    : DummyAccessible(aDoc) {
+-  mHwnd = aHwnd;
+-  if (mHwnd) {
+-#if defined(MOZ_SANDBOX)
+-    if (XRE_IsContentProcess()) {
+-      DocAccessibleChild* ipcDoc = aDoc->IPCDoc();
+-      MOZ_ASSERT(ipcDoc);
+-      if (!ipcDoc) {
+-        return;
+-      }
+-
+-      IAccessibleHolder proxyHolder;
+-      if (!ipcDoc->SendGetWindowedPluginIAccessible(
+-              reinterpret_cast<uintptr_t>(mHwnd), &proxyHolder)) {
+-        return;
+-      }
+-
+-      mCOMProxy.reset(proxyHolder.Release());
+-      return;
+-    }
+-#endif
+-
+-    // The plugin is not windowless. In this situation we use
+-    // use its inner child owned by the plugin so that we don't get
+-    // in an infinite loop, where the WM_GETOBJECT's get forwarded
+-    // back to us and create another HTMLWin32ObjectAccessible
+-    mHwnd = ::GetWindow((HWND)aHwnd, GW_CHILD);
+-  }
+-}
+-
+-void HTMLWin32ObjectAccessible::GetNativeInterface(void** aNativeAccessible) {
+-#if defined(MOZ_SANDBOX)
+-  if (XRE_IsContentProcess()) {
+-    RefPtr<IAccessible> addRefed = mCOMProxy.get();
+-    addRefed.forget(aNativeAccessible);
+-    return;
+-  }
+-#endif
+-
+-  if (mHwnd) {
+-    ::AccessibleObjectFromWindow(static_cast<HWND>(mHwnd), OBJID_WINDOW,
+-                                 IID_IAccessible, aNativeAccessible);
+-  }
+-}
+diff --git a/accessible/windows/msaa/HTMLWin32ObjectAccessible.h b/accessible/windows/msaa/HTMLWin32ObjectAccessible.h
+deleted file mode 100644
+index bee4704468d85..0000000000000
+--- a/accessible/windows/msaa/HTMLWin32ObjectAccessible.h
++++ /dev/null
+@@ -1,68 +0,0 @@
+-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#ifndef mozilla_a11y_HTMLWin32ObjectAccessible_h_
+-#define mozilla_a11y_HTMLWin32ObjectAccessible_h_
+-
+-#include "BaseAccessibles.h"
+-
+-#if defined(MOZ_SANDBOX)
+-#  include "mozilla/mscom/Ptr.h"
+-#endif
+-
+-struct IAccessible;
+-
+-namespace mozilla {
+-namespace a11y {
+-
+-class HTMLWin32ObjectOwnerAccessible : public AccessibleWrap {
+- public:
+-  // This will own the HTMLWin32ObjectAccessible. We create this where the
+-  // <object> or <embed> exists in the tree, so that get_accNextSibling() etc.
+-  // will still point to Gecko accessible sibling content. This is necessary
+-  // because the native plugin accessible doesn't know where it exists in the
+-  // Mozilla tree, and returns null for previous and next sibling. This would
+-  // have the effect of cutting off all content after the plugin.
+-  HTMLWin32ObjectOwnerAccessible(nsIContent* aContent, DocAccessible* aDoc,
+-                                 void* aHwnd);
+-  virtual ~HTMLWin32ObjectOwnerAccessible() {}
+-
+-  // LocalAccessible
+-  virtual void Shutdown();
+-  virtual mozilla::a11y::role NativeRole() const override;
+-  virtual bool NativelyUnavailable() const;
+-
+- protected:
+-  void* mHwnd;
+-  RefPtr<LocalAccessible> mNativeAccessible;
+-};
+-
+-/**
+- * This class is used only internally, we never! send out an IAccessible linked
+- *   back to this object. This class is used to represent a plugin object when
+- *   referenced as a child or sibling of another Accessible node. We need
+- * only a limited portion of the Accessible interface implemented here. The
+- *   in depth accessible information will be returned by the actual IAccessible
+- *   object returned by us in Accessible::NewAccessible() that gets the
+- * IAccessible from the windows system from the window handle.
+- */
+-class HTMLWin32ObjectAccessible : public DummyAccessible {
+- public:
+-  HTMLWin32ObjectAccessible(void* aHwnd, DocAccessible* aDoc);
+-  virtual ~HTMLWin32ObjectAccessible() {}
+-
+-  virtual void GetNativeInterface(void** aNativeAccessible) override;
+-
+- protected:
+-  void* mHwnd;
+-#if defined(MOZ_SANDBOX)
+-  mscom::ProxyUniquePtr<IAccessible> mCOMProxy;
+-#endif
+-};
+-
+-}  // namespace a11y
+-}  // namespace mozilla
+-
+-#endif
+diff --git a/accessible/windows/msaa/moz.build b/accessible/windows/msaa/moz.build
+index 5b8163f2fd940..84f132bb73d38 100644
+--- a/accessible/windows/msaa/moz.build
++++ b/accessible/windows/msaa/moz.build
+@@ -27,7 +27,6 @@ UNIFIED_SOURCES += [
+     "EnumVariant.cpp",
+     "GeckoCustom.cpp",
+     "HTMLTableAccessibleWrap.cpp",
+-    "HTMLWin32ObjectAccessible.cpp",
+     "HyperTextAccessibleWrap.cpp",
+     "ImageAccessibleWrap.cpp",
+     "IUnknownImpl.cpp",

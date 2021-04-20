@@ -1,0 +1,71 @@
+From 9a7a73cbc834cd2b2b6fb23cff19c8aaa8455860 Mon Sep 17 00:00:00 2001
+From: David Parks <daparks@mozilla.com>
+Date: Mon, 5 Apr 2021 23:48:38 +0000
+Subject: [PATCH] Bug 1682030 - Remove nsIPluginWidget  r=jmathies
+
+Removes unused nsIPluginWidget, as part of removing all NPAPI support.
+
+Differential Revision: https://phabricator.services.mozilla.com/D107149
+---
+ widget/moz.build         |  1 -
+ widget/nsIPluginWidget.h | 39 ---------------------------------------
+ 2 files changed, 40 deletions(-)
+ delete mode 100644 widget/nsIPluginWidget.h
+
+diff --git a/widget/moz.build b/widget/moz.build
+index 3e47a2f1b446a..eb70e4d84330b 100644
+--- a/widget/moz.build
++++ b/widget/moz.build
+@@ -132,7 +132,6 @@ EXPORTS += [
+     "nsBaseScreen.h",
+     "nsBaseWidget.h",
+     "nsIDeviceContextSpec.h",
+-    "nsIPluginWidget.h",
+     "nsIPrintDialogService.h",
+     "nsIRollupListener.h",
+     "nsIWidget.h",
+diff --git a/widget/nsIPluginWidget.h b/widget/nsIPluginWidget.h
+deleted file mode 100644
+index becc577784ce7..0000000000000
+--- a/widget/nsIPluginWidget.h
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#include "nsISupports.h"
+-#include "nsPoint.h"
+-
+-#define NS_IPLUGINWIDGET_IID                         \
+-  {                                                  \
+-    0xEB9207E0, 0xD8F1, 0x44B9, {                    \
+-      0xB7, 0x52, 0xAF, 0x8E, 0x9F, 0x8E, 0xBD, 0xF7 \
+-    }                                                \
+-  }
+-
+-/**
+- * This is used by Mac only.
+- */
+-class NS_NO_VTABLE nsIPluginWidget : public nsISupports {
+- public:
+-  NS_DECLARE_STATIC_IID_ACCESSOR(NS_IPLUGINWIDGET_IID)
+-
+-  NS_IMETHOD GetPluginClipRect(nsIntRect& outClipRect, nsIntPoint& outOrigin,
+-                               bool& outWidgetVisible) = 0;
+-
+-  NS_IMETHOD StartDrawPlugin(void) = 0;
+-
+-  NS_IMETHOD EndDrawPlugin(void) = 0;
+-
+-  NS_IMETHOD SetPluginEventModel(int inEventModel) = 0;
+-
+-  NS_IMETHOD GetPluginEventModel(int* outEventModel) = 0;
+-
+-  NS_IMETHOD SetPluginDrawingModel(int inDrawingModel) = 0;
+-
+-  NS_IMETHOD StartComplexTextInputForCurrentEvent() = 0;
+-};
+-
+-NS_DEFINE_STATIC_IID_ACCESSOR(nsIPluginWidget, NS_IPLUGINWIDGET_IID)

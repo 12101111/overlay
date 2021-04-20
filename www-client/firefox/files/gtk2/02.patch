@@ -1,0 +1,1024 @@
+From 97fe4ca26f1ea46b57b244e5326c03c48f6a2362 Mon Sep 17 00:00:00 2001
+From: David Parks <daparks@mozilla.com>
+Date: Mon, 5 Apr 2021 23:48:33 +0000
+Subject: [PATCH] Bug 1682030 - Remove PPluginSurface.   r=jmathies,bas
+
+Removes the PPluginSurface actor used for windowed plugins, as part of removing all of NPAPI plugin support.  SharedDIB is then unused and is also removed.
+
+Differential Revision: https://phabricator.services.mozilla.com/D107140
+---
+ dom/plugins/ipc/PPluginInstance.ipdl     |   7 --
+ dom/plugins/ipc/PPluginSurface.ipdl      |  18 ----
+ dom/plugins/ipc/PluginInstanceChild.cpp  | 116 -----------------------
+ dom/plugins/ipc/PluginInstanceChild.h    |  21 +---
+ dom/plugins/ipc/PluginInstanceParent.cpp |  29 ------
+ dom/plugins/ipc/PluginInstanceParent.h   |   6 --
+ dom/plugins/ipc/PluginSurfaceParent.cpp  |  29 ------
+ dom/plugins/ipc/PluginSurfaceParent.h    |  38 --------
+ dom/plugins/ipc/moz.build                |   5 -
+ gfx/ipc/SharedDIB.cpp                    |  55 -----------
+ gfx/ipc/SharedDIB.h                      |  50 ----------
+ gfx/ipc/SharedDIBSurface.cpp             |  53 -----------
+ gfx/ipc/SharedDIBSurface.h               |  62 ------------
+ gfx/ipc/SharedDIBWin.cpp                 | 114 ----------------------
+ gfx/ipc/SharedDIBWin.h                   |  56 -----------
+ gfx/ipc/moz.build                        |  12 ---
+ ipc/chromium/src/base/shared_memory.h    |   9 --
+ 17 files changed, 1 insertion(+), 679 deletions(-)
+ delete mode 100644 dom/plugins/ipc/PPluginSurface.ipdl
+ delete mode 100644 dom/plugins/ipc/PluginSurfaceParent.cpp
+ delete mode 100644 dom/plugins/ipc/PluginSurfaceParent.h
+ delete mode 100644 gfx/ipc/SharedDIB.cpp
+ delete mode 100644 gfx/ipc/SharedDIB.h
+ delete mode 100644 gfx/ipc/SharedDIBSurface.cpp
+ delete mode 100644 gfx/ipc/SharedDIBSurface.h
+ delete mode 100644 gfx/ipc/SharedDIBWin.cpp
+ delete mode 100644 gfx/ipc/SharedDIBWin.h
+
+diff --git a/dom/plugins/ipc/PPluginInstance.ipdl b/dom/plugins/ipc/PPluginInstance.ipdl
+index 3bb7e53d6ae37..48a4218746455 100644
+--- a/dom/plugins/ipc/PPluginInstance.ipdl
++++ b/dom/plugins/ipc/PPluginInstance.ipdl
+@@ -8,7 +8,6 @@ include protocol PPluginModule;
+ include protocol PPluginScriptableObject;
+ include protocol PBrowserStream;
+ include protocol PStreamNotify;
+-include protocol PPluginSurface;
+ 
+ include "gfxipc/ShadowLayerUtils.h";
+ include "mozilla/GfxMessageUtils.h";
+@@ -46,7 +45,6 @@ struct IOSurfaceDescriptor {
+ union SurfaceDescriptor {
+   Shmem;
+   SurfaceDescriptorX11;
+-  PPluginSurface; // used on Windows
+   IOSurfaceDescriptor; // used on OSX 10.5+
+   // Descriptor can be null here in case
+   // 1) of first Show call (prevSurface is null)
+@@ -64,7 +62,6 @@ intr protocol PPluginInstance
+   manages PPluginScriptableObject;
+   manages PBrowserStream;
+   manages PStreamNotify;
+-  manages PPluginSurface;
+ 
+ child:
+   async __delete__();
+@@ -217,10 +214,6 @@ parent:
+   sync Show(NPRect updatedRect, SurfaceDescriptor newSurface)
+     returns (SurfaceDescriptor prevSurface);
+ 
+-  async PPluginSurface(WindowsSharedMemoryHandle handle,
+-                       IntSize size,
+-                       bool transparent);
+-
+   intr NPN_PushPopupsEnabledState(bool aState);
+ 
+   intr NPN_PopPopupsEnabledState();
+diff --git a/dom/plugins/ipc/PPluginSurface.ipdl b/dom/plugins/ipc/PPluginSurface.ipdl
+deleted file mode 100644
+index 7be038c604cd4..0000000000000
+--- a/dom/plugins/ipc/PPluginSurface.ipdl
++++ /dev/null
+@@ -1,18 +0,0 @@
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-include protocol PPluginInstance;
+-
+-namespace mozilla {
+-namespace plugins {
+-
+-async protocol PPluginSurface {
+-  manager PPluginInstance;
+-
+-parent:
+-  async __delete__();
+-};
+-
+-}
+-}
+diff --git a/dom/plugins/ipc/PluginInstanceChild.cpp b/dom/plugins/ipc/PluginInstanceChild.cpp
+index 9ae0da9bb2675..1bd49c15ca96b 100644
+--- a/dom/plugins/ipc/PluginInstanceChild.cpp
++++ b/dom/plugins/ipc/PluginInstanceChild.cpp
+@@ -21,11 +21,9 @@
+ #endif
+ #ifdef XP_WIN
+ #  include "mozilla/D3DMessageUtils.h"
+-#  include "mozilla/gfx/SharedDIBSurface.h"
+ #  include "nsCrashOnException.h"
+ #  include "gfxWindowsPlatform.h"
+ extern const wchar_t* kFlashFullscreenClass;
+-using mozilla::gfx::SharedDIBSurface;
+ #endif
+ #include "gfxSharedImageSurface.h"
+ #include "gfxUtils.h"
+@@ -83,8 +81,6 @@ static WindowsDllInterceptor::FuncHookType<decltype(&ImmAssociateContextEx)>
+ static PluginInstanceChild* sCurrentPluginInstance = nullptr;
+ static const HIMC sHookIMC = (const HIMC)0xefefefef;
+ 
+-using mozilla::gfx::SharedDIB;
+-
+ // Flash WM_USER message delay time for PostDelayedTask. Borrowed
+ // from Chromium's web plugin delegate src. See 'flash msg throttling
+ // helpers' section for details.
+@@ -2641,18 +2637,6 @@ bool PluginInstanceChild::CreateOptSurface(void) {
+ #endif
+ 
+ #ifdef XP_WIN
+-  if (mSurfaceType == gfxSurfaceType::Win32) {
+-    bool willHaveTransparentPixels = mIsTransparent && !mBackground;
+-
+-    SharedDIBSurface* s = new SharedDIBSurface();
+-    if (!s->Create(reinterpret_cast<HDC>(mWindow.window), mWindow.width,
+-                   mWindow.height, willHaveTransparentPixels))
+-      return false;
+-
+-    mCurrentSurface = s;
+-    return true;
+-  }
+-
+   MOZ_CRASH("Shared-memory drawing not expected on Windows.");
+ #endif
+ 
+@@ -2838,22 +2822,6 @@ void PluginInstanceChild::UpdateWindowAttributes(bool aForceSetWindow) {
+     }
+   }
+ #endif  // MOZ_X11
+-#ifdef XP_WIN
+-  HDC dc = nullptr;
+-
+-  if (curSurface) {
+-    if (!SharedDIBSurface::IsSharedDIBSurface(curSurface))
+-      MOZ_CRASH("Expected SharedDIBSurface!");
+-
+-    SharedDIBSurface* dibsurf =
+-        static_cast<SharedDIBSurface*>(curSurface.get());
+-    dc = dibsurf->GetHDC();
+-  }
+-  if (mWindow.window != dc) {
+-    mWindow.window = dc;
+-    needWindowUpdate = true;
+-  }
+-#endif  // XP_WIN
+ 
+   if (!needWindowUpdate) {
+     return;
+@@ -2946,21 +2914,6 @@ void PluginInstanceChild::PaintRectToPlatformSurface(const nsIntRect& aRect,
+     exposeEvent.minor_code = 0;
+     mPluginIface->event(&mData, reinterpret_cast<void*>(&exposeEvent));
+   }
+-#elif defined(XP_WIN)
+-  NS_ASSERTION(SharedDIBSurface::IsSharedDIBSurface(aSurface),
+-               "Expected (SharedDIB) image surface.");
+-
+-  // This rect is in the window coordinate space. aRect is in the plugin
+-  // coordinate space.
+-  RECT rect = {mWindow.x + aRect.x, mWindow.y + aRect.y,
+-               mWindow.x + aRect.XMost(), mWindow.y + aRect.YMost()};
+-  NPEvent paintEvent = {WM_PAINT, uintptr_t(mWindow.window), intptr_t(&rect)};
+-
+-  ::SetViewportOrgEx((HDC)mWindow.window, -mWindow.x, -mWindow.y, nullptr);
+-  ::SelectClipRgn((HDC)mWindow.window, nullptr);
+-  ::IntersectClipRect((HDC)mWindow.window, rect.left, rect.top, rect.right,
+-                      rect.bottom);
+-  mPluginIface->event(&mData, reinterpret_cast<void*>(&paintEvent));
+ #else
+   MOZ_CRASH("Surface type not implemented.");
+ #endif
+@@ -3066,33 +3019,6 @@ void PluginInstanceChild::PaintRectWithAlphaExtraction(const nsIntRect& aRect,
+     return;
+   }
+ 
+-#ifdef XP_WIN
+-  // On windows, we need an HDC and so can't paint directly to
+-  // vanilla image surfaces.  Bifurcate this painting code so that
+-  // we don't accidentally attempt that.
+-  if (!SharedDIBSurface::IsSharedDIBSurface(aSurface))
+-    MOZ_CRASH("Expected SharedDIBSurface!");
+-
+-  // Paint the plugin directly onto the target, with a white
+-  // background and copy the result
+-  PaintRectToSurface(rect, aSurface, DeviceColor::MaskOpaqueWhite());
+-  {
+-    RefPtr<DrawTarget> dt = CreateDrawTargetForSurface(whiteImage);
+-    RefPtr<SourceSurface> surface =
+-        gfxPlatform::GetSourceSurfaceForSurface(dt, aSurface);
+-    dt->CopySurface(surface, rect, IntPoint());
+-  }
+-
+-  // Paint the plugin directly onto the target, with a black
+-  // background
+-  PaintRectToSurface(rect, aSurface, DeviceColor::MaskOpaqueBlack());
+-
+-  // Don't copy the result, just extract a subimage so that we can
+-  // recover alpha directly into the target
+-  gfxImageSurface* image = static_cast<gfxImageSurface*>(aSurface);
+-  blackImage = image->GetSubimage(targetRect);
+-
+-#else
+   gfxPoint deviceOffset = -targetRect.TopLeft();
+   // Paint onto white background
+   whiteImage->SetDeviceOffset(deviceOffset);
+@@ -3109,7 +3035,6 @@ void PluginInstanceChild::PaintRectWithAlphaExtraction(const nsIntRect& aRect,
+   // Paint onto black background
+   blackImage->SetDeviceOffset(deviceOffset);
+   PaintRectToSurface(rect, blackImage, DeviceColor::MaskOpaqueBlack());
+-#endif
+ 
+   MOZ_ASSERT(whiteImage && blackImage, "Didn't paint enough!");
+ 
+@@ -3323,20 +3248,6 @@ bool PluginInstanceChild::ShowPluginFrame() {
+     // before giving drawable to another process
+     XSync(mWsInfo.display, X11False);
+   } else
+-#endif
+-#ifdef XP_WIN
+-      if (SharedDIBSurface::IsSharedDIBSurface(mCurrentSurface)) {
+-    SharedDIBSurface* s = static_cast<SharedDIBSurface*>(mCurrentSurface.get());
+-    if (!mCurrentSurfaceActor) {
+-      base::SharedMemoryHandle handle = nullptr;
+-      s->ShareToProcess(OtherPid(), &handle);
+-
+-      mCurrentSurfaceActor = SendPPluginSurfaceConstructor(
+-          handle, mCurrentSurface->GetSize(), haveTransparentPixels);
+-    }
+-    currSurf = mCurrentSurfaceActor;
+-    s->Flush();
+-  } else
+ #endif
+       if (gfxSharedImageSurface::IsSharedImage(mCurrentSurface)) {
+     currSurf = std::move(
+@@ -3361,14 +3272,10 @@ bool PluginInstanceChild::ShowPluginFrame() {
+ bool PluginInstanceChild::ReadbackDifferenceRect(const nsIntRect& rect) {
+   if (!mBackSurface) return false;
+ 
+-    // We can read safely from XSurface,SharedDIBSurface and Unsafe
+-    // SharedMemory, because PluginHost is not able to modify that surface
+ #if defined(MOZ_X11)
+   if (mBackSurface->GetType() != gfxSurfaceType::Xlib &&
+       !gfxSharedImageSurface::IsSharedImage(mBackSurface))
+     return false;
+-#elif defined(XP_WIN)
+-  if (!SharedDIBSurface::IsSharedDIBSurface(mBackSurface)) return false;
+ #endif
+ 
+ #if defined(MOZ_X11) || defined(XP_WIN)
+@@ -3584,9 +3491,6 @@ void PluginInstanceChild::UnscheduleTimer(uint32_t id) {
+ 
+ void PluginInstanceChild::SwapSurfaces() {
+   RefPtr<gfxASurface> tmpsurf = mCurrentSurface;
+-#ifdef XP_WIN
+-  PPluginSurfaceChild* tmpactor = mCurrentSurfaceActor;
+-#endif
+ 
+   mCurrentSurface = mBackSurface;
+ #ifdef XP_WIN
+@@ -3594,9 +3498,6 @@ void PluginInstanceChild::SwapSurfaces() {
+ #endif
+ 
+   mBackSurface = tmpsurf;
+-#ifdef XP_WIN
+-  mBackSurfaceActor = tmpactor;
+-#endif
+ 
+ #ifdef MOZ_WIDGET_COCOA
+   mDoubleBufferCARenderer.SwapSurfaces();
+@@ -3628,12 +3529,6 @@ void PluginInstanceChild::ClearCurrentSurface() {
+   if (mDoubleBufferCARenderer.HasFrontSurface()) {
+     mDoubleBufferCARenderer.ClearFrontSurface();
+   }
+-#endif
+-#ifdef XP_WIN
+-  if (mCurrentSurfaceActor) {
+-    PPluginSurfaceChild::Send__delete__(mCurrentSurfaceActor);
+-    mCurrentSurfaceActor = nullptr;
+-  }
+ #endif
+   mHelperSurface = nullptr;
+ }
+@@ -3655,17 +3550,6 @@ void PluginInstanceChild::ClearAllSurfaces() {
+   mCurrentSurface = nullptr;
+   mBackSurface = nullptr;
+ 
+-#ifdef XP_WIN
+-  if (mCurrentSurfaceActor) {
+-    PPluginSurfaceChild::Send__delete__(mCurrentSurfaceActor);
+-    mCurrentSurfaceActor = nullptr;
+-  }
+-  if (mBackSurfaceActor) {
+-    PPluginSurfaceChild::Send__delete__(mBackSurfaceActor);
+-    mBackSurfaceActor = nullptr;
+-  }
+-#endif
+-
+ #ifdef MOZ_WIDGET_COCOA
+   if (mDoubleBufferCARenderer.HasBackSurface()) {
+     // Get last surface back, and drop it
+diff --git a/dom/plugins/ipc/PluginInstanceChild.h b/dom/plugins/ipc/PluginInstanceChild.h
+index 694edb3343502..ce29c65120483 100644
+--- a/dom/plugins/ipc/PluginInstanceChild.h
++++ b/dom/plugins/ipc/PluginInstanceChild.h
+@@ -11,12 +11,9 @@
+ #include "mozilla/plugins/PPluginInstanceChild.h"
+ #include "mozilla/plugins/PluginScriptableObjectChild.h"
+ #include "mozilla/plugins/StreamNotifyChild.h"
+-#include "mozilla/plugins/PPluginSurfaceChild.h"
+ #include "mozilla/ipc/CrossProcessMutex.h"
+ #include "nsRefPtrHashtable.h"
+-#if defined(OS_WIN)
+-#  include "mozilla/gfx/SharedDIBWin.h"
+-#elif defined(MOZ_WIDGET_COCOA)
++#if defined(MOZ_WIDGET_COCOA)
+ #  include "PluginUtilsOSX.h"
+ #  include "mozilla/gfx/QuartzSupport.h"
+ #  include "base/timer.h"
+@@ -95,16 +92,6 @@ class PluginInstanceChild : public PPluginInstanceChild {
+   virtual void DoAsyncSetWindow(const gfxSurfaceType& aSurfaceType,
+                                 const NPRemoteWindow& aWindow, bool aIsAsync);
+ 
+-  PPluginSurfaceChild* AllocPPluginSurfaceChild(
+-      const WindowsSharedMemoryHandle&, const gfx::IntSize&, const bool&) {
+-    return new PPluginSurfaceChild();
+-  }
+-
+-  bool DeallocPPluginSurfaceChild(PPluginSurfaceChild* s) {
+-    delete s;
+-    return true;
+-  }
+-
+   mozilla::ipc::IPCResult AnswerPaint(const NPRemoteEvent& event,
+                                       int16_t* handled) {
+     PaintTracker pt;
+@@ -512,12 +499,6 @@ class PluginInstanceChild : public PPluginInstanceChild {
+   // alpha recovery otherwise.
+   RefPtr<gfxASurface> mBackground;
+ 
+-#ifdef XP_WIN
+-  // These actors mirror mCurrentSurface/mBackSurface
+-  PPluginSurfaceChild* mCurrentSurfaceActor;
+-  PPluginSurfaceChild* mBackSurfaceActor;
+-#endif
+-
+   // Accumulated invalidate rect, while back buffer is not accessible,
+   // in plugin coordinates.
+   nsIntRect mAccumulatedInvalidRect;
+diff --git a/dom/plugins/ipc/PluginInstanceParent.cpp b/dom/plugins/ipc/PluginInstanceParent.cpp
+index 1e84542339bfc..6acfe1ac6ed59 100644
+--- a/dom/plugins/ipc/PluginInstanceParent.cpp
++++ b/dom/plugins/ipc/PluginInstanceParent.cpp
+@@ -53,7 +53,6 @@
+ #if defined(OS_WIN)
+ #  include <windowsx.h>
+ #  include "gfxWindowsPlatform.h"
+-#  include "mozilla/plugins/PluginSurfaceParent.h"
+ #  include "nsClassHashtable.h"
+ #  include "nsHashKeys.h"
+ #  include "nsIWidget.h"
+@@ -975,13 +974,6 @@ mozilla::ipc::IPCResult PluginInstanceParent::RecvShow(
+     surface = newSurface.get_SurfaceDescriptorX11().OpenForeign();
+   }
+ #endif
+-#ifdef XP_WIN
+-  else if (newSurface.type() == SurfaceDescriptor::TPPluginSurfaceParent) {
+-    PluginSurfaceParent* s = static_cast<PluginSurfaceParent*>(
+-        newSurface.get_PPluginSurfaceParent());
+-    surface = s->Surface();
+-  }
+-#endif
+ 
+   if (mFrontSurface) {
+     // This is the "old front buffer" we're about to hand back to
+@@ -1913,27 +1905,6 @@ PluginScriptableObjectParent* PluginInstanceParent::GetActorForNPObject(
+   return actor;
+ }
+ 
+-PPluginSurfaceParent* PluginInstanceParent::AllocPPluginSurfaceParent(
+-    const WindowsSharedMemoryHandle& handle, const mozilla::gfx::IntSize& size,
+-    const bool& transparent) {
+-#ifdef XP_WIN
+-  return new PluginSurfaceParent(handle, size, transparent);
+-#else
+-  NS_ERROR("This shouldn't be called!");
+-  return nullptr;
+-#endif
+-}
+-
+-bool PluginInstanceParent::DeallocPPluginSurfaceParent(
+-    PPluginSurfaceParent* s) {
+-#ifdef XP_WIN
+-  delete s;
+-  return true;
+-#else
+-  return false;
+-#endif
+-}
+-
+ mozilla::ipc::IPCResult PluginInstanceParent::AnswerNPN_PushPopupsEnabledState(
+     const bool& aState) {
+   mNPNIface->pushpopupsenabledstate(mNPP, aState ? 1 : 0);
+diff --git a/dom/plugins/ipc/PluginInstanceParent.h b/dom/plugins/ipc/PluginInstanceParent.h
+index 27f9a29ea52b6..db210694bad93 100644
+--- a/dom/plugins/ipc/PluginInstanceParent.h
++++ b/dom/plugins/ipc/PluginInstanceParent.h
+@@ -189,12 +189,6 @@ class PluginInstanceParent : public PPluginInstanceParent {
+                                    const SurfaceDescriptor& newSurface,
+                                    SurfaceDescriptor* prevSurface);
+ 
+-  PPluginSurfaceParent* AllocPPluginSurfaceParent(
+-      const WindowsSharedMemoryHandle& handle,
+-      const mozilla::gfx::IntSize& size, const bool& transparent);
+-
+-  bool DeallocPPluginSurfaceParent(PPluginSurfaceParent* s);
+-
+   mozilla::ipc::IPCResult AnswerNPN_PushPopupsEnabledState(const bool& aState);
+ 
+   mozilla::ipc::IPCResult AnswerNPN_PopPopupsEnabledState();
+diff --git a/dom/plugins/ipc/PluginSurfaceParent.cpp b/dom/plugins/ipc/PluginSurfaceParent.cpp
+deleted file mode 100644
+index 251572995e959..0000000000000
+--- a/dom/plugins/ipc/PluginSurfaceParent.cpp
++++ /dev/null
+@@ -1,29 +0,0 @@
+-/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#include "mozilla/plugins/PluginSurfaceParent.h"
+-#include "mozilla/gfx/SharedDIBSurface.h"
+-
+-using mozilla::gfx::SharedDIBSurface;
+-
+-namespace mozilla {
+-namespace plugins {
+-
+-PluginSurfaceParent::PluginSurfaceParent(
+-    const WindowsSharedMemoryHandle& handle, const gfx::IntSize& size,
+-    bool transparent) {
+-  SharedDIBSurface* dibsurf = new SharedDIBSurface();
+-  if (dibsurf->Attach(handle, size.width, size.height, transparent))
+-    mSurface = dibsurf;
+-}
+-
+-PluginSurfaceParent::~PluginSurfaceParent() {}
+-
+-void PluginSurfaceParent::ActorDestroy(ActorDestroyReason aWhy) {
+-  // Implement me! Bug 1005167
+-}
+-
+-}  // namespace plugins
+-}  // namespace mozilla
+diff --git a/dom/plugins/ipc/PluginSurfaceParent.h b/dom/plugins/ipc/PluginSurfaceParent.h
+deleted file mode 100644
+index 201ecf9da7828..0000000000000
+--- a/dom/plugins/ipc/PluginSurfaceParent.h
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#ifndef dom_plugins_PluginSurfaceParent_h
+-#define dom_plugins_PluginSurfaceParent_h
+-
+-#include "mozilla/plugins/PPluginSurfaceParent.h"
+-#include "mozilla/plugins/PluginMessageUtils.h"
+-
+-#ifndef XP_WIN
+-#  error "This header is for Windows only."
+-#endif
+-
+-class gfxASurface;
+-
+-namespace mozilla {
+-namespace plugins {
+-
+-class PluginSurfaceParent : public PPluginSurfaceParent {
+- public:
+-  PluginSurfaceParent(const WindowsSharedMemoryHandle& handle,
+-                      const gfx::IntSize& size, const bool transparent);
+-  ~PluginSurfaceParent();
+-
+-  virtual void ActorDestroy(ActorDestroyReason aWhy) override;
+-
+-  gfxASurface* Surface() { return mSurface; }
+-
+- private:
+-  RefPtr<gfxASurface> mSurface;
+-};
+-
+-}  // namespace plugins
+-}  // namespace mozilla
+-
+-#endif  // dom_plugin_PluginSurfaceParent_h
+diff --git a/dom/plugins/ipc/moz.build b/dom/plugins/ipc/moz.build
+index 62a726e25c5ef..007b23dc2414e 100644
+--- a/dom/plugins/ipc/moz.build
++++ b/dom/plugins/ipc/moz.build
+@@ -41,12 +41,8 @@ EXPORTS.mozilla.plugins += [
+ ]
+ 
+ if CONFIG["OS_ARCH"] == "WINNT":
+-    EXPORTS.mozilla.plugins += [
+-        "PluginSurfaceParent.h",
+-    ]
+     UNIFIED_SOURCES += [
+         "PluginHangUIParent.cpp",
+-        "PluginSurfaceParent.cpp",
+     ]
+     SOURCES += [
+         "MiniShmParent.cpp",  # Issues with CreateEvent
+@@ -112,7 +108,6 @@ IPDL_SOURCES += [
+     "PPluginInstance.ipdl",
+     "PPluginModule.ipdl",
+     "PPluginScriptableObject.ipdl",
+-    "PPluginSurface.ipdl",
+     "PStreamNotify.ipdl",
+ ]
+ 
+diff --git a/gfx/ipc/SharedDIB.cpp b/gfx/ipc/SharedDIB.cpp
+deleted file mode 100644
+index 7da3a39b3bc2b..0000000000000
+--- a/gfx/ipc/SharedDIB.cpp
++++ /dev/null
+@@ -1,55 +0,0 @@
+-/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* vim: set ts=8 sts=2 et sw=2 tw=80: */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#include "SharedDIB.h"
+-
+-namespace mozilla {
+-namespace gfx {
+-
+-SharedDIB::SharedDIB() : mShMem(nullptr) {}
+-
+-SharedDIB::~SharedDIB() { Close(); }
+-
+-nsresult SharedDIB::Create(uint32_t aSize) {
+-  Close();
+-
+-  mShMem = new base::SharedMemory();
+-  if (!mShMem || !mShMem->Create(aSize)) return NS_ERROR_OUT_OF_MEMORY;
+-
+-  return NS_OK;
+-}
+-
+-bool SharedDIB::IsValid() { return mShMem && mShMem->IsValid(); }
+-
+-nsresult SharedDIB::Close() {
+-  delete mShMem;
+-
+-  mShMem = nullptr;
+-
+-  return NS_OK;
+-}
+-
+-nsresult SharedDIB::Attach(Handle aHandle, uint32_t aSize) {
+-  Close();
+-
+-  mShMem = new base::SharedMemory(aHandle, false);
+-  if (!mShMem) return NS_ERROR_OUT_OF_MEMORY;
+-
+-  return NS_OK;
+-}
+-
+-nsresult SharedDIB::ShareToProcess(base::ProcessId aTargetPid,
+-                                   Handle* aNewHandle) {
+-  if (!mShMem) return NS_ERROR_UNEXPECTED;
+-
+-  if (!mShMem->ShareToProcess(aTargetPid, aNewHandle))
+-    return NS_ERROR_UNEXPECTED;
+-
+-  return NS_OK;
+-}
+-
+-}  // namespace gfx
+-}  // namespace mozilla
+diff --git a/gfx/ipc/SharedDIB.h b/gfx/ipc/SharedDIB.h
+deleted file mode 100644
+index d957bb8269ce0..0000000000000
+--- a/gfx/ipc/SharedDIB.h
++++ /dev/null
+@@ -1,50 +0,0 @@
+-/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* vim: set ts=8 sts=2 et sw=2 tw=80: */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#ifndef gfx_SharedDIB_h__
+-#define gfx_SharedDIB_h__
+-
+-#include "base/shared_memory.h"
+-#include "nscore.h"
+-
+-namespace mozilla {
+-namespace gfx {
+-
+-class SharedDIB {
+- public:
+-  typedef base::SharedMemoryHandle Handle;
+-
+-  static const uint32_t kBytesPerPixel = 4;
+-
+- public:
+-  SharedDIB();
+-  ~SharedDIB();
+-
+-  // Create and allocate a new shared dib.
+-  nsresult Create(uint32_t aSize);
+-
+-  // Destroy or release resources associated with this dib.
+-  nsresult Close();
+-
+-  // Returns true if this object contains a valid dib.
+-  bool IsValid();
+-
+-  // Wrap a new shared dib around allocated shared memory. Note aHandle must
+-  // point to a memory section large enough to hold a dib of size aSize,
+-  // otherwise this will fail.
+-  nsresult Attach(Handle aHandle, uint32_t aSize);
+-
+-  // Returns a SharedMemoryHandle suitable for sharing with another process.
+-  nsresult ShareToProcess(base::ProcessId aTargetPid, Handle* aNewHandle);
+-
+- protected:
+-  base::SharedMemory* mShMem;
+-};
+-
+-}  // namespace gfx
+-}  // namespace mozilla
+-
+-#endif
+diff --git a/gfx/ipc/SharedDIBSurface.cpp b/gfx/ipc/SharedDIBSurface.cpp
+deleted file mode 100644
+index c1ee7239df4b1..0000000000000
+--- a/gfx/ipc/SharedDIBSurface.cpp
++++ /dev/null
+@@ -1,53 +0,0 @@
+-/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* vim: set ts=8 sts=2 et sw=2 tw=80: */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#include "SharedDIBSurface.h"
+-
+-#include "cairo.h"
+-
+-namespace mozilla {
+-namespace gfx {
+-
+-static const cairo_user_data_key_t SHAREDDIB_KEY = {0};
+-
+-bool SharedDIBSurface::Create(HDC adc, uint32_t aWidth, uint32_t aHeight,
+-                              bool aTransparent) {
+-  nsresult rv = mSharedDIB.Create(adc, aWidth, aHeight, aTransparent);
+-  if (NS_FAILED(rv) || !mSharedDIB.IsValid()) return false;
+-
+-  InitSurface(aWidth, aHeight, aTransparent);
+-  return true;
+-}
+-
+-bool SharedDIBSurface::Attach(Handle aHandle, uint32_t aWidth, uint32_t aHeight,
+-                              bool aTransparent) {
+-  nsresult rv = mSharedDIB.Attach(aHandle, aWidth, aHeight, aTransparent);
+-  if (NS_FAILED(rv) || !mSharedDIB.IsValid()) return false;
+-
+-  InitSurface(aWidth, aHeight, aTransparent);
+-  return true;
+-}
+-
+-void SharedDIBSurface::InitSurface(uint32_t aWidth, uint32_t aHeight,
+-                                   bool aTransparent) {
+-  long stride = long(aWidth * SharedDIB::kBytesPerPixel);
+-  unsigned char* data = reinterpret_cast<unsigned char*>(mSharedDIB.GetBits());
+-
+-  gfxImageFormat format = aTransparent ? SurfaceFormat::A8R8G8B8_UINT32
+-                                       : SurfaceFormat::X8R8G8B8_UINT32;
+-
+-  gfxImageSurface::InitWithData(data, IntSize(aWidth, aHeight), stride, format);
+-
+-  cairo_surface_set_user_data(mSurface, &SHAREDDIB_KEY, this, nullptr);
+-}
+-
+-bool SharedDIBSurface::IsSharedDIBSurface(gfxASurface* aSurface) {
+-  return aSurface && aSurface->GetType() == gfxSurfaceType::Image &&
+-         aSurface->GetData(&SHAREDDIB_KEY);
+-}
+-
+-}  // namespace gfx
+-}  // namespace mozilla
+diff --git a/gfx/ipc/SharedDIBSurface.h b/gfx/ipc/SharedDIBSurface.h
+deleted file mode 100644
+index 412aeb89c58e3..0000000000000
+--- a/gfx/ipc/SharedDIBSurface.h
++++ /dev/null
+@@ -1,62 +0,0 @@
+-/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* vim: set ts=8 sts=2 et sw=2 tw=80: */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#ifndef mozilla_gfx_SharedDIBSurface_h
+-#define mozilla_gfx_SharedDIBSurface_h
+-
+-#include "gfxImageSurface.h"
+-#include "SharedDIBWin.h"
+-
+-#include <windows.h>
+-
+-namespace mozilla {
+-namespace gfx {
+-
+-/**
+- * A SharedDIBSurface owns an underlying SharedDIBWin.
+- */
+-class SharedDIBSurface : public gfxImageSurface {
+- public:
+-  typedef base::SharedMemoryHandle Handle;
+-
+-  SharedDIBSurface() {}
+-  ~SharedDIBSurface() {}
+-
+-  /**
+-   * Create this image surface backed by shared memory.
+-   */
+-  bool Create(HDC adc, uint32_t aWidth, uint32_t aHeight, bool aTransparent);
+-
+-  /**
+-   * Attach this surface to shared memory from another process.
+-   */
+-  bool Attach(Handle aHandle, uint32_t aWidth, uint32_t aHeight,
+-              bool aTransparent);
+-
+-  /**
+-   * After drawing to a surface via GDI, GDI must be flushed before the bitmap
+-   * is valid.
+-   */
+-  void Flush() { ::GdiFlush(); }
+-
+-  HDC GetHDC() { return mSharedDIB.GetHDC(); }
+-
+-  nsresult ShareToProcess(base::ProcessId aTargetPid, Handle* aNewHandle) {
+-    return mSharedDIB.ShareToProcess(aTargetPid, aNewHandle);
+-  }
+-
+-  static bool IsSharedDIBSurface(gfxASurface* aSurface);
+-
+- private:
+-  SharedDIBWin mSharedDIB;
+-
+-  void InitSurface(uint32_t aWidth, uint32_t aHeight, bool aTransparent);
+-};
+-
+-}  // namespace gfx
+-}  // namespace mozilla
+-
+-#endif  // mozilla_gfx_SharedDIBSurface_h
+diff --git a/gfx/ipc/SharedDIBWin.cpp b/gfx/ipc/SharedDIBWin.cpp
+deleted file mode 100644
+index 9669cb9491de1..0000000000000
+--- a/gfx/ipc/SharedDIBWin.cpp
++++ /dev/null
+@@ -1,114 +0,0 @@
+-/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* vim: set ts=8 sts=2 et sw=2 tw=80: */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#include "SharedDIBWin.h"
+-#include "gfxAlphaRecovery.h"
+-#include "nsMathUtils.h"
+-#include "nsDebug.h"
+-
+-namespace mozilla {
+-namespace gfx {
+-
+-static const uint32_t kByteAlign = 1 << gfxAlphaRecovery::GoodAlignmentLog2();
+-static const uint32_t kHeaderBytes =
+-    (uint32_t(sizeof(BITMAPV4HEADER)) + kByteAlign - 1) & ~(kByteAlign - 1);
+-
+-SharedDIBWin::SharedDIBWin()
+-    : mSharedHdc(nullptr), mSharedBmp(nullptr), mOldObj(nullptr) {}
+-
+-SharedDIBWin::~SharedDIBWin() { Close(); }
+-
+-nsresult SharedDIBWin::Close() {
+-  if (mSharedHdc && mOldObj) ::SelectObject(mSharedHdc, mOldObj);
+-
+-  if (mSharedHdc) ::DeleteObject(mSharedHdc);
+-
+-  if (mSharedBmp) ::DeleteObject(mSharedBmp);
+-
+-  mSharedHdc = nullptr;
+-  mOldObj = mSharedBmp = nullptr;
+-
+-  SharedDIB::Close();
+-
+-  return NS_OK;
+-}
+-
+-nsresult SharedDIBWin::Create(HDC aHdc, uint32_t aWidth, uint32_t aHeight,
+-                              bool aTransparent) {
+-  Close();
+-
+-  // create the offscreen shared dib
+-  BITMAPV4HEADER bmih;
+-  uint32_t size = SetupBitmapHeader(aWidth, aHeight, aTransparent, &bmih);
+-
+-  nsresult rv = SharedDIB::Create(size);
+-  if (NS_FAILED(rv)) return rv;
+-
+-  if (NS_FAILED(SetupSurface(aHdc, &bmih))) {
+-    Close();
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-  return NS_OK;
+-}
+-
+-nsresult SharedDIBWin::Attach(Handle aHandle, uint32_t aWidth, uint32_t aHeight,
+-                              bool aTransparent) {
+-  Close();
+-
+-  BITMAPV4HEADER bmih;
+-  SetupBitmapHeader(aWidth, aHeight, aTransparent, &bmih);
+-
+-  nsresult rv = SharedDIB::Attach(aHandle, 0);
+-  if (NS_FAILED(rv)) return rv;
+-
+-  if (NS_FAILED(SetupSurface(nullptr, &bmih))) {
+-    Close();
+-    return NS_ERROR_FAILURE;
+-  }
+-
+-  return NS_OK;
+-}
+-
+-uint32_t SharedDIBWin::SetupBitmapHeader(uint32_t aWidth, uint32_t aHeight,
+-                                         bool aTransparent,
+-                                         BITMAPV4HEADER* aHeader) {
+-  // D3D cannot handle an offscreen memory that pitch (SysMemPitch) is negative.
+-  // So we create top-to-bottom DIB.
+-  memset((void*)aHeader, 0, sizeof(BITMAPV4HEADER));
+-  aHeader->bV4Size = sizeof(BITMAPV4HEADER);
+-  aHeader->bV4Width = aWidth;
+-  aHeader->bV4Height = -LONG(aHeight);  // top-to-buttom DIB
+-  aHeader->bV4Planes = 1;
+-  aHeader->bV4BitCount = 32;
+-  aHeader->bV4V4Compression = BI_BITFIELDS;
+-  aHeader->bV4RedMask = 0x00FF0000;
+-  aHeader->bV4GreenMask = 0x0000FF00;
+-  aHeader->bV4BlueMask = 0x000000FF;
+-
+-  if (aTransparent) aHeader->bV4AlphaMask = 0xFF000000;
+-
+-  return (kHeaderBytes +
+-          (-aHeader->bV4Height * aHeader->bV4Width * kBytesPerPixel));
+-}
+-
+-nsresult SharedDIBWin::SetupSurface(HDC aHdc, BITMAPV4HEADER* aHdr) {
+-  mSharedHdc = ::CreateCompatibleDC(aHdc);
+-
+-  if (!mSharedHdc) return NS_ERROR_FAILURE;
+-
+-  mSharedBmp =
+-      ::CreateDIBSection(mSharedHdc, (BITMAPINFO*)aHdr, DIB_RGB_COLORS,
+-                         &mBitmapBits, mShMem->GetHandle(), kHeaderBytes);
+-  if (!mSharedBmp) return NS_ERROR_FAILURE;
+-
+-  mOldObj = SelectObject(mSharedHdc, mSharedBmp);
+-
+-  return NS_OK;
+-}
+-
+-}  // namespace gfx
+-}  // namespace mozilla
+diff --git a/gfx/ipc/SharedDIBWin.h b/gfx/ipc/SharedDIBWin.h
+deleted file mode 100644
+index 06580af2dfe20..0000000000000
+--- a/gfx/ipc/SharedDIBWin.h
++++ /dev/null
+@@ -1,56 +0,0 @@
+-/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+-/* vim: set ts=8 sts=2 et sw=2 tw=80: */
+-/* This Source Code Form is subject to the terms of the Mozilla Public
+- * License, v. 2.0. If a copy of the MPL was not distributed with this
+- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+-
+-#ifndef gfx_SharedDIBWin_h__
+-#define gfx_SharedDIBWin_h__
+-
+-#include <windows.h>
+-
+-#include "SharedDIB.h"
+-
+-namespace mozilla {
+-namespace gfx {
+-
+-class SharedDIBWin : public SharedDIB {
+- public:
+-  SharedDIBWin();
+-  ~SharedDIBWin();
+-
+-  // Allocate a new win32 dib section compatible with an hdc. The dib will
+-  // be selected into the hdc on return.
+-  nsresult Create(HDC aHdc, uint32_t aWidth, uint32_t aHeight,
+-                  bool aTransparent);
+-
+-  // Wrap a dib section around an existing shared memory object. aHandle should
+-  // point to a section large enough for the dib's memory, otherwise this call
+-  // will fail.
+-  nsresult Attach(Handle aHandle, uint32_t aWidth, uint32_t aHeight,
+-                  bool aTransparent);
+-
+-  // Destroy or release resources associated with this dib.
+-  nsresult Close();
+-
+-  // Return the HDC of the shared dib.
+-  HDC GetHDC() { return mSharedHdc; }
+-
+-  // Return the bitmap bits.
+-  void* GetBits() { return mBitmapBits; }
+-
+- private:
+-  HDC mSharedHdc;
+-  HBITMAP mSharedBmp;
+-  HGDIOBJ mOldObj;
+-  void* mBitmapBits;
+-
+-  uint32_t SetupBitmapHeader(uint32_t aWidth, uint32_t aHeight,
+-                             bool aTransparent, BITMAPV4HEADER* aHeader);
+-  nsresult SetupSurface(HDC aHdc, BITMAPV4HEADER* aHdr);
+-};
+-
+-}  // namespace gfx
+-}  // namespace mozilla
+-
+-#endif
+diff --git a/gfx/ipc/moz.build b/gfx/ipc/moz.build
+index c6dfb8240c8de..d0d039aee16c5 100644
+--- a/gfx/ipc/moz.build
++++ b/gfx/ipc/moz.build
+@@ -17,7 +17,6 @@ EXPORTS.mozilla.gfx += [
+     "GPUProcessImpl.h",
+     "GPUProcessListener.h",
+     "GPUProcessManager.h",
+-    "SharedDIB.h",
+     "VsyncBridgeChild.h",
+     "VsyncBridgeParent.h",
+     "VsyncIOThreadHolder.h",
+@@ -34,16 +33,6 @@ EXPORTS.mozilla.widget += [
+     "CompositorWidgetVsyncObserver.h",
+ ]
+ 
+-if CONFIG["MOZ_WIDGET_TOOLKIT"] == "windows":
+-    EXPORTS.mozilla.gfx += [
+-        "SharedDIBSurface.h",
+-        "SharedDIBWin.h",
+-    ]
+-    UNIFIED_SOURCES += [
+-        "SharedDIBSurface.cpp",
+-        "SharedDIBWin.cpp",
+-    ]
+-
+ UNIFIED_SOURCES += [
+     "CompositorSession.cpp",
+     "CompositorWidgetVsyncObserver.cpp",
+@@ -55,7 +44,6 @@ UNIFIED_SOURCES += [
+     "GPUProcessManager.cpp",
+     "InProcessCompositorSession.cpp",
+     "RemoteCompositorSession.cpp",
+-    "SharedDIB.cpp",
+     "VsyncBridgeChild.cpp",
+     "VsyncBridgeParent.cpp",
+     "VsyncIOThreadHolder.cpp",
+diff --git a/ipc/chromium/src/base/shared_memory.h b/ipc/chromium/src/base/shared_memory.h
+index 49d614164a0b3..c7a5573bdc086 100644
+--- a/ipc/chromium/src/base/shared_memory.h
++++ b/ipc/chromium/src/base/shared_memory.h
+@@ -108,15 +108,6 @@ class SharedMemory {
+     return handle;
+   }
+ 
+-#ifdef OS_WIN
+-  // Used only in gfx/ipc/SharedDIBWin.cpp; should be removable once
+-  // NPAPI goes away.
+-  HANDLE GetHandle() {
+-    freezeable_ = false;
+-    return mapped_file_.get();
+-  }
+-#endif
+-
+   // Make the shared memory object read-only, such that it cannot be
+   // written even if it's sent to an untrusted process.  If it was
+   // mapped in this process, it will be unmapped.  The object must

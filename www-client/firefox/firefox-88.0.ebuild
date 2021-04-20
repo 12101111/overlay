@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-87-patches-04.tar.xz"
+FIREFOX_PATCHSET="firefox-88-patches-01.tar.xz"
 
 LLVM_MAX_SLOT=12
 
@@ -104,7 +104,7 @@ BDEPEND="${PYTHON_DEPS}
 	)"
 
 CDEPEND="
-	>=dev-libs/nss-3.62
+	>=dev-libs/nss-3.63
 	>=dev-libs/nspr-4.29
 	dev-libs/atk
 	dev-libs/expat
@@ -457,9 +457,9 @@ src_unpack() {
 src_prepare() {
 	use lto && rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch
 	eapply "${WORKDIR}/firefox-patches"
-	eapply "${FILESDIR}/firefox-87-no-gtk2.patch"
+	eapply "${FILESDIR}/gtk2"
 	eapply "${FILESDIR}/cross-pgo.patch"
-	eapply "${FILESDIR}/fix-lincxx12.patch"
+	eapply "${FILESDIR}/fix-libcxx12.patch"
 	use elibc_musl && eapply "${FILESDIR}/mutex-musl.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild

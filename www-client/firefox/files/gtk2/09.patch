@@ -1,0 +1,277 @@
+From bba6d38dfb1174cbad7ae556b7e3e2c3d1e955cf Mon Sep 17 00:00:00 2001
+From: David Parks <daparks@mozilla.com>
+Date: Mon, 5 Apr 2021 23:48:37 +0000
+Subject: [PATCH] Bug 1682030 - Remove NPAPI plugins from telemetry  r=chutten
+
+Removes Flash version and plugin blocklist data from telemetry and about:telemetry as part of removing all NPAPI plugin support.
+
+Differential Revision: https://phabricator.services.mozilla.com/D107147
+---
+ .../telemetry/app/TelemetryEnvironment.jsm    | 73 -------------------
+ .../telemetry/docs/data/environment.rst       | 26 ++-----
+ .../telemetry/docs/data/main-ping.rst         |  5 +-
+ .../telemetry/pings/TelemetrySession.jsm      | 21 ------
+ toolkit/content/aboutTelemetry.js             | 22 ------
+ 5 files changed, 10 insertions(+), 137 deletions(-)
+
+diff --git a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm b/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
+index b303f1e09513c..d1f1dbf5be14f 100644
+--- a/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
++++ b/toolkit/components/telemetry/app/TelemetryEnvironment.jsm
+@@ -634,12 +634,10 @@ EnvironmentAddonBuilder.prototype = {
+     if (aTopic == BLOCKLIST_LOADED_TOPIC) {
+       Services.obs.removeObserver(this, BLOCKLIST_LOADED_TOPIC);
+       this._blocklistObserverAdded = false;
+-      let plugins = this._getActivePlugins();
+       let gmpPluginsPromise = this._getActiveGMPlugins();
+       gmpPluginsPromise.then(
+         gmpPlugins => {
+           let { addons } = this._environment._currentEnvironment;
+-          addons.activePlugins = plugins;
+           addons.activeGMPlugins = gmpPlugins;
+         },
+         err => {
+@@ -720,7 +718,6 @@ EnvironmentAddonBuilder.prototype = {
+     let addons = {
+       activeAddons: await this._getActiveAddons(),
+       theme: await this._getActiveTheme(),
+-      activePlugins: this._getActivePlugins(atStartup),
+       activeGMPlugins: await this._getActiveGMPlugins(atStartup),
+     };
+ 
+@@ -850,76 +847,6 @@ EnvironmentAddonBuilder.prototype = {
+     return activeTheme;
+   },
+ 
+-  /**
+-   * Get the plugins data in object form.
+-   *
+-   * @param {boolean} [atStartup]
+-   *        True if this is the first check we're performing at startup. In that
+-   *        situation, we defer some more expensive initialization.
+-   *
+-   * @return Object containing the plugins data.
+-   */
+-  _getActivePlugins(atStartup) {
+-    // If we haven't yet loaded the blocklist, pass back dummy data for now,
+-    // and add an observer to update this data as soon as we get it.
+-    if (atStartup || !Services.blocklist.isLoaded) {
+-      if (!this._blocklistObserverAdded) {
+-        Services.obs.addObserver(this, BLOCKLIST_LOADED_TOPIC);
+-        this._blocklistObserverAdded = true;
+-      }
+-      return [
+-        {
+-          name: "dummy",
+-          version: "0.1",
+-          description: "Blocklist unavailable",
+-          blocklisted: false,
+-          disabled: true,
+-          clicktoplay: false,
+-          mimeTypes: ["text/there.is.only.blocklist"],
+-          updateDay: Utils.millisecondsToDays(Date.now()),
+-        },
+-      ];
+-    }
+-    let pluginTags = Cc["@mozilla.org/plugin/host;1"]
+-      .getService(Ci.nsIPluginHost)
+-      .getPluginTags();
+-
+-    let activePlugins = [];
+-    for (let tag of pluginTags) {
+-      // Skip plugins which are not active.
+-      if (tag.disabled) {
+-        continue;
+-      }
+-
+-      try {
+-        // Make sure to have a valid date.
+-        let updateDate = new Date(Math.max(0, tag.lastModifiedTime));
+-
+-        activePlugins.push({
+-          name: limitStringToLength(tag.name, MAX_ADDON_STRING_LENGTH),
+-          version: limitStringToLength(tag.version, MAX_ADDON_STRING_LENGTH),
+-          description: limitStringToLength(
+-            tag.description,
+-            MAX_ADDON_STRING_LENGTH
+-          ),
+-          blocklisted: tag.blocklisted,
+-          disabled: tag.disabled,
+-          clicktoplay: tag.clicktoplay,
+-          mimeTypes: tag.getMimeTypes(),
+-          updateDay: Utils.millisecondsToDays(updateDate.getTime()),
+-        });
+-      } catch (ex) {
+-        this._environment._log.error(
+-          "_getActivePlugins - A plugin was discarded due to an error",
+-          ex
+-        );
+-        continue;
+-      }
+-    }
+-
+-    return activePlugins;
+-  },
+-
+   /**
+    * Get the GMPlugins data in object form.
+    *
+diff --git a/toolkit/components/telemetry/docs/data/environment.rst b/toolkit/components/telemetry/docs/data/environment.rst
+index e5d182ee9e5e4..5d56b5b350486 100644
+--- a/toolkit/components/telemetry/docs/data/environment.rst
++++ b/toolkit/components/telemetry/docs/data/environment.rst
+@@ -294,19 +294,6 @@ Structure:
+           installDay: <number>, // days since UNIX epoch, 0 on failure
+           updateDay: <number>, // days since UNIX epoch, 0 on failure
+         },
+-        activePlugins: [
+-          {
+-            name: <string>,
+-            version: <string>,
+-            description: <string>,
+-            blocklisted: <bool>,
+-            disabled: <bool>,
+-            clicktoplay: <bool>,
+-            mimeTypes: [<string>, ...],
+-            updateDay: <number>, // days since UNIX epoch, 0 on failure
+-          },
+-          ...
+-        ],
+         activeGMPlugins: {
+             <gmp id>: {
+                 version: <string>,
+@@ -499,19 +486,14 @@ addons
+ activeAddons
+ ~~~~~~~~~~~~
+ 
+-Starting from Firefox 44, the length of the following string fields: ``name``, ``description`` and ``version`` is limited to 100 characters. The same limitation applies to the same fields in ``theme`` and ``activePlugins``.
++Starting from Firefox 44, the length of the following string fields: ``name``, ``description`` and ``version`` is limited to 100 characters. The same limitation applies to the same fields in ``theme``.
+ 
+ Some of the fields in the record for each add-on are not available during startup.  The fields that will always be present are ``id``, ``version``, ``type``, ``updateDate``, ``scope``, ``isSystem``, ``isWebExtension``, and ``multiprocessCompatible``.  All the other fields documented above become present shortly after the ``sessionstore-windows-restored`` observer topic is notified.
+ 
+-activePlugins
+-~~~~~~~~~~~~~
+-
+-Just like activeAddons, up-to-date information is not available immediately during startup. The field will be populated with dummy information until the blocklist is loaded. At the latest, this will happen just after the ``sessionstore-windows-restored`` observer topic is notified.
+-
+ activeGMPPlugins
+ ~~~~~~~~~~~~~~~~
+ 
+-Just like activePlugins, this will report dummy values until the blocklist is loaded.
++Up-to-date information is not available immediately during startup. The field will be populated with dummy information until the blocklist is loaded. At the latest, this will happen just after the ``sessionstore-windows-restored`` observer topic is notified.
+ 
+ experiments
+ -----------
+@@ -527,6 +509,10 @@ In the event any of these fields are truncated, a warning is printed to the cons
+ Version History
+ ---------------
+ 
++- Firefox 88:
++
++  - Removed ``addons.activePlugins`` as part of removing NPAPI plugin support. (`bug 1682030 <https://bugzilla.mozilla.org/show_bug.cgi?id=1682030>`_)
++
+ - Firefox 70:
+ 
+   - Added ``experiments.<experiment id>.enrollmentId``. (`bug 1555172 <https://bugzilla.mozilla.org/show_bug.cgi?id=1555172>`_)
+diff --git a/toolkit/components/telemetry/docs/data/main-ping.rst b/toolkit/components/telemetry/docs/data/main-ping.rst
+index f7cb1ef28e605..47355efcc97a2 100644
+--- a/toolkit/components/telemetry/docs/data/main-ping.rst
++++ b/toolkit/components/telemetry/docs/data/main-ping.rst
+@@ -53,7 +53,6 @@ Structure:
+         sessionLength: <integer>, // the session length until now in seconds, monotonic
+         subsessionLength: <integer>, // the subsession length in seconds, monotonic
+ 
+-        flashVersion: <string>, // obsolete, use ``environment.addons.activePlugins``
+         addons: <string>, // obsolete, use ``environment.addons``
+       },
+ 
+@@ -485,6 +484,10 @@ Structure:
+ Version History
+ ---------------
+ 
++- Firefox 88:
++
++  - Stopped reporting ``flashVersion`` since Flash is no longer supported. (`bug 1682030 <https://bugzilla.mozilla.org/show_bug.cgi?id=1682030>`_)
++
+ - Firefox 61:
+ 
+   - Stopped reporting ``childPayloads`` (`bug 1443599 <https://bugzilla.mozilla.org/show_bug.cgi?id=1443599>`_).
+diff --git a/toolkit/components/telemetry/pings/TelemetrySession.jsm b/toolkit/components/telemetry/pings/TelemetrySession.jsm
+index 0cb7a66e182d3..637aabfbd822c 100644
+--- a/toolkit/components/telemetry/pings/TelemetrySession.jsm
++++ b/toolkit/components/telemetry/pings/TelemetrySession.jsm
+@@ -577,12 +577,6 @@ var Impl = {
+       ret.addons = this._addons;
+     }
+ 
+-    // TODO: Remove this when bug 1201837 lands.
+-    let flashVersion = this.getFlashVersion();
+-    if (flashVersion) {
+-      ret.flashVersion = flashVersion;
+-    }
+-
+     return ret;
+   },
+ 
+@@ -948,21 +942,6 @@ var Impl = {
+     return this._delayedInitTask;
+   },
+ 
+-  getFlashVersion: function getFlashVersion() {
+-    if (AppConstants.MOZ_APP_NAME == "firefox") {
+-      let host = Cc["@mozilla.org/plugin/host;1"].getService(Ci.nsIPluginHost);
+-      let tags = host.getPluginTags();
+-
+-      for (let i = 0; i < tags.length; i++) {
+-        if (tags[i].name == "Shockwave Flash") {
+-          return tags[i].version;
+-        }
+-      }
+-    }
+-
+-    return null;
+-  },
+-
+   /**
+    * On Desktop: Save the "shutdown" ping to disk.
+    * On Android: Save the "saved-session" ping to disk.
+diff --git a/toolkit/content/aboutTelemetry.js b/toolkit/content/aboutTelemetry.js
+index aeb8a31d7c9c1..4b7fbf6f25307 100644
+--- a/toolkit/content/aboutTelemetry.js
++++ b/toolkit/content/aboutTelemetry.js
+@@ -671,23 +671,6 @@ var EnvironmentData = {
+     addonSection.appendChild(table);
+   },
+ 
+-  renderActivePlugins(addonObj, addonSection, sectionTitle) {
+-    let table = document.createElement("table");
+-    table.setAttribute("id", sectionTitle);
+-    this.appendAddonSubsectionTitle(sectionTitle, table);
+-
+-    for (let plugin of addonObj) {
+-      let data = explodeObject(plugin);
+-      this.appendHeadingName(table, data.get("name"));
+-
+-      for (let [key, value] of data) {
+-        this.appendRow(table, key, value);
+-      }
+-    }
+-
+-    addonSection.appendChild(table);
+-  },
+-
+   renderAddonsObject(addonObj, addonSection, sectionTitle) {
+     let table = document.createElement("table");
+     table.setAttribute("id", sectionTitle);
+@@ -740,11 +723,6 @@ var EnvironmentData = {
+     addonSection.setAttribute("class", "subsection-data subdata");
+     let addons = ping.environment.addons;
+     this.renderAddonsObject(addons.activeAddons, addonSection, "activeAddons");
+-    this.renderActivePlugins(
+-      addons.activePlugins,
+-      addonSection,
+-      "activePlugins"
+-    );
+     this.renderKeyValueObject(addons.theme, addonSection, "theme");
+     this.renderAddonsObject(
+       addons.activeGMPlugins,
