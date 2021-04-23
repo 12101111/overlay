@@ -57,11 +57,11 @@ BDEPEND="virtual/pkgconfig"
 [[ ${PV} == *9999 ]] && BDEPEND+=" >=dev-python/sphinx-1.7"
 
 PATCHES=(
-	"${FILESDIR}"/${PN}-0.17.2-flags.patch
+	"${FILESDIR}"/${PN}-0.20.0-flags.patch
 	"${FILESDIR}"/${PN}-0.14.4-svg-icon.patch
-	"${FILESDIR}"/${PN}-0.16.0-remove-terminfo.patch
-	"${FILESDIR}"/${PN}-0.19.1-tests.patch
-	"${FILESDIR}"/musl.patch
+	"${FILESDIR}"/${PN}-0.20.0-remove-terminfo.patch
+	"${FILESDIR}"/${PN}-0.20.0-tests.patch
+	"${FILESDIR}"/${PN}-0.20.0-uint8.patch
 )
 
 src_prepare() {
