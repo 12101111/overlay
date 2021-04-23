@@ -73,7 +73,7 @@ REQUIRED_USE="
 	zink? ( gallium vulkan )
 "
 
-LIBDRM_DEPSTRING=">=x11-libs/libdrm-2.4.100"
+LIBDRM_DEPSTRING=">=x11-libs/libdrm-2.4.105"
 RDEPEND="
 	>=dev-libs/expat-2.1.0-r3:=[${MULTILIB_USEDEP}]
 	>=media-libs/libglvnd-1.3.2[X?,${MULTILIB_USEDEP}]
@@ -148,7 +148,6 @@ LLVM_DEPSTR="
 		sys-devel/llvm:12[${MULTILIB_USEDEP}]
 		sys-devel/llvm:11[${MULTILIB_USEDEP}]
 		sys-devel/llvm:10[${MULTILIB_USEDEP}]
-		sys-devel/llvm:9[${MULTILIB_USEDEP}]
 	)
 	<sys-devel/llvm-$((LLVM_MAX_SLOT + 1)):=[${MULTILIB_USEDEP}]
 "
