@@ -2403,6 +2403,7 @@ PATCHES=(
 	"${FILESDIR}/0007-update-product.json.patch"
 	"${FILESDIR}/fix-lock.patch"
 	"${FILESDIR}/allow-app-argv.patch"
+	"${FILESDIR}/node-version.patch"
 )
 
 src_unpack() {
