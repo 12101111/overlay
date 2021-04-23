@@ -66,8 +66,8 @@ CRATES="
 	dashmap-4.0.2
 	data-encoding-2.3.2
 	data-url-0.1.0
-	deno_doc-0.2.1
-	deno_lint-0.3.0
+	deno_doc-0.3.0
+	deno_lint-0.4.0
 	derive_more-0.99.13
 	digest-0.9.0
 	dissimilar-1.0.2
@@ -78,6 +78,7 @@ CRATES="
 	dprint-plugin-markdown-0.6.2
 	dprint-plugin-typescript-0.44.0
 	dprint-swc-ecma-ast-view-0.15.0
+	dprint-swc-ecma-ast-view-0.16.0
 	either-1.6.1
 	encoding_rs-0.8.28
 	endian-type-0.1.2
@@ -101,15 +102,15 @@ CRATES="
 	fsevent-2.0.2
 	fsevent-sys-3.0.2
 	fslock-0.1.6
-	futures-0.3.13
-	futures-channel-0.3.13
-	futures-core-0.3.13
-	futures-executor-0.3.13
-	futures-io-0.3.13
-	futures-macro-0.3.13
-	futures-sink-0.3.13
-	futures-task-0.3.13
-	futures-util-0.3.13
+	futures-0.3.14
+	futures-channel-0.3.14
+	futures-core-0.3.14
+	futures-executor-0.3.14
+	futures-io-0.3.14
+	futures-macro-0.3.14
+	futures-sink-0.3.14
+	futures-task-0.3.14
+	futures-util-0.3.14
 	fwdansi-1.1.0
 	fxhash-0.2.1
 	gcc-0.3.55
@@ -183,7 +184,7 @@ CRATES="
 	new_debug_unreachable-1.0.4
 	nibble_vec-0.1.0
 	nix-0.20.0
-	notify-5.0.0-pre.6
+	notify-5.0.0-pre.7
 	ntapi-0.3.6
 	num-bigint-0.2.6
 	num-integer-0.1.44
@@ -284,21 +285,21 @@ CRATES="
 	strsim-0.9.3
 	swc_atoms-0.2.6
 	swc_bundler-0.32.0
-	swc_common-0.10.15
-	swc_ecma_ast-0.43.0
-	swc_ecma_codegen-0.52.0
+	swc_common-0.10.17
+	swc_ecma_ast-0.43.1
+	swc_ecma_codegen-0.52.3
 	swc_ecma_codegen_macros-0.5.2
-	swc_ecma_dep_graph-0.22.0
-	swc_ecma_parser-0.54.0
-	swc_ecma_transforms-0.45.0
-	swc_ecma_transforms_base-0.12.0
-	swc_ecma_transforms_optimization-0.15.1
-	swc_ecma_transforms_proposal-0.13.0
-	swc_ecma_transforms_react-0.14.0
-	swc_ecma_transforms_typescript-0.14.0
-	swc_ecma_utils-0.34.0
-	swc_ecma_visit-0.29.0
-	swc_ecmascript-0.31.0
+	swc_ecma_dep_graph-0.22.2
+	swc_ecma_parser-0.54.3
+	swc_ecma_transforms-0.45.3
+	swc_ecma_transforms_base-0.12.6
+	swc_ecma_transforms_optimization-0.15.5
+	swc_ecma_transforms_proposal-0.13.4
+	swc_ecma_transforms_react-0.14.3
+	swc_ecma_transforms_typescript-0.14.4
+	swc_ecma_utils-0.34.1
+	swc_ecma_visit-0.29.1
+	swc_ecmascript-0.31.3
 	swc_eq_ignore_macros-0.1.0
 	swc_macros_common-0.3.3
 	swc_visit-0.2.4
@@ -391,7 +392,7 @@ V8="9.1.269.5"
 chromium_build="8e55a6521cfbec39fe736537483192ef6af54d36"
 icu="28b0e9ea59878fdd1682593be2ac489a6a6bbb21"
 
-inherit cargo toolchain-funcs python-any-r1 git-r3
+inherit cargo check-reqs toolchain-funcs python-any-r1 git-r3
 
 DESCRIPTION="A secure JavaScript and TypeScript runtime"
 HOMEPAGE="https://github.com/denoland/deno"
@@ -423,6 +424,16 @@ BDEPEND="
 "
 
 S="${WORKDIR}/deno"
+
+CHECKREQS_DISK_BUILD=23G
+
+pkg_pretend() {
+	check-reqs_pkg_pretend
+}
+
+pkg_setup() {
+	check-reqs_pkg_setup
+}
 
 src_unpack() {
 	git-r3_src_unpack
