@@ -1,0 +1,1161 @@
+From ff49533ac9fc1aca2f09230ceb9cd48b67fd7a35 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sat, 24 Apr 2021 18:03:25 +0800
+Subject: [PATCH] Revert "Show PDF viewer in a guest view"
+
+This reverts commit 8f56ea6806d9a72d4b705da5f6f90fa5a6873567.
+---
+ src/core/content_browser_client_qt.cpp        |  37 +----
+ src/core/content_browser_client_qt.h          |   1 -
+ src/core/content_client_qt.cpp                |   2 +-
+ src/core/extensions/extension_system_qt.cpp   |   5 +-
+ .../extension_web_contents_observer_qt.cpp    |  16 +-
+ .../extension_web_contents_observer_qt.h      |   1 -
+ .../extensions/extensions_api_client_qt.cpp   |   7 +-
+ .../extensions_browser_client_qt.cpp          |   2 +-
+ .../mime_handler_view_guest_delegate_qt.cpp   |  26 ++-
+ .../mime_handler_view_guest_delegate_qt.h     |   3 +-
+ ...sponse_interceptor_url_loader_throttle.cpp | 152 ++++++------------
+ ...response_interceptor_url_loader_throttle.h |  12 +-
+ src/core/qtwebengine_sources.gni              |   5 +-
+ src/core/render_widget_host_view_qt.cpp       |  99 ++----------
+ src/core/render_widget_host_view_qt.h         |   9 --
+ .../renderer/content_renderer_client_qt.cpp   |  56 +++----
+ .../renderer/content_renderer_client_qt.h     |  11 +-
+ .../pepper_renderer_host_factory_qt.cpp       |   9 --
+ .../renderer/render_frame_observer_qt.cpp     |   6 -
+ src/core/renderer/render_frame_observer_qt.h  |   8 -
+ src/core/web_contents_adapter.cpp             |  10 +-
+ src/core/web_contents_view_qt.cpp             |   5 +-
+ src/core/web_contents_view_qt.h               |   3 -
+ 23 files changed, 124 insertions(+), 361 deletions(-)
+
+diff --git a/src/core/content_browser_client_qt.cpp b/src/core/content_browser_client_qt.cpp
+index c2c78ff8..12b3ac07 100644
+--- a/src/core/content_browser_client_qt.cpp
++++ b/src/core/content_browser_client_qt.cpp
+@@ -68,7 +68,6 @@
+ #include "content/public/common/service_names.mojom.h"
+ #include "content/public/common/user_agent.h"
+ #include "extensions/buildflags/buildflags.h"
+-#include "mojo/public/cpp/bindings/self_owned_associated_receiver.h"
+ #include "net/ssl/client_cert_identity.h"
+ #include "net/ssl/client_cert_store.h"
+ #include "services/network/network_service.h"
+@@ -157,14 +156,12 @@
+ #include "extensions/browser/extension_message_filter.h"
+ #include "extensions/browser/extension_protocols.h"
+ #include "extensions/browser/extension_registry.h"
+-#include "extensions/browser/extension_util.h"
+ #include "extensions/browser/guest_view/extensions_guest_view_message_filter.h"
+ #include "extensions/browser/guest_view/mime_handler_view/mime_handler_view_guest.h"
+ #include "extensions/browser/guest_view/web_view/web_view_guest.h"
+ #include "extensions/browser/process_map.h"
+ #include "extensions/browser/url_loader_factory_manager.h"
+ #include "extensions/common/constants.h"
+-#include "extensions/common/manifest_handlers/mime_types_handler.h"
+ #include "extensions/extension_web_contents_observer_qt.h"
+ #include "extensions/extensions_browser_client_qt.h"
+ #include "net/plugin_response_interceptor_url_loader_throttle.h"
+@@ -992,11 +989,8 @@ static bool navigationThrottleCallback(content::WebContents *source,
+         return false;
+ 
+     int navigationRequestAction = WebContentsAdapterClient::AcceptRequest;
+-
+-    WebContentsAdapterClient *client =
+-        WebContentsViewQt::from(static_cast<content::WebContentsImpl *>(source)->GetView())->client();
+-    if (!client)
+-        return false;
++    WebContentsDelegateQt *delegate = static_cast<WebContentsDelegateQt *>(source->GetDelegate());
++    WebContentsAdapterClient *client = delegate->adapterClient();
+     client->navigationRequested(pageTransitionToNavigationType(params.transition_type()),
+                                 toQt(params.url()),
+                                 navigationRequestAction,
+@@ -1284,33 +1278,6 @@ void ContentBrowserClientQt::RegisterNonNetworkSubresourceURLLoaderFactories(int
+ #endif
+ }
+ 
+-base::flat_set<std::string> ContentBrowserClientQt::GetPluginMimeTypesWithExternalHandlers(
+-        content::BrowserContext *browser_context)
+-{
+-    base::flat_set<std::string> mime_types;
+-#if BUILDFLAG(ENABLE_EXTENSIONS)
+-    ProfileQt *profile = static_cast<ProfileQt *>(browser_context);
+-    for (const std::string &extension_id : MimeTypesHandler::GetMIMETypeAllowlist()) {
+-        const extensions::Extension *extension =
+-            extensions::ExtensionRegistry::Get(browser_context)
+-                ->enabled_extensions()
+-                .GetByID(extension_id);
+-        // The allowed extension may not be installed, so we have to nullptr
+-        // check |extension|.
+-        if (!extension ||
+-            (profile->IsOffTheRecord() && !extensions::util::IsIncognitoEnabled(
+-                                              extension_id, browser_context))) {
+-            continue;
+-        }
+-        if (MimeTypesHandler *handler = MimeTypesHandler::GetHandler(extension)) {
+-            for (const auto &supported_mime_type : handler->mime_type_set())
+-                mime_types.insert(supported_mime_type);
+-        }
+-    }
+-#endif
+-    return mime_types;
+-}
+-
+ bool ContentBrowserClientQt::WillCreateURLLoaderFactory(
+         content::BrowserContext *browser_context,
+         content::RenderFrameHost *frame,
+diff --git a/src/core/content_browser_client_qt.h b/src/core/content_browser_client_qt.h
+index 1ccd2926..fcde5593 100644
+--- a/src/core/content_browser_client_qt.h
++++ b/src/core/content_browser_client_qt.h
+@@ -258,7 +258,6 @@ public:
+                                                                  NonNetworkURLLoaderFactoryMap* factories) override;
+     void SiteInstanceGotProcess(content::SiteInstance *site_instance) override;
+     void SiteInstanceDeleting(content::SiteInstance *site_instance) override;
+-    base::flat_set<std::string> GetPluginMimeTypesWithExternalHandlers(content::BrowserContext *browser_context) override;
+ 
+     content::WebContentsViewDelegate* GetWebContentsViewDelegate(content::WebContents* web_contents) override;
+ 
+diff --git a/src/core/content_client_qt.cpp b/src/core/content_client_qt.cpp
+index 560cdbf5..83c367de 100644
+--- a/src/core/content_client_qt.cpp
++++ b/src/core/content_client_qt.cpp
+@@ -86,7 +86,7 @@ const char kWidevineCdmFileName[] =
+ #include "pdf/pdf.h"
+ #include "pdf/pdf_ppapi.h"
+ const char kPdfPluginMimeType[] = "application/x-google-chrome-pdf";
+-const char kPdfPluginPath[] = "internal-pdf-viewer";
++const char kPdfPluginPath[] = "internal-pdf-viewer/";
+ const char kPdfPluginSrc[] = "src";
+ #endif // QT_CONFIG(webengine_printing_and_pdf)
+ 
+diff --git a/src/core/extensions/extension_system_qt.cpp b/src/core/extensions/extension_system_qt.cpp
+index 285b2772..9c080e9a 100644
+--- a/src/core/extensions/extension_system_qt.cpp
++++ b/src/core/extensions/extension_system_qt.cpp
+@@ -223,12 +223,11 @@ void ExtensionSystemQt::NotifyExtensionLoaded(const Extension *extension)
+     // Register plugins included with the extension.
+     // Implementation based on PluginManager::OnExtensionLoaded.
+     const MimeTypesHandler *handler = MimeTypesHandler::GetHandler(extension);
+-    if (handler && handler->HasPlugin()) {
++    if (handler && !handler->handler_url().empty()) {
+         content::WebPluginInfo info;
+         info.type = content::WebPluginInfo::PLUGIN_TYPE_BROWSER_PLUGIN;
+         info.name = base::UTF8ToUTF16(extension->name());
+-        info.path = handler->GetPluginPath();
+-        info.background_color = handler->GetBackgroundColor();
++        info.path = base::FilePath::FromUTF8Unsafe(extension->url().spec());
+         for (std::set<std::string>::const_iterator mime_type = handler->mime_type_set().begin();
+              mime_type != handler->mime_type_set().end(); ++mime_type) {
+             content::WebPluginMimeType mime_type_info;
+diff --git a/src/core/extensions/extension_web_contents_observer_qt.cpp b/src/core/extensions/extension_web_contents_observer_qt.cpp
+index e336f70b..5b1514bb 100644
+--- a/src/core/extensions/extension_web_contents_observer_qt.cpp
++++ b/src/core/extensions/extension_web_contents_observer_qt.cpp
+@@ -43,17 +43,13 @@
+ 
+ #include "extension_web_contents_observer_qt.h"
+ 
+-#include "components/guest_view/browser/guest_view_base.h"
+ #include "content/public/browser/child_process_security_policy.h"
+-#include "content/public/browser/render_frame_host.h"
+ #include "content/public/browser/render_process_host.h"
+-#include "content/public/browser/render_view_host.h"
++#include "content/public/browser/render_frame_host.h"
+ #include "content/public/common/url_constants.h"
+ #include "extensions/browser/extension_registry.h"
+ #include "extensions/common/manifest.h"
+ 
+-#include "render_widget_host_view_qt.h"
+-
+ namespace extensions {
+ 
+ ExtensionWebContentsObserverQt::ExtensionWebContentsObserverQt(content::WebContents *web_contents)
+@@ -89,16 +85,6 @@ void ExtensionWebContentsObserverQt::RenderFrameCreated(content::RenderFrameHost
+         policy->GrantRequestOrigin(process_id, url::Origin::Create(GURL(content::kChromeUIResourcesURL)));
+ }
+ 
+-void ExtensionWebContentsObserverQt::RenderViewCreated(content::RenderViewHost *render_view_host)
+-{
+-    if (web_contents()->IsInnerWebContentsForGuest()) {
+-        content::RenderWidgetHost *render_widget_host = render_view_host->GetWidget();
+-        content::WebContents *parent_web_contents = guest_view::GuestViewBase::GetTopLevelWebContents(web_contents());
+-        QtWebEngineCore::RenderWidgetHostViewQt *parent_rwhv = static_cast<QtWebEngineCore::RenderWidgetHostViewQt *>(parent_web_contents->GetRenderWidgetHostView());
+-        parent_rwhv->setGuest(static_cast<content::RenderWidgetHostImpl *>(render_widget_host));
+-    }
+-}
+-
+ WEB_CONTENTS_USER_DATA_KEY_IMPL(ExtensionWebContentsObserverQt)
+ 
+ } // namespace extensions
+diff --git a/src/core/extensions/extension_web_contents_observer_qt.h b/src/core/extensions/extension_web_contents_observer_qt.h
+index c0269e4f..658966b3 100644
+--- a/src/core/extensions/extension_web_contents_observer_qt.h
++++ b/src/core/extensions/extension_web_contents_observer_qt.h
+@@ -61,7 +61,6 @@ public:
+ 
+     // content::WebContentsObserver overrides.
+     void RenderFrameCreated(content::RenderFrameHost *render_frame_host) override;
+-    void RenderViewCreated(content::RenderViewHost *render_view_host) override;
+ 
+ private:
+     friend class content::WebContentsUserData<ExtensionWebContentsObserverQt>;
+diff --git a/src/core/extensions/extensions_api_client_qt.cpp b/src/core/extensions/extensions_api_client_qt.cpp
+index 925fd10d..81d9efde 100644
+--- a/src/core/extensions/extensions_api_client_qt.cpp
++++ b/src/core/extensions/extensions_api_client_qt.cpp
+@@ -47,10 +47,9 @@
+ 
+ #include <memory>
+ #include "components/pdf/browser/pdf_web_contents_helper.h"
+-#include "extension_web_contents_observer_qt.h"
+ #include "extensions/browser/guest_view/extensions_guest_view_manager_delegate.h"
+ #include "extensions/browser/guest_view/mime_handler_view/mime_handler_view_guest_delegate.h"
+-#include "mime_handler_view_guest_delegate_qt.h"
++#include "extension_web_contents_observer_qt.h"
+ #include "printing/print_view_manager_qt.h"
+ 
+ namespace extensions {
+@@ -68,12 +67,12 @@ AppViewGuestDelegate *ExtensionsAPIClientQt::CreateAppViewGuestDelegate() const
+ 
+ std::unique_ptr<guest_view::GuestViewManagerDelegate> ExtensionsAPIClientQt::CreateGuestViewManagerDelegate(content::BrowserContext *context) const
+ {
+-    return std::make_unique<extensions::ExtensionsGuestViewManagerDelegate>(context);
++    return std::make_unique<guest_view::GuestViewManagerDelegate>();
+ }
+ 
+ std::unique_ptr<MimeHandlerViewGuestDelegate> ExtensionsAPIClientQt::CreateMimeHandlerViewGuestDelegate(MimeHandlerViewGuest *guest) const
+ {
+-    return std::make_unique<MimeHandlerViewGuestDelegateQt>(guest);
++    return std::make_unique<MimeHandlerViewGuestDelegate>();
+ }
+ 
+ void ExtensionsAPIClientQt::AttachWebContentsHelpers(content::WebContents *web_contents) const
+diff --git a/src/core/extensions/extensions_browser_client_qt.cpp b/src/core/extensions/extensions_browser_client_qt.cpp
+index 50125282..6bcf37d8 100644
+--- a/src/core/extensions/extensions_browser_client_qt.cpp
++++ b/src/core/extensions/extensions_browser_client_qt.cpp
+@@ -335,7 +335,7 @@ BrowserContext *ExtensionsBrowserClientQt::GetOriginalContext(BrowserContext *co
+ 
+ bool ExtensionsBrowserClientQt::IsGuestSession(BrowserContext *context) const
+ {
+-    return context->IsOffTheRecord();
++    return false;
+ }
+ 
+ bool ExtensionsBrowserClientQt::IsExtensionIncognitoEnabled(const std::string &extension_id,
+diff --git a/src/core/extensions/mime_handler_view_guest_delegate_qt.cpp b/src/core/extensions/mime_handler_view_guest_delegate_qt.cpp
+index 89d3d6f2..58f4f209 100644
+--- a/src/core/extensions/mime_handler_view_guest_delegate_qt.cpp
++++ b/src/core/extensions/mime_handler_view_guest_delegate_qt.cpp
+@@ -44,17 +44,12 @@
+ 
+ #include "mime_handler_view_guest_delegate_qt.h"
+ 
++#include "content/browser/browser_plugin/browser_plugin_guest.h"
++#include "content/browser/web_contents/web_contents_impl.h"
+ #include "content/public/browser/context_menu_params.h"
+ #include "content/public/browser/web_contents.h"
+ #include "extensions/browser/guest_view/mime_handler_view/mime_handler_view_guest.h"
+ 
+-#include "profile_adapter.h"
+-#include "render_widget_host_view_qt.h"
+-#include "touch_selection_controller_client_qt.h"
+-#include "web_contents_adapter.h"
+-#include "web_contents_adapter_client.h"
+-#include "web_contents_view_qt.h"
+-
+ namespace extensions {
+ 
+ MimeHandlerViewGuestDelegateQt::MimeHandlerViewGuestDelegateQt(MimeHandlerViewGuest *)
+@@ -68,17 +63,14 @@ MimeHandlerViewGuestDelegateQt::~MimeHandlerViewGuestDelegateQt()
+ 
+ bool MimeHandlerViewGuestDelegateQt::HandleContextMenu(content::WebContents *web_contents, const content::ContextMenuParams &params)
+ {
+-    content::WebContents *parent_web_contents = guest_view::GuestViewBase::GetTopLevelWebContents(web_contents);
+-    if (auto rwhv = static_cast<QtWebEngineCore::RenderWidgetHostViewQt *>(parent_web_contents->GetRenderWidgetHostView())) {
+-        if (rwhv->getTouchSelectionControllerClient()->handleContextMenu(params))
+-            return true;
++    content::ContextMenuParams new_params = params;
++
++    gfx::Point guest_coordinates =
++            static_cast<content::WebContentsImpl *>(web_contents)->GetBrowserPluginGuest()->GetScreenCoordinates(gfx::Point());
+ 
+-        QtWebEngineCore::WebContentsAdapterClient *adapterClient = rwhv->adapterClient();
+-        QtWebEngineCore::WebEngineContextMenuData contextMenuData(QtWebEngineCore::WebContentsViewQt::buildContextMenuData(params));
+-        contextMenuData.setIsSpellCheckerEnabled(adapterClient->profileAdapter()->isSpellCheckEnabled());
+-        adapterClient->contextMenuRequested(contextMenuData);
+-        return true;
+-    }
++    // Adjust (x,y) position for offset from guest to embedder.
++    new_params.x += guest_coordinates.x();
++    new_params.y += guest_coordinates.y();
+ 
+     return false;
+ }
+diff --git a/src/core/extensions/mime_handler_view_guest_delegate_qt.h b/src/core/extensions/mime_handler_view_guest_delegate_qt.h
+index 8b2e2950..6cd80689 100644
+--- a/src/core/extensions/mime_handler_view_guest_delegate_qt.h
++++ b/src/core/extensions/mime_handler_view_guest_delegate_qt.h
+@@ -46,7 +46,8 @@
+ #define MIME_HANDLER_VIEW_GUEST_DELEGATE_QT_H_
+ 
+ #include "extensions/browser/guest_view/mime_handler_view/mime_handler_view_guest_delegate.h"
+-#include "api/qtwebenginecoreglobal_p.h"
++#include "content/browser/web_contents/web_contents_view.h"
++#include "content/public/browser/web_contents.h"
+ 
+ namespace content {
+ struct ContextMenuParams;
+diff --git a/src/core/net/plugin_response_interceptor_url_loader_throttle.cpp b/src/core/net/plugin_response_interceptor_url_loader_throttle.cpp
+index d868e4f5..bd03d308 100644
+--- a/src/core/net/plugin_response_interceptor_url_loader_throttle.cpp
++++ b/src/core/net/plugin_response_interceptor_url_loader_throttle.cpp
+@@ -40,27 +40,59 @@
+ #include "plugin_response_interceptor_url_loader_throttle.h"
+ 
+ #include "base/bind.h"
+-#include "base/guid.h"
+ #include "base/task/post_task.h"
+-#include "chrome/browser/extensions/api/streams_private/streams_private_api.h"
+ #include "content/public/browser/browser_context.h"
+ #include "content/public/browser/browser_thread.h"
+ #include "content/public/browser/download_manager.h"
+ #include "content/public/browser/download_request_utils.h"
+ #include "content/public/browser/download_utils.h"
+-#include "extensions/browser/guest_view/mime_handler_view/mime_handler_view_attach_helper.h"
+ #include "extensions/common/constants.h"
+ #include "extensions/common/extension.h"
+-#include "extensions/common/manifest_handlers/mime_types_handler.h"
+-#include "third_party/blink/public/mojom/loader/transferrable_url_loader.mojom.h"
+ 
+-#include "extensions/extension_system_qt.h"
+ #include "web_contents_delegate_qt.h"
+ 
+ #include <string>
+ 
+ namespace QtWebEngineCore {
+ 
++void onPdfStreamIntercepted(const GURL &original_url, std::string extension_id, int frame_tree_node_id)
++{
++    content::WebContents *web_contents = content::WebContents::FromFrameTreeNodeId(frame_tree_node_id);
++    if (!web_contents)
++        return;
++
++    WebContentsDelegateQt *contentsDelegate = static_cast<WebContentsDelegateQt *>(web_contents->GetDelegate());
++    if (!contentsDelegate)
++        return;
++
++    WebEngineSettings *settings = contentsDelegate->webEngineSettings();
++    if (!settings->testAttribute(WebEngineSettings::PdfViewerEnabled)
++        || !settings->testAttribute(WebEngineSettings::PluginsEnabled)) {
++        // If the applications has been set up to always download PDF files to open them in an
++        // external viewer, trigger the download.
++        std::unique_ptr<download::DownloadUrlParameters> params(
++                content::DownloadRequestUtils::CreateDownloadForWebContentsMainFrame(web_contents, original_url,
++                                                                                     MISSING_TRAFFIC_ANNOTATION));
++        content::BrowserContext::GetDownloadManager(web_contents->GetBrowserContext())->DownloadUrl(std::move(params));
++        return;
++    }
++
++    // The URL passes the original pdf resource url, that will be requested
++    // by the pdf viewer extension page.
++    content::NavigationController::LoadURLParams params(
++            GURL(base::StringPrintf("%s://%s/index.html?%s", extensions::kExtensionScheme,
++                                    extension_id.c_str(), original_url.spec().c_str())));
++
++    params.frame_tree_node_id = frame_tree_node_id;
++    web_contents->GetController().LoadURLWithParams(params);
++}
++
++
++PluginResponseInterceptorURLLoaderThrottle::PluginResponseInterceptorURLLoaderThrottle(
++        content::ResourceContext *resource_context, int resource_type, int frame_tree_node_id)
++    : m_resource_context(resource_context), m_resource_type(resource_type), m_frame_tree_node_id(frame_tree_node_id)
++{}
++
+ PluginResponseInterceptorURLLoaderThrottle::PluginResponseInterceptorURLLoaderThrottle(
+         content::BrowserContext *browser_context, int resource_type, int frame_tree_node_id)
+     : m_browser_context(browser_context), m_resource_type(resource_type), m_frame_tree_node_id(frame_tree_node_id)
+@@ -70,111 +102,31 @@ void PluginResponseInterceptorURLLoaderThrottle::WillProcessResponse(const GURL
+                                                                      network::mojom::URLResponseHead *response_head,
+                                                                      bool *defer)
+ {
+-    DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
++    Q_UNUSED(defer);
+     if (content::download_utils::MustDownload(response_url, response_head->headers.get(), response_head->mime_type))
+         return;
+ 
+-    content::WebContents *web_contents = content::WebContents::FromFrameTreeNodeId(m_frame_tree_node_id);
+-    if (!web_contents)
+-        return;
++    if (m_resource_context) {
++        DCHECK_CURRENTLY_ON(content::BrowserThread::IO);
++    } else {
++        DCHECK(m_browser_context);
++        DCHECK_CURRENTLY_ON(content::BrowserThread::UI);
++    }
+ 
+     std::string extension_id;
++    // FIXME: We should use extensions::InfoMap in the future:
+     if (response_head->mime_type == "application/pdf")
+         extension_id = extension_misc::kPdfExtensionId;
+     if (extension_id.empty())
+         return;
+ 
+-    WebContentsDelegateQt *contentsDelegate = static_cast<WebContentsDelegateQt *>(web_contents->GetDelegate());
+-    if (!contentsDelegate)
+-        return;
+-
+-    WebEngineSettings *settings = contentsDelegate->webEngineSettings();
+-    if (!settings->testAttribute(WebEngineSettings::PdfViewerEnabled)
+-        || !settings->testAttribute(WebEngineSettings::PluginsEnabled)) {
+-        // PluginServiceFilterQt will inform the URLLoader about the disabled state of plugins
+-        // and we can expect the download to be triggered automatically. It's unnecessary to
+-        // go further and start the guest view embedding process.
+-        return;
+-    }
+-
+-    // Chrome's PDF Extension does not work properly in the face of a restrictive
+-    // Content-Security-Policy, and does not currently respect the policy anyway.
+-    // Ignore CSP served on a PDF response. https://crbug.com/271452
+-    if (extension_id == extension_misc::kPdfExtensionId && response_head->headers)
+-        response_head->headers->RemoveHeader("Content-Security-Policy");
+-
+-    MimeTypesHandler::ReportUsedHandler(extension_id);
+-
+-    std::string view_id = base::GenerateGUID();
+-    // The string passed down to the original client with the response body.
+-    std::string payload = view_id;
+-
+-    mojo::PendingRemote<network::mojom::URLLoader> dummy_new_loader;
+-    ignore_result(dummy_new_loader.InitWithNewPipeAndPassReceiver());
+-    mojo::Remote<network::mojom::URLLoaderClient> new_client;
+-    mojo::PendingReceiver<network::mojom::URLLoaderClient> new_client_receiver =
+-        new_client.BindNewPipeAndPassReceiver();
+-
+-
+-    uint32_t data_pipe_size = 64U;
+-    // Provide the MimeHandlerView code a chance to override the payload. This is
+-    // the case where the resource is handled by frame-based MimeHandlerView.
+-    *defer = extensions::MimeHandlerViewAttachHelper::OverrideBodyForInterceptedResponse(
+-        m_frame_tree_node_id, response_url, response_head->mime_type, view_id,
+-        &payload, &data_pipe_size,
+-        base::BindOnce(
+-            &PluginResponseInterceptorURLLoaderThrottle::ResumeLoad,
+-            weak_factory_.GetWeakPtr()));
+-
+-    mojo::DataPipe data_pipe(data_pipe_size);
+-    uint32_t len = static_cast<uint32_t>(payload.size());
+-    CHECK_EQ(MOJO_RESULT_OK,
+-                data_pipe.producer_handle->WriteData(
+-                    payload.c_str(), &len, MOJO_WRITE_DATA_FLAG_ALL_OR_NONE));
+-
+-
+-    new_client->OnStartLoadingResponseBody(std::move(data_pipe.consumer_handle));
+-
+-    network::URLLoaderCompletionStatus status(net::OK);
+-    status.decoded_body_length = len;
+-    new_client->OnComplete(status);
+-
+-    mojo::PendingRemote<network::mojom::URLLoader> original_loader;
+-    mojo::PendingReceiver<network::mojom::URLLoaderClient> original_client;
+-    delegate_->InterceptResponse(std::move(dummy_new_loader),
+-                                std::move(new_client_receiver), &original_loader,
+-                                &original_client);
+-
+-    // Make a deep copy of URLResponseHead before passing it cross-thread.
+-    auto deep_copied_response = response_head->Clone();
+-    if (response_head->headers) {
+-        deep_copied_response->headers =
+-            base::MakeRefCounted<net::HttpResponseHeaders>(
+-                response_head->headers->raw_headers());
+-    }
+-
+-    auto transferrable_loader = blink::mojom::TransferrableURLLoader::New();
+-    transferrable_loader->url = GURL(
+-        extensions::Extension::GetBaseURLFromExtensionId(extension_id).spec() +
+-        base::GenerateGUID());
+-    transferrable_loader->url_loader = std::move(original_loader);
+-    transferrable_loader->url_loader_client = std::move(original_client);
+-    transferrable_loader->head = std::move(deep_copied_response);
+-    transferrable_loader->head->intercepted_by_plugin = true;
+-
+-    bool embedded = m_resource_type !=
+-                        static_cast<int>(blink::mojom::ResourceType::kMainFrame);
+-    content::GetUIThreadTaskRunner({})->PostTask(
+-      FROM_HERE,
+-      base::BindOnce(
+-            &extensions::StreamsPrivateAPI::SendExecuteMimeTypeHandlerEvent,
+-            extension_id, view_id, embedded, m_frame_tree_node_id,
+-            -1 /* render_process_id */, -1 /* render_frame_id */,
+-            std::move(transferrable_loader), response_url));
+-}
++    *defer = true;
+ 
+-void PluginResponseInterceptorURLLoaderThrottle::ResumeLoad() {
+-    delegate_->Resume();
++    base::PostTask(FROM_HERE, {content::BrowserThread::UI},
++                   base::BindOnce(&onPdfStreamIntercepted,
++                                  response_url,
++                                  extension_id,
++                                  m_frame_tree_node_id));
+ }
+ 
+ } // namespace QtWebEngineCore
+diff --git a/src/core/net/plugin_response_interceptor_url_loader_throttle.h b/src/core/net/plugin_response_interceptor_url_loader_throttle.h
+index 205ab25e..7b9db649 100644
+--- a/src/core/net/plugin_response_interceptor_url_loader_throttle.h
++++ b/src/core/net/plugin_response_interceptor_url_loader_throttle.h
+@@ -41,11 +41,11 @@
+ #define PLUGIN_RESPONSE_INTERCEPTOR_URL_LOADER_THROTTLE_H_
+ 
+ #include "base/macros.h"
+-#include "base/memory/weak_ptr.h"
+ #include "third_party/blink/public/common/loader/url_loader_throttle.h"
+ 
+ namespace content {
+ class BrowserContext;
++class ResourceContext;
+ }
+ 
+ namespace QtWebEngineCore {
+@@ -53,6 +53,8 @@ namespace QtWebEngineCore {
+ class PluginResponseInterceptorURLLoaderThrottle : public blink::URLLoaderThrottle
+ {
+ public:
++    PluginResponseInterceptorURLLoaderThrottle(content::ResourceContext *resource_context,
++                                               int resource_type, int frame_tree_node_id);
+     PluginResponseInterceptorURLLoaderThrottle(content::BrowserContext *browser_context,
+                                                int resource_type, int frame_tree_node_id);
+     ~PluginResponseInterceptorURLLoaderThrottle() override = default;
+@@ -61,17 +63,11 @@ private:
+     // content::URLLoaderThrottle overrides;
+     void WillProcessResponse(const GURL &response_url, network::mojom::URLResponseHead *response_head, bool *defer) override;
+ 
+-    // Resumes loading for an intercepted response. This would give the extension
+-    // layer chance to initialize its browser side state.
+-    void ResumeLoad();
+-
++    content::ResourceContext *m_resource_context = nullptr;
+     content::BrowserContext *m_browser_context = nullptr;
+     const int m_resource_type;
+     const int m_frame_tree_node_id;
+ 
+-    base::WeakPtrFactory<PluginResponseInterceptorURLLoaderThrottle>
+-        weak_factory_{this};
+-
+     DISALLOW_COPY_AND_ASSIGN(PluginResponseInterceptorURLLoaderThrottle);
+ };
+ 
+diff --git a/src/core/qtwebengine_sources.gni b/src/core/qtwebengine_sources.gni
+index 81a48cab..27ee3329 100644
+--- a/src/core/qtwebengine_sources.gni
++++ b/src/core/qtwebengine_sources.gni
+@@ -201,10 +201,7 @@ source_set("qtwebengine_sources") {
+          "//components/pdf/browser:browser",
+          "//components/pdf/renderer:renderer",
+          "//components/printing/browser",
+-         "//components/printing/renderer"
+-      ]
+-      sources += [
+-         "//chrome/browser/extensions/api/streams_private/streams_private_api.cc",
++         "//components/printing/renderer",
+       ]
+   }
+ 
+diff --git a/src/core/render_widget_host_view_qt.cpp b/src/core/render_widget_host_view_qt.cpp
+index e98c69c6..99ce37d2 100644
+--- a/src/core/render_widget_host_view_qt.cpp
++++ b/src/core/render_widget_host_view_qt.cpp
+@@ -62,7 +62,6 @@
+ #include "content/browser/renderer_host/display_util.h"
+ #include "content/browser/renderer_host/frame_tree.h"
+ #include "content/browser/renderer_host/frame_tree_node.h"
+-#include "content/browser/renderer_host/cursor_manager.h"
+ #include "content/browser/renderer_host/input/synthetic_gesture_target.h"
+ #include "content/browser/renderer_host/render_frame_host_impl.h"
+ #include "content/browser/renderer_host/render_view_host_delegate.h"
+@@ -307,35 +306,12 @@ public:
+     }
+ };
+ 
+-class GuestInputEventObserverQt : public content::RenderWidgetHost::InputEventObserver
+-{
+-public:
+-    GuestInputEventObserverQt(RenderWidgetHostViewQt *rwhv)
+-        : m_rwhv(rwhv)
+-    {
+-    }
+-    ~GuestInputEventObserverQt() {}
+-
+-    void OnInputEvent(const blink::WebInputEvent&) override {}
+-    void OnInputEventAck(blink::mojom::InputEventResultSource,
+-                         blink::mojom::InputEventResultState state,
+-                         const blink::WebInputEvent &event) override
+-    {
+-        if (event.GetType() == blink::WebInputEvent::Type::kMouseWheel)
+-            m_rwhv->WheelEventAck(static_cast<const blink::WebMouseWheelEvent &>(event), state);
+-    }
+-
+-private:
+-    RenderWidgetHostViewQt *m_rwhv;
+-};
+-
+ RenderWidgetHostViewQt::RenderWidgetHostViewQt(content::RenderWidgetHost *widget)
+     : content::RenderWidgetHostViewBase::RenderWidgetHostViewBase(widget)
+     , m_taskRunner(base::ThreadTaskRunnerHandle::Get())
+     , m_gestureProvider(QtGestureProviderConfig(), this)
+     , m_sendMotionActionDown(false)
+     , m_touchMotionStarted(false)
+-    , m_guestInputEventObserver(new GuestInputEventObserverQt(this))
+     , m_visible(false)
+     , m_loadVisuallyCommittedState(NotCommitted)
+     , m_adapterClient(0)
+@@ -382,8 +358,6 @@ RenderWidgetHostViewQt::RenderWidgetHostViewQt(content::RenderWidgetHost *widget
+     if (host()->delegate() && host()->delegate()->GetInputEventRouter())
+         host()->delegate()->GetInputEventRouter()->AddFrameSinkIdOwner(GetFrameSinkId(), this);
+ 
+-    m_cursorManager.reset(new content::CursorManager(this));
+-
+     m_touchSelectionControllerClient.reset(new TouchSelectionControllerClientQt(this));
+     ui::TouchSelectionController::Config config;
+     config.max_tap_duration = base::TimeDelta::FromMilliseconds(ui::GestureConfiguration::GetInstance()->long_press_time_in_ms());
+@@ -436,11 +410,6 @@ void RenderWidgetHostViewQt::setAdapterClient(WebContentsAdapterClient *adapterC
+                                                             m_adapterClient = nullptr; });
+ }
+ 
+-void RenderWidgetHostViewQt::setGuest(content::RenderWidgetHostImpl *rwh)
+-{
+-    rwh->AddInputEventObserver(m_guestInputEventObserver.get());
+-}
+-
+ void RenderWidgetHostViewQt::InitAsChild(gfx::NativeView)
+ {
+ }
+@@ -516,11 +485,6 @@ bool RenderWidgetHostViewQt::IsMouseLocked()
+     return m_isMouseLocked;
+ }
+ 
+-viz::FrameSinkId RenderWidgetHostViewQt::GetRootFrameSinkId()
+-{
+-    return m_uiCompositor->frame_sink_id();
+-}
+-
+ bool RenderWidgetHostViewQt::IsSurfaceAvailableForCopy()
+ {
+     return m_delegatedFrameHost->CanCopyFromCompositingSurface();
+@@ -788,11 +752,6 @@ void RenderWidgetHostViewQt::DisplayCursor(const content::WebCursor &webCursor)
+     m_delegate->updateCursor(QCursor(shape));
+ }
+ 
+-content::CursorManager *RenderWidgetHostViewQt::GetCursorManager()
+-{
+-    return m_cursorManager.get();
+-}
+-
+ void RenderWidgetHostViewQt::SetIsLoading(bool)
+ {
+     // We use WebContentsDelegateQt::LoadingStateChanged to notify about loading state.
+@@ -814,18 +773,6 @@ void RenderWidgetHostViewQt::RenderProcessGone()
+     Destroy();
+ }
+ 
+-bool RenderWidgetHostViewQt::TransformPointToCoordSpaceForView(const gfx::PointF &point,
+-                                                               content::RenderWidgetHostViewBase *target_view,
+-                                                               gfx::PointF *transformed_point)
+-{
+-    if (target_view == this) {
+-        *transformed_point = point;
+-        return true;
+-    }
+-
+-    return target_view->TransformPointToLocalCoordSpace(point, GetCurrentSurfaceId(), transformed_point);
+-}
+-
+ void RenderWidgetHostViewQt::Destroy()
+ {
+     delete this;
+@@ -838,7 +785,7 @@ void RenderWidgetHostViewQt::SetTooltipText(const base::string16 &tooltip_text)
+ 
+ void RenderWidgetHostViewQt::DisplayTooltipText(const base::string16 &tooltip_text)
+ {
+-    if (host()->delegate() && m_adapterClient)
++    if (m_adapterClient)
+         m_adapterClient->setToolTip(toQt(tooltip_text));
+ }
+ 
+@@ -1038,8 +985,7 @@ void RenderWidgetHostViewQt::OnGestureEvent(const ui::GestureEventData& gesture)
+         }
+     }
+ 
+-    if (host()->delegate() && host()->delegate()->GetInputEventRouter())
+-        host()->delegate()->GetInputEventRouter()->RouteGestureEvent(this, &event, ui::LatencyInfo());
++    host()->ForwardGestureEvent(event);
+ }
+ 
+ void RenderWidgetHostViewQt::DidStopFlinging()
+@@ -1248,12 +1194,8 @@ bool RenderWidgetHostViewQt::forwardEvent(QEvent *event)
+         if (m_mouseButtonPressed > 0)
+             return false;
+ #endif
+-    case QEvent::HoverLeave: {
+-            if (host()->delegate() && host()->delegate()->GetInputEventRouter()) {
+-                auto webEvent = WebEventFactory::toWebMouseEvent(event);
+-                host()->delegate()->GetInputEventRouter()->RouteMouseEvent(this, &webEvent, ui::LatencyInfo());
+-            }
+-        }
++    case QEvent::HoverLeave:
++        host()->ForwardMouseEvent(WebEventFactory::toWebMouseEvent(event));
+         break;
+     default:
+         return false;
+@@ -1334,11 +1276,11 @@ void RenderWidgetHostViewQt::processMotionEvent(const ui::MotionEvent &motionEve
+     auto result = m_gestureProvider.OnTouchEvent(motionEvent);
+     if (!result.succeeded)
+         return;
++
+     blink::WebTouchEvent touchEvent = ui::CreateWebTouchEventFromMotionEvent(motionEvent,
+                                                                              result.moved_beyond_slop_region,
+                                                                              false /*hovering, FIXME ?*/);
+-    if (host()->delegate() && host()->delegate()->GetInputEventRouter())
+-        host()->delegate()->GetInputEventRouter()->RouteTouchEvent(this, &touchEvent, CreateLatencyInfo(touchEvent));
++    host()->ForwardTouchEventWithLatencyInfo(touchEvent, CreateLatencyInfo(touchEvent));
+ }
+ 
+ QList<RenderWidgetHostViewQt::TouchPoint> RenderWidgetHostViewQt::mapTouchPoints(const QList<QTouchEvent::TouchPoint> &input)
+@@ -1426,13 +1368,13 @@ void RenderWidgetHostViewQt::handleKeyEvent(QKeyEvent *ev)
+         std::vector<blink::mojom::EditCommandPtr> commands;
+         commands.emplace_back(blink::mojom::EditCommand::New(m_editCommand, ""));
+         m_editCommand.clear();
+-        GetFocusedWidget()->ForwardKeyboardEventWithCommands(webEvent, latency, std::move(commands), nullptr);
++        host()->ForwardKeyboardEventWithCommands(webEvent, latency, std::move(commands), nullptr);
+         return;
+     }
+ 
+     bool keyDownTextInsertion = webEvent.GetType() == blink::WebInputEvent::Type::kRawKeyDown && webEvent.text[0];
+     webEvent.skip_in_browser = keyDownTextInsertion;
+-    GetFocusedWidget()->ForwardKeyboardEvent(webEvent);
++    host()->ForwardKeyboardEvent(webEvent);
+ 
+     if (keyDownTextInsertion) {
+         // Blink won't consume the RawKeyDown, but rather the Char event in this case.
+@@ -1440,7 +1382,7 @@ void RenderWidgetHostViewQt::handleKeyEvent(QKeyEvent *ev)
+         // The same os_event will be set on both NativeWebKeyboardEvents.
+         webEvent.skip_in_browser = false;
+         webEvent.SetType(blink::WebInputEvent::Type::kChar);
+-        GetFocusedWidget()->ForwardKeyboardEvent(webEvent);
++        host()->ForwardKeyboardEvent(webEvent);
+     }
+ }
+ 
+@@ -1608,9 +1550,8 @@ void RenderWidgetHostViewQt::handleWheelEvent(QWheelEvent *ev)
+         Q_ASSERT(m_pendingWheelEvents.isEmpty());
+         blink::WebMouseWheelEvent webEvent = WebEventFactory::toWebWheelEvent(ev);
+         m_wheelAckPending = (webEvent.phase != blink::WebMouseWheelEvent::kPhaseEnded);
+-        m_mouseWheelPhaseHandler.AddPhaseIfNeededAndScheduleEndEvent(webEvent, true);
+-        if (host()->delegate() && host()->delegate()->GetInputEventRouter())
+-            host()->delegate()->GetInputEventRouter()->RouteMouseWheelEvent(this, &webEvent, ui::LatencyInfo());
++        m_mouseWheelPhaseHandler.AddPhaseIfNeededAndScheduleEndEvent(webEvent, false);
++        host()->ForwardWheelEvent(webEvent);
+         return;
+     }
+     if (!m_pendingWheelEvents.isEmpty()) {
+@@ -1630,9 +1571,8 @@ void RenderWidgetHostViewQt::WheelEventAck(const blink::WebMouseWheelEvent &even
+     while (!m_pendingWheelEvents.isEmpty() && !m_wheelAckPending) {
+         blink::WebMouseWheelEvent webEvent = m_pendingWheelEvents.takeFirst();
+         m_wheelAckPending = (webEvent.phase != blink::WebMouseWheelEvent::kPhaseEnded);
+-        m_mouseWheelPhaseHandler.AddPhaseIfNeededAndScheduleEndEvent(webEvent, true);
+-        if (host()->delegate() && host()->delegate()->GetInputEventRouter())
+-            host()->delegate()->GetInputEventRouter()->RouteMouseWheelEvent(this, &webEvent, ui::LatencyInfo());
++        m_mouseWheelPhaseHandler.AddPhaseIfNeededAndScheduleEndEvent(webEvent, false);
++        host()->ForwardWheelEvent(webEvent);
+     }
+ }
+ 
+@@ -1662,10 +1602,7 @@ void RenderWidgetHostViewQt::handleGestureEvent(QNativeGestureEvent *ev)
+     const Qt::NativeGestureType type = ev->gestureType();
+     // These are the only supported gestures by Chromium so far.
+     if (type == Qt::ZoomNativeGesture || type == Qt::SmartZoomNativeGesture) {
+-        if (host()->delegate() && host()->delegate()->GetInputEventRouter()) {
+-            auto webEvent = WebEventFactory::toWebGestureEvent(ev);
+-            host()->delegate()->GetInputEventRouter()->RouteGestureEvent(this, &webEvent, ui::LatencyInfo());
+-        }
++        host()->ForwardGestureEvent(WebEventFactory::toWebGestureEvent(ev));
+     }
+ }
+ #endif
+@@ -1894,16 +1831,12 @@ void RenderWidgetHostViewQt::handlePointerEvent(T *event)
+ #endif
+     }
+ 
+-    if (host()->delegate() && host()->delegate()->GetInputEventRouter())
+-        host()->delegate()->GetInputEventRouter()->RouteMouseEvent(this, &webEvent, ui::LatencyInfo());
++    host()->ForwardMouseEvent(webEvent);
+ }
+ 
+ void RenderWidgetHostViewQt::handleHoverEvent(QHoverEvent *ev)
+ {
+-    if (host()->delegate() && host()->delegate()->GetInputEventRouter()) {
+-        auto webEvent = WebEventFactory::toWebMouseEvent(ev);
+-        host()->delegate()->GetInputEventRouter()->RouteMouseEvent(this, &webEvent, ui::LatencyInfo());
+-    }
++    host()->ForwardMouseEvent(WebEventFactory::toWebMouseEvent(ev));
+ }
+ 
+ void RenderWidgetHostViewQt::handleFocusEvent(QFocusEvent *ev)
+diff --git a/src/core/render_widget_host_view_qt.h b/src/core/render_widget_host_view_qt.h
+index 9c843e2a..4482d3eb 100644
+--- a/src/core/render_widget_host_view_qt.h
++++ b/src/core/render_widget_host_view_qt.h
+@@ -76,7 +76,6 @@ class TouchSelectionController;
+ 
+ namespace QtWebEngineCore {
+ 
+-class GuestInputEventObserverQt;
+ class TouchHandleDrawableClient;
+ class TouchSelectionControllerClientQt;
+ class TouchSelectionMenuController;
+@@ -120,7 +119,6 @@ public:
+     void setDelegate(RenderWidgetHostViewQtDelegate *delegate);
+     WebContentsAdapterClient *adapterClient() { return m_adapterClient; }
+     void setAdapterClient(WebContentsAdapterClient *adapterClient);
+-    void setGuest(content::RenderWidgetHostImpl *);
+ 
+     void InitAsChild(gfx::NativeView) override;
+     void InitAsPopup(content::RenderWidgetHostView*, const gfx::Rect&) override;
+@@ -132,7 +130,6 @@ public:
+     void Focus() override;
+     bool HasFocus() override;
+     bool IsMouseLocked() override;
+-    viz::FrameSinkId GetRootFrameSinkId() override;
+     bool IsSurfaceAvailableForCopy() override;
+     void CopyFromSurface(const gfx::Rect &src_rect,
+                          const gfx::Size &output_size,
+@@ -147,14 +144,10 @@ public:
+     void UnlockMouse() override;
+     void UpdateCursor(const content::WebCursor&) override;
+     void DisplayCursor(const content::WebCursor&) override;
+-    content::CursorManager *GetCursorManager() override;
+     void SetIsLoading(bool) override;
+     void ImeCancelComposition() override;
+     void ImeCompositionRangeChanged(const gfx::Range&, const std::vector<gfx::Rect>&) override;
+     void RenderProcessGone() override;
+-    bool TransformPointToCoordSpaceForView(const gfx::PointF &point,
+-                                           content::RenderWidgetHostViewBase *target_view,
+-                                           gfx::PointF *transformed_point) override;
+     void Destroy() override;
+     void SetTooltipText(const base::string16 &tooltip_text) override;
+     void DisplayTooltipText(const base::string16& tooltip_text) override;
+@@ -272,7 +265,6 @@ private:
+     blink::ScreenInfo m_screenInfo;
+ 
+     scoped_refptr<base::SingleThreadTaskRunner> m_taskRunner;
+-    std::unique_ptr<content::CursorManager> m_cursorManager;
+ 
+     ui::FilteredGestureProvider m_gestureProvider;
+     base::TimeDelta m_eventsToNowDelta;
+@@ -281,7 +273,6 @@ private:
+     QMap<int, int> m_touchIdMapping;
+     QList<TouchPoint> m_previousTouchPoints;
+     std::unique_ptr<RenderWidgetHostViewQtDelegate> m_delegate;
+-    std::unique_ptr<GuestInputEventObserverQt> m_guestInputEventObserver;
+ 
+     bool m_visible;
+     bool m_deferredShow = false;
+diff --git a/src/core/renderer/content_renderer_client_qt.cpp b/src/core/renderer/content_renderer_client_qt.cpp
+index 317fde8f..cafdeddb 100644
+--- a/src/core/renderer/content_renderer_client_qt.cpp
++++ b/src/core/renderer/content_renderer_client_qt.cpp
+@@ -91,8 +91,6 @@
+ #if BUILDFLAG(ENABLE_EXTENSIONS)
+ #include "common/extensions/extensions_client_qt.h"
+ #include "extensions/extensions_renderer_client_qt.h"
+-#include "extensions/renderer/guest_view/mime_handler_view/mime_handler_view_container_manager.h"
+-#include "mojo/public/cpp/bindings/associated_remote.h"
+ #endif //ENABLE_EXTENSIONS
+ 
+ #if BUILDFLAG(ENABLE_PLUGINS)
+@@ -222,11 +220,6 @@ void ContentRendererClientQt::RenderFrameCreated(content::RenderFrame *render_fr
+     new printing::PrintRenderFrameHelper(render_frame, base::WrapUnique(new PrintWebViewHelperDelegateQt()));
+ #endif // QT_CONFIG(webengine_printing_and_pdf)
+ #if BUILDFLAG(ENABLE_EXTENSIONS)
+-    blink::AssociatedInterfaceRegistry *associated_interfaces = render_frame_observer->associatedInterfaces();
+-    associated_interfaces->AddInterface(base::BindRepeating(
+-        &extensions::MimeHandlerViewContainerManager::BindReceiver,
+-        render_frame->GetRoutingID()));
+-
+     auto registry = std::make_unique<service_manager::BinderRegistry>();
+     ExtensionsRendererClientQt::GetInstance()->RenderFrameCreated(render_frame, render_frame_observer->registry());
+ #endif
+@@ -344,30 +337,6 @@ std::unique_ptr<blink::WebPrescientNetworking> ContentRendererClientQt::CreatePr
+     return std::make_unique<network_hints::WebPrescientNetworkingImpl>(render_frame);
+ }
+ 
+-bool ContentRendererClientQt::IsPluginHandledExternally(content::RenderFrame *render_frame,
+-                                   const blink::WebElement &plugin_element,
+-                                   const GURL &original_url,
+-                                   const std::string &original_mime_type)
+-{
+-#if BUILDFLAG(ENABLE_EXTENSIONS) && BUILDFLAG(ENABLE_PLUGINS)
+-    bool found = false;
+-    content::WebPluginInfo plugin_info;
+-    std::string mime_type;
+-
+-    render_frame->Send(new FrameHostMsg_GetPluginInfo(render_frame->GetRoutingID(), original_url,
+-                                                      render_frame->GetWebFrame()->Top()->GetSecurityOrigin(),
+-                                                      original_mime_type, &found, &plugin_info, &mime_type));
+-
+-    return extensions::MimeHandlerViewContainerManager::Get(
+-                content::RenderFrame::FromWebFrame(
+-                    plugin_element.GetDocument().GetFrame()),
+-                true /* create_if_does_not_exist */)
+-                    ->CreateFrameContainer(plugin_element, original_url, mime_type, plugin_info);
+-#else
+-    return false;
+-#endif
+-}
+-
+ bool ContentRendererClientQt::OverrideCreatePlugin(content::RenderFrame *render_frame,
+                                                    const blink::WebPluginParams &params,
+                                                    blink::WebPlugin **plugin)
+@@ -378,6 +347,7 @@ bool ContentRendererClientQt::OverrideCreatePlugin(content::RenderFrame *render_
+ #endif //ENABLE_EXTENSIONS
+ 
+ #if BUILDFLAG(ENABLE_PLUGINS)
++    chrome::mojom::PluginInfoPtr plugin_info = chrome::mojom::PluginInfo::New();
+     content::WebPluginInfo info;
+     std::string mime_type;
+     bool found = false;
+@@ -385,18 +355,30 @@ bool ContentRendererClientQt::OverrideCreatePlugin(content::RenderFrame *render_
+     render_frame->Send(new FrameHostMsg_GetPluginInfo(render_frame->GetRoutingID(), params.url,
+                                                       render_frame->GetWebFrame()->Top()->GetSecurityOrigin(),
+                                                       params.mime_type.Utf8(), &found, &info, &mime_type));
+-    if (!found)
+-        *plugin = LoadablePluginPlaceholderQt::CreateLoadableMissingPlugin(render_frame, params)->plugin();
+-    else
+-        *plugin = render_frame->CreatePlugin(info, params, nullptr);
++    if (!found) {
++        *plugin = CreatePlugin(render_frame, params, *plugin_info);
++        return true;
++    }
+ #endif  // BUILDFLAG(ENABLE_PLUGINS)
+-    return true;
++    return content::ContentRendererClient::OverrideCreatePlugin(render_frame, params, plugin);
+ }
+ 
+ bool ContentRendererClientQt::IsOriginIsolatedPepperPlugin(const base::FilePath& plugin_path)
+ {
+-    return plugin_path.value() == FILE_PATH_LITERAL("internal-pdf-viewer");
++    return plugin_path.value() == FILE_PATH_LITERAL("internal-pdf-viewer/");
++}
++
++#if BUILDFLAG(ENABLE_PLUGINS)
++// static
++blink::WebPlugin* ContentRendererClientQt::CreatePlugin(content::RenderFrame* render_frame,
++                                                        const blink::WebPluginParams& original_params,
++                                                        const chrome::mojom::PluginInfo& plugin_info)
++{
++    // If the browser plugin is to be enabled, this should be handled by the
++    // renderer, so the code won't reach here due to the early exit in OverrideCreatePlugin.
++    return LoadablePluginPlaceholderQt::CreateLoadableMissingPlugin(render_frame, original_params)->plugin();
+ }
++#endif  //BUILDFLAG(ENABLE_PLUGINS)
+ 
+ #if QT_CONFIG(webengine_webrtc) && QT_CONFIG(webengine_extensions)
+ chrome::WebRtcLoggingAgentImpl *ContentRendererClientQt::GetWebRtcLoggingAgent()
+diff --git a/src/core/renderer/content_renderer_client_qt.h b/src/core/renderer/content_renderer_client_qt.h
+index a0faec53..0b0a7b68 100644
+--- a/src/core/renderer/content_renderer_client_qt.h
++++ b/src/core/renderer/content_renderer_client_qt.h
+@@ -47,6 +47,7 @@
+ #include "ppapi/buildflags/buildflags.h"
+ 
+ #if BUILDFLAG(ENABLE_PLUGINS)
++#include "qtwebengine/browser/plugin.mojom.h"
+ #include "third_party/blink/public/web/web_plugin_params.h"
+ #endif
+ 
+@@ -112,10 +113,6 @@ public:
+     void RunScriptsAtDocumentStart(content::RenderFrame *render_frame) override;
+     void RunScriptsAtDocumentEnd(content::RenderFrame *render_frame) override;
+     void RunScriptsAtDocumentIdle(content::RenderFrame *render_frame) override;
+-    bool IsPluginHandledExternally(content::RenderFrame *embedder_frame,
+-                                   const blink::WebElement &plugin_element,
+-                                   const GURL &original_url,
+-                                   const std::string &original_mime_type);
+     bool OverrideCreatePlugin(content::RenderFrame *render_frame,
+                               const blink::WebPluginParams &params,
+                               blink::WebPlugin **plugin) override;
+@@ -131,6 +128,12 @@ public:
+ 
+     bool RequiresWebComponentsV0(const GURL &url) override;
+ 
++#if BUILDFLAG(ENABLE_PLUGINS)
++    static blink::WebPlugin* CreatePlugin(content::RenderFrame* render_frame,
++                                          const blink::WebPluginParams& params,
++                                          const chrome::mojom::PluginInfo& plugin_info);
++#endif
++
+ #if QT_CONFIG(webengine_webrtc) && QT_CONFIG(webengine_extensions)
+     chrome::WebRtcLoggingAgentImpl *GetWebRtcLoggingAgent();
+ #endif
+diff --git a/src/core/renderer/pepper/pepper_renderer_host_factory_qt.cpp b/src/core/renderer/pepper/pepper_renderer_host_factory_qt.cpp
+index 1b9de4d4..33c744f1 100644
+--- a/src/core/renderer/pepper/pepper_renderer_host_factory_qt.cpp
++++ b/src/core/renderer/pepper/pepper_renderer_host_factory_qt.cpp
+@@ -48,7 +48,6 @@
+ 
+ #include "base/memory/ptr_util.h"
+ #include "chrome/renderer/pepper/pepper_flash_font_file_host.h"
+-#include "chrome/renderer/pepper/pepper_uma_host.h"
+ #if QT_CONFIG(webengine_printing_and_pdf)
+ #include "components/pdf/renderer/pepper_pdf_host.h"
+ #endif // QT_CONFIG(webengine_printing_and_pdf)
+@@ -128,14 +127,6 @@ std::unique_ptr<ppapi::host::ResourceHost> PepperRendererHostFactoryQt::CreateRe
+         }
+     }
+ #endif // QT_CONFIG(webengine_printing_and_pdf)
+-
+-    // Create a default ResourceHost for this message type to suppress
+-    // "Failed to create PPAPI resource host" console error message.
+-    switch (message.type()) {
+-    case PpapiHostMsg_UMA_Create::ID:
+-        return std::make_unique<ppapi::host::ResourceHost>(host_->GetPpapiHost(), instance, resource);
+-    }
+-
+     return nullptr;
+ }
+ 
+diff --git a/src/core/renderer/render_frame_observer_qt.cpp b/src/core/renderer/render_frame_observer_qt.cpp
+index 77d325f3..fd900c29 100644
+--- a/src/core/renderer/render_frame_observer_qt.cpp
++++ b/src/core/renderer/render_frame_observer_qt.cpp
+@@ -77,12 +77,6 @@ void RenderFrameObserverQt::DidCreatePepperPlugin(content::RendererPpapiHost *ho
+ }
+ #endif
+ 
+-bool RenderFrameObserverQt::OnAssociatedInterfaceRequestForFrame(const std::string &interface_name,
+-                                                                 mojo::ScopedInterfaceEndpointHandle *handle)
+-{
+-    return m_associated_interfaces.TryBindInterface(interface_name, handle);
+-}
+-
+ void RenderFrameObserverQt::WillDetach()
+ {
+     m_isFrameDetached = true;
+diff --git a/src/core/renderer/render_frame_observer_qt.h b/src/core/renderer/render_frame_observer_qt.h
+index 8803dde8..237185f8 100644
+--- a/src/core/renderer/render_frame_observer_qt.h
++++ b/src/core/renderer/render_frame_observer_qt.h
+@@ -46,7 +46,6 @@
+ #include "content/public/renderer/render_frame_observer_tracker.h"
+ #include "ppapi/buildflags/buildflags.h"
+ #include "services/service_manager/public/cpp/binder_registry.h"
+-#include "third_party/blink/public/common/associated_interfaces/associated_interface_registry.h"
+ 
+ namespace content {
+ class RenderFrame;
+@@ -68,18 +67,12 @@ public:
+ #if QT_CONFIG(webengine_pepper_plugins)
+     void DidCreatePepperPlugin(content::RendererPpapiHost *host) override;
+ #endif
+-    bool OnAssociatedInterfaceRequestForFrame(
+-        const std::string &interface_name,
+-        mojo::ScopedInterfaceEndpointHandle *handle) override;
+     void OnDestruct() override;
+     void WillDetach() override;
+ 
+     bool isFrameDetached() const;
+ 
+     service_manager::BinderRegistry *registry() { return &registry_; }
+-    blink::AssociatedInterfaceRegistry *associatedInterfaces() {
+-        return &m_associated_interfaces;
+-    }
+ 
+ private:
+     DISALLOW_COPY_AND_ASSIGN(RenderFrameObserverQt);
+@@ -88,7 +81,6 @@ private:
+ 
+     bool m_isFrameDetached;
+     service_manager::BinderRegistry registry_;
+-    blink::AssociatedInterfaceRegistry m_associated_interfaces;
+     web_cache::WebCacheImpl *m_web_cache_impl;
+ };
+ 
+diff --git a/src/core/web_contents_adapter.cpp b/src/core/web_contents_adapter.cpp
+index 5597c69f..f19ead56 100644
+--- a/src/core/web_contents_adapter.cpp
++++ b/src/core/web_contents_adapter.cpp
+@@ -1548,15 +1548,7 @@ void WebContentsAdapter::startDragging(QObject *dragSource, const content::DropD
+     QObject::disconnect(onDestroyed);
+     if (dValid) {
+         if (m_webContents) {
+-            // This is the quickest and (at the moment) the most safe solution to not break guest views when
+-            // dropping data into them. We don't even try to support dropping into PDF input fields,
+-            // since it's not working in Chrome right now.
+-            content::WebContents *targetWebContents = m_webContents.get();
+-            std::vector<content::WebContents *> innerWebContents = m_webContents->GetInnerWebContents();
+-            if (!innerWebContents.empty())
+-                targetWebContents = innerWebContents[0];
+-
+-            content::RenderViewHost *rvh = targetWebContents->GetRenderViewHost();
++            content::RenderViewHost *rvh = m_webContents->GetRenderViewHost();
+             if (rvh) {
+                 rvh->GetWidget()->DragSourceEndedAt(gfx::PointF(m_lastDragClientPos.x(), m_lastDragClientPos.y()),
+                                                     gfx::PointF(m_lastDragScreenPos.x(), m_lastDragScreenPos.y()),
+diff --git a/src/core/web_contents_view_qt.cpp b/src/core/web_contents_view_qt.cpp
+index 900c5382..6c5e7674 100644
+--- a/src/core/web_contents_view_qt.cpp
++++ b/src/core/web_contents_view_qt.cpp
+@@ -46,6 +46,7 @@
+ #include "render_widget_host_view_qt.h"
+ #include "touch_selection_controller_client_qt.h"
+ #include "type_conversion.h"
++#include "web_contents_adapter_client.h"
+ #include "web_contents_adapter.h"
+ #include "web_engine_context.h"
+ #include "web_contents_delegate_qt.h"
+@@ -194,7 +195,7 @@ ASSERT_ENUMS_MATCH(WebEngineContextMenuData::CanSelectAll, blink::kCanSelectAll)
+ ASSERT_ENUMS_MATCH(WebEngineContextMenuData::CanTranslate, blink::kCanTranslate)
+ ASSERT_ENUMS_MATCH(WebEngineContextMenuData::CanEditRichly, blink::kCanEditRichly)
+ 
+-WebEngineContextMenuData WebContentsViewQt::buildContextMenuData(const content::ContextMenuParams &params)
++static inline WebEngineContextMenuData fromParams(const content::ContextMenuParams &params)
+ {
+     WebEngineContextMenuData ret;
+     ret.setPosition(QPoint(params.x, params.y));
+@@ -228,7 +229,7 @@ void WebContentsViewQt::ShowContextMenu(content::RenderFrameHost *, const conten
+             return;
+     }
+ 
+-    WebEngineContextMenuData contextMenuData(buildContextMenuData(params));
++    WebEngineContextMenuData contextMenuData(fromParams(params));
+ #if QT_CONFIG(webengine_spellchecker)
+     // Do not use params.spellcheck_enabled, since it is never
+     // correctly initialized for chrome asynchronous spellchecking.
+diff --git a/src/core/web_contents_view_qt.h b/src/core/web_contents_view_qt.h
+index da0c5d20..d2f82dfa 100644
+--- a/src/core/web_contents_view_qt.h
++++ b/src/core/web_contents_view_qt.h
+@@ -44,7 +44,6 @@
+ #include "content/browser/web_contents/web_contents_view.h"
+ 
+ #include "api/qtwebenginecoreglobal_p.h"
+-#include "web_contents_adapter_client.h"
+ 
+ namespace content {
+ class WebContents;
+@@ -121,8 +120,6 @@ public:
+     void LostFocus(content::RenderWidgetHostImpl *render_widget_host) override;
+     void TakeFocus(bool reverse) override;
+ 
+-    static WebEngineContextMenuData buildContextMenuData(const content::ContextMenuParams &params);
+-
+ private:
+     content::WebContents *m_webContents;
+     WebContentsAdapterClient *m_client;
+-- 
+2.31.1
+

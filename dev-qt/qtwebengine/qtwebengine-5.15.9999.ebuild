@@ -98,11 +98,10 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.15.0-disable-fatal-warnings.patch" # bug 695446
 	"${FILESDIR}/${PN}-5.15.2_p20210224-chromium-87-v8-icu68.patch" # downstream, bug 757606
 	"${FILESDIR}/${PN}-5.15.2_p20210224-disable-git.patch" # downstream snapshot fix
-	"${FILESDIR}/${P}-glibc-2.33.patch" # by Fedora, bug 769989
-	"${FILESDIR}/${P}-gcc11.patch" # by Fedora, bug 768261
-	"${FILESDIR}/${P}-icu69.patch" # bug 781236
+	"${FILESDIR}/${PN}-5.15.2_p20210406-glibc-2.33.patch" # by Fedora, bug 769989
+	"${FILESDIR}/${PN}-5.15.2_p20210406-gcc11.patch" # by Fedora, bug 768261
+	"${FILESDIR}/${PN}-5.15.2_p20210406-icu69.patch" # bug 781236
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
-	"${FILESDIR}/0001-Revert-Show-PDF-viewer-in-a-guest-view.patch"
 )
 
 src_prepare() {
