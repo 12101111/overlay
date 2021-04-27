@@ -1,0 +1,24 @@
+From 3687f30ea464d79267c6968453f6930a3e08a608 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Tue, 27 Apr 2021 15:17:51 +0800
+Subject: [PATCH 3/3] clang fix
+
+---
+ lib-src/seccomp-filter.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/lib-src/seccomp-filter.c b/lib-src/seccomp-filter.c
+index ee915225ef..e52d3f9439 100644
+--- a/lib-src/seccomp-filter.c
++++ b/lib-src/seccomp-filter.c
+@@ -179,7 +179,6 @@ main (int argc, char **argv)
+   verify (sizeof (long) == 8 && LONG_MIN == INT64_MIN
+           && LONG_MAX == INT64_MAX);
+   verify (sizeof (void *) == 8);
+-  assert ((uintptr_t) NULL == 0);
+ 
+   /* Allow a clean exit.  */
+   RULE (SCMP_ACT_ALLOW, SCMP_SYS (exit));
+-- 
+2.31.1
+

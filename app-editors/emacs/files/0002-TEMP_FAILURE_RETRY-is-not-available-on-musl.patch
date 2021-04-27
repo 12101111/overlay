@@ -1,0 +1,32 @@
+From 349448256937241dc848c83375640d0ef2c8f4d3 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Tue, 27 Apr 2021 15:16:40 +0800
+Subject: [PATCH 2/3] TEMP_FAILURE_RETRY is not available on musl
+
+---
+ lib-src/seccomp-filter.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/lib-src/seccomp-filter.c b/lib-src/seccomp-filter.c
+index dc568e035b..ee915225ef 100644
+--- a/lib-src/seccomp-filter.c
++++ b/lib-src/seccomp-filter.c
+@@ -126,6 +126,15 @@ set_attribute (enum scmp_filter_attr attr, uint32_t value)
+     }                                                                \
+   while (false)
+ 
++#ifndef TEMP_FAILURE_RETRY
++# define TEMP_FAILURE_RETRY(expression)           \
++  (__extension__                                  \
++    ({ long int __result;                         \
++       do __result = (long int) (expression);     \
++       while (__result == -1L && errno == EINTR); \
++       __result; }))
++#endif
++
+ static void
+ export_filter (const char *file,
+                int (*function) (const scmp_filter_ctx, int),
+-- 
+2.31.1
+

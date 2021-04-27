@@ -133,6 +133,12 @@ RDEPEND="${RDEPEND}
 EMACS_SUFFIX="emacs-${SLOT}"
 SITEFILE="20${EMACS_SUFFIX}-gentoo.el"
 
+PATCHES=(
+	"${FILESDIR}"/0001-malloc_info-is-not-available-on-musl.patch
+	"${FILESDIR}"/0002-TEMP_FAILURE_RETRY-is-not-available-on-musl.patch
+	"${FILESDIR}"/0003-clang-fix.patch
+)
+
 src_prepare() {
 	if [[ ${PV##*.} = 9999 ]]; then
 		FULL_VERSION=$(sed -n 's/^AC_INIT([^,]*,[ \t]*\([^ \t,)]*\).*/\1/p' \
@@ -145,10 +151,10 @@ src_prepare() {
 			|| die "Upstream version number changed to ${FULL_VERSION}"
 	fi
 
-	eapply_user
-
 	# Fix filename reference in redirected man page
 	sed -i -e "/^\\.so/s/etags/&-${EMACS_SUFFIX}/" doc/man/ctags.1 || die
+
+	default
 
 	AT_M4DIR=m4 eautoreconf
 }
