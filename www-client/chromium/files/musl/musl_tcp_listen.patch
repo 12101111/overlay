@@ -1,5 +1,5 @@
 diff --git a/content/public/common/socket_permission_request.h b/content/public/common/socket_permission_request.h
-index 7316621..6171219 100644
+index 7316621275..6171219631 100644
 --- a/content/public/common/socket_permission_request.h
 +++ b/content/public/common/socket_permission_request.h
 @@ -9,6 +9,9 @@

@@ -1,8 +1,8 @@
 diff --git a/net/socket/udp_socket_posix.cc b/net/socket/udp_socket_posix.cc
-index 08bf79c..3ee5353 100644
+index 47f31493a4..8beda760a3 100644
 --- a/net/socket/udp_socket_posix.cc
 +++ b/net/socket/udp_socket_posix.cc
-@@ -1194,7 +1194,7 @@ SendResult UDPSocketPosixSender::InternalSendmmsgBuffers(
+@@ -1162,7 +1162,7 @@ SendResult UDPSocketPosixSender::InternalSendmmsgBuffers(
      msg_iov->push_back({const_cast<char*>(buffer->data()), buffer->length()});
    msgvec->reserve(buffers.size());
    for (size_t j = 0; j < buffers.size(); j++)

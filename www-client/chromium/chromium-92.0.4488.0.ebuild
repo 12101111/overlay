@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="4"
+PATCHSET="1"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -40,8 +40,8 @@ COMMON_X_DEPEND="
 	x11-libs/libXrandr:=
 	x11-libs/libXrender:=
 	x11-libs/libXtst:=
-	x11-libs/libXScrnSaver:=
 	x11-libs/libxcb:=
+	x11-libs/libxshmfence:=
 	vaapi? ( >=x11-libs/libva-2.7:=[X,drm] )
 "
 
@@ -68,6 +68,7 @@ COMMON_DEPEND="
 		)
 		>=media-libs/opus-1.3.1:=
 	)
+	net-misc/curl[ssl]
 	sys-apps/dbus:=
 	sys-apps/pciutils:=
 	virtual/udev
@@ -187,7 +188,7 @@ in /etc/chromium/default.
 "
 
 PATCHES=(
-	"${FILESDIR}/chromium-88_atk_optional.patch"
+	"${FILESDIR}/chromium-92_atk_optional.patch"
 	"${FILESDIR}/chromium-skia-harmony.patch"
 	"${FILESDIR}/chromium-shim_headers.patch"
 	"${FILESDIR}/chromium-89-EnumTable-crash.patch"
@@ -251,7 +252,8 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-91-gtk_util-ternary-operator.patch"
+	rm "${WORKDIR}/patches/chromium-92-BoxPreflightCheckApiCallFlow-ostream.patch"
+	rm "${WORKDIR}/patches/chromium-92-DownloadShelfPageHandler-confusion.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -262,8 +264,6 @@ src_prepare() {
 	# adjust python interpreter versions
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
 	sed -i -e "s|python2|python2\.7|g" buildtools/linux64/clang-format || die
-	sed -i -e "s|python|python2\.7|g" \
-		third_party/dom_distiller_js/protoc_plugins/json_values_converter.py || die
 
 	local keeplibs=(
 		base/third_party/cityhash
@@ -326,6 +326,7 @@ src_prepare() {
 		third_party/dav1d
 		third_party/dawn
 		third_party/dawn/third_party/khronos
+		third_party/dawn/third_party/tint
 		third_party/depot_tools
 		third_party/devscripts
 		third_party/devtools-frontend
@@ -333,6 +334,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/axe-core
 		third_party/devtools-frontend/src/front_end/third_party/chromium
 		third_party/devtools-frontend/src/front_end/third_party/codemirror
+		third_party/devtools-frontend/src/front_end/third_party/diff
 		third_party/devtools-frontend/src/front_end/third_party/fabricjs
 		third_party/devtools-frontend/src/front_end/third_party/i18n
 		third_party/devtools-frontend/src/front_end/third_party/intl-messageformat
@@ -352,6 +354,7 @@ src_prepare() {
 		third_party/flatbuffers
 		third_party/freetype
 		third_party/fusejs
+		third_party/highway
 		third_party/libgifcodec
 		third_party/liburlpattern
 		third_party/libzip
@@ -361,7 +364,6 @@ src_prepare() {
 		third_party/google_input_tools/third_party/closure_library/third_party/closure
 		third_party/googletest
 		third_party/harfbuzz-ng/utils
-		third_party/highway
 		third_party/hunspell
 		third_party/iccjpeg
 		third_party/inspector_protocol
@@ -452,7 +454,6 @@ src_prepare() {
 		third_party/tflite/src/third_party/eigen3
 		third_party/tflite/src/third_party/fft2d
 		third_party/tflite-support
-		third_party/tint
 		third_party/ruy
 		third_party/ukey2
 		third_party/unrar
@@ -680,6 +681,9 @@ src_configure() {
 		myconf_gn+=" chrome_pgo_phase = 0"
 	fi
 
+	# Disable pseudolocales, only used for testing
+	myconf_gn+=" enable_pseudolocales=false"
+
 	ffmpeg_branding="$(usex proprietary-codecs Chrome Chromium)"
 	myconf_gn+=" proprietary_codecs=$(usex proprietary-codecs true false)"
 	myconf_gn+=" ffmpeg_branding=\"${ffmpeg_branding}\""
@@ -875,6 +879,7 @@ src_install() {
 	fi
 
 	doexe out/Release/chromedriver
+	doexe out/Release/crashpad_handler
 
 	local sedargs=( -e
 			"s:/usr/lib/:/usr/$(get_libdir)/:g;
@@ -957,10 +962,9 @@ pkg_postinst() {
 	readme.gentoo_print_elog
 
 	if use vaapi; then
-		elog "VA-API is disabled by default at runtime. Either enable it"
-		elog "by navigating to chrome://flags/#enable-accelerated-video-decode"
-		elog "inside Chromium or add --enable-accelerated-video-decode"
-		elog "to CHROMIUM_FLAGS in /etc/chromium/default."
+		elog "VA-API is disabled by default at runtime. You have to enable it"
+		elog "by adding --enable-features=VaapiVideoDecoder to CHROMIUM_FLAGS"
+		elog "in /etc/chromium/default."
 	fi
 	if use screencast; then
 		elog "Screencast is disabled by default at runtime. Either enable it"

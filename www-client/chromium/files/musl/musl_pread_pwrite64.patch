@@ -1,8 +1,8 @@
 diff --git a/third_party/lss/linux_syscall_support.h b/third_party/lss/linux_syscall_support.h
-index 5d9c2e8..2682349 100644
+index 8d4e4d2a18..634baff404 100644
 --- a/third_party/lss/linux_syscall_support.h
 +++ b/third_party/lss/linux_syscall_support.h
-@@ -166,6 +166,13 @@ extern "C" {
+@@ -173,6 +173,13 @@ extern "C" {
  # undef __NR_waitpid
  #endif
  

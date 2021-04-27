@@ -1,5 +1,7 @@
---- a/sandbox/linux/suid/sandbox.c	2019-11-19 09:28:05.000000000 +0800
-+++ b/sandbox/linux/suid/sandbox.c	2020-04-24 11:50:12.719880728 +0800
+diff --git a/sandbox/linux/suid/sandbox.c b/sandbox/linux/suid/sandbox.c
+index 5fdb4817af..88bd478903 100644
+--- a/sandbox/linux/suid/sandbox.c
++++ b/sandbox/linux/suid/sandbox.c
 @@ -42,6 +42,15 @@
  #define CLONE_NEWNET 0x40000000
  #endif

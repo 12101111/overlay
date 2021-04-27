@@ -1,8 +1,8 @@
-diff --git a/sandbox/linux/seccomp-bpf-helpers/syscall_parameters_restrictions.cc ./sandbox/linux/seccomp-bpf-helpers/syscall_parameters_restrictions.cc
-index ff5a1c0..da56b9b 100644
+diff --git a/sandbox/linux/seccomp-bpf-helpers/syscall_parameters_restrictions.cc b/sandbox/linux/seccomp-bpf-helpers/syscall_parameters_restrictions.cc
+index cc0e91b203..8836e7790f 100644
 --- a/sandbox/linux/seccomp-bpf-helpers/syscall_parameters_restrictions.cc
 +++ b/sandbox/linux/seccomp-bpf-helpers/syscall_parameters_restrictions.cc
-@@ -139,21 +139,11 @@ namespace sandbox {
+@@ -130,21 +130,11 @@ namespace sandbox {
  // present (as in newer versions of posix_spawn).
  ResultExpr RestrictCloneToThreadsAndEPERMFork() {
    const Arg<unsigned long> flags(0);
@@ -29,7 +29,7 @@ index ff5a1c0..da56b9b 100644
  
    // The following two flags are the two important flags in any vfork-emulating
    // clone call. EPERM any clone call that contains both of them.
-@@ -163,7 +153,7 @@ ResultExpr RestrictCloneToThreadsAndEPERMFork() {
+@@ -154,7 +144,7 @@ ResultExpr RestrictCloneToThreadsAndEPERMFork() {
        AnyOf((flags & (CLONE_VM | CLONE_THREAD)) == 0,
              (flags & kImportantCloneVforkFlags) == kImportantCloneVforkFlags);
  
@@ -38,11 +38,11 @@ index ff5a1c0..da56b9b 100644
        .ElseIf(is_fork_or_clone_vfork, Error(EPERM))
        .Else(CrashSIGSYSClone());
  }
-diff --git a/sandbox/linux/seccomp-bpf-helpers/syscall_sets.cc ./sandbox/linux/seccomp-bpf-helpers/syscall_sets.cc
-index d9d1882..0567557 100644
+diff --git a/sandbox/linux/seccomp-bpf-helpers/syscall_sets.cc b/sandbox/linux/seccomp-bpf-helpers/syscall_sets.cc
+index 96c9f490e2..225823c5a8 100644
 --- a/sandbox/linux/seccomp-bpf-helpers/syscall_sets.cc
 +++ b/sandbox/linux/seccomp-bpf-helpers/syscall_sets.cc
-@@ -392,6 +392,7 @@ bool SyscallSets::IsAllowedProcessStartOrDeath(int sysno) {
+@@ -417,6 +417,7 @@ bool SyscallSets::IsAllowedProcessStartOrDeath(int sysno) {
  #if defined(__i386__)
      case __NR_waitpid:
  #endif
@@ -50,7 +50,7 @@ index d9d1882..0567557 100644
        return true;
      case __NR_clone:  // Should be parameter-restricted.
      case __NR_setns:  // Privileged.
-@@ -404,7 +405,6 @@ bool SyscallSets::IsAllowedProcessStartOrDeath(int sysno) {
+@@ -429,7 +430,6 @@ bool SyscallSets::IsAllowedProcessStartOrDeath(int sysno) {
  #if defined(__i386__) || defined(__x86_64__) || defined(__mips__)
      case __NR_set_thread_area:
  #endif
@@ -58,7 +58,7 @@ index d9d1882..0567557 100644
      case __NR_unshare:
  #if !defined(__mips__) && !defined(__aarch64__)
      case __NR_vfork:
-@@ -514,6 +514,8 @@ bool SyscallSets::IsAllowedAddressSpaceAccess(int sysno) {
+@@ -543,6 +543,8 @@ bool SyscallSets::IsAllowedAddressSpaceAccess(int sysno) {
      case __NR_mlock:
      case __NR_munlock:
      case __NR_munmap:
@@ -67,7 +67,7 @@ index d9d1882..0567557 100644
        return true;
      case __NR_madvise:
      case __NR_mincore:
-@@ -531,7 +533,6 @@ bool SyscallSets::IsAllowedAddressSpaceAccess(int sysno) {
+@@ -560,7 +562,6 @@ bool SyscallSets::IsAllowedAddressSpaceAccess(int sysno) {
      case __NR_modify_ldt:
  #endif
      case __NR_mprotect:
@@ -75,12 +75,12 @@ index d9d1882..0567557 100644
      case __NR_msync:
      case __NR_munlockall:
      case __NR_readahead:
-diff --git a/sandbox/linux/system_headers/arm64_linux_syscalls.h ./sandbox/linux/system_headers/arm64_linux_syscalls.h
-index 59d0eab..7ae7002 100644
+diff --git a/sandbox/linux/system_headers/arm64_linux_syscalls.h b/sandbox/linux/system_headers/arm64_linux_syscalls.h
+index a242c18c84..30751fc4ac 100644
 --- a/sandbox/linux/system_headers/arm64_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/arm64_linux_syscalls.h
-@@ -1063,4 +1063,8 @@
- #define __NR_memfd_create 279
+@@ -1119,4 +1119,8 @@
+ #define __NR_rseq 293
  #endif
  
 +#if !defined(__NR_membarrier)
@@ -88,12 +88,12 @@ index 59d0eab..7ae7002 100644
 +#endif
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_ARM64_LINUX_SYSCALLS_H_
-diff --git a/sandbox/linux/system_headers/arm_linux_syscalls.h ./sandbox/linux/system_headers/arm_linux_syscalls.h
-index 1addd53..7843b5e 100644
+diff --git a/sandbox/linux/system_headers/arm_linux_syscalls.h b/sandbox/linux/system_headers/arm_linux_syscalls.h
+index 85da6f41c6..609c04dadd 100644
 --- a/sandbox/linux/system_headers/arm_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/arm_linux_syscalls.h
-@@ -1385,6 +1385,10 @@
- #define __NR_memfd_create (__NR_SYSCALL_BASE+385)
+@@ -1605,6 +1605,10 @@
+ #define __NR_mount_setattr (__NR_SYSCALL_BASE + 442)
  #endif
  
 +#if !defined(__NR_membarrier)
@@ -103,8 +103,8 @@ index 1addd53..7843b5e 100644
  // ARM private syscalls.
  #if !defined(__ARM_NR_BASE)
  #define __ARM_NR_BASE (__NR_SYSCALL_BASE + 0xF0000)
-diff --git a/sandbox/linux/system_headers/linux_syscalls.h ./sandbox/linux/system_headers/linux_syscalls.h
-index 2b78a0c..b6fedb5 100644
+diff --git a/sandbox/linux/system_headers/linux_syscalls.h b/sandbox/linux/system_headers/linux_syscalls.h
+index 2b78a0cc3b..b6fedb5c20 100644
 --- a/sandbox/linux/system_headers/linux_syscalls.h
 +++ b/sandbox/linux/system_headers/linux_syscalls.h
 @@ -10,6 +10,7 @@
@@ -115,8 +115,8 @@ index 2b78a0c..b6fedb5 100644
  
  #if defined(__x86_64__)
  #include "sandbox/linux/system_headers/x86_64_linux_syscalls.h"
-diff --git a/sandbox/linux/system_headers/mips64_linux_syscalls.h ./sandbox/linux/system_headers/mips64_linux_syscalls.h
-index ec75815..5515270 100644
+diff --git a/sandbox/linux/system_headers/mips64_linux_syscalls.h b/sandbox/linux/system_headers/mips64_linux_syscalls.h
+index ec75815a84..5515270836 100644
 --- a/sandbox/linux/system_headers/mips64_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/mips64_linux_syscalls.h
 @@ -1271,4 +1271,8 @@
@@ -128,12 +128,12 @@ index ec75815..5515270 100644
 +#endif
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_MIPS64_LINUX_SYSCALLS_H_
-diff --git a/sandbox/linux/system_headers/mips_linux_syscalls.h ./sandbox/linux/system_headers/mips_linux_syscalls.h
-index ddbf97f..ad3d64b 100644
+diff --git a/sandbox/linux/system_headers/mips_linux_syscalls.h b/sandbox/linux/system_headers/mips_linux_syscalls.h
+index 50d9ea11bf..0caffae661 100644
 --- a/sandbox/linux/system_headers/mips_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/mips_linux_syscalls.h
-@@ -1433,4 +1433,8 @@
- #define __NR_memfd_create (__NR_Linux + 354)
+@@ -1685,4 +1685,8 @@
+ #define __NR_mount_setattr (__NR_Linux + 442)
  #endif
  
 +#if !defined(__NR_membarrier)
@@ -141,8 +141,8 @@ index ddbf97f..ad3d64b 100644
 +#endif
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_MIPS_LINUX_SYSCALLS_H_
-diff --git a/sandbox/linux/system_headers/x86_64_linux_syscalls.h ./sandbox/linux/system_headers/x86_64_linux_syscalls.h
-index b0ae0a2..8b12029 100644
+diff --git a/sandbox/linux/system_headers/x86_64_linux_syscalls.h b/sandbox/linux/system_headers/x86_64_linux_syscalls.h
+index b0ae0a2edf..8b12029475 100644
 --- a/sandbox/linux/system_headers/x86_64_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/x86_64_linux_syscalls.h
 @@ -1350,5 +1350,9 @@
@@ -155,11 +155,11 @@ index b0ae0a2..8b12029 100644
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_X86_64_LINUX_SYSCALLS_H_
  
-diff --git a/sandbox/policy/linux/bpf_renderer_policy_linux.cc ./sandbox/policy/linux/bpf_renderer_policy_linux.cc
-index a85c0ea..715aa1e 100644
+diff --git a/sandbox/policy/linux/bpf_renderer_policy_linux.cc b/sandbox/policy/linux/bpf_renderer_policy_linux.cc
+index f789e92c37..1a84c2c980 100644
 --- a/sandbox/policy/linux/bpf_renderer_policy_linux.cc
 +++ b/sandbox/policy/linux/bpf_renderer_policy_linux.cc
-@@ -93,11 +93,11 @@ ResultExpr RendererProcessPolicy::EvaluateSyscall(int sysno) const {
+@@ -97,11 +97,11 @@ ResultExpr RendererProcessPolicy::EvaluateSyscall(int sysno) const {
      case __NR_sysinfo:
      case __NR_times:
      case __NR_uname:

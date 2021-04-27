@@ -1,3 +1,19 @@
+diff --git a/base/allocator/allocator_shim_internals.h b/base/allocator/allocator_shim_internals.h
+index da1e5a6f92..ebf6306522 100644
+--- a/base/allocator/allocator_shim_internals.h
++++ b/base/allocator/allocator_shim_internals.h
+@@ -9,7 +9,9 @@
+ 
+ #if defined(__GNUC__)
+ 
++#if defined(__GLIBC__)
+ #include <sys/cdefs.h>  // for __THROW
++#endif
+ 
+ #ifndef __THROW  // Not a glibc system
+ #ifdef _NOEXCEPT  // LLVM libc++ uses noexcept instead
+diff --git a/third_party/crashpad/crashpad/compat/linux/sys/ptrace.h b/third_party/crashpad/crashpad/compat/linux/sys/ptrace.h
+index f8be372cc6..5ab6e5b4ba 100644
 --- a/third_party/crashpad/crashpad/compat/linux/sys/ptrace.h
 +++ b/third_party/crashpad/crashpad/compat/linux/sys/ptrace.h
 @@ -17,7 +17,9 @@
@@ -10,23 +26,8 @@
  
  // https://sourceware.org/bugzilla/show_bug.cgi?id=22433
  #if !defined(PTRACE_GET_THREAD_AREA) && !defined(PT_GET_THREAD_AREA) && \
-diff --git a/base/allocator/allocator_shim_internals.h b/base/allocator/allocator_shim_internal
-s.h
-index 0196f89..bb42b5d 100644
---- a/base/allocator/allocator_shim_internals.h
-+++ b/base/allocator/allocator_shim_internals.h
-@@ -7,7 +7,9 @@
-
- #if defined(__GNUC__)
-
-+#if defined(__GLIBC__)
- #include <sys/cdefs.h>  // for __THROW
-+#endif
-
- #ifndef __THROW  // Not a glibc system
- #ifdef _NOEXCEPT  // LLVM libc++ uses noexcept instead
 diff --git a/third_party/libsync/src/include/sync/sync.h b/third_party/libsync/src/include/sync/sync.h
-index 50ed0ac..7552a49 100644
+index 50ed0ac57b..7552a49798 100644
 --- a/third_party/libsync/src/include/sync/sync.h
 +++ b/third_party/libsync/src/include/sync/sync.h
 @@ -19,12 +19,13 @@
