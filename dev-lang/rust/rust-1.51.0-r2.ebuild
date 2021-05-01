@@ -35,7 +35,7 @@ SRC_URI="
 ALL_LLVM_TARGETS=( AArch64 AMDGPU ARM AVR BPF Hexagon Lanai Mips MSP430
 	NVPTX PowerPC RISCV Sparc SystemZ WebAssembly X86 XCore )
 ALL_LLVM_TARGETS=( "${ALL_LLVM_TARGETS[@]/#/llvm_targets_}" )
-LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/?}
+LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/(-)?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
@@ -46,18 +46,26 @@ IUSE="clippy cpu_flags_x86_sse2 debug doc miri nightly parallel-compiler rls rus
 # simultaneously.
 
 # How to use it:
-# 1. List all the working slots (with min versions) in ||, newest first.
-# 2. Update the := to specify *max* version, e.g. < 12.
-# 3. Specify LLVM_MAX_SLOT, e.g. 11.
-LLVM_DEPEND="
-	|| (
-		sys-devel/llvm:11[${LLVM_TARGET_USEDEPS// /,}]
-		sys-devel/llvm:12[${LLVM_TARGET_USEDEPS// /,}]
-	)
-	<sys-devel/llvm-13:=
+# List all the working slots in LLVM_VALID_SLOTS, newest first.
+LLVM_VALID_SLOTS=( 12 11 )
+LLVM_MAX_SLOT="${LLVM_VALID_SLOTS[0]}"
+
+# splitting usedeps needed to avoid CI/pkgcheck's UncheckableDep limitation
+# (-) usedep needed because we may build with older llvm without that target
+LLVM_DEPEND="|| ( "
+for _s in ${LLVM_VALID_SLOTS[@]}; do
+	LLVM_DEPEND+=" ( "
+	for _x in ${ALL_LLVM_TARGETS[@]}; do
+		LLVM_DEPEND+="
+			${_x}? ( sys-devel/llvm:${_s}[${_x}(-)] )"
+	done
+	LLVM_DEPEND+=" )"
+done
+unset _s _x
+LLVM_DEPEND+=" )
+	<sys-devel/llvm-$(( LLVM_MAX_SLOT + 1 )):=
 	wasm? ( sys-devel/lld )
 "
-LLVM_MAX_SLOT=12
 
 # to bootstrap we need at least exactly previous version, or same.
 # most of the time previous versions fail to bootstrap with newer
@@ -84,6 +92,7 @@ BDEPEND="${PYTHON_DEPS}
 		dev-util/cmake
 		dev-util/ninja
 	)
+	test? ( sys-devel/gdb )
 "
 
 DEPEND="
@@ -93,9 +102,7 @@ DEPEND="
 	dev-libs/openssl:0=
 	default-libcxx? ( sys-devel/clang[default-libcxx] )
 	llvm-libunwind? ( sys-libs/llvm-libunwind )
-	system-llvm? (
-		${LLVM_DEPEND}
-	)
+	system-llvm? ( ${LLVM_DEPEND} )
 	wasi? ( dev-libs/wasi-libc )
 "
 
@@ -145,10 +152,10 @@ PATCHES=(
 	"${FILESDIR}"/musl-fix-libunwind.patch
 	"${FILESDIR}"/fix-self-bootstrap.patch
 	"${FILESDIR}"/rustc-1.51.0-backport-pr81728.patch
-    "${FILESDIR}"/rustc-1.51.0-backport-pr81741.patch
-    "${FILESDIR}"/rustc-1.51.0-backport-pr82289.patch
-    "${FILESDIR}"/rustc-1.51.0-backport-pr82292.patch
-    "${FILESDIR}"/rustc-1.51.0-backport-pr83629.patch
+	"${FILESDIR}"/rustc-1.51.0-backport-pr81741.patch
+	"${FILESDIR}"/rustc-1.51.0-backport-pr82289.patch
+	"${FILESDIR}"/rustc-1.51.0-backport-pr82292.patch
+	"${FILESDIR}"/rustc-1.51.0-backport-pr83629.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
@@ -182,12 +189,21 @@ boostrap_rust_version_check() {
 }
 
 pre_build_checks() {
-	local M=6144
+	local M=8192
+	# multiply requirements by 1.5 if we are doing x86-multilib
+	M=$(( $(usex abi_x86_32 15 10) * ${M} / 10 ))
 	M=$(( $(usex clippy 128 0) + ${M} ))
 	M=$(( $(usex miri 128 0) + ${M} ))
 	M=$(( $(usex rls 512 0) + ${M} ))
 	M=$(( $(usex rustfmt 256 0) + ${M} ))
-	M=$(( $(usex system-llvm 0 2048) + ${M} ))
+	# add 2G if we compile llvm and 256M per llvm_target
+	if ! use system-llvm; then
+		M=$(( 2048 + ${M} ))
+		local ltarget
+		for ltarget in ${ALL_LLVM_TARGETS[@]}; do
+			M=$(( $(usex ${ltarget} 256 0) + ${M} ))
+		done
+	fi
 	M=$(( $(usex wasm 256 0) + ${M} ))
 	M=$(( $(usex debug 15 10) * ${M} / 10 ))
 	eshopts_push -s extglob
@@ -198,6 +214,10 @@ pre_build_checks() {
 	M=$(( $(usex system-bootstrap 0 1024) + ${M} ))
 	M=$(( $(usex doc 256 0) + ${M} ))
 	CHECKREQS_DISK_BUILD=${M}M check-reqs_pkg_${EBUILD_PHASE}
+}
+
+llvm_check_deps() {
+	has_version -r "sys-devel/llvm:${LLVM_SLOT}[${LLVM_TARGET_USEDEPS// /,}]"
 }
 
 pkg_pretend() {
@@ -215,7 +235,7 @@ pkg_setup() {
 	if use system-llvm; then
 		llvm_pkg_setup
 
-		local llvm_config="$(get_llvm_prefix "$LLVM_MAX_SLOT")/bin/llvm-config"
+		local llvm_config="$(get_llvm_prefix "${LLVM_MAX_SLOT}")/bin/llvm-config"
 		export LLVM_LINK_SHARED=1
 		export RUSTFLAGS="${RUSTFLAGS} -Lnative=$("${llvm_config}" --libdir)"
 	fi
@@ -227,7 +247,7 @@ src_prepare() {
 		local rust_stage0="rust-${RUST_STAGE0_VERSION}-$(rust_abi)"
 
 		"${WORKDIR}/${rust_stage0}"/install.sh --disable-ldconfig \
-			--destdir="${rust_stage0_root}" --prefix=/ || die
+			--without=rust-docs --destdir="${rust_stage0_root}" --prefix=/ || die
 	fi
 
 	default
@@ -293,6 +313,7 @@ src_configure() {
 		target = [${rust_targets}]
 		cargo = "${rust_stage0_root}/bin/cargo"
 		rustc = "${rust_stage0_root}/bin/rustc"
+		rustfmt = "${rust_stage0_root}/bin/rustfmt"
 		docs = $(toml_usex doc)
 		compiler-docs = $(toml_usex doc)
 		submodules = false
@@ -539,7 +560,7 @@ src_install() {
 	(
 	IFS=$'\n'
 	env $(cat "${S}"/config.env) DESTDIR="${D}" \
-		"${EPYTHON}" ./x.py install -vv --config="${S}"/config.toml || die
+		"${EPYTHON}" ./x.py install -vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
 	)
 
 	# bug #689562, #689160
