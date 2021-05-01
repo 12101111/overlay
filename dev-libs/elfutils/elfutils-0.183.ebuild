@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit flag-o-matic multilib-minimal autotools
+inherit autotools flag-o-matic multilib-minimal toolchain-funcs
 
 DESCRIPTION="Libraries/utilities to handle ELF objects (drop in replacement for libelf)"
 HOMEPAGE="http://elfutils.org/"
@@ -52,9 +52,11 @@ src_prepare() {
 src_configure() {
 	use test && append-flags -g #407135
 
-	# Symbol aliases are implemented as asm statements.
-	# Will require porting: https://gcc.gnu.org/PR48200
-	filter-flags '-flto*'
+	if tc-is-gcc; then
+		# Symbol aliases are implemented as asm statements.
+		# Will require porting: https://gcc.gnu.org/PR48200
+		filter-flags '-flto*'
+	fi
 
 	multilib-minimal_src_configure
 }
