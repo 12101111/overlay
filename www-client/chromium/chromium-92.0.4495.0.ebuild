@@ -192,6 +192,7 @@ PATCHES=(
 	"${FILESDIR}/chromium-skia-harmony.patch"
 	"${FILESDIR}/chromium-shim_headers.patch"
 	"${FILESDIR}/chromium-89-EnumTable-crash.patch"
+	"${FILESDIR}/chromium-no-strip.patch"
 )
 
 pre_build_checks() {
@@ -908,6 +909,7 @@ src_install() {
 	insinto "${CHROMIUM_HOME}"
 	doins out/Release/*.bin
 	doins out/Release/*.pak
+	doins out/Release/*.json
 	(
 		shopt -s nullglob
 		local files=(out/Release/*.so out/Release/*.so.[0-9])
@@ -924,6 +926,7 @@ src_install() {
 	if [[ -d out/Release/swiftshader ]]; then
 		insinto "${CHROMIUM_HOME}/swiftshader"
 		doins out/Release/swiftshader/*.so
+		fperms 755 out/Release/swiftshader/*.so
 	fi
 
 	# Install icons

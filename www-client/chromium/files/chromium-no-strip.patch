@@ -1,0 +1,42 @@
+--- a/chrome/test/chromedriver/BUILD.gn	2021-05-02 14:59:38.000000000 +0800
++++ b/chrome/test/chromedriver/BUILD.gn	2021-05-02 17:32:12.522055941 +0800
+@@ -4,7 +4,6 @@
+ 
+ import("//build/config/python.gni")
+ import("//build/config/ui.gni")
+-import("//build/linux/strip_binary.gni")
+ import("//build/util/lastchange.gni")
+ import("//testing/test.gni")
+ import("//third_party/ffmpeg/ffmpeg_options.gni")
+@@ -306,13 +305,7 @@
+   }
+ }
+ 
+-if (is_linux) {
+-  chromedriver_output = "chromedriver.unstripped"
+-} else {
+-  chromedriver_output = "chromedriver"
+-}
+-
+-executable("$chromedriver_output") {
++executable("chromedriver") {
+   testonly = true
+   sources = [ "server/chromedriver_server.cc" ]
+ 
+@@ -335,16 +328,6 @@
+   }
+ }
+ 
+-if (is_linux) {
+-  strip_binary("chromedriver") {
+-    testonly = true
+-    binary_input = "$root_out_dir/$chromedriver_output"
+-    symbol_output = "$root_out_dir/chromedriver.debug"
+-    stripped_binary_output = "$root_out_dir/chromedriver"
+-    deps = [ ":$chromedriver_output" ]
+-  }
+-}
+-
+ python_library("chromedriver_py_tests") {
+   testonly = true
+   deps = [
