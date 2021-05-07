@@ -31,7 +31,7 @@ DEPEND="
 	dev-libs/libinput:=
 	dev-libs/libsigc++:2
 	>=dev-libs/libfmt-5.3.0:=
-	>=dev-libs/spdlog-1.8.0:=
+	>=dev-libs/spdlog-1.8.5:=
 	dev-libs/date:=
 	dev-libs/wayland
 	dev-libs/wayland-protocols
