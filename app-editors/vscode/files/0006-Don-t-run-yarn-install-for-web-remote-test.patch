@@ -1,26 +1,18 @@
-From 609e5a6b4565f61e9f722b950d907d5e40966526 Mon Sep 17 00:00:00 2001
+From 43d3d4f9a20b55d195bf68f017b48baaa82be138 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 7 Feb 2021 18:29:00 +0800
-Subject: [PATCH 6/7] Don't run `yarn install` for web/remote/test
+Date: Thu, 6 May 2021 09:59:32 +0800
+Subject: [PATCH 6/9] Don't run `yarn install` for web/remote/test
 
 ---
- build/npm/dirs.js        | 7 -------
+ build/npm/dirs.js        | 6 ------
  build/npm/postinstall.js | 1 -
- 2 files changed, 8 deletions(-)
+ 2 files changed, 7 deletions(-)
 
 diff --git a/build/npm/dirs.js b/build/npm/dirs.js
-index 202219ebeca..fa577ae91e1 100644
+index ce069fbe29b..37ef9a51d48 100644
 --- a/build/npm/dirs.js
 +++ b/build/npm/dirs.js
-@@ -14,7 +14,6 @@ exports.dirs = [
- 	'extensions/css-language-features/server',
- 	'extensions/debug-auto-launch',
- 	'extensions/debug-server-ready',
--	'extensions/emmet',
- 	'extensions/extension-editing',
- 	'extensions/git',
- 	'extensions/git-ui',
-@@ -43,10 +42,4 @@ exports.dirs = [
+@@ -42,10 +42,4 @@ exports.dirs = [
  	'extensions/vscode-custom-editor-tests',
  	'extensions/vscode-notebook-tests',
  	'extensions/vscode-test-resolver',
@@ -41,5 +33,5 @@ index a4f063d45b1..423e1cc7b2c 100644
  
 -cp.execSync('git config pull.rebase true');
 -- 
-2.30.1
+2.31.1
 

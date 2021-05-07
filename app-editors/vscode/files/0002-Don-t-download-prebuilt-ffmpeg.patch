@@ -1,14 +1,14 @@
-From 92d26a4c5eddae05195eb4d71ead1d5ca6a9479a Mon Sep 17 00:00:00 2001
+From 15520e348813e21bb4e6115fa3f87896398cecb4 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 5 Mar 2021 10:18:41 +0800
-Subject: [PATCH 2/7] Don't download prebuilt ffmpeg
+Subject: [PATCH 2/9] Don't download prebuilt ffmpeg
 
 ---
  build/gulpfile.vscode.js | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index e3ca3514bb6..f9157b7cbc6 100644
+index 3eeba69d258..a291d66d012 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
 @@ -285,7 +285,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
@@ -21,5 +21,5 @@ index e3ca3514bb6..f9157b7cbc6 100644
  
  		if (platform === 'linux') {
 -- 
-2.30.1
+2.31.1
 

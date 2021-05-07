@@ -1,5 +1,14 @@
+From 24e674ab6f73b47fb9596e76efeb732b8dfda165 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Thu, 6 May 2021 10:04:18 +0800
+Subject: [PATCH 9/9] Build without electron
+
+---
+ build/gulpfile.vscode.js | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
+
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index f9157b7cbc6..6b20cf3b2b3 100644
+index a291d66d012..2cc870aa695 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
 @@ -143,6 +143,14 @@ function computeChecksum(filename) {
@@ -50,29 +59,6 @@ index f9157b7cbc6..6b20cf3b2b3 100644
  		return result.pipe(vfs.dest(destination));
  	};
  }
-diff --git a/yarn.lock b/yarn.lock
-index d706d61971f..dd342eb1d82 100644
---- a/yarn.lock
-+++ b/yarn.lock
-@@ -1430,8 +1430,8 @@ bcrypt-pbkdf@^1.0.0:
- 
- before-after-hook@^2.1.0:
-   version "2.1.0"
--  resolved "https://pkgs.dev.azure.com/terrapin-prod/Terrapin/_packaging/open-source-packages-2/npm/registry/before-after-hook/-/before-after-hook-2.1.0.tgz#0bb562539c98af6479c3e423df1880d022bd9c76"
--  integrity sha1-C7ViU5yYr2R5w+Qj3xiA0CK9nHY=
-+  resolved "https://pkgs.dev.azure.com/terrapin-prod/Terrapin/_packaging/open-source-packages-2/npm/registry/before-after-hook/-/before-after-hook-2.1.0.tgz#b6c03487f44e24200dd30ca5e6a1979c5d2fb635"
-+  integrity sha512-IWIbu7pMqyw3EAJHzzHbWa85b6oud/yfKYg5rqB5hNE8CeMi3nX+2C2sj0HswfblST86hpVEOAb9x34NZd6P7A==
- 
- big.js@^3.1.3:
-   version "3.2.0"
-@@ -6624,8 +6624,8 @@ node-addon-api@^3.0.0, node-addon-api@^3.0.2:
- 
- node-fetch@^2.6.1:
-   version "2.6.1"
--  resolved "https://pkgs.dev.azure.com/terrapin-prod/Terrapin/_packaging/open-source-packages-2/npm/registry/node-fetch/-/node-fetch-2.6.1.tgz#71da3def292fc21adc5670825461ea36c316643c"
--  integrity sha1-cdo97ykvwhrcVnCCVGHqNsMWZDw=
-+  resolved "https://pkgs.dev.azure.com/terrapin-prod/Terrapin/_packaging/open-source-packages-2/npm/registry/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
-+  integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
- 
- node-gyp@^7.1.0:
-   version "7.1.0"
+-- 
+2.31.1
+

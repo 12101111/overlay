@@ -1,17 +1,17 @@
-From a69aa720fcbbf136a039f21ae09ae9eb4a7aeac9 Mon Sep 17 00:00:00 2001
+From ea95ef1c1138cb286ffb54b856f3df8789ea8bc7 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Oct 2020 09:41:08 +0800
-Subject: [PATCH 5/7] Don't download bundle marketplace extensions in gulp
+Subject: [PATCH 5/9] Don't download bundle marketplace extensions in gulp
 
 ---
  build/gulpfile.extensions.js | 1 -
  1 file changed, 1 deletion(-)
 
 diff --git a/build/gulpfile.extensions.js b/build/gulpfile.extensions.js
-index 60d6a79c926..057345f6f74 100644
+index 9312f6c930a..acb1bd1966c 100644
 --- a/build/gulpfile.extensions.js
 +++ b/build/gulpfile.extensions.js
-@@ -205,7 +205,6 @@ const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimr
+@@ -248,7 +248,6 @@ const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimr
  const compileExtensionsBuildTask = task.define('compile-extensions-build', task.series(
  	cleanExtensionsBuildTask,
  	task.define('bundle-extensions-build', () => ext.packageLocalExtensionsStream(false).pipe(gulp.dest('.build'))),
@@ -20,5 +20,5 @@ index 60d6a79c926..057345f6f74 100644
  
  gulp.task(compileExtensionsBuildTask);
 -- 
-2.30.1
+2.31.1
 
