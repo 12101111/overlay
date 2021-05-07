@@ -3,7 +3,7 @@
 
 EAPI=7
 
-PYTHON_COMPAT=( python3_{7..9} )
+PYTHON_COMPAT=( python3_{7,8,9} )
 PYTHON_REQ_USE="threads(+),xml"
 
 MY_PV="${PV/_alpha/.alpha}"
@@ -134,6 +134,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	>=dev-cpp/clucene-2.3.3.4-r2
 	>=dev-cpp/libcmis-0.5.2
 	dev-db/unixODBC
+	>=games-engines/box2d-2.4.1:0
 	dev-lang/perl
 	>=dev-libs/boost-1.72.0:=[nls]
 	dev-libs/expat
@@ -150,7 +151,6 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	dev-libs/qrcodegen
 	>=dev-libs/redland-1.0.16
 	>=dev-libs/xmlsec-1.2.28[nss]
-	games-engines/box2d:=
 	media-gfx/fontforge
 	media-gfx/graphite2
 	media-libs/fontconfig
@@ -164,7 +164,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	>=media-libs/libpng-1.4:0=
 	>=media-libs/libvisio-0.1.0
 	media-libs/libzmf
-	net-libs/neon
+	>=net-libs/neon-0.31.1:=
 	net-misc/curl
 	sci-mathematics/lpsolve
 	sys-libs/zlib
@@ -213,7 +213,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 		dev-libs/gobject-introspection
 		gnome-base/dconf
 		media-libs/mesa[egl]
-		x11-libs/gtk+:3
+		x11-libs/gtk+:3[X]
 		x11-libs/pango
 	)
 	kde? (
@@ -253,8 +253,8 @@ DEPEND="${COMMON_DEPEND}
 	java? (
 		dev-java/ant-core
 		|| (
-			dev-java/openjdk:15
-			dev-java/openjdk-bin:15
+			dev-java/openjdk:11
+			dev-java/openjdk-bin:11
 		)
 	)
 	test? (
@@ -268,12 +268,11 @@ DEPEND="${COMMON_DEPEND}
 RDEPEND="${COMMON_DEPEND}
 	!app-office/libreoffice-bin
 	!app-office/libreoffice-bin-debug
-	!app-office/openoffice
 	media-fonts/liberation-fonts
 	|| ( x11-misc/xdg-utils kde-plasma/kde-cli-tools )
 	java? ( || (
-		dev-java/openjdk:15
-		dev-java/openjdk-jre-bin:15
+		dev-java/openjdk:11
+		dev-java/openjdk-jre-bin:11
 		>=virtual/jre-1.8
 	) )
 	kde? ( kde-frameworks/breeze-icons:* )
@@ -312,10 +311,16 @@ _check_reqs() {
 }
 
 pkg_pretend() {
-	use base ||
-		ewarn "If you plan to use Base application you must enable USE base."
-	use java ||
-		ewarn "Without USE java, several wizards are not going to be available."
+	if use x86; then
+		elog "Unfortunately for packaging reasons on x86, various Java-based wizards,"
+		elog "most notably Report Builder in LibreOffice Base, will not be available."
+		elog "See also: https://bugs.gentoo.org/785640"
+	else
+		use base ||
+			ewarn "If you plan to use Base application you must enable USE base."
+		use java ||
+			ewarn "Without USE java, several wizards are not going to be available."
+	fi
 
 	[[ ${MERGE_TYPE} != binary ]] && _check_reqs pkg_pretend
 }
@@ -557,13 +562,11 @@ src_configure() {
 			--without-junit
 			--without-system-hsqldb
 			--with-ant-home="${ANT_HOME}"
-			#--with-jdk-home=$(java-config --jdk-home 2>/dev/null)
-			--with-jvm-path="${EPREFIX}/usr/lib/"
 		)
-		if has_version "dev-java/openjdk:15"; then
-			myeconfargs+=( -with-jdk-home="${EPREFIX}/usr/$(get_libdir)/openjdk-15" )
-		elif has_version "dev-java/openjdk-bin:15"; then
-			myeconfargs+=( --with-jdk-home="/opt/openjdk-bin-15" )
+		if has_version "dev-java/openjdk:11"; then
+			myeconfargs+=( -with-jdk-home="${EPREFIX}/usr/$(get_libdir)/openjdk-11" )
+		elif has_version "dev-java/openjdk-bin:11"; then
+			myeconfargs+=( --with-jdk-home="/opt/openjdk-bin-11" )
 		fi
 
 		use libreoffice_extensions_scripting-beanshell && \
@@ -650,11 +653,6 @@ EOF
 			dosym8 -r ${loprogdir}/__pycache__/${pyc} $(python_get_sitedir)/__pycache__/${pyc}
 		done < <(find "${D}"${lodir}/program -type f -name ${py/.py/*.pyc} -print0)
 	done
-
-	# bug 709450
-	#mkdir -p "${ED}"/usr/share/metainfo || die
-	#mv "${ED}"/usr/share/appdata/* "${ED}"/usr/share/metainfo/ || die
-	#rmdir "${ED}"/usr/share/appdata || die
 }
 
 pkg_postinst() {
