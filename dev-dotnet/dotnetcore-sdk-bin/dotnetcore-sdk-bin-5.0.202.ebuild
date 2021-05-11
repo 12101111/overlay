@@ -13,10 +13,10 @@ amd64? (
 arm? ( https://dotnetcli.azureedge.net/dotnet/Sdk/${PV}/dotnet-sdk-${PV}-linux-arm.tar.gz )
 arm64? ( https://dotnetcli.azureedge.net/dotnet/Sdk/${PV}/dotnet-sdk-${PV}-linux-arm64.tar.gz )
 "
-VER="3.1.13"
+VER="5.0.5"
 
 LICENSE="MIT"
-SLOT="3.1"
+SLOT="5.0"
 KEYWORDS="~amd64"
 IUSE=""
 RESTRICT="splitdebug"
@@ -33,7 +33,7 @@ RDEPEND="
 	!dev-dotnet/dotnetcore-runtime-bin
 	!dev-dotnet/dotnetcore-aspnet-bin
 "
-DEPEND="${REPEND}"
+DEPEND="${RDEPEND}"
 BDEPEND=""
 
 S="${WORKDIR}"
@@ -58,7 +58,7 @@ src_prepare() {
 	rm -rfv host
 	rm -rfv packs/Microsoft.NETCore.App.Host.$(get_rid)
 	rm -rfv sdk/${PV}/AppHostTemplate
-	rm -rfv shared/Microsoft.NETCore.App/${VER}/{createdump,*.so,nethost.h,SOS_README.md,*.a}
+	rm -rfv shared/Microsoft.NETCore.App/${VER}/{createdump,*.so,*.h,SOS_README.md,*.a}
 	rm -rf packs/NETStandard.Library.Ref
 	default
 }
