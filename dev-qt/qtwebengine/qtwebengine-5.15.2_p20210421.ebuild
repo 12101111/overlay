@@ -104,7 +104,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.15.2_p20210406-gcc11.patch" # by Fedora, bug 768261
 	"${FILESDIR}/${PN}-5.15.2_p20210406-icu69.patch" # bug 781236
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
-	#"${FILESDIR}/0001-Revert-Show-PDF-viewer-in-a-guest-view.patch"
+	"${FILESDIR}/0001-Revert-Show-PDF-viewer-in-a-guest-view.patch"
 )
 
 src_unpack() {

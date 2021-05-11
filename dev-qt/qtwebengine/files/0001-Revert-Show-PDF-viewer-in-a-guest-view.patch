@@ -1,11 +1,11 @@
-From ff49533ac9fc1aca2f09230ceb9cd48b67fd7a35 Mon Sep 17 00:00:00 2001
+From 5377b1324aced274ee226f68485b39029f45d583 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 24 Apr 2021 18:03:25 +0800
+Date: Tue, 11 May 2021 16:57:05 +0800
 Subject: [PATCH] Revert "Show PDF viewer in a guest view"
 
 This reverts commit 8f56ea6806d9a72d4b705da5f6f90fa5a6873567.
 ---
- src/core/content_browser_client_qt.cpp        |  37 +----
+ src/core/content_browser_client_qt.cpp        |  45 +-----
  src/core/content_browser_client_qt.h          |   1 -
  src/core/content_client_qt.cpp                |   2 +-
  src/core/extensions/extension_system_qt.cpp   |   5 +-
@@ -28,13 +28,13 @@ This reverts commit 8f56ea6806d9a72d4b705da5f6f90fa5a6873567.
  src/core/web_contents_adapter.cpp             |  10 +-
  src/core/web_contents_view_qt.cpp             |   5 +-
  src/core/web_contents_view_qt.h               |   3 -
- 23 files changed, 124 insertions(+), 361 deletions(-)
+ 23 files changed, 125 insertions(+), 368 deletions(-)
 
 diff --git a/src/core/content_browser_client_qt.cpp b/src/core/content_browser_client_qt.cpp
-index c2c78ff8..12b3ac07 100644
+index 24aa19c9..d6a58afa 100644
 --- a/src/core/content_browser_client_qt.cpp
 +++ b/src/core/content_browser_client_qt.cpp
-@@ -68,7 +68,6 @@
+@@ -69,7 +69,6 @@
  #include "content/public/common/service_names.mojom.h"
  #include "content/public/common/user_agent.h"
  #include "extensions/buildflags/buildflags.h"
@@ -42,7 +42,7 @@ index c2c78ff8..12b3ac07 100644
  #include "net/ssl/client_cert_identity.h"
  #include "net/ssl/client_cert_store.h"
  #include "services/network/network_service.h"
-@@ -157,14 +156,12 @@
+@@ -158,14 +157,12 @@
  #include "extensions/browser/extension_message_filter.h"
  #include "extensions/browser/extension_protocols.h"
  #include "extensions/browser/extension_registry.h"
@@ -56,8 +56,8 @@ index c2c78ff8..12b3ac07 100644
 -#include "extensions/common/manifest_handlers/mime_types_handler.h"
  #include "extensions/extension_web_contents_observer_qt.h"
  #include "extensions/extensions_browser_client_qt.h"
- #include "net/plugin_response_interceptor_url_loader_throttle.h"
-@@ -992,11 +989,8 @@ static bool navigationThrottleCallback(content::WebContents *source,
+ #include "extensions/pdf_iframe_navigation_throttle_qt.h"
+@@ -995,18 +992,9 @@ static bool navigationThrottleCallback(content::WebContents *source,
          return false;
  
      int navigationRequestAction = WebContentsAdapterClient::AcceptRequest;
@@ -66,12 +66,20 @@ index c2c78ff8..12b3ac07 100644
 -        WebContentsViewQt::from(static_cast<content::WebContentsImpl *>(source)->GetView())->client();
 -    if (!client)
 -        return false;
+-
+-    // Redirects might not be reflected in transition_type at this point (see also chrome/.../web_navigation_api_helpers.cc)
+-    auto transition_type = params.transition_type();
+-    if (params.is_redirect())
+-        transition_type = ui::PageTransitionFromInt(transition_type | ui::PAGE_TRANSITION_SERVER_REDIRECT);
+-
+-    client->navigationRequested(pageTransitionToNavigationType(transition_type),
 +    WebContentsDelegateQt *delegate = static_cast<WebContentsDelegateQt *>(source->GetDelegate());
 +    WebContentsAdapterClient *client = delegate->adapterClient();
-     client->navigationRequested(pageTransitionToNavigationType(params.transition_type()),
++    client->navigationRequested(pageTransitionToNavigationType(params.transition_type()),
                                  toQt(params.url()),
                                  navigationRequestAction,
-@@ -1284,33 +1278,6 @@ void ContentBrowserClientQt::RegisterNonNetworkSubresourceURLLoaderFactories(int
+                                 params.is_main_frame());
+@@ -1298,33 +1286,6 @@ void ContentBrowserClientQt::RegisterNonNetworkSubresourceURLLoaderFactories(int
  #endif
  }
  
@@ -106,7 +114,7 @@ index c2c78ff8..12b3ac07 100644
          content::BrowserContext *browser_context,
          content::RenderFrameHost *frame,
 diff --git a/src/core/content_browser_client_qt.h b/src/core/content_browser_client_qt.h
-index 1ccd2926..fcde5593 100644
+index 7c8aa3ac..3db182e6 100644
 --- a/src/core/content_browser_client_qt.h
 +++ b/src/core/content_browser_client_qt.h
 @@ -258,7 +258,6 @@ public:
@@ -865,7 +873,7 @@ index 9c843e2a..4482d3eb 100644
      bool m_visible;
      bool m_deferredShow = false;
 diff --git a/src/core/renderer/content_renderer_client_qt.cpp b/src/core/renderer/content_renderer_client_qt.cpp
-index 317fde8f..cafdeddb 100644
+index d704e81b..8027ec4d 100644
 --- a/src/core/renderer/content_renderer_client_qt.cpp
 +++ b/src/core/renderer/content_renderer_client_qt.cpp
 @@ -91,8 +91,6 @@
@@ -877,7 +885,7 @@ index 317fde8f..cafdeddb 100644
  #endif //ENABLE_EXTENSIONS
  
  #if BUILDFLAG(ENABLE_PLUGINS)
-@@ -222,11 +220,6 @@ void ContentRendererClientQt::RenderFrameCreated(content::RenderFrame *render_fr
+@@ -224,11 +222,6 @@ void ContentRendererClientQt::RenderFrameCreated(content::RenderFrame *render_fr
      new printing::PrintRenderFrameHelper(render_frame, base::WrapUnique(new PrintWebViewHelperDelegateQt()));
  #endif // QT_CONFIG(webengine_printing_and_pdf)
  #if BUILDFLAG(ENABLE_EXTENSIONS)
@@ -889,7 +897,7 @@ index 317fde8f..cafdeddb 100644
      auto registry = std::make_unique<service_manager::BinderRegistry>();
      ExtensionsRendererClientQt::GetInstance()->RenderFrameCreated(render_frame, render_frame_observer->registry());
  #endif
-@@ -344,30 +337,6 @@ std::unique_ptr<blink::WebPrescientNetworking> ContentRendererClientQt::CreatePr
+@@ -346,30 +339,6 @@ std::unique_ptr<blink::WebPrescientNetworking> ContentRendererClientQt::CreatePr
      return std::make_unique<network_hints::WebPrescientNetworkingImpl>(render_frame);
  }
  
@@ -920,7 +928,7 @@ index 317fde8f..cafdeddb 100644
  bool ContentRendererClientQt::OverrideCreatePlugin(content::RenderFrame *render_frame,
                                                     const blink::WebPluginParams &params,
                                                     blink::WebPlugin **plugin)
-@@ -378,6 +347,7 @@ bool ContentRendererClientQt::OverrideCreatePlugin(content::RenderFrame *render_
+@@ -380,6 +349,7 @@ bool ContentRendererClientQt::OverrideCreatePlugin(content::RenderFrame *render_
  #endif //ENABLE_EXTENSIONS
  
  #if BUILDFLAG(ENABLE_PLUGINS)
@@ -928,7 +936,7 @@ index 317fde8f..cafdeddb 100644
      content::WebPluginInfo info;
      std::string mime_type;
      bool found = false;
-@@ -385,18 +355,30 @@ bool ContentRendererClientQt::OverrideCreatePlugin(content::RenderFrame *render_
+@@ -387,18 +357,30 @@ bool ContentRendererClientQt::OverrideCreatePlugin(content::RenderFrame *render_
      render_frame->Send(new FrameHostMsg_GetPluginInfo(render_frame->GetRoutingID(), params.url,
                                                        render_frame->GetWebFrame()->Top()->GetSecurityOrigin(),
                                                        params.mime_type.Utf8(), &found, &info, &mime_type));
@@ -1085,10 +1093,10 @@ index 8803dde8..237185f8 100644
  };
  
 diff --git a/src/core/web_contents_adapter.cpp b/src/core/web_contents_adapter.cpp
-index 5597c69f..f19ead56 100644
+index 2cd48907..a7e68ba7 100644
 --- a/src/core/web_contents_adapter.cpp
 +++ b/src/core/web_contents_adapter.cpp
-@@ -1548,15 +1548,7 @@ void WebContentsAdapter::startDragging(QObject *dragSource, const content::DropD
+@@ -1547,15 +1547,7 @@ void WebContentsAdapter::startDragging(QObject *dragSource, const content::DropD
      QObject::disconnect(onDestroyed);
      if (dValid) {
          if (m_webContents) {
