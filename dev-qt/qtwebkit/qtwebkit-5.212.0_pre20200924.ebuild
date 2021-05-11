@@ -77,6 +77,7 @@ S=${WORKDIR}/${PN}-opensource-src-${PV/.0_*/}
 
 PATCHES=(
 	"${FILESDIR}/${P}-icu68.patch"
+	"${FILESDIR}/qtwebkit-5.212.0_pre20200309-glib-2.68.patch"
 	"${FILESDIR}/assert_in_webcore_dom_position_h.patch"
 	"${FILESDIR}/assert_in_webcore_rendering_renderlayer_cpp.patch"
 	"${FILESDIR}/execinfo.patch"
