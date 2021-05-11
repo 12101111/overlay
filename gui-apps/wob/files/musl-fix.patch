@@ -1,0 +1,12 @@
+diff --git a/pledge_seccomp.c b/pledge_seccomp.c
+index 745f322..145012b 100644
+--- a/pledge_seccomp.c
++++ b/pledge_seccomp.c
+@@ -31,6 +31,7 @@ wob_pledge(void)
+ 		SCMP_SYS(sendmsg),
+ 		SCMP_SYS(write),
+ 		SCMP_SYS(writev),
++		SCMP_SYS(munmap),
+ 	};
+ 
+ 	int ret;
