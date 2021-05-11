@@ -420,6 +420,7 @@ BDEPEND="
 	>=dev-util/gn-0.1807
 	>=dev-util/ninja-1.10.0
 	>=sys-devel/clang-10.0.0
+	dev-lang/python:2.7[xml]
 	libcxx? ( sys-libs/libcxx )
 	>=dev-lang/rust-1.51.0[wasi,wasm]
 "
