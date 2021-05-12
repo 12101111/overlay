@@ -13,7 +13,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig"
 
-COMMIT="cfa2e218100323074ac1948c885448fdf4de2a7f"
+COMMIT="e713fe9b05fc24facbec8f34fb1017133858842b"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.11.3/lib/postinstall.js#L19
@@ -2378,6 +2378,8 @@ PATCHES=(
 	"${FILESDIR}/0008-Don-t-warn-on-app-arg.patch"
 	"${FILESDIR}/0009-Build-without-electron.patch"
 	"${FILESDIR}/0001-Don-t-use-git-dependence.patch"
+	"${FILESDIR}/5f3466a21e80b2c016a1c0cbe2af683c9072d0a7.patch"
+	"${FILESDIR}/7259955ce318a2bb2a86ee121c34dcaab0a86e45.patch"
 )
 
 src_unpack() {

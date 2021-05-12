@@ -1,0 +1,351 @@
+From 5f3466a21e80b2c016a1c0cbe2af683c9072d0a7 Mon Sep 17 00:00:00 2001
+From: Alex Dima <alexdima@microsoft.com>
+Date: Tue, 11 May 2021 19:09:56 +0200
+Subject: [PATCH] Change grunt, gulp and jake task auto detection to be off by
+ default (#123588)
+
+---
+ extensions/grunt/package.json                 |  4 +-
+ extensions/grunt/package.nls.json             |  2 +-
+ extensions/gulp/package.json                  |  4 +-
+ extensions/gulp/package.nls.json              |  2 +-
+ extensions/jake/package.json                  |  4 +-
+ extensions/jake/package.nls.json              |  2 +-
+ .../tasks/browser/abstractTaskService.ts      | 19 ++++-
+ .../contrib/tasks/browser/taskQuickPick.ts    | 73 +++++++++++++++++--
+ .../contrib/tasks/browser/tasksQuickAccess.ts |  6 +-
+ 9 files changed, 96 insertions(+), 20 deletions(-)
+
+diff --git a/extensions/grunt/package.json b/extensions/grunt/package.json
+index c966fbe1c8d8b..c784b1ed83a11 100644
+--- a/extensions/grunt/package.json
++++ b/extensions/grunt/package.json
+@@ -39,13 +39,13 @@
+       "title": "Grunt",
+       "properties": {
+         "grunt.autoDetect": {
+-          "scope": "resource",
++          "scope": "application",
+           "type": "string",
+           "enum": [
+             "off",
+             "on"
+           ],
+-          "default": "on",
++          "default": "off",
+           "description": "%config.grunt.autoDetect%"
+         }
+       }
+diff --git a/extensions/grunt/package.nls.json b/extensions/grunt/package.nls.json
+index 873de038882f1..789a579cc5455 100644
+--- a/extensions/grunt/package.nls.json
++++ b/extensions/grunt/package.nls.json
+@@ -1,7 +1,7 @@
+ {
+ 	"description": "Extension to add Grunt capabilities to VS Code.",
+ 	"displayName": "Grunt support for VS Code",
+-	"config.grunt.autoDetect": "Controls whether auto detection of Grunt tasks is on or off. Default is on.",
++	"config.grunt.autoDetect": "Controls enablement of Grunt task detection. Grunt task detection can cause files in any open workspace to be executed.",
+ 	"grunt.taskDefinition.type.description": "The Grunt task to customize.",
+ 	"grunt.taskDefinition.args.description": "Command line arguments to pass to the grunt task",
+ 	"grunt.taskDefinition.file.description": "The Grunt file that provides the task. Can be omitted."
+diff --git a/extensions/gulp/package.json b/extensions/gulp/package.json
+index 7cbf852116b09..21800e96cfb60 100644
+--- a/extensions/gulp/package.json
++++ b/extensions/gulp/package.json
+@@ -39,13 +39,13 @@
+       "title": "Gulp",
+       "properties": {
+         "gulp.autoDetect": {
+-          "scope": "resource",
++          "scope": "application",
+           "type": "string",
+           "enum": [
+             "off",
+             "on"
+           ],
+-          "default": "on",
++          "default": "off",
+           "description": "%config.gulp.autoDetect%"
+         }
+       }
+diff --git a/extensions/gulp/package.nls.json b/extensions/gulp/package.nls.json
+index a87dbe1dc85bb..222ad3a87ec3a 100644
+--- a/extensions/gulp/package.nls.json
++++ b/extensions/gulp/package.nls.json
+@@ -1,7 +1,7 @@
+ {
+ 	"description": "Extension to add Gulp capabilities to VSCode.",
+ 	"displayName": "Gulp support for VSCode",
+-	"config.gulp.autoDetect": "Controls whether auto detection of Gulp tasks is on or off. Default is on.",
++	"config.gulp.autoDetect": "Controls enablement of Gulp task detection. Gulp task detection can cause files in any open workspace to be executed.",
+ 	"gulp.taskDefinition.type.description": "The Gulp task to customize.",
+ 	"gulp.taskDefinition.file.description": "The Gulp file that provides the task. Can be omitted."
+ }
+diff --git a/extensions/jake/package.json b/extensions/jake/package.json
+index 0c3edeeed66fa..244d12d96e56f 100644
+--- a/extensions/jake/package.json
++++ b/extensions/jake/package.json
+@@ -39,13 +39,13 @@
+       "title": "Jake",
+       "properties": {
+         "jake.autoDetect": {
+-          "scope": "resource",
++          "scope": "application",
+           "type": "string",
+           "enum": [
+             "off",
+             "on"
+           ],
+-          "default": "on",
++          "default": "off",
+           "description": "%config.jake.autoDetect%"
+         }
+       }
+diff --git a/extensions/jake/package.nls.json b/extensions/jake/package.nls.json
+index c2dfb3c3818b6..e82030efcb81a 100644
+--- a/extensions/jake/package.nls.json
++++ b/extensions/jake/package.nls.json
+@@ -3,5 +3,5 @@
+ 	"displayName": "Jake support for VS Code",
+ 	"jake.taskDefinition.type.description": "The Jake task to customize.",
+ 	"jake.taskDefinition.file.description": "The Jake file that provides the task. Can be omitted.",
+-	"config.jake.autoDetect": "Controls whether auto detection of Jake tasks is on or off. Default is on."
++	"config.jake.autoDetect": "Controls enablement of Jake task detection. Jake task detection can cause files in any open workspace to be executed."
+ }
+diff --git a/src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts b/src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts
+index e55e98ca068e6..49d5b578354a9 100644
+--- a/src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts
++++ b/src/vs/workbench/contrib/tasks/browser/abstractTaskService.ts
+@@ -93,7 +93,7 @@ export namespace ConfigureTaskAction {
+ 	export const TEXT = nls.localize('ConfigureTaskRunnerAction.label', "Configure Task");
+ }
+ 
+-type TaskQuickPickEntryType = (IQuickPickItem & { task: Task; }) | (IQuickPickItem & { folder: IWorkspaceFolder; });
++type TaskQuickPickEntryType = (IQuickPickItem & { task: Task; }) | (IQuickPickItem & { folder: IWorkspaceFolder; }) | (IQuickPickItem & { settingType: string; });
+ 
+ class ProblemReporter implements TaskConfig.IProblemReporter {
+ 
+@@ -2330,7 +2330,7 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
+ 	}
+ 
+ 	private async showTwoLevelQuickPick(placeHolder: string, defaultEntry?: TaskQuickPickEntry) {
+-		return TaskQuickPick.show(this, this.configurationService, this.quickInputService, this.notificationService, placeHolder, defaultEntry);
++		return TaskQuickPick.show(this, this.configurationService, this.quickInputService, this.notificationService, this.dialogService, placeHolder, defaultEntry);
+ 	}
+ 
+ 	private async showQuickPick(tasks: Promise<Task[]> | Task[], placeHolder: string, defaultEntry?: TaskQuickPickEntry, group: boolean = false, sort: boolean = false, selectedEntry?: TaskQuickPickEntry, additionalEntries?: TaskQuickPickEntry[]): Promise<TaskQuickPickEntry | undefined | null> {
+@@ -2918,6 +2918,11 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
+ 		return candidate && !!candidate.task;
+ 	}
+ 
++	private isSettingEntry(value: IQuickPickItem): value is IQuickPickItem & { settingType: string } {
++		let candidate: IQuickPickItem & { settingType: string } = value as any;
++		return candidate && !!candidate.settingType;
++	}
++
+ 	private configureTask(task: Task) {
+ 		if (ContributedTask.is(task)) {
+ 			this.customize(task, undefined, true);
+@@ -2934,6 +2939,9 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
+ 		}
+ 		if (this.isTaskEntry(selection)) {
+ 			this.configureTask(selection.task);
++		} else if (this.isSettingEntry(selection)) {
++			const taskQuickPick = new TaskQuickPick(this, this.configurationService, this.quickInputService, this.notificationService, this.dialogService);
++			taskQuickPick.handleSettingOption(selection.settingType);
+ 		} else if (selection.folder && (this.contextService.getWorkbenchState() !== WorkbenchState.EMPTY)) {
+ 			this.openTaskFile(selection.folder.toResource('.vscode/tasks.json'), TaskSourceKind.Workspace);
+ 		} else {
+@@ -3028,7 +3036,12 @@ export abstract class AbstractTaskService extends Disposable implements ITaskSer
+ 			}
+ 		}
+ 
+-		this.quickInputService.pick(entries,
++		const entriesWithSettings = entries.then(resolvedEntries => {
++			resolvedEntries.push(...TaskQuickPick.allSettingEntries(this.configurationService));
++			return resolvedEntries;
++		});
++
++		this.quickInputService.pick(entriesWithSettings,
+ 			{ placeHolder: nls.localize('TaskService.pickTask', 'Select a task to configure') }, cancellationToken).
+ 			then(async (selection) => {
+ 				if (cancellationToken.isCancellationRequested) {
+diff --git a/src/vs/workbench/contrib/tasks/browser/taskQuickPick.ts b/src/vs/workbench/contrib/tasks/browser/taskQuickPick.ts
+index f503a74ffee1a..c4676b0d40b02 100644
+--- a/src/vs/workbench/contrib/tasks/browser/taskQuickPick.ts
++++ b/src/vs/workbench/contrib/tasks/browser/taskQuickPick.ts
+@@ -14,10 +14,11 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
+ import { IQuickInputService } from 'vs/platform/quickinput/common/quickInput';
+ import { Disposable } from 'vs/base/common/lifecycle';
+ import { Event } from 'vs/base/common/event';
+-import { INotificationService } from 'vs/platform/notification/common/notification';
++import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
+ import { Codicon } from 'vs/base/common/codicons';
+ import { ThemeIcon } from 'vs/platform/theme/common/themeService';
+ import { registerIcon } from 'vs/platform/theme/common/iconRegistry';
++import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
+ 
+ export const QUICKOPEN_DETAIL_CONFIG = 'task.quickOpen.detail';
+ export const QUICKOPEN_SKIP_CONFIG = 'task.quickOpen.skip';
+@@ -29,8 +30,10 @@ export function isWorkspaceFolder(folder: IWorkspace | IWorkspaceFolder): folder
+ export interface TaskQuickPickEntry extends IQuickPickItem {
+ 	task: Task | undefined | null;
+ }
++
+ export interface TaskTwoLevelQuickPickEntry extends IQuickPickItem {
+ 	task: Task | ConfiguringTask | string | undefined | null;
++	settingType?: string;
+ }
+ 
+ const SHOW_ALL: string = nls.localize('taskQuickPick.showAll', "Show All Tasks...");
+@@ -45,7 +48,8 @@ export class TaskQuickPick extends Disposable {
+ 		private taskService: ITaskService,
+ 		private configurationService: IConfigurationService,
+ 		private quickInputService: IQuickInputService,
+-		private notificationService: INotificationService) {
++		private notificationService: INotificationService,
++		private dialogService: IDialogService) {
+ 		super();
+ 		this.sorter = this.taskService.createSorter();
+ 	}
+@@ -173,6 +177,21 @@ export class TaskQuickPick extends Disposable {
+ 		return { entries: this.topLevelEntries, isSingleConfigured: configuredTasks.length === 1 ? configuredTasks[0] : undefined };
+ 	}
+ 
++	public async handleSettingOption(selectedType: string) {
++		const noButton = nls.localize('TaskQuickPick.changeSettingNo', "No");
++		const yesButton = nls.localize('TaskQuickPick.changeSettingYes', "Yes");
++		const changeSettingResult = await this.dialogService.show(Severity.Warning,
++			nls.localize('TaskQuickPick.changeSettingDetails',
++				"Task detection for {0} tasks causes files in any workspace you open to be run as code. Enabling {0} task detection is a user setting and will apply to any workspace you open. Do you want to enable {0} task detection for all workspaces?", selectedType),
++			[noButton, yesButton]);
++		if (changeSettingResult.choice === 1) {
++			await this.configurationService.updateValue(`${selectedType}.autoDetect`, 'on');
++			await new Promise<void>(resolve => setTimeout(() => resolve(), 100));
++			return this.show(nls.localize('TaskService.pickRunTask', 'Select the task to run'), undefined, selectedType);
++		}
++		return undefined;
++	}
++
+ 	public async show(placeHolder: string, defaultEntry?: TaskQuickPickEntry, startAtType?: string): Promise<Task | undefined | null> {
+ 		const picker: IQuickPick<TaskTwoLevelQuickPickEntry> = this.quickInputService.createQuickPick();
+ 		picker.placeholder = placeHolder;
+@@ -218,9 +237,12 @@ export class TaskQuickPick extends Disposable {
+ 			if (Types.isString(firstLevelTask)) {
+ 				// Proceed to second level of quick pick
+ 				const selectedEntry = await this.doPickerSecondLevel(picker, firstLevelTask);
+-				if (selectedEntry && selectedEntry.task === null) {
++				if (selectedEntry && !selectedEntry.settingType && selectedEntry.task === null) {
+ 					// The user has chosen to go back to the first level
+ 					firstLevelTask = await this.doPickerFirstLevel(picker, (await this.getTopLevelEntries(defaultEntry)).entries);
++				} else if (selectedEntry && Types.isString(selectedEntry.settingType)) {
++					picker.dispose();
++					return this.handleSettingOption(selectedEntry.settingType);
+ 				} else {
+ 					picker.dispose();
+ 					return (selectedEntry?.task && !Types.isString(selectedEntry?.task)) ? this.toTask(selectedEntry?.task) : undefined;
+@@ -249,7 +271,9 @@ export class TaskQuickPick extends Disposable {
+ 	private async doPickerSecondLevel(picker: IQuickPick<TaskTwoLevelQuickPickEntry>, type: string) {
+ 		picker.busy = true;
+ 		if (type === SHOW_ALL) {
+-			picker.items = (await this.taskService.tasks()).sort((a, b) => this.sorter.compare(a, b)).map(task => this.createTaskEntry(task));
++			const items = (await this.taskService.tasks()).sort((a, b) => this.sorter.compare(a, b)).map(task => this.createTaskEntry(task));
++			items.push(...TaskQuickPick.allSettingEntries(this.configurationService));
++			picker.items = items;
+ 		} else {
+ 			picker.value = '';
+ 			picker.items = await this.getEntriesForProvider(type);
+@@ -264,6 +288,36 @@ export class TaskQuickPick extends Disposable {
+ 		return secondLevelPickerResult;
+ 	}
+ 
++	public static allSettingEntries(configurationService: IConfigurationService): (TaskTwoLevelQuickPickEntry & { settingType: string })[] {
++		const entries: (TaskTwoLevelQuickPickEntry & { settingType: string })[] = [];
++		const gruntEntry = TaskQuickPick.getSettingEntry(configurationService, 'grunt');
++		if (gruntEntry) {
++			entries.push(gruntEntry);
++		}
++		const gulpEntry = TaskQuickPick.getSettingEntry(configurationService, 'gulp');
++		if (gulpEntry) {
++			entries.push(gulpEntry);
++		}
++		const jakeEntry = TaskQuickPick.getSettingEntry(configurationService, 'jake');
++		if (jakeEntry) {
++			entries.push(jakeEntry);
++		}
++		return entries;
++	}
++
++	public static getSettingEntry(configurationService: IConfigurationService, type: string): (TaskTwoLevelQuickPickEntry & { settingType: string }) | undefined {
++		if (configurationService.getValue(`${type}.autoDetect`) === 'off') {
++			return {
++				label: nls.localize('TaskQuickPick.changeSettingsOptions', "$(gear) {0} task detection is turned off. Enable {1} task detection...",
++					type[0].toUpperCase() + type.slice(1), type),
++				task: null,
++				settingType: type,
++				alwaysShow: true
++			};
++		}
++		return undefined;
++	}
++
+ 	private async getEntriesForProvider(type: string): Promise<QuickPickInput<TaskTwoLevelQuickPickEntry>[]> {
+ 		const tasks = (await this.taskService.tasks({ type })).sort((a, b) => this.sorter.compare(a, b));
+ 		let taskQuickPickEntries: QuickPickInput<TaskTwoLevelQuickPickEntry>[];
+@@ -283,6 +337,11 @@ export class TaskQuickPick extends Disposable {
+ 				alwaysShow: true
+ 			}];
+ 		}
++
++		const settingEntry = TaskQuickPick.getSettingEntry(this.configurationService, type);
++		if (settingEntry) {
++			taskQuickPickEntries.push(settingEntry);
++		}
+ 		return taskQuickPickEntries;
+ 	}
+ 
+@@ -299,8 +358,10 @@ export class TaskQuickPick extends Disposable {
+ 		return resolvedTask;
+ 	}
+ 
+-	static async show(taskService: ITaskService, configurationService: IConfigurationService, quickInputService: IQuickInputService, notificationService: INotificationService, placeHolder: string, defaultEntry?: TaskQuickPickEntry) {
+-		const taskQuickPick = new TaskQuickPick(taskService, configurationService, quickInputService, notificationService);
++	static async show(taskService: ITaskService, configurationService: IConfigurationService,
++		quickInputService: IQuickInputService, notificationService: INotificationService,
++		dialogService: IDialogService, placeHolder: string, defaultEntry?: TaskQuickPickEntry) {
++		const taskQuickPick = new TaskQuickPick(taskService, configurationService, quickInputService, notificationService, dialogService);
+ 		return taskQuickPick.show(placeHolder, defaultEntry);
+ 	}
+ }
+diff --git a/src/vs/workbench/contrib/tasks/browser/tasksQuickAccess.ts b/src/vs/workbench/contrib/tasks/browser/tasksQuickAccess.ts
+index fb58ade765abe..3686ad45cbc88 100644
+--- a/src/vs/workbench/contrib/tasks/browser/tasksQuickAccess.ts
++++ b/src/vs/workbench/contrib/tasks/browser/tasksQuickAccess.ts
+@@ -16,6 +16,7 @@ import { TaskQuickPick, TaskTwoLevelQuickPickEntry } from 'vs/workbench/contrib/
+ import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
+ import { isString } from 'vs/base/common/types';
+ import { INotificationService } from 'vs/platform/notification/common/notification';
++import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
+ 
+ export class TasksQuickAccessProvider extends PickerQuickAccessProvider<IPickerQuickAccessItem> {
+ 
+@@ -28,7 +29,8 @@ export class TasksQuickAccessProvider extends PickerQuickAccessProvider<IPickerQ
+ 		@ITaskService private taskService: ITaskService,
+ 		@IConfigurationService private configurationService: IConfigurationService,
+ 		@IQuickInputService private quickInputService: IQuickInputService,
+-		@INotificationService private notificationService: INotificationService
++		@INotificationService private notificationService: INotificationService,
++		@IDialogService private dialogService: IDialogService
+ 	) {
+ 		super(TasksQuickAccessProvider.PREFIX, {
+ 			noResultsPick: {
+@@ -47,7 +49,7 @@ export class TasksQuickAccessProvider extends PickerQuickAccessProvider<IPickerQ
+ 			return [];
+ 		}
+ 
+-		const taskQuickPick = new TaskQuickPick(this.taskService, this.configurationService, this.quickInputService, this.notificationService);
++		const taskQuickPick = new TaskQuickPick(this.taskService, this.configurationService, this.quickInputService, this.notificationService, this.dialogService);
+ 		const topLevelPicks = await taskQuickPick.getTopLevelEntries();
+ 		const taskPicks: Array<IPickerQuickAccessItem | IQuickPickSeparator> = [];
+ 
