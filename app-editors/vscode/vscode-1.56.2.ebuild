@@ -13,7 +13,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig"
 
-COMMIT="e713fe9b05fc24facbec8f34fb1017133858842b"
+COMMIT="054a9295330880ed74ceaedda236253b4f39a335"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.11.3/lib/postinstall.js#L19
@@ -29,7 +29,7 @@ declare -A BUILTINEXTS=(
 ["node-debug2"]="1.42.6"
 ["references-view"]="0.0.80"
 ["js-debug-companion"]="1.0.13"
-["js-debug"]="1.56.2"
+["js-debug"]="1.56.3"
 ["vscode-js-profile-table"]="0.0.18"
 ["remotehub"]="0.5.3"
 )
@@ -2378,8 +2378,6 @@ PATCHES=(
 	"${FILESDIR}/0008-Don-t-warn-on-app-arg.patch"
 	"${FILESDIR}/0009-Build-without-electron.patch"
 	"${FILESDIR}/0001-Don-t-use-git-dependence.patch"
-	"${FILESDIR}/5f3466a21e80b2c016a1c0cbe2af683c9072d0a7.patch"
-	"${FILESDIR}/7259955ce318a2bb2a86ee121c34dcaab0a86e45.patch"
 )
 
 src_unpack() {
