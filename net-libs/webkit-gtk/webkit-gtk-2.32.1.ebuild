@@ -57,7 +57,7 @@ RDEPEND="
 	>=dev-libs/atk-2.16.0
 	media-libs/libwebp:=
 
-	>=dev-libs/glib-2.44.0:2
+	>=dev-libs/glib-2.67.1:2
 	>=dev-libs/libxslt-1.1.7
 	media-libs/woff2
 	gnome-keyring? ( app-crypt/libsecret )
@@ -168,15 +168,15 @@ pkg_setup() {
 }
 
 src_prepare() {
-	eapply "${FILESDIR}"/${PN}-2.24.4-eglmesaext-include.patch # bug 699054 # https://bugs.webkit.org/show_bug.cgi?id=204108
 	eapply "${FILESDIR}"/2.28.2-opengl-without-X-fixes.patch
+	eapply "${FILESDIR}"/${PV}-Properly-use-CompletionHandler-when-USE_OPENGL_OR_ES.patch
 	eapply "${FILESDIR}"/2.28.2-non-jumbo-fix.patch
 	eapply "${FILESDIR}"/2.28.4-non-jumbo-fix2.patch
 	eapply "${FILESDIR}"/2.30.3-fix-noGL-build.patch
 	eapply "${FILESDIR}"/remove-at-spi2.patch
 	eapply "${FILESDIR}/webkit-gtk-2.30.3-musl-locale.patch"
 	if use elibc_musl ; then
-		eapply "${FILESDIR}/${PN}-2.28.1-musl.patch"
+		eapply "${FILESDIR}/${PN}-2.32.1-musl.patch"
 		eapply "${FILESDIR}/${PN}-2.28.1-lower-stack-usage.patch"
 	fi
 	cmake_src_prepare
@@ -261,8 +261,12 @@ src_configure() {
 		$(cmake_use_find_package egl EGL)
 		$(cmake_use_find_package opengl OpenGL)
 		-DENABLE_X11_TARGET=$(usex X)
-		-DENABLE_GRAPHICS_CONTEXT_GL=${opengl_enabled}
+		-DUSE_OPENGL_OR_ES=${opengl_enabled}
 		-DENABLE_WEBGL=${opengl_enabled}
+		# Supported only under ANGLE, see
+		# https://bugs.webkit.org/show_bug.cgi?id=225563
+		# https://bugs.webkit.org/show_bug.cgi?id=224888
+		-DENABLE_WEBGL2=OFF
 		-DENABLE_BUBBLEWRAP_SANDBOX=$(usex seccomp)
 		-DBWRAP_EXECUTABLE:FILEPATH="${EPREFIX}"/usr/bin/bwrap # If bubblewrap[suid] then portage makes it go-r and cmake find_program fails with that
 		-DDBUS_PROXY_EXECUTABLE:FILEPATH="${EPREFIX}"/usr/bin/xdg-dbus-proxy
