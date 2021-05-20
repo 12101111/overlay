@@ -18,7 +18,7 @@ SRC_URI="
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 
 LICENSE="MIT"
-SLOT="0"
+SLOT="2"
 
 DEPEND="
 	>=dev-qt/qtcore-5.9:5=
