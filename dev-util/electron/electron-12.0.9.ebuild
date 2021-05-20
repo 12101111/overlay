@@ -1763,13 +1763,6 @@ src_configure() {
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
 
-	if use elibc_musl;then
-		if use tcmalloc; then
-			die "tcmalloc is broken with musl at this moment."
-		fi
-		myconf_gn+=" use_allocator_shim=false"
-	fi
-
 	myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
 
 	# Disable nacl, we can't build without pnacl (http://crbug.com/269560).
