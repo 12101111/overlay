@@ -7,8 +7,8 @@ inherit autotools elisp-common flag-o-matic readme.gentoo-r1 toolchain-funcs
 
 if [[ ${PV##*.} = 9999 ]]; then
 	inherit git-r3
-	EGIT_REPO_URI="https://github.com/flatwhatson/emacs.git"
-	EGIT_BRANCH="pgtk-nativecomp"
+	EGIT_REPO_URI="https://github.com/emacs-mirror/emacs.git"
+	EGIT_BRANCH="feature/pgtk"
 	EGIT_CHECKOUT_DIR="${WORKDIR}/emacs"
 	S="${EGIT_CHECKOUT_DIR}"
 	SLOT="${PV%%.*}-vcs"
@@ -29,7 +29,7 @@ else
 		SRC_URI="https://dev.gentoo.org/~ulm/distfiles/${P}.tar.xz"
 		S="${WORKDIR}/emacs"
 	elif [[ ${PV//[0-9]} != "." ]]; then
-		SRC_URI="mirror://gnu-alpha/emacs/pretest/${PN}-${PV/_/-}.tar.xz"
+		SRC_URI="https://alpha.gnu.org/gnu/emacs/pretest/${PN}-${PV/_/-}.tar.xz"
 	fi
 	SLOT="${PV%%.*}"
 	[[ ${PV} == *.*.* ]] && SLOT+="-vcs"
@@ -40,12 +40,9 @@ DESCRIPTION="The extensible, customizable, self-documenting real-time display ed
 HOMEPAGE="https://www.gnu.org/software/emacs/"
 
 LICENSE="GPL-3+ FDL-1.3+ BSD HPND MIT W3C unicode PSF-2"
-IUSE="pgtk nativecomp fastboot acl alsa aqua athena cairo dbus dynamic-loading games gconf gfile gif +gmp gpm gsettings gtk gui gzip-el harfbuzz imagemagick +inotify jpeg json kerberos lcms libxml2 livecd m17n-lib mailutils png selinux sound source ssl svg systemd +threads tiff toolkit-scroll-bars wide-int Xaw3d xft +xpm xwidgets zlib"
+IUSE="pgtk acl alsa aqua athena cairo dbus dynamic-loading games gconf gfile gif +gmp gpm gsettings gtk gui gzip-el harfbuzz imagemagick +inotify jit jpeg json kerberos lcms libxml2 livecd m17n-lib mailutils png selinux sound source ssl svg systemd +threads tiff toolkit-scroll-bars wide-int Xaw3d xft +xpm xwidgets zlib"
 RESTRICT="test"
-REQUIRED_USE="
-	fastboot? ( nativecomp )
-	pgtk? ( gtk	)
-"
+REQUIRED_USE="pgtk? ( gtk )"
 
 RDEPEND="app-emacs/emacs-common[games?,gui(-)?]
 	sys-libs/ncurses:0=
@@ -56,6 +53,7 @@ RDEPEND="app-emacs/emacs-common[games?,gui(-)?]
 	gmp? ( dev-libs/gmp:0= )
 	gpm? ( sys-libs/gpm )
 	!inotify? ( gfile? ( >=dev-libs/glib-2.28.6 ) )
+	jit? ( sys-devel/gcc:=[jit(-)] )
 	json? ( dev-libs/jansson )
 	kerberos? ( virtual/krb5 )
 	lcms? ( media-libs/lcms:2 )
@@ -66,7 +64,6 @@ RDEPEND="app-emacs/emacs-common[games?,gui(-)?]
 	ssl? ( net-libs/gnutls:0= )
 	systemd? ( sys-apps/systemd )
 	zlib? ( sys-libs/zlib )
-	nativecomp? ( sys-devel/gcc[jit] )
 	gui? ( !aqua? (
 		x11-libs/libICE
 		x11-libs/libSM
@@ -151,10 +148,14 @@ src_prepare() {
 			|| die "Upstream version number changed to ${FULL_VERSION}"
 	fi
 
-	# Fix filename reference in redirected man page
-	sed -i -e "/^\\.so/s/etags/&-${EMACS_SUFFIX}/" doc/man/ctags.1 || die
+	# These files ignore LDFLAGS. We assign the variable here, because
+	# for live ebuilds FULL_VERSION doesn't exist in global scope
+	use jit && QA_FLAGS_IGNORED="usr/$(get_libdir)/emacs/${FULL_VERSION}/native-lisp/.*"
 
 	default
+
+	# Fix filename reference in redirected man page
+	sed -i -e "/^\\.so/s/etags/&-${EMACS_SUFFIX}/" doc/man/ctags.1 || die
 
 	AT_M4DIR=m4 eautoreconf
 }
@@ -275,6 +276,7 @@ src_configure() {
 		$(use_with games gameuser ":gamestat") \
 		$(use_with gmp libgmp) \
 		$(use_with gpm) \
+		$(use_with jit native-compilation) \
 		$(use_with json) \
 		$(use_with kerberos) $(use_with kerberos kerberos5) \
 		$(use_with lcms lcms2) \
@@ -286,29 +288,21 @@ src_configure() {
 		$(use_with threads) \
 		$(use_with wide-int) \
 		$(use_with zlib) \
-		$(use_with nativecomp native-compilation) \
 		${myconf}
 }
 
 src_compile() {
-	if use nativecomp; then
-		if use fastboot; then
-			emake NATIVE_FAST_BOOT=1
-		else
-			emake NATIVE_FULL_AOT=1
-		fi
-	else
-		if tc-is-cross-compiler; then
-			# Build native tools for compiling lisp etc.
-			emake -C "${S}-build" src
-			emake lib       # Cross-compile dependencies first for timestamps
-			# Save native build tools in the cross-directory
-			cp "${S}-build"/lib-src/make-{docfile,fingerprint} lib-src || die
-			# Specify the native Emacs to compile lisp
-			emake -C lisp all EMACS="${S}-build/src/emacs"
-		fi
-		emake
+	if tc-is-cross-compiler; then
+		# Build native tools for compiling lisp etc.
+		emake -C "${S}-build" src
+		emake lib	   # Cross-compile dependencies first for timestamps
+		# Save native build tools in the cross-directory
+		cp "${S}-build"/lib-src/make-{docfile,fingerprint} lib-src || die
+		# Specify the native Emacs to compile lisp
+		emake -C lisp all EMACS="${S}-build/src/emacs"
 	fi
+
+	emake
 }
 
 src_install() {
@@ -330,16 +324,16 @@ src_install() {
 	fi
 
 	# avoid collision between slots, see bug #169033 e.g.
-	rm "${ED}"/usr/share/emacs/site-lisp/subdirs.el
-	rm -rf "${ED}"/usr/share/{appdata,applications,icons}
-	rm -rf "${ED}/usr/$(get_libdir)/systemd"
-	rm -rf "${ED}"/var
+	rm "${ED}"/usr/share/emacs/site-lisp/subdirs.el || die
+	rm -rf "${ED}"/usr/share/{appdata,applications,icons} || die
+	rm -rf "${ED}/usr/$(get_libdir)/systemd" || die
+	rm -rf "${ED}"/var || die
 
 	# remove unused <version>/site-lisp dir
-	rm -rf "${ED}"/usr/share/emacs/${FULL_VERSION}/site-lisp
+	rm -rf "${ED}"/usr/share/emacs/${FULL_VERSION}/site-lisp || die
 
 	# remove COPYING file (except for etc/COPYING used by describe-copying)
-	rm "${ED}"/usr/share/emacs/${FULL_VERSION}/lisp/COPYING
+	rm "${ED}"/usr/share/emacs/${FULL_VERSION}/lisp/COPYING || die
 
 	if use systemd; then
 		insinto /usr/lib/systemd/user
@@ -392,7 +386,7 @@ src_install() {
 
 	if use gui && use aqua; then
 		dodir /Applications/Gentoo
-		rm -rf "${ED}"/Applications/Gentoo/${EMACS_SUFFIX^}.app
+		rm -rf "${ED}"/Applications/Gentoo/${EMACS_SUFFIX^}.app || die
 		mv nextstep/Emacs.app \
 			"${ED}"/Applications/Gentoo/${EMACS_SUFFIX^}.app || die
 	fi
@@ -405,14 +399,21 @@ src_install() {
 		it is strongly recommended that you use app-admin/emacs-updater
 		to rebuild all byte-compiled elisp files of the installed Emacs
 		packages."
-	use gui && DOC_CONTENTS+="\\n\\nYou need to install some fonts for Emacs.
-		Installing media-fonts/font-adobe-{75,100}dpi on the X server's
-		machine would satisfy basic Emacs requirements under X11.
-		See also https://wiki.gentoo.org/wiki/Xft_support_for_GNU_Emacs
-		for how to enable anti-aliased fonts."
-	use aqua && DOC_CONTENTS+="\\n\\n${EMACS_SUFFIX^}.app is in
-		\"${EPREFIX}/Applications/Gentoo\". You may want to copy or symlink
-		it into /Applications by yourself."
+	if use gui; then
+		DOC_CONTENTS+="\\n\\nYou need to install some fonts for Emacs.
+			Installing media-fonts/font-adobe-{75,100}dpi on the X server's
+			machine would satisfy basic Emacs requirements under X11.
+			See also https://wiki.gentoo.org/wiki/Xft_support_for_GNU_Emacs
+			for how to enable anti-aliased fonts."
+		use aqua && DOC_CONTENTS+="\\n\\n${EMACS_SUFFIX^}.app is in
+			\"${EPREFIX}/Applications/Gentoo\". You may want to copy or
+			symlink it into /Applications by yourself."
+	fi
+	tc-is-cross-compiler && DOC_CONTENTS+="\\n\\nEmacs did not write
+		a portable dump file due to being cross-compiled.
+		To create this file at run time, execute the following command:
+		\\n${EMACS_SUFFIX} --batch -Q --eval='(dump-emacs-portable
+		\"/usr/libexec/emacs/${FULL_VERSION}/${CHOST}/emacs.pdmp\")'"
 	readme.gentoo_create_doc
 }
 
@@ -431,9 +432,6 @@ pkg_postinst() {
 		# force an update of the emacs symlink for the livecd/dvd,
 		# because some microemacs packages set it with USE=livecd
 		eselect emacs update
-	elif [[ $(readlink "${EROOT}"/usr/bin/emacs) = ${EMACS_SUFFIX} ]]; then
-		# refresh symlinks in case any installed files have changed
-		eselect emacs set ${EMACS_SUFFIX}
 	else
 		eselect emacs update ifunset
 	fi
