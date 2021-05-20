@@ -1,8 +1,8 @@
 diff --git a/base/process/process_metrics_posix.cc b/base/process/process_metrics_posix.cc
-index 587caf48c..805c672c0 100644
+index 49f1957871..ae9bd0bea1 100644
 --- a/base/process/process_metrics_posix.cc
 +++ b/base/process/process_metrics_posix.cc
-@@ -121,38 +121,11 @@ size_t GetPageSize() {
+@@ -108,38 +108,11 @@ void IncreaseFdLimitTo(unsigned int max_descriptors) {
  #if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
  namespace {
  
@@ -42,7 +42,7 @@ index 587caf48c..805c672c0 100644
  
  }  // namespace base
 diff --git a/base/trace_event/malloc_dump_provider.cc b/base/trace_event/malloc_dump_provider.cc
-index 44d8d9805..9de4e829d 100644
+index 44d8d98051..9de4e829d9 100644
 --- a/base/trace_event/malloc_dump_provider.cc
 +++ b/base/trace_event/malloc_dump_provider.cc
 @@ -203,7 +203,7 @@ bool MallocDumpProvider::OnMemoryDump(const MemoryDumpArgs& args,
@@ -54,38 +54,12 @@ index 44d8d9805..9de4e829d 100644
    struct mallinfo info = mallinfo();
    // In case of Android's jemalloc |arena| is 0 and the outer pages size is
    // reported by |hblkhd|. In case of dlmalloc the total is given by
-diff --git a/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h b/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
-index 6e17020..d4a9ed0 100644
---- a/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
-+++ b/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
-@@ -122,7 +122,7 @@
- /* #undef HAVE_MALLCTL */
- 
- /* Define to 1 if you have the `mallinfo' function. */
--#define HAVE_MALLINFO 1
-+/* #undef HAVE_MALLINFO */
- 
- /* Define to 1 if you have the <malloc.h> header file. */
- #define HAVE_MALLOC_H 1
-diff --git a/third_party/swiftshader/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h b/third_party/swiftshader/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h
-index f60b2fa..798f150 100644
---- a/third_party/swiftshader/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h
-+++ b/third_party/swiftshader/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h
-@@ -130,7 +130,7 @@
- /* #undef HAVE_MALLCTL */
- 
- /* Define to 1 if you have the `mallinfo' function. */
--#define HAVE_MALLINFO 1
-+/* #undef HAVE_MALLINFO */
- 
- /* Define to 1 if you have the <malloc.h> header file. */
- #define HAVE_MALLOC_H 1
 diff --git a/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc b/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc
-index f60b2fa..798f150 100644
+index 6a4438f480..161eacef80 100644
 --- a/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc
 +++ b/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc
-@@ -35,7 +35,7 @@
-
+@@ -35,7 +35,7 @@ bool MemoryUsage::IsSupported() {
+ 
  MemoryUsage GetMemoryUsage() {
    MemoryUsage result;
 -#ifdef __linux__
@@ -93,4 +67,3 @@ index f60b2fa..798f150 100644
    rusage res;
    if (getrusage(RUSAGE_SELF, &res) == 0) {
      result.max_rss_kb = res.ru_maxrss;
-

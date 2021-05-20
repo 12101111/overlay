@@ -1,0 +1,40 @@
+diff --git a/third_party/dom_distiller_js/protoc_plugins/util/plugin_protos.py b/third_party/dom_distiller_js/protoc_plugins/util/plugin_protos.py
+index d3cbaf1a8..817828622 100644
+--- a/third_party/dom_distiller_js/protoc_plugins/util/plugin_protos.py
++++ b/third_party/dom_distiller_js/protoc_plugins/util/plugin_protos.py
+@@ -33,7 +33,7 @@ class PluginRequest(object):
+     return dict((v.split('=') for v in self.proto.parameter.split(',')))
+ 
+   def GetAllFiles(self):
+-    files = map(ProtoFile, self.proto.proto_file)
++    files = list(map(ProtoFile, self.proto.proto_file))
+     for f in files:
+       assert f.Filename() in self.proto.file_to_generate
+     return files
+@@ -120,7 +120,7 @@ class ProtoFile(object):
+   def GetDependencies(self):
+     # import is not supported
+     assert [] == self.proto.dependency
+-    return map(types.GetProtoFileForFilename, self.proto.dependency)
++    return list(map(types.GetProtoFileForFilename, self.proto.dependency))
+ 
+   def JavaFilename(self):
+     return '/'.join(self.JavaQualifiedOuterClass().split('.')) + '.java'
+@@ -164,7 +164,7 @@ class ProtoMessage(object):
+     return types.TitleCase(self.proto.name)
+ 
+   def GetFields(self):
+-    return map(ProtoField, self.proto.field)
++    return list(map(ProtoField, self.proto.field))
+ 
+   def GetMessages(self):
+     return [ProtoMessage(n, self.qualified_types)
+@@ -273,7 +273,7 @@ class ProtoEnum(object):
+     return types.TitleCase(self.proto.name)
+ 
+   def Values(self):
+-    return map(ProtoEnumValue, self.proto.value)
++    return list(map(ProtoEnumValue, self.proto.value))
+ 
+ 
+ class ProtoEnumValue(object):

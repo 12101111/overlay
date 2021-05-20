@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="1"
+PATCHSET="4"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -74,6 +74,7 @@ COMMON_DEPEND="
 	virtual/udev
 	x11-libs/cairo:=
 	x11-libs/gdk-pixbuf:2
+	x11-libs/libxkbcommon:=
 	x11-libs/pango:=
 	media-libs/flac:=
 	>=media-libs/libwebp-0.4.0:=
@@ -89,12 +90,15 @@ COMMON_DEPEND="
 		x11-libs/gtk+:3[X]
 		wayland? (
 			dev-libs/wayland:=
-			dev-libs/libffi:=
 			screencast? ( media-video/pipewire:0/0.3 )
 			x11-libs/gtk+:3[wayland,X]
 			x11-libs/libdrm:=
-			x11-libs/libxkbcommon:=
 		)
+	)
+	elibc_musl? (
+		sys-libs/musl-legacy-compat
+		sys-libs/libexecinfo
+		sys-libs/libucontext
 	)
 "
 RDEPEND="${COMMON_DEPEND}
@@ -123,11 +127,11 @@ BDEPEND="
 	virtual/pkgconfig
 	pgo? (
 		sys-devel/clang:12
-		>=sys-devel/lld-12.0.0_rc3
+		>=sys-devel/lld-12.0.0
 	)
 	lto? (
 		sys-devel/clang:12
-		>=sys-devel/lld-12.0.0_rc3
+		>=sys-devel/lld-12.0.0
 	)
 "
 
@@ -193,6 +197,7 @@ PATCHES=(
 	"${FILESDIR}/chromium-shim_headers.patch"
 	"${FILESDIR}/chromium-89-EnumTable-crash.patch"
 	"${FILESDIR}/chromium-no-strip.patch"
+	"${FILESDIR}/chromium-python3-fix.patch"
 )
 
 pre_build_checks() {
@@ -253,8 +258,7 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-92-BoxPreflightCheckApiCallFlow-ostream.patch"
-	rm "${WORKDIR}/patches/chromium-92-DownloadShelfPageHandler-confusion.patch"
+	rm "${WORKDIR}/patches/chromium-92-platform_thread-include.patch"
 	eapply "${WORKDIR}/patches"
 
 	default
@@ -336,7 +340,6 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/chromium
 		third_party/devtools-frontend/src/front_end/third_party/codemirror
 		third_party/devtools-frontend/src/front_end/third_party/diff
-		third_party/devtools-frontend/src/front_end/third_party/fabricjs
 		third_party/devtools-frontend/src/front_end/third_party/i18n
 		third_party/devtools-frontend/src/front_end/third_party/intl-messageformat
 		third_party/devtools-frontend/src/front_end/third_party/lighthouse
@@ -540,6 +543,19 @@ src_prepare() {
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 	eend
+
+	if use elibc_musl; then
+		config1="./third_party/swiftshader/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h"
+		if [[ -f $config1 ]]; then
+			sed -i 's/#define HAVE_BACKTRACE 1/\/* #undef HAVE_BACKTRACE *\//' $config1 || die
+			sed -i 's/#define HAVE_EXECINFO_H 1/\/* #undef HAVE_EXECINFO_H *\//' $config1 || die
+			sed -i 's/#define HAVE_MALLINFO 1/\/* #undef HAVE_MALLINFO *\//' $config1 || die
+		fi
+		config2="./third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h"
+		if [[ -f $config2 ]]; then
+			sed -i 's/#define HAVE_MALLINFO 1/\/* #undef HAVE_MALLINFO *\//' $config2 || die
+		fi
+	fi
 }
 
 src_configure() {
@@ -587,12 +603,12 @@ src_configure() {
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
 
-	if use elibc_musl;then
-		if use tcmalloc; then
-			die "tcmalloc is broken with musl at this moment."
-		fi
-		myconf_gn+=" use_allocator_shim=false"
-	fi
+	#if use elibc_musl;then
+	#	if use tcmalloc; then
+	#		die "tcmalloc is broken with musl at this moment."
+	#	fi
+	#	myconf_gn+=" use_allocator_shim=false"
+	#fi
 
 	myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
 
@@ -831,7 +847,8 @@ src_compile() {
 	python_setup
 
 	# https://bugs.gentoo.org/717456
-	local -x PYTHONPATH="${WORKDIR}/setuptools-44.1.0:${PYTHONPATH+:}${PYTHONPATH}"
+	# don't inherit PYTHONPATH from environment, bug #789021
+	local -x PYTHONPATH="${WORKDIR}/setuptools-44.1.0"
 
 	#"${EPYTHON}" tools/clang/scripts/update.py --force-local-build --gcc-toolchain /usr --skip-checkout --use-system-cmake --without-android || die
 
@@ -926,7 +943,6 @@ src_install() {
 	if [[ -d out/Release/swiftshader ]]; then
 		insinto "${CHROMIUM_HOME}/swiftshader"
 		doins out/Release/swiftshader/*.so
-		fperms 755 out/Release/swiftshader/*.so
 	fi
 
 	# Install icons
