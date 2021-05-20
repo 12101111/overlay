@@ -26,7 +26,3 @@ DEPEND="
 "
 BDEPEND=">=app-text/scdoc-1.9.2"
 RDEPEND="${DEPEND}"
-
-PATCHES=(
-	"${FILESDIR}"/musl-fix.patch
-)
