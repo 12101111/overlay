@@ -23,13 +23,11 @@ DEPEND="
 	dev-qt/qtwidgets:5
 	net-libs/grpc
 	dev-libs/protobuf
-	>=media-libs/zxing-cpp-1.1.0
 	net-misc/curl
 "
 RDEPEND="
 	|| ( net-proxy/v2ray-bin net-proxy/v2ray )
-	!libressl? ( dev-libs/openssl:0= )
-	libressl? ( dev-libs/libressl:0= )
+	dev-libs/openssl:0=
 	${DEPEND}
 "
 BDEPEND="
@@ -46,7 +44,6 @@ src_configure() {
 		-DQV2RAY_DEFAULT_VASSETS_PATH="/usr/share/v2ray"
 		-DQV2RAY_DEFAULT_VCORE_PATH="/usr/bin/v2ray"
 		-DQV2RAY_DISABLE_AUTO_UPDATE=on
-		-DQV2RAY_ZXING_PROVIDER="package"
 	)
 	cmake-utils_src_configure
 }
