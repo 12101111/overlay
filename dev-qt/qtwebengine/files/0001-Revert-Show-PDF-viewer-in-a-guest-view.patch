@@ -1,6 +1,6 @@
-From 5377b1324aced274ee226f68485b39029f45d583 Mon Sep 17 00:00:00 2001
+From f4e0321a27923e7460f1c3acdde79a787d9c8517 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Tue, 11 May 2021 16:57:05 +0800
+Date: Mon, 24 May 2021 15:22:46 +0800
 Subject: [PATCH] Revert "Show PDF viewer in a guest view"
 
 This reverts commit 8f56ea6806d9a72d4b705da5f6f90fa5a6873567.
@@ -574,7 +574,7 @@ index 81a48cab..27ee3329 100644
    }
  
 diff --git a/src/core/render_widget_host_view_qt.cpp b/src/core/render_widget_host_view_qt.cpp
-index e98c69c6..99ce37d2 100644
+index bee3c4ca..280c05f6 100644
 --- a/src/core/render_widget_host_view_qt.cpp
 +++ b/src/core/render_widget_host_view_qt.cpp
 @@ -62,7 +62,6 @@
@@ -585,7 +585,7 @@ index e98c69c6..99ce37d2 100644
  #include "content/browser/renderer_host/input/synthetic_gesture_target.h"
  #include "content/browser/renderer_host/render_frame_host_impl.h"
  #include "content/browser/renderer_host/render_view_host_delegate.h"
-@@ -307,35 +306,12 @@ public:
+@@ -308,35 +307,12 @@ public:
      }
  };
  
@@ -621,7 +621,7 @@ index e98c69c6..99ce37d2 100644
      , m_visible(false)
      , m_loadVisuallyCommittedState(NotCommitted)
      , m_adapterClient(0)
-@@ -382,8 +358,6 @@ RenderWidgetHostViewQt::RenderWidgetHostViewQt(content::RenderWidgetHost *widget
+@@ -383,8 +359,6 @@ RenderWidgetHostViewQt::RenderWidgetHostViewQt(content::RenderWidgetHost *widget
      if (host()->delegate() && host()->delegate()->GetInputEventRouter())
          host()->delegate()->GetInputEventRouter()->AddFrameSinkIdOwner(GetFrameSinkId(), this);
  
@@ -630,7 +630,7 @@ index e98c69c6..99ce37d2 100644
      m_touchSelectionControllerClient.reset(new TouchSelectionControllerClientQt(this));
      ui::TouchSelectionController::Config config;
      config.max_tap_duration = base::TimeDelta::FromMilliseconds(ui::GestureConfiguration::GetInstance()->long_press_time_in_ms());
-@@ -436,11 +410,6 @@ void RenderWidgetHostViewQt::setAdapterClient(WebContentsAdapterClient *adapterC
+@@ -437,11 +411,6 @@ void RenderWidgetHostViewQt::setAdapterClient(WebContentsAdapterClient *adapterC
                                                              m_adapterClient = nullptr; });
  }
  
@@ -642,7 +642,7 @@ index e98c69c6..99ce37d2 100644
  void RenderWidgetHostViewQt::InitAsChild(gfx::NativeView)
  {
  }
-@@ -516,11 +485,6 @@ bool RenderWidgetHostViewQt::IsMouseLocked()
+@@ -517,11 +486,6 @@ bool RenderWidgetHostViewQt::IsMouseLocked()
      return m_isMouseLocked;
  }
  
@@ -654,7 +654,7 @@ index e98c69c6..99ce37d2 100644
  bool RenderWidgetHostViewQt::IsSurfaceAvailableForCopy()
  {
      return m_delegatedFrameHost->CanCopyFromCompositingSurface();
-@@ -788,11 +752,6 @@ void RenderWidgetHostViewQt::DisplayCursor(const content::WebCursor &webCursor)
+@@ -789,11 +753,6 @@ void RenderWidgetHostViewQt::DisplayCursor(const content::WebCursor &webCursor)
      m_delegate->updateCursor(QCursor(shape));
  }
  
@@ -666,7 +666,7 @@ index e98c69c6..99ce37d2 100644
  void RenderWidgetHostViewQt::SetIsLoading(bool)
  {
      // We use WebContentsDelegateQt::LoadingStateChanged to notify about loading state.
-@@ -814,18 +773,6 @@ void RenderWidgetHostViewQt::RenderProcessGone()
+@@ -815,18 +774,6 @@ void RenderWidgetHostViewQt::RenderProcessGone()
      Destroy();
  }
  
@@ -685,7 +685,7 @@ index e98c69c6..99ce37d2 100644
  void RenderWidgetHostViewQt::Destroy()
  {
      delete this;
-@@ -838,7 +785,7 @@ void RenderWidgetHostViewQt::SetTooltipText(const base::string16 &tooltip_text)
+@@ -839,7 +786,7 @@ void RenderWidgetHostViewQt::SetTooltipText(const base::string16 &tooltip_text)
  
  void RenderWidgetHostViewQt::DisplayTooltipText(const base::string16 &tooltip_text)
  {
@@ -694,7 +694,7 @@ index e98c69c6..99ce37d2 100644
          m_adapterClient->setToolTip(toQt(tooltip_text));
  }
  
-@@ -1038,8 +985,7 @@ void RenderWidgetHostViewQt::OnGestureEvent(const ui::GestureEventData& gesture)
+@@ -1039,8 +986,7 @@ void RenderWidgetHostViewQt::OnGestureEvent(const ui::GestureEventData& gesture)
          }
      }
  
@@ -704,7 +704,7 @@ index e98c69c6..99ce37d2 100644
  }
  
  void RenderWidgetHostViewQt::DidStopFlinging()
-@@ -1248,12 +1194,8 @@ bool RenderWidgetHostViewQt::forwardEvent(QEvent *event)
+@@ -1249,12 +1195,8 @@ bool RenderWidgetHostViewQt::forwardEvent(QEvent *event)
          if (m_mouseButtonPressed > 0)
              return false;
  #endif
@@ -719,7 +719,7 @@ index e98c69c6..99ce37d2 100644
          break;
      default:
          return false;
-@@ -1334,11 +1276,11 @@ void RenderWidgetHostViewQt::processMotionEvent(const ui::MotionEvent &motionEve
+@@ -1335,11 +1277,11 @@ void RenderWidgetHostViewQt::processMotionEvent(const ui::MotionEvent &motionEve
      auto result = m_gestureProvider.OnTouchEvent(motionEvent);
      if (!result.succeeded)
          return;
@@ -733,7 +733,7 @@ index e98c69c6..99ce37d2 100644
  }
  
  QList<RenderWidgetHostViewQt::TouchPoint> RenderWidgetHostViewQt::mapTouchPoints(const QList<QTouchEvent::TouchPoint> &input)
-@@ -1426,13 +1368,13 @@ void RenderWidgetHostViewQt::handleKeyEvent(QKeyEvent *ev)
+@@ -1427,13 +1369,13 @@ void RenderWidgetHostViewQt::handleKeyEvent(QKeyEvent *ev)
          std::vector<blink::mojom::EditCommandPtr> commands;
          commands.emplace_back(blink::mojom::EditCommand::New(m_editCommand, ""));
          m_editCommand.clear();
@@ -749,7 +749,7 @@ index e98c69c6..99ce37d2 100644
  
      if (keyDownTextInsertion) {
          // Blink won't consume the RawKeyDown, but rather the Char event in this case.
-@@ -1440,7 +1382,7 @@ void RenderWidgetHostViewQt::handleKeyEvent(QKeyEvent *ev)
+@@ -1441,7 +1383,7 @@ void RenderWidgetHostViewQt::handleKeyEvent(QKeyEvent *ev)
          // The same os_event will be set on both NativeWebKeyboardEvents.
          webEvent.skip_in_browser = false;
          webEvent.SetType(blink::WebInputEvent::Type::kChar);
@@ -758,7 +758,7 @@ index e98c69c6..99ce37d2 100644
      }
  }
  
-@@ -1608,9 +1550,8 @@ void RenderWidgetHostViewQt::handleWheelEvent(QWheelEvent *ev)
+@@ -1609,9 +1551,8 @@ void RenderWidgetHostViewQt::handleWheelEvent(QWheelEvent *ev)
          Q_ASSERT(m_pendingWheelEvents.isEmpty());
          blink::WebMouseWheelEvent webEvent = WebEventFactory::toWebWheelEvent(ev);
          m_wheelAckPending = (webEvent.phase != blink::WebMouseWheelEvent::kPhaseEnded);
@@ -770,7 +770,7 @@ index e98c69c6..99ce37d2 100644
          return;
      }
      if (!m_pendingWheelEvents.isEmpty()) {
-@@ -1630,9 +1571,8 @@ void RenderWidgetHostViewQt::WheelEventAck(const blink::WebMouseWheelEvent &even
+@@ -1631,9 +1572,8 @@ void RenderWidgetHostViewQt::WheelEventAck(const blink::WebMouseWheelEvent &even
      while (!m_pendingWheelEvents.isEmpty() && !m_wheelAckPending) {
          blink::WebMouseWheelEvent webEvent = m_pendingWheelEvents.takeFirst();
          m_wheelAckPending = (webEvent.phase != blink::WebMouseWheelEvent::kPhaseEnded);
@@ -782,7 +782,7 @@ index e98c69c6..99ce37d2 100644
      }
  }
  
-@@ -1662,10 +1602,7 @@ void RenderWidgetHostViewQt::handleGestureEvent(QNativeGestureEvent *ev)
+@@ -1663,10 +1603,7 @@ void RenderWidgetHostViewQt::handleGestureEvent(QNativeGestureEvent *ev)
      const Qt::NativeGestureType type = ev->gestureType();
      // These are the only supported gestures by Chromium so far.
      if (type == Qt::ZoomNativeGesture || type == Qt::SmartZoomNativeGesture) {
@@ -794,7 +794,7 @@ index e98c69c6..99ce37d2 100644
      }
  }
  #endif
-@@ -1894,16 +1831,12 @@ void RenderWidgetHostViewQt::handlePointerEvent(T *event)
+@@ -1895,16 +1832,12 @@ void RenderWidgetHostViewQt::handlePointerEvent(T *event)
  #endif
      }
  
@@ -814,7 +814,7 @@ index e98c69c6..99ce37d2 100644
  
  void RenderWidgetHostViewQt::handleFocusEvent(QFocusEvent *ev)
 diff --git a/src/core/render_widget_host_view_qt.h b/src/core/render_widget_host_view_qt.h
-index 9c843e2a..4482d3eb 100644
+index 46c2547d..0beb34f3 100644
 --- a/src/core/render_widget_host_view_qt.h
 +++ b/src/core/render_widget_host_view_qt.h
 @@ -76,7 +76,6 @@ class TouchSelectionController;
@@ -856,7 +856,7 @@ index 9c843e2a..4482d3eb 100644
      void Destroy() override;
      void SetTooltipText(const base::string16 &tooltip_text) override;
      void DisplayTooltipText(const base::string16& tooltip_text) override;
-@@ -272,7 +265,6 @@ private:
+@@ -273,7 +266,6 @@ private:
      blink::ScreenInfo m_screenInfo;
  
      scoped_refptr<base::SingleThreadTaskRunner> m_taskRunner;
@@ -864,7 +864,7 @@ index 9c843e2a..4482d3eb 100644
  
      ui::FilteredGestureProvider m_gestureProvider;
      base::TimeDelta m_eventsToNowDelta;
-@@ -281,7 +273,6 @@ private:
+@@ -282,7 +274,6 @@ private:
      QMap<int, int> m_touchIdMapping;
      QList<TouchPoint> m_previousTouchPoints;
      std::unique_ptr<RenderWidgetHostViewQtDelegate> m_delegate;
