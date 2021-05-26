@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="4"
+PATCHSET="5"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
@@ -197,7 +197,6 @@ PATCHES=(
 	"${FILESDIR}/chromium-shim_headers.patch"
 	"${FILESDIR}/chromium-89-EnumTable-crash.patch"
 	"${FILESDIR}/chromium-no-strip.patch"
-	"${FILESDIR}/chromium-python3-fix.patch"
 )
 
 pre_build_checks() {
@@ -258,8 +257,18 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-92-platform_thread-include.patch"
 	eapply "${WORKDIR}/patches"
+
+	# seccomp sandbox is broken if compiled against >=sys-libs/glibc-2.33, bug #769989
+	if has_version -d ">=sys-libs/glibc-2.33"; then
+		ewarn "Adding experimental glibc-2.33 sandbox patch. Seccomp sandbox might"
+		ewarn "still not work correctly. In case of issues, try to disable seccomp"
+		ewarn "sandbox by adding --disable-seccomp-filter-sandbox to CHROMIUM_FLAGS"
+		ewarn "in /etc/chromium/default."
+		PATCHES+=(
+			"${FILESDIR}/chromium-glibc-2.33.patch"
+		)
+	fi
 
 	default
 
@@ -602,13 +611,6 @@ src_configure() {
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
-
-	#if use elibc_musl;then
-	#	if use tcmalloc; then
-	#		die "tcmalloc is broken with musl at this moment."
-	#	fi
-	#	myconf_gn+=" use_allocator_shim=false"
-	#fi
 
 	myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
 
