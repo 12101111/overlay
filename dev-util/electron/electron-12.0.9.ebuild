@@ -1197,7 +1197,7 @@ LICENSE="BSD"
 SLOT="12"
 KEYWORDS="~amd64"
 IUSE="atk lto pgo component-build cups custom-cflags cpu_flags_arm_neon
-headless kerberos pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-icu +tcmalloc vaapi wayland"
+headless +js-type-check kerberos pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-icu +tcmalloc vaapi wayland"
 RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) ) mirror"
 REQUIRED_USE="
 	component-build? ( !suid )
@@ -1304,6 +1304,7 @@ BDEPEND="
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
+	js-type-check? ( virtual/jre )
 	pgo? (
 		sys-devel/clang:12
 		>=sys-devel/lld-12.0.0_rc1
@@ -1714,6 +1715,10 @@ src_prepare() {
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 	eend
+
+	if use js-type-check; then
+		ln -s "${EPREFIX}"/usr/bin/java third_party/jdk/current/bin/java || die
+	fi
 }
 
 src_configure() {
@@ -1812,6 +1817,7 @@ src_configure() {
 	myconf_gn+=" use_gnome_keyring=false"
 
 	# Optional dependencies.
+	myconf_gn+=" enable_js_type_check=$(usex js-type-check true false)"
 	myconf_gn+=" use_cups=$(usex cups true false)"
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
