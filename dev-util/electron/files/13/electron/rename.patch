@@ -1,0 +1,4 @@
+diff --git a/patches/node/build_add_mjs_support_to_js2c.patch b/patches/node/zzz_build_add_mjs_support_to_js2c.patch
+similarity index 100%
+rename from patches/node/build_add_mjs_support_to_js2c.patch
+rename to patches/node/zzz_build_add_mjs_support_to_js2c.patch

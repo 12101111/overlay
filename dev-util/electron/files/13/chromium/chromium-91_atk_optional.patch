@@ -1,0 +1,16 @@
+diff --git a/build/config/ui.gni b/build/config/ui.gni
+index 1ad352c5e0..c11322fd17 100644
+--- a/build/config/ui.gni
++++ b/build/config/ui.gni
+@@ -52,8 +52,9 @@ assert(!use_glib || ((is_linux || is_chromeos_lacros) && !is_chromecast))
+ 
+ # TODO(crbug.com/1171629): Remove is_chromeos_lacros.
+ # Whether to use atk, the Accessibility ToolKit library
+-use_atk = (is_linux || is_chromeos_lacros) && !is_chromecast && use_glib
+-
++declare_args() {
++  use_atk = (is_linux || is_chromeos_lacros) && !is_chromecast && use_glib
++}
+ # Whether using Xvfb to provide a display server for a test might be
+ # necessary.
+ use_xvfb_in_this_config =
