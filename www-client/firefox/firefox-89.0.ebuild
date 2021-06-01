@@ -3,11 +3,11 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-88-patches-03.tar.xz"
+FIREFOX_PATCHSET="firefox-89-patches-02.tar.xz"
 
 LLVM_MAX_SLOT=12
 
-PYTHON_COMPAT=( python3_{7..9} )
+PYTHON_COMPAT=( python3_{7..10} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
 
 WANT_AUTOCONF="2.1"
@@ -72,7 +72,7 @@ REQUIRED_USE="debug? ( !system-av1 )
 BDEPEND="${PYTHON_DEPS}
 	app-arch/unzip
 	app-arch/zip
-	>=dev-util/cbindgen-0.16.0
+	>=dev-util/cbindgen-0.19.0
 	>=net-libs/nodejs-10.23.1
 	virtual/pkgconfig
 	>=virtual/rust-1.47.0
@@ -100,7 +100,7 @@ BDEPEND="${PYTHON_DEPS}
 	x86? ( >=dev-lang/nasm-2.13 )"
 
 CDEPEND="
-	>=dev-libs/nss-3.63
+	>=dev-libs/nss-3.64
 	>=dev-libs/nspr-4.29
 	dev-libs/atk
 	dev-libs/expat
@@ -454,7 +454,8 @@ src_unpack() {
 src_prepare() {
 	use lto && rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch
 	eapply "${WORKDIR}/firefox-patches"
-	eapply "${FILESDIR}/gtk2"
+	eapply "${FILESDIR}/gtk2/24.patch"
+	eapply "${FILESDIR}/gtk2/25.patch"
 	eapply "${FILESDIR}/cross-pgo.patch"
 	eapply "${FILESDIR}/fix-libcxx12.patch"
 	use elibc_musl && eapply "${FILESDIR}/mutex-musl.patch"
