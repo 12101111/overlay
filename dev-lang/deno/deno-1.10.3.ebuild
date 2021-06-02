@@ -323,7 +323,7 @@ CRATES="
 	time-0.1.44
 	tinyvec-1.2.0
 	tinyvec_macros-0.1.0
-	tokio-1.6.0
+	tokio-1.6.1
 	tokio-macros-1.2.0
 	tokio-rustls-0.22.0
 	tokio-stream-0.1.6
