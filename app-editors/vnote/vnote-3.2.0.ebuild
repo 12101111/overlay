@@ -8,6 +8,7 @@ inherit qmake-utils xdg git-r3
 DESCRIPTION="Qt-based, free and open source note-taking application, focusing on Markdown"
 HOMEPAGE="https://vnotex.github.io/vnote"
 EGIT_REPO_URI="https://github.com/vnotex/vnote.git"
+EGIT_COMMIT="v${PV}"
 
 KEYWORDS="~amd64"
 
