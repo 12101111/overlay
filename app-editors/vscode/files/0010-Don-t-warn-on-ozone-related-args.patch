@@ -1,0 +1,37 @@
+From b9e0562facde4472322fa2735f80050fa7e92eb8 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 11 Jun 2021 16:38:45 +0800
+Subject: [PATCH 10/12] Don't warn on ozone related args
+
+---
+ src/vs/platform/environment/common/argv.ts | 2 ++
+ src/vs/platform/environment/node/argv.ts   | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
+index 4610b7f06c9..b113ccf3eda 100644
+--- a/src/vs/platform/environment/common/argv.ts
++++ b/src/vs/platform/environment/common/argv.ts
+@@ -101,4 +101,6 @@ export interface NativeParsedArgs {
+ 	'log-net-log'?: string;
+ 	'vmodule'?: string;
+ 	'app'?: string;
++	'enable-features'?: string;
++	'ozone-platform'?: string;
+ }
+diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
+index 26c312af611..49793473bc5 100644
+--- a/src/vs/platform/environment/node/argv.ts
++++ b/src/vs/platform/environment/node/argv.ts
+@@ -136,6 +136,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
+ 	'vmodule': { type: 'string' },
+ 	'_urls': { type: 'string[]' },
+ 	'app': { type: 'string' },
++	'enable-features': { type: 'string' },
++	'ozone-platform': { type: 'string' },
+ 
+ 	_: { type: 'string[]' } // main arguments
+ };
+-- 
+2.32.0
+

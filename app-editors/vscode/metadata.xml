@@ -6,5 +6,8 @@
 	</maintainer>
 	<use>
 		<flag name="system-ripgrep">Use system <pkg>sys-apps/ripgrep</pkg> instead of the bundled one</flag>
+		<flag name="builtin-extensions">Download builtin extensions from Microsoft. 
+		This may failed because of rate limit from Microsoft server.
+		Use download_builtin_extension.sh in PATH-TO-OVERLAY/app-editors/vscode/files to workaround it</flag>
 	</use>
 </pkgmetadata>

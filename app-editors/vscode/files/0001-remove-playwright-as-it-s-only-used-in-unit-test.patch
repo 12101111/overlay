@@ -1,7 +1,7 @@
-From 81eb8656960571131d2aceb2d89ac9ee1bbb7024 Mon Sep 17 00:00:00 2001
+From bc5f69a98e60ab7017992984eb46a78f975b88ec Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 6 May 2021 09:57:10 +0800
-Subject: [PATCH 1/9] remove playwright as it's only used in unit test
+Subject: [PATCH 01/12] remove playwright as it's only used in unit test
 
 ---
  package.json |  2 --
@@ -9,10 +9,10 @@ Subject: [PATCH 1/9] remove playwright as it's only used in unit test
  2 files changed, 20 deletions(-)
 
 diff --git a/package.json b/package.json
-index 1430bbb7272..2639f9ec597 100644
+index 3c2b3b89dc0..9c45dbfc61a 100644
 --- a/package.json
 +++ b/package.json
-@@ -49,7 +49,6 @@
+@@ -46,7 +46,6 @@
      "compile-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-web",
      "watch-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js watch-web",
      "eslint": "node build/eslint",
@@ -20,7 +20,7 @@ index 1430bbb7272..2639f9ec597 100644
      "compile-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-build",
      "compile-extensions-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-extensions-build",
      "minify-vscode": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js minify-vscode",
-@@ -180,7 +179,6 @@
+@@ -177,7 +176,6 @@
      "opn": "^6.0.0",
      "optimist": "0.3.5",
      "p-all": "^1.0.0",
@@ -29,10 +29,10 @@ index 1430bbb7272..2639f9ec597 100644
      "queue": "3.0.6",
      "rcedit": "^1.1.0",
 diff --git a/yarn.lock b/yarn.lock
-index b475eec7e3a..28aece2cef6 100644
+index 2d5cec7e66e..d73bae5c69d 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -7247,24 +7247,6 @@ pkg-dir@^4.1.0:
+@@ -7242,24 +7242,6 @@ pkg-dir@^4.1.0:
    dependencies:
      find-up "^4.0.0"
  
@@ -58,5 +58,5 @@ index b475eec7e3a..28aece2cef6 100644
    version "3.0.1"
    resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.1.tgz#a9b931d17c304e8912ef0ba3bdd6182baf2e1f8c"
 -- 
-2.31.1
+2.32.0
 
