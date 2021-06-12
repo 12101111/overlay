@@ -76,11 +76,11 @@ index 96c9f490e2..225823c5a8 100644
      case __NR_munlockall:
      case __NR_readahead:
 diff --git a/sandbox/linux/system_headers/arm64_linux_syscalls.h b/sandbox/linux/system_headers/arm64_linux_syscalls.h
-index a242c18c84..30751fc4ac 100644
+index ab86b36353..60d87434f1 100644
 --- a/sandbox/linux/system_headers/arm64_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/arm64_linux_syscalls.h
-@@ -1119,4 +1119,8 @@
- #define __NR_rseq 293
+@@ -1215,4 +1215,8 @@
+ #define __NR_landlock_restrict_self 446
  #endif
  
 +#if !defined(__NR_membarrier)
@@ -89,11 +89,11 @@ index a242c18c84..30751fc4ac 100644
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_ARM64_LINUX_SYSCALLS_H_
 diff --git a/sandbox/linux/system_headers/arm_linux_syscalls.h b/sandbox/linux/system_headers/arm_linux_syscalls.h
-index 85da6f41c6..609c04dadd 100644
+index 9c44368a8e..40c61863e7 100644
 --- a/sandbox/linux/system_headers/arm_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/arm_linux_syscalls.h
-@@ -1605,6 +1605,10 @@
- #define __NR_mount_setattr (__NR_SYSCALL_BASE + 442)
+@@ -1617,6 +1617,10 @@
+ #define __NR_landlock_restrict_self (__NR_SYSCALL_BASE + 446)
  #endif
  
 +#if !defined(__NR_membarrier)
@@ -116,11 +116,11 @@ index 2b78a0cc3b..b6fedb5c20 100644
  #if defined(__x86_64__)
  #include "sandbox/linux/system_headers/x86_64_linux_syscalls.h"
 diff --git a/sandbox/linux/system_headers/mips64_linux_syscalls.h b/sandbox/linux/system_headers/mips64_linux_syscalls.h
-index ec75815a84..5515270836 100644
+index ae7cb48f57..4ce8142a67 100644
 --- a/sandbox/linux/system_headers/mips64_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/mips64_linux_syscalls.h
-@@ -1271,4 +1271,8 @@
- #define __NR_memfd_create (__NR_Linux + 314)
+@@ -1415,4 +1415,8 @@
+ #define __NR_landlock_restrict_self (__NR_Linux + 446)
  #endif
  
 +#if !defined(__NR_membarrier)
@@ -129,11 +129,11 @@ index ec75815a84..5515270836 100644
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_MIPS64_LINUX_SYSCALLS_H_
 diff --git a/sandbox/linux/system_headers/mips_linux_syscalls.h b/sandbox/linux/system_headers/mips_linux_syscalls.h
-index 50d9ea11bf..0caffae661 100644
+index 093778288b..f5c014e3fd 100644
 --- a/sandbox/linux/system_headers/mips_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/mips_linux_syscalls.h
-@@ -1685,4 +1685,8 @@
- #define __NR_mount_setattr (__NR_Linux + 442)
+@@ -1697,4 +1697,8 @@
+ #define __NR_landlock_restrict_self (__NR_Linux + 446)
  #endif
  
 +#if !defined(__NR_membarrier)
@@ -142,11 +142,11 @@ index 50d9ea11bf..0caffae661 100644
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_MIPS_LINUX_SYSCALLS_H_
 diff --git a/sandbox/linux/system_headers/x86_64_linux_syscalls.h b/sandbox/linux/system_headers/x86_64_linux_syscalls.h
-index b0ae0a2edf..8b12029475 100644
+index e618c6237b..dc6fa8d3c7 100644
 --- a/sandbox/linux/system_headers/x86_64_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/x86_64_linux_syscalls.h
-@@ -1350,5 +1350,9 @@
- #define __NR_rseq 334
+@@ -1438,5 +1438,9 @@
+ #define __NR_landlock_restrict_self 446
  #endif
  
 +#if !defined(__NR_membarrier)
@@ -156,13 +156,13 @@ index b0ae0a2edf..8b12029475 100644
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_X86_64_LINUX_SYSCALLS_H_
  
 diff --git a/sandbox/policy/linux/bpf_renderer_policy_linux.cc b/sandbox/policy/linux/bpf_renderer_policy_linux.cc
-index f789e92c37..1a84c2c980 100644
+index f38b543462..6a8d3b0b71 100644
 --- a/sandbox/policy/linux/bpf_renderer_policy_linux.cc
 +++ b/sandbox/policy/linux/bpf_renderer_policy_linux.cc
-@@ -97,11 +97,11 @@ ResultExpr RendererProcessPolicy::EvaluateSyscall(int sysno) const {
-     case __NR_sysinfo:
-     case __NR_times:
-     case __NR_uname:
+@@ -100,11 +100,11 @@ ResultExpr RendererProcessPolicy::EvaluateSyscall(int sysno) const {
+       // V8 uses PKU (a.k.a. MPK / PKEY) for protecting code spaces.
+     case __NR_pkey_alloc:
+     case __NR_pkey_free:
 -      return Allow();
 -    case __NR_sched_getaffinity:
      case __NR_sched_getparam:

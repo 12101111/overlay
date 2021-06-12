@@ -1,5 +1,5 @@
 diff --git a/components/cast_channel/enum_table.h b/components/cast_channel/enum_table.h
-index cca3a66..4118d6d 100644
+index e3130c7..2ad16ea 100644
 --- a/components/cast_channel/enum_table.h
 +++ b/components/cast_channel/enum_table.h
 @@ -212,7 +212,7 @@ class
