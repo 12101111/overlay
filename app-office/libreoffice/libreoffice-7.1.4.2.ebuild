@@ -48,6 +48,8 @@ ADDONS_SRC=(
 	"${ADDONS_URI}/dtoa-20180411.tgz"
 	# not packaged in Gentoo, https://skia.org/
 	"${ADDONS_URI}/skia-m88-59bafeeaa7de9eb753e3778c414e01dcf013dcd8.tar.xz"
+	# QR code generating library for >=libreoffice-6.4, bug #691740
+	"${ADDONS_URI}/QR-Code-generator-1.4.0.tar.gz"
 	"base? (
 		${ADDONS_URI}/commons-logging-1.2-src.tar.gz
 		${ADDONS_URI}/ba2930200c9f019c2d93a8c88c651a0f-flow-engine-0.9.4.zip
@@ -100,7 +102,7 @@ LICENSE="|| ( LGPL-3 MPL-1.1 )"
 SLOT="0"
 
 [[ ${MY_PV} == *9999* ]] || \
-KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~amd64-linux"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86 ~amd64-linux"
 
 BDEPEND="
 	dev-util/intltool
@@ -148,7 +150,6 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	dev-libs/libxslt
 	dev-libs/nspr
 	dev-libs/nss
-	dev-libs/qrcodegen
 	>=dev-libs/redland-1.0.16
 	>=dev-libs/xmlsec-1.2.28[nss]
 	media-gfx/fontforge
@@ -292,7 +293,9 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.3.4.2-kioclient5.patch"
 	"${FILESDIR}/${PN}-6.1-nomancompress.patch"
 	"${FILESDIR}/${PN}-7.0.3.1-qt5detect.patch"
-	"${FILESDIR}/disable-liborcus-unittest.patch"
+
+	# master branch
+	"${FILESDIR}/${PN}-7.1.3.2-bashism.patch" # bug 780432
 	"${FILESDIR}/libcxx.patch"
 	"${FILESDIR}/linux-musl.patch"
 	"${FILESDIR}/musl-stacksize.patch"
@@ -516,6 +519,7 @@ src_configure() {
 		--without-system-jfreereport
 		--without-system_apache_commons
 		--without-system-sane
+		--without-system-qrcodegen
 		$(use_enable base report-builder)
 		$(use_enable bluetooth sdremote-bluetooth)
 		$(use_enable coinmp)
