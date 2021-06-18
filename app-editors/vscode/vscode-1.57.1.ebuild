@@ -809,7 +809,7 @@ https://registry.yarnpkg.com/editorconfig/-/editorconfig-0.15.2.tgz
 https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz
 https://registry.yarnpkg.com/electron-osx-sign/-/electron-osx-sign-0.4.16.tgz
 https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.737.tgz
-https://registry.yarnpkg.com/electron/-/electron-12.0.9.tgz
+https://registry.yarnpkg.com/electron/-/electron-12.0.7.tgz
 https://registry.yarnpkg.com/elliptic/-/elliptic-6.4.0.tgz
 https://registry.yarnpkg.com/elliptic/-/elliptic-6.5.4.tgz
 https://registry.yarnpkg.com/emitter-component/-/emitter-component-1.1.1.tgz
