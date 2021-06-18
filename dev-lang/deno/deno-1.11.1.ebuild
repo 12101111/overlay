@@ -142,7 +142,7 @@ CRATES="
 	httparse-1.4.1
 	httpdate-1.0.0
 	humantime-2.1.0
-	hyper-0.14.7
+	hyper-0.14.9
 	hyper-rustls-0.22.1
 	ident_case-1.0.1
 	idna-0.2.3
@@ -163,6 +163,8 @@ CRATES="
 	kernel32-sys-0.2.2
 	khronos-egl-4.1.0
 	lazy_static-1.4.0
+	lexical-5.2.2
+	lexical-core-0.7.6
 	libc-0.2.94
 	libloading-0.7.0
 	libsqlite3-sys-0.22.2
@@ -268,6 +270,7 @@ CRATES="
 	serde_json-1.0.64
 	serde_repr-0.1.7
 	serde_urlencoded-0.7.0
+	serde_v8-0.4.1
 	sha-1-0.9.6
 	shell-escape-0.1.5
 	signal-hook-registry-1.3.0
@@ -282,6 +285,7 @@ CRATES="
 	spirv_cross-0.23.1
 	spirv_headers-1.5.0
 	stable_deref_trait-1.2.0
+	static_assertions-1.1.0
 	storage-map-0.3.0
 	string_cache-0.8.1
 	string_cache_codegen-0.5.1
@@ -295,7 +299,7 @@ CRATES="
 	swc_ecma_codegen-0.55.4
 	swc_ecma_codegen_macros-0.5.2
 	swc_ecma_dep_graph-0.25.0
-	swc_ecma_parser-0.57.3
+	swc_ecma_parser-0.57.4
 	swc_ecma_transforms-0.50.2
 	swc_ecma_transforms_base-0.15.7
 	swc_ecma_transforms_classes-0.1.1
@@ -305,7 +309,7 @@ CRATES="
 	swc_ecma_transforms_typescript-0.19.4
 	swc_ecma_utils-0.36.0
 	swc_ecma_visit-0.31.0
-	swc_ecmascript-0.36.2
+	swc_ecmascript-0.36.3
 	swc_eq_ignore_macros-0.1.0
 	swc_macros_common-0.3.3
 	swc_visit-0.2.4
