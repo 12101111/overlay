@@ -74,12 +74,14 @@ LLVM_DEPEND+=" )
 # for example 1.47.x, requires at least 1.46.x, 1.47.x is ok,
 # but it fails to bootstrap with 1.48.x
 # https://github.com/rust-lang/rust/blob/${PV}/src/stage0.txt
+RUST_DEP_PREV="$(ver_cut 1).$(($(ver_cut 2) - 1))*"
+RUST_DEP_CURR="$(ver_cut 1).$(ver_cut 2)*"
 BOOTSTRAP_DEPEND="||
 	(
-		=dev-lang/rust-$(ver_cut 1).$(($(ver_cut 2) - 1))*
-		=dev-lang/rust-bin-$(ver_cut 1).$(($(ver_cut 2) - 1))*
-		=dev-lang/rust-$(ver_cut 1).$(ver_cut 2)*
-		=dev-lang/rust-bin-$(ver_cut 1).$(ver_cut 2)*
+		=dev-lang/rust-"${RUST_DEP_PREV}"
+		=dev-lang/rust-bin-"${RUST_DEP_PREV}"
+		=dev-lang/rust-"${RUST_DEP_CURR}"
+		=dev-lang/rust-bin-"${RUST_DEP_CURR}"
 	)
 "
 
@@ -91,7 +93,7 @@ BDEPEND="${PYTHON_DEPS}
 	)
 	system-bootstrap? ( ${BOOTSTRAP_DEPEND} )
 	!system-llvm? (
-		dev-util/cmake
+		>=dev-util/cmake-3.13.4
 		dev-util/ninja
 	)
 	test? ( sys-devel/gdb )
@@ -150,9 +152,9 @@ VERIFY_SIG_OPENPGP_KEY_PATH="/usr/share/openpgp-keys/rust.asc"
 PATCHES=(
 	"${FILESDIR}"/1.47.0-ignore-broken-and-non-applicable-tests.patch
 	#"${FILESDIR}"/1.49.0-gentoo-musl-target-specs.patch
-	"${FILESDIR}"/1.51.0-slow-doc-install.patch
+	"${FILESDIR}"/1.53.0-rustversion-1.0.5.patch # https://github.com/rust-lang/rust/pull/86425
+	"${FILESDIR}"/1.53.0-miri-vergen.patch # https://github.com/rust-lang/rust/issues/84182
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
-	"${FILESDIR}"/sanitizers-enable-musl-support.patch
 	"${FILESDIR}"/musl-fix-libunwind.patch
 )
 
@@ -265,7 +267,7 @@ src_configure() {
 		if use system-llvm; then
 			# un-hardcode rust-lld linker for this target
 			# https://bugs.gentoo.org/715348
-			sed -i '/linker:/ s/rust-lld/wasm-ld/' compiler/rustc_target/src/spec/wasm32_base.rs || die
+			sed -i '/linker:/ s/rust-lld/wasm-ld/' compiler/rustc_target/src/spec/wasm_base.rs || die
 		fi
 	fi
 	if use wasi; then
@@ -289,14 +291,19 @@ src_configure() {
 
 	local rust_stage0_root
 	if use system-bootstrap; then
-		rust_stage0_root="$(rustc --print sysroot)"
+		local printsysroot
+		printsysroot="$(rustc --print sysroot || die "Can't determine rust's sysroot")"
+		rust_stage0_root="${printsysroot}"
 	else
 		rust_stage0_root="${WORKDIR}"/rust-stage0
 	fi
+	# in case of prefix it will be already prefixed, as --print sysroot returns full path
+	[[ -d ${rust_stage0_root} ]] || die "${rust_stage0_root} is not a directory"
 
 	rust_target="$(rust_abi)"
 
 	cat <<- _EOF_ > "${S}"/config.toml
+		changelog-seen = 2
 		[llvm]
 		download-ci-llvm = false
 		optimize = $(toml_usex !debug)
@@ -308,6 +315,9 @@ src_configure() {
 		link-shared = $(toml_usex system-llvm)
 		use-libcxx = $(toml_usex default-libcxx)
 		[build]
+		build-stage = 2
+		test-stage = 2
+		doc-stage = 2
 		build = "${rust_target}"
 		host = ["${rust_target}"]
 		target = [${rust_targets}]
@@ -464,6 +474,11 @@ src_configure() {
 				llvm-config = "$(get_llvm_prefix "${LLVM_MAX_SLOT}")/bin/llvm-config"
 			_EOF_
 		fi
+		if [[ "${cross_toolchain}" == *-musl* ]]; then
+			cat <<- _EOF_ >> "${S}"/config.toml
+				musl-root = "$(${cross_toolchain}-gcc -print-sysroot)/usr"
+			_EOF_
+		fi
 
 		# append cross target to "normal" target list
 		# example 'target = ["powerpc64le-unknown-linux-gnu"]'
@@ -491,9 +506,10 @@ src_configure() {
 
 	einfo "Rust configured with the following flags:"
 	echo
-	echo "RUSTFLAGS=\"${RUSTFLAGS:-}\""
-	echo "RUSTFLAGS_BOOTSTRAP=\"${RUSTFLAGS_BOOTSTRAP:-}\""
-	echo "RUSTFLAGS_NOT_BOOTSTRAP=\"${RUSTFLAGS_NOT_BOOTSTRAP:-}\""
+	echo RUSTFLAGS="${RUSTFLAGS:-}"
+	echo RUSTFLAGS_BOOTSTRAP="${RUSTFLAGS_BOOTSTRAP:-}"
+	echo RUSTFLAGS_NOT_BOOTSTRAP="${RUSTFLAGS_NOT_BOOTSTRAP:-}"
+	env | grep "CARGO_TARGET_.*_RUSTFLAGS="
 	cat "${S}"/config.env || die
 	echo
 	einfo "config.toml contents:"
@@ -506,7 +522,7 @@ src_compile() {
 	(
 	IFS=$'\n'
 	env $(cat "${S}"/config.env) RUST_BACKTRACE=1\
-		"${EPYTHON}" ./x.py dist -vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
+		"${EPYTHON}" ./x.py build -vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
 	)
 }
 
@@ -571,7 +587,7 @@ src_install() {
 	(
 	IFS=$'\n'
 	env $(cat "${S}"/config.env) DESTDIR="${D}" \
-		"${EPYTHON}" ./x.py install -vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
+		"${EPYTHON}" ./x.py install	-vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
 	)
 
 	# bug #689562, #689160
