@@ -103,7 +103,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.15.2_p20210406-glibc-2.33.patch" # by Fedora, bug 769989
 	"${FILESDIR}/${P}-gcc11.patch" # by Fedora, bug 768261
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
-	"${FILESDIR}/0001-Revert-Show-PDF-viewer-in-a-guest-view.patch"
+	"${FILESDIR}/${PN}-5.15.2-wheel-event-fix.patch"
 )
 
 src_unpack() {
