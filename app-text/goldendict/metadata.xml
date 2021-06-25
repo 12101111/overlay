@@ -13,6 +13,7 @@
 		<flag name="ffmpeg">Use ffmpeg to play audio</flag>
 		<flag name="multimedia">Use Qt5 Multimedia and GStreamer to play audio</flag>
 		<flag name="opencc">Add chinese conversion support</flag>
+		<flag name="wayland">Allow run under wayland.</flag>
 		<flag name="zim">Add Zim and Slob formats support</flag>
 	</use>
 </pkgmetadata>

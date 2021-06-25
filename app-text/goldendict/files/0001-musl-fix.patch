@@ -1,3 +1,14 @@
+From be857e7daa014aae65395e58042406ad760035fd Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 25 Jun 2021 22:14:01 +0800
+Subject: [PATCH 1/2] musl fix
+
+---
+ goldendict.pro |  1 +
+ main.cc        |  1 +
+ mdictparser.cc | 39 ++++++---------------------------------
+ 3 files changed, 8 insertions(+), 33 deletions(-)
+
 diff --git a/goldendict.pro b/goldendict.pro
 index 4a4a3094..b4985daa 100644
 --- a/goldendict.pro
@@ -11,20 +22,19 @@ index 4a4a3094..b4985daa 100644
      # Install prefix: first try to use qmake's PREFIX variable,
      # then $PREFIX from system environment, and if both fails,
 diff --git a/main.cc b/main.cc
-index f6a85c07..ae9759a5 100644
+index f6a85c07..2b36f833 100644
 --- a/main.cc
 +++ b/main.cc
-@@ -210,6 +210,8 @@ public:
-   ~LogFilePtrGuard() { logFilePtr = 0; }
- };
+@@ -2,6 +2,7 @@
+  * Part of GoldenDict. Licensed under GPLv3 or later, see the LICENSE file */
  
+ #include <stdio.h>
 +#include <locale.h>
-+
- int main( int argc, char ** argv )
- {
- #ifdef Q_OS_UNIX
+ #include <QIcon>
+ #include "gdappstyle.hh"
+ #include "mainwindow.hh"
 diff --git a/mdictparser.cc b/mdictparser.cc
-index 5139ad7c..4d26b1d8 100644
+index 5139ad7c..248478d2 100644
 --- a/mdictparser.cc
 +++ b/mdictparser.cc
 @@ -22,7 +22,6 @@
@@ -80,10 +90,13 @@ index 5139ad7c..4d26b1d8 100644
 -  if ( result.size() <= 2 )
 -    return QString();
 -  return QString::fromUtf16( ( const ushort * )&result.front() );
-+  QByteArray encodedString = QByteArray(from);
++  QByteArray encodedString = QByteArray(from, fromSize);
 +  QTextCodec *codec = QTextCodec::codecForName(fromCode);
 +  QString result = codec->toUnicode(encodedString);
 +  return result;
  }
  
  bool MdictParser::decryptHeadWordIndex(char * buffer, qint64 len)
+-- 
+2.32.0
+

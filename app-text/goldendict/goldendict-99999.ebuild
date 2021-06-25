@@ -13,7 +13,7 @@ EGIT_SUBMODULES=()
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS=""
-IUSE="debug ffmpeg opencc zim multimedia"
+IUSE="debug ffmpeg opencc zim multimedia wayland"
 
 RDEPEND="
 	app-arch/bzip2
@@ -58,7 +58,8 @@ PATCHES=(
 src_prepare() {
 	default
 
-	use elibc_musl && eapply "${FILESDIR}/musl-fix.patch"
+	use elibc_musl && eapply "${FILESDIR}/0001-musl-fix.patch"
+	use wayland && eapply "${FILESDIR}/0002-wayland.patch"
 
 	# add trailing semicolon
 	sed -i -e '/^Categories/s/$/;/' redist/org.goldendict.GoldenDict.desktop || die
