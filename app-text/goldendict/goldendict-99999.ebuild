@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit desktop qmake-utils git-r3
+inherit desktop qmake-utils git-r3 toolchain-funcs
 
 DESCRIPTION="Feature-rich dictionary lookup program"
 HOMEPAGE="http://goldendict.org/"
@@ -76,6 +76,9 @@ src_configure() {
 	use ffmpeg || myconf+=( "CONFIG+=no_ffmpeg_player" )
 	use multimedia || myconf+=( "CONFIG+=no_qtmultimedia_player" )
 
+	# stack overfow & std::bad_alloc on musl
+	use elibc_musl && append-ldflags -Wl,-z,stack-size=2097152
+
 	eqmake5 "${myconf[@]}" PREFIX="/usr" goldendict.pro
 }
 
@@ -84,7 +87,7 @@ src_install() {
 	domenu redist/org.goldendict.GoldenDict.desktop
 	doicon redist/icons/${PN}.png
 
-	insinto /usr/share/apps/${PN}/locale
+	insinto /usr/share/${PN}/locale
 	doins locale/*.qm
 
 	insinto /usr/share/${PN}/help
