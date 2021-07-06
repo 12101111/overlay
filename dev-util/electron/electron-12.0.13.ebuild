@@ -1964,6 +1964,7 @@ src_configure() {
 			myconf_gn+=" ozone_platform=\"headless\""
 			myconf_gn+=" use_x11=false"
 		else
+			myconf_gn+=" ozone_platform_x11=true"
 			myconf_gn+=" ozone_platform_wayland=true"
 			myconf_gn+=" use_system_libdrm=true"
 			myconf_gn+=" use_system_minigbm=true"
