@@ -1,11 +1,14 @@
 diff --git a/base/process/process_metrics_posix.cc b/base/process/process_metrics_posix.cc
-index 49f1957871..ae9bd0bea1 100644
+index 49f1957..0da4c55 100644
 --- a/base/process/process_metrics_posix.cc
 +++ b/base/process/process_metrics_posix.cc
-@@ -108,38 +108,11 @@ void IncreaseFdLimitTo(unsigned int max_descriptors) {
- #if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
- namespace {
+@@ -105,41 +105,8 @@ void IncreaseFdLimitTo(unsigned int max_descriptors) {
  
+ #endif  // !defined(OS_FUCHSIA)
+ 
+-#if defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+-namespace {
+-
 -size_t GetMallocUsageMallinfo() {
 -#if defined(__GLIBC__) && defined(__GLIBC_PREREQ)
 -#if __GLIBC_PREREQ(2, 33)
@@ -24,9 +27,9 @@ index 49f1957871..ae9bd0bea1 100644
 -#endif
 -}
 -
- }  // namespace
- #endif  // defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
- 
+-}  // namespace
+-#endif  // defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+-
  size_t ProcessMetrics::GetMallocUsage() {
 -#if defined(OS_APPLE)
 -  malloc_statistics_t stats = {0};
@@ -42,18 +45,33 @@ index 49f1957871..ae9bd0bea1 100644
  
  }  // namespace base
 diff --git a/base/trace_event/malloc_dump_provider.cc b/base/trace_event/malloc_dump_provider.cc
-index 44d8d98051..9de4e829d9 100644
+index aacaac5..2fed6d2 100644
 --- a/base/trace_event/malloc_dump_provider.cc
 +++ b/base/trace_event/malloc_dump_provider.cc
-@@ -203,7 +203,7 @@ bool MallocDumpProvider::OnMemoryDump(const MemoryDumpArgs& args,
-                      &allocated_objects_count);
+@@ -209,12 +209,13 @@ bool MallocDumpProvider::OnMemoryDump(const MemoryDumpArgs& args,
  #elif defined(OS_FUCHSIA)
  // TODO(fuchsia): Port, see https://crbug.com/706592.
--#else
-+#elif defined(OS_LINUX) && defined(__GLIBC__)
+ #else
+-#if defined(__GLIBC__) && defined(__GLIBC_PREREQ)
++#if defined(__GLIBC__)
++#if defined(__GLIBC_PREREQ)
+ #if __GLIBC_PREREQ(2, 33)
+ #define MALLINFO2_FOUND_IN_LIBC
+   struct mallinfo2 info = mallinfo2();
+ #endif
+-#endif  // defined(__GLIBC__) && defined(__GLIBC_PREREQ)
++#endif  // defined(__GLIBC_PREREQ)
+ #if !defined(MALLINFO2_FOUND_IN_LIBC)
    struct mallinfo info = mallinfo();
-   // In case of Android's jemalloc |arena| is 0 and the outer pages size is
-   // reported by |hblkhd|. In case of dlmalloc the total is given by
+ #endif
+@@ -227,6 +228,7 @@ bool MallocDumpProvider::OnMemoryDump(const MemoryDumpArgs& args,
+ 
+   // Total allocated space is given by |uordblks|.
+   allocated_objects_size = info.uordblks;
++#endif // defined(__GLIBC__)
+ #endif
+ 
+   MemoryAllocatorDump* outer_dump = pmd->CreateAllocatorDump("malloc");
 diff --git a/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc b/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc
 index 6a4438f480..161eacef80 100644
 --- a/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc

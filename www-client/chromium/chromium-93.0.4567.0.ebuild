@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="3"
+PATCHSET="5"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
@@ -22,7 +22,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="atk lto pgo swiftshader vulkan +tcmalloc component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos official pic +proprietary-codecs pulseaudio screencast selinux +suid system-ffmpeg +system-icu vaapi wayland widevine"
+IUSE="atk lto pgo +tcmalloc component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-icu vaapi wayland widevine"
 REQUIRED_USE="
 	component-build? ( !suid )
 	screencast? ( wayland )
@@ -264,9 +264,8 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-93-ExecutionState-const.patch"
-	rm "${WORKDIR}/patches/chromium-93-JsepTransportCollection-ostream.patch"
-	rm "${WORKDIR}/patches/chromium-93-tint-include.patch"
+	rm "${WORKDIR}/patches/chromium-93-dawn-raw-string-literal.patch"
+	rm "${WORKDIR}/patches/chromium-swiftshader-export.patch"
 	eapply "${WORKDIR}/patches"
 
 	# seccomp sandbox is broken if compiled against >=sys-libs/glibc-2.33, bug #769989
@@ -293,9 +292,6 @@ src_prepare() {
 		rm -r third_party/highway/src || die
 		ln -s "${WORKDIR}/highway-0.12.1" third_party/highway/src || die
 	fi
-
-	# lastchange.py requires initialized git repository
-	git init -q || die
 
 	local keeplibs=(
 		base/third_party/cityhash
@@ -479,6 +475,12 @@ src_prepare() {
 		third_party/skia/third_party/vulkan
 		third_party/smhasher
 		third_party/sqlite
+		third_party/swiftshader
+		third_party/swiftshader/third_party/astc-encoder
+		third_party/swiftshader/third_party/llvm-subzero
+		third_party/swiftshader/third_party/marl
+		third_party/swiftshader/third_party/subzero
+		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
 		third_party/tensorflow-text
 		third_party/tflite
 		third_party/tflite/src/third_party/eigen3
@@ -534,19 +536,6 @@ src_prepare() {
 	if use wayland && ! use headless ; then
 		keeplibs+=( third_party/wayland )
 	fi
-	if use swiftshader ; then
-		keeplibs+=(
-			third_party/swiftshader
-			third_party/swiftshader/third_party/astc-encoder
-			third_party/swiftshader/third_party/llvm-subzero
-			third_party/swiftshader/third_party/marl
-			third_party/swiftshader/third_party/subzero
-			third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
-		)
-		if use arm64 || use ppc64 ; then
-			keeplibs+=( third_party/swiftshader/third_party/llvm-10.0 )
-		fi
-	fi
 	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
 		keeplibs+=( third_party/libxml )
 		keeplibs+=( third_party/libxslt )
@@ -556,6 +545,9 @@ src_prepare() {
 		if use system-icu; then
 			keeplibs+=( third_party/icu )
 		fi
+	fi
+	if use arm64 || use ppc64 ; then
+		keeplibs+=( third_party/swiftshader/third_party/llvm-10.0 )
 	fi
 	# we need to generate ppc64 stuff because upstream does not ship it yet
 	# it has to be done before unbundling.
@@ -695,11 +687,7 @@ src_configure() {
 	myconf_gn+=" use_vaapi=$(usex vaapi true false)"
 	myconf_gn+=" rtc_use_pipewire=$(usex screencast true false) rtc_pipewire_version=\"0.3\""
 	myconf_gn+=" use_atk=$(usex atk true false)"
-	myconf_gn+=" enable_swiftshader=$(usex swiftshader true false)"
-	myconf_gn+=" enable_vulkan=$(usex vulkan true false)"
-	if use vulkan && use swiftshader; then
-		myconf_gn+=" enable_swiftshader_vulkan=true"
-	fi
+	myconf_gn+=" enable_swiftshader=true enable_vulkan=true enable_swiftshader_vulkan=true"
 
 	# TODO: link_pulseaudio=true for GN.
 
@@ -848,6 +836,7 @@ src_configure() {
 			myconf_gn+=" ozone_platform=\"headless\""
 			myconf_gn+=" use_x11=false"
 		else
+			myconf_gn+=" ozone_platform_x11=true"
 			myconf_gn+=" ozone_platform_wayland=true"
 			myconf_gn+=" use_system_libdrm=true"
 			myconf_gn+=" use_system_minigbm=true"
