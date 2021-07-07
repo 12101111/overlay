@@ -703,3 +703,58 @@ index 8f9a3f1c3..425747776 100644
 - 
 - THREADED_TEST(EmptyInterceptorDoesNotShadowAccessors) {
 -   v8::HandleScope scope(CcTest::isolate());
+diff --git a/patches/v8/cherry-pick-fd9ce58ecd13.patch b/patches/v8/cherry-pick-fd9ce58ecd13.patch
+index 22eae1f236..7e2cf6f4be 100644
+--- a/patches/v8/cherry-pick-fd9ce58ecd13.patch
++++ b/patches/v8/cherry-pick-fd9ce58ecd13.patch
+@@ -58,50 +58,3 @@ index 399fa4c4093450db89309d5aff680a2613614192..bd948cd8ac1c1492df191b63b83298fb
+    InjectedScript::ObjectScope scope(m_session, functionObjectId);
+    Response response = scope.initialize();
+    if (!response.IsSuccess()) return response;
+-diff --git a/test/inspector/debugger/set-breakpoint-before-enabling-expected.txt b/test/inspector/debugger/set-breakpoint-before-enabling-expected.txt
+-index 02bfe0d80cdecd96d37988d9d6850b49c5d7e39d..a85aab6fe0c71f3346fe79694d1a334e2cb12fb2 100644
+---- a/test/inspector/debugger/set-breakpoint-before-enabling-expected.txt
+-+++ b/test/inspector/debugger/set-breakpoint-before-enabling-expected.txt
+-@@ -1,7 +1,13 @@
+- Tests that setting breakpoint before enabling debugger produces an error
+--setBreakpointByUrl error: undefined
+-+setBreakpointByUrl error: {
+-+  "code": -32000,
+-+  "message": "Debugger agent is not enabled"
+-+}
+- setBreakpoint error: {
+--  "code": -32602,
+--  "message": "Invalid parameters",
+--  "data": "Failed to deserialize params.location - BINDINGS: mandatory field missing at <some position>"
+-+  "code": -32000,
+-+  "message": "Debugger agent is not enabled"
+-+}
+-+setBreakpointOnFunctionCall error: {
+-+  "code": -32000,
+-+  "message": "Debugger agent is not enabled"
+- }
+-diff --git a/test/inspector/debugger/set-breakpoint-before-enabling.js b/test/inspector/debugger/set-breakpoint-before-enabling.js
+-index 5af1085c8747089dea15550949130b8ea243b524..4401466a921692bbe94b52e60083d92769407ee3 100644
+---- a/test/inspector/debugger/set-breakpoint-before-enabling.js
+-+++ b/test/inspector/debugger/set-breakpoint-before-enabling.js
+-@@ -10,12 +10,19 @@ function didSetBreakpointByUrlBeforeEnable(message)
+- {
+-   InspectorTest.log("setBreakpointByUrl error: " + JSON.stringify(
+-       InspectorTest.trimErrorMessage(message).error, null, 2));
+--  Protocol.Debugger.setBreakpoint().then(didSetBreakpointBeforeEnable);
+-+  Protocol.Debugger.setBreakpoint({location: { scriptId: "4", lineNumber: 0, columnNumber: 0 }}).then(didSetBreakpointBeforeEnable);
+- }
+- 
+- function didSetBreakpointBeforeEnable(message)
+- {
+-   InspectorTest.log("setBreakpoint error: " + JSON.stringify(
+-       InspectorTest.trimErrorMessage(message).error, null, 2));
+-+  Protocol.Debugger.setBreakpointOnFunctionCall({objectId: "4"}).then(didSetBreakpointOnFunctionCallBeforeEnable);
+-+}
+-+
+-+function didSetBreakpointOnFunctionCallBeforeEnable(message)
+-+{
+-+  InspectorTest.log("setBreakpointOnFunctionCall error: " + JSON.stringify(
+-+    InspectorTest.trimErrorMessage(message).error, null, 2));
+-   InspectorTest.completeTest();
+- }
