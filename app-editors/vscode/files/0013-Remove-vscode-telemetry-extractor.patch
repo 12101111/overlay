@@ -1,0 +1,60 @@
+From 4349ab5ff0e84903dde7afe85467b8a75852ff10 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 9 Jul 2021 22:04:55 +0800
+Subject: [PATCH 13/13] Remove vscode-telemetry-extractor
+
+---
+ package.json |  1 -
+ yarn.lock    | 17 -----------------
+ 2 files changed, 18 deletions(-)
+
+diff --git a/package.json b/package.json
+index 599eea21925..9d0b2361d00 100644
+--- a/package.json
++++ b/package.json
+@@ -196,7 +196,6 @@
+     "vinyl-fs": "^3.0.0",
+     "vscode-debugprotocol": "1.47.0",
+     "vscode-nls-dev": "^3.3.1",
+-    "vscode-telemetry-extractor": "^1.8.0",
+     "webpack": "^4.43.0",
+     "webpack-cli": "^3.3.12",
+     "webpack-stream": "^5.2.1",
+diff --git a/yarn.lock b/yarn.lock
+index 300fde75b7b..2c72e937ef4 100644
+--- a/yarn.lock
++++ b/yarn.lock
+@@ -10027,14 +10027,6 @@ vscode-regexpp@^3.1.0:
+   resolved "https://registry.yarnpkg.com/vscode-regexpp/-/vscode-regexpp-3.1.0.tgz#42d059b6fffe99bd42939c0d013f632f0cad823f"
+   integrity sha512-pqtN65VC1jRLawfluX4Y80MMG0DHJydWhe5ZwMHewZD6sys4LbU6lHwFAHxeuaVE6Y6+xZOtAw+9hvq7/0ejkg==
+ 
+-vscode-ripgrep@^1.11.3:
+-  version "1.11.3"
+-  resolved "https://registry.yarnpkg.com/vscode-ripgrep/-/vscode-ripgrep-1.11.3.tgz#a997f4f4535dfeb9d775f04053c1247454d7a37a"
+-  integrity sha512-fdD+BciXiEO1iWTrV/S3sAthlK/tHRBjHF+aJIZDxUMD/q9wpNq+YPFEiLCrW+8epahfR19241DeVHHgX/I4Ww==
+-  dependencies:
+-    https-proxy-agent "^4.0.0"
+-    proxy-from-env "^1.1.0"
+-
+ vscode-ripgrep@^1.12.0:
+   version "1.12.0"
+   resolved "https://registry.yarnpkg.com/vscode-ripgrep/-/vscode-ripgrep-1.12.0.tgz#8fee3f892349f2bf1c7ef9743e3bbccb108ad9d7"
+@@ -10050,15 +10042,6 @@ vscode-sqlite3@4.0.11:
+   dependencies:
+     nan "^2.14.0"
+ 
+-vscode-telemetry-extractor@^1.8.0:
+-  version "1.8.0"
+-  resolved "https://registry.yarnpkg.com/vscode-telemetry-extractor/-/vscode-telemetry-extractor-1.8.0.tgz#5562106fe2eebfce0593f336c91f5a5ddc154cee"
+-  integrity sha512-jWe+caeLyB/F3V0EqsdkCC98wXx9+XLbm6EoPngz0sC4GOM7lcDSnVhUXzrIhZD/TSRPSPGlxp5r4/CrvhbmMQ==
+-  dependencies:
+-    command-line-args "^5.1.1"
+-    ts-morph "^11.0.0"
+-    vscode-ripgrep "^1.11.3"
+-
+ vscode-textmate@5.4.0:
+   version "5.4.0"
+   resolved "https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-5.4.0.tgz#4b25ffc1f14ac3a90faf9a388c67a01d24257cd7"
+-- 
+2.32.0
+

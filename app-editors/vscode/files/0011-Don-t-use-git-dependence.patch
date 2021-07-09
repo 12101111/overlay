@@ -1,30 +1,30 @@
-From 5d6fcf20398eb2c3679cd2737929f2c79b43147a Mon Sep 17 00:00:00 2001
+From 605aa7dbe0deeb59ec562d65ae3d28de0c5be6b1 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 11 Jun 2021 16:47:01 +0800
-Subject: [PATCH 11/12] Don't use git dependence
+Date: Fri, 9 Jul 2021 21:41:05 +0800
+Subject: [PATCH 11/13] Don't use git dependence
 
 ---
- extensions/notebook-markdown-extensions/package.json | 2 +-
- extensions/notebook-markdown-extensions/yarn.lock    | 4 ++--
+ extensions/markdown-math/package.json | 2 +-
+ extensions/markdown-math/yarn.lock    | 4 ++--
  2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/extensions/notebook-markdown-extensions/package.json b/extensions/notebook-markdown-extensions/package.json
-index 981566798f6..f5c6b0a6a87 100644
---- a/extensions/notebook-markdown-extensions/package.json
-+++ b/extensions/notebook-markdown-extensions/package.json
-@@ -46,7 +46,7 @@
+diff --git a/extensions/markdown-math/package.json b/extensions/markdown-math/package.json
+index 33eea8a6dad..bcf43cdfd46 100644
+--- a/extensions/markdown-math/package.json
++++ b/extensions/markdown-math/package.json
+@@ -91,7 +91,7 @@
      "build-notebook": "node ./esbuild"
    },
+   "dependencies": {
+-    "@iktakahiro/markdown-it-katex": "https://github.com/mjbvz/markdown-it-katex.git"
++    "@iktakahiro/markdown-it-katex": "mjbvz/markdown-it-katex#2bf0b89c6c22ef0b585f55ccab66d1f7c5356bea"
+   },
    "devDependencies": {
--    "@iktakahiro/markdown-it-katex": "https://github.com/mjbvz/markdown-it-katex.git",
-+    "@iktakahiro/markdown-it-katex": "mjbvz/markdown-it-katex#2bf0b89c6c22ef0b585f55ccab66d1f7c5356bea",
-     "@types/markdown-it": "^0.0.0",
-     "markdown-it": "^12.0.4",
-     "markdown-it-emoji": "^2.0.0"
-diff --git a/extensions/notebook-markdown-extensions/yarn.lock b/extensions/notebook-markdown-extensions/yarn.lock
-index 1ae78c16ae8..361777d2719 100644
---- a/extensions/notebook-markdown-extensions/yarn.lock
-+++ b/extensions/notebook-markdown-extensions/yarn.lock
+     "@types/markdown-it": "^0.0.0"
+diff --git a/extensions/markdown-math/yarn.lock b/extensions/markdown-math/yarn.lock
+index f402ca890b7..e9fdfda625b 100644
+--- a/extensions/markdown-math/yarn.lock
++++ b/extensions/markdown-math/yarn.lock
 @@ -2,9 +2,9 @@
  # yarn lockfile v1
  

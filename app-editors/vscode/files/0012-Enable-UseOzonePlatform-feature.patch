@@ -1,7 +1,7 @@
-From b5863791e2c848e46ecc3c086ccdf531bdf4aac1 Mon Sep 17 00:00:00 2001
+From d46ebfad251701816474e3626074421b7ad67032 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 11 Jun 2021 16:55:05 +0800
-Subject: [PATCH 12/12] Enable UseOzonePlatform feature
+Subject: [PATCH 12/13] Enable UseOzonePlatform feature
 
 ---
  resources/linux/bin/code.sh | 9 ++++++++-

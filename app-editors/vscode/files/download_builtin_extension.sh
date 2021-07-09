@@ -6,7 +6,7 @@ declare -A BUILTINEXTS=(
 ["node-debug2"]="1.42.7"
 ["references-view"]="0.0.80"
 ["js-debug-companion"]="1.0.13"
-["js-debug"]="1.57.0"
+["js-debug"]="1.58.2"
 ["vscode-js-profile-table"]="0.0.18"
 )
 

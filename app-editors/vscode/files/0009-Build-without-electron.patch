@@ -1,7 +1,7 @@
-From 67b08d5cb9986b6271ee7a548a5bf60ec11998f1 Mon Sep 17 00:00:00 2001
+From d2bb7532689fcc57ab925256248c5870e8719d4a Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 6 May 2021 10:04:18 +0800
-Subject: [PATCH 09/12] Build without electron
+Subject: [PATCH 09/13] Build without electron
 
 ---
  build/gulpfile.vscode.js | 20 +++++++++-----------
