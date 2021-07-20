@@ -3,7 +3,7 @@
 
 EAPI=7
 
-PYTHON_COMPAT=( python3_{7..9} )
+PYTHON_COMPAT=( python3_{8..10} )
 inherit cmake llvm.org multilib-minimal pax-utils python-any-r1 \
 	toolchain-funcs
 
@@ -67,7 +67,7 @@ PDEPEND="sys-devel/llvm-common
 
 LLVM_COMPONENTS=( llvm mlir )
 LLVM_MANPAGES=pregenerated
-LLVM_PATCHSET=12.0.0-1
+LLVM_PATCHSET=12.0.1
 llvm.org_set_globals
 
 python_check_deps() {
@@ -170,10 +170,6 @@ check_distribution_components() {
 }
 
 src_prepare() {
-	# Disable LBR tests that are broken on non-Intel CPUs
-	# https://bugs.llvm.org/show_bug.cgi?id=48918
-	rm -r test/tools/llvm-exegesis/X86/lbr || die
-
 	# disable use of SDK on OSX, bug #568758
 	sed -i -e 's/xcrun/false/' utils/lit/lit/util.py || die
 
