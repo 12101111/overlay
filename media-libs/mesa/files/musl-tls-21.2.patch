@@ -1,8 +1,8 @@
 diff --git a/meson.build b/meson.build
-index e1e94e7..ca98f16 100644
+index 2ef0b88..0f84dd8 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -447,12 +447,6 @@ endif
+@@ -460,20 +460,6 @@ endif
  
  # Android uses emutls for versions <= P/28. For USE_ELF_TLS we need ELF TLS.
  use_elf_tls = false
@@ -11,6 +11,14 @@ index e1e94e7..ca98f16 100644
 -    (not with_platform_windows or not with_shared_glapi))
 -  pre_args += '-DUSE_ELF_TLS'
 -  use_elf_tls = true
+-
+-  if with_platform_android
+-    # By default the NDK compiler, at least, emits emutls references instead of
+-    # ELF TLS, even when building targeting newer API levels.  Make it actually do
+-    # ELF TLS instead.
+-    c_args += '-fno-emulated-tls'
+-    cpp_args += '-fno-emulated-tls'
+-  endif
 -endif
  
  if with_glx != 'disabled'
