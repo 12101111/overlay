@@ -13,10 +13,11 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="5"
+PATCHSET="6"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
+	https://dev.gentoo.org/~sultan/distfiles/www-client/${PN}/${PN}-92-glibc-2.33-patch.tar.xz
 	arm64? ( https://github.com/google/highway/archive/refs/tags/0.12.1.tar.gz -> highway-0.12.1.tar.gz )"
 
 LICENSE="BSD"
@@ -55,7 +56,7 @@ COMMON_DEPEND="
 	>=dev-libs/nss-3.26:=
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
-	media-libs/freetype:=
+	>=media-libs/freetype-2.11.0:=
 	>=media-libs/harfbuzz-2.4.0:0=[icu(-)]
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
@@ -193,15 +194,6 @@ them in Chromium, then add --password-store=basic to CHROMIUM_FLAGS
 in /etc/chromium/default.
 "
 
-PATCHES=(
-	"${FILESDIR}/chromium-92_atk_optional.patch"
-	"${FILESDIR}/chromium-skia-harmony.patch"
-	"${FILESDIR}/chromium-shim_headers.patch"
-	"${FILESDIR}/chromium-92-EnumTable-crash.patch"
-	"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
-	"${FILESDIR}/chromium-no-strip.patch"
-)
-
 python_check_deps() {
 	has_version -b "dev-python/setuptools[${PYTHON_USEDEP}]"
 }
@@ -264,20 +256,18 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-93-dawn-raw-string-literal.patch"
-	rm "${WORKDIR}/patches/chromium-swiftshader-export.patch"
-	eapply "${WORKDIR}/patches"
-
-	# seccomp sandbox is broken if compiled against >=sys-libs/glibc-2.33, bug #769989
-	if has_version -d ">=sys-libs/glibc-2.33"; then
-		ewarn "Adding experimental glibc-2.33 sandbox patch. Seccomp sandbox might"
-		ewarn "still not work correctly. In case of issues, try to disable seccomp"
-		ewarn "sandbox by adding --disable-seccomp-filter-sandbox to CHROMIUM_FLAGS"
-		ewarn "in /etc/chromium/default."
-		PATCHES+=(
-			"${FILESDIR}/chromium-glibc-2.33.patch"
-		)
-	fi
+	local PATCHES=(
+		"${WORKDIR}/patches"
+		"${WORKDIR}/sandbox-patches/chromium-syscall_broker.patch"
+		"${WORKDIR}/sandbox-patches/chromium-fstatat-crash.patch"
+		"${FILESDIR}/chromium-92-GetUsableSize-nullptr.patch"
+		"${FILESDIR}/chromium-93-EnumTable-crash.patch"
+		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
+		"${FILESDIR}/chromium-shim_headers.patch"
+		"${FILESDIR}/chromium-92_atk_optional.patch"
+		"${FILESDIR}/chromium-skia-harmony.patch"
+		"${FILESDIR}/chromium-no-strip.patch"
+	)
 
 	default
 
@@ -481,6 +471,7 @@ src_prepare() {
 		third_party/swiftshader/third_party/marl
 		third_party/swiftshader/third_party/subzero
 		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
+		third_party/tcmalloc
 		third_party/tensorflow-text
 		third_party/tflite
 		third_party/tflite/src/third_party/eigen3
@@ -529,9 +520,6 @@ src_prepare() {
 	fi
 	if ! use system-icu; then
 		keeplibs+=( third_party/icu )
-	fi
-	if use tcmalloc; then
-		keeplibs+=( third_party/tcmalloc )
 	fi
 	if use wayland && ! use headless ; then
 		keeplibs+=( third_party/wayland )
