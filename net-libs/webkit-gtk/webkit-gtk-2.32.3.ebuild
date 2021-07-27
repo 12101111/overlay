@@ -2,8 +2,8 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
-PYTHON_COMPAT=( python3_{7..9} )
-USE_RUBY="ruby24 ruby25 ruby26 ruby27 ruby30"
+PYTHON_COMPAT=( python3_{7..10} )
+USE_RUBY="ruby26 ruby27 ruby30"
 
 inherit check-reqs cmake flag-o-matic gnome2 pax-utils python-any-r1 ruby-single toolchain-funcs virtualx
 
@@ -82,7 +82,7 @@ RDEPEND="
 	dev-libs/hyphen
 	jpeg2k? ( >=media-libs/openjpeg-2.2.0:2= )
 
-	egl? ( media-libs/mesa[egl] )
+	egl? ( media-libs/mesa[egl(+)] )
 	gles2-only? ( media-libs/mesa[gles2] )
 	opengl? ( virtual/opengl )
 	wayland? (
@@ -169,15 +169,11 @@ pkg_setup() {
 
 src_prepare() {
 	eapply "${FILESDIR}"/2.28.2-opengl-without-X-fixes.patch
-	eapply "${FILESDIR}"/${PV}-Properly-use-CompletionHandler-when-USE_OPENGL_OR_ES.patch
-	eapply "${FILESDIR}"/2.28.2-non-jumbo-fix.patch
-	eapply "${FILESDIR}"/2.28.4-non-jumbo-fix2.patch
-	eapply "${FILESDIR}"/2.30.3-fix-noGL-build.patch
 	eapply "${FILESDIR}"/remove-at-spi2.patch
-	eapply "${FILESDIR}/webkit-gtk-2.30.3-musl-locale.patch"
+	eapply "${FILESDIR}"/webkit-gtk-2.30.3-musl-locale.patch
 	if use elibc_musl ; then
-		eapply "${FILESDIR}/${PN}-2.32.1-musl.patch"
-		eapply "${FILESDIR}/${PN}-2.28.1-lower-stack-usage.patch"
+		eapply "${FILESDIR}"/${PN}-2.32.1-musl.patch
+		eapply "${FILESDIR}"/${PN}-2.28.1-lower-stack-usage.patch
 	fi
 	cmake_src_prepare
 	gnome2_src_prepare
