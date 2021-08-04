@@ -11,6 +11,7 @@ HOMEPAGE="https://github.com/Alexays/Waybar"
 if [[ ${PV} == 9999 ]]; then
 	inherit git-r3
 	EGIT_REPO_URI="https://github.com/Alexays/${PN^}.git"
+	EGIT_SUBMODULES=( '-package/archlinux' )
 else
 	SRC_URI="https://github.com/Alexays/${PN^}/archive/${PV}.tar.gz -> ${P}.tar.gz"
 	KEYWORDS="~amd64"
