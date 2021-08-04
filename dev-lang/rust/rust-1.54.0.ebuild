@@ -151,11 +151,9 @@ VERIFY_SIG_OPENPGP_KEY_PATH="/usr/share/openpgp-keys/rust.asc"
 
 PATCHES=(
 	"${FILESDIR}"/1.47.0-ignore-broken-and-non-applicable-tests.patch
-	#"${FILESDIR}"/1.49.0-gentoo-musl-target-specs.patch
-	"${FILESDIR}"/1.53.0-rustversion-1.0.5.patch # https://github.com/rust-lang/rust/pull/86425
-	"${FILESDIR}"/1.53.0-miri-vergen.patch # https://github.com/rust-lang/rust/issues/84182
+	"${FILESDIR}"/1.53.0-rustversion-1.0.5.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
-	"${FILESDIR}"/musl-fix-libunwind.patch
+	"${FILESDIR}"/sanitizer.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
