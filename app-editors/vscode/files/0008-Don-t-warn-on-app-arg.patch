@@ -1,4 +1,4 @@
-From c5f4008e4b896f5ecf40a7712e5f78dccf0b3eed Mon Sep 17 00:00:00 2001
+From 698982b64e9f6eb467efea9ce20a206f5d967613 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 6 May 2021 10:01:36 +0800
 Subject: [PATCH 08/13] Don't warn on --app arg
@@ -9,20 +9,20 @@ Subject: [PATCH 08/13] Don't warn on --app arg
  2 files changed, 2 insertions(+)
 
 diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
-index 8420a50ebb9..656ae4b0186 100644
+index 70a7eb4b86e..a798161098d 100644
 --- a/src/vs/platform/environment/common/argv.ts
 +++ b/src/vs/platform/environment/common/argv.ts
-@@ -102,4 +102,5 @@ export interface NativeParsedArgs {
+@@ -103,4 +103,5 @@ export interface NativeParsedArgs {
  	'allow-insecure-localhost'?: boolean;
  	'log-net-log'?: string;
  	'vmodule'?: string;
 +	'app'?: string;
  }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index aafba8a6b3d..18ac9485298 100644
+index 2715617e2bc..695e7804194 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
-@@ -137,6 +137,7 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
+@@ -143,6 +143,7 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
  	'log-net-log': { type: 'string' },
  	'vmodule': { type: 'string' },
  	'_urls': { type: 'string[]' },

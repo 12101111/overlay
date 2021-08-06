@@ -1,6 +1,6 @@
-From 4349ab5ff0e84903dde7afe85467b8a75852ff10 Mon Sep 17 00:00:00 2001
+From add233d78d5d4785303fda4adc7c18daaf7ee035 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 9 Jul 2021 22:04:55 +0800
+Date: Fri, 6 Aug 2021 15:22:27 +0800
 Subject: [PATCH 13/13] Remove vscode-telemetry-extractor
 
 ---
@@ -9,22 +9,22 @@ Subject: [PATCH 13/13] Remove vscode-telemetry-extractor
  2 files changed, 18 deletions(-)
 
 diff --git a/package.json b/package.json
-index 599eea21925..9d0b2361d00 100644
+index 382e0c3f06f..9581e08ad70 100644
 --- a/package.json
 +++ b/package.json
-@@ -196,7 +196,6 @@
+@@ -201,7 +201,6 @@
      "vinyl-fs": "^3.0.0",
-     "vscode-debugprotocol": "1.47.0",
+     "vscode-debugprotocol": "1.48.0",
      "vscode-nls-dev": "^3.3.1",
 -    "vscode-telemetry-extractor": "^1.8.0",
-     "webpack": "^4.43.0",
-     "webpack-cli": "^3.3.12",
-     "webpack-stream": "^5.2.1",
+     "webpack": "^5.42.0",
+     "webpack-cli": "^4.7.2",
+     "webpack-stream": "^6.1.2",
 diff --git a/yarn.lock b/yarn.lock
-index 300fde75b7b..2c72e937ef4 100644
+index e1553be58b8..fd317e95582 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -10027,14 +10027,6 @@ vscode-regexpp@^3.1.0:
+@@ -10570,14 +10570,6 @@ vscode-regexpp@^3.1.0:
    resolved "https://registry.yarnpkg.com/vscode-regexpp/-/vscode-regexpp-3.1.0.tgz#42d059b6fffe99bd42939c0d013f632f0cad823f"
    integrity sha512-pqtN65VC1jRLawfluX4Y80MMG0DHJydWhe5ZwMHewZD6sys4LbU6lHwFAHxeuaVE6Y6+xZOtAw+9hvq7/0ejkg==
  
@@ -39,7 +39,7 @@ index 300fde75b7b..2c72e937ef4 100644
  vscode-ripgrep@^1.12.0:
    version "1.12.0"
    resolved "https://registry.yarnpkg.com/vscode-ripgrep/-/vscode-ripgrep-1.12.0.tgz#8fee3f892349f2bf1c7ef9743e3bbccb108ad9d7"
-@@ -10050,15 +10042,6 @@ vscode-sqlite3@4.0.11:
+@@ -10593,15 +10585,6 @@ vscode-sqlite3@4.0.11:
    dependencies:
      nan "^2.14.0"
  

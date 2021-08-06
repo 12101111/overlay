@@ -1,4 +1,4 @@
-From d2bb7532689fcc57ab925256248c5870e8719d4a Mon Sep 17 00:00:00 2001
+From 58decb20b4e2b2cf65907212241353dcd3d98b9a Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 6 May 2021 10:04:18 +0800
 Subject: [PATCH 09/13] Build without electron
@@ -8,10 +8,10 @@ Subject: [PATCH 09/13] Build without electron
  1 file changed, 9 insertions(+), 11 deletions(-)
 
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 2c537818fca..d9f6b26da43 100644
+index 4b301e85c3d..d80d572f08d 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -143,6 +143,14 @@ function computeChecksum(filename) {
+@@ -141,6 +141,14 @@ function computeChecksum(filename) {
  	return hash;
  }
  
@@ -26,7 +26,7 @@ index 2c537818fca..d9f6b26da43 100644
  function packageTask(platform, arch, sourceFolderName, destinationFolderName, opts) {
  	opts = opts || {};
  
-@@ -150,7 +158,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -148,7 +156,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  	platform = platform || process.platform;
  
  	return () => {
@@ -34,7 +34,7 @@ index 2c537818fca..d9f6b26da43 100644
  		const json = require('gulp-json-editor');
  
  		const out = sourceFolderName;
-@@ -292,7 +299,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -293,7 +300,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  			.pipe(util.skipDirectories())
  			.pipe(util.fixWin32DirectoryPermissions())
  			.pipe(filter(['**', '!**/.github/**'], { dot: true })) // https://github.com/microsoft/vscode/issues/116523
@@ -43,7 +43,7 @@ index 2c537818fca..d9f6b26da43 100644
  			.pipe(filter(['**', '!LICENSE', '!LICENSES.chromium.html', '!version'], { dot: true }));
  
  		if (platform === 'linux') {
-@@ -331,15 +338,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -332,15 +339,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  				.pipe(rename('bin/' + product.applicationName)));
  		}
  

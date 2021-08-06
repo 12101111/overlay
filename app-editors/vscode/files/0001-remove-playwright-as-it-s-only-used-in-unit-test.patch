@@ -1,6 +1,6 @@
-From 773fd2a1c43017c10b87d468307d740ba5fafa66 Mon Sep 17 00:00:00 2001
+From f3cff23ad1aa040eacdb3724300e6d692dc11e88 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 9 Jul 2021 21:35:22 +0800
+Date: Fri, 6 Aug 2021 15:18:11 +0800
 Subject: [PATCH 01/13] remove playwright as it's only used in unit test
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH 01/13] remove playwright as it's only used in unit test
  2 files changed, 22 deletions(-)
 
 diff --git a/package.json b/package.json
-index d612da7ec45..599eea21925 100644
+index 2ed7b5277aa..382e0c3f06f 100644
 --- a/package.json
 +++ b/package.json
-@@ -46,7 +46,6 @@
+@@ -47,7 +47,6 @@
      "compile-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-web",
      "watch-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js watch-web",
      "eslint": "node build/eslint",
@@ -20,26 +20,26 @@ index d612da7ec45..599eea21925 100644
      "compile-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-build",
      "compile-extensions-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-extensions-build",
      "minify-vscode": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js minify-vscode",
-@@ -178,7 +177,6 @@
-     "opn": "^6.0.0",
+@@ -182,7 +181,6 @@
      "optimist": "0.3.5",
      "p-all": "^1.0.0",
--    "playwright": "1.11.1",
+     "path-browserify": "^1.0.1",
+-    "playwright": "1.12.3",
      "pump": "^1.0.1",
      "queue": "3.0.6",
      "rcedit": "^1.1.0",
 diff --git a/yarn.lock b/yarn.lock
-index 62c3a19de68..300fde75b7b 100644
+index 12a1954d5b9..e1553be58b8 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -7318,26 +7318,6 @@ pkg-dir@^4.1.0:
+@@ -7728,26 +7728,6 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
    dependencies:
      find-up "^4.0.0"
  
--playwright@1.11.1:
--  version "1.11.1"
--  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.11.1.tgz#c5f2946db5195bd099a57ce4e188c01057876cff"
--  integrity sha512-UuMrYuvzttbJXUD7sTVcQBsGRojelGepvuQPD+QtVm/n5zyKvkiUErU/DGRXfX8VDZRdQ5D6qVqZndrydC2b4w==
+-playwright@1.12.3:
+-  version "1.12.3"
+-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.12.3.tgz#113afa2cba10fb56e9a5b307377343e32a155a99"
+-  integrity sha512-eyhHvZV7dMAUltqjQsgJ9CjZM8dznzN1+rcfCI6W6lfQ7IlPvTFGLuKOCcI4ETbjfbxqaS5FKIkb1WDDzq2Nww==
 -  dependencies:
 -    commander "^6.1.0"
 -    debug "^4.1.1"
@@ -53,7 +53,7 @@ index 62c3a19de68..300fde75b7b 100644
 -    proxy-from-env "^1.1.0"
 -    rimraf "^3.0.2"
 -    stack-utils "^2.0.3"
--    ws "^7.3.1"
+-    ws "^7.4.6"
 -    yazl "^2.5.1"
 -
  plist@^3.0.1:

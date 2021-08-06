@@ -1,4 +1,4 @@
-From 4ee6b0dff9120731ffdad040bdd9e03282cdab1a Mon Sep 17 00:00:00 2001
+From 750115c55b99e63a551d5b1d1ae209411e8862b7 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 11 Jun 2021 16:38:45 +0800
 Subject: [PATCH 10/13] Don't warn on ozone related args
@@ -9,10 +9,10 @@ Subject: [PATCH 10/13] Don't warn on ozone related args
  2 files changed, 4 insertions(+)
 
 diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
-index 656ae4b0186..dbaa66f4c7a 100644
+index a798161098d..f210c5f34da 100644
 --- a/src/vs/platform/environment/common/argv.ts
 +++ b/src/vs/platform/environment/common/argv.ts
-@@ -103,4 +103,6 @@ export interface NativeParsedArgs {
+@@ -104,4 +104,6 @@ export interface NativeParsedArgs {
  	'log-net-log'?: string;
  	'vmodule'?: string;
  	'app'?: string;
@@ -20,10 +20,10 @@ index 656ae4b0186..dbaa66f4c7a 100644
 +	'ozone-platform'?: string;
  }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 18ac9485298..a82ffbc6b0e 100644
+index 695e7804194..bf28a66fc7c 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
-@@ -138,6 +138,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
+@@ -144,6 +144,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
  	'vmodule': { type: 'string' },
  	'_urls': { type: 'string[]' },
  	'app': { type: 'string' },
