@@ -1,0 +1,98 @@
+diff --git a/include/llvm/IR/PassManager.h b/include/llvm/IR/PassManager.h
+index c669565a..79b7f42f 100644
+--- a/include/llvm/IR/PassManager.h
++++ b/include/llvm/IR/PassManager.h
+@@ -513,7 +513,7 @@ public:
+ 
+       PreservedAnalyses PassPA;
+       {
+-        TimeTraceScope TimeScope(P->name(), IR.getName());
++        TimeTraceScope TimeScope(P->name(), [&]() { return std::string(IR.getName()); });
+         PassPA = P->run(IR, AM, ExtraArgs...);
+       }
+ 
+diff --git a/include/llvm/Support/TimeProfiler.h b/include/llvm/Support/TimeProfiler.h
+index b6f8a647..e281d385 100644
+--- a/include/llvm/Support/TimeProfiler.h
++++ b/include/llvm/Support/TimeProfiler.h
+@@ -72,11 +72,7 @@ struct TimeTraceScope {
+ 
+   TimeTraceScope(StringRef Name) {
+     if (getTimeTraceProfilerInstance() != nullptr)
+-      timeTraceProfilerBegin(Name, StringRef(""));
+-  }
+-  TimeTraceScope(StringRef Name, StringRef Detail) {
+-    if (getTimeTraceProfilerInstance() != nullptr)
+-      timeTraceProfilerBegin(Name, Detail);
++      timeTraceProfilerBegin(Name, [&]() { return ""; });
+   }
+   TimeTraceScope(StringRef Name, llvm::function_ref<std::string()> Detail) {
+     if (getTimeTraceProfilerInstance() != nullptr)
+diff --git a/include/llvm/Transforms/Scalar/LoopPassManager.h b/include/llvm/Transforms/Scalar/LoopPassManager.h
+index 2a342fcd..1f1313e0 100644
+--- a/include/llvm/Transforms/Scalar/LoopPassManager.h
++++ b/include/llvm/Transforms/Scalar/LoopPassManager.h
+@@ -368,7 +368,7 @@ Optional<PreservedAnalyses> LoopPassManager::runSinglePass(
+ 
+   PreservedAnalyses PA;
+   {
+-    TimeTraceScope TimeScope(Pass->name(), IR.getName());
++    TimeTraceScope TimeScope(Pass->name(), [&]() {return std::string(IR.getName());});
+     PA = Pass->run(IR, AM, AR, U);
+   }
+ 
+diff --git a/lib/Analysis/LoopPass.cpp b/lib/Analysis/LoopPass.cpp
+index 9e470e99..f885263b 100644
+--- a/lib/Analysis/LoopPass.cpp
++++ b/lib/Analysis/LoopPass.cpp
+@@ -180,7 +180,7 @@ bool LPPassManager::runOnFunction(Function &F) {
+     for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
+       LoopPass *P = getContainedPass(Index);
+ 
+-      llvm::TimeTraceScope LoopPassScope("RunLoopPass", P->getPassName());
++      llvm::TimeTraceScope LoopPassScope("RunLoopPass", [&] () {return std::string(P->getPassName());});
+ 
+       dumpPassInfo(P, EXECUTION_MSG, ON_LOOP_MSG,
+                    CurrentLoop->getHeader()->getName());
+diff --git a/lib/IR/LegacyPassManager.cpp b/lib/IR/LegacyPassManager.cpp
+index 4547c3a0..c06e4258 100644
+--- a/lib/IR/LegacyPassManager.cpp
++++ b/lib/IR/LegacyPassManager.cpp
+@@ -1413,13 +1413,13 @@ bool FPPassManager::runOnFunction(Function &F) {
+     FunctionSize = F.getInstructionCount();
+   }
+ 
+-  llvm::TimeTraceScope FunctionScope("OptFunction", F.getName());
++  llvm::TimeTraceScope FunctionScope("OptFunction", [&](){return std::string(F.getName());});
+ 
+   for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
+     FunctionPass *FP = getContainedPass(Index);
+     bool LocalChanged = false;
+ 
+-    llvm::TimeTraceScope PassScope("RunPass", FP->getPassName());
++    llvm::TimeTraceScope PassScope("RunPass", [&](){return std::string(FP->getPassName());});
+ 
+     dumpPassInfo(FP, EXECUTION_MSG, ON_FUNCTION_MSG, F.getName());
+     dumpRequiredSet(FP);
+@@ -1509,7 +1509,7 @@ bool FPPassManager::doFinalization(Module &M) {
+ /// the module, and if so, return true.
+ bool
+ MPPassManager::runOnModule(Module &M) {
+-  llvm::TimeTraceScope TimeScope("OptModule", M.getName());
++  llvm::TimeTraceScope TimeScope("OptModule", [&](){return std::string(M.getName());});
+ 
+   bool Changed = false;
+ 
+diff --git a/lib/IR/PassManager.cpp b/lib/IR/PassManager.cpp
+index 4cf7ab2a..c3200004 100644
+--- a/lib/IR/PassManager.cpp
++++ b/lib/IR/PassManager.cpp
+@@ -113,7 +113,7 @@ PreservedAnalyses ModuleToFunctionPassAdaptor::run(Module &M,
+ 
+     PreservedAnalyses PassPA;
+     {
+-      TimeTraceScope TimeScope(Pass->name(), F.getName());
++      TimeTraceScope TimeScope(Pass->name(), [&](){return std::string(F.getName());});
+       PassPA = Pass->run(F, FAM);
+     }
+ 

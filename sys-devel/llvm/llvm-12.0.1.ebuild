@@ -180,6 +180,10 @@ src_prepare() {
 	check_live_ebuild
 
 	llvm.org_src_prepare
+
+	pushd "${WORKDIR}/llvm" > /dev/null
+	eapply "${FILESDIR}/no-lock.patch"
+	popd > /dev/null
 }
 
 # Is LLVM being linked against libc++?
