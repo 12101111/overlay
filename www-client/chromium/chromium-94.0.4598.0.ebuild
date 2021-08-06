@@ -14,7 +14,8 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
 PATCHSET="6"
-PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
+#PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
+PATCHSET_NAME="chromium-93-patchset-6"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
 	https://dev.gentoo.org/~sultan/distfiles/www-client/${PN}/${PN}-92-glibc-2.33-patch.tar.xz
@@ -257,16 +258,18 @@ src_prepare() {
 	fi
 
 	local PATCHES=(
-		"${WORKDIR}/patches"
-		"${WORKDIR}/sandbox-patches/chromium-syscall_broker.patch"
-		"${WORKDIR}/sandbox-patches/chromium-fstatat-crash.patch"
-		"${FILESDIR}/chromium-92-GetUsableSize-nullptr.patch"
+		"${WORKDIR}/patches/chromium-78-protobuf-RepeatedPtrField-export.patch"
+		"${WORKDIR}/patches/chromium-90-ruy-include.patch"
+		"${WORKDIR}/patches/chromium-91-compiler.patch"
+		"${WORKDIR}/patches/chromium-91-libyuv-aarch64.patch"
 		"${FILESDIR}/chromium-93-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 		"${FILESDIR}/chromium-92_atk_optional.patch"
-		"${FILESDIR}/chromium-skia-harmony.patch"
 		"${FILESDIR}/chromium-no-strip.patch"
+		"${FILESDIR}/clang12-compat.patch"
+		"${FILESDIR}/chromium-94-fix-stat-include.patch"
+		"${FILESDIR}/chromium-93-fix-sway-ozone-wayland.patch"
 	)
 
 	default
@@ -360,6 +363,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/marked
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
+		third_party/devtools-frontend/src/test/unittests/front_end/third_party/i18n
 		third_party/devtools-frontend/src/third_party
 		third_party/dom_distiller_js
 		third_party/eigen3
@@ -679,7 +683,7 @@ src_configure() {
 
 	# TODO: link_pulseaudio=true for GN.
 
-	myconf_gn+=" fieldtrial_testing_like_official_build=true"
+	myconf_gn+=" disable_fieldtrial_testing_config=true"
 
 	# Never use bundled gold binary. Disable gold linker flags for now.
 	# Do not use bundled clang.
@@ -903,7 +907,7 @@ src_install() {
 	fi
 
 	doexe out/Release/chromedriver
-	doexe out/Release/crashpad_handler
+	doexe out/Release/chrome_crashpad_handler
 
 	local sedargs=( -e
 			"s:/usr/lib/:/usr/$(get_libdir)/:g;
