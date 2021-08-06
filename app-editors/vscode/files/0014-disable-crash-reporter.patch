@@ -1,0 +1,57 @@
+From 4165027d5aa5fcc41f50f1e584999833253fd45c Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 6 Aug 2021 16:39:41 +0800
+Subject: [PATCH 14/14] disable crash reporter
+
+---
+ src/main.js | 34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
+
+diff --git a/src/main.js b/src/main.js
+index 9cf737e0649..bc26ebe4b60 100644
+--- a/src/main.js
++++ b/src/main.js
+@@ -415,22 +415,24 @@ function configureCrashReporter() {
+ 	// Start crash reporter for all processes
+ 	const productName = (product.crashReporter ? product.crashReporter.productName : undefined) || product.nameShort;
+ 	const companyName = (product.crashReporter ? product.crashReporter.companyName : undefined) || 'Microsoft';
+-	if (process.env['VSCODE_DEV']) {
+-		crashReporter.start({
+-			companyName: companyName,
+-			productName: `${productName} Dev`,
+-			submitURL,
+-			uploadToServer: false,
+-			compress: true
+-		});
+-	} else {
+-		crashReporter.start({
+-			companyName: companyName,
+-			productName: productName,
+-			submitURL,
+-			uploadToServer: !crashReporterDirectory,
+-			compress: true
+-		});
++	if (submitURL!=''){
++		if (process.env['VSCODE_DEV']) {
++                	crashReporter.start({
++                        	companyName: companyName,
++                        	productName: `${productName} Dev`,
++                        	submitURL,
++                        	uploadToServer: false,
++                        	compress: true
++                	});
++        	} else {
++                	crashReporter.start({
++                        	companyName: companyName,
++                        	productName: productName,
++                        	submitURL,
++                        	uploadToServer: !crashReporterDirectory,
++                        	compress: true
++                	});
++        	}
+ 	}
+ }
+ 
+-- 
+2.32.0
+

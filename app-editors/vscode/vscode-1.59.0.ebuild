@@ -2544,6 +2544,7 @@ PATCHES=(
 	"${FILESDIR}/0011-Don-t-use-git-dependence.patch"
 	"${FILESDIR}/0012-Enable-UseOzonePlatform-feature.patch"
 	"${FILESDIR}/0013-Remove-vscode-telemetry-extractor.patch"
+	"${FILESDIR}/0014-disable-crash-reporter.patch"
 )
 
 src_unpack() {
