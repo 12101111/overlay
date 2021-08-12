@@ -13,12 +13,10 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="6"
-#PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
-PATCHSET_NAME="chromium-93-patchset-6"
+PATCHSET="1"
+PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
-	https://dev.gentoo.org/~sultan/distfiles/www-client/${PN}/${PN}-92-glibc-2.33-patch.tar.xz
 	arm64? ( https://github.com/google/highway/archive/refs/tags/0.12.1.tar.gz -> highway-0.12.1.tar.gz )"
 
 LICENSE="BSD"
@@ -31,7 +29,7 @@ REQUIRED_USE="
 "
 
 COMMON_X_DEPEND="
-	media-libs/mesa:=[gbm]
+	media-libs/mesa:=[gbm(+)]
 	x11-libs/libX11:=
 	x11-libs/libXcomposite:=
 	x11-libs/libXcursor:=
@@ -257,17 +255,20 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
+	rm "${WORKDIR}/patches/chromium-94-compiler.patch"
+	rm "${WORKDIR}/patches/chromium-94-CanonicalCookie-incomplete-type.patch"
+	rm "${WORKDIR}/patches/chromium-94-LogicalOffset-include.patch"
+	rm "${WORKDIR}/patches/chromium-94-NGBfcOffset-include.patch"
+	rm "${WORKDIR}/patches/chromium-94-h264_parser-include.patch"
 	local PATCHES=(
-		"${WORKDIR}/patches/chromium-78-protobuf-RepeatedPtrField-export.patch"
-		"${WORKDIR}/patches/chromium-90-ruy-include.patch"
-		"${WORKDIR}/patches/chromium-91-compiler.patch"
-		"${WORKDIR}/patches/chromium-91-libyuv-aarch64.patch"
+		"${WORKDIR}/patches"
+		"${FILESDIR}/chromium-94-compiler.patch"
 		"${FILESDIR}/chromium-93-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
+		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 		"${FILESDIR}/chromium-92_atk_optional.patch"
 		"${FILESDIR}/chromium-no-strip.patch"
-		"${FILESDIR}/clang12-compat.patch"
 		"${FILESDIR}/chromium-94-fix-stat-include.patch"
 		"${FILESDIR}/chromium-93-fix-sway-ozone-wayland.patch"
 	)
@@ -383,6 +384,7 @@ src_prepare() {
 		third_party/google_input_tools/third_party/closure_library
 		third_party/google_input_tools/third_party/closure_library/third_party/closure
 		third_party/googletest
+		third_party/harfbuzz-ng
 		third_party/harfbuzz-ng/utils
 		third_party/hunspell
 		third_party/iccjpeg
@@ -664,7 +666,7 @@ src_configure() {
 	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
 
 	# See dependency logic in third_party/BUILD.gn
-	myconf_gn+=" use_system_harfbuzz=true"
+	# myconf_gn+=" use_system_harfbuzz=true"
 
 	# Disable deprecated libgnome-keyring dependency, bug #713012
 	myconf_gn+=" use_gnome_keyring=false"
@@ -718,13 +720,14 @@ src_configure() {
 	# Set up Google API keys, see http://www.chromium.org/developers/how-tos/api-keys .
 	# Note: these are for Gentoo use ONLY. For your own distribution,
 	# please get your own set of keys. Feel free to contact chromium@gentoo.org
-	# for more info.
+	# for more info. The OAuth2 credentials, however, have been left out.
+	# Those OAuth2 credentials have been broken for quite some time anyway.
+	# Instead we apply a patch to use the --oauth2-client-id= and
+	# --oauth2-client-secret= switches for setting GOOGLE_DEFAULT_CLIENT_ID and
+	# GOOGLE_DEFAULT_CLIENT_SECRET at runtime. This allows signing into
+	# Chromium without baked-in values.
 	local google_api_key="AIzaSyDEAOvatFo0eTgsV_ZlEzx0ObmepsMzfAc"
-	local google_default_client_id="329227923882.apps.googleusercontent.com"
-	local google_default_client_secret="vgKG0NNv7GoDpbtoFNLxCUXu"
 	myconf_gn+=" google_api_key=\"${google_api_key}\""
-	myconf_gn+=" google_default_client_id=\"${google_default_client_id}\""
-	myconf_gn+=" google_default_client_secret=\"${google_default_client_secret}\""
 	local myarch="$(tc-arch)"
 
 	# Avoid CFLAGS problems, bug #352457, bug #390147.
