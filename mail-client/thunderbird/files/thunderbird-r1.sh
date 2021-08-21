@@ -29,28 +29,24 @@ MOZ_THUNDERBIRD_FILE="thunderbird"
 if [[ ! -r ${MOZ_LIB_DIR}/thunderbird/${MOZ_THUNDERBIRD_FILE} ]]; then
 	if [[ ! -r ${SECONDARY_LIB_DIR}/thunderbird/${MOZ_THUNDERBIRD_FILE} ]]; then
 		echo "Error: ${MOZ_LIB_DIR}/thunderbird/${MOZ_THUNDERBIRD_FILE} not found" >&2
-		if [[ -d $SECONDARY_LIB_DIR ]]; then
+		if [[ -d ${SECONDARY_LIB_DIR} ]]; then
 			echo "       ${SECONDARY_LIB_DIR}/thunderbird/${MOZ_THUNDERBIRD_FILE} not found" >&2
 		fi
 		exit 1
 	fi
-	MOZ_LIB_DIR="$SECONDARY_LIB_DIR"
+	MOZ_LIB_DIR="${SECONDARY_LIB_DIR}"
 fi
 MOZILLA_FIVE_HOME="${MOZ_LIB_DIR}/thunderbird"
 MOZ_EXTENSIONS_PROFILE_DIR="${HOME}/.mozilla/extensions/{3550f703-e582-4d05-9a08-453d09bdfdc6}"
 MOZ_PROGRAM="${MOZILLA_FIVE_HOME}/${MOZ_THUNDERBIRD_FILE}"
-DESKTOP_FILE="thunderbird"
 
 ##
 ## Enable Wayland backend?
 ##
 if @DEFAULT_WAYLAND@ && [[ -z ${MOZ_DISABLE_WAYLAND} ]]; then
-	if [[ -n "$WAYLAND_DISPLAY" ]]; then
-		DESKTOP_FILE="thunderbird-wayland"
+	if [[ -n "${WAYLAND_DISPLAY}" ]]; then
 		export MOZ_ENABLE_WAYLAND=1
 	fi
-elif [[ -n ${MOZ_DISABLE_WAYLAND} ]]; then
-	DESKTOP_FILE="thunderbird-x11"
 fi
 
 ##
@@ -85,7 +81,7 @@ export MOZ_APP_LAUNCHER="@PREFIX@/bin/${cmdname}"
 ##
 ## Disable the GNOME crash dialog, Mozilla has its own
 ##
-if [[ "$XDG_CURRENT_DESKTOP" == "GNOME" ]]; then
+if [[ "${XDG_CURRENT_DESKTOP}" == "GNOME" ]]; then
 	GNOME_DISABLE_CRASH_DIALOG=1
 	export GNOME_DISABLE_CRASH_DIALOG
 fi
@@ -116,13 +112,5 @@ fi
 # Don't throw "old profile" dialog box.
 export MOZ_ALLOW_DOWNGRADE=1
 
-##
-## Route to the correct .desktop file to get proper
-## name and actions
-##
-if [[ $@ != *"--name "* ]]; then
-	set -- --name "${DESKTOP_FILE}" "$@"
-fi
-
-# Run the mail client
-exec ${MOZ_PROGRAM} "$@"
+# Run the program
+exec ${MOZ_PROGRAM} "${@}"
