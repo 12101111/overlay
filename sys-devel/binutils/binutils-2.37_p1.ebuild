@@ -19,7 +19,7 @@ REQUIRED_USE="default-gold? ( gold )"
 # PATCH_DEV          - Use download URI https://dev.gentoo.org/~{PATCH_DEV}/distfiles/...
 #                      for the patchsets
 
-PATCH_VER=3
+PATCH_VER=0
 PATCH_DEV=dilfridge
 
 if [[ ${PV} == 9999* ]]; then
@@ -27,11 +27,12 @@ if [[ ${PV} == 9999* ]]; then
 	SLOT=${PV}
 else
 	PATCH_BINUTILS_VER=${PATCH_BINUTILS_VER:-${PV}}
-	PATCH_DEV=${PATCH_DEV:-slyfox}
-	SRC_URI="mirror://gnu/binutils/binutils-${PV}.tar.xz"
+	PATCH_DEV=${PATCH_DEV:-dilfridge}
+	SRC_URI="mirror://gnu/binutils/binutils-${PV}.tar.xz https://dev.gentoo.org/~${PATCH_DEV}/distfiles/binutils-${PV}.tar.xz"
 	[[ -z ${PATCH_VER} ]] || SRC_URI="${SRC_URI}
 		https://dev.gentoo.org/~${PATCH_DEV}/distfiles/binutils-${PATCH_BINUTILS_VER}-patches-${PATCH_VER}.tar.xz"
 	SLOT=$(ver_cut 1-2)
+	# live ebuild
 	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
 fi
 
@@ -85,6 +86,9 @@ src_unpack() {
 
 		cd "${WORKDIR}" || die
 		unpack binutils-${PATCH_BINUTILS_VER}-patches-${PATCH_VER}.tar.xz
+
+		# _p patch versions are Gentoo specific tarballs ...
+		S=${WORKDIR}/${P%_p?}
 	fi
 
 	cd "${WORKDIR}" || die
@@ -171,8 +175,6 @@ src_configure() {
 	# Keep things sane
 	strip-flags
 
-	use elibc_musl && append-ldflags -Wl,-z,stack-size=2097152
-
 	local x
 	echo
 	for x in CATEGORY CBUILD CHOST CTARGET CFLAGS LDFLAGS ; do
@@ -249,6 +251,8 @@ src_configure() {
 		--enable-install-libiberty
 		# Available from 2.35 on
 		--enable-textrel-check=warning
+		# Works better than vapier's patch... #808787
+		--enable-new-dtags
 		--disable-werror
 		--with-bugurl="$(toolchain-binutils_bugurl)"
 		--with-pkgversion="$(toolchain-binutils_pkgversion)"
@@ -271,10 +275,6 @@ src_configure() {
 		# Ideally we would like automagic-or-disabled here.
 		# But the check does not quite work on i686: bug #760926.
 		$(use_enable cet)
-		$(use_enable ld)
-		$(use_enable gas)
-		$(use_enable binutils)
-		$(use_enable gprof)
 	)
 	echo ./configure "${myconf[@]}"
 	"${S}"/configure "${myconf[@]}" || die
@@ -375,22 +375,14 @@ src_install() {
 		dodoc README
 		docinto bfd
 		dodoc bfd/ChangeLog* bfd/README bfd/PORTING bfd/TODO
-		if use binutils; then
-			docinto binutils
-			dodoc binutils/ChangeLog binutils/NEWS binutils/README
-		fi
-		if use gas; then
-			docinto gas
-			dodoc gas/ChangeLog* gas/CONTRIBUTORS gas/NEWS gas/README*
-		fi
-		if use gprof; then
-			docinto gprof
-			dodoc gprof/ChangeLog* gprof/TEST gprof/TODO gprof/bbconv.pl
-		fi
-		if use ld; then
-			docinto ld
-			dodoc ld/ChangeLog* ld/README ld/NEWS ld/TODO
-		fi
+		docinto binutils
+		dodoc binutils/ChangeLog binutils/NEWS binutils/README
+		docinto gas
+		dodoc gas/ChangeLog* gas/CONTRIBUTORS gas/NEWS gas/README*
+		docinto gprof
+		dodoc gprof/ChangeLog* gprof/TEST gprof/TODO gprof/bbconv.pl
+		docinto ld
+		dodoc ld/ChangeLog* ld/README ld/NEWS ld/TODO
 		docinto libiberty
 		dodoc libiberty/ChangeLog* libiberty/README
 		docinto opcodes
