@@ -13,7 +13,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="379476f0e13988d90fab105c5c19e7abc8b1dea8"
+COMMIT="3866c3553be8b268c8a7f8c0482c0c0177aa8bfa"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.12.0/lib/postinstall.js#L19
@@ -169,7 +169,7 @@ https://registry.yarnpkg.com/@types/expect/-/expect-1.20.4.tgz
 https://registry.yarnpkg.com/@types/fancy-log/-/fancy-log-1.3.0.tgz
 https://registry.yarnpkg.com/@types/file-type/-/file-type-5.2.1.tgz
 https://registry.yarnpkg.com/@types/form-data/-/form-data-2.2.1.tgz
-https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-9.0.6.tgz
+https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-9.0.12.tgz
 https://registry.yarnpkg.com/@types/glob-stream/-/glob-stream-6.1.0.tgz
 https://registry.yarnpkg.com/@types/glob/-/glob-7.1.1.tgz
 https://registry.yarnpkg.com/@types/glob/-/glob-7.1.3.tgz
@@ -420,6 +420,7 @@ https://registry.yarnpkg.com/assert/-/assert-1.4.1.tgz
 https://registry.yarnpkg.com/assert/-/assert-1.5.0.tgz
 https://registry.yarnpkg.com/assertion-error/-/assertion-error-1.1.0.tgz
 https://registry.yarnpkg.com/assign-symbols/-/assign-symbols-1.0.0.tgz
+https://registry.yarnpkg.com/assignment/-/assignment-2.0.0.tgz
 https://registry.yarnpkg.com/astral-regex/-/astral-regex-1.0.0.tgz
 https://registry.yarnpkg.com/astw/-/astw-2.2.0.tgz
 https://registry.yarnpkg.com/async-done/-/async-done-1.3.2.tgz
@@ -1189,6 +1190,7 @@ https://registry.yarnpkg.com/hasha/-/hasha-2.2.0.tgz
 https://registry.yarnpkg.com/hasha/-/hasha-3.0.0.tgz
 https://registry.yarnpkg.com/hawk/-/hawk-3.1.3.tgz
 https://registry.yarnpkg.com/hawk/-/hawk-6.0.2.tgz
+https://registry.yarnpkg.com/he/-/he-0.5.0.tgz
 https://registry.yarnpkg.com/he/-/he-1.1.1.tgz
 https://registry.yarnpkg.com/he/-/he-1.2.0.tgz
 https://registry.yarnpkg.com/hex-color-regex/-/hex-color-regex-1.1.0.tgz
@@ -1258,6 +1260,7 @@ https://registry.yarnpkg.com/innosetup/-/innosetup-6.0.5.tgz
 https://registry.yarnpkg.com/inquirer/-/inquirer-0.12.0.tgz
 https://registry.yarnpkg.com/inquirer/-/inquirer-6.5.2.tgz
 https://registry.yarnpkg.com/inquirer/-/inquirer-7.3.3.tgz
+https://registry.yarnpkg.com/insane/-/insane-2.6.2.tgz
 https://registry.yarnpkg.com/insert-module-globals/-/insert-module-globals-7.0.1.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-1.1.0.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-1.4.0.tgz
@@ -2273,7 +2276,6 @@ https://registry.yarnpkg.com/typescript/-/typescript-2.6.2.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-2.8.1.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-3.5.3.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-3.7.5.tgz
-https://registry.yarnpkg.com/typescript/-/typescript-4.1.3.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.3.2.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.3.5.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.4.0-dev.20210719.tgz
@@ -2383,6 +2385,7 @@ https://registry.yarnpkg.com/vscode-tas-client/-/vscode-tas-client-0.1.22.tgz
 https://registry.yarnpkg.com/vscode-telemetry-extractor/-/vscode-telemetry-extractor-1.8.0.tgz
 https://registry.yarnpkg.com/vscode-test/-/vscode-test-1.6.1.tgz
 https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-5.4.0.tgz
+https://registry.yarnpkg.com/vscode-universal-bundler/-/vscode-universal-bundler-0.0.2.tgz
 https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-2.0.0.tgz
 https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-2.0.3.tgz
 https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-2.1.1.tgz
