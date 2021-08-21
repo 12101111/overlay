@@ -1,5 +1,5 @@
 diff --git a/build.rs b/build.rs
-index 0f53e65..6d15c14 100644
+index 2f0f7a6..5e200e7 100644
 --- a/build.rs
 +++ b/build.rs
 @@ -60,20 +60,8 @@ fn main() {
@@ -41,11 +41,11 @@ index 0f53e65..6d15c14 100644
 -  }
 -
 -  if let Some(p) = env::var_os("SCCACHE") {
--    cc_wrapper(&mut gn_args, &Path::new(&p));
+-    cc_wrapper(&mut gn_args, Path::new(&p));
 -  } else if let Ok(p) = which("sccache") {
 -    cc_wrapper(&mut gn_args, &p);
 -  } else if let Some(p) = env::var_os("CCACHE") {
--    cc_wrapper(&mut gn_args, &Path::new(&p));
+-    cc_wrapper(&mut gn_args, Path::new(&p));
 -  } else if let Ok(p) = which("ccache") {
 -    cc_wrapper(&mut gn_args, &p);
 -  } else {
