@@ -9,11 +9,11 @@ DESCRIPTION="lightweight overlay volume/backlight/progress/anything bar for Wayl
 HOMEPAGE="https://github.com/francma/wob"
 
 if [[ ${PV} == 9999 ]]; then
-    inherit git-r3
-    EGIT_REPO_URI="https://github.com/francma/${PN^}.git"
+	inherit git-r3
+	EGIT_REPO_URI="https://github.com/francma/${PN^}.git"
 else
-    SRC_URI="https://github.com/francma/${PN^}/archive/${PV}.tar.gz -> ${P}.tar.gz"
-    KEYWORDS="~amd64"
+	SRC_URI="https://github.com/francma/${PN^}/archive/${PV}.tar.gz -> ${P}.tar.gz"
+	KEYWORDS="~amd64"
 fi
 
 LICENSE="ISC"
