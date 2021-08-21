@@ -9,15 +9,16 @@ DESCRIPTION="shadowsocksR plugin for Qv2ray to support SSR connection in Qv2ray"
 HOMEPAGE="https://github.com/Qv2ray/QvPlugin-SSR"
 EGIT_REPO_URI="${HOMEPAGE}.git"
 EGIT_SUBMODULES=( '*' '-*/libsodium' '-*/libuv' )
-EGIT_BRANCH=dev
+EGIT_COMMIT="v${PV}"
 
 LICENSE="GPL-3"
 SLOT="0"
+KEYWORDS="~amd64 ~arm64 ~x86"
 
 DEPEND="
-	=net-proxy/qv2ray-99999
-	dev-libs/libuv
-	dev-libs/libsodium
+	=net-proxy/qv2ray-2.7.0
+	dev-libs/libuv:=
+	dev-libs/libsodium:=
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""

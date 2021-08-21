@@ -11,22 +11,20 @@ EGIT_REPO_URI="${HOMEPAGE}.git"
 EGIT_SUBMODULES=( '*' '-*/libsodium' '-*/libuv' )
 EGIT_COMMIT="v${PV}"
 
-KEYWORDS="amd64 ~x86"
-
 LICENSE="GPL-3"
 SLOT="0"
+KEYWORDS="~amd64 ~arm64 ~x86"
 
 DEPEND="
-	<net-proxy/qv2ray-2.7.0
-	dev-libs/libuv
-	dev-libs/libsodium
+	=net-proxy/qv2ray-2.7.0
+	dev-libs/libuv:=
+	dev-libs/libsodium:=
+	<net-libs/mbedtls-3.0.0
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
-PATCHES=(
-    "${FILESDIR}/fix.patch"
-)
+PATCHES=( "${FILESDIR}/static.patch" )
 
 src_configure() {
 	local mycmakeargs=(
@@ -42,5 +40,5 @@ src_configure() {
 src_install(){
 	insinto "/usr/share/qv2ray/plugins"
 	insopts -m755
-	doins "${BUILD_DIR}/libQvSSPlugin.so"
+	doins "${BUILD_DIR}/libQvPlugin-SS.so"
 }

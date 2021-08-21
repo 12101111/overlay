@@ -7,14 +7,13 @@ inherit cmake-utils xdg git-r3
 DESCRIPTION="Qt GUI fontend of v2ray"
 HOMEPAGE="https://qv2ray.github.io/"
 EGIT_REPO_URI="https://github.com/${PN}/${PN}.git"
-EGIT_SUBMODULES=( '*' '-3rdparty/zxing-cpp' )
+EGIT_SUBMODULES=( '*' '-3rdparty/zxing-cpp' '-libs/libqvb' )
 EGIT_COMMIT=v${PV}
-
-KEYWORDS="amd64 x86"
 
 LICENSE="GPL-3"
 SLOT="0"
-IUSE="libressl"
+IUSE=""
+KEYWORDS="~amd64 ~arm64 ~x86"
 
 DEPEND="
 	dev-qt/qtcore:5
@@ -23,14 +22,13 @@ DEPEND="
 	dev-qt/qtgui:5
 	dev-qt/qtnetwork:5
 	dev-qt/qtwidgets:5
-	net-libs/grpc
-	dev-libs/protobuf
-	>=media-libs/zxing-cpp-1.1.0
+	net-libs/grpc:=
+	dev-libs/protobuf:=
+	net-misc/curl
 "
 RDEPEND="
 	|| ( net-proxy/v2ray-bin net-proxy/v2ray )
-	!libressl? ( dev-libs/openssl:0= )
-	libressl? ( dev-libs/libressl:0= )
+	dev-libs/openssl:0=
 	${DEPEND}
 "
 BDEPEND="
@@ -47,7 +45,6 @@ src_configure() {
 		-DQV2RAY_DEFAULT_VASSETS_PATH="/usr/share/v2ray"
 		-DQV2RAY_DEFAULT_VCORE_PATH="/usr/bin/v2ray"
 		-DQV2RAY_DISABLE_AUTO_UPDATE=on
-		-DQV2RAY_ZXING_PROVIDER="package"
 	)
 	cmake-utils_src_configure
 }

@@ -8,16 +8,17 @@ inherit cmake-utils git-r3
 DESCRIPTION="Plugin for Qv2ray to support Trojan proxy in Qv2ray"
 HOMEPAGE="https://github.com/Qv2ray/QvPlugin-Trojan"
 EGIT_REPO_URI="${HOMEPAGE}.git"
-EGIT_BRANCH=dev
+EGIT_COMMIT="v${PV}"
 
 LICENSE="GPL-3"
 SLOT="0"
 IUSE="tcpfastopen nat reuseport"
+KEYWORDS="~amd64 ~arm64 ~x86"
 
 DEPEND="
-	=net-proxy/qv2ray-99999
-	dev-libs/boost
-	>=dev-libs/openssl-1.1.1
+	=net-proxy/qv2ray-2.7.0
+	dev-libs/boost:=
+	dev-libs/openssl
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""

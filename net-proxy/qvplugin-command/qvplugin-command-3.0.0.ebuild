@@ -5,19 +5,17 @@ EAPI=7
 
 inherit cmake-utils git-r3
 
-DESCRIPTION="Plugin for Qv2ray to support Trojan Go proxy in Qv2ray"
-HOMEPAGE="https://github.com/Qv2ray/QvPlugin-Trojan-Go"
+DESCRIPTION="Plugin for Qv2ray to run any commands when something happens in Qv2ray"
+HOMEPAGE="https://github.com/Qv2ray/QvPlugin-Command"
 EGIT_REPO_URI="${HOMEPAGE}.git"
 EGIT_COMMIT="v${PV}"
 
-KEYWORDS="~amd64 ~x86"
-
 LICENSE="GPL-3"
 SLOT="0"
-IUSE=""
+KEYWORDS="~amd64 ~arm64 ~x86"
 
 DEPEND="
-	<net-proxy/qv2ray-2.7.0
+	=net-proxy/qv2ray-2.7.0
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
@@ -29,5 +27,5 @@ src_configure() {
 src_install(){
 	insinto "/usr/share/qv2ray/plugins"
 	insopts -m755
-	doins "${BUILD_DIR}/libQvTrojanGoPlugin.so"
+	doins "${BUILD_DIR}/libQvPlugin-Command.so"
 }
