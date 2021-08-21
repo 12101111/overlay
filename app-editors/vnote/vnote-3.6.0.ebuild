@@ -41,8 +41,8 @@ src_install() {
 	mv "${ED}/usr/share/applications/vnote.desktop" "${ED}/usr/share/applications/vnote3.desktop"
 	for i in $(ls "${ED}/usr/share/icons/hicolor/");do
 		case $i in
-			*x*) mv ${ED}/usr/share/icons/hicolor/$i/apps/vnote.png ${ED}/usr/share/icons/hicolor/$i/apps/vnote3.png;;
-			scalable) mv ${ED}/usr/share/icons/hicolor/$i/apps/vnote.svg ${ED}/usr/share/icons/hicolor/$i/apps/vnote3.svg;;
+			*x*) mv "${ED}/usr/share/icons/hicolor/$i/apps/vnote.png" "${ED}/usr/share/icons/hicolor/$i/apps/vnote3.png";;
+			scalable) mv "${ED}/usr/share/icons/hicolor/$i/apps/vnote.svg" "${ED}/usr/share/icons/hicolor/$i/apps/vnote3.svg";;
 		esac
 	done
 }
