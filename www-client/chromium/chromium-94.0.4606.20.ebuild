@@ -13,11 +13,10 @@ inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-util
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="1"
+PATCHSET="3"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
-	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
-	arm64? ( https://github.com/google/highway/archive/refs/tags/0.12.1.tar.gz -> highway-0.12.1.tar.gz )"
+	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
 
 LICENSE="BSD"
 SLOT="0"
@@ -55,8 +54,8 @@ COMMON_DEPEND="
 	>=dev-libs/nss-3.26:=
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
-	>=media-libs/freetype-2.11.0:=
-	>=media-libs/harfbuzz-2.4.0:0=[icu(-)]
+	>=media-libs/freetype-2.11.0-r1:=
+	>=media-libs/harfbuzz-2.9.0:=
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
 	pulseaudio? ( media-sound/pulseaudio:= )
@@ -128,11 +127,11 @@ BDEPEND="
 	virtual/pkgconfig
 	js-type-check? ( virtual/jre )
 	pgo? (
-		sys-devel/clang:12
+		>=sys-devel/clang-12.0.0
 		>=sys-devel/lld-12.0.0
 	)
 	lto? (
-		sys-devel/clang:12
+		>=sys-devel/clang-12.0.0
 		>=sys-devel/lld-12.0.0
 	)
 "
@@ -212,8 +211,8 @@ pre_build_checks() {
 	fi
 
 	# Check build requirements, bug #541816 and bug #471810 .
-	CHECKREQS_MEMORY="3G"
-	CHECKREQS_DISK_BUILD="8G"
+	CHECKREQS_MEMORY="4G"
+	CHECKREQS_DISK_BUILD="9G"
 	if use lto; then
 		if ! tc-is-clang; then
 			die "lto or pgo only support clang and lld"
@@ -255,14 +254,8 @@ src_prepare() {
 		eapply "${FILESDIR}/musl"
 	fi
 
-	rm "${WORKDIR}/patches/chromium-94-compiler.patch"
-	rm "${WORKDIR}/patches/chromium-94-CanonicalCookie-incomplete-type.patch"
-	rm "${WORKDIR}/patches/chromium-94-LogicalOffset-include.patch"
-	rm "${WORKDIR}/patches/chromium-94-NGBfcOffset-include.patch"
-	rm "${WORKDIR}/patches/chromium-94-h264_parser-include.patch"
 	local PATCHES=(
 		"${WORKDIR}/patches"
-		"${FILESDIR}/chromium-94-compiler.patch"
 		"${FILESDIR}/chromium-93-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
@@ -270,7 +263,6 @@ src_prepare() {
 		"${FILESDIR}/chromium-92_atk_optional.patch"
 		"${FILESDIR}/chromium-no-strip.patch"
 		"${FILESDIR}/chromium-94-fix-stat-include.patch"
-		"${FILESDIR}/chromium-93-fix-sway-ozone-wayland.patch"
 	)
 
 	default
@@ -280,12 +272,6 @@ src_prepare() {
 
 	# adjust python interpreter version
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
-
-	# bundled highway library does not support arm64 with GCC
-	if use arm64; then
-		rm -r third_party/highway/src || die
-		ln -s "${WORKDIR}/highway-0.12.1" third_party/highway/src || die
-	fi
 
 	local keeplibs=(
 		base/third_party/cityhash
@@ -384,7 +370,6 @@ src_prepare() {
 		third_party/google_input_tools/third_party/closure_library
 		third_party/google_input_tools/third_party/closure_library/third_party/closure
 		third_party/googletest
-		third_party/harfbuzz-ng
 		third_party/harfbuzz-ng/utils
 		third_party/hunspell
 		third_party/iccjpeg
@@ -619,6 +604,9 @@ src_configure() {
 	myconf_gn+=" symbol_level=1"
 	myconf_gn+=" blink_symbol_level=0"
 
+	# make DCHECK configurable at runtime for non-official builds.
+	myconf_gn+=" dcheck_is_configurable=$(usex official false true)"
+
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
@@ -666,7 +654,7 @@ src_configure() {
 	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
 
 	# See dependency logic in third_party/BUILD.gn
-	# myconf_gn+=" use_system_harfbuzz=true"
+	myconf_gn+=" use_system_harfbuzz=true"
 
 	# Disable deprecated libgnome-keyring dependency, bug #713012
 	myconf_gn+=" use_gnome_keyring=false"
@@ -810,11 +798,6 @@ src_configure() {
 	# Chromium relies on this, but was disabled in >=clang-10, crbug.com/1042470
 	append-cxxflags $(test-flags-CXX -flax-vector-conversions=all)
 
-	# highway/libjxl relies on this with arm64
-	if use arm64 && tc-is-gcc; then
-		append-cxxflags -flax-vector-conversions
-	fi
-
 	# Disable unknown warning message from clang.
 	tc-is-clang && append-flags -Wno-unknown-warning-option
 
@@ -952,6 +935,7 @@ src_install() {
 
 	doins -r out/Release/locales
 	doins -r out/Release/resources
+	doins -r out/Release/MEIPreload
 
 	if [[ -d out/Release/swiftshader ]]; then
 		insinto "${CHROMIUM_HOME}/swiftshader"
