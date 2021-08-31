@@ -298,7 +298,7 @@ CRATES="
 	serde_json-1.0.64
 	serde_repr-0.1.7
 	serde_urlencoded-0.7.0
-	serde_v8-0.9.0
+	serde_v8-0.9.3
 	sha-1-0.9.7
 	sha2-0.9.5
 	shell-escape-0.1.5
