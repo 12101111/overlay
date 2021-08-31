@@ -1,0 +1,57 @@
+diff --git a/patches/v8/cherry-pick-1231950.patch b/patches/v8/cherry-pick-1231950.patch
+index a2abb59390..22ffd73591 100644
+--- a/patches/v8/cherry-pick-1231950.patch
++++ b/patches/v8/cherry-pick-1231950.patch
+@@ -141,52 +141,3 @@ index 39ef8528e5267a76f69a251d358ed5a9259246e0..17b2b840f236c249e5a9d2a5fa61098b
+    if (protected_store_pc) *protected_store_pc = pc_offset();
+  
+    MachineRepresentation rep = type.mem_rep();
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index b6dd59ec697547fa5c56c2ecdb679186ca7f80c7..bb860434536ebc2d5296c5bbf979a4f2f87bc6dd 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -1447,7 +1447,8 @@
+-   'regress/wasm/regress-1161954': [SKIP],
+-   'regress/wasm/regress-1165966': [SKIP],
+-   'regress/wasm/regress-1187831': [SKIP],
+--}],  # no_simd_sse == True
+-+  'regress/wasm/regress-1231950': [SKIP],
+-+}],  # no_simd_hardware == True
+- 
+- ##############################################################################
+- # TODO(v8:11421): Port baseline compiler to other architectures.
+-@@ -1465,4 +1466,10 @@
+-   'concurrent-initial-prototype-change-1': [SKIP],
+- }],  # variant == concurrent_inlining
+- 
+-+##############################################################################
+-+['variant == instruction_scheduling or variant == stress_instruction_scheduling', {
+-+  # BUG(12018): This test currently fails with --turbo-instruction-scheduling.
+-+  'regress/wasm/regress-1231950': [SKIP],
+-+}],  # variant == instruction_scheduling or variant == stress_instruction_scheduling
+-+
+- ]
+-diff --git a/test/mjsunit/regress/wasm/regress-1231950.js b/test/mjsunit/regress/wasm/regress-1231950.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..972754c6d52094727a93dae4c0847f013b6c7675
+---- /dev/null
+-+++ b/test/mjsunit/regress/wasm/regress-1231950.js
+-@@ -0,0 +1,18 @@
+-+// Copyright 2021 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+load('test/mjsunit/wasm/wasm-module-builder.js');
+-+
+-+const builder = new WasmModuleBuilder();
+-+builder.addMemory(1, 1);
+-+builder.addFunction('main', kSig_d_v)
+-+    .addBody([
+-+      ...wasmI32Const(-3),                            // i32.const
+-+      kExprI32SExtendI8,                              // i32.extend8_s
+-+      kSimdPrefix, kExprS128Load32Splat, 0x01, 0x02,  // s128.load32_splat
+-+      kExprUnreachable,                               // unreachable
+-+    ])
+-+    .exportFunc();
+-+const instance = builder.instantiate();
+-+assertTraps(kTrapMemOutOfBounds, instance.exports.main);
