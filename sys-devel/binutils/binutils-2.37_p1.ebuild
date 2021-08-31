@@ -175,6 +175,8 @@ src_configure() {
 	# Keep things sane
 	strip-flags
 
+	use elibc_musl && append-ldflags -Wl,-z,stack-size=2097152
+
 	local x
 	echo
 	for x in CATEGORY CBUILD CHOST CTARGET CFLAGS LDFLAGS ; do
@@ -275,6 +277,10 @@ src_configure() {
 		# Ideally we would like automagic-or-disabled here.
 		# But the check does not quite work on i686: bug #760926.
 		$(use_enable cet)
+		$(use_enable ld)
+		$(use_enable gas)
+		$(use_enable binutils)
+		$(use_enable gprof)
 	)
 	echo ./configure "${myconf[@]}"
 	"${S}"/configure "${myconf[@]}" || die
@@ -375,14 +381,22 @@ src_install() {
 		dodoc README
 		docinto bfd
 		dodoc bfd/ChangeLog* bfd/README bfd/PORTING bfd/TODO
-		docinto binutils
-		dodoc binutils/ChangeLog binutils/NEWS binutils/README
-		docinto gas
-		dodoc gas/ChangeLog* gas/CONTRIBUTORS gas/NEWS gas/README*
-		docinto gprof
-		dodoc gprof/ChangeLog* gprof/TEST gprof/TODO gprof/bbconv.pl
-		docinto ld
-		dodoc ld/ChangeLog* ld/README ld/NEWS ld/TODO
+		if use binutils; then
+			docinto binutils
+			dodoc binutils/ChangeLog binutils/NEWS binutils/README
+		fi
+		if use gas; then
+			docinto gas
+			dodoc gas/ChangeLog* gas/CONTRIBUTORS gas/NEWS gas/README*
+		fi
+		if use gprof; then
+			docinto gprof
+			dodoc gprof/ChangeLog* gprof/TEST gprof/TODO gprof/bbconv.pl
+		fi
+		if use ld; then
+			docinto ld
+			dodoc ld/ChangeLog* ld/README ld/NEWS ld/TODO
+		fi
 		docinto libiberty
 		dodoc libiberty/ChangeLog* libiberty/README
 		docinto opcodes
