@@ -1,7 +1,7 @@
-From 8f35abbe825f3d886038b64196a7727c08d4d551 Mon Sep 17 00:00:00 2001
+From 47131f1977b91727bbb9b3f25a5d1000165df173 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Jul 2021 21:41:05 +0800
-Subject: [PATCH 11/13] Don't use git dependence
+Subject: [PATCH 11/14] Don't use git dependence
 
 ---
  extensions/markdown-math/package.json | 2 +-
@@ -9,7 +9,7 @@ Subject: [PATCH 11/13] Don't use git dependence
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/extensions/markdown-math/package.json b/extensions/markdown-math/package.json
-index 33eea8a6dad..bcf43cdfd46 100644
+index 7d0b42cddc2..651d15061cb 100644
 --- a/extensions/markdown-math/package.json
 +++ b/extensions/markdown-math/package.json
 @@ -91,7 +91,7 @@
@@ -38,5 +38,5 @@ index f402ca890b7..e9fdfda625b 100644
      katex "^0.13.0"
  
 -- 
-2.32.0
+2.33.0
 

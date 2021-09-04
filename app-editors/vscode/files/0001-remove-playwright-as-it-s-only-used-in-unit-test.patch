@@ -1,7 +1,7 @@
-From f3cff23ad1aa040eacdb3724300e6d692dc11e88 Mon Sep 17 00:00:00 2001
+From dff6460ab75154736a75044d391aa3beee3e474d Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 6 Aug 2021 15:18:11 +0800
-Subject: [PATCH 01/13] remove playwright as it's only used in unit test
+Subject: [PATCH 01/14] remove playwright as it's only used in unit test
 
 ---
  package.json |  2 --
@@ -9,7 +9,7 @@ Subject: [PATCH 01/13] remove playwright as it's only used in unit test
  2 files changed, 22 deletions(-)
 
 diff --git a/package.json b/package.json
-index 2ed7b5277aa..382e0c3f06f 100644
+index ad6be8fd70d..01db0326a84 100644
 --- a/package.json
 +++ b/package.json
 @@ -47,7 +47,6 @@
@@ -20,7 +20,7 @@ index 2ed7b5277aa..382e0c3f06f 100644
      "compile-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-build",
      "compile-extensions-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-extensions-build",
      "minify-vscode": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js minify-vscode",
-@@ -182,7 +181,6 @@
+@@ -185,7 +184,6 @@
      "optimist": "0.3.5",
      "p-all": "^1.0.0",
      "path-browserify": "^1.0.1",
@@ -29,10 +29,10 @@ index 2ed7b5277aa..382e0c3f06f 100644
      "queue": "3.0.6",
      "rcedit": "^1.1.0",
 diff --git a/yarn.lock b/yarn.lock
-index 12a1954d5b9..e1553be58b8 100644
+index 84e9e4be87b..223e3a3553b 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -7728,26 +7728,6 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
+@@ -7821,26 +7821,6 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
    dependencies:
      find-up "^4.0.0"
  
@@ -60,5 +60,5 @@ index 12a1954d5b9..e1553be58b8 100644
    version "3.0.1"
    resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.1.tgz#a9b931d17c304e8912ef0ba3bdd6182baf2e1f8c"
 -- 
-2.32.0
+2.33.0
 

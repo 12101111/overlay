@@ -1,7 +1,7 @@
-From 4a405240689f6350946a83abf2dc1c44fa82e5d6 Mon Sep 17 00:00:00 2001
+From ea106439e087fc561dad85c918057fa9dc327c5b Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 11 Jun 2021 16:55:05 +0800
-Subject: [PATCH 12/13] Enable UseOzonePlatform feature
+Subject: [PATCH 12/14] Enable UseOzonePlatform feature
 
 ---
  resources/linux/bin/code.sh | 9 ++++++++-
@@ -28,5 +28,5 @@ index 06973937f14..c47a106494b 100755
 +ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --app="${VSCODE_PATH}/resources/app" ${CHROMIUM_FLAGS} "$@"
  exit $?
 -- 
-2.32.0
+2.33.0
 

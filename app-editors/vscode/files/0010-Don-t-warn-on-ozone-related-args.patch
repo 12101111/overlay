@@ -1,7 +1,7 @@
-From 750115c55b99e63a551d5b1d1ae209411e8862b7 Mon Sep 17 00:00:00 2001
+From e058e4b4297c373ecdaad51bf6c5ef8357c6b9e9 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 11 Jun 2021 16:38:45 +0800
-Subject: [PATCH 10/13] Don't warn on ozone related args
+Subject: [PATCH 10/14] Don't warn on ozone related args
 
 ---
  src/vs/platform/environment/common/argv.ts | 2 ++
@@ -20,7 +20,7 @@ index a798161098d..f210c5f34da 100644
 +	'ozone-platform'?: string;
  }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 695e7804194..bf28a66fc7c 100644
+index e9681de7644..4a3d77a3bc5 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
 @@ -144,6 +144,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
@@ -33,5 +33,5 @@ index 695e7804194..bf28a66fc7c 100644
  	_: { type: 'string[]' } // main arguments
  };
 -- 
-2.32.0
+2.33.0
 

@@ -1,7 +1,7 @@
-From add233d78d5d4785303fda4adc7c18daaf7ee035 Mon Sep 17 00:00:00 2001
+From b80c8e320a5420cea0dea5f5a565487f30e56239 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 6 Aug 2021 15:22:27 +0800
-Subject: [PATCH 13/13] Remove vscode-telemetry-extractor
+Date: Fri, 3 Sep 2021 19:57:18 +0800
+Subject: [PATCH 13/14] Remove vscode-telemetry-extractor
 
 ---
  package.json |  1 -
@@ -9,10 +9,10 @@ Subject: [PATCH 13/13] Remove vscode-telemetry-extractor
  2 files changed, 18 deletions(-)
 
 diff --git a/package.json b/package.json
-index 382e0c3f06f..9581e08ad70 100644
+index 01db0326a84..1eac1a35e9d 100644
 --- a/package.json
 +++ b/package.json
-@@ -201,7 +201,6 @@
+@@ -204,7 +204,6 @@
      "vinyl-fs": "^3.0.0",
      "vscode-debugprotocol": "1.48.0",
      "vscode-nls-dev": "^3.3.1",
@@ -21,10 +21,10 @@ index 382e0c3f06f..9581e08ad70 100644
      "webpack-cli": "^4.7.2",
      "webpack-stream": "^6.1.2",
 diff --git a/yarn.lock b/yarn.lock
-index e1553be58b8..fd317e95582 100644
+index 223e3a3553b..c9ec0496d2e 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -10570,14 +10570,6 @@ vscode-regexpp@^3.1.0:
+@@ -10663,14 +10663,6 @@ vscode-regexpp@^3.1.0:
    resolved "https://registry.yarnpkg.com/vscode-regexpp/-/vscode-regexpp-3.1.0.tgz#42d059b6fffe99bd42939c0d013f632f0cad823f"
    integrity sha512-pqtN65VC1jRLawfluX4Y80MMG0DHJydWhe5ZwMHewZD6sys4LbU6lHwFAHxeuaVE6Y6+xZOtAw+9hvq7/0ejkg==
  
@@ -39,9 +39,9 @@ index e1553be58b8..fd317e95582 100644
  vscode-ripgrep@^1.12.0:
    version "1.12.0"
    resolved "https://registry.yarnpkg.com/vscode-ripgrep/-/vscode-ripgrep-1.12.0.tgz#8fee3f892349f2bf1c7ef9743e3bbccb108ad9d7"
-@@ -10593,15 +10585,6 @@ vscode-sqlite3@4.0.11:
-   dependencies:
-     nan "^2.14.0"
+@@ -10679,15 +10671,6 @@ vscode-ripgrep@^1.12.0:
+     https-proxy-agent "^4.0.0"
+     proxy-from-env "^1.1.0"
  
 -vscode-telemetry-extractor@^1.8.0:
 -  version "1.8.0"
@@ -56,5 +56,5 @@ index e1553be58b8..fd317e95582 100644
    version "5.4.0"
    resolved "https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-5.4.0.tgz#4b25ffc1f14ac3a90faf9a388c67a01d24257cd7"
 -- 
-2.32.0
+2.33.0
 

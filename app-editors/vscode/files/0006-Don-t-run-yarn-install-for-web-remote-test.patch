@@ -1,7 +1,7 @@
-From 4dec73b84fd78b54e467bce904ce5bd74a5b8ed7 Mon Sep 17 00:00:00 2001
+From f7eb786d3ab285c04441d58da0c8b40b6b9aa570 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 6 Aug 2021 15:20:22 +0800
-Subject: [PATCH 06/13] Don't run `yarn install` for web/remote/test
+Subject: [PATCH 06/14] Don't run `yarn install` for web/remote/test
 
 ---
  build/npm/dirs.js        | 6 ------
@@ -24,10 +24,10 @@ index 6c135ea1b13..e8309afacfa 100644
 -	'test/smoke',
  ];
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index 69a226aaa40..3a45cee1deb 100644
+index 98cb3e65a40..090f9e61df8 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -88,6 +88,3 @@ runtime "${runtime}"`;
+@@ -90,6 +90,3 @@ runtime "${runtime}"`;
  	fs.writeFileSync(yarnrcPath, yarnrc, 'utf8');
  	yarnInstall(watchPath);
  }
@@ -35,5 +35,5 @@ index 69a226aaa40..3a45cee1deb 100644
 -cp.execSync('git config pull.rebase merges');
 -cp.execSync('git config blame.ignoreRevsFile .git-blame-ignore');
 -- 
-2.32.0
+2.33.0
 
