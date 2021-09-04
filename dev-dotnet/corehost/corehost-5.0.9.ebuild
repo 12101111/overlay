@@ -9,8 +9,8 @@ DESCRIPTION="Generic driver for the .NET Core Command Line Interface"
 HOMEPAGE="https://github.com/dotnet/runtime"
 SRC_URI="https://github.com/dotnet/runtime/archive/v${PV}.tar.gz -> runtime-${PV}.tar.gz"
 
-COMMIT="2f740adc1457e8a28c1c072993b66f515977eb51"
-SDK="5.0.202"
+COMMIT="208e377a5329ad6eb1db5e5fb9d4590fa50beadd"
+SDK="5.0.400"
 
 LICENSE="MIT"
 SLOT="5.0"

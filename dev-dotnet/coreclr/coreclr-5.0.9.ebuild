@@ -18,7 +18,6 @@ RDEPEND="${DEPEND}"
 BDEPEND=""
 
 PATCHES=(
-	"${FILESDIR}"/coreclr-5.0-fix-atoll.patch
 	"${FILESDIR}"/coreclr-5.0-runtime_version.patch
 	"${FILESDIR}"/coreclr-5.0-remove-assert.patch
 	"${FILESDIR}"/coreclr-5.0-static.patch
