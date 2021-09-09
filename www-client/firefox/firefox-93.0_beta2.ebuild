@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-91-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-92-patches-01.tar.xz"
 
 LLVM_MAX_SLOT=12
 
@@ -100,7 +100,7 @@ BDEPEND="${PYTHON_DEPS}
 	x86? ( >=dev-lang/nasm-2.13 )"
 
 CDEPEND="
-	>=dev-libs/nss-3.68
+	>=dev-libs/nss-3.69
 	>=dev-libs/nspr-4.32
 	dev-libs/atk
 	dev-libs/expat
@@ -125,7 +125,6 @@ CDEPEND="
 	x11-libs/libXext
 	x11-libs/libXfixes
 	x11-libs/libXrender
-	x11-libs/libXt
 	dbus? (
 		sys-apps/dbus
 		dev-libs/dbus-glib
@@ -457,9 +456,8 @@ src_unpack() {
 
 src_prepare() {
 	use lto && rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch
-	rm "${WORKDIR}/firefox-patches/0011-bmo-1526653-Include-struct-definitions-for-user_vfp-.patch"
-	rm "${WORKDIR}/firefox-patches/0034-bmo-1721326-Allow-dynamic-PTHREAD_STACK_MIN.patch"
-	rm "${WORKDIR}/firefox-patches/0035-bmo-1721326-Use-small-stack-for-DoClone.patch"
+	rm "${WORKDIR}/firefox-patches/0016-musl-getcontext-is-only-avaliable-on-glibc-systems.patch"
+	rm "${WORKDIR}/firefox-patches/0033-bmo-1728749-Pre-select-OS-dialog-when-using-Pipewire.patch"
 	eapply "${WORKDIR}/firefox-patches"
 	eapply "${FILESDIR}/cross-pgo.patch"
 
