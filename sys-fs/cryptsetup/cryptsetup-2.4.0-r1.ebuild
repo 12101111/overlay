@@ -18,7 +18,7 @@ CRYPTO_BACKENDS="gcrypt kernel nettle +openssl"
 # and it's missing ripemd160 support so it can't provide full backward compatibility
 IUSE="${CRYPTO_BACKENDS} +argon2 nls pwquality reencrypt ssh external-tokens static static-libs +udev urandom"
 REQUIRED_USE="^^ ( ${CRYPTO_BACKENDS//+/} )
-	static? ( !gcrypt )" #496612
+	static? ( !gcrypt !udev )" #496612
 
 LIB_DEPEND="
 	dev-libs/json-c:=[static-libs(+)]
@@ -31,13 +31,13 @@ LIB_DEPEND="
 	openssl? ( dev-libs/openssl:0=[static-libs(+)] )
 	pwquality? ( dev-libs/libpwquality[static-libs(+)] )
 	ssh? ( net-libs/libssh[static-libs(+)] )
-	sys-fs/lvm2[static-libs(+)]
-	udev? ( virtual/libudev[static-libs(-)] )"
+	sys-fs/lvm2[static-libs(+)]"
 # We have to always depend on ${LIB_DEPEND} rather than put behind
 # !static? () because we provide a shared library which links against
 # these other packages. #414665
 RDEPEND="static-libs? ( ${LIB_DEPEND} )
-	${LIB_DEPEND//\[static-libs\([+-]\)\]}"
+	${LIB_DEPEND//\[static-libs\([+-]\)\]}
+	udev? ( virtual/libudev:= )"
 DEPEND="${RDEPEND}
 	static? ( ${LIB_DEPEND} )"
 BDEPEND="
