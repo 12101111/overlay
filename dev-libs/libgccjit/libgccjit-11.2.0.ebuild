@@ -19,7 +19,7 @@ GCC_BRANCH_VER=$(ver_cut 1-2 ${PV})
 GCCMAJOR=$(ver_cut 1 ${PV})
 GCCMINOR=$(ver_cut 2 ${PV})
 GCCMICRO=$(ver_cut 3 ${PV})
-PATCH_VER="3"
+PATCH_VER="1"
 
 SRC_URI="
 	mirror://gnu/gcc/gcc-${PV}/gcc-${GCC_RELEASE_VER}.tar.xz
@@ -209,7 +209,7 @@ src_install() {
 	#rm "${ED}/usr/libexec/gcc/${CHOST}/${GCC_RELEASE_VER}/cc1"
 
 	# Punt some tools which are really only useful while building gcc
-	find "${ED}" -name install-tools -prune -type d -exec rm -rf "{}" \;
+	find "${ED}" -name install-tools -prune -type d -exec rm -rf "{}"
 
 	# prune empty dirs left behind
 	find "${ED}" -depth -type d -delete 2>/dev/null
