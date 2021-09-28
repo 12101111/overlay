@@ -44,6 +44,9 @@ unset DEV_URI
 # These are bundles that can't be removed for now due to huge patchsets.
 # If you want them gone, patches are welcome.
 ADDONS_SRC=(
+	# broken against latest upstream release, too many patches on top:
+	# https://github.com/tdf/libcmis/pull/43
+	"${ADDONS_URI}/libcmis-0.5.2.tar.xz"
 	# not packaged in Gentoo, https://www.netlib.org/fp/dtoa.c
 	"${ADDONS_URI}/dtoa-20180411.tgz"
 	# not packaged in Gentoo, https://skia.org/
@@ -213,7 +216,7 @@ COMMON_DEPEND="${PYTHON_DEPS}
 		dev-libs/glib:2
 		dev-libs/gobject-introspection
 		gnome-base/dconf
-		media-libs/mesa[egl]
+		media-libs/mesa[egl(+)]
 		x11-libs/gtk+:3[X]
 		x11-libs/pango
 	)
@@ -294,8 +297,12 @@ PATCHES=(
 	"${FILESDIR}/${PN}-6.1-nomancompress.patch"
 	"${FILESDIR}/${PN}-7.0.3.1-qt5detect.patch"
 
+	# 7.1 branch
+	"${FILESDIR}/${P}-KF5-fix-double-buffer-graphics.patch"
+
 	# master branch
 	"${FILESDIR}/${PN}-7.1.3.2-bashism.patch" # bug 780432
+	"${FILESDIR}/${PN}-7.1.5.2-bison-3.8.patch" # bug 812923
 	"${FILESDIR}/libcxx.patch"
 	"${FILESDIR}/linux-musl.patch"
 	"${FILESDIR}/musl-stacksize.patch"
@@ -518,6 +525,7 @@ src_configure() {
 		--with-system-gpgmepp
 		--without-system-jfreereport
 		--without-system_apache_commons
+		--without-system-libcmis
 		--without-system-sane
 		--without-system-qrcodegen
 		$(use_enable base report-builder)
