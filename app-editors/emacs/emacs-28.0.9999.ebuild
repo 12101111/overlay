@@ -7,8 +7,8 @@ inherit autotools elisp-common flag-o-matic readme.gentoo-r1 toolchain-funcs
 
 if [[ ${PV##*.} = 9999 ]]; then
 	inherit git-r3
-	EGIT_REPO_URI="https://github.com/emacs-mirror/emacs.git"
-	EGIT_BRANCH="feature/pgtk"
+	EGIT_REPO_URI="https://github.com/flatwhatson/emacs.git"
+	EGIT_BRANCH="pgtk-nativecomp"
 	EGIT_CHECKOUT_DIR="${WORKDIR}/emacs"
 	S="${EGIT_CHECKOUT_DIR}"
 	SLOT="${PV%%.*}-vcs"
@@ -134,8 +134,6 @@ EMACS_SUFFIX="emacs-${SLOT}"
 SITEFILE="20${EMACS_SUFFIX}-gentoo.el"
 
 PATCHES=(
-	"${FILESDIR}"/0001-malloc_info-is-not-available-on-musl.patch
-	"${FILESDIR}"/0002-TEMP_FAILURE_RETRY-is-not-available-on-musl.patch
 	"${FILESDIR}"/0003-clang-fix.patch
 )
 
