@@ -11,23 +11,6 @@ index c669565a..79b7f42f 100644
          PassPA = P->run(IR, AM, ExtraArgs...);
        }
  
-diff --git a/include/llvm/Support/TimeProfiler.h b/include/llvm/Support/TimeProfiler.h
-index b6f8a647..e281d385 100644
---- a/include/llvm/Support/TimeProfiler.h
-+++ b/include/llvm/Support/TimeProfiler.h
-@@ -72,11 +72,7 @@ struct TimeTraceScope {
- 
-   TimeTraceScope(StringRef Name) {
-     if (getTimeTraceProfilerInstance() != nullptr)
--      timeTraceProfilerBegin(Name, StringRef(""));
--  }
--  TimeTraceScope(StringRef Name, StringRef Detail) {
--    if (getTimeTraceProfilerInstance() != nullptr)
--      timeTraceProfilerBegin(Name, Detail);
-+      timeTraceProfilerBegin(Name, [&]() { return ""; });
-   }
-   TimeTraceScope(StringRef Name, llvm::function_ref<std::string()> Detail) {
-     if (getTimeTraceProfilerInstance() != nullptr)
 diff --git a/include/llvm/Transforms/Scalar/LoopPassManager.h b/include/llvm/Transforms/Scalar/LoopPassManager.h
 index 2a342fcd..1f1313e0 100644
 --- a/include/llvm/Transforms/Scalar/LoopPassManager.h
