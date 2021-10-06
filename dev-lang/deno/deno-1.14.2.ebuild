@@ -295,7 +295,7 @@ CRATES="
 	serde_json-1.0.67
 	serde_repr-0.1.7
 	serde_urlencoded-0.7.0
-	serde_v8-0.11.0
+	serde_v8-0.13.0
 	sha-1-0.9.7
 	sha2-0.9.5
 	shell-escape-0.1.5
@@ -428,8 +428,8 @@ CRATES="
 	zeroize_derive-1.1.0
 "
 
-RUSTY_V8="0.28.0"
-V8="9.4.146.15"
+RUSTY_V8="0.30.0"
+V8="9.4.146.16"
 chromium_build="b1cbcbce2c71b08bb34ede6add332626e78fa10e"
 icu="f022e298b4f4a782486bb6d5ce6589c998b51fe2"
 
