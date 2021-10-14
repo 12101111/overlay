@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit meson
+inherit meson xdg-utils gnome2-utils
 
 DESCRIPTION="Graphical utility to review and modify permissions from Flatpak applications"
 HOMEPAGE="https://github.com/tchx84/Flatseal"
@@ -30,4 +30,16 @@ S="${WORKDIR}/Flatseal-${PV}"
 src_prepare() {
 	sed -i -e "s/get_option('datadir'), 'appdata'/get_option('datadir'), 'metainfo'/" "${S}"/data/meson.build
 	default
+}
+
+pkg_postinst() {
+	xdg_icon_cache_update
+	xdg_desktop_database_update
+	gnome2_schemas_update
+}
+
+pkg_postrm() {
+	xdg_icon_cache_update
+	xdg_desktop_database_update
+	gnome2_schemas_update
 }
