@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit autotools flag-o-matic multilib-minimal toolchain-funcs
+inherit flag-o-matic multilib-minimal
 
 DESCRIPTION="Libraries/utilities to handle ELF objects (drop in replacement for libelf)"
 HOMEPAGE="http://elfutils.org/"
@@ -33,13 +33,15 @@ PATCHES=(
 	"${FILESDIR}"/${PN}-0.175-disable-biarch-test-PR24158.patch
 	"${FILESDIR}"/${PN}-0.177-disable-large.patch
 	"${FILESDIR}"/${PN}-0.180-PaX-support.patch
+	"${FILESDIR}"/${PN}-0.185-static-inline.patch
+	"${FILESDIR}"/${PN}-0.185-pull-advance_pc-in-file-scope.patch
+	"${FILESDIR}"/${PN}-0.185-configure.ac-rework-gnu99-ext-check-to-allow-clang.patch
 	"${FILESDIR}"/elfutils-musl-clang.patch
 )
 
 src_prepare() {
 	default
 
-	eautoreconf
 	if ! use static-libs; then
 		sed -i -e '/^lib_LIBRARIES/s:=.*:=:' -e '/^%.os/s:%.o$::' lib{asm,dw,elf}/Makefile.in || die
 	fi
