@@ -1,6 +1,6 @@
-From dff6460ab75154736a75044d391aa3beee3e474d Mon Sep 17 00:00:00 2001
+From 4f267707a6d867a0c92d5f7fe8d71faa887ddcdd Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 6 Aug 2021 15:18:11 +0800
+Date: Mon, 11 Oct 2021 16:36:22 +0800
 Subject: [PATCH 01/14] remove playwright as it's only used in unit test
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 01/14] remove playwright as it's only used in unit test
  2 files changed, 22 deletions(-)
 
 diff --git a/package.json b/package.json
-index ad6be8fd70d..01db0326a84 100644
+index f5b1302972f..1d8a2a1c298 100644
 --- a/package.json
 +++ b/package.json
 @@ -47,7 +47,6 @@
@@ -24,22 +24,22 @@ index ad6be8fd70d..01db0326a84 100644
      "optimist": "0.3.5",
      "p-all": "^1.0.0",
      "path-browserify": "^1.0.1",
--    "playwright": "1.12.3",
+-    "playwright": "1.15.0",
      "pump": "^1.0.1",
      "queue": "3.0.6",
      "rcedit": "^1.1.0",
 diff --git a/yarn.lock b/yarn.lock
-index 84e9e4be87b..223e3a3553b 100644
+index 053ba8a53a2..fdc71d62b5d 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -7821,26 +7821,6 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
+@@ -7652,26 +7652,6 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
    dependencies:
      find-up "^4.0.0"
  
--playwright@1.12.3:
--  version "1.12.3"
--  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.12.3.tgz#113afa2cba10fb56e9a5b307377343e32a155a99"
--  integrity sha512-eyhHvZV7dMAUltqjQsgJ9CjZM8dznzN1+rcfCI6W6lfQ7IlPvTFGLuKOCcI4ETbjfbxqaS5FKIkb1WDDzq2Nww==
+-playwright@1.15.0:
+-  version "1.15.0"
+-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.15.0.tgz#c8c75287541e75317988b973a306d2f61065aefb"
+-  integrity sha512-JtagFVjNvccP1rIixHB/4KbR+BzMTJLty6mo71YLatvJR9ZH+PX8DLlhw1KDdIH2YGMSQGf2ihh4KAp9tsklxQ==
 -  dependencies:
 -    commander "^6.1.0"
 -    debug "^4.1.1"
@@ -57,8 +57,8 @@ index 84e9e4be87b..223e3a3553b 100644
 -    yazl "^2.5.1"
 -
  plist@^3.0.1:
-   version "3.0.1"
-   resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.1.tgz#a9b931d17c304e8912ef0ba3bdd6182baf2e1f8c"
+   version "3.0.4"
+   resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.4.tgz#a62df837e3aed2bb3b735899d510c4f186019cbe"
 -- 
 2.33.0
 

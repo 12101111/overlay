@@ -1,6 +1,6 @@
-From 47131f1977b91727bbb9b3f25a5d1000165df173 Mon Sep 17 00:00:00 2001
+From a0f4206c0bd9510ed0d3466b3146fd6393fa3253 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 9 Jul 2021 21:41:05 +0800
+Date: Mon, 11 Oct 2021 16:39:39 +0800
 Subject: [PATCH 11/14] Don't use git dependence
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 11/14] Don't use git dependence
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/extensions/markdown-math/package.json b/extensions/markdown-math/package.json
-index 7d0b42cddc2..651d15061cb 100644
+index 5a4dbe3080b..94180bbf4e5 100644
 --- a/extensions/markdown-math/package.json
 +++ b/extensions/markdown-math/package.json
 @@ -91,7 +91,7 @@
@@ -20,9 +20,9 @@ index 7d0b42cddc2..651d15061cb 100644
 +    "@iktakahiro/markdown-it-katex": "mjbvz/markdown-it-katex#2bf0b89c6c22ef0b585f55ccab66d1f7c5356bea"
    },
    "devDependencies": {
-     "@types/markdown-it": "^0.0.0"
+     "@types/markdown-it": "^0.0.0",
 diff --git a/extensions/markdown-math/yarn.lock b/extensions/markdown-math/yarn.lock
-index f402ca890b7..e9fdfda625b 100644
+index ac52779ca6e..1a212d6275a 100644
 --- a/extensions/markdown-math/yarn.lock
 +++ b/extensions/markdown-math/yarn.lock
 @@ -2,9 +2,9 @@

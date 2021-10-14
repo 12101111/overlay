@@ -2,9 +2,9 @@
 
 # jq -r '.builtInExtensions[] | .name +":"+ .version' product.json | sed -r 's/([^\.]*)\.([a-z0-9\-]*)\:([0-9\.]*)/["\2"]="\3"/g'
 declare -A BUILTINEXTS=(
-["references-view"]="0.0.80"
+["references-view"]="0.0.81"
 ["js-debug-companion"]="1.0.15"
-["js-debug"]="1.60.1"
+["js-debug"]="1.61.0"
 ["vscode-js-profile-table"]="0.0.18"
 )
 
