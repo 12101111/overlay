@@ -3,9 +3,9 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-91-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-91-patches-03.tar.xz"
 
-LLVM_MAX_SLOT=12
+LLVM_MAX_SLOT=13
 
 PYTHON_COMPAT=( python3_{7..10} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
@@ -77,6 +77,15 @@ BDEPEND="${PYTHON_DEPS}
 	virtual/pkgconfig
 	>=virtual/rust-1.51.0
 	|| (
+		(
+			sys-devel/clang:13
+			sys-devel/llvm:13
+			>=dev-lang/rust-1.55.0[profile]
+			clang? (
+				=sys-devel/lld-13*
+				pgo? ( =sys-libs/compiler-rt-sanitizers-13*[profile] )
+			)
+		)
 		(
 			sys-devel/clang:12
 			sys-devel/llvm:12
@@ -444,10 +453,15 @@ src_unpack() {
 
 src_prepare() {
 	use lto && rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch
-	rm "${WORKDIR}/firefox-patches/0035-bmo-1715254-Deny-clone3-to-force-glibc-fallback.patch"
-	rm "${WORKDIR}/firefox-patches/0036-bmo-1719674-Make-packed_simd-compile-with-Rust-1.54.patch"
+	rm "${WORKDIR}/firefox-patches/0011-bmo-1526653-Include-struct-definitions-for-user_vfp-.patch"
+	rm "${WORKDIR}/firefox-patches/0034-bmo-1721326-Allow-dynamic-PTHREAD_STACK_MIN.patch"
+	rm "${WORKDIR}/firefox-patches/0035-bmo-1721326-Use-small-stack-for-DoClone.patch"
+	rm "${WORKDIR}/firefox-patches/0036-bmo-1726515-Workaround-for-GCC-calling-into-LLVM-ABI.patch"
 	eapply "${WORKDIR}/firefox-patches"
 	eapply "${FILESDIR}/cross-pgo.patch"
+	eapply "${FILESDIR}/fix-crash.patch"
+	#eapply "${FILESDIR}/fix-crash2.patch"
+	#eapply "${FILESDIR}/fix-crash3.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
