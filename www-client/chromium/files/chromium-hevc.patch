@@ -1,0 +1,178 @@
+diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
+index 9c4e2ea..78ea446 100644
+--- a/media/base/supported_types.cc
++++ b/media/base/supported_types.cc
+@@ -57,10 +57,10 @@ bool IsHevcProfileSupported(VideoCodecProfile profile) {
+   // Only encrypted HEVC content is supported, and normally MSE.isTypeSupported
+   // returns false for HEVC. The kEnableClearHevcForTesting flag allows it to
+   // return true to enable a wider array of test scenarios to function properly.
+-  if (!base::CommandLine::ForCurrentProcess()->HasSwitch(
+-          switches::kEnableClearHevcForTesting)) {
+-    return false;
+-  }
++  // if (!base::CommandLine::ForCurrentProcess()->HasSwitch(
++  //        switches::kEnableClearHevcForTesting)) {
++  //   return false;
++  // }
+   switch (profile) {
+     case HEVCPROFILE_MAIN:
+       FALLTHROUGH;
+diff --git a/third_party/ffmpeg/chromium/config/Chrome/linux/x64/config.asm b/third_party/ffmpeg/chromium/config/Chrome/linux/x64/config.asm
+index 6b6d434..f2b5866 100644
+--- a/third_party/ffmpeg/chromium/config/Chrome/linux/x64/config.asm
++++ b/third_party/ffmpeg/chromium/config/Chrome/linux/x64/config.asm
+@@ -631,7 +631,7 @@
+ %define CONFIG_H264PARSE 1
+ %define CONFIG_H264PRED 1
+ %define CONFIG_H264QPEL 1
+-%define CONFIG_HEVCPARSE 0
++%define CONFIG_HEVCPARSE 1
+ %define CONFIG_HPELDSP 1
+ %define CONFIG_HUFFMAN 0
+ %define CONFIG_HUFFYUVDSP 0
+@@ -815,7 +815,7 @@
+ %define CONFIG_H264_QSV_DECODER 0
+ %define CONFIG_H264_RKMPP_DECODER 0
+ %define CONFIG_HAP_DECODER 0
+-%define CONFIG_HEVC_DECODER 0
++%define CONFIG_HEVC_DECODER 1
+ %define CONFIG_HEVC_QSV_DECODER 0
+ %define CONFIG_HEVC_RKMPP_DECODER 0
+ %define CONFIG_HEVC_V4L2M2M_DECODER 0
+@@ -1595,7 +1595,7 @@
+ %define CONFIG_H261_PARSER 0
+ %define CONFIG_H263_PARSER 0
+ %define CONFIG_H264_PARSER 1
+-%define CONFIG_HEVC_PARSER 0
++%define CONFIG_HEVC_PARSER 1
+ %define CONFIG_IPU_PARSER 0
+ %define CONFIG_JPEG2000_PARSER 0
+ %define CONFIG_MJPEG_PARSER 0
+diff --git a/third_party/ffmpeg/chromium/config/Chrome/linux/x64/config.h b/third_party/ffmpeg/chromium/config/Chrome/linux/x64/config.h
+index f189f61..7cfdf2d 100644
+--- a/third_party/ffmpeg/chromium/config/Chrome/linux/x64/config.h
++++ b/third_party/ffmpeg/chromium/config/Chrome/linux/x64/config.h
+@@ -831,7 +831,7 @@
+ #define CONFIG_H264_QSV_DECODER 0
+ #define CONFIG_H264_RKMPP_DECODER 0
+ #define CONFIG_HAP_DECODER 0
+-#define CONFIG_HEVC_DECODER 0
++#define CONFIG_HEVC_DECODER 1
+ #define CONFIG_HEVC_QSV_DECODER 0
+ #define CONFIG_HEVC_RKMPP_DECODER 0
+ #define CONFIG_HEVC_V4L2M2M_DECODER 0
+@@ -1611,7 +1611,7 @@
+ #define CONFIG_H261_PARSER 0
+ #define CONFIG_H263_PARSER 0
+ #define CONFIG_H264_PARSER 1
+-#define CONFIG_HEVC_PARSER 0
++#define CONFIG_HEVC_PARSER 1
+ #define CONFIG_IPU_PARSER 0
+ #define CONFIG_JPEG2000_PARSER 0
+ #define CONFIG_MJPEG_PARSER 0
+@@ -2266,7 +2266,7 @@
+ #define CONFIG_H264_DEMUXER 0
+ #define CONFIG_HCA_DEMUXER 0
+ #define CONFIG_HCOM_DEMUXER 0
+-#define CONFIG_HEVC_DEMUXER 0
++#define CONFIG_HEVC_DEMUXER 1
+ #define CONFIG_HLS_DEMUXER 0
+ #define CONFIG_HNM_DEMUXER 0
+ #define CONFIG_ICO_DEMUXER 0
+diff --git a/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavcodec/codec_list.c b/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavcodec/codec_list.c
+index 49f757b..c16f588 100644
+--- a/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavcodec/codec_list.c
++++ b/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavcodec/codec_list.c
+@@ -1,5 +1,6 @@
+ static const AVCodec * const codec_list[] = {
+     &ff_h264_decoder,
++    &ff_hevc_decoder,
+     &ff_theora_decoder,
+     &ff_vp3_decoder,
+     &ff_vp8_decoder,
+diff --git a/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavcodec/parser_list.c b/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavcodec/parser_list.c
+index 50acddb..192a64d 100644
+--- a/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavcodec/parser_list.c
++++ b/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavcodec/parser_list.c
+@@ -2,6 +2,7 @@ static const AVCodecParser * const parser_list[] = {
+     &ff_aac_parser,
+     &ff_flac_parser,
+     &ff_h264_parser,
++    &ff_hevc_parser,
+     &ff_mpegaudio_parser,
+     &ff_opus_parser,
+     &ff_vorbis_parser,
+diff --git a/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavformat/demuxer_list.c b/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavformat/demuxer_list.c
+index 920b22b..f5c1c39 100644
+--- a/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavformat/demuxer_list.c
++++ b/third_party/ffmpeg/chromium/config/Chrome/linux/x64/libavformat/demuxer_list.c
+@@ -6,4 +6,5 @@ static const AVInputFormat * const demuxer_list[] = {
+     &ff_mp3_demuxer,
+     &ff_ogg_demuxer,
+     &ff_wav_demuxer,
++    &ff_hevc_demuxer,
+     NULL };
+diff --git a/third_party/ffmpeg/ffmpeg_generated.gni b/third_party/ffmpeg/ffmpeg_generated.gni
+index f427081..f152286 100644
+--- a/third_party/ffmpeg/ffmpeg_generated.gni
++++ b/third_party/ffmpeg/ffmpeg_generated.gni
+@@ -207,7 +207,36 @@ if ((is_mac) || (is_win) || (use_linux_config)) {
+     "libavcodec/vp56rac.c",
+     "libavcodec/vp8.c",
+     "libavcodec/vp8_parser.c",
+-  ]
++    "libavcodec/dynamic_hdr10_plus.c",
++    "libavcodec/bswapdsp.c",
++    "libavcodec/autorename_libavcodec_hevcdec.c",
++    "libavcodec/hevc_cabac.c",
++    "libavcodec/hevc_data.c",
++    "libavcodec/hevc_filter.c",
++    "libavcodec/hevc_mvs.c",
++    "libavcodec/hevc_parse.c",
++    "libavcodec/hevc_parser.c",
++    "libavcodec/hevc_ps.c",
++    "libavcodec/hevc_refs.c",
++    "libavcodec/hevc_sei.c",
++    "libavcodec/hevcdsp.c",
++    "libavcodec/hevcpred.c",
++    "libavcodec/x86/bswapdsp_init.c",
++    "libavcodec/x86/hevcdsp_init.c",
++    "libavformat/autorename_libavformat_hevc.c",
++    "libavformat/hevcdec.c",
++  ]
++  if (current_cpu == "x64" && ffmpeg_branding == "Chrome") {
++    ffmpeg_asm_sources += [
++      "libavcodec/x86/bswapdsp.asm",
++      "libavcodec/x86/hevc_deblock.asm",
++      "libavcodec/x86/hevc_idct.asm",
++      "libavcodec/x86/hevc_mc.asm",
++      "libavcodec/x86/hevc_add_res.asm",
++      "libavcodec/x86/hevc_sao.asm",
++      "libavcodec/x86/hevc_sao_10bit.asm",
++    ]
++  }
+ }
+ 
+ if ((current_cpu == "arm64" && ffmpeg_branding == "Chrome") || (current_cpu == "x64" && ffmpeg_branding == "Chrome") || (is_android && current_cpu == "arm" && arm_use_neon && ffmpeg_branding == "Chrome") || (is_android && current_cpu == "x86" && ffmpeg_branding == "Chrome") || (is_mac && ffmpeg_branding == "Chrome") || (is_win && ffmpeg_branding == "Chrome") || (use_linux_config && ffmpeg_branding == "Chrome") || (use_linux_config && ffmpeg_branding == "ChromeOS")) {
+diff --git a/third_party/ffmpeg/libavcodec/hevcdec.c b/third_party/ffmpeg/libavcodec/autorename_libavcodec_hevcdec.c
+similarity index 100%
+rename from third_party/ffmpeg/libavcodec/hevcdec.c
+rename to third_party/ffmpeg/libavcodec/autorename_libavcodec_hevcdec.c
+diff --git a/third_party/ffmpeg/libavformat/hevc.c b/third_party/ffmpeg/libavformat/autorename_libavformat_hevc.c
+similarity index 100%
+rename from third_party/ffmpeg/libavformat/hevc.c
+rename to third_party/ffmpeg/libavformat/autorename_libavformat_hevc.c
+diff --git a/content/browser/media/media_interface_proxy.cc b/content/browser/media/media_interface_proxy.cc
+index e42114f..7402509 100644
+--- a/content/browser/media/media_interface_proxy.cc
++++ b/content/browser/media/media_interface_proxy.cc
+@@ -362,7 +362,7 @@ void MediaInterfaceProxy::CreateCdm(const std::string& key_system,
+       "CDM creation failed");
+
+   // Handle `use_hw_secure_codecs` cases first.
+-#if BUILDFLAG(USE_CHROMEOS_PROTECTED_MEDIA)
++#if 0
+ #if BUILDFLAG(IS_CHROMEOS_LACROS)
+   const bool enable_cdm_factory_daemon =
+       base::CommandLine::ForCurrentProcess()->HasSwitch(
+

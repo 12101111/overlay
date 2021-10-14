@@ -1,7 +1,7 @@
 # Copyright 2009-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 PYTHON_COMPAT=( python3_{8,9} )
 PYTHON_REQ_USE="xml"
 
@@ -9,11 +9,11 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk vi zh-CN zh-TW"
 
-inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-utils portability python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils
+inherit check-reqs chromium-2 desktop flag-o-matic ninja-utils pax-utils python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="1"
+PATCHSET="3"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
@@ -21,11 +21,13 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 LICENSE="BSD"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="atk lto pgo +tcmalloc component-build cups cpu_flags_arm_neon +hangouts headless +js-type-check kerberos official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-icu vaapi wayland widevine"
+IUSE="hevc atk lto pgo +tcmalloc component-build cups cpu_flags_arm_neon debug +hangouts headless +js-type-check kerberos +official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu vaapi wayland widevine"
 REQUIRED_USE="
 	component-build? ( !suid )
 	screencast? ( wayland )
+	hevc? ( !system-ffmpeg )
 "
+RESTRICT="hevc? ( bindist )"
 
 COMMON_X_DEPEND="
 	media-libs/mesa:=[gbm(+)]
@@ -55,7 +57,7 @@ COMMON_DEPEND="
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
 	>=media-libs/freetype-2.11.0-r1:=
-	>=media-libs/harfbuzz-2.9.0:0=[icu(-)]
+	system-harfbuzz? ( >=media-libs/harfbuzz-2.9.0:0=[icu(-)] )
 	media-libs/libjpeg-turbo:=
 	media-libs/libpng:=
 	pulseaudio? ( media-sound/pulseaudio:= )
@@ -256,8 +258,8 @@ src_prepare() {
 
 	local PATCHES=(
 		"${WORKDIR}/patches"
-		"${FILESDIR}/chromium-93-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
+		"${FILESDIR}/chromium-96-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 		"${FILESDIR}/chromium-92_atk_optional.patch"
@@ -266,6 +268,10 @@ src_prepare() {
 	)
 
 	default
+
+	if use hevc; then
+		eapply "${FILESDIR}/chromium-hevc.patch"
+	fi
 
 	mkdir -p third_party/node/linux/node-linux-x64/bin || die
 	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
@@ -352,6 +358,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/test/unittests/front_end/third_party/i18n
 		third_party/devtools-frontend/src/third_party
+		third_party/distributed_point_functions
 		third_party/dom_distiller_js
 		third_party/eigen3
 		third_party/emoji-segmenter
@@ -370,7 +377,6 @@ src_prepare() {
 		third_party/google_input_tools/third_party/closure_library
 		third_party/google_input_tools/third_party/closure_library/third_party/closure
 		third_party/googletest
-		third_party/harfbuzz-ng/utils
 		third_party/hunspell
 		third_party/iccjpeg
 		third_party/inspector_protocol
@@ -407,6 +413,9 @@ src_prepare() {
 		third_party/lss
 		third_party/lzma_sdk
 		third_party/mako
+		third_party/maldoca
+		third_party/maldoca/src/third_party/tensorflow_protos
+		third_party/maldoca/src/third_party/zlibwrapper
 		third_party/markupsafe
 		third_party/mesa
 		third_party/metrics_proto
@@ -467,7 +476,6 @@ src_prepare() {
 		third_party/tflite
 		third_party/tflite/src/third_party/eigen3
 		third_party/tflite/src/third_party/fft2d
-		third_party/tflite-support
 		third_party/ruy
 		third_party/six
 		third_party/ukey2
@@ -511,6 +519,11 @@ src_prepare() {
 	fi
 	if ! use system-icu; then
 		keeplibs+=( third_party/icu )
+	fi
+	if use system-harfbuzz; then
+		keeplibs+=( third_party/harfbuzz-ng/utils )
+	else
+		keeplibs+=( third_party/harfbuzz-ng )
 	fi
 	if use wayland && ! use headless ; then
 		keeplibs+=( third_party/wayland )
@@ -604,8 +617,10 @@ src_configure() {
 	myconf_gn+=" symbol_level=1"
 	myconf_gn+=" blink_symbol_level=0"
 
-	# make DCHECK configurable at runtime for non-official builds.
-	myconf_gn+=" dcheck_is_configurable=$(usex official false true)"
+	# enable DCHECK with USE=debug only, increases chrome binary size by 30%, bug #811138.
+	# DCHECK is fatal by default, make it configurable at runtime, #bug 807881.
+	myconf_gn+=" dcheck_always_on=$(usex debug true false)"
+	myconf_gn+=" dcheck_is_configurable=$(usex debug true false)"
 
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
@@ -619,9 +634,7 @@ src_configure() {
 	# Use system-provided libraries.
 	# TODO: freetype -- remove sources (https://bugs.chromium.org/p/pdfium/issues/detail?id=733).
 	# TODO: use_system_hunspell (upstream changes needed).
-	# TODO: use_system_libsrtp (bug #459932).
 	# TODO: use_system_protobuf (bug #525560).
-	# TODO: use_system_ssl (http://crbug.com/58087).
 	# TODO: use_system_sqlite (http://crbug.com/22208).
 
 	# libevent: https://bugs.gentoo.org/593458
@@ -654,7 +667,7 @@ src_configure() {
 	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
 
 	# See dependency logic in third_party/BUILD.gn
-	myconf_gn+=" use_system_harfbuzz=true"
+	myconf_gn+=" use_system_harfbuzz=$(usex system-harfbuzz true false)"
 
 	# Disable deprecated libgnome-keyring dependency, bug #713012
 	myconf_gn+=" use_gnome_keyring=false"
@@ -670,6 +683,9 @@ src_configure() {
 	myconf_gn+=" rtc_use_pipewire=$(usex screencast true false)"
 	myconf_gn+=" use_atk=$(usex atk true false)"
 	myconf_gn+=" enable_swiftshader=true enable_vulkan=true enable_swiftshader_vulkan=true"
+	if use hevc; then
+		myconf_gn+=" use_chromeos_protected_media=true use_vaapi=true"
+	fi
 
 	# TODO: link_pulseaudio=true for GN.
 
@@ -686,13 +702,14 @@ src_configure() {
 		myconf_gn+=" thin_lto_enable_optimizations=true"
 	else
 		# Disable forced lld, bug 641556
+		myconf_gn+=" use_thin_lto=false"
 		myconf_gn+=" use_lld=false"
 	fi
 
 	if use pgo; then
-		myconf_gn+=" chrome_pgo_phase = 2"
+		myconf_gn+=" chrome_pgo_phase=2"
 	else
-		myconf_gn+=" chrome_pgo_phase = 0"
+		myconf_gn+=" chrome_pgo_phase=0"
 	fi
 
 	# Disable pseudolocales, only used for testing
@@ -809,18 +826,20 @@ src_configure() {
 	# Enable ozone wayland and/or headless support
 	myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
 	myconf_gn+=" ozone_platform_headless=true"
+	myconf_gn+=" ozone_platform_x11=$(usex headless false true)"
 	if use wayland || use headless; then
 		if use headless; then
 			myconf_gn+=" ozone_platform=\"headless\""
 			myconf_gn+=" use_x11=false"
 		else
-			myconf_gn+=" ozone_platform_x11=true"
 			myconf_gn+=" ozone_platform_wayland=true"
 			myconf_gn+=" use_system_libdrm=true"
 			myconf_gn+=" use_system_minigbm=true"
 			myconf_gn+=" use_xkbcommon=true"
 			myconf_gn+=" ozone_platform=\"wayland\""
 		fi
+	else
+		myconf_gn+=" ozone_platform=\"x11\""
 	fi
 
 	# Enable official builds
@@ -845,6 +864,9 @@ src_compile() {
 
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
+
+	# Don't inherit PYTHONPATH from environment, bug #789021, #812689
+	local -x PYTHONPATH=
 
 	#"${EPYTHON}" tools/clang/scripts/update.py --force-local-build --gcc-toolchain /usr --skip-checkout --use-system-cmake --without-android || die
 
@@ -895,12 +917,14 @@ src_install() {
 	doexe out/Release/chromedriver
 	doexe out/Release/chrome_crashpad_handler
 
+	ozone_auto_session () {
+		use wayland && ! use headless && echo true || echo false
+	}
 	local sedargs=( -e
 			"s:/usr/lib/:/usr/$(get_libdir)/:g;
-			s:@@OZONE_AUTO_SESSION@@:$(usex wayland true false):g;
-			s:@@FORCE_OZONE_PLATFORM@@:$(usex headless true false):g"
+			s:@@OZONE_AUTO_SESSION@@:$(ozone_auto_session):g"
 	)
-	sed "${sedargs[@]}" "${FILESDIR}/chromium-launcher-r6.sh" > chromium-launcher.sh || die
+	sed "${sedargs[@]}" "${FILESDIR}/chromium-launcher-r7.sh" > chromium-launcher.sh || die
 	doexe chromium-launcher.sh
 
 	# It is important that we name the target "chromium-browser",
