@@ -1,11 +1,11 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
 
 inherit eapi7-ver java-vm-2
 
-MY_ZULU_PV="8.54.0.21-ca-jdk8.0.292"
+MY_ZULU_PV="8.56.0.21-ca-jdk8.0.302"
 MY_ZULU_ARCH="linux_musl_x64"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
@@ -19,7 +19,7 @@ SRC_URI="
 LICENSE="GPL-2-with-classpath-exception"
 KEYWORDS="~amd64"
 
-IUSE="alsa cups examples headless-awt nsplugin selinux source webstart"
+IUSE="alsa cups examples headless-awt selinux source webstart"
 
 RDEPEND="
 	media-libs/fontconfig:1.0
@@ -38,8 +38,7 @@ RDEPEND="
 		x11-libs/libXtst
 	)"
 
-PDEPEND="webstart? ( >=dev-java/icedtea-web-1.6.1:0 )
-	nsplugin? ( >=dev-java/icedtea-web-1.6.1:0[nsplugin] )"
+PDEPEND="webstart? ( >=dev-java/icedtea-web-1.6.1:0 )"
 
 RESTRICT="preserve-libs strip"
 QA_PREBUILT="*"

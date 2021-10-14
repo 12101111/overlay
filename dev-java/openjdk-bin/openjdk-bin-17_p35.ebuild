@@ -1,11 +1,11 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=6
 
 inherit java-vm-2 eapi7-ver
 
-MY_ZULU_PV="11.48.21-ca-jdk11.0.11"
+MY_ZULU_PV="17.28.13-ca-jdk17.0.0"
 MY_ZULU_ARCH="linux_musl_x64"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
@@ -18,7 +18,7 @@ DESCRIPTION="Prebuilt Java JDK binaries for musl provided by Zulu"
 HOMEPAGE="https://www.azul.com/downloads/zulu-community/"
 LICENSE="GPL-2-with-classpath-exception"
 KEYWORDS="~amd64"
-IUSE="alsa cups doc examples +gentoo-vm headless-awt nsplugin selinux source webstart"
+IUSE="alsa cups +gentoo-vm headless-awt selinux source"
 
 RDEPEND="
 	media-libs/fontconfig:1.0
@@ -37,9 +37,6 @@ RDEPEND="
 		x11-libs/libXtst
 	)"
 
-PDEPEND="webstart? ( >=dev-java/icedtea-web-1.6.1:0 )
-	nsplugin? ( >=dev-java/icedtea-web-1.6.1:0[nsplugin] )"
-
 RESTRICT="preserve-libs splitdebug"
 QA_PREBUILT="*"
 
@@ -54,14 +51,13 @@ src_install() {
 	# also has an explicit dependency while Oracle seemingly dlopens it.
 	rm -vf lib/libfreetype.so || die
 
+	# prefer system copy # https://bugs.gentoo.org/776676
+	rm -vf lib/libharfbuzz.so || die
+
 	# Oracle and IcedTea have libjsoundalsa.so depending on
 	# libasound.so.2 but AdoptOpenJDK only has libjsound.so. Weird.
 	if ! use alsa ; then
 		rm -v lib/libjsound.* || die
-	fi
-
-	if ! use examples ; then
-		rm -vr demo/ || die
 	fi
 
 	if use headless-awt ; then
@@ -94,12 +90,12 @@ pkg_postinst() {
 	if use gentoo-vm ; then
 		ewarn "WARNING! You have enabled the gentoo-vm USE flag, making this JDK"
 		ewarn "recognised by the system. This will almost certainly break"
-		ewarn "many java ebuilds as they are not ready for openjdk-11"
+		ewarn "many java ebuilds as they are not ready for openjdk-${SLOT}"
 	else
 		ewarn "The experimental gentoo-vm USE flag has not been enabled so this JDK"
 		ewarn "will not be recognised by the system. For example, simply calling"
 		ewarn "\"java\" will launch a different JVM. This is necessary until Gentoo"
-		ewarn "fully supports Java 11. This JDK must therefore be invoked using its"
+		ewarn "fully supports Java ${SLOT}. This JDK must therefore be invoked using its"
 		ewarn "absolute location under ${EPREFIX}/opt/${P}."
 	fi
 }

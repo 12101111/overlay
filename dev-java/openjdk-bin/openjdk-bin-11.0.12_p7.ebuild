@@ -5,7 +5,7 @@ EAPI=6
 
 inherit java-vm-2 eapi7-ver
 
-MY_ZULU_PV="16.30.15-ca-jdk16.0.1"
+MY_ZULU_PV="11.50.19-ca-jdk11.0.12"
 MY_ZULU_ARCH="linux_musl_x64"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
@@ -18,7 +18,7 @@ DESCRIPTION="Prebuilt Java JDK binaries for musl provided by Zulu"
 HOMEPAGE="https://www.azul.com/downloads/zulu-community/"
 LICENSE="GPL-2-with-classpath-exception"
 KEYWORDS="~amd64"
-IUSE="alsa cups +gentoo-vm headless-awt selinux source"
+IUSE="alsa cups doc examples +gentoo-vm headless-awt selinux source webstart"
 
 RDEPEND="
 	media-libs/fontconfig:1.0
@@ -37,6 +37,8 @@ RDEPEND="
 		x11-libs/libXtst
 	)"
 
+PDEPEND="webstart? ( >=dev-java/icedtea-web-1.6.1:0 )"
+
 RESTRICT="preserve-libs splitdebug"
 QA_PREBUILT="*"
 
@@ -51,10 +53,17 @@ src_install() {
 	# also has an explicit dependency while Oracle seemingly dlopens it.
 	rm -vf lib/libfreetype.so || die
 
+	# prefer system copy # https://bugs.gentoo.org/776676
+	rm -vf lib/libharfbuzz.so || die
+
 	# Oracle and IcedTea have libjsoundalsa.so depending on
 	# libasound.so.2 but AdoptOpenJDK only has libjsound.so. Weird.
 	if ! use alsa ; then
 		rm -v lib/libjsound.* || die
+	fi
+
+	if ! use examples ; then
+		rm -vr demo/ || die
 	fi
 
 	if use headless-awt ; then
