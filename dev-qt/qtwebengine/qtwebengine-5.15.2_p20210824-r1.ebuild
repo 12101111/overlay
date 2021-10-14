@@ -177,6 +177,13 @@ src_prepare() {
 		done < <(find src/3rdparty/chromium/third_party/icu -type f "(" -name "*.c" -o -name "*.cpp" -o -name "*.h" ")" 2>/dev/null)
 	fi
 
+	if has_version ">=media-libs/harfbuzz-3.0.0-r1"; then
+		# We can get away with conditionally applying this with has_version
+		# because we have a := dep on harfbuzz and the subslot changed
+		# at 3.0.0.
+		eapply "${FILESDIR}/qtwebengine-5.15.2_p20210824-harfbuzz-3.0.0.patch"
+	fi
+
 	qt_use_disable_config alsa webengine-alsa src/buildtools/config/linux.pri
 	qt_use_disable_config pulseaudio webengine-pulseaudio src/buildtools/config/linux.pri
 
@@ -216,13 +223,13 @@ src_configure() {
 		-printing-and-pdf
 		-system-opus
 		-system-webp
-		$(usex alsa '-alsa' '-no-alsa')
-		$(usex bindist '-no-proprietary-codecs' '-proprietary-codecs')
-		$(usex geolocation '-webengine-geolocation' '-no-webengine-geolocation')
-		$(usex kerberos '-webengine-kerberos' '-no-webengine-kerberos')
-		$(usex pulseaudio '-pulseaudio' '-no-pulseaudio')
-		$(usex system-ffmpeg '-system-ffmpeg' '-qt-ffmpeg')
-		$(usex system-icu '-webengine-icu' '-no-webengine-icu')
+		$(qt_use alsa)
+		$(qt_use !bindist proprietary-codecs)
+		$(qt_use geolocation webengine-geolocation)
+		$(qt_use kerberos webengine-kerberos)
+		$(qt_use pulseaudio)
+		$(usex system-ffmpeg -system-ffmpeg -qt-ffmpeg)
+		$(qt_use system-icu webengine-icu)
 	)
 	qt5-build_src_configure
 }
