@@ -13,7 +13,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="ee8c7def80afc00dd6e593ef12f37756d8f504ea"
+COMMIT="c13f1abb110fc756f9b3a6f16670df9cd9d4cf63"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.12.1/lib/postinstall.js#L21
@@ -1884,7 +1884,7 @@ https://registry.yarnpkg.com/wide-align/-/wide-align-1.1.3.tgz
 https://registry.yarnpkg.com/wildcard/-/wildcard-2.0.0.tgz
 https://registry.yarnpkg.com/windows-foreground-love/-/windows-foreground-love-0.4.0.tgz
 https://registry.yarnpkg.com/windows-mutex/-/windows-mutex-0.4.1.tgz
-https://registry.yarnpkg.com/windows-process-tree/-/windows-process-tree-0.3.0.tgz
+https://registry.yarnpkg.com/windows-process-tree/-/windows-process-tree-0.3.2.tgz
 https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.3.tgz
 https://registry.yarnpkg.com/wordwrap/-/wordwrap-0.0.3.tgz
 https://registry.yarnpkg.com/worker-farm/-/worker-farm-1.7.0.tgz
