@@ -13,7 +13,7 @@ EGIT_SUBMODULES=()
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS=""
-IUSE="debug ffmpeg opencc zim multimedia wayland"
+IUSE="debug ffmpeg opencc zim multimedia wayland qtwebengine"
 
 RDEPEND="
 	app-arch/bzip2
@@ -27,7 +27,6 @@ RDEPEND="
 	dev-qt/qtprintsupport:5
 	dev-qt/qtsingleapplication[qt5(+),X]
 	dev-qt/qtsvg:5
-	dev-qt/qtwebkit:5
 	dev-qt/qtwidgets:5
 	dev-qt/qtx11extras:5
 	dev-qt/qtxml:5
@@ -44,6 +43,8 @@ RDEPEND="
 	zim? ( app-arch/xz-utils )
 	multimedia? ( dev-qt/qtmultimedia[gstreamer] )
 	elibc_musl? ( sys-libs/libexecinfo )
+	qtwebengine? ( dev-qt/qtwebengine:5 )
+	!qtwebengine? ( dev-qt/qtwebkit:5 )
 "
 DEPEND="${RDEPEND}"
 BDEPEND="
@@ -53,6 +54,7 @@ BDEPEND="
 
 PATCHES=(
 	"${FILESDIR}/${PN}-1.5.0-qtsingleapplication-unbundle.patch"
+	#"${FILESDIR}/qtwebengine.patch"
 )
 
 src_prepare() {
@@ -60,6 +62,7 @@ src_prepare() {
 
 	use elibc_musl && eapply "${FILESDIR}/0001-musl-fix.patch"
 	use wayland && eapply "${FILESDIR}/0002-wayland.patch"
+	use qtwebengine && eapply "${FILESDIR}/qtwebengine.patch"
 
 	# add trailing semicolon
 	sed -i -e '/^Categories/s/$/;/' redist/org.goldendict.GoldenDict.desktop || die

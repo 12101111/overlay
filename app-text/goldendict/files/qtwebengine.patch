@@ -1,0 +1,2916 @@
+diff --git a/README.md b/README.md
+index 648c2b24..e2c92dbd 100644
+--- a/README.md
++++ b/README.md
+@@ -9,17 +9,11 @@ This code has been run and tested on Windows XP/Vista/7, Ubuntu Linux, Mac OS X.
+ ### External Deps
+ 
+ * Make, GCC, Git
+-* Qt framework. Minimum required version is 4.6. But Qt 4.7 or 4.8 is recommended.
++* Qt framework. Minimum required version is 5.15
+ * Qt Creator IDE is recommended for development
+ * Various libraries on Linux (png, zlib, etc)
+ * On Mac and Windows all the libraries are already included in the repository
+ 
+-### Installing External Deps on Ubuntu Linux
+-
+-    sudo apt-get install git pkg-config build-essential qt4-qmake \
+-         libvorbis-dev zlib1g-dev libhunspell-dev x11proto-record-dev \
+-         libqt4-dev libqtwebkit-dev libxtst-dev liblzo2-dev libbz2-dev \
+-         libao-dev libavutil-dev libavformat-dev libtiff5-dev libeb16-dev
+ 
+ #### Installing External Deps on Ubuntu Linux for Qt5
+ 
+@@ -36,12 +30,11 @@ First, clone this repository, e.g.:
+ 
+     git clone git://github.com/goldendict/goldendict.git
+ 
+-And then invoke `qmake-qt4` and `make`:
++And then invoke `qmake-qt5` and `make`:
+ 
+-    cd goldendict && qmake-qt4 && make
++    cd goldendict && qmake-qt5 && make
+ 
+-In case when `qmake-qt4` does not exist, try using `qmake` but make sure it is indeed from the Qt 4 installation.
+-On the other hand, if you want to use `qt5`, make sure that `qmake` is from Qt 5 installation. If not, you can try
++make sure that `qmake` is from Qt 5 installation. If not, you can try
+ finding it at a path like `/usr/lib/x86_64-linux-gnu/qt5/bin/qmake`.
+ Alternatively, you might want to load `goldendict.pro` file from within Qt Creator, especially on Windows.
+ 
+diff --git a/article_maker.cc b/article_maker.cc
+index 83f00095..86dc2584 100644
+--- a/article_maker.cc
++++ b/article_maker.cc
+@@ -179,13 +179,15 @@ std::string ArticleMaker::makeHtmlHeader( QString const & word,
+     result += "<link rel=\"icon\" type=\"image/png\" href=\"qrcx://localhost/flags/" + Html::escape( icon.toUtf8().data() ) + "\" />\n";
+ 
+   result += "<script type=\"text/javascript\">"
++"           var gdCurrentArticle;"
+             "var gdAudioLinks = { first: null, current: null };"
+             "function gdMakeArticleActive( newId ) {"
++"           if(gdCurrentArticle==null) return;"
+             "if ( gdCurrentArticle != 'gdfrom-' + newId ) {"
+             "el=document.getElementById( gdCurrentArticle ); el.className = el.className.replace(' gdactivearticle','');"
+             "el=document.getElementById( 'gdfrom-' + newId ); el.className = el.className + ' gdactivearticle';"
+             "gdCurrentArticle = 'gdfrom-' + newId; gdAudioLinks.current = newId;"
+-            "articleview.onJsActiveArticleChanged(gdCurrentArticle); } }"
++            " } }"
+             "var overIframeId = null;"
+             "function gdSelectArticle( id ) {"
+             "var selection = window.getSelection(); var range = document.createRange();"
+@@ -630,13 +632,6 @@ void ArticleRequest::bodyFinished()
+         {
+           head += "</div></div><div style=\"clear:both;\"></div><span class=\"gdarticleseparator\"></span>";
+         }
+-        else
+-        {
+-          // This is the first article
+-          head += "<script type=\"text/javascript\">"
+-                  "var gdCurrentArticle=\"" + gdFrom  + "\"; "
+-                  "articleview.onJsActiveArticleChanged(gdCurrentArticle)</script>";
+-        }
+ 
+         bool collapse = false;
+         if( articleSizeLimit >= 0 )
+@@ -675,10 +670,16 @@ void ArticleRequest::bodyFinished()
+           }
+         }
+ 
++        //todo ,gdArticleContents need refractor in the future?
+         string jsVal = Html::escapeForJavaScript( dictId );
+         head += "<script type=\"text/javascript\">var gdArticleContents; "
+           "if ( !gdArticleContents ) gdArticleContents = \"" + jsVal +" \"; "
+-          "else gdArticleContents += \"" + jsVal + " \";</script>";
++          "else gdArticleContents += \"" + jsVal + " \";"
++"function playSound(sound){"
++" var a=new Audio(sound);"
++" a.play();"
++"}"
++"</script>";
+ 
+         head += string( "<div class=\"gdarticle" ) +
+                 ( closePrevSpan ? "" : " gdactivearticle" ) +
+diff --git a/article_netmgr.cc b/article_netmgr.cc
+index 77602895..3236a5ea 100644
+--- a/article_netmgr.cc
++++ b/article_netmgr.cc
+@@ -13,57 +13,10 @@
+ #include "wstring_qt.hh"
+ #include "gddebug.hh"
+ #include "qt4x5.hh"
++#include <QNetworkAccessManager>
+ 
+ using std::string;
+ 
+-#if QT_VERSION >= 0x050300 // Qt 5.3+
+-
+-  // SecurityWhiteList
+-
+-  SecurityWhiteList & SecurityWhiteList::operator=( SecurityWhiteList const & swl )
+-  {
+-    swlDelete();
+-    swlCopy( swl );
+-    return *this;
+-  }
+-
+-  QWebSecurityOrigin * SecurityWhiteList::setOrigin( QUrl const & url )
+-  {
+-    swlDelete();
+-    originUri = url.toString( QUrl::PrettyDecoded );
+-    origin = new QWebSecurityOrigin( url );
+-    return origin;
+-  }
+-
+-  void SecurityWhiteList::swlCopy( SecurityWhiteList const & swl )
+-  {
+-    if( swl.origin )
+-    {
+-      hostsToAccess = swl.hostsToAccess;
+-      originUri = swl.originUri;
+-      origin = new QWebSecurityOrigin( QUrl( originUri ) );
+-
+-      for( QSet< QPair< QString, QString > >::iterator it = hostsToAccess.begin();
+-           it != hostsToAccess.end(); ++it )
+-        origin->addAccessWhitelistEntry( it->first, it->second, QWebSecurityOrigin::AllowSubdomains );
+-    }
+-  }
+-
+-  void SecurityWhiteList::swlDelete()
+-  {
+-    if( origin )
+-    {
+-      for( QSet< QPair< QString, QString > >::iterator it = hostsToAccess.begin();
+-           it != hostsToAccess.end(); ++it )
+-        origin->removeAccessWhitelistEntry( it->first, it->second, QWebSecurityOrigin::AllowSubdomains );
+-
+-      delete origin;
+-      origin = 0;
+-    }
+-    hostsToAccess.clear();
+-    originUri.clear();
+-  }
+-
+   // AllowFrameReply
+ 
+   AllowFrameReply::AllowFrameReply( QNetworkReply * _reply ) :
+@@ -200,7 +153,6 @@ using std::string;
+     return size;
+   }
+ 
+-#endif
+ 
+ namespace
+ {
+@@ -255,43 +207,21 @@ QNetworkReply * ArticleNetworkAccessManager::createRequest( Operation op,
+       return QNetworkAccessManager::createRequest( op, newReq, outgoingData );
+     }
+ 
+-#if QT_VERSION >= 0x050300 // Qt 5.3+
+-    // Workaround of same-origin policy
+-    if( ( req.url().scheme().startsWith( "http" ) || req.url().scheme() == "ftp" )
+-        && req.hasRawHeader( "Referer" ) )
+-    {
+-      QByteArray referer = req.rawHeader( "Referer" );
+-      QUrl refererUrl = QUrl::fromEncoded( referer );
+ 
+-      if( refererUrl.scheme().startsWith( "http") || refererUrl.scheme() == "ftp" )
+-      {
+-        // Only for pages from network resources
+-        if ( !req.url().host().endsWith( refererUrl.host() ) )
+-        {
+-          QUrl frameUrl;
+-          frameUrl.setScheme( refererUrl.scheme() );
+-          frameUrl.setHost( refererUrl.host() );
+-          QString frameStr = frameUrl.toString( QUrl::PrettyDecoded );
+-
+-          SecurityWhiteList & value = allOrigins[ frameStr ];
+-          if( !value.origin )
+-            value.setOrigin( frameUrl );
+-
+-          QPair< QString, QString > target( req.url().scheme(), req.url().host() );
+-          if( value.hostsToAccess.find( target ) == value.hostsToAccess.end() )
+-          {
+-            value.hostsToAccess.insert( target );
+-            value.origin->addAccessWhitelistEntry( target.first, target.second,
+-                                                   QWebSecurityOrigin::AllowSubdomains );
+-          }
++    QString contentType;
++
++    QUrl url=req.url();
++    if(req.url().scheme()=="gdlookup"){
++        QString path=url.path();
++        if(!path.isEmpty()){
++            Qt4x5::Url::addQueryItem(url,"word",path.mid(1));
++            url.setPath("");
++            Qt4x5::Url::addQueryItem(url,"group","1");
++
+         }
+-      }
+     }
+-#endif
+-
+-    QString contentType;
+ 
+-    sptr< Dictionary::DataRequest > dr = getResource( req.url(), contentType );
++    sptr< Dictionary::DataRequest > dr = getResource( url, contentType );
+ 
+     if ( dr.get() )
+       return new ArticleResourceReply( this, req, dr, contentType );
+@@ -360,12 +290,10 @@ QNetworkReply * ArticleNetworkAccessManager::createRequest( Operation op,
+ #endif
+   }
+ 
+-#if QT_VERSION >= 0x050300 // Qt 5.3+
++
+   return op == QNetworkAccessManager::GetOperation
+          || op == QNetworkAccessManager::HeadOperation ? new AllowFrameReply( reply ) : reply;
+-#else
+-  return reply;
+-#endif
++
+ }
+ 
+ sptr< Dictionary::DataRequest > ArticleNetworkAccessManager::getResource(
+@@ -451,6 +379,7 @@ sptr< Dictionary::DataRequest > ArticleNetworkAccessManager::getResource(
+         {
+             if( url.scheme() == "gico" )
+             {
++                contentType="image/png";
+                 QByteArray bytes;
+                 QBuffer buffer(&bytes);
+                 buffer.open(QIODevice::WriteOnly);
+@@ -473,30 +402,7 @@ sptr< Dictionary::DataRequest > ArticleNetworkAccessManager::getResource(
+             }
+         }
+     }
+-    else
+-    {
+-      // We don't do search requests for now
+-#if 0
+-      for( unsigned x = 0; x < dictionaries.size(); ++x )
+-      {
+-        if ( search || dictionaries[ x ]->getId() == id )
+-        {
+-          try
+-          {
+-            dictionaries[ x ]->getResource( url.path().mid( 1 ).toUtf8().data(),
+-                                            data );
+-
+-            return true;
+-          }
+-          catch( Dictionary::exNoSuchResource & )
+-          {
+-            if ( !search )
+-              break;
+-          }
+-        }
+-      }
+-#endif      
+-    }
++
+   }
+ 
+   if ( url.scheme() == "gdpicture" )
+@@ -619,7 +525,7 @@ void ArticleResourceReply::finishedSlot()
+   if ( req->dataSize() < 0 )
+     error( ContentNotFoundError );
+ 
+-  finished();
++  emit finished();
+ }
+ 
+ BlockedNetworkReply::BlockedNetworkReply( QObject * parent ): QNetworkReply( parent )
+@@ -638,3 +544,22 @@ void BlockedNetworkReply::finishedSlot()
+   emit readyRead();
+   emit finished();
+ }
++
++LocalSchemeHandler::LocalSchemeHandler(ArticleNetworkAccessManager& articleNetMgr):mManager(articleNetMgr){
++
++}
++
++void LocalSchemeHandler::requestStarted(QWebEngineUrlRequestJob *requestJob)
++{
++    QUrl url = requestJob->requestUrl();
++
++    QNetworkRequest request;
++    request.setUrl( url );
++
++    QNetworkReply* reply=this->mManager.createRequest(QNetworkAccessManager::GetOperation,request,NULL);
++    connect(reply,&QNetworkReply::finished,this,[=](){
++        //QNetworkReply *reply1=qobject_cast<QNetworkReply*>(sender());
++        requestJob->reply("text/html",reply);
++    });
++}
++
+diff --git a/article_netmgr.hh b/article_netmgr.hh
+index e075474a..af45ff0b 100644
+--- a/article_netmgr.hh
++++ b/article_netmgr.hh
+@@ -7,10 +7,12 @@
+ #include <QtNetwork>
+ 
+ #if QT_VERSION >= 0x050300  // Qt 5.3+
+-#include <QWebSecurityOrigin>
+ #include <QSet>
+ #include <QMap>
+ #include <QPair>
++#include <QWebEngineUrlSchemeHandler>
++#include <QWebEngineUrlRequestJob>
++#include <QNetworkAccessManager>
+ #endif
+ 
+ #include "dictionary.hh"
+@@ -21,36 +23,6 @@ using std::vector;
+ /// A custom QNetworkAccessManager version which fetches images from the
+ /// dictionaries when requested.
+ 
+-#if QT_VERSION >= 0x050300  // Qt 5.3+
+-
+-// White lists for QWebSecurityOrigin
+-struct SecurityWhiteList
+-{
+-  QWebSecurityOrigin * origin;
+-  QString originUri;
+-  QSet< QPair< QString, QString > > hostsToAccess;
+-
+-  SecurityWhiteList() :
+-    origin( 0 )
+-  {}
+-
+-  ~SecurityWhiteList()
+-  { swlDelete(); }
+-
+-  SecurityWhiteList( SecurityWhiteList const & swl ) :
+-    origin( 0 )
+-  { swlCopy( swl ); }
+-
+-  SecurityWhiteList & operator=( SecurityWhiteList const & swl );
+-  QWebSecurityOrigin * setOrigin( QUrl const & url );
+-
+-private:
+-  void swlCopy( SecurityWhiteList const & swl );
+-  void swlDelete();
+-};
+-
+-typedef QMap< QString, SecurityWhiteList > Origins;
+-
+ // Proxy class for QNetworkReply to remove X-Frame-Options header
+ // It allow to show websites in <iframe> tag like Qt 4.x
+ 
+@@ -120,17 +92,16 @@ protected:
+   qint64 writeData( const char * data, qint64 maxSize )
+   { return baseReply->write( data, maxSize ); }
+ };
+-#endif
++
+ 
+ class ArticleNetworkAccessManager: public QNetworkAccessManager
+ {
++    Q_OBJECT
+   vector< sptr< Dictionary::Class > > const & dictionaries;
+   ArticleMaker const & articleMaker;
+   bool const & disallowContentFromOtherSites;
+   bool const & hideGoldenDictHeader;
+-#if QT_VERSION >= 0x050300  // Qt 5.3+
+-  Origins allOrigins;
+-#endif
++
+ public:
+ 
+   ArticleNetworkAccessManager( QObject * parent,
+@@ -152,11 +123,12 @@ public:
+   sptr< Dictionary::DataRequest > getResource( QUrl const & url,
+                                                QString & contentType );
+ 
+-protected:
++//protected:
+ 
+   virtual QNetworkReply * createRequest( Operation op,
+                                          QNetworkRequest const & req,
+                                          QIODevice * outgoingData );
++
+ };
+ 
+ class ArticleResourceReply: public QNetworkReply
+@@ -229,4 +201,17 @@ private slots:
+   void finishedSlot();
+ };
+ 
++
++class LocalSchemeHandler : public QWebEngineUrlSchemeHandler
++{
++    Q_OBJECT
++public:
++    LocalSchemeHandler(ArticleNetworkAccessManager &articleNetMgr);
++    void requestStarted(QWebEngineUrlRequestJob *requestJob);
++
++protected:
++
++private:
++    ArticleNetworkAccessManager& mManager;
++};
+ #endif
+diff --git a/articleinspector.cc b/articleinspector.cc
+deleted file mode 100644
+index 7ab091a7..00000000
+--- a/articleinspector.cc
++++ /dev/null
+@@ -1,55 +0,0 @@
+-#include "articleinspector.hh"
+-
+-#if QT_VERSION >= 0x040600
+-
+-#include <algorithm>
+-
+-using std::list;
+-
+-list< ArticleInspector * > ArticleInspector::openedInspectors;
+-
+-ArticleInspector::ArticleInspector( Config::Class * cfg, QWidget* parent ) :
+-  QWebInspector( parent ),
+-  cfg( cfg )
+-{
+-  if ( cfg == NULL )
+-    throw exInit();
+-}
+-
+-ArticleInspector::~ArticleInspector()
+-{
+-}
+-
+-void ArticleInspector::beforeClosed()
+-{
+-  list< ArticleInspector * >::iterator itemIter = std::find( openedInspectors.begin(),
+-                                                             openedInspectors.end(), this );
+-  if ( itemIter != openedInspectors.end() )
+-  {
+-    openedInspectors.erase( itemIter );
+-    // Save geometry of the recent closed inspector window
+-    QByteArray geometry = saveGeometry();
+-    cfg->inspectorGeometry = geometry;
+-  }
+-}
+-
+-void ArticleInspector::showEvent( QShowEvent * event )
+-{
+-  if ( openedInspectors.empty() )
+-  {
+-    // Restore geometry from config, if no inspector opened
+-    restoreGeometry( cfg->inspectorGeometry );
+-  }
+-  else
+-  {
+-    // Load geometry from first inspector opened
+-    ArticleInspector * p = openedInspectors.front();
+-    setGeometry( p->geometry() );
+-  }
+-
+-  openedInspectors.push_back( this );
+-
+-  QWebInspector::showEvent( event );
+-}
+-
+-#endif // QT_VERSION
+diff --git a/articleinspector.hh b/articleinspector.hh
+deleted file mode 100644
+index 97f0b593..00000000
+--- a/articleinspector.hh
++++ /dev/null
+@@ -1,37 +0,0 @@
+-#ifndef ARTICLEINSPECTOR_HH
+-#define ARTICLEINSPECTOR_HH
+-
+-#include <QtGlobal>
+-
+-#if QT_VERSION >= 0x040600
+-
+-#include <QWebInspector>
+-#include <list>
+-#include "config.hh"
+-#include "ex.hh"
+-
+-class ArticleInspector : public QWebInspector
+-{
+-Q_OBJECT
+-
+-public:
+-  DEF_EX( exInit, "Article inspector failed to init", std::exception )
+-
+-  explicit ArticleInspector( Config::Class * cfg,  QWidget* parent = 0 );
+-  ~ArticleInspector();
+-
+-public slots:
+-  void beforeClosed();
+-
+-protected:
+-  void showEvent( QShowEvent *event );
+-
+-private:
+-  Config::Class * cfg;
+-
+-  static std::list< ArticleInspector * > openedInspectors;
+-};
+-
+-#endif // QT_VERSION
+-
+-#endif // ARTICLEINSPECTOR_HH
+diff --git a/articleview.cc b/articleview.cc
+index ac2bdf6e..9f168740 100644
+--- a/articleview.cc
++++ b/articleview.cc
+@@ -4,10 +4,13 @@
+ #include "articleview.hh"
+ #include <map>
+ #include <QMessageBox>
+-#include <QWebHitTestResult>
++//#include <QWebHitTestResult>
+ #include <QMenu>
+ #include <QDesktopServices>
+-#include <QWebHistory>
++#include <QWebEngineHistory>
++#include <QWebEngineScript>
++#include <QWebEngineSettings>
++#include <QWebEngineScriptCollection>
+ #include <QClipboard>
+ #include <QKeyEvent>
+ #include <QFileDialog>
+@@ -21,7 +24,7 @@
+ #include "gestures.hh"
+ #include "fulltextsearch.hh"
+ 
+-#if QT_VERSION >= 0x040600
++#if QT_VERSION >= 0x040600 && QT_VERSION <= 0x050500
+ #include <QWebElement>
+ #include <QWebElementCollection>
+ #endif
+@@ -176,11 +179,34 @@ public:
+ 
+ /// End of DiacriticsHandler class
+ 
+-static QVariant evaluateJavaScriptVariableSafe( QWebFrame * frame, const QString & variable )
++static QVariant runJavaScriptVariableSafe( QWebEnginePage * frame, const QString & variable )
+ {
+-  return frame->evaluateJavaScript(
++    qDebug(QString("runJavaScriptVariableSafe with:%1").arg(variable).toLatin1().data());
++    QVariant variant;
++    QSemaphore semaph(1);
++    semaph.acquire(1);
++   frame->runJavaScript(
+         QString( "( typeof( %1 ) !== 'undefined' && %1 !== undefined ) ? %1 : null;" )
+-        .arg( variable ) );
++              .arg( variable ),[&semaph,&variant](const QVariant & result){
++      //variant=result;
++      //semaph.release(1);
++  } );
++
++   //todo
++   //semaph.acquire(1);
++   return variant;
++}
++
++static QVariant runJavaScriptSync(QWebEnginePage* frame, const QString& variable)
++{
++    qDebug(QString("runJavascriptScriptSync with :%1").arg(variable).toLatin1().data());
++    QVariant variant;
++
++    frame->runJavaScript(variable, [](const QVariant& result) {
++
++        });
++
++    return variant;
+ }
+ 
+ namespace {
+@@ -252,41 +278,33 @@ ArticleView::ArticleView( QWidget * parent, ArticleNetworkAccessManager & nm,
+   connect( &goForwardAction, SIGNAL( triggered() ),
+            this, SLOT( forward() ) );
+ 
+-  ui.definition->pageAction( QWebPage::Copy )->setShortcut( QKeySequence::Copy );
+-  ui.definition->addAction( ui.definition->pageAction( QWebPage::Copy ) );
++  ui.definition->pageAction( QWebEnginePage::Copy )->setShortcut( QKeySequence::Copy );
++  ui.definition->addAction( ui.definition->pageAction( QWebEnginePage::Copy ) );
+ 
+-  QAction * selectAll = ui.definition->pageAction( QWebPage::SelectAll );
++  QAction * selectAll = ui.definition->pageAction( QWebEnginePage::SelectAll );
+   selectAll->setShortcut( QKeySequence::SelectAll );
+   selectAll->setShortcutContext( Qt::WidgetWithChildrenShortcut );
+   ui.definition->addAction( selectAll );
+ 
+   ui.definition->setContextMenuPolicy( Qt::CustomContextMenu );
+ 
+-  ui.definition->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
+-
+-  ui.definition->page()->setNetworkAccessManager( &articleNetMgr );
+-
+-  connect( ui.definition, SIGNAL( loadFinished( bool ) ),
+-           this, SLOT( loadFinished( bool ) ) );
++  //todo acceptNavigationRequest
++  //ui.definition->page()->setLinkDelegationPolicy( QWebPage::DelegateAllLinks );
+ 
+-  attachToJavaScript();
+-  connect( ui.definition->page()->mainFrame(), SIGNAL( javaScriptWindowObjectCleared() ),
+-           this, SLOT( attachToJavaScript() ) );
++  connect( ui.definition, SIGNAL( loadFinished(bool) ),
++           this, SLOT( loadFinished(bool) ) );
+ 
+-  connect( ui.definition, SIGNAL( titleChanged( QString const & ) ),
++  connect( ui.definition->page(), SIGNAL( titleChanged( QString const & ) ),
+            this, SLOT( handleTitleChanged( QString const & ) ) );
+ 
+-  connect( ui.definition, SIGNAL( urlChanged( QUrl const & ) ),
+-           this, SLOT( handleUrlChanged( QUrl const & ) ) );
++  connect( ui.definition->page(), SIGNAL( urlChanged(QUrl) ),
++           this, SLOT( handleUrlChanged(QUrl) ) );
+ 
+   connect( ui.definition, SIGNAL( customContextMenuRequested( QPoint const & ) ),
+            this, SLOT( contextMenuRequested( QPoint const & ) ) );
+ 
+-  connect( ui.definition, SIGNAL( linkClicked( QUrl const & ) ),
+-           this, SLOT( linkClicked( QUrl const & ) ) );
+-
+-  connect( ui.definition->page(), SIGNAL( linkHovered ( const QString &, const QString &, const QString & ) ),
+-           this, SLOT( linkHovered ( const QString &, const QString &, const QString & ) ) );
++  connect( ui.definition->page(), SIGNAL( linkHovered ( const QString &) ),
++           this, SLOT( linkHovered ( const QString & ) ) );
+ 
+   connect( ui.definition, SIGNAL( doubleClicked( QPoint ) ),this,SLOT( doubleClicked( QPoint ) ) );
+ 
+@@ -326,10 +344,9 @@ ArticleView::ArticleView( QWidget * parent, ArticleNetworkAccessManager & nm,
+   ui.searchFrame->installEventFilter( this );
+   ui.ftsSearchFrame->installEventFilter( this );
+ 
+-  QWebSettings * settings = ui.definition->page()->settings();
+-  settings->setAttribute( QWebSettings::LocalContentCanAccessRemoteUrls, true );
+-  settings->setAttribute( QWebSettings::LocalContentCanAccessFileUrls, true );
+-
++  QWebEngineSettings * settings = ui.definition->page()->settings();
++  settings->globalSettings()->setAttribute( QWebEngineSettings::WebAttribute::LocalContentCanAccessRemoteUrls, true );
++  settings->globalSettings()->setAttribute( QWebEngineSettings::WebAttribute::LocalContentCanAccessFileUrls, true );
+   // Load the default blank page instantly, so there would be no flicker.
+ 
+   QString contentType;
+@@ -502,39 +519,34 @@ void ArticleView::showAnticipation()
+ 
+ void ArticleView::loadFinished( bool )
+ {
+-  QUrl url = ui.definition->url();
+-
+-  // See if we have any iframes in need of expansion
+-
+-  QList< QWebFrame * > frames = ui.definition->page()->mainFrame()->childFrames();
++    QUrl url = ui.definition->url();
++    QObject* obj=sender();
++    qDebug()<<"article view loaded url is :"<<url<<" sender class is :"<<obj->metaObject()->className();
++
++//  // See if we have any iframes in need of expansion
++//   ui.definition->page()->runJavaScript(QString(""
++//"var frames = window.frames;"
++//"for (var i=0; i < frames.length; i++) {"
++//"    var f = frames[i];"
++//"    "
++//"    f.onload = function()"
++//"    {"
++//"      f.style.height = "
++//"      f.contentWindow.document.body.scrollHeight + 'px';"
++//"     f.style.width  = "
++//"      f.contentWindow.document.body.scrollWidth+'px';    "
++//"    }"
++//"    f.style.display = 'block';"
++//"    var gdLastUrlText;"
++//"    f.document.addEventListener('click', function () { gdLastUrlText = window.event.srcElement.textContent; });"
++//"    f.document.addEventListener('contextmenu', function () { gdLastUrlText = window.event.srcElement.textContent; });"
++//"}"
++//));
+ 
+   bool wereFrames = false;
+ 
+-  for( QList< QWebFrame * >::iterator i = frames.begin(); i != frames.end(); ++i )
+-  {
+-    if ( (*i)->frameName().startsWith( "gdexpandframe-" ) )
+-    {
+-      //DPRINTF( "Name: %s\n", (*i)->frameName().toUtf8().data() );
+-      //DPRINTF( "Size: %d\n", (*i)->contentsSize().height() );
+-      //DPRINTF( ">>>>>>>>Height = %s\n", (*i)->evaluateJavaScript( "document.body.offsetHeight;" ).toString().toUtf8().data() );
+-
+-      // Set the height
+-      ui.definition->page()->mainFrame()->evaluateJavaScript( QString( "document.getElementById('%1').height = %2;" ).
+-        arg( (*i)->frameName() ).
+-        arg( (*i)->contentsSize().height() ) );
+-
+-      // Show it
+-      ui.definition->page()->mainFrame()->evaluateJavaScript( QString( "document.getElementById('%1').style.display = 'block';" ).
+-        arg( (*i)->frameName() ) );
+-
+-      (*i)->evaluateJavaScript( "var gdLastUrlText;" );
+-      (*i)->evaluateJavaScript( "document.addEventListener( 'click', function() { gdLastUrlText = window.event.srcElement.textContent; }, true );" );
+-      (*i)->evaluateJavaScript( "document.addEventListener( 'contextmenu', function() { gdLastUrlText = window.event.srcElement.textContent; }, true );" );
+-
+-      wereFrames = true;
+-    }
+-  }
+ 
++  //todo
+   if ( wereFrames )
+   {
+     // There's some sort of glitch -- sometimes you need to move a mouse
+@@ -544,15 +556,14 @@ void ArticleView::loadFinished( bool )
+     qApp->sendEvent( ui.definition, &ev );
+   }
+ 
+-  QVariant userDataVariant = ui.definition->history()->currentItem().userData();
++  QVariant userDataVariant = ui.definition->property("currentArticle");
+ 
+-  if ( userDataVariant.type() == QVariant::Map )
++  if ( userDataVariant.isValid() )
+   {
+-    QMap< QString, QVariant > userData = userDataVariant.toMap();
+ 
+-    QString currentArticle = userData.value( "currentArticle" ).toString();
++    QString currentArticle = userDataVariant.toString();
+ 
+-    if ( currentArticle.size() )
++    if ( !currentArticle.isEmpty() )
+     {
+       // There's an active article saved, so set it to be active.
+       setCurrentArticle( currentArticle );
+@@ -560,16 +571,18 @@ void ArticleView::loadFinished( bool )
+ 
+     double sx = 0, sy = 0;
+ 
+-    if ( userData.value( "sx" ).type() == QVariant::Double )
+-      sx = userData.value( "sx" ).toDouble();
++    QVariant qsx=ui.definition->property("sx");
++    if ( qsx.type() == QVariant::Double )
++      sx = qsx.toDouble();
+ 
+-    if ( userData.value( "sy" ).type() == QVariant::Double )
+-      sy = userData.value( "sy" ).toDouble();
++    QVariant qsy = ui.definition->property("sx");
++    if ( qsy.type() == QVariant::Double )
++      sy = qsy.toDouble();
+ 
+     if ( sx != 0 || sy != 0 )
+     {
+       // Restore scroll position
+-      ui.definition->page()->mainFrame()->evaluateJavaScript(
++      ui.definition->page()->runJavaScript(
+           QString( "window.scroll( %1, %2 );" ).arg( sx ).arg( sy ) );
+     }
+   }
+@@ -589,7 +602,7 @@ void ArticleView::loadFinished( bool )
+   //QApplication::restoreOverrideCursor();
+ 
+   // Expand collapsed article if only one loaded
+-  ui.definition->page()->mainFrame()->evaluateJavaScript( QString( "gdCheckArticlesNumber();" ) );
++  ui.definition->page()->runJavaScript( QString( "gdCheckArticlesNumber();" ) );
+ 
+   // Jump to current article after page reloading
+   if( !articleToJump.isEmpty() )
+@@ -616,36 +629,19 @@ void ArticleView::loadFinished( bool )
+     {
+       QString originalAnchor = anchor.mid( n + 1 );
+ 
+-      QRegExp rx;
+-      rx.setMinimal( true );
+-      rx.setPattern( anchor.left( 34 ) + "[0-9a-f]*_" + originalAnchor );
+-
+-      QWebElementCollection coll = ui.definition->page()->mainFrame()->findAllElements( "a[name]" );
+-      coll += ui.definition->page()->mainFrame()->findAllElements( "a[id]" );
+-
+-      for( QWebElementCollection::iterator it = coll.begin(); it != coll.end(); ++it )
+-      {
+-        QString name = (*it).attribute( "name" );
+-        QString id = (*it).attribute( "id" );
+-        if( ( !name.isEmpty() && rx.indexIn( name ) >= 0 )
+-            || ( !id.isEmpty() && rx.indexIn( id ) >= 0 ))
+-        {
+-          // Anchor found, jump to it
+-
+-          url.clear();
+-          url.setFragment( rx.cap( 0 ) );
+-          ui.definition->page()->mainFrame()->evaluateJavaScript(
+-             QString( "window.location.hash = \"%1\"" ).arg( QString::fromUtf8( url.toEncoded() ) ) );
+-
+-          break;
+-        }
+-      }
++      int end = originalAnchor.indexOf('_');
++      QString hash=originalAnchor.left(end);
++      url.clear();
++      url.setFragment(hash);
++      ui.definition->page()->runJavaScript(
++          QString("window.location.hash = \"%1\"").arg(QString::fromUtf8(url.toEncoded())));
++      
+     }
+     else
+     {
+       url.clear();
+       url.setFragment( anchor );
+-      ui.definition->page()->mainFrame()->evaluateJavaScript(
++      ui.definition->page()->runJavaScript(
+          QString( "window.location.hash = \"%1\"" ).arg( QString::fromUtf8( url.toEncoded() ) ) );
+     }
+   }
+@@ -665,6 +661,7 @@ void ArticleView::handleTitleChanged( QString const & title )
+ 
+ void ArticleView::handleUrlChanged( QUrl const & url )
+ {
++    lastUrl = url.url();
+   QIcon icon;
+ 
+   unsigned group = getGroup( url );
+@@ -695,8 +692,24 @@ unsigned ArticleView::getGroup( QUrl const & url )
+ 
+ QStringList ArticleView::getArticlesList()
+ {
+-  return evaluateJavaScriptVariableSafe( ui.definition->page()->mainFrame(), "gdArticleContents" )
+-      .toString().trimmed().split( ' ', QString::SkipEmptyParts );
++	//todo dictid
++    QStringList dictList;
++	for (unsigned i = 0; i < allDictionaries.size(); i++)
++	{
++        dictList.append( allDictionaries[i]->getId().c_str());
++		
++	}
++
++    QStringList mutedDictionaries = getMutedDictionaries(Instances::Group::AllGroupId);
++    for (int i=0;i<mutedDictionaries.size();i++)
++    {
++        dictList.removeOne(mutedDictionaries[i]);
++    }
++
++    return dictList;
++    
++  // return runJavaScriptVariableSafe( ui.definition->page(), "gdArticleContents" )
++  //     .toString().trimmed().split( ' ', QString::SkipEmptyParts );
+ }
+ 
+ QString ArticleView::getActiveArticleId()
+@@ -710,7 +723,8 @@ QString ArticleView::getActiveArticleId()
+ 
+ QString ArticleView::getCurrentArticle()
+ {
+-  QVariant v = evaluateJavaScriptVariableSafe( ui.definition->page()->mainFrame(), "gdCurrentArticle" );
++    QVariant v=ui.definition->property("currentArticle");
++ // QVariant v = runJavaScriptVariableSafe( ui.definition->page(), "gdCurrentArticle" );
+ 
+   if ( v.type() == QVariant::String )
+     return v.toString();
+@@ -737,25 +751,20 @@ void ArticleView::setCurrentArticle( QString const & id, bool moveToIt )
+   if ( !ui.definition->isVisible() )
+     return; // No action on background page, scrollIntoView there don't work
+ 
+-  QString const dictionaryId = dictionaryIdFromScrollTo( id );
+-  if ( getArticlesList().contains( dictionaryId ) )
+-  {
+-    if ( moveToIt )
+-      ui.definition->page()->mainFrame()->evaluateJavaScript( QString( "document.getElementById('%1').scrollIntoView(true);" ).arg( id ) );
++  if(moveToIt){
++      QString script=QString(" document.getElementById('%1').scrollIntoView(true);").arg(id);
++
++      ui.definition->page()->runJavaScript(script);
+ 
+-    QMap< QString, QVariant > userData = ui.definition->history()->
+-                                         currentItem().userData().toMap();
+-    userData[ "currentArticle" ] = id;
+-    ui.definition->history()->currentItem().setUserData( userData );
++      onJsActiveArticleChanged(id);
+ 
+-    ui.definition->page()->mainFrame()->evaluateJavaScript(
+-      QString( "gdMakeArticleActive( '%1' );" ).arg( dictionaryId ) );
++      ui.definition->setProperty("currentArticle",id);
+   }
+ }
+ 
+ void ArticleView::selectCurrentArticle()
+ {
+-  ui.definition->page()->mainFrame()->evaluateJavaScript(
++  ui.definition->page()->runJavaScript(
+         QString( "gdSelectArticle( '%1' );" ).arg( getActiveArticleId() ) );
+ }
+ 
+@@ -764,9 +773,7 @@ bool ArticleView::isFramedArticle( QString const & ca )
+   if ( ca.isEmpty() )
+     return false;
+ 
+-  return ui.definition->page()->mainFrame()->
+-               evaluateJavaScript( QString( "!!document.getElementById('gdexpandframe-%1');" )
+-                                          .arg( dictionaryIdFromScrollTo( ca ) ) ).toBool();
++  return  runJavaScriptSync( ui.definition->page(), QString( "!!document.getElementById('gdexpandframe-%1');" ).arg( ca.mid( 7 ) ) ).toBool();
+ }
+ 
+ bool ArticleView::isExternalLink( QUrl const & url )
+@@ -789,7 +796,9 @@ void ArticleView::tryMangleWebsiteClickedUrl( QUrl & url, Contexts & contexts )
+ 
+     if ( isFramedArticle( ca ) )
+     {
+-      QVariant result = evaluateJavaScriptVariableSafe( ui.definition->page()->currentFrame(), "gdLastUrlText" );
++    	//todo ,ÓÃ±äÁ¿´úÌæ×îºóµÄurl
++      //QVariant result = runJavaScriptSync( ui.definition->page(), "gdLastUrlText" );
++      QVariant result ;
+ 
+       if ( result.type() == QVariant::String )
+       {
+@@ -815,43 +824,34 @@ void ArticleView::tryMangleWebsiteClickedUrl( QUrl & url, Contexts & contexts )
+   }
+ }
+ 
+-void ArticleView::updateCurrentArticleFromCurrentFrame( QWebFrame * frame )
++void ArticleView::updateCurrentArticleFromCurrentFrame( QWebEnginePage * frame ,QPoint * point)
+ {
+-  if ( !frame )
+-    frame = ui.definition->page()->currentFrame();
++    //todo
++    qDebug("updateCurrentArticleFromCurrentFrame");
++//  if ( !frame )
++//    frame = ui.definition->page()->currentFrame();
+ 
+-  for( ; frame; frame = frame->parentFrame() )
+-  {
+-    QString frameName = frame->frameName();
++//  for( ; frame; frame = frame->parentFrame() )
++//  {
++//    QString frameName = frame->frameName();
+ 
+-    if ( frameName.startsWith( "gdexpandframe-" ) )
+-    {
+-      QString newCurrent = scrollToFromDictionaryId( frameName.mid( 14 ) );
++//    if ( frameName.startsWith( "gdexpandframe-" ) )
++//    {
++//      QString newCurrent = "gdfrom-" + frameName.mid( 14 );
+ 
+-      if ( getCurrentArticle() != newCurrent )
+-        setCurrentArticle( newCurrent, false );
++//      if ( getCurrentArticle() != newCurrent )
++//        setCurrentArticle( newCurrent, false );
+ 
+-      break;
+-    }
+-  }
++//      break;
++//    }
++//  }
+ }
+ 
+ void ArticleView::saveHistoryUserData()
+ {
+-  QMap< QString, QVariant > userData = ui.definition->history()->
+-                                       currentItem().userData().toMap();
+-
+-  // Save current article, which can be empty
+-
+-  userData[ "currentArticle" ] = getCurrentArticle();
+-
+-  // We also save window position. We restore it when the page is fully loaded,
+-  // when any hidden frames are expanded.
+-
+-  userData[ "sx" ] = ui.definition->page()->mainFrame()->evaluateJavaScript( "window.scrollX;" ).toDouble();
+-  userData[ "sy" ] = ui.definition->page()->mainFrame()->evaluateJavaScript( "window.scrollY;" ).toDouble();
+-
+-  ui.definition->history()->currentItem().setUserData( userData );
++  ui.definition->setProperty("currentArticle", getCurrentArticle());
++  ui.definition->setProperty("sx", ui.definition->page()->scrollPosition().x());
++  ui.definition->setProperty("sy", ui.definition->page()->scrollPosition().y());
+ }
+ 
+ void ArticleView::cleanupTemp()
+@@ -1060,7 +1060,44 @@ QString ArticleView::getMutedForGroup( unsigned group )
+   return QString();
+ }
+ 
+-void ArticleView::linkHovered ( const QString & link, const QString & , const QString & )
++QStringList ArticleView::getMutedDictionaries(unsigned group)
++{
++	if (dictionaryBarToggled && dictionaryBarToggled->isChecked())
++	{
++		// Dictionary bar is active -- mute the muted dictionaries
++		Instances::Group const* groupInstance = groups.findGroup(group);
++
++		// Find muted dictionaries for current group
++		Config::Group const* grp = cfg.getGroup(group);
++		Config::MutedDictionaries const* mutedDictionaries;
++        if (group == Instances::Group::AllGroupId)
++			mutedDictionaries = popupView ? &cfg.popupMutedDictionaries : &cfg.mutedDictionaries;
++		else
++			mutedDictionaries = grp ? (popupView ? &grp->popupMutedDictionaries : &grp->mutedDictionaries) : 0;
++		if (!mutedDictionaries)
++			return QStringList();
++
++		QStringList mutedDicts;
++
++		if (groupInstance)
++		{
++			for (unsigned x = 0; x < groupInstance->dictionaries.size(); ++x)
++			{
++				QString id = QString::fromStdString(
++					groupInstance->dictionaries[x]->getId());
++
++				if (mutedDictionaries->contains(id))
++					mutedDicts.append(id);
++			}
++		}
++
++        return mutedDicts;
++	}
++
++	return QStringList();
++}
++
++void ArticleView::linkHovered ( const QString & link )
+ {
+   QString msg;
+   QUrl url(link);
+@@ -1136,7 +1173,14 @@ void ArticleView::linkHovered ( const QString & link, const QString & , const QS
+ 
+ void ArticleView::attachToJavaScript()
+ {
+-  ui.definition->page()->mainFrame()->addToJavaScriptWindowObject( QString( "articleview" ), this );
++    QWebEngineScript script;
++    script.setInjectionPoint(QWebEngineScript::DocumentReady);
++    script.setRunsOnSubFrames(false);
++    script.setWorldId(QWebEngineScript::MainWorld);
++    script.setSourceCode(QString("articleview"));
++
++    ui.definition->page()->scripts().insert(script);
++
+ }
+ 
+ void ArticleView::linkClicked( QUrl const & url_ )
+@@ -1194,7 +1238,7 @@ void ArticleView::openLink( QUrl const & url, QUrl const & ref,
+   {
+     if ( url.hasFragment() )
+     {
+-      ui.definition->page()->mainFrame()->evaluateJavaScript(
++      ui.definition->page()->runJavaScript(
+         QString( "window.location = \"%1\"" ).arg( QString::fromUtf8( url.toEncoded() ) ) );
+     }
+     else
+@@ -1667,42 +1711,53 @@ void ArticleView::forward()
+ 
+ bool ArticleView::hasSound()
+ {
+-  QVariant v = ui.definition->page()->mainFrame()->evaluateJavaScript( "gdAudioLinks.first" );
+-  if ( v.type() == QVariant::String )
+-    return !v.toString().isEmpty();
+-  return false;
++	//todo ,just return true;need futher effort
++    return true;
++  // QVariant v = runJavaScriptSync( ui.definition->page(),"gdAudioLinks.first" );
++  // if ( v.type() == QVariant::String )
++  //   return !v.toString().isEmpty();
++  // return false;
+ }
+ 
++//todo ,need further effort
+ void ArticleView::playSound()
+ {
+-  QVariant v;
+-  QString soundScript;
++  runJavaScriptSync( ui.definition->page(),
++"   var link=gdAudioLinks[gdAudioLinks.current];           "
++"   if(link==undefined){           "
++"       link=gdAudioLinks.first;           "
++"   }          "
++"              "
++"   var music = new Audio(link);    "
++"   music.play();   "
+ 
+-  v = ui.definition->page()->mainFrame()->evaluateJavaScript( "gdAudioLinks[gdAudioLinks.current]" );
++ );
++}
+ 
+-  if ( v.type() == QVariant::String )
+-    soundScript = v.toString();
++QString ArticleView::toHtml()
++{
++    QString html;
++    ui.definition->page()->toHtml([&](const QString& content) {
++       
+ 
+-  // fallback to the first one
+-  if ( soundScript.isEmpty() )
+-  {
+-    v = ui.definition->page()->mainFrame()->evaluateJavaScript( "gdAudioLinks.first" );
+-    if ( v.type() == QVariant::String )
+-      soundScript = v.toString();
+-  }
++        html = content;
+ 
+-  if ( !soundScript.isEmpty() )
+-    openLink( QUrl::fromEncoded( soundScript.toUtf8() ), ui.definition->url() );
++        });
++
++    return html;
+ }
+ 
+-QString ArticleView::toHtml()
+-{
+-  return ui.definition->page()->mainFrame()->toHtml();
++void ArticleView::setHtml(const QString& content,const QUrl& baseUrl){
++    ui.definition->page()->setHtml(content,baseUrl);
++}
++
++void ArticleView::setContent(const QByteArray &data, const QString &mimeType, const QUrl &baseUrl ){
++    ui.definition->page()->setContent(data,mimeType,baseUrl);
+ }
+ 
+ QString ArticleView::getTitle()
+ {
+-  return ui.definition->page()->mainFrame()->title();
++  return ui.definition->page()->title();
+ }
+ 
+ Config::InputPhrase ArticleView::getPhrase() const
+@@ -1714,17 +1769,15 @@ Config::InputPhrase ArticleView::getPhrase() const
+ 
+ void ArticleView::print( QPrinter * printer ) const
+ {
+-  ui.definition->print( printer );
++    ui.definition->page()->print(printer, [](bool result) {});
+ }
+ 
+ void ArticleView::contextMenuRequested( QPoint const & pos )
+ {
+   // Is that a link? Is there a selection?
+ 
+-  QWebHitTestResult r = ui.definition->page()->mainFrame()->
+-                          hitTestContent( pos );
+-
+-  updateCurrentArticleFromCurrentFrame( r.frame() );
++  QWebEnginePage* r=ui.definition->page();
++  updateCurrentArticleFromCurrentFrame(ui.definition->page(), const_cast<QPoint *>(& pos));
+ 
+   QMenu menu( this );
+ 
+@@ -1742,12 +1795,13 @@ void ArticleView::contextMenuRequested( QPoint const & pos )
+   QAction * saveImageAction = 0;
+   QAction * saveSoundAction = 0;
+ 
+-  QUrl targetUrl( r.linkUrl() );
++  //todo url();?
++  QUrl targetUrl( r->url() );
+   Contexts contexts;
+ 
+   tryMangleWebsiteClickedUrl( targetUrl, contexts );
+ 
+-  if ( !r.linkUrl().isEmpty() )
++  if ( !r->url().isEmpty() )
+   {
+     if ( !isExternalLink( targetUrl ) )
+     {
+@@ -1762,36 +1816,14 @@ void ArticleView::contextMenuRequested( QPoint const & pos )
+       }
+     }
+ 
+-    if ( isExternalLink( r.linkUrl() ) )
++    if ( isExternalLink( r->url() ) )
+     {
+       followLinkExternal = new QAction( tr( "Open Link in &External Browser" ), &menu );
+       menu.addAction( followLinkExternal );
+-      menu.addAction( ui.definition->pageAction( QWebPage::CopyLinkToClipboard ) );
++      menu.addAction( ui.definition->pageAction( QWebEnginePage::CopyLinkToClipboard ) );
+     }
+   }
+ 
+-#if QT_VERSION >= 0x040600
+-  QWebElement el = r.element();
+-  QUrl imageUrl;
+-  if( !popupView && el.tagName().compare( "img", Qt::CaseInsensitive ) == 0 )
+-  {
+-    imageUrl = QUrl::fromPercentEncoding( el.attribute( "src" ).toLatin1() );
+-    if( !imageUrl.isEmpty() )
+-    {
+-      menu.addAction( ui.definition->pageAction( QWebPage::CopyImageToClipboard ) );
+-      saveImageAction = new QAction( tr( "Save &image..." ), &menu );
+-      menu.addAction( saveImageAction );
+-    }
+-  }
+-
+-  if( !popupView && ( targetUrl.scheme() == "gdau"
+-                      || Dictionary::WebMultimediaDownload::isAudioUrl( targetUrl ) ) )
+-  {
+-    saveSoundAction = new QAction( tr( "Save s&ound..." ), &menu );
+-    menu.addAction( saveSoundAction );
+-  }
+-#endif
+-
+   QString selectedText = ui.definition->selectedText();
+   QString text = selectedText.trimmed();
+ 
+@@ -1869,13 +1901,13 @@ void ArticleView::contextMenuRequested( QPoint const & pos )
+ 
+   if ( selectedText.size() )
+   {
+-    menu.addAction( ui.definition->pageAction( QWebPage::Copy ) );
++    menu.addAction( ui.definition->pageAction( QWebEnginePage::Copy ) );
+     menu.addAction( &copyAsTextAction );
+   }
+   else
+   {
+     menu.addAction( &selectCurrentArticleAction );
+-    menu.addAction( ui.definition->pageAction( QWebPage::SelectAll ) );
++    menu.addAction( ui.definition->pageAction( QWebEnginePage::SelectAll ) );
+   }
+ 
+   map< QAction *, QString > tableOfContents;
+@@ -1943,7 +1975,7 @@ void ArticleView::contextMenuRequested( QPoint const & pos )
+       openLink( targetUrl, ui.definition->url(), getCurrentArticle(), contexts );
+     else
+     if ( result == followLinkExternal )
+-      QDesktopServices::openUrl( r.linkUrl() );
++      QDesktopServices::openUrl( r->url() );
+     else
+     if ( result == lookupSelection )
+       showDefinition( selectedText, getGroup( ui.definition->url() ), getCurrentArticle() );
+@@ -1973,7 +2005,8 @@ void ArticleView::contextMenuRequested( QPoint const & pos )
+     if( result == saveImageAction || result == saveSoundAction )
+     {
+ #if QT_VERSION >= 0x040600
+-      QUrl url = ( result == saveImageAction ) ? imageUrl : targetUrl;
++//      QUrl url = ( result == saveImageAction ) ? imageUrl : targetUrl;
++      QUrl url =  targetUrl;
+       QString savePath;
+       QString fileName;
+ 
+@@ -2035,12 +2068,10 @@ void ArticleView::contextMenuRequested( QPoint const & pos )
+         setCurrentArticle( scrollToFromDictionaryId( id ), true );
+     }
+   }
+-#if 0
+-  DPRINTF( "%s\n", r.linkUrl().isEmpty() ? "null" : "not null" );
+ 
+-  DPRINTF( "url = %s\n", r.linkUrl().toString().toLocal8Bit().data() );
+-  DPRINTF( "title = %s\n", r.title().toLocal8Bit().data() );
+-#endif
++  qDebug( "url = %s\n", r->url().toString().toLocal8Bit().data() );
++  qDebug( "title = %s\n", r->title().toLocal8Bit().data() );
++
+ }
+ 
+ void ArticleView::resourceDownloadFinished()
+@@ -2206,8 +2237,8 @@ void ArticleView::openSearch()
+   // Clear any current selection
+   if ( ui.definition->selectedText().size() )
+   {
+-    ui.definition->page()->currentFrame()->
+-           evaluateJavaScript( "window.getSelection().removeAllRanges();_=0;" );
++    ui.definition->page()->
++           runJavaScript( "window.getSelection().removeAllRanges();_=0;" );
+   }
+ 
+   if ( ui.searchText->property( "noResults" ).toBool() )
+@@ -2266,76 +2297,76 @@ void ArticleView::onJsActiveArticleChanged(QString const & id)
+ 
+ void ArticleView::doubleClicked( QPoint pos )
+ {
+-#if QT_VERSION >= 0x040600
+-  QWebHitTestResult r = ui.definition->page()->mainFrame()->hitTestContent( pos );
+-  QWebElement el = r.element();
+-  QUrl imageUrl;
+-  if( !popupView && el.tagName().compare( "img", Qt::CaseInsensitive ) == 0 )
+-  {
+-    // Double click on image; download it and transfer to external program
+-
+-    imageUrl = QUrl::fromPercentEncoding( el.attribute( "src" ).toLatin1() );
+-    if( !imageUrl.isEmpty() )
+-    {
+-      // Download it
+-
+-      // Clear any pending ones
+-      resourceDownloadRequests.clear();
+-
+-      resourceDownloadUrl = imageUrl;
+-      sptr< Dictionary::DataRequest > req;
+-
+-      if ( imageUrl.scheme() == "http" || imageUrl.scheme() == "https" || imageUrl.scheme() == "ftp" )
+-      {
+-        // Web resource
+-        req = new Dictionary::WebMultimediaDownload( imageUrl, articleNetMgr );
+-      }
+-      else
+-      if ( imageUrl.scheme() == "bres" || imageUrl.scheme() == "gdpicture" )
+-      {
+-        // Local resource
+-        QString contentType;
+-        req = articleNetMgr.getResource( imageUrl, contentType );
+-      }
+-      else
+-      {
+-        // Unsupported scheme
+-        gdWarning( "Unsupported url scheme \"%s\" to download image\n", imageUrl.scheme().toUtf8().data() );
+-        return;
+-      }
+-
+-      if ( !req.get() )
+-      {
+-        // Request failed, fail
+-        gdWarning( "Can't create request to download image \"%s\"\n", imageUrl.toString().toUtf8().data() );
+-        return;
+-      }
+-
+-      if ( req->isFinished() && req->dataSize() >= 0 )
+-      {
+-        // Have data ready, handle it
+-        resourceDownloadRequests.push_back( req );
+-        resourceDownloadFinished();
+-        return;
+-      }
+-      else
+-      if ( !req->isFinished() )
+-      {
+-        // Queue to be handled when done
+-        resourceDownloadRequests.push_back( req );
+-        connect( req.get(), SIGNAL( finished() ), this, SLOT( resourceDownloadFinished() ) );
+-      }
+-      if ( resourceDownloadRequests.empty() ) // No requests were queued
+-      {
+-        gdWarning( "The referenced resource \"%s\" doesn't exist\n", imageUrl.toString().toUtf8().data() ) ;
+-        return;
+-      }
+-      else
+-        resourceDownloadFinished(); // Check any requests finished already
+-    }
+-    return;
+-  }
+-#endif
++//#if QT_VERSION >= 0x040600
++//  QWebEnginePage* r = ui.definition->page();
++//  QWebElement el = r.element();
++//  QUrl imageUrl;
++//  if( !popupView && el.tagName().compare( "img", Qt::CaseInsensitive ) == 0 )
++//  {
++//    // Double click on image; download it and transfer to external program
++
++//    imageUrl = QUrl::fromPercentEncoding( el.attribute( "src" ).toLatin1() );
++//    if( !imageUrl.isEmpty() )
++//    {
++//      // Download it
++
++//      // Clear any pending ones
++//      resourceDownloadRequests.clear();
++
++//      resourceDownloadUrl = imageUrl;
++//      sptr< Dictionary::DataRequest > req;
++
++//      if ( imageUrl.scheme() == "http" || imageUrl.scheme() == "https" || imageUrl.scheme() == "ftp" )
++//      {
++//        // Web resource
++//        req = new Dictionary::WebMultimediaDownload( imageUrl, articleNetMgr );
++//      }
++//      else
++//      if ( imageUrl.scheme() == "bres" || imageUrl.scheme() == "gdpicture" )
++//      {
++//        // Local resource
++//        QString contentType;
++//        req = articleNetMgr.getResource( imageUrl, contentType );
++//      }
++//      else
++//      {
++//        // Unsupported scheme
++//        gdWarning( "Unsupported url scheme \"%s\" to download image\n", imageUrl.scheme().toUtf8().data() );
++//        return;
++//      }
++
++//      if ( !req.get() )
++//      {
++//        // Request failed, fail
++//        gdWarning( "Can't create request to download image \"%s\"\n", imageUrl.toString().toUtf8().data() );
++//        return;
++//      }
++
++//      if ( req->isFinished() && req->dataSize() >= 0 )
++//      {
++//        // Have data ready, handle it
++//        resourceDownloadRequests.push_back( req );
++//        resourceDownloadFinished();
++//        return;
++//      }
++//      else
++//      if ( !req->isFinished() )
++//      {
++//        // Queue to be handled when done
++//        resourceDownloadRequests.push_back( req );
++//        connect( req.get(), SIGNAL( finished() ), this, SLOT( resourceDownloadFinished() ) );
++//      }
++//      if ( resourceDownloadRequests.empty() ) // No requests were queued
++//      {
++//        gdWarning( "The referenced resource \"%s\" doesn't exist\n", imageUrl.toString().toUtf8().data() ) ;
++//        return;
++//      }
++//      else
++//        resourceDownloadFinished(); // Check any requests finished already
++//    }
++//    return;
++//  }
++//#endif
+ 
+   // We might want to initiate translation of the selected word
+ 
+@@ -2383,17 +2414,17 @@ void ArticleView::performFindOperation( bool restart, bool backwards, bool check
+       // For now we resort to this hack:
+       if ( ui.definition->selectedText().size() )
+       {
+-        ui.definition->page()->currentFrame()->
+-               evaluateJavaScript( "window.getSelection().removeAllRanges();_=0;" );
++        ui.definition->page()->
++               runJavaScript( "window.getSelection().removeAllRanges();_=0;" );
+       }
+     }
+ 
+-    QWebPage::FindFlags f( 0 );
++    QWebEnginePage::FindFlags f( 0 );
+ 
+     if ( ui.searchCaseSensitive->isChecked() )
+-      f |= QWebPage::FindCaseSensitively;
+-#if QT_VERSION >= 0x040600
+-    f |= QWebPage::HighlightAllOccurrences;
++      f |= QWebEnginePage::FindCaseSensitively;
++#if QT_VERSION >= 0x040600  && QT_VERSION <= 0x050600
++    f |= QWebEnginePage::HighlightAllOccurrences;
+ #endif
+ 
+     ui.definition->findText( "", f );
+@@ -2405,15 +2436,15 @@ void ArticleView::performFindOperation( bool restart, bool backwards, bool check
+       return;
+   }
+ 
+-  QWebPage::FindFlags f( 0 );
++  QWebEnginePage::FindFlags f( 0 );
+ 
+   if ( ui.searchCaseSensitive->isChecked() )
+-    f |= QWebPage::FindCaseSensitively;
++    f |= QWebEnginePage::FindCaseSensitively;
+ 
+   if ( backwards )
+-    f |= QWebPage::FindBackward;
++    f |= QWebEnginePage::FindBackward;
+ 
+-  bool setMark = text.size() && !ui.definition->findText( text, f );
++  bool setMark = text.size() && !findText(text, f);
+ 
+   if ( ui.searchText->property( "noResults" ).toBool() != setMark )
+   {
+@@ -2424,6 +2455,19 @@ void ArticleView::performFindOperation( bool restart, bool backwards, bool check
+   }
+ }
+ 
++bool ArticleView::findText(QString& text, const QWebEnginePage::FindFlags& f)
++{
++    bool r;
++    QSemaphore sem(1);
++    sem.acquire(1);
++    ui.definition->findText(text, f, [&sem,&r](bool result) {
++        r = result;
++        sem.release(1);
++        });
++    sem.acquire(1);
++    return r;
++}
++
+ void ArticleView::reloadStyleSheet()
+ {
+   for( QWidget * w = parentWidget(); w; w = w->parentWidget() )
+@@ -2458,10 +2502,10 @@ bool ArticleView::closeSearch()
+     ui.ftsSearchFrame->hide();
+     ui.definition->setFocus();
+ 
+-    QWebPage::FindFlags flags ( 0 );
++    QWebEnginePage::FindFlags flags ( 0 );
+ 
+-  #if QT_VERSION >= 0x040600
+-    flags |= QWebPage::HighlightAllOccurrences;
++  #if QT_VERSION >= 0x040600 && QT_VERSION<=0x050500
++    flags |= QWebEnginePage::HighlightAllOccurrences;
+   #endif
+ 
+     ui.definition->findText( "", flags );
+@@ -2523,7 +2567,7 @@ void ArticleView::copyAsText()
+ 
+ void ArticleView::inspect()
+ {
+-  ui.definition->triggerPageAction( QWebPage::InspectElement );
++  ui.definition->triggerPageAction( QWebEnginePage::InspectElement );
+ }
+ 
+ void ArticleView::highlightFTSResults()
+@@ -2575,11 +2619,11 @@ void ArticleView::highlightFTSResults()
+   // Clear any current selection
+   if ( ui.definition->selectedText().size() )
+   {
+-    ui.definition->page()->currentFrame()->
+-           evaluateJavaScript( "window.getSelection().removeAllRanges();_=0;" );
++    ui.definition->page()->
++           runJavaScript( "window.getSelection().removeAllRanges();_=0;" );
+   }
+ 
+-  QString pageText = ui.definition->page()->currentFrame()->toPlainText();
++  QString pageText = getWebPageTextSync(ui.definition->page());
+   marksHandler->setText( pageText );
+ 
+ #if QT_VERSION >= QT_VERSION_CHECK( 5, 0, 0 )
+@@ -2638,26 +2682,27 @@ void ArticleView::highlightFTSResults()
+ 
+   ftsSearchMatchCase = Qt4x5::Url::hasQueryItem( url, "matchcase" );
+ 
+-  QWebPage::FindFlags flags ( 0 );
++  QWebEnginePage::FindFlags flags ( 0 );
+ 
+   if( ftsSearchMatchCase )
+-    flags |= QWebPage::FindCaseSensitively;
++    flags |= QWebEnginePage::FindCaseSensitively;
+ 
+ #if QT_VERSION >= 0x040600
+-  flags |= QWebPage::HighlightAllOccurrences;
++ // flags |= QWebEnginePage::HighlightAllOccurrences;
+ 
+   for( int x = 0; x < allMatches.size(); x++ )
+     ui.definition->findText( allMatches.at( x ), flags );
+ 
+-  flags &= ~QWebPage::HighlightAllOccurrences;
++ // flags &= ~QWebEnginePage::HighlightAllOccurrences;
+ #endif
+ 
+   if( !allMatches.isEmpty() )
+   {
+-    if( ui.definition->findText( allMatches.at( 0 ), flags ) )
++      ui.definition->findText( allMatches.at( 0 ), flags );
++    //if( ui.definition->findText( allMatches.at( 0 ), flags ) )
+     {
+-        ui.definition->page()->currentFrame()->
+-               evaluateJavaScript( QString( "%1=window.getSelection().getRangeAt(0);_=0;" )
++        ui.definition->page()->
++               runJavaScript( QString( "%1=window.getSelection().getRangeAt(0);_=0;" )
+                                    .arg( rangeVarName ) );
+     }
+   }
+@@ -2669,6 +2714,19 @@ void ArticleView::highlightFTSResults()
+   ftsSearchIsOpened = true;
+ }
+ 
++QString ArticleView::getWebPageTextSync(QWebEnginePage * page){
++    QSemaphore sem(1);
++    sem.acquire(1);
++    QString planText;
++    page->toPlainText([&](const QString & result){
++        planText = result;
++        sem.release(1);
++    });
++    sem.acquire(1);
++    return planText;
++}
++
++//todo ,futher refinement?
+ void ArticleView::performFtsFindOperation( bool backwards )
+ {
+   if( !ftsSearchIsOpened )
+@@ -2681,15 +2739,15 @@ void ArticleView::performFtsFindOperation( bool backwards )
+     return;
+   }
+ 
+-  QWebPage::FindFlags flags( 0 );
++  QWebEnginePage::FindFlags flags( 0 );
+ 
+   if( ftsSearchMatchCase )
+-    flags |= QWebPage::FindCaseSensitively;
++    flags |= QWebEnginePage::FindCaseSensitively;
+ 
+ 
+   // Restore saved highlighted selection
+-  ui.definition->page()->currentFrame()->
+-         evaluateJavaScript( QString( "var sel=window.getSelection();sel.removeAllRanges();sel.addRange(%1);_=0;" )
++  ui.definition->page()->
++         runJavaScript( QString( "var sel=window.getSelection();sel.removeAllRanges();sel.addRange(%1);_=0;" )
+                              .arg( rangeVarName ) );
+ 
+   bool res;
+@@ -2697,36 +2755,36 @@ void ArticleView::performFtsFindOperation( bool backwards )
+   {
+     if( ftsPosition > 0 )
+     {
+-      res = ui.definition->findText( allMatches.at( ftsPosition - 1 ),
+-                                     flags | QWebPage::FindBackward );
++      ui.definition->findText( allMatches.at( ftsPosition - 1 ),
++                                     flags | QWebEnginePage::FindBackward );
+       ftsPosition -= 1;
+     }
+     else
+-      res = ui.definition->findText( allMatches.at( ftsPosition ),
+-                                     flags | QWebPage::FindBackward );
++       ui.definition->findText( allMatches.at( ftsPosition ),
++                                     flags | QWebEnginePage::FindBackward );
+ 
+-    ui.ftsSearchPrevious->setEnabled( res );
+-    if( !ui.ftsSearchNext->isEnabled() )
+-      ui.ftsSearchNext->setEnabled( res );
++//    ui.ftsSearchPrevious->setEnabled( res );
++//    if( !ui.ftsSearchNext->isEnabled() )
++//      ui.ftsSearchNext->setEnabled( res );
+   }
+   else
+   {
+     if( ftsPosition < allMatches.size() - 1 )
+     {
+-      res = ui.definition->findText( allMatches.at( ftsPosition + 1 ), flags );
++       ui.definition->findText( allMatches.at( ftsPosition + 1 ), flags );
+       ftsPosition += 1;
+     }
+     else
+-      res = ui.definition->findText( allMatches.at( ftsPosition ), flags );
++       ui.definition->findText( allMatches.at( ftsPosition ), flags );
+ 
+-    ui.ftsSearchNext->setEnabled( res );
+-    if( !ui.ftsSearchPrevious->isEnabled() )
+-      ui.ftsSearchPrevious->setEnabled( res );
++//    ui.ftsSearchNext->setEnabled( res );
++//    if( !ui.ftsSearchPrevious->isEnabled() )
++//      ui.ftsSearchPrevious->setEnabled( res );
+   }
+ 
+   // Store new highlighted selection
+-  ui.definition->page()->currentFrame()->
+-         evaluateJavaScript( QString( "%1=window.getSelection().getRangeAt(0);_=0;" )
++  ui.definition->page()->
++         runJavaScript( QString( "%1=window.getSelection().getRangeAt(0);_=0;" )
+                              .arg( rangeVarName ) );
+ }
+ 
+@@ -2835,24 +2893,29 @@ QString ArticleView::insertSpans( QString const & html )
+     return newContent;
+ }
+ 
+-QString ArticleView::checkElement( QWebElement & elem, QPoint const & pt )
++QString ArticleView::checkElement( QWebEnginePage & elem, QPoint const & pt )
+ {
+-    /// Search for lower-level matching element
+ 
+-    QWebElement parentElem = elem;
+-    QWebElement childElem = elem.firstChild();
+-    while( !childElem.isNull() )
+-    {
+-      if( childElem.geometry().contains( pt ) )
+-      {
+-        parentElem = childElem;
+-        childElem = parentElem.firstChild();
+-        continue;
+-      }
+-      childElem = childElem.nextSibling();
+-    }
+ 
+-    return parentElem.toPlainText();
++    QSemaphore semaphore(1);
++    semaphore.acquire(1);
++      QString nodeValue;
++    elem.runJavaScript(QString(
++                             " var a= document.elementFromPoint(%1,%2);"
++                              "var nodename=a.nodeName.toLowerCase();"
++                              "if(nodename==\"body\"||nodename==\"html\"||nodename==\"head\")"
++                              "{"
++                               "   return '';"
++                              "}"
++                              "return a.textContent;")
++                         .arg(pt.x()).arg(pt.y()),[&semaphore,&nodeValue](const QVariant & result){
++              semaphore.release();
++
++              nodeValue=result.toString();
++    });
++
++      semaphore.acquire(1);
++  return nodeValue;
+ }
+ 
+ QString ArticleView::wordAtPoint( int x, int y )
+@@ -2863,125 +2926,147 @@ QString ArticleView::wordAtPoint( int x, int y )
+     return word;
+ 
+   QPoint pos = mapFromGlobal( QPoint( x, y ) );
+-  QWebFrame *frame = ui.definition->page()->frameAt( pos );
++  //todo
++  QWebEnginePage *frame = ui.definition->page();
+   if( !frame )
+     return word;
+ 
+-  QPoint posWithScroll = pos + frame->scrollPosition();
++  QPointF scrollPoint=frame->scrollPosition();
+ 
+-  /// Find target HTML element
+-
+-  QWebHitTestResult result = frame->hitTestContent( pos );
+-  QWebElement baseElem = result.enclosingBlockElement();
++  QPoint posWithScroll = pos + QPoint((int)scrollPoint.x(),(int)scrollPoint.y());
+ 
+-  if( baseElem.tagName().compare( "BODY" ) == 0 ||      /// Assume empty field position
+-      baseElem.tagName().compare( "HTML" ) == 0 ||
+-      baseElem.tagName().compare( "HEAD" ) == 0 )
+-    return word;
++  /// Find target HTML element
+ 
+-  /// Save selection position
+-
+-  baseElem.evaluateJavaScript( "var __gd_sel=window.getSelection();"
+-                               "if(__gd_sel && __gd_sel.rangeCount>0) {"
+-                                 "__gd_SelRange=__gd_sel.getRangeAt(0);"
+-                                 "if(__gd_SelRange.collapsed) __gd_sel.removeAllRanges();"
+-                                 "else {"
+-                                   "__gd_StartTree=[]; __gd_EndTree=[];"
+-                                   "var __gd_baseRange=document.createRange();"
+-                                   "__gd_baseRange.selectNode(this);"
+-                                   "if(__gd_baseRange.comparePoint(__gd_SelRange.startContainer,0)==0) {"
+-                                     "__gd_StartOffset=__gd_SelRange.startOffset;"
+-                                     "var __gd_child=__gd_SelRange.startContainer;"
+-                                     "var __gd_parent='';"
+-                                     "if(__gd_child==this) __gd_StartTree.push(-1);"
+-                                     "else while(__gd_parent!=this) {"
+-                                       "var n=0; __gd_parent=__gd_child.parentNode;"
+-                                       "var __gd_el=__gd_parent.firstChild;"
+-                                       "while(__gd_el!=__gd_child) { n++; __gd_el=__gd_el.nextSibling; }"
+-                                       "__gd_StartTree.push(n);"
+-                                       "__gd_child=__gd_parent;"
+-                                     "}"
+-                                   "}"
+-                                   "if(__gd_baseRange.comparePoint(__gd_SelRange.endContainer,0)==0) {"
+-                                     "__gd_EndOffset=__gd_SelRange.endOffset;"
+-                                     "var __gd_child=__gd_SelRange.endContainer;"
+-                                     "var __gd_parent='';"
+-                                     "if(__gd_child==this) __gd_EndTree.push(-1);"
+-                                     "else while(__gd_parent!=this) {"
+-                                       "var n=0; __gd_parent=__gd_child.parentNode;"
+-                                       "var __gd_el=__gd_parent.firstChild;"
+-                                       "while(__gd_el!=__gd_child) { n++; __gd_el=__gd_el.nextSibling; }"
+-                                       "__gd_EndTree.push(n);"
+-                                       "__gd_child=__gd_parent;"
+-                                     "}"
+-                                   "}"
+-                                 "}"
+-                               "}"
+-                               );
+-
+-  /// Enclose every word be <span> </span>
+-
+-  QString content = baseElem.toInnerXml();
+-  QString newContent = insertSpans( content );
+-
+-  /// Set new code and re-render it to fill geometry
+-
+-  QImage img( baseElem.geometry().width(), baseElem.geometry().height(), QImage::Format_Mono );
+-  img.fill( 0 );
+-  QPainter painter( & img );
+-
+-  baseElem.setInnerXml( newContent );
+-  baseElem.render( &painter );
+-
+-  /// Search in all child elements and check it
+-
+-  QWebElementCollection elemCollection = baseElem.findAll( "*" );
+-  foreach ( QWebElement elem, elemCollection )
+-  {
+-      if( elem.geometry().contains( posWithScroll ) )
+-          word = checkElement( elem, posWithScroll );
+-      if( !word.isEmpty() )
+-          break;
+-  }
+-
+-  /// Restore old content
+-  baseElem.setInnerXml( content );
+-
+-  /// Restore selection
+-
+-  baseElem.evaluateJavaScript( "var flag=0;"
+-                               "if(__gd_StartTree && __gd_StartTree.length) {"
+-                                 "var __gd_el=this;"
+-                                 "while(__gd_StartTree.length) {"
+-                                   "__gd_el=__gd_el.firstChild;"
+-                                   "var n=__gd_StartTree.pop();"
+-                                   "if(n<0) __gd_el=this;"
+-                                   "else for(var i=0;i<n;i++) __gd_el=__gd_el.nextSibling;"
+-                                 "}"
+-                                 "__gd_SelRange.setStart(__gd_el, __gd_StartOffset);"
+-                                 "__gd_StartTree.splice(0,__gd_StartTree.length);"
+-                                 "flag+=1;"
+-                               "}"
+-                               "if(__gd_EndTree && __gd_EndTree.length) {"
+-                                 "var __gd_el=this;"
+-                                 "while(__gd_EndTree.length) {"
+-                                   "__gd_el=__gd_el.firstChild;"
+-                                   "var n=__gd_EndTree.pop();"
+-                                   "if(n<0) __gd_el=this;"
+-                                   "else for(var i=0;i<n;i++) __gd_el=__gd_el.nextSibling;"
+-                                 "}"
+-                                 "__gd_SelRange.setEnd(__gd_el, __gd_EndOffset);"
+-                                 "__gd_EndTree.splice(0,__gd_EndTree.length);"
+-                                 "flag+=1;"
+-                               "}"
+-                               "if(flag>0) {"
+-                                 "var __gd_sel=window.getSelection();"
+-                                 "__gd_sel.removeAllRanges();"
+-                                 "__gd_sel.addRange(__gd_SelRange);"
+-                               "}"
+-                               );
+-
+-  return word;
++  QSemaphore semaphore(1);
++  semaphore.acquire(1);
++    QString nodeValue;
++  frame->runJavaScript(QString(
++                           " var a= document.elementFromPoint(%1,%2);"
++                            "var nodename=a.nodeName.toLowerCase();"
++                            "if(nodename==\"body\"||nodename==\"html\"||nodename==\"head\")"
++                            "{"
++                             "   return '';"
++                            "}"
++                            "return a.textContent;")
++                       .arg(posWithScroll.x()).arg(posWithScroll.y()),[&](const QVariant & result){
++            semaphore.release();
++
++            nodeValue=result.toString();
++  });
++
++    semaphore.acquire(1);
++return nodeValue;
++//  QWebHitTestResult result = frame->hitTestContent( pos );
++//  QWebElement baseElem = result.enclosingBlockElement();
++
++//  if( baseElem.tagName().compare( "BODY" ) == 0 ||      /// Assume empty field position
++//      baseElem.tagName().compare( "HTML" ) == 0 ||
++//      baseElem.tagName().compare( "HEAD" ) == 0 )
++//    return word;
++
++//  /// Save selection position
++
++//  baseElem.runJavaScript( "var __gd_sel=window.getSelection();"
++//                               "if(__gd_sel && __gd_sel.rangeCount>0) {"
++//                                 "__gd_SelRange=__gd_sel.getRangeAt(0);"
++//                                 "if(__gd_SelRange.collapsed) __gd_sel.removeAllRanges();"
++//                                 "else {"
++//                                   "__gd_StartTree=[]; __gd_EndTree=[];"
++//                                   "var __gd_baseRange=document.createRange();"
++//                                   "__gd_baseRange.selectNode(this);"
++//                                   "if(__gd_baseRange.comparePoint(__gd_SelRange.startContainer,0)==0) {"
++//                                     "__gd_StartOffset=__gd_SelRange.startOffset;"
++//                                     "var __gd_child=__gd_SelRange.startContainer;"
++//                                     "var __gd_parent='';"
++//                                     "if(__gd_child==this) __gd_StartTree.push(-1);"
++//                                     "else while(__gd_parent!=this) {"
++//                                       "var n=0; __gd_parent=__gd_child.parentNode;"
++//                                       "var __gd_el=__gd_parent.firstChild;"
++//                                       "while(__gd_el!=__gd_child) { n++; __gd_el=__gd_el.nextSibling; }"
++//                                       "__gd_StartTree.push(n);"
++//                                       "__gd_child=__gd_parent;"
++//                                     "}"
++//                                   "}"
++//                                   "if(__gd_baseRange.comparePoint(__gd_SelRange.endContainer,0)==0) {"
++//                                     "__gd_EndOffset=__gd_SelRange.endOffset;"
++//                                     "var __gd_child=__gd_SelRange.endContainer;"
++//                                     "var __gd_parent='';"
++//                                     "if(__gd_child==this) __gd_EndTree.push(-1);"
++//                                     "else while(__gd_parent!=this) {"
++//                                       "var n=0; __gd_parent=__gd_child.parentNode;"
++//                                       "var __gd_el=__gd_parent.firstChild;"
++//                                       "while(__gd_el!=__gd_child) { n++; __gd_el=__gd_el.nextSibling; }"
++//                                       "__gd_EndTree.push(n);"
++//                                       "__gd_child=__gd_parent;"
++//                                     "}"
++//                                   "}"
++//                                 "}"
++//                               "}"
++//                               );
++
++//  /// Enclose every word be <span> </span>
++
++//  QString content = baseElem.toInnerXml();
++//  QString newContent = insertSpans( content );
++
++//  /// Set new code and re-render it to fill geometry
++
++//  QImage img( baseElem.geometry().width(), baseElem.geometry().height(), QImage::Format_Mono );
++//  img.fill( 0 );
++//  QPainter painter( & img );
++
++//  baseElem.setInnerXml( newContent );
++//  baseElem.render( &painter );
++
++//  /// Search in all child elements and check it
++
++//  QWebElementCollection elemCollection = baseElem.findAll( "*" );
++//  foreach ( QWebElement elem, elemCollection )
++//  {
++//      if( elem.geometry().contains( posWithScroll ) )
++//          word = checkElement( elem, posWithScroll );
++//      if( !word.isEmpty() )
++//          break;
++//  }
++
++//  /// Restore old content
++//  baseElem.setInnerXml( content );
++
++//  /// Restore selection
++
++//  baseElem.runJavaScript( "var flag=0;"
++//                               "if(__gd_StartTree && __gd_StartTree.length) {"
++//                                 "var __gd_el=this;"
++//                                 "while(__gd_StartTree.length) {"
++//                                   "__gd_el=__gd_el.firstChild;"
++//                                   "var n=__gd_StartTree.pop();"
++//                                   "if(n<0) __gd_el=this;"
++//                                   "else for(var i=0;i<n;i++) __gd_el=__gd_el.nextSibling;"
++//                                 "}"
++//                                 "__gd_SelRange.setStart(__gd_el, __gd_StartOffset);"
++//                                 "__gd_StartTree.splice(0,__gd_StartTree.length);"
++//                                 "flag+=1;"
++//                               "}"
++//                               "if(__gd_EndTree && __gd_EndTree.length) {"
++//                                 "var __gd_el=this;"
++//                                 "while(__gd_EndTree.length) {"
++//                                   "__gd_el=__gd_el.firstChild;"
++//                                   "var n=__gd_EndTree.pop();"
++//                                   "if(n<0) __gd_el=this;"
++//                                   "else for(var i=0;i<n;i++) __gd_el=__gd_el.nextSibling;"
++//                                 "}"
++//                                 "__gd_SelRange.setEnd(__gd_el, __gd_EndOffset);"
++//                                 "__gd_EndTree.splice(0,__gd_EndTree.length);"
++//                                 "flag+=1;"
++//                               "}"
++//                               "if(flag>0) {"
++//                                 "var __gd_sel=window.getSelection();"
++//                                 "__gd_sel.removeAllRanges();"
++//                                 "__gd_sel.addRange(__gd_SelRange);"
++//                               "}"
++//                               );
++
++//  return word;
+ }
+ 
+ #endif
+diff --git a/articleview.hh b/articleview.hh
+index 2c274e7e..adc327f2 100644
+--- a/articleview.hh
++++ b/articleview.hh
+@@ -4,7 +4,7 @@
+ #ifndef __ARTICLEVIEW_HH_INCLUDED__
+ #define __ARTICLEVIEW_HH_INCLUDED__
+ 
+-#include <QWebView>
++#include <QWebEngineView>
+ #include <QMap>
+ #include <QUrl>
+ #include <QSet>
+@@ -60,6 +60,8 @@ class ArticleView: public QFrame
+   bool ftsSearchIsOpened, ftsSearchMatchCase;
+   int ftsPosition;
+ 
++  QString lastUrl;
++
+   void highlightFTSResults();
+   void performFtsFindOperation( bool backwards );
+   void showFindButtons();
+@@ -135,6 +137,8 @@ public:
+   /// Called when preference changes
+   void setSelectionBySingleClick( bool set );
+ 
++  QString getWebPageTextSync(QWebEnginePage * page);
++
+ public slots:
+ 
+   /// Goes back in history
+@@ -165,6 +169,9 @@ public:
+   /// Returns current article's text in .html format
+   QString toHtml();
+ 
++  void setHtml(const QString& content, const QUrl& baseUrl);
++  void setContent(const QByteArray &data, const QString &mimeType = QString(), const QUrl &baseUrl = QUrl());
++
+   /// Returns current article's title
+   QString getTitle();
+ 
+@@ -269,7 +276,7 @@ private slots:
+   void handleUrlChanged( QUrl const & url );
+   void attachToJavaScript();
+   void linkClicked( QUrl const & );
+-  void linkHovered( const QString & link, const QString & title, const QString & textContent );
++  void linkHovered( const QString & link);
+   void contextMenuRequested( QPoint const & );
+ 
+   void resourceDownloadFinished();
+@@ -336,7 +343,7 @@ private:
+ 
+   /// Use the known information about the current frame to update the current
+   /// article's value.
+-  void updateCurrentArticleFromCurrentFrame( QWebFrame * frame = 0 );
++  void updateCurrentArticleFromCurrentFrame( QWebEnginePage * frame = 0 ,QPoint * point=0);
+ 
+   /// Saves current article and scroll position for the current history item.
+   /// Should be used when leaving the page.
+@@ -349,12 +356,16 @@ private:
+ 
+   void performFindOperation( bool restart, bool backwards, bool checkHighlight = false );
+ 
++  bool findText(QString& text, const QWebEnginePage::FindFlags& f);
++
+   void reloadStyleSheet();
+ 
+   /// Returns the comma-separated list of dictionary ids which should be muted
+   /// for the given group. If there are none, returns empty string.
+   QString getMutedForGroup( unsigned group );
+ 
++  QStringList getMutedDictionaries(unsigned group);
++
+ protected:
+ 
+   // We need this to hide the search bar when we're showed
+@@ -367,7 +378,7 @@ protected:
+ private:
+   QString insertSpans( QString const & html );
+   void readTag( QString const & from, QString & to, int & count );
+-  QString checkElement( QWebElement & elem, const QPoint & pt );
++  QString checkElement( QWebEnginePage & elem, const QPoint & pt );
+ public:
+   QString wordAtPoint( int x, int y );
+ #endif
+diff --git a/articlewebview.cc b/articlewebview.cc
+index 20d96076..bc38b6e0 100644
+--- a/articlewebview.cc
++++ b/articlewebview.cc
+@@ -3,19 +3,15 @@
+ 
+ #include "articlewebview.hh"
+ #include <QMouseEvent>
+-#include <QWebFrame>
++#include <QWebEngineView>
+ #include <QApplication>
+-#include "articleinspector.hh"
+ 
+ #ifdef Q_OS_WIN32
+ #include <qt_windows.h>
+ #endif
+ 
+ ArticleWebView::ArticleWebView( QWidget *parent ):
+-  QWebView( parent ),
+-#if QT_VERSION >= 0x040600
+-  inspector( NULL ),
+-#endif
++  QWebEngineView( parent ),
+   midButtonPressed( false ),
+   selectionBySingleClick( false ),
+   showInspectorDirectly( true )
+@@ -24,7 +20,7 @@ ArticleWebView::ArticleWebView( QWidget *parent ):
+ 
+ ArticleWebView::~ArticleWebView()
+ {
+-#if QT_VERSION >= 0x040600
++#if QT_VERSION >= 0x040600 && QT_VERSION <0x050500
+   if ( inspector )
+     inspector->deleteLater();
+ #endif
+@@ -35,10 +31,10 @@ void ArticleWebView::setUp( Config::Class * cfg )
+   this->cfg = cfg;
+ }
+ 
+-void ArticleWebView::triggerPageAction( QWebPage::WebAction action, bool checked )
++void ArticleWebView::triggerPageAction( QWebEnginePage::WebAction action, bool checked )
+ {
+-#if QT_VERSION >= 0x040600
+-  if ( action == QWebPage::InspectElement )
++#if QT_VERSION >= 0x040600 && QT_VERSION <0x050500
++  if ( action == QWebEnginePage::InspectElement )
+   {
+     // Get or create inspector instance for current view.
+     if ( !inspector )
+@@ -60,7 +56,7 @@ void ArticleWebView::triggerPageAction( QWebPage::WebAction action, bool checked
+   }
+ #endif
+ 
+-  QWebView::triggerPageAction( action, checked );
++  QWebEngineView::triggerPageAction( action, checked );
+ }
+ 
+ bool ArticleWebView::event( QEvent * event )
+@@ -80,7 +76,7 @@ bool ArticleWebView::event( QEvent * event )
+     break;
+   }
+ 
+-  return QWebView::event( event );
++  return QWebEngineView::event( event );
+ }
+ 
+ void ArticleWebView::mousePressEvent( QMouseEvent * event )
+@@ -88,7 +84,7 @@ void ArticleWebView::mousePressEvent( QMouseEvent * event )
+   if ( event->buttons() & Qt::MidButton )
+     midButtonPressed = true;
+ 
+-  QWebView::mousePressEvent( event );
++  QWebEngineView::mousePressEvent( event );
+ 
+   if ( selectionBySingleClick && ( event->buttons() & Qt::LeftButton ) )
+   {
+@@ -102,7 +98,7 @@ void ArticleWebView::mouseReleaseEvent( QMouseEvent * event )
+ {
+   bool noMidButton = !( event->buttons() & Qt::MidButton );
+ 
+-  QWebView::mouseReleaseEvent( event );
++  QWebEngineView::mouseReleaseEvent( event );
+ 
+   if ( midButtonPressed & noMidButton )
+     midButtonPressed = false;
+@@ -110,10 +106,11 @@ void ArticleWebView::mouseReleaseEvent( QMouseEvent * event )
+ 
+ void ArticleWebView::mouseDoubleClickEvent( QMouseEvent * event )
+ {
+-  QWebView::mouseDoubleClickEvent( event );
+-#if QT_VERSION >= 0x040600
+-  int scrollBarWidth = page()->mainFrame()->scrollBarGeometry( Qt::Vertical ).width();
+-  int scrollBarHeight = page()->mainFrame()->scrollBarGeometry( Qt::Horizontal ).height();
++  QWebEngineView::mouseDoubleClickEvent( event );
++  //todo
++#if QT_VERSION >= 0x040600 && QT_VERSION <0x050500
++  int scrollBarWidth = page()->contentsSize().width();
++  int scrollBarHeight = page()->contentsSize().height();
+ #else
+   int scrollBarWidth = 0;
+   int scrollBarHeight = 0;
+@@ -130,14 +127,14 @@ void ArticleWebView::mouseDoubleClickEvent( QMouseEvent * event )
+ 
+ void ArticleWebView::focusInEvent( QFocusEvent * event )
+ {
+-  QWebView::focusInEvent( event );
++  QWebEngineView::focusInEvent( event );
+ 
+   switch( event->reason() )
+   {
+     case Qt::MouseFocusReason:
+     case Qt::TabFocusReason:
+     case Qt::BacktabFocusReason:
+-      page()->mainFrame()->evaluateJavaScript("top.focus();");
++      page()->runJavaScript("top.focus();");
+       break;
+ 
+     default:
+@@ -149,7 +146,7 @@ void ArticleWebView::wheelEvent( QWheelEvent *ev )
+ {
+ #ifdef Q_OS_WIN32
+ 
+-  // Avoid wrong mouse wheel handling in QWebView
++  // Avoid wrong mouse wheel handling in QWebEngineView
+   // if system preferences is set to "scroll by page"
+ 
+   if( ev->modifiers() == Qt::NoModifier )
+@@ -174,7 +171,7 @@ void ArticleWebView::wheelEvent( QWheelEvent *ev )
+   }
+   else
+   {
+-     QWebView::wheelEvent( ev );
++     QWebEngineView::wheelEvent( ev );
+   }
+ 
+ }
+diff --git a/articlewebview.hh b/articlewebview.hh
+index 1c3c832b..9687be31 100644
+--- a/articlewebview.hh
++++ b/articlewebview.hh
+@@ -4,20 +4,18 @@
+ #ifndef __ARTICLEWEBVIEW_HH_INCLUDED__
+ #define __ARTICLEWEBVIEW_HH_INCLUDED__
+ 
+-#include <QWebView>
++#include <QWebEngineView>
+ #include "config.hh"
+ 
+-class ArticleInspector;
+-
+-/// A thin wrapper around QWebView to accommodate to some ArticleView's needs.
++/// A thin wrapper around QWebEngineView to accommodate to some ArticleView's needs.
+ /// Currently the only added features:
+ /// 1. Ability to know if the middle mouse button is pressed or not according
+ ///    to the view's current state. This is used to open links in new tabs when
+ ///    they are clicked with middle button. There's also an added possibility to
+ ///    get double-click events after the fact with the doubleClicked() signal.
+ /// 2. Manage our own QWebInspector instance. In order to show inspector correctly,
+-///    use triggerPageAction( QWebPage::InspectElement ) instead.
+-class ArticleWebView: public QWebView
++///    use triggerPageAction( QWebEnginePage::InspectElement ) instead.
++class ArticleWebView: public QWebEngineView
+ {
+   Q_OBJECT
+ 
+@@ -33,7 +31,7 @@ public:
+   void setSelectionBySingleClick( bool set )
+   { selectionBySingleClick = set; }
+ 
+-  void triggerPageAction( QWebPage::WebAction action, bool checked = false );
++  void triggerPageAction( QWebEnginePage::WebAction action, bool checked = false );
+ 
+ signals:
+ 
+@@ -55,7 +53,6 @@ protected:
+ private:
+ 
+   Config::Class * cfg;
+-  ArticleInspector * inspector;
+ 
+   bool midButtonPressed;
+   bool selectionBySingleClick;
+diff --git a/belarusiantranslit.cc b/belarusiantranslit.cc
+index 7811ed89..1138d0af 100644
+--- a/belarusiantranslit.cc
++++ b/belarusiantranslit.cc
+@@ -1,4 +1,4 @@
+-/* This file is (c) 2013 Maksim Tamkovicz <quendimax@gmail.com>
++﻿/* This file is (c) 2013 Maksim Tamkovicz <quendimax@gmail.com>
+  * Part of GoldenDict. Licensed under GPLv3 or later, see the LICENSE file */
+ 
+ #include "belarusiantranslit.hh"
+diff --git a/dictdfiles.cc b/dictdfiles.cc
+index d633c23d..da83d44a 100644
+--- a/dictdfiles.cc
++++ b/dictdfiles.cc
+@@ -343,7 +343,6 @@ sptr< Dictionary::DataRequest > DictdDictionary::getArticle( wstring const & wor
+       }
+       else
+       {
+-#if QT_VERSION >= QT_VERSION_CHECK( 5, 0, 0 )
+         static QRegularExpression phonetic( "\\\\([^\\\\]+)\\\\",
+                                             QRegularExpression::CaseInsensitiveOption ); // phonetics: \stuff\ ...
+         static QRegularExpression refs( "\\{([^\\{\\}]+)\\}",
+@@ -352,12 +351,7 @@ sptr< Dictionary::DataRequest > DictdDictionary::getArticle( wstring const & wor
+                                          QRegularExpression::CaseInsensitiveOption );
+         static QRegularExpression tags( "<[^>]*>",
+                                         QRegularExpression::CaseInsensitiveOption );
+-#else
+-        static QRegExp phonetic( "\\\\([^\\\\]+)\\\\", Qt::CaseInsensitive ); // phonetics: \stuff\ ...
+-        static QRegExp refs( "\\{([^\\{\\}]+)\\}", Qt::CaseInsensitive );     // links: {stuff}
+-        static QRegExp links( "<a href=\"gdlookup://localhost/([^\"]*)\">", Qt::CaseInsensitive );
+-        static QRegExp tags( "<[^>]*>", Qt::CaseInsensitive );
+-#endif
++
+ 
+         articleText = string( "<div class=\"dictd_article\"" );
+         if( isToLanguageRTL() )
+@@ -373,7 +367,7 @@ sptr< Dictionary::DataRequest > DictdDictionary::getArticle( wstring const & wor
+         convertedText.erase();
+ 
+         int pos = 0;
+-#if QT_VERSION >= QT_VERSION_CHECK( 5, 0, 0 )
++
+         QString articleNewString;
+         QRegularExpressionMatchIterator it = links.globalMatch( articleString );
+         while( it.hasNext() )
+@@ -397,21 +391,7 @@ sptr< Dictionary::DataRequest > DictdDictionary::getArticle( wstring const & wor
+           articleString = articleNewString;
+           articleNewString.clear();
+         }
+-#else
+-        for( ; ; )
+-        {
+-          pos = articleString.indexOf( links, pos );
+-          if( pos < 0 )
+-            break;
+ 
+-          QString link = links.cap( 1 );
+-          link.replace( tags, " " );
+-          link.replace( "&nbsp;", " " );
+-          articleString.replace( pos + 30, links.cap( 1 ).length(),
+-                                 QString::fromUtf8( QUrl::toPercentEncoding( link.simplified() ) ) );
+-          pos += 30;
+-        }
+-#endif
+ 
+         articleString += "</div>";
+ 
+diff --git a/dsl.cc b/dsl.cc
+index 0e81e7bd..141a0159 100644
+--- a/dsl.cc
++++ b/dsl.cc
+@@ -906,8 +906,9 @@ string DslDictionary::nodeToHtml( ArticleDom::Node const & node )
+ 
+       result += addAudioLink( ref, getId() );
+ 
+-      result += "<span class=\"dsl_s_wav\"><a href=" + ref
+-         + "><img src=\"qrcx://localhost/icons/playsound.png\" border=\"0\" align=\"absmiddle\" alt=\"Play\"/></a></span>";
++      string surl=url.toEncoded().data();
++
++      result += "<span class=\"dsl_s_wav\"><a onclick=\"playSound('"+surl+"')\"  href= \"javascript:void(0)\" ><img src=\"qrcx://localhost/icons/playsound.png\" border=\"0\" align=\"absmiddle\" alt=\"Play\"/></a></span>";
+     }
+     else
+     if ( Filetype::isNameOfPicture( filename ) )
+diff --git a/fulltextsearch.hh b/fulltextsearch.hh
+index 9faae720..dab5ccbe 100644
+--- a/fulltextsearch.hh
++++ b/fulltextsearch.hh
+@@ -26,7 +26,7 @@ enum {
+   MaxDictionarySizeForFastSearch = 150000,
+ 
+   // Maxumum match length for highlight search results
+-  // (QWebPage::findText() crashes on too long strings)
++  // (QWebEnginePage::findText() crashes on too long strings)
+   MaxMatchLengthForHighlightResults = 500
+ };
+ 
+diff --git a/gico_schemahandler.cpp b/gico_schemahandler.cpp
+new file mode 100644
+index 00000000..c0898c49
+--- /dev/null
++++ b/gico_schemahandler.cpp
+@@ -0,0 +1,21 @@
++#include "gico_schemahandler.h"
++
++GicoSchemeHandler::GicoSchemeHandler(ArticleNetworkAccessManager& articleNetMgr):mManager(articleNetMgr){
++
++}
++void GicoSchemeHandler::requestStarted(QWebEngineUrlRequestJob *requestJob)
++{
++    QUrl url = requestJob->requestUrl();
++
++    QNetworkRequest request;
++    request.setUrl( url );
++
++    QNetworkReply* reply=this->mManager.createRequest(QNetworkAccessManager::GetOperation,request,NULL);
++
++    QString contentType="image/png";
++    if(url.scheme()=="gadu"){
++        contentType="audio/wav";
++    }
++    // Reply segment
++    requestJob->reply(contentType.toLatin1(), reply);
++}
+diff --git a/gico_schemahandler.h b/gico_schemahandler.h
+new file mode 100644
+index 00000000..ee0a3bb1
+--- /dev/null
++++ b/gico_schemahandler.h
+@@ -0,0 +1,19 @@
++#ifndef GICO_SCHEMAHANDLER_H
++#define GICO_SCHEMAHANDLER_H
++
++#include"article_netmgr.hh"
++
++class GicoSchemeHandler : public QWebEngineUrlSchemeHandler
++{
++    Q_OBJECT
++public:
++    GicoSchemeHandler(ArticleNetworkAccessManager& articleNetMgr);
++    void requestStarted(QWebEngineUrlRequestJob *requestJob);
++
++protected:
++
++private:
++    ArticleNetworkAccessManager& mManager;
++};
++
++#endif // GICO_SCHEMAHANDLER_H
+diff --git a/goldendict.pro b/goldendict.pro
+index 4a4a3094..c6e717a3 100644
+--- a/goldendict.pro
++++ b/goldendict.pro
+@@ -25,7 +25,7 @@ QT += core \
+ 
+ greaterThan(QT_MAJOR_VERSION, 4) {
+     QT += widgets \
+-          webkitwidgets \
++webenginewidgets\
+           printsupport \
+           help
+ 
+@@ -250,6 +250,7 @@ DEFINES += PROGRAM_VERSION=\\\"$$VERSION\\\"
+ 
+ # Input
+ HEADERS += folding.hh \
++    gico_schemahandler.h \
+     inc_case_folding.hh \
+     inc_diacritic_folding.hh \
+     mainwindow.hh \
+@@ -352,7 +353,6 @@ HEADERS += folding.hh \
+     mdx.hh \
+     voiceengines.hh \
+     ffmpegaudio.hh \
+-    articleinspector.hh \
+     delegate.hh \
+     zim.hh \
+     gddebug.hh \
+@@ -389,6 +389,7 @@ FORMS += groups.ui \
+     fulltextsearch.ui
+ 
+ SOURCES += folding.cc \
++    gico_schemahandler.cpp \
+     main.cc \
+     dictionary.cc \
+     config.cc \
+@@ -484,7 +485,6 @@ SOURCES += folding.cc \
+     mdx.cc \
+     voiceengines.cc \
+     ffmpegaudio.cc \
+-    articleinspector.cc \
+     delegate.cc \
+     zim.cc \
+     gddebug.cc \
+diff --git a/goldendict.sln b/goldendict.sln
+index 844420d9..da8c42cd 100644
+--- a/goldendict.sln
++++ b/goldendict.sln
+@@ -1,6 +1,8 @@
+ ﻿
+ Microsoft Visual Studio Solution File, Format Version 12.00
+-# Visual Studio 2012
++# Visual Studio Version 16
++VisualStudioVersion = 16.0.31321.278
++MinimumVisualStudioVersion = 10.0.40219.1
+ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "goldendict", "goldendict.vcxproj", "{C3D65E5B-B7EE-3F85-B73F-6D65D9C501A8}"
+ EndProject
+ Global
+@@ -35,4 +37,8 @@ Global
+ 	GlobalSection(SolutionProperties) = preSolution
+ 		HideSolutionNode = FALSE
+ 	EndGlobalSection
++	GlobalSection(ExtensibilityGlobals) = postSolution
++		Qt5Version = 5.15.2_msvc2019_64
++		SolutionGuid = {AB69BDC9-2D52-4117-A210-4C249E01338D}
++	EndGlobalSection
+ EndGlobal
+diff --git a/goldendict.vcxproj b/goldendict.vcxproj
+index 6db7f4d8..07b50e8d 100644
+--- a/goldendict.vcxproj
++++ b/goldendict.vcxproj
+@@ -41,7 +41,7 @@
+   </PropertyGroup>
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+-    <PlatformToolSet>v110</PlatformToolSet>
++    <PlatformToolSet>v142</PlatformToolSet>
+     <OutputDirectory>release\</OutputDirectory>
+     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+     <CharacterSet>Unicode</CharacterSet>
+@@ -51,7 +51,7 @@
+     <WholeProgramOptimization>true</WholeProgramOptimization>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+-    <PlatformToolSet>v110</PlatformToolSet>
++    <PlatformToolSet>v142</PlatformToolSet>
+     <OutputDirectory>release\</OutputDirectory>
+     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+     <CharacterSet>Unicode</CharacterSet>
+@@ -61,7 +61,7 @@
+     <WholeProgramOptimization>true</WholeProgramOptimization>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+-    <PlatformToolSet>v110</PlatformToolSet>
++    <PlatformToolSet>v142</PlatformToolSet>
+     <OutputDirectory>debug\</OutputDirectory>
+     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+     <CharacterSet>Unicode</CharacterSet>
+@@ -70,7 +70,7 @@
+     <PrimaryOutput>GoldenDict1</PrimaryOutput>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+-    <PlatformToolSet>v110</PlatformToolSet>
++    <PlatformToolSet>v142</PlatformToolSet>
+     <OutputDirectory>debug\</OutputDirectory>
+     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+     <CharacterSet>Unicode</CharacterSet>
+@@ -79,7 +79,7 @@
+     <PrimaryOutput>GoldenDict1</PrimaryOutput>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Qt4|Win32'" Label="Configuration">
+-    <PlatformToolSet>v110</PlatformToolSet>
++    <PlatformToolSet>v142</PlatformToolSet>
+     <OutputDirectory>debug\</OutputDirectory>
+     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+     <CharacterSet>Unicode</CharacterSet>
+@@ -88,7 +88,7 @@
+     <PrimaryOutput>GoldenDict1</PrimaryOutput>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Qt4|x64'" Label="Configuration">
+-    <PlatformToolSet>v110</PlatformToolSet>
++    <PlatformToolSet>v142</PlatformToolSet>
+     <OutputDirectory>debug\</OutputDirectory>
+     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+     <CharacterSet>Unicode</CharacterSet>
+@@ -97,7 +97,7 @@
+     <PrimaryOutput>GoldenDict1</PrimaryOutput>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Qt4|Win32'" Label="Configuration">
+-    <PlatformToolSet>v110</PlatformToolSet>
++    <PlatformToolSet>v142</PlatformToolSet>
+     <OutputDirectory>debug\</OutputDirectory>
+     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+     <CharacterSet>Unicode</CharacterSet>
+@@ -107,7 +107,7 @@
+     <WholeProgramOptimization>true</WholeProgramOptimization>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Qt4|x64'" Label="Configuration">
+-    <PlatformToolSet>v110</PlatformToolSet>
++    <PlatformToolSet>v142</PlatformToolSet>
+     <OutputDirectory>debug\</OutputDirectory>
+     <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+     <CharacterSet>Unicode</CharacterSet>
+@@ -198,7 +198,7 @@
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+     <ClCompile>
+-      <AdditionalIncludeDirectories>".";"winlibs\include";"qtsingleapplication\src";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWebKitWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtQuick";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtMultimediaWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtOpenGL";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtPrintSupport";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtSvg";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWebKit";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtQml";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtMultimedia";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtSensors";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtNetwork";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtXml";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtGui";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtANGLE";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtCore";"build";"build";..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\mkspecs\win32-msvc2012;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>".";"winlibs\include";"qtsingleapplication\src";"D:\Qt\5.15.2\msvc2019_64\include";"D:\Qt\5.15.2\msvc2019_64\include\QtWebKitWidgets";"D:\Qt\5.15.2\msvc2019_64\include\QtQuick";"D:\Qt\5.15.2\msvc2019_64\include\QtMultimediaWidgets";"D:\Qt\5.15.2\msvc2019_64\include\QtOpenGL";"D:\Qt\5.15.2\msvc2019_64\include\QtPrintSupport";"D:\Qt\5.15.2\msvc2019_64\include\QtSvg";"D:\Qt\5.15.2\msvc2019_64\include\QtWebKit";"D:\Qt\5.15.2\msvc2019_64\include\QtQml";"D:\Qt\5.15.2\msvc2019_64\include\QtMultimedia";"D:\Qt\5.15.2\msvc2019_64\include\QtWidgets";"D:\Qt\5.15.2\msvc2019_64\include\QtSensors";"D:\Qt\5.15.2\msvc2019_64\include\QtNetwork";"D:\Qt\5.15.2\msvc2019_64\include\QtXml";"D:\Qt\5.15.2\msvc2019_64\include\QtGui";"D:\Qt\5.15.2\msvc2019_64\include\QtANGLE";"D:\Qt\5.15.2\msvc2019_64\include\QtCore";"build";"build";..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\mkspecs\win32-msvc2012;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <AdditionalOptions>-Zm200 -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
+       <BrowseInformation>false</BrowseInformation>
+       <ExceptionHandling>Sync</ExceptionHandling>
+@@ -257,7 +257,7 @@
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+     <ClCompile>
+-      <AdditionalIncludeDirectories>".";"winlibs\include";"qtsingleapplication\src";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWebKitWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtQuick";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtMultimediaWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtOpenGL";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtPrintSupport";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtSvg";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWebKit";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtQml";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtMultimedia";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtSensors";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtNetwork";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtXml";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtGui";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtANGLE";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtCore";"build";"build";..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\mkspecs\win32-msvc2012;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>".";"winlibs\include";"qtsingleapplication\src";"D:\Qt\5.15.2\msvc2019_64\include";"D:\Qt\5.15.2\msvc2019_64\include\QtWebKitWidgets";"D:\Qt\5.15.2\msvc2019_64\include\QtQuick";"D:\Qt\5.15.2\msvc2019_64\include\QtMultimediaWidgets";"D:\Qt\5.15.2\msvc2019_64\include\QtOpenGL";"D:\Qt\5.15.2\msvc2019_64\include\QtPrintSupport";"D:\Qt\5.15.2\msvc2019_64\include\QtSvg";"D:\Qt\5.15.2\msvc2019_64\include\QtWebKit";"D:\Qt\5.15.2\msvc2019_64\include\QtQml";"D:\Qt\5.15.2\msvc2019_64\include\QtMultimedia";"D:\Qt\5.15.2\msvc2019_64\include\QtWidgets";"D:\Qt\5.15.2\msvc2019_64\include\QtSensors";"D:\Qt\5.15.2\msvc2019_64\include\QtNetwork";"D:\Qt\5.15.2\msvc2019_64\include\QtXml";"D:\Qt\5.15.2\msvc2019_64\include\QtGui";"D:\Qt\5.15.2\msvc2019_64\include\QtANGLE";"D:\Qt\5.15.2\msvc2019_64\include\QtCore";"build";"build";..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\mkspecs\win32-msvc2012;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <AdditionalOptions>-Zm200 -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
+       <BrowseInformation>false</BrowseInformation>
+       <ExceptionHandling>Sync</ExceptionHandling>
+@@ -316,13 +316,13 @@
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+     <ClCompile>
+-      <AdditionalIncludeDirectories>".";"winlibs\include";"qtsingleapplication\src";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWebKitWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtQuick";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtMultimediaWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtOpenGL";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtPrintSupport";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtSvg";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWebKit";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtQml";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtMultimedia";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtSensors";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtNetwork";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtXml";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtGui";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtANGLE";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtCore";"build";"build";..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\mkspecs\win32-msvc2012;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>.;winlibs\include;qtsingleapplication\src;D:\Qt\5.15.2\msvc2019_64\include\QtWebEngineCore;D:\Qt\5.15.2\msvc2019_64\include;D:\Qt\5.15.2\msvc2019_64\include\QtWebEngineWidgets;D:\Qt\5.15.2\msvc2019_64\include\QtQuick;D:\Qt\5.15.2\msvc2019_64\include\QtMultimediaWidgets;D:\Qt\5.15.2\msvc2019_64\include\QtOpenGL;D:\Qt\5.15.2\msvc2019_64\include\QtPrintSupport;D:\Qt\5.15.2\msvc2019_64\include\QtSvg;D:\Qt\5.15.2\msvc2019_64\include\QtWebEngine;D:\Qt\5.15.2\msvc2019_64\include\QtQml;D:\Qt\5.15.2\msvc2019_64\include\QtMultimedia;D:\Qt\5.15.2\msvc2019_64\include\QtWidgets;D:\Qt\5.15.2\msvc2019_64\include\QtSensors;D:\Qt\5.15.2\msvc2019_64\include\QtNetwork;D:\Qt\5.15.2\msvc2019_64\include\QtXml;D:\Qt\5.15.2\msvc2019_64\include\QtGui;D:\Qt\5.15.2\msvc2019_64\include\QtANGLE;D:\Qt\5.15.2\msvc2019_64\include\QtCore;build;..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\mkspecs\win32-msvc2012;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <AdditionalOptions>-Zm200 -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
+       <BrowseInformation>false</BrowseInformation>
+       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+       <ExceptionHandling>Sync</ExceptionHandling>
+       <Optimization>Disabled</Optimization>
+-      <PreprocessorDefinitions>__LZO_EXPORT1XXXX#__declspec(dllimport);_CONSOLE;UNICODE;WIN32;PROGRAM_VERSION="1.5.0+git";QT_WEBKITWIDGETS_LIB;QT_QUICK_LIB;QT_MULTIMEDIAWIDGETS_LIB;QT_OPENGL_LIB;QT_PRINTSUPPORT_LIB;QT_SVG_LIB;QT_WEBKIT_LIB;QT_QML_LIB;QT_MULTIMEDIA_LIB;QT_WIDGETS_LIB;QT_SENSORS_LIB;QT_NETWORK_LIB;QT_XML_LIB;QT_GUI_LIB;QT_CORE_LIB;QT_OPENGL_ES_2;QT_OPENGL_ES_2_ANGLE;DISABLE_INTERNAL_PLAYER;__WIN32;NOMINMAX;HUNSPELL_STATIC;USING_STATIC_LIBICONV;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
++      <PreprocessorDefinitions>__LZO_EXPORT1XXXX#__declspec(dllimport);_CONSOLE;UNICODE;WIN32;PROGRAM_VERSION="1.5.0+git";QT_WEBKITWIDGETS_LIB;QT_QUICK_LIB;QT_MULTIMEDIAWIDGETS_LIB;QT_OPENGL_LIB;QT_PRINTSUPPORT_LIB;QT_SVG_LIB;QT_WEBKIT_LIB;QT_QML_LIB;QT_MULTIMEDIA_LIB;QT_WIDGETS_LIB;QT_SENSORS_LIB;QT_NETWORK_LIB;QT_XML_LIB;QT_GUI_LIB;QT_CORE_LIB;QT_OPENGL_ES_2;QT_OPENGL_ES_2_ANGLE;DISABLE_INTERNAL_PLAYER;__WIN32;NOMINMAX;HUNSPELL_STATIC;USING_STATIC_LIBICONV;_CRT_SECURE_NO_WARNINGS;Q_OS_WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+       <PreprocessToFile>false</PreprocessToFile>
+       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+@@ -376,7 +376,7 @@
+   </ItemDefinitionGroup>
+   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+     <ClCompile>
+-      <AdditionalIncludeDirectories>".";"winlibs\include";"qtsingleapplication\src";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWebKitWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtQuick";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtMultimediaWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtOpenGL";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtPrintSupport";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtSvg";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWebKit";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtQml";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtMultimedia";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtWidgets";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtSensors";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtNetwork";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtXml";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtGui";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtANGLE";"..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\include\QtCore";"build";"build";..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\mkspecs\win32-msvc2012;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
++      <AdditionalIncludeDirectories>".";"winlibs\include";"qtsingleapplication\src";"D:\Qt\5.15.2\msvc2019_64\include";"D:\Qt\5.15.2\msvc2019_64\include\QtWebKitWidgets";"D:\Qt\5.15.2\msvc2019_64\include\QtQuick";"D:\Qt\5.15.2\msvc2019_64\include\QtMultimediaWidgets";"D:\Qt\5.15.2\msvc2019_64\include\QtOpenGL";"D:\Qt\5.15.2\msvc2019_64\include\QtPrintSupport";"D:\Qt\5.15.2\msvc2019_64\include\QtSvg";"D:\Qt\5.15.2\msvc2019_64\include\QtWebKit";"D:\Qt\5.15.2\msvc2019_64\include\QtQml";"D:\Qt\5.15.2\msvc2019_64\include\QtMultimedia";"D:\Qt\5.15.2\msvc2019_64\include\QtWidgets";"D:\Qt\5.15.2\msvc2019_64\include\QtSensors";"D:\Qt\5.15.2\msvc2019_64\include\QtNetwork";"D:\Qt\5.15.2\msvc2019_64\include\QtXml";"D:\Qt\5.15.2\msvc2019_64\include\QtGui";"D:\Qt\5.15.2\msvc2019_64\include\QtANGLE";"D:\Qt\5.15.2\msvc2019_64\include\QtCore";"build";"build";..\..\Qt\Qt5.1.0-msvc2012\5.1.0\msvc2012\mkspecs\win32-msvc2012;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+       <AdditionalOptions>-Zm200 -w34100 -w34189 %(AdditionalOptions)</AdditionalOptions>
+       <BrowseInformation>false</BrowseInformation>
+       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+@@ -965,7 +965,7 @@
+     <QtTranslate Include="locale\sk_SK.ts" />
+     <QtTranslate Include="locale\sq_AL.ts" />
+     <QtTranslate Include="locale\sr_SR.ts" />
+-	<QtTranslate Include="locale\sv_SE.ts" />
++    <QtTranslate Include="locale\sv_SE.ts" />
+     <QtTranslate Include="locale\tg_TJ.ts" />
+     <QtTranslate Include="locale\tk_TM.ts" />
+     <QtTranslate Include="locale\tr_TR.ts" />
+@@ -983,13 +983,15 @@
+     <QtUICCompile Include="dictinfo.ui" />
+     <QtUICCompile Include="editdictionaries.ui" />
+     <QtUICCompile Include="groups.ui" />
+-    <QtUICCompile Include="groupselectorwidget.ui" />
+     <QtUICCompile Include="initializing.ui" />
+     <QtUICCompile Include="mainwindow.ui" />
+-    <QtUICCompile Include="orderandprops.ui" />
++    <QtUICCompile Include="dictheadwords.ui" />
+     <QtUICCompile Include="preferences.ui" />
+     <QtUICCompile Include="scanpopup.ui" />
+     <QtUICCompile Include="sources.ui" />
++    <QtUICCompile Include="orderandprops.ui" />
++    <QtUICCompile Include="authentication.ui" />
++    <QtUICCompile Include="fulltextsearch.ui" />
+     <QtUICCompile Include="texttospeechsource.ui" />
+   </ItemGroup>
+   <ItemGroup>
+diff --git a/goldendict.vcxproj.filters b/goldendict.vcxproj.filters
+index 48efc2c9..60856ab3 100644
+--- a/goldendict.vcxproj.filters
++++ b/goldendict.vcxproj.filters
+@@ -1434,9 +1434,6 @@
+     <QtUICCompile Include="groups.ui">
+       <Filter>Forms</Filter>
+     </QtUICCompile>
+-    <QtUICCompile Include="groupselectorwidget.ui">
+-      <Filter>Forms</Filter>
+-    </QtUICCompile>
+     <QtUICCompile Include="initializing.ui">
+       <Filter>Forms</Filter>
+     </QtUICCompile>
+@@ -1455,9 +1452,18 @@
+     <QtUICCompile Include="sources.ui">
+       <Filter>Forms</Filter>
+     </QtUICCompile>
++    <QtUICCompile Include="dictheadwords.ui">
++      <Filter>Forms</Filter>
++    </QtUICCompile>
++    <QtUICCompile Include="authentication.ui">
++      <Filter>Forms</Filter>
++    </QtUICCompile>
+     <QtUICCompile Include="texttospeechsource.ui">
+       <Filter>Forms</Filter>
+     </QtUICCompile>
++    <QtUICCompile Include="fulltextsearch.ui">
++      <Filter>Forms</Filter>
++    </QtUICCompile>
+   </ItemGroup>
+   <ItemGroup>
+     <QtTranslate Include="locale\ar_SA.ts">
+diff --git a/greektranslit.cc b/greektranslit.cc
+index 2533513c..1d43324f 100644
+--- a/greektranslit.cc
++++ b/greektranslit.cc
+@@ -1,4 +1,4 @@
+-/* This file is (c) 2010 Jennie Petoumenou <epetoumenou@gmail.com>
++﻿/* This file is (c) 2010 Jennie Petoumenou <epetoumenou@gmail.com>
+  * Part of GoldenDict. Licensed under GPLv3 or later, see the LICENSE file */
+ 
+ #include "greektranslit.hh"
+diff --git a/iconv.cc b/iconv.cc
+index ce0fc53c..b7ddb40a 100644
+--- a/iconv.cc
++++ b/iconv.cc
+@@ -5,6 +5,7 @@
+ #include <vector>
+ #include <errno.h>
+ #include <string.h>
++#include <QDebug>
+ 
+ #ifdef __WIN32
+ char const * const Iconv::GdWchar = "UCS-4LE";
+diff --git a/locale/zh_TW.ts b/locale/zh_TW.ts
+index 4221712d..57501867 100644
+--- a/locale/zh_TW.ts
++++ b/locale/zh_TW.ts
+@@ -3667,7 +3667,7 @@ clears its network cache from disk during exit.</source>
+     </message>
+ </context>
+ <context>
+-    <name>QWebPage</name>
++    <name>QWebEnginePage</name>
+     <message>
+         <source>Select All</source>
+         <translation type="obsolete">全選</translation>
+diff --git a/main.cc b/main.cc
+index f6a85c07..d7157097 100644
+--- a/main.cc
++++ b/main.cc
+@@ -6,7 +6,8 @@
+ #include "gdappstyle.hh"
+ #include "mainwindow.hh"
+ #include "config.hh"
+-
++#include "article_netmgr.hh"
++#include <QWebEngineProfile>
+ #include "processwrapper.hh"
+ #include "hotkeywrapper.hh"
+ #ifdef HAVE_X11
+@@ -28,7 +29,9 @@
+ #include "termination.hh"
+ #include "atomic_rename.hh"
+ 
+-#include <QWebSecurityOrigin>
++
++#include <QtWebEngineCore/QWebEngineUrlScheme>
++
+ #include <QMessageBox>
+ #include <QDebug>
+ #include <QFile>
+@@ -226,27 +229,20 @@ int main( int argc, char ** argv )
+   #ifdef Q_OS_MAC
+     setenv("LANG", "en_US.UTF-8", 1);
+ 
+-#if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
+-   // Check for retina display
+-   if( LionSupport::isRetinaDisplay() )
+-     QApplication::setGraphicsSystem( "native" );
+-   else
+-     QApplication::setGraphicsSystem( "raster" );
+-#endif
+   #endif
+ 
+-  // The following clause fixes a race in the MinGW runtime where throwing
+-  // exceptions for the first time in several threads simultaneously can cause
+-  // an abort(). This code throws first exception in a safe, single-threaded
+-  // manner, thus avoiding that race.
+-  {
+-    class Dummy {};
++//  // The following clause fixes a race in the MinGW runtime where throwing
++//  // exceptions for the first time in several threads simultaneously can cause
++//  // an abort(). This code throws first exception in a safe, single-threaded
++//  // manner, thus avoiding that race.
++//  {
++//    class Dummy {};
+ 
+-    try
+-    { throw Dummy(); }
+-    catch( Dummy )
+-    {}
+-  }
++//    try
++//    { throw Dummy(); }
++//    catch( Dummy )
++//    {}
++//  }
+ 
+ #if defined( Q_OS_UNIX )
+   setlocale( LC_ALL, "" ); // use correct char set mapping
+@@ -298,6 +294,20 @@ int main( int argc, char ** argv )
+ 
+ #endif
+ 
++
++  QStringList localSchemes={"gdlookup","gdau","gico","qrcx","bres"};
++
++  for (int i = 0; i < localSchemes.size(); ++i)
++  {
++      QString localScheme=localSchemes.at(i);
++      QWebEngineUrlScheme webUiScheme(localScheme.toLatin1());
++      webUiScheme.setFlags(QWebEngineUrlScheme::SecureScheme |
++                           QWebEngineUrlScheme::LocalScheme |
++                           QWebEngineUrlScheme::LocalAccessAllowed);
++      QWebEngineUrlScheme::registerScheme(webUiScheme);
++  }
++
++
+   QHotkeyApplication app( "GoldenDict", argc, argv );
+   LogFilePtrGuard logFilePtrGuard;
+ 
+@@ -432,11 +442,7 @@ int main( int argc, char ** argv )
+   // and with the main window closed.
+   app.setQuitOnLastWindowClosed( false );
+ 
+-#if QT_VERSION >= 0x040600
+-  // Add the dictionary scheme we use as local, so that the file:// links would
+-  // work in the articles. The function was introduced in Qt 4.6.
+-  QWebSecurityOrigin::addLocalScheme( "gdlookup" );
+-#endif
++
+ 
+   MainWindow m( cfg );
+ 
+diff --git a/mainwindow.cc b/mainwindow.cc
+index b5980f7c..0185a5c4 100644
+--- a/mainwindow.cc
++++ b/mainwindow.cc
+@@ -6,6 +6,8 @@
+ #endif
+ 
+ #include "mainwindow.hh"
++#include <QWebEngineProfile>
++#include <QWebEngineSettings>
+ #include "editdictionaries.hh"
+ #include "loaddictionaries.hh"
+ #include "preferences.hh"
+@@ -46,6 +48,7 @@
+ #include "qt4x5.hh"
+ #include <QDesktopWidget>
+ #include "ui_authentication.h"
++#include "gico_schemahandler.h"
+ 
+ #ifdef Q_OS_MAC
+ #include "lionsupport.h"
+@@ -142,6 +145,15 @@ MainWindow::MainWindow( Config::Class & cfg_ ):
+   QThreadPool::globalInstance()->start( new InitSSLRunnable );
+ #endif
+ 
++
++  LocalSchemeHandler *handler = new LocalSchemeHandler(articleNetMgr);
++  QWebEngineProfile::defaultProfile()->installUrlSchemeHandler("gdlookup", handler);
++
++  QStringList localSchemes={"gdau","gico","qrcx","bres"};
++  for(int i=0;i<localSchemes.size();i++){
++    QWebEngineProfile::defaultProfile()->installUrlSchemeHandler(localSchemes.at(i).toLatin1(), new GicoSchemeHandler(articleNetMgr));
++  }
++
+   qRegisterMetaType< Config::InputPhrase >();
+ 
+ #ifndef NO_EPWING_SUPPORT
+@@ -736,9 +748,9 @@ MainWindow::MainWindow( Config::Class & cfg_ ):
+   }
+   if( cfg.maximizedMainWindowGeometry.width() > 0 )
+   {
+-    setGeometry( cfg.maximizedMainWindowGeometry );
+-    if ( cfg.mainWindowGeometry.size() )
+-      restoreGeometry( cfg.mainWindowGeometry );
++//    setGeometry( cfg.maximizedMainWindowGeometry );
++//    if ( cfg.mainWindowGeometry.size() )
++//      restoreGeometry( cfg.mainWindowGeometry );
+     if ( cfg.mainWindowState.size() )
+       restoreState( cfg.mainWindowState, 1 );
+     setWindowState( windowState() | Qt::WindowMaximized );
+@@ -1286,9 +1298,11 @@ void MainWindow::applyProxySettings()
+ 
+ void MainWindow::applyWebSettings()
+ {
+-  QWebSettings *defaultSettings = QWebSettings::globalSettings();
+-  defaultSettings->setAttribute(QWebSettings::PluginsEnabled, cfg.preferences.enableWebPlugins);
+-  defaultSettings->setAttribute( QWebSettings::DeveloperExtrasEnabled, true );
++  QWebEngineSettings *defaultSettings = QWebEngineSettings::globalSettings();
++  defaultSettings->setAttribute(QWebEngineSettings::PluginsEnabled, cfg.preferences.enableWebPlugins);
++  defaultSettings->setAttribute(QWebEngineSettings::PlaybackRequiresUserGesture, false);
++  defaultSettings->setAttribute( QWebEngineSettings::WebAttribute::LocalContentCanAccessRemoteUrls, true );
++  defaultSettings->setAttribute( QWebEngineSettings::WebAttribute::LocalContentCanAccessFileUrls, true );
+ }
+ 
+ void MainWindow::setupNetworkCache( int maxSize )
+@@ -1603,7 +1617,6 @@ void MainWindow::switchToWindow(QAction *act)
+   ui.tabWidget->setCurrentIndex(idx);
+ }
+ 
+-
+ void MainWindow::addNewTab()
+ {
+   createNewTab( true, tr( "(untitled)" ) );
+@@ -2444,7 +2457,10 @@ bool MainWindow::eventFilter( QObject * obj, QEvent * ev )
+   if( obj == this && ev->type() == gdApplyNormalGeometryEvent )
+   {
+     if( !isMaximized() && !isMinimized() && !isFullScreen() )
+-      setGeometry( cfg.normalMainWindowGeometry );
++      {
++        //todo ,need further effort
++     //   setGeometry( cfg.normalMainWindowGeometry );
++    }
+     ev->accept();
+     return true;
+   }
+@@ -2802,92 +2818,6 @@ void MainWindow::showTranslationFor( Config::InputPhrase const & phrase,
+ 
+   updateBackForwardButtons();
+ 
+-  #if 0
+-  QUrl req;
+-
+-  req.setScheme( "gdlookup" );
+-  req.setHost( "localhost" );
+-  req.addQueryItem( "word", inWord );
+-  req.addQueryItem( "group",
+-                    cfg.groups.empty() ? "" :
+-                      groupInstances[ groupList->currentIndex() ].name );
+-
+-  ui.definition->load( req );
+-
+-  return;
+-#endif
+-
+-  #if 0
+-  wstring word = inWord.trimmed().toStdWString();
+-
+-  // Where to look?
+-
+-  vector< sptr< Dictionary::Class > > const & activeDicts = getActiveDicts();
+-
+-  // Accumulate main forms
+-
+-  vector< wstring > alts;
+-
+-  {
+-    set< wstring > altsSet;
+-
+-    for( unsigned x = 0; x < activeDicts.size(); ++x )
+-    {
+-      vector< wstring > found = activeDicts[ x ]->findHeadwordsForSynonym( word );
+-
+-      altsSet.insert( found.begin(), found.end() );
+-    }
+-
+-    alts.insert( alts.begin(), altsSet.begin(), altsSet.end() );
+-  }
+-
+-  for( unsigned x = 0; x < alts.size(); ++x )
+-  {
+-    DPRINTF( "Alt: %ls\n", alts[ x ].c_str() );
+-  }
+-
+-
+-  string result =
+-    "<html><head>"
+-    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">";
+-
+-  QFile cssFile( Config::getUserCssFileName() );
+-
+-  if ( cssFile.open( QFile::ReadOnly ) )
+-  {
+-    result += "<style type=\"text/css\">\n";
+-    result += cssFile.readAll().data();
+-    result += "</style>\n";
+-  }
+-
+-  result += "</head><body>";
+-
+-  for( unsigned x = 0; x < activeDicts.size(); ++x )
+-  {
+-    try
+-    {
+-      string body = activeDicts[ x ]->getArticle( word, alts );
+-
+-      DPRINTF( "From %s: %s\n", activeDicts[ x ]->getName().c_str(), body.c_str() );
+-
+-      result += "<div class=\"gddictname\">From " + activeDicts[ x ]->getName() + "</div>" + body;
+-    }
+-    catch( Dictionary::exNoSuchWord & )
+-    {
+-      continue;
+-    }
+-  }
+-
+-  result += "</body></html>";
+-
+-  ArticleMaker am( dictionaries, groupInstances );
+-
+-  string result = am.makeDefinitionFor( inWord, "En" );
+-
+-  ui.definition->setContent( result.c_str(), QString() );
+-
+-  #endif
+-
+   //ui.tabWidget->setTabText( ui.tabWidget->indexOf(ui.tab), inWord.trimmed() );
+ }
+ 
