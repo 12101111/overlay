@@ -3,9 +3,9 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-92-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-93-patches-01.tar.xz"
 
-LLVM_MAX_SLOT=12
+LLVM_MAX_SLOT=13
 
 PYTHON_COMPAT=( python3_{7..10} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
@@ -77,6 +77,15 @@ BDEPEND="${PYTHON_DEPS}
 	virtual/pkgconfig
 	>=virtual/rust-1.51.0
 	|| (
+		(
+			sys-devel/clang:13
+			sys-devel/llvm:13
+			>=dev-lang/rust-1.55.0[profile]
+			clang? (
+				=sys-devel/lld-13*
+				pgo? ( =sys-libs/compiler-rt-sanitizers-13*[profile] )
+			)
+		)
 		(
 			sys-devel/clang:12
 			sys-devel/llvm:12
@@ -456,10 +465,12 @@ src_unpack() {
 
 src_prepare() {
 	use lto && rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch
-	rm "${WORKDIR}/firefox-patches/0016-musl-getcontext-is-only-avaliable-on-glibc-systems.patch"
-	rm "${WORKDIR}/firefox-patches/0033-bmo-1728749-Pre-select-OS-dialog-when-using-Pipewire.patch"
+	rm "${WORKDIR}/firefox-patches/0033-bmo-1725828-Preload-dependencies-for-the-Widevine-CD.patch"
 	eapply "${WORKDIR}/firefox-patches"
 	eapply "${FILESDIR}/cross-pgo.patch"
+	eapply "${FILESDIR}/fix-crash.patch"
+	eapply "${FILESDIR}/fix-crash2.patch"
+	eapply "${FILESDIR}/fix-crash3.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
