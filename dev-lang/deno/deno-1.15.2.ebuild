@@ -94,7 +94,7 @@ CRATES="
 	dprint-core-0.46.4
 	dprint-plugin-json-0.13.0
 	dprint-plugin-markdown-0.10.0
-	dprint-plugin-typescript-0.57.2
+	dprint-plugin-typescript-0.57.4
 	dprint-swc-ecma-ast-view-0.39.0
 	ecdsa-0.12.4
 	either-1.6.1
@@ -471,7 +471,7 @@ LICENSE="0BSD Apache-2.0 Apache-2.0-with-LLVM-exceptions BSD-2 BSD CC0-1.0 ISC M
 SLOT="0"
 KEYWORDS="~amd64"
 RESTRICT="mirror"
-IUSE="libcxx"
+IUSE="libcxx static-libs"
 
 BDEPEND="
 	>=dev-libs/glib-2.66.7
@@ -556,4 +556,5 @@ src_compile() {
 
 src_install() {
 	dobin "${S}"/target/release/deno
+	use static-libs && dolib.a "${S}"/target/release/gn_out/obj/librusty_v8.a
 }
