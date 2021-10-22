@@ -1,0 +1,2 @@
+# Uses a function that is not available in media-video/ffmpeg.
+>=dev-util/electron-15.3.0 system-ffmpeg
