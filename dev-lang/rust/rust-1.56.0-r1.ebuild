@@ -145,6 +145,12 @@ QA_SONAME="
 	usr/lib/${PN}/${PV}/lib/rustlib/.*/lib/lib.*.so
 "
 
+# An rmeta file is custom binary format that contains the metadata for the crate.
+# rmeta files do not support linking, since they do not contain compiled object files.
+# so we can safely silence the warning for this QA check.
+QA_WX_LOAD="usr/lib/${PN}/${PV}/lib/rustlib/.*/lib/.*:lib.rmeta"
+QA_EXECSTACK="${QA_WX_LOAD}"
+
 # causes double bootstrap
 RESTRICT="test"
 
@@ -153,7 +159,6 @@ VERIFY_SIG_OPENPGP_KEY_PATH=${BROOT}/usr/share/openpgp-keys/rust.asc
 PATCHES=(
 	"${FILESDIR}"/1.55.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
-	"${FILESDIR}"/0001-Revert-Auto-merge-of-81825-voidc-pidfd-r-joshtriplet.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
@@ -330,7 +335,7 @@ src_configure() {
 		vendor = true
 		extended = true
 		tools = [${tools}]
-		verbose = 1
+		verbose = 2
 		sanitizers = $(toml_usex sanitizers)
 		profiler = $(toml_usex profile)
 		cargo-native-static = false
@@ -366,6 +371,10 @@ src_configure() {
 		dist-src = false
 		remap-debuginfo = true
 		lld = $(usex system-llvm false $(toml_usex wasm))
+		# only deny warnings if doc+wasm are NOT requested, documenting stage0 wasm std fails without it
+		# https://github.com/rust-lang/rust/issues/74976
+		# https://github.com/rust-lang/rust/issues/76526
+		deny-warnings = $(usex wasm $(usex doc false true) true)
 		backtrace-on-ice = true
 		jemalloc = false
 		llvm-libunwind = "$(usex llvm-libunwind system no)"
