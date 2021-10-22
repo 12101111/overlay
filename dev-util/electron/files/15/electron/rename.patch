@@ -1,0 +1,4 @@
+diff --git a/patches/chromium/cherry-pick-39090918efac.patch b/patches/chromium/zzzcherry-pick-39090918efac.patch
+similarity index 100%
+rename from patches/chromium/cherry-pick-39090918efac.patch
+rename to patches/chromium/zzzcherry-pick-39090918efac.patch

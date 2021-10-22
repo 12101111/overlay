@@ -1,0 +1,37 @@
+diff --git a/build/config/linux/BUILD.gn b/build/config/linux/BUILD.gn
+index 4770424..b7c940d 100644
+--- a/build/config/linux/BUILD.gn
++++ b/build/config/linux/BUILD.gn
+@@ -27,12 +27,6 @@ config("runtime_library") {
+   if (is_chromeos) {
+     defines = [ "OS_CHROMEOS" ]
+   }
+-
+-  if ((!(is_chromeos_ash || is_chromeos_lacros) ||
+-       default_toolchain != "//build/toolchain/cros:target") &&
+-      (!use_custom_libcxx || current_cpu == "mipsel")) {
+-    libs = [ "atomic" ]
+-  }
+ }
+ 
+ config("libcap") {
+diff --git a/base/BUILD.gn b/base/BUILD.gn
+index 0b3dd3f..34b63df 100644
+--- a/base/BUILD.gn
++++ b/base/BUILD.gn
+@@ -1354,15 +1354,6 @@ component("base") {
+     "//third_party/abseil-cpp:absl",
+   ]
+ 
+-  # Needed for <atomic> if using newer C++ library than sysroot, except if
+-  # building inside the cros_sdk environment - use host_toolchain as a
+-  # more robust check for this.
+-  if (!use_sysroot &&
+-      (is_android || ((is_linux || is_chromeos) && !is_chromecast)) &&
+-      host_toolchain != "//build/toolchain/cros:host") {
+-    libs += [ "atomic" ]
+-  }
+-
+   if (use_allocator_shim) {
+     sources += [
+       "allocator/allocator_shim.cc",

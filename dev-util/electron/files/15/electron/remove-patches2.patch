@@ -1,0 +1,22 @@
+diff --git a/patches/v8/regexp_allow_reentrant_irregexp_execution.patch b/patches/v8/regexp_allow_reentrant_irregexp_execution.patch
+index 1256bdf2de..482b0588e9 100644
+--- a/patches/v8/regexp_allow_reentrant_irregexp_execution.patch
++++ b/patches/v8/regexp_allow_reentrant_irregexp_execution.patch
+@@ -1720,17 +1720,3 @@ index c3a3cb90f2a9d865057af80801e2a95bbb873140..74a3c95b06c771078ab03e6787e59123
+  
+    // Labels used internally.
+    Label entry_label_;
+-diff --git a/test/cctest/cctest.status b/test/cctest/cctest.status
+-index 21afa5310647eb67f3fe3fc4f2e0721b4bb4e0f6..ea49ec9b4096e986ea5fe64b2b06177855d24f69 100644
+---- a/test/cctest/cctest.status
+-+++ b/test/cctest/cctest.status
+-@@ -136,9 +136,6 @@
+-   'test-strings/Traverse': [PASS, HEAVY],
+-   'test-swiss-name-dictionary-csa/DeleteAtBoundaries': [PASS, HEAVY],
+-   'test-swiss-name-dictionary-csa/SameH2': [PASS, HEAVY],
+--
+--  # TODO(v8:11382): Reenable once irregexp is reentrant.
+--  'test-regexp/RegExpInterruptReentrantExecution': [FAIL],
+- }],  # ALWAYS
+- 
+- ##############################################################################

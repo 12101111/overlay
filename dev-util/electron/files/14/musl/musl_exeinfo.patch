@@ -1,0 +1,15 @@
+diff --git a/base/BUILD.gn b/base/BUILD.gn
+index 32434f2a5e..a3b9e47018 100644
+--- a/base/BUILD.gn
++++ b/base/BUILD.gn
+@@ -1345,6 +1345,10 @@ component("base") {
+   libs = []
+   frameworks = []
+ 
++  if (is_posix) {
++    libs += [ "execinfo" ]
++  }
++
+   configs += [
+     ":base_implementation",
+     ":memory_tagging",

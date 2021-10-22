@@ -12,19 +12,18 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 inherit check-reqs chromium-2 desktop flag-o-matic multilib ninja-utils pax-utils portability python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils yarn
 
 # Keep this in sync with DEPS:chromium_version
-CHROMIUM_VERSION="91.0.4472.164"
+CHROMIUM_VERSION="89.0.4389.128"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="14.16.0"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 NODE_P="node-${NODE_VERSION}"
-PATCHSET="6"
-PPC64LE_PATCHSET="5"
-PATCHSET_NAME="chromium-91-patchset-${PATCHSET}"
+PATCHSET="7"
+PATCHSET_NAME="chromium-89-patchset-${PATCHSET}"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
 
-# grep resolved yarn.lock | sed 's/^[ ]*resolved \"\(.*\)\#.*\"$/\1/g' | sort | uniq | xclip -selection clipboard
+# grep resolved yarn.lock | sed 's/^[ ]*resolved \"\(.*\)\#.*\"$/\1/g' | sort | uniq | wl-copy
 YARNPKGS="
 https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.5.5.tgz
 https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.5.0.tgz
@@ -267,7 +266,6 @@ https://registry.yarnpkg.com/combined-stream/-/combined-stream-1.0.8.tgz
 https://registry.yarnpkg.com/commander/-/commander-2.20.0.tgz
 https://registry.yarnpkg.com/commander/-/commander-4.1.1.tgz
 https://registry.yarnpkg.com/commander/-/commander-5.1.0.tgz
-https://registry.yarnpkg.com/commander/-/commander-6.2.0.tgz
 https://registry.yarnpkg.com/commondir/-/commondir-1.0.1.tgz
 https://registry.yarnpkg.com/component-emitter/-/component-emitter-1.3.0.tgz
 https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz
@@ -464,7 +462,6 @@ https://registry.yarnpkg.com/get-func-name/-/get-func-name-2.0.0.tgz
 https://registry.yarnpkg.com/get-own-enumerable-property-symbols/-/get-own-enumerable-property-symbols-3.0.0.tgz
 https://registry.yarnpkg.com/get-stdin/-/get-stdin-4.0.1.tgz
 https://registry.yarnpkg.com/get-stdin/-/get-stdin-7.0.0.tgz
-https://registry.yarnpkg.com/get-stdin/-/get-stdin-8.0.0.tgz
 https://registry.yarnpkg.com/get-stream/-/get-stream-3.0.0.tgz
 https://registry.yarnpkg.com/get-stream/-/get-stream-4.1.0.tgz
 https://registry.yarnpkg.com/get-stream/-/get-stream-5.1.0.tgz
@@ -530,7 +527,7 @@ https://registry.yarnpkg.com/inflight/-/inflight-1.0.6.tgz
 https://registry.yarnpkg.com/inherits/-/inherits-2.0.1.tgz
 https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz
 https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz
-https://registry.yarnpkg.com/ini/-/ini-1.3.7.tgz
+https://registry.yarnpkg.com/ini/-/ini-1.3.5.tgz
 https://registry.yarnpkg.com/inquirer/-/inquirer-7.3.0.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-1.2.0.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-1.4.0.tgz
@@ -607,7 +604,6 @@ https://registry.yarnpkg.com/isstream/-/isstream-0.1.2.tgz
 https://registry.yarnpkg.com/jmespath/-/jmespath-0.15.0.tgz
 https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz
 https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.13.1.tgz
-https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.0.tgz
 https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz
 https://registry.yarnpkg.com/json-parse-better-errors/-/json-parse-better-errors-1.0.2.tgz
 https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz
@@ -616,7 +612,6 @@ https://registry.yarnpkg.com/json-stable-stringify-without-jsonify/-/json-stable
 https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz
 https://registry.yarnpkg.com/json5/-/json5-1.0.1.tgz
 https://registry.yarnpkg.com/json5/-/json5-2.1.3.tgz
-https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-2.3.1.tgz
 https://registry.yarnpkg.com/jsonfile/-/jsonfile-4.0.0.tgz
 https://registry.yarnpkg.com/jsonfile/-/jsonfile-6.0.1.tgz
 https://registry.yarnpkg.com/jsonwebtoken/-/jsonwebtoken-8.5.1.tgz
@@ -633,7 +628,6 @@ https://registry.yarnpkg.com/levn/-/levn-0.3.0.tgz
 https://registry.yarnpkg.com/levn/-/levn-0.4.1.tgz
 https://registry.yarnpkg.com/lines-and-columns/-/lines-and-columns-1.1.6.tgz
 https://registry.yarnpkg.com/linkify-it/-/linkify-it-2.2.0.tgz
-https://registry.yarnpkg.com/linkify-it/-/linkify-it-3.0.2.tgz
 https://registry.yarnpkg.com/lint-staged/-/lint-staged-10.2.11.tgz
 https://registry.yarnpkg.com/lint/-/lint-1.1.2.tgz
 https://registry.yarnpkg.com/listr2/-/listr2-2.2.0.tgz
@@ -649,7 +643,6 @@ https://registry.yarnpkg.com/locate-path/-/locate-path-2.0.0.tgz
 https://registry.yarnpkg.com/locate-path/-/locate-path-3.0.0.tgz
 https://registry.yarnpkg.com/locate-path/-/locate-path-5.0.0.tgz
 https://registry.yarnpkg.com/lodash.camelcase/-/lodash.camelcase-4.3.0.tgz
-https://registry.yarnpkg.com/lodash.differencewith/-/lodash.differencewith-4.5.0.tgz
 https://registry.yarnpkg.com/lodash.flatten/-/lodash.flatten-4.4.0.tgz
 https://registry.yarnpkg.com/lodash.includes/-/lodash.includes-4.3.0.tgz
 https://registry.yarnpkg.com/lodash.isboolean/-/lodash.isboolean-3.0.3.tgz
@@ -678,11 +671,7 @@ https://registry.yarnpkg.com/map-visit/-/map-visit-1.0.0.tgz
 https://registry.yarnpkg.com/markdown-escapes/-/markdown-escapes-1.0.3.tgz
 https://registry.yarnpkg.com/markdown-extensions/-/markdown-extensions-1.1.1.tgz
 https://registry.yarnpkg.com/markdown-it/-/markdown-it-10.0.0.tgz
-https://registry.yarnpkg.com/markdown-it/-/markdown-it-11.0.0.tgz
 https://registry.yarnpkg.com/markdown-table/-/markdown-table-1.1.3.tgz
-https://registry.yarnpkg.com/markdownlint-cli/-/markdownlint-cli-0.25.0.tgz
-https://registry.yarnpkg.com/markdownlint-rule-helpers/-/markdownlint-rule-helpers-0.12.0.tgz
-https://registry.yarnpkg.com/markdownlint/-/markdownlint-0.21.1.tgz
 https://registry.yarnpkg.com/matcher-collection/-/matcher-collection-1.1.2.tgz
 https://registry.yarnpkg.com/math-random/-/math-random-1.0.4.tgz
 https://registry.yarnpkg.com/md5.js/-/md5.js-1.3.5.tgz
@@ -1054,6 +1043,7 @@ https://registry.yarnpkg.com/strip-final-newline/-/strip-final-newline-2.0.0.tgz
 https://registry.yarnpkg.com/strip-indent/-/strip-indent-1.0.1.tgz
 https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz
 https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-3.1.0.tgz
+https://registry.yarnpkg.com/sumchecker/-/sumchecker-2.0.2.tgz
 https://registry.yarnpkg.com/supports-color/-/supports-color-4.5.0.tgz
 https://registry.yarnpkg.com/supports-color/-/supports-color-5.5.0.tgz
 https://registry.yarnpkg.com/supports-color/-/supports-color-6.1.0.tgz
@@ -1105,7 +1095,7 @@ https://registry.yarnpkg.com/type-fest/-/type-fest-0.4.1.tgz
 https://registry.yarnpkg.com/type-fest/-/type-fest-0.8.1.tgz
 https://registry.yarnpkg.com/type-is/-/type-is-1.6.18.tgz
 https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz
-https://registry.yarnpkg.com/typescript/-/typescript-4.1.3.tgz
+https://registry.yarnpkg.com/typescript/-/typescript-4.0.2.tgz
 https://registry.yarnpkg.com/uc.micro/-/uc.micro-1.0.6.tgz
 https://registry.yarnpkg.com/unherit/-/unherit-1.1.2.tgz
 https://registry.yarnpkg.com/unified-args/-/unified-args-4.0.0.tgz
@@ -1197,20 +1187,18 @@ SRC_URI="
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
 	https://files.pythonhosted.org/packages/ed/7b/bbf89ca71e722b7f9464ebffe4b5ee20a9e5c9a555a56e2d3914bb9119a6/setuptools-44.1.0.zip
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
-	arm64? ( https://github.com/google/highway/archive/refs/tags/0.12.1.tar.gz -> highway-0.12.1.tar.gz )
-	ppc64? ( https://dev.gentoo.org/~gyakovlev/distfiles/chromium-91-ppc64le-${PPC64LE_PATCHSET}.tar.xz )
 	$(yarn_uris ${YARNPKGS})
 "
 
-CHROMIUM_S="${WORKDIR}/${CHROMIUM_P}"
-NODE_S="${CHROMIUM_S}/third_party/electron_node"
-ROOT_S="${WORKDIR}/src"
+S="${WORKDIR}/${CHROMIUM_P}"
+NODE_S="${S}/third_party/electron_node"
 
 LICENSE="BSD"
-SLOT="13"
+SLOT="12"
 KEYWORDS="~amd64"
 IUSE="atk lto pgo component-build cups custom-cflags cpu_flags_arm_neon
 headless +js-type-check kerberos pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-icu +tcmalloc vaapi wayland"
+RESTRICT="!system-ffmpeg? ( proprietary-codecs? ( bindist ) ) mirror"
 REQUIRED_USE="
 	component-build? ( !suid )
 	screencast? ( wayland )
@@ -1228,8 +1216,8 @@ COMMON_X_DEPEND="
 	x11-libs/libXrandr:=
 	x11-libs/libXrender:=
 	x11-libs/libXtst:=
+	x11-libs/libXScrnSaver:=
 	x11-libs/libxcb:=
-	x11-libs/libxshmfence:=
 	vaapi? ( >=x11-libs/libva-2.7:=[X,drm] )
 "
 
@@ -1261,7 +1249,6 @@ COMMON_DEPEND="
 	virtual/udev
 	x11-libs/cairo:=
 	x11-libs/gdk-pixbuf:2
-	x11-libs/libxkbcommon:=
 	x11-libs/pango:=
 	media-libs/flac:=
 	>=media-libs/libwebp-0.4.0:=
@@ -1277,15 +1264,12 @@ COMMON_DEPEND="
 		x11-libs/gtk+:3[X]
 		wayland? (
 			dev-libs/wayland:=
+			dev-libs/libffi:=
 			screencast? ( media-video/pipewire:0/0.3 )
 			x11-libs/gtk+:3[wayland,X]
 			x11-libs/libdrm:=
+			x11-libs/libxkbcommon:=
 		)
-	)
-	elibc_musl? (
-		sys-libs/musl-legacy-compat
-		sys-libs/libexecinfo
-		sys-libs/libucontext
 	)
 	x11-libs/libnotify:=
 	>=app-arch/brotli-1.0.9
@@ -1295,11 +1279,13 @@ COMMON_DEPEND="
 	>=dev-libs/openssl-1.1.1:0=
 	app-eselect/eselect-electron
 "
+# For nvidia-drivers blocker, see bug #413637 .
 RDEPEND="${COMMON_DEPEND}
 	x11-misc/xdg-utils
 	virtual/opengl
 	virtual/ttf-fonts
 	selinux? ( sec-policy/selinux-chromium )
+	tcmalloc? ( !<x11-drivers/nvidia-drivers-331.20 )
 "
 DEPEND="${COMMON_DEPEND}
 "
@@ -1321,7 +1307,7 @@ BDEPEND="
 	js-type-check? ( virtual/jre )
 	pgo? (
 		sys-devel/clang:12
-		>=sys-devel/lld-12.0.0
+		>=sys-devel/lld-12.0.0_rc1
 	)
 "
 
@@ -1330,19 +1316,19 @@ BDEPEND="
 : ${CHROMIUM_FORCE_LIBCXX=no}
 
 if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
-	BDEPEND+=" >=sys-devel/clang-12"
+	BDEPEND+=" >=sys-devel/clang-10"
 fi
 
 if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
-	RDEPEND+=" >=sys-libs/libcxx-12"
-	DEPEND+=" >=sys-libs/libcxx-12"
+	RDEPEND+=" >=sys-libs/libcxx-10"
+	DEPEND+=" >=sys-libs/libcxx-10"
 else
 	COMMON_DEPEND="
 		app-arch/snappy:=
 		dev-libs/libxslt:=
 		>=dev-libs/re2-0.2019.08.01:=
 		>=media-libs/openh264-1.6.0:=
-		system-icu? ( >=dev-libs/icu-69.1:= )
+		system-icu? ( >=dev-libs/icu-68.1:= )
 	"
 	RDEPEND+="${COMMON_DEPEND}"
 	DEPEND+="${COMMON_DEPEND}"
@@ -1358,17 +1344,20 @@ pre_build_checks() {
 		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 9.2; then
 			die "At least gcc 9.2 is required"
 		fi
+		# component build hangs with tcmalloc enabled due to sandbox issue, bug #695976.
+		if has usersandbox ${FEATURES} && use tcmalloc && use component-build; then
+			die "Component build with tcmalloc requires FEATURES=-usersandbox."
+		fi
 		if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || tc-is-clang; then
-			CPP="${CHOST}-clang++ -E"
-			if ! ver_test "$(clang-major-version)" -ge 12; then
-				die "At least clang 12 is required"
+			if use component-build; then
+				die "Component build with clang requires fuzzer headers."
 			fi
 		fi
 	fi
 
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="3G"
-	CHECKREQS_DISK_BUILD="8G"
+	CHECKREQS_DISK_BUILD="7G"
 	if use lto || use pgo; then
 		if ! tc-is-clang; then
 			die "lto or pgo only support clang and lld"
@@ -1435,60 +1424,41 @@ src_prepare() {
 	default
 
 	# Electron's scripts expect the top dir to be called src/"
-	ln -s "${CHROMIUM_S}" "${ROOT_S}"
+	ln -s "${S}" "${WORKDIR}/src"
 	mkdir -p "${NODE_S}/" || die
 	rsync -a "${WORKDIR}/${NODE_P}/" "${NODE_S}/" || die
+	mv "${WORKDIR}/${P}" "${S}/electron" || die
 
-	echo "yarn-offline-mirror \"${DISTDIR}\"" >> ${S}/.yarnrc
+	cd "${S}/electron" || die
+	echo "yarn-offline-mirror \"${DISTDIR}\"" >> "${S}/electron/.yarnrc"
+	# Apply Gentoo patches for Electron itself.
+	eapply "${FILESDIR}/${SLOT}/electron/"
 
 	yarn install --ignore-optional --frozen-lockfile --offline \
 		--ignore-scripts --no-progress --verbose || die
 
-	ln -s "${S}/" "${CHROMIUM_S}/electron" || die
-
-	# Apply Gentoo patches for Electron itself.
-	cd "${CHROMIUM_S}/electron" || die
-	eapply "${FILESDIR}/${SLOT}/electron/"
-
 	# can't apply
 	# for macOS
+	rm "${WORKDIR}/src/electron/patches/chromium/cherry-pick-5902d1aa722a.patch"
+	rm "${WORKDIR}/src/electron/patches/chromium/cherry-pick-5c7ad5393f74.patch"
 	# Apply Chromium patches from Electron.
 	local patchespath repopath
-	("${EPYTHON}" "${FILESDIR}/list_patch_targets.py" \
-		"${S}/patches/config.json" || die) \
+	(jq -r 'to_entries | .[] | .key + " " + .value' "${S}/electron/patches/config.json" || die) \
 	| while read -r patchespath repopath; do
 		einfo "Apply Electron's patches to ${repopath}"
 		cd "${WORKDIR}/${repopath}" || die
 		eapply "${WORKDIR}/${patchespath}"
 	done
 
-	cd "${CHROMIUM_S}" || die
+	cd "${S}" || die
 	# Finally, apply Gentoo patches for Chromium.
 	eapply "${WORKDIR}/patches"
 	eapply "${FILESDIR}/${SLOT}/chromium/"
-	use ppc64 && eapply -p0 "${WORKDIR}/${PN}"-ppc64le
 	use elibc_musl && eapply "${FILESDIR}/${SLOT}/musl/"
 	tc-is-clang && eapply "${FILESDIR}/${SLOT}/remove-libatomic.patch"
 
-	# seccomp sandbox is broken if compiled against >=sys-libs/glibc-2.33, bug #769989
-	if has_version -d ">=sys-libs/glibc-2.33"; then
-		ewarn "Adding experimental glibc-2.33 sandbox patch. Seccomp sandbox might"
-		ewarn "still not work correctly. In case of issues, try to disable seccomp"
-		ewarn "sandbox by adding --disable-seccomp-filter-sandbox to CHROMIUM_FLAGS"
-		ewarn "in /etc/chromium/default."
-		PATCHES+=(
-			"${FILESDIR}/${SLOT}/chromium-glibc-2.33.patch"
-		)
-	fi
-
 	mkdir -p third_party/node/linux/node-linux-x64/bin || die
 	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
-
-	# bundled highway library does not support arm64 with GCC
-	if use arm64; then
-		rm -r third_party/highway/src || die
-		ln -s "${WORKDIR}/highway-0.12.1" third_party/highway/src || die
-	fi
 
 	local keeplibs=(
 		third_party/electron_node
@@ -1570,19 +1540,12 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/third_party
 		third_party/dom_distiller_js
-		third_party/eigen3
 		third_party/emoji-segmenter
-		third_party/farmhash
-		third_party/fdlibm
-		third_party/fft2d
 		third_party/flatbuffers
 		third_party/freetype
 		third_party/fusejs
-		third_party/highway
 		third_party/libgifcodec
 		third_party/liburlpattern
-		third_party/libzip
-		third_party/gemmlowp
 		third_party/google_input_tools
 		third_party/google_input_tools/third_party/closure_library
 		third_party/google_input_tools/third_party/closure_library/third_party/closure
@@ -1599,13 +1562,10 @@ src_prepare() {
 		third_party/libXNVCtrl
 		third_party/libaddressinput
 		third_party/libaom
-		third_party/libaom/source/libaom/third_party/fastfeat
 		third_party/libaom/source/libaom/third_party/vector
 		third_party/libaom/source/libaom/third_party/x86inc
 		third_party/libavif
-		third_party/libgav1
 		third_party/libjingle
-		third_party/libjxl
 		third_party/libphonenumber
 		third_party/libsecret
 		third_party/libsrtp
@@ -1631,7 +1591,6 @@ src_prepare() {
 		third_party/modp_b64
 		third_party/nasm
 		third_party/nearby
-		third_party/neon_2_sse
 		third_party/node
 		third_party/node/node_modules/polymer-bundler/lib/third_party/UglifyJS2
 		third_party/one_euro_filter
@@ -1663,6 +1622,7 @@ src_prepare() {
 		third_party/qcms
 		third_party/rnnoise
 		third_party/s2cellid
+		third_party/schema_org
 		third_party/securemessage
 		third_party/shell-encryption
 		third_party/simplejson
@@ -1679,21 +1639,13 @@ src_prepare() {
 		third_party/swiftshader/third_party/marl
 		third_party/swiftshader/third_party/subzero
 		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
-		third_party/tensorflow-text
-		third_party/tflite
-		third_party/tflite/src/third_party/eigen3
-		third_party/tflite/src/third_party/fft2d
-		third_party/tflite-support
 		third_party/tint
-		third_party/ruy
 		third_party/ukey2
 		third_party/unrar
 		third_party/usrsctp
-		third_party/utf
 		third_party/vulkan
 		third_party/web-animations-js
 		third_party/webdriver
-		third_party/webgpu-cts
 		third_party/webrtc
 		third_party/webrtc/common_audio/third_party/ooura
 		third_party/webrtc/common_audio/third_party/spl_sqrt_floor
@@ -1745,6 +1697,7 @@ src_prepare() {
 			keeplibs+=( third_party/icu )
 		fi
 	fi
+
 	if use arm64 || use ppc64 ; then
 		keeplibs+=( third_party/swiftshader/third_party/llvm-10.0 )
 	fi
@@ -1759,25 +1712,11 @@ src_prepare() {
 	ebegin "Remove bundled libraries"
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
-	eend
+	eend 0
 
 	if use js-type-check; then
 		ln -s "${EPREFIX}"/usr/bin/java third_party/jdk/current/bin/java || die
 	fi
-
-	if use elibc_musl; then
-		config1="./third_party/swiftshader/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h"
-		if [[ -f $config1 ]]; then
-			sed -i 's/#define HAVE_BACKTRACE 1/\/* #undef HAVE_BACKTRACE *\//' $config1 || die
-			sed -i 's/#define HAVE_EXECINFO_H 1/\/* #undef HAVE_EXECINFO_H *\//' $config1 || die
-			sed -i 's/#define HAVE_MALLINFO 1/\/* #undef HAVE_MALLINFO *\//' $config1 || die
-		fi
-		config2="./third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h"
-		if [[ -f $config2 ]]; then
-			sed -i 's/#define HAVE_MALLINFO 1/\/* #undef HAVE_MALLINFO *\//' $config2 || die
-		fi
-	fi
-
 }
 
 src_configure() {
@@ -1788,8 +1727,6 @@ src_configure() {
 
 	# Make sure the build system will use the right tools, bug #340795.
 	tc-export AR CC CXX NM
-
-	cd "${CHROMIUM_S}" || die
 
 	if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] && ! tc-is-clang; then
 		# Force clang since gcc is pretty broken at the moment.
@@ -1880,12 +1817,10 @@ src_configure() {
 	myconf_gn+=" use_cups=$(usex cups true false)"
 	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
 	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
-	myconf_gn+=" use_atk=$(usex atk true false)"
-	myconf_gn+=" rtc_use_pipewire=$(usex screencast true false) rtc_pipewire_version=\"0.3\" rtc_link_pipewire=true"
 	myconf_gn+=" use_vaapi=$(usex vaapi true false)"
-	myconf_gn+=" enable_swiftshader=true"
-	myconf_gn+=" enable_vulkan=true"
-	myconf_gn+=" enable_swiftshader_vulkan=true"
+	myconf_gn+=" rtc_use_pipewire=$(usex screencast true false) rtc_pipewire_version=\"0.3\""
+	myconf_gn+=" use_atk=$(usex atk true false)"
+	myconf_gn+=" enable_swiftshader=true enable_vulkan=true enable_swiftshader_vulkan=true"
 
 	# TODO: link_pulseaudio=true for GN.
 
@@ -1902,13 +1837,14 @@ src_configure() {
 		myconf_gn+=" thin_lto_enable_optimizations=true"
 	else
 		# Disable forced lld, bug 641556
+		myconf_gn+=" use_thin_lto=false"
 		myconf_gn+=" use_lld=false"
 	fi
 
 	if use pgo; then
-		myconf_gn+=" chrome_pgo_phase = 2"
+		myconf_gn+=" chrome_pgo_phase=2"
 	else
-		myconf_gn+=" chrome_pgo_phase = 0"
+		myconf_gn+=" chrome_pgo_phase=0"
 	fi
 
 	ffmpeg_branding="$(usex proprietary-codecs Chrome Chromium)"
@@ -1918,13 +1854,14 @@ src_configure() {
 	# Set up Google API keys, see http://www.chromium.org/developers/how-tos/api-keys .
 	# Note: these are for Gentoo use ONLY. For your own distribution,
 	# please get your own set of keys. Feel free to contact chromium@gentoo.org
-	# for more info.
+	# for more info. The OAuth2 credentials, however, have been left out.
+	# Those OAuth2 credentials have been broken for quite some time anyway.
+	# Instead we apply a patch to use the --oauth2-client-id= and
+	# --oauth2-client-secret= switches for setting GOOGLE_DEFAULT_CLIENT_ID and
+	# GOOGLE_DEFAULT_CLIENT_SECRET at runtime. This allows signing into
+	# Chromium without baked-in values.
 	local google_api_key="AIzaSyDEAOvatFo0eTgsV_ZlEzx0ObmepsMzfAc"
-	local google_default_client_id="329227923882.apps.googleusercontent.com"
-	local google_default_client_secret="vgKG0NNv7GoDpbtoFNLxCUXu"
 	myconf_gn+=" google_api_key=\"${google_api_key}\""
-	myconf_gn+=" google_default_client_id=\"${google_default_client_id}\""
-	myconf_gn+=" google_default_client_secret=\"${google_default_client_secret}\""
 	local myarch="$(tc-arch)"
 
 	# Avoid CFLAGS problems, bug #352457, bug #390147.
@@ -1987,8 +1924,7 @@ src_configure() {
 	# https://bugs.gentoo.org/654216
 	addpredict /dev/dri/ #nowarn
 
-	if ! use system-ffmpeg; then
-	# if false; then #FIXME: why chromium ebuild have this?
+	if false; then
 		local build_ffmpeg_args=""
 		if use pic && [[ "${ffmpeg_target_arch}" == "ia32" ]]; then
 			build_ffmpeg_args+=" --disable-asm"
@@ -2007,14 +1943,6 @@ src_configure() {
 	# Chromium relies on this, but was disabled in >=clang-10, crbug.com/1042470
 	append-cxxflags $(test-flags-CXX -flax-vector-conversions=all)
 
-	# highway/libjxl relies on this with arm64
-	if use arm64 && tc-is-gcc; then
-		append-cxxflags -flax-vector-conversions
-	fi
-
-	# highway/libjxl fail on ppc64 without extra patches, disable for now.
-	use ppc64 && myconf_gn+=" enable_jxl_decoder=false"
-
 	# Disable unknown warning message from clang.
 	tc-is-clang && append-flags -Wno-unknown-warning-option
 
@@ -2024,9 +1952,9 @@ src_configure() {
 	fi
 
 	# Enable ozone wayland and/or headless support
-	myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
-	myconf_gn+=" ozone_platform_headless=true"
 	if use wayland || use headless; then
+		myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
+		myconf_gn+=" ozone_platform_headless=true"
 		if use headless; then
 			myconf_gn+=" ozone_platform=\"headless\""
 			myconf_gn+=" use_x11=false"
@@ -2040,6 +1968,8 @@ src_configure() {
 			myconf_gn+=" use_gtk=true"
 			myconf_gn+=" ozone_platform=\"wayland\""
 		fi
+	else
+		myconf_gn+=" use_ozone=false"
 	fi
 
 	# This configutation can generate config.gypi
@@ -2095,8 +2025,7 @@ src_compile() {
 	python_setup
 
 	# https://bugs.gentoo.org/717456
-	# don't inherit PYTHONPATH from environment, bug #789021
-	local -x PYTHONPATH="${WORKDIR}/setuptools-44.1.0"
+	local -x PYTHONPATH="${WORKDIR}/setuptools-44.1.0:${PYTHONPATH+:}${PYTHONPATH}"
 
 	cd "${CHROMIUM_S}" || die
 
@@ -2128,8 +2057,6 @@ src_install() {
 	local install_dir="$(_get_install_dir)"
 	local install_suffix="$(_get_install_suffix)"
 	local LIBDIR="${ED}/usr/$(get_libdir)"
-
-	cd "${CHROMIUM_S}" || die
 
 	pushd out/Release/locales > /dev/null || die
 	chromium_remove_language_paks
@@ -2169,9 +2096,9 @@ src_install() {
 
 	insopts -m755
 	if [[ -d out/Release/swiftshader ]]; then
-        insinto "${install_dir}"/swiftshader
-        doins out/Release/swiftshader/*.so
-    fi
+		insinto "${install_dir}"/swiftshader
+		doins out/Release/swiftshader/*.so
+	fi
 
 	insinto "${install_dir}"
 	if ! use system-ffmpeg; then
@@ -2183,6 +2110,9 @@ src_install() {
 		local files=(out/Release/*.so out/Release/*.so.[0-9])
 		[[ ${#files[@]} -gt 0 ]] && doins "${files[@]}"
 	)
+
+	rm "${ED}/${install_dir}"/libVkICD_mock_icd.so
+	rm "${ED}/${install_dir}"/v8_build_config.json
 
 	insopts -m644
 
