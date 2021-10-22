@@ -1,11 +1,13 @@
---- a/Source/WebKit/UIProcess/Launcher/glib/BubblewrapLauncher.cpp	2020-02-14 16:56:16.000000000 +0800
-+++ b/Source/WebKit/UIProcess/Launcher/glib/BubblewrapLauncher.cpp	2020-02-25 11:21:24.335344950 +0800
-@@ -410,58 +410,6 @@
-
+diff --git a/Source/WebKit/UIProcess/Launcher/glib/BubblewrapLauncher.cpp b/Source/WebKit/UIProcess/Launcher/glib/BubblewrapLauncher.cpp
+index 0b28696..affff83 100644
+--- a/Source/WebKit/UIProcess/Launcher/glib/BubblewrapLauncher.cpp
++++ b/Source/WebKit/UIProcess/Launcher/glib/BubblewrapLauncher.cpp
+@@ -463,58 +463,7 @@ static void bindGtkData(Vector<CString>& args)
+ 
  static void bindA11y(Vector<CString>& args)
  {
 -    static XDGDBusProxyLauncher proxy;
--
+ 
 -    if (!proxy.isRunning()) {
 -        // FIXME: Avoid blocking IO... (It is at least a one-time cost)
 -        GRefPtr<GDBusConnection> sessionBus = adoptGRef(g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, nullptr));
@@ -46,7 +48,7 @@
 -            "--call=org.a11y.atspi.Registry=org.a11y.atspi.DeviceEventController.NotifyListenersAsync@/org/a11y/atspi/registry/deviceeventcontroller",
 -        });
 -
--        proxy.launch();
+-        proxy.launch(!g_strcmp0(g_getenv("WEBKIT_ENABLE_A11Y_DBUS_PROXY_LOGGING"), "1"));
 -    }
 -
 -    if (proxy.proxyPath().data()) {
@@ -58,4 +60,4 @@
 -    }
  }
  #endif
-
+ 
