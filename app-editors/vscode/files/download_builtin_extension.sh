@@ -4,7 +4,7 @@
 declare -A BUILTINEXTS=(
 ["references-view"]="0.0.81"
 ["js-debug-companion"]="1.0.15"
-["js-debug"]="1.61.0"
+["js-debug"]="1.62.0"
 ["vscode-js-profile-table"]="0.0.18"
 )
 

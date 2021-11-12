@@ -1,6 +1,6 @@
-From 0a787770edd6f29fa285fb006630bafedcb1c136 Mon Sep 17 00:00:00 2001
+From 4ba87fd88e34877e432cb8364c218026e90f9e61 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Mon, 11 Oct 2021 16:41:40 +0800
+Date: Fri, 5 Nov 2021 16:22:08 +0800
 Subject: [PATCH 13/14] Remove vscode-telemetry-extractor
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH 13/14] Remove vscode-telemetry-extractor
  2 files changed, 18 deletions(-)
 
 diff --git a/package.json b/package.json
-index 1d8a2a1c298..6642bde7c74 100644
+index 5cddbb68254..f3aac869cc3 100644
 --- a/package.json
 +++ b/package.json
-@@ -204,7 +204,6 @@
+@@ -205,7 +205,6 @@
      "vinyl-fs": "^3.0.0",
      "vscode-debugprotocol": "1.48.0",
      "vscode-nls-dev": "^3.3.1",
@@ -21,10 +21,10 @@ index 1d8a2a1c298..6642bde7c74 100644
      "webpack-cli": "^4.7.2",
      "webpack-stream": "^6.1.2",
 diff --git a/yarn.lock b/yarn.lock
-index fdc71d62b5d..3c2bcd0ed14 100644
+index 1ebc9b27dd4..91f65a140a7 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -10420,14 +10420,6 @@ vscode-regexpp@^3.1.0:
+@@ -10438,14 +10438,6 @@ vscode-regexpp@^3.1.0:
    resolved "https://registry.yarnpkg.com/vscode-regexpp/-/vscode-regexpp-3.1.0.tgz#42d059b6fffe99bd42939c0d013f632f0cad823f"
    integrity sha512-pqtN65VC1jRLawfluX4Y80MMG0DHJydWhe5ZwMHewZD6sys4LbU6lHwFAHxeuaVE6Y6+xZOtAw+9hvq7/0ejkg==
  
@@ -39,7 +39,7 @@ index fdc71d62b5d..3c2bcd0ed14 100644
  vscode-ripgrep@^1.12.1:
    version "1.12.1"
    resolved "https://registry.yarnpkg.com/vscode-ripgrep/-/vscode-ripgrep-1.12.1.tgz#4a319809d4010ea230659ce605fddacd1e36a589"
-@@ -10436,15 +10428,6 @@ vscode-ripgrep@^1.12.1:
+@@ -10454,15 +10446,6 @@ vscode-ripgrep@^1.12.1:
      https-proxy-agent "^4.0.0"
      proxy-from-env "^1.1.0"
  
@@ -52,9 +52,9 @@ index fdc71d62b5d..3c2bcd0ed14 100644
 -    ts-morph "^11.0.0"
 -    vscode-ripgrep "^1.11.3"
 -
- vscode-textmate@5.4.0:
-   version "5.4.0"
-   resolved "https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-5.4.0.tgz#4b25ffc1f14ac3a90faf9a388c67a01d24257cd7"
+ vscode-textmate@5.4.1:
+   version "5.4.1"
+   resolved "https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-5.4.1.tgz#09d566724fc76b60b3ad9791eebf1f0b50f29e5a"
 -- 
-2.33.0
+2.33.1
 
