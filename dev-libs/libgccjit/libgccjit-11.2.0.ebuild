@@ -50,6 +50,18 @@ S="${WORKDIR}/gcc-${GCC_RELEASE_VER}"
 src_prepare() {
 	eapply "${WORKDIR}"/patch/*.patch
 
+	if use elibc_musl || [[ ${CATEGORY} = cross-*-musl* ]]; then
+		eapply "${FILESDIR}"/cpu_indicator.patch
+		eapply "${FILESDIR}"/posix_memalign.patch
+		case $(tc-arch) in
+			amd64|arm64|ppc64) eapply "${FILESDIR}"/gcc-pure64.patch ;;
+		esac
+	fi
+
+	if [[ ${CATEGORY} != cross-* ]] ; then
+		eapply "${FILESDIR}"/gcc-6.1-musl-libssp.patch
+	fi
+
 	default
 
 	local actual_version=$(<"${S}"/gcc/BASE-VER)
