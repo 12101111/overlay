@@ -78,12 +78,10 @@ CRATES="
 	dashmap-4.0.2
 	data-encoding-2.3.2
 	data-url-0.1.0
-	deno-libffi-0.0.7
-	deno-libffi-sys-0.0.7
-	deno_ast-0.3.0
-	deno_doc-0.16.0
-	deno_graph-0.7.0
-	deno_lint-0.17.0
+	deno_ast-0.5.0
+	deno_doc-0.20.0
+	deno_graph-0.11.1
+	deno_lint-0.19.0
 	der-0.4.4
 	derive_more-0.99.16
 	diff-0.1.12
@@ -91,15 +89,15 @@ CRATES="
 	dissimilar-1.0.3
 	dlopen-0.1.8
 	dlopen_derive-0.1.4
-	dprint-core-0.46.4
-	dprint-plugin-json-0.13.0
-	dprint-plugin-markdown-0.10.0
-	dprint-plugin-typescript-0.57.4
-	dprint-swc-ecma-ast-view-0.39.0
+	dprint-core-0.47.1
+	dprint-plugin-json-0.13.2
+	dprint-plugin-markdown-0.11.2
+	dprint-plugin-typescript-0.59.1
+	dprint-swc-ecma-ast-view-0.42.0
 	ecdsa-0.12.4
 	either-1.6.1
 	elliptic-curve-0.10.6
-	encoding_rs-0.8.28
+	encoding_rs-0.8.29
 	endian-type-0.1.2
 	enum-as-inner-0.3.3
 	enum_kind-0.2.1
@@ -182,7 +180,9 @@ CRATES="
 	lazy_static-1.4.0
 	lexical-5.2.2
 	lexical-core-0.7.6
-	libc-0.2.103
+	libc-0.2.106
+	libffi-2.0.0
+	libffi-sys-1.3.0
 	libloading-0.7.1
 	libm-0.2.1
 	libsqlite3-sys-0.22.2
@@ -193,7 +193,6 @@ CRATES="
 	lsp-types-0.89.2
 	lspower-1.1.0
 	lspower-macros-0.2.1
-	make-cmd-0.1.0
 	malloc_buf-0.0.6
 	match_cfg-0.1.0
 	matches-0.1.9
@@ -310,7 +309,6 @@ CRATES="
 	serde_json-1.0.68
 	serde_repr-0.1.7
 	serde_urlencoded-0.7.0
-	serde_v8-0.15.0
 	sha-1-0.9.8
 	sha2-0.9.8
 	shell-escape-0.1.5
@@ -329,32 +327,32 @@ CRATES="
 	stable_deref_trait-1.2.0
 	static_assertions-1.1.0
 	str-buf-1.0.5
-	string_cache-0.8.1
+	string_cache-0.8.2
 	string_cache_codegen-0.5.1
 	string_enum-0.3.1
 	strsim-0.8.0
 	strsim-0.9.3
 	subtle-2.4.1
-	swc_atoms-0.2.7
-	swc_bundler-0.68.1
-	swc_common-0.13.4
-	swc_ecma_ast-0.54.3
-	swc_ecma_codegen-0.74.4
+	swc_atoms-0.2.9
+	swc_bundler-0.75.0
+	swc_common-0.14.1
+	swc_ecma_ast-0.55.0
+	swc_ecma_codegen-0.77.0
 	swc_ecma_codegen_macros-0.6.0
-	swc_ecma_dep_graph-0.42.0
-	swc_ecma_loader-0.21.0
-	swc_ecma_parser-0.73.11
-	swc_ecma_transforms-0.81.0
-	swc_ecma_transforms_base-0.37.1
-	swc_ecma_transforms_classes-0.23.0
-	swc_ecma_transforms_macros-0.2.1
-	swc_ecma_transforms_optimization-0.51.0
-	swc_ecma_transforms_proposal-0.46.0
-	swc_ecma_transforms_react-0.48.1
-	swc_ecma_transforms_typescript-0.48.0
-	swc_ecma_utils-0.47.1
-	swc_ecma_visit-0.40.0
-	swc_ecmascript-0.73.0
+	swc_ecma_dep_graph-0.44.0
+	swc_ecma_loader-0.22.0
+	swc_ecma_parser-0.75.2
+	swc_ecma_transforms-0.88.0
+	swc_ecma_transforms_base-0.40.0
+	swc_ecma_transforms_classes-0.26.0
+	swc_ecma_transforms_macros-0.2.3
+	swc_ecma_transforms_optimization-0.58.1
+	swc_ecma_transforms_proposal-0.51.0
+	swc_ecma_transforms_react-0.53.0
+	swc_ecma_transforms_typescript-0.54.0
+	swc_ecma_utils-0.48.0
+	swc_ecma_visit-0.41.0
+	swc_ecmascript-0.80.0
 	swc_eq_ignore_macros-0.1.0
 	swc_macros_common-0.3.3
 	swc_visit-0.2.6
@@ -391,6 +389,7 @@ CRATES="
 	try-lock-0.2.3
 	tungstenite-0.13.0
 	twoway-0.2.2
+	typed-arena-2.0.1
 	typenum-1.14.0
 	ucd-trie-0.1.3
 	unchecked-index-0.2.2
@@ -446,24 +445,17 @@ CRATES="
 	zeroize_derive-1.2.0
 "
 
-RUSTY_V8="0.32.0"
-V8="9.5.172.19"
-chromium_build="b1cbcbce2c71b08bb34ede6add332626e78fa10e"
-icu="f022e298b4f4a782486bb6d5ce6589c998b51fe2"
-
 inherit cargo check-reqs toolchain-funcs python-any-r1 git-r3
 
 DESCRIPTION="A secure JavaScript and TypeScript runtime"
 HOMEPAGE="https://github.com/denoland/deno"
-EGIT_REPO_URI="https://github.com/denoland/rusty_v8"
-EGIT_COMMIT="v${RUSTY_V8}"
-EGIT_CHECKOUT_DIR="${WORKDIR}/rusty_v8"
-EGIT_SUBMODULES=('third_party/jinja2' 'third_party/markupsafe' 'third_party/zlib' 'base/trace_event/common')
+EGIT_REPO_URI="https://github.com/denoland/rusty_v8.git"
+EGIT_COMMIT="v0.34.0"
+EGIT_CHECKOUT_DIR="${WORKDIR}/v8"
+EGIT_SUBMODULES=('v8' 'build' 'base/trace_event/common' 'third_party/jinja2' 'third_party/markupsafe' 'third_party/zlib' 'third_party/icu')
+EGIT_OVERRIDE_COMMIT_DENOLAND_V8="da71b7d9519e2b37c3e9f6d7613c3e53bb3c3624"
 SRC_URI="
 	https://github.com/denoland/deno/releases/download/v${PV}/deno_src.tar.gz -> ${P}.tar.gz
-	https://github.com/v8/v8/archive/refs/tags/${V8}.tar.gz -> v8-${V8}.tar.gz
-	https://github.com/denoland/chromium_build/archive/${chromium_build}.tar.gz -> deno_build-${chromium_build}.tar.gz
-	https://github.com/denoland/icu/archive/${icu}.tar.gz -> deno_icu-${icu}.tar.gz
 	$(cargo_crate_uris ${CRATES})
 "
 
@@ -471,7 +463,7 @@ LICENSE="0BSD Apache-2.0 Apache-2.0-with-LLVM-exceptions BSD-2 BSD CC0-1.0 ISC M
 SLOT="0"
 KEYWORDS="~amd64"
 RESTRICT="mirror"
-IUSE="libcxx static-libs"
+IUSE="libcxx"
 
 BDEPEND="
 	>=dev-libs/glib-2.66.7
@@ -503,12 +495,6 @@ src_unpack() {
 
 src_prepare() {
 	pushd "${EGIT_CHECKOUT_DIR}" >> /dev/null
-	rm -rf v8 || die
-	rm -rf build || die
-	rm -rf third_party/icu || die
-	mv "../v8-${V8}" v8 || die
-	mv "../chromium_build-${chromium_build}" build || die
-	mv "../icu-${icu}" third_party/icu || die
 	eapply "${FILESDIR}/remove-libatomic.patch"
 	eapply "${FILESDIR}/gentoo-r1.patch"
 	pushd v8 >> /dev/null
@@ -516,7 +502,7 @@ src_prepare() {
 	popd >> /dev/null
 	popd >> /dev/null
 	echo "[patch.crates-io]" >> "${S}/Cargo.toml"
-	echo "rusty_v8 = { path = '../rusty_v8' }" >> "${S}/Cargo.toml"
+	echo "v8 = { path = '../v8' }" >> "${S}/Cargo.toml"
 	default
 }
 
@@ -556,5 +542,4 @@ src_compile() {
 
 src_install() {
 	dobin "${S}"/target/release/deno
-	use static-libs && dolib.a "${S}"/target/release/gn_out/obj/librusty_v8.a
 }
