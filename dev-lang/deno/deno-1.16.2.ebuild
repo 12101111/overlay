@@ -79,8 +79,8 @@ CRATES="
 	data-encoding-2.3.2
 	data-url-0.1.0
 	deno_ast-0.5.0
-	deno_doc-0.20.0
-	deno_graph-0.11.1
+	deno_doc-0.21.0
+	deno_graph-0.12.0
 	deno_lint-0.19.0
 	der-0.4.4
 	derive_more-0.99.16
@@ -305,6 +305,7 @@ CRATES="
 	semver-parser-0.7.0
 	semver-parser-0.10.2
 	serde-1.0.130
+	serde_bytes-0.11.5
 	serde_derive-1.0.130
 	serde_json-1.0.68
 	serde_repr-0.1.7
@@ -450,10 +451,10 @@ inherit cargo check-reqs toolchain-funcs python-any-r1 git-r3
 DESCRIPTION="A secure JavaScript and TypeScript runtime"
 HOMEPAGE="https://github.com/denoland/deno"
 EGIT_REPO_URI="https://github.com/denoland/rusty_v8.git"
-EGIT_COMMIT="v0.34.0"
+EGIT_COMMIT="v0.35.0"
 EGIT_CHECKOUT_DIR="${WORKDIR}/v8"
 EGIT_SUBMODULES=('v8' 'build' 'base/trace_event/common' 'third_party/jinja2' 'third_party/markupsafe' 'third_party/zlib' 'third_party/icu')
-EGIT_OVERRIDE_COMMIT_DENOLAND_V8="da71b7d9519e2b37c3e9f6d7613c3e53bb3c3624"
+#EGIT_OVERRIDE_COMMIT_DENOLAND_V8="da71b7d9519e2b37c3e9f6d7613c3e53bb3c3624"
 SRC_URI="
 	https://github.com/denoland/deno/releases/download/v${PV}/deno_src.tar.gz -> ${P}.tar.gz
 	$(cargo_crate_uris ${CRATES})
@@ -497,12 +498,12 @@ src_prepare() {
 	pushd "${EGIT_CHECKOUT_DIR}" >> /dev/null
 	eapply "${FILESDIR}/remove-libatomic.patch"
 	eapply "${FILESDIR}/gentoo-r1.patch"
-	pushd v8 >> /dev/null
-	eapply "${FILESDIR}/v8.patch"
 	popd >> /dev/null
+	pushd "${S}"
+	eapply "${FILESDIR}/v8_0.35.patch"
+	echo "[patch.crates-io]" >> Cargo.toml
+	echo "v8 = { path = '../v8' }" >> Cargo.toml
 	popd >> /dev/null
-	echo "[patch.crates-io]" >> "${S}/Cargo.toml"
-	echo "v8 = { path = '../v8' }" >> "${S}/Cargo.toml"
 	default
 }
 
