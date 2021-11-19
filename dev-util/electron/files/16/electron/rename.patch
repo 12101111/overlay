@@ -1,0 +1,8 @@
+diff --git a/patches/chromium/feat_add_data_parameter_to_processsingleton.patch b/patches/chromium/zzzfeat_add_data_parameter_to_processsingleton.patch
+similarity index 100%
+rename from patches/chromium/feat_add_data_parameter_to_processsingleton.patch
+rename to patches/chromium/zzzfeat_add_data_parameter_to_processsingleton.patch
+diff --git a/patches/chromium/crash_allow_disabling_compression_on_linux.patch b/patches/chromium/zzzcrash_allow_disabling_compression_on_linux.patch
+similarity index 100%
+rename from patches/chromium/crash_allow_disabling_compression_on_linux.patch
+rename to patches/chromium/zzzcrash_allow_disabling_compression_on_linux.patch

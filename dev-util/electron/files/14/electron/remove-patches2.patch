@@ -20,3 +20,167 @@ index ad22469938..7778e78212 100644
 - }],  # ALWAYS
 - 
 - ##############################################################################
+diff --git a/patches/chromium/cherry-pick-8af66de55aad.patch b/patches/chromium/cherry-pick-8af66de55aad.patch
+index 67694bff4f..ca25c44209 100644
+--- a/patches/chromium/cherry-pick-8af66de55aad.patch
++++ b/patches/chromium/cherry-pick-8af66de55aad.patch
+@@ -110,17 +110,3 @@ index c60e3281ea96ef39e16034c88abf4c6c2a9bd2eb..f9434ae7a2c1066dd2c97f552ee572ca
+        required_csp_ = value;
+        DidChangeAttributes();
+        UseCounter::Count(GetDocument(), WebFeature::kIFrameCSPAttribute);
+-diff --git a/third_party/blink/web_tests/external/wpt/content-security-policy/embedded-enforcement/required_csp-header.html b/third_party/blink/web_tests/external/wpt/content-security-policy/embedded-enforcement/required_csp-header.html
+-index a9ad787408786e594ccb554d2bd9186a9e8e7c1e..e0a31db8e28fb1a9d2884c7677597072d4badba2 100644
+---- a/third_party/blink/web_tests/external/wpt/content-security-policy/embedded-enforcement/required_csp-header.html
+-+++ b/third_party/blink/web_tests/external/wpt/content-security-policy/embedded-enforcement/required_csp-header.html
+-@@ -59,6 +59,9 @@
+-       { "name": "Wrong and dangerous value of `csp` should not trigger sending Sec-Required-CSP Header - report-to present",
+-         "csp": "script-src 'unsafe-inline'; report-to resources/dummy-report.php",
+-         "expected": null },
+-+      { "name": "Sec-Required-CSP is not sent if `csp` attribute is longer than 4096 bytes",
+-+        "csp": "style-src " + Array.from(Array(2044).keys()).map(i => 'a').join(' '),
+-+        "expected":  null },
+-     ];
+- 
+-     tests.forEach(test => {
+diff --git a/patches/v8/merge_inspector_use_ephemeron_table_for_exception_metadata.patch b/patches/v8/merge_inspector_use_ephemeron_table_for_exception_metadata.patch
+index 28d8e27858..6da4ed533a 100644
+--- a/patches/v8/merge_inspector_use_ephemeron_table_for_exception_metadata.patch
++++ b/patches/v8/merge_inspector_use_ephemeron_table_for_exception_metadata.patch
+@@ -306,74 +306,3 @@ index e1607f88c0e6591d748d0c82634e327d2bbebad7..e6e4cde61c5845cac95d058b36126063
+    int m_capturingStackTracesCount;
+    unsigned m_lastExceptionId;
+    int m_lastContextId;
+-diff --git a/test/cctest/test-debug.cc b/test/cctest/test-debug.cc
+-index 2effdabc1dbd0e993971fe175b2483a9e555d0dd..30c6b2674901a0004b773ae0f0204d83b1964697 100644
+---- a/test/cctest/test-debug.cc
+-+++ b/test/cctest/test-debug.cc
+-@@ -594,10 +594,11 @@ TEST(BreakPointApiIntrinsics) {
+-     CHECK_EQ(2, break_point_hit_count);
+- 
+-     break_point_hit_count = 0;
+--    v8::Local<v8::debug::WeakMap> weakmap =
+--        v8::debug::WeakMap::New(env->GetIsolate());
+--    CHECK(!weakmap->Set(env.local(), weakmap, v8_num(1)).IsEmpty());
+--    CHECK(!weakmap->Get(env.local(), weakmap).IsEmpty());
+-+    v8::Local<v8::debug::EphemeronTable> weakmap =
+-+        v8::debug::EphemeronTable::New(env->GetIsolate());
+-+    v8::Local<v8::Object> key = v8::Object::New(env->GetIsolate());
+-+    CHECK(!weakmap->Set(env->GetIsolate(), key, v8_num(1)).IsEmpty());
+-+    CHECK(!weakmap->Get(env->GetIsolate(), key).IsEmpty());
+-     CHECK_EQ(0, break_point_hit_count);
+-   }
+- 
+-diff --git a/test/cctest/test-inspector.cc b/test/cctest/test-inspector.cc
+-index e36ce19eca04831f8a80c459590506e497836716..7fb3bef3bb9e7ef88cd441ce4023b780fff5d982 100644
+---- a/test/cctest/test-inspector.cc
+-+++ b/test/cctest/test-inspector.cc
+-@@ -8,6 +8,7 @@
+- #include "include/v8.h"
+- #include "src/inspector/protocol/Runtime.h"
+- #include "src/inspector/string-util.h"
+-+#include "src/inspector/v8-inspector-impl.h"
+- #include "test/cctest/cctest.h"
+- 
+- using v8_inspector::StringBuffer;
+-@@ -168,3 +169,38 @@ TEST(BinaryBase64RoundTrip) {
+-     CHECK_EQ(values[i], roundtrip_binary.data()[i]);
+-   }
+- }
+-+
+-+TEST(NoInterruptOnGetAssociatedData) {
+-+  LocalContext env;
+-+  v8::Isolate* isolate = env->GetIsolate();
+-+  v8::HandleScope handle_scope(isolate);
+-+
+-+  v8_inspector::V8InspectorClient default_client;
+-+  std::unique_ptr<v8_inspector::V8InspectorImpl> inspector(
+-+      new v8_inspector::V8InspectorImpl(isolate, &default_client));
+-+
+-+  v8::Local<v8::Context> context = env->GetIsolate()->GetCurrentContext();
+-+  v8::Local<v8::Value> error = v8::Exception::Error(v8_str("custom error"));
+-+  v8::Local<v8::Name> key = v8_str("key");
+-+  v8::Local<v8::Value> value = v8_str("value");
+-+  inspector->associateExceptionData(context, error, key, value);
+-+
+-+  struct InterruptRecorder {
+-+    static void handler(v8::Isolate* isolate, void* data) {
+-+      reinterpret_cast<InterruptRecorder*>(data)->WasInvoked = true;
+-+    }
+-+
+-+    bool WasInvoked = false;
+-+  } recorder;
+-+
+-+  isolate->RequestInterrupt(&InterruptRecorder::handler, &recorder);
+-+
+-+  v8::Local<v8::Object> data =
+-+      inspector->getAssociatedExceptionData(error).ToLocalChecked();
+-+  CHECK(!recorder.WasInvoked);
+-+
+-+  CHECK_EQ(data->Get(context, key).ToLocalChecked(), value);
+-+
+-+  CompileRun("0");
+-+  CHECK(recorder.WasInvoked);
+-+}
+diff --git a/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch b/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch
+index 1d7cc2957c..b41eaf8163 100644
+--- a/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch
++++ b/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch
+@@ -86,58 +86,3 @@ index b014bd6134391e469dac2ceda98e52d301abb3f3..4c0d78a30bd3610df6d713d27e4e07a3
+      if (value_desc.base_object_payload) {
+        MarkAndPush(value_desc.base_object_payload, value_desc);
+      } else {
+-diff --git a/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc b/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc
+-index c759308723d7f0635d329f5b571859700871fa35..1ff52904dd387c9772de810951619191dc79aea7 100644
+---- a/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc
+-+++ b/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc
+-@@ -239,5 +239,50 @@ TEST_F(EphemeronPairTest, EphemeronPairWithEmptyMixinValue) {
+-   FinishMarking();
+- }
+- 
+-+namespace {
+-+
+-+class KeyWithCallback final : public GarbageCollected<KeyWithCallback> {
+-+ public:
+-+  template <typename Callback>
+-+  explicit KeyWithCallback(Callback callback) {
+-+    callback(this);
+-+  }
+-+  void Trace(Visitor*) const {}
+-+};
+-+
+-+class EphemeronHolderForKeyWithCallback final
+-+    : public GarbageCollected<EphemeronHolderForKeyWithCallback> {
+-+ public:
+-+  EphemeronHolderForKeyWithCallback(KeyWithCallback* key, GCed* value)
+-+      : ephemeron_pair_(key, value) {}
+-+  void Trace(cppgc::Visitor* visitor) const { visitor->Trace(ephemeron_pair_); }
+-+
+-+ private:
+-+  const EphemeronPair<KeyWithCallback, GCed> ephemeron_pair_;
+-+};
+-+
+-+}  // namespace
+-+
+-+TEST_F(EphemeronPairTest, EphemeronPairWithKeyInConstruction) {
+-+  GCed* value = MakeGarbageCollected<GCed>(GetAllocationHandle());
+-+  Persistent<EphemeronHolderForKeyWithCallback> holder;
+-+  InitializeMarker(*Heap::From(GetHeap()), GetPlatformHandle().get());
+-+  FinishSteps();
+-+  MakeGarbageCollected<KeyWithCallback>(
+-+      GetAllocationHandle(), [this, &holder, value](KeyWithCallback* thiz) {
+-+        // The test doesn't use conservative stack scanning to retain key to
+-+        // avoid retaining value as a side effect.
+-+        EXPECT_TRUE(HeapObjectHeader::FromObject(thiz).TryMarkAtomic());
+-+        holder = MakeGarbageCollected<EphemeronHolderForKeyWithCallback>(
+-+            GetAllocationHandle(), thiz, value);
+-+        // Finishing marking at this point will leave an ephemeron pair
+-+        // reachable where the key is still in construction. The GC needs to
+-+        // mark the value for such pairs as live in the atomic pause as they key
+-+        // is considered live.
+-+        FinishMarking();
+-+      });
+-+  EXPECT_TRUE(HeapObjectHeader::FromObject(value).IsMarked());
+-+}
+-+
+- }  // namespace internal
+- }  // namespace cppgc

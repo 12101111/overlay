@@ -10057,3 +10057,66 @@ index 6b2bd6d5e..c6d6d1c3e 100644
 -+    InspectorTest.trimErrorMessage(message).error, null, 2));
 -   InspectorTest.completeTest();
 - }
+diff --git a/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch b/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch
+index 82fc3d90be..03c116b4fe 100644
+--- a/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch
++++ b/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch
+@@ -86,58 +86,3 @@ index 65185c36e2babe145a27076cf1c76a12a7c880a1..39615474e4776281e48f8e6a504ba391
+      MarkAndPush(value_desc.base_object_payload, value_desc);
+      return;
+    }
+-diff --git a/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc b/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc
+-index 1172eedb866c7a1a4723fd96ce9070219deec32e..3d2b2e7bc3e47921632f406aba1f6472cb747b6d 100644
+---- a/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc
+-+++ b/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc
+-@@ -108,5 +108,50 @@ TEST_F(EhpemeronPairTest, ValueNotMarkedBeforeKey) {
+-   EXPECT_TRUE(HeapObjectHeader::FromPayload(value).IsMarked());
+- }
+- 
+-+namespace {
+-+
+-+class KeyWithCallback final : public GarbageCollected<KeyWithCallback> {
+-+ public:
+-+  template <typename Callback>
+-+  explicit KeyWithCallback(Callback callback) {
+-+    callback(this);
+-+  }
+-+  void Trace(Visitor*) const {}
+-+};
+-+
+-+class EphemeronHolderForKeyWithCallback final
+-+    : public GarbageCollected<EphemeronHolderForKeyWithCallback> {
+-+ public:
+-+  EphemeronHolderForKeyWithCallback(KeyWithCallback* key, GCed* value)
+-+      : ephemeron_pair_(key, value) {}
+-+  void Trace(cppgc::Visitor* visitor) const { visitor->Trace(ephemeron_pair_); }
+-+
+-+ private:
+-+  const EphemeronPair<KeyWithCallback, GCed> ephemeron_pair_;
+-+};
+-+
+-+}  // namespace
+-+
+-+TEST_F(EphemeronPairTest, EphemeronPairWithKeyInConstruction) {
+-+  GCed* value = MakeGarbageCollected<GCed>(GetAllocationHandle());
+-+  Persistent<EphemeronHolderForKeyWithCallback> holder;
+-+  InitializeMarker(*Heap::From(GetHeap()), GetPlatformHandle().get());
+-+  FinishSteps();
+-+  MakeGarbageCollected<KeyWithCallback>(
+-+      GetAllocationHandle(), [this, &holder, value](KeyWithCallback* thiz) {
+-+        // The test doesn't use conservative stack scanning to retain key to
+-+        // avoid retaining value as a side effect.
+-+        EXPECT_TRUE(HeapObjectHeader::FromObject(thiz).TryMarkAtomic());
+-+        holder = MakeGarbageCollected<EphemeronHolderForKeyWithCallback>(
+-+            GetAllocationHandle(), thiz, value);
+-+        // Finishing marking at this point will leave an ephemeron pair
+-+        // reachable where the key is still in construction. The GC needs to
+-+        // mark the value for such pairs as live in the atomic pause as they key
+-+        // is considered live.
+-+        FinishMarking();
+-+      });
+-+  EXPECT_TRUE(HeapObjectHeader::FromObject(value).IsMarked());
+-+}
+-+
+- }  // namespace internal
+- }  // namespace cppgc

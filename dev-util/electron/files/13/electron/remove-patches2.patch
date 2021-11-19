@@ -212,3 +212,88 @@ index 1df91f8bee..fdf648d00b 100644
 - }],  # ALWAYS
 - 
 - ##############################################################################
+diff --git a/patches/chromium/cherry-pick-8af66de55aad.patch b/patches/chromium/cherry-pick-8af66de55aad.patch
+index 2189c677d3..bfd649811d 100644
+--- a/patches/chromium/cherry-pick-8af66de55aad.patch
++++ b/patches/chromium/cherry-pick-8af66de55aad.patch
+@@ -110,17 +110,3 @@ index 589580b9795f3908c4f5d978bd4366c98e52847a..40b8af83cdb2dc61b78628c223c0d95f
+        required_csp_ = value;
+        CSPAttributeChanged();
+        UseCounter::Count(GetDocument(), WebFeature::kIFrameCSPAttribute);
+-diff --git a/third_party/blink/web_tests/external/wpt/content-security-policy/embedded-enforcement/required_csp-header.html b/third_party/blink/web_tests/external/wpt/content-security-policy/embedded-enforcement/required_csp-header.html
+-index a9ad787408786e594ccb554d2bd9186a9e8e7c1e..e0a31db8e28fb1a9d2884c7677597072d4badba2 100644
+---- a/third_party/blink/web_tests/external/wpt/content-security-policy/embedded-enforcement/required_csp-header.html
+-+++ b/third_party/blink/web_tests/external/wpt/content-security-policy/embedded-enforcement/required_csp-header.html
+-@@ -59,6 +59,9 @@
+-       { "name": "Wrong and dangerous value of `csp` should not trigger sending Sec-Required-CSP Header - report-to present",
+-         "csp": "script-src 'unsafe-inline'; report-to resources/dummy-report.php",
+-         "expected": null },
+-+      { "name": "Sec-Required-CSP is not sent if `csp` attribute is longer than 4096 bytes",
+-+        "csp": "style-src " + Array.from(Array(2044).keys()).map(i => 'a').join(' '),
+-+        "expected":  null },
+-     ];
+- 
+-     tests.forEach(test => {
+diff --git a/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch b/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch
+index e89bfbbc78..ed20c3e29f 100644
+--- a/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch
++++ b/patches/v8/merged_cppgc_fix_marking_of_ephemerons_with_keys_in_construction.patch
+@@ -86,58 +86,3 @@ index 6e08fc3e10e38e9349f09071f74871a37f93f694..bf1f40bdbde2e985b9d69d64e4936d90
+      if (value_desc.base_object_payload) {
+        MarkAndPush(value_desc.base_object_payload, value_desc);
+      } else {
+-diff --git a/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc b/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc
+-index 32a5929fe4094aaece314dcd90670c66c4649f02..f5d07c7fd52f9d5acd1e8ff1894f0eb2473b8612 100644
+---- a/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc
+-+++ b/test/unittests/heap/cppgc/ephemeron-pair-unittest.cc
+-@@ -239,5 +239,50 @@ TEST_F(EphemeronPairTest, EphemeronPairWithEmptyMixinValue) {
+-   FinishMarking();
+- }
+- 
+-+namespace {
+-+
+-+class KeyWithCallback final : public GarbageCollected<KeyWithCallback> {
+-+ public:
+-+  template <typename Callback>
+-+  explicit KeyWithCallback(Callback callback) {
+-+    callback(this);
+-+  }
+-+  void Trace(Visitor*) const {}
+-+};
+-+
+-+class EphemeronHolderForKeyWithCallback final
+-+    : public GarbageCollected<EphemeronHolderForKeyWithCallback> {
+-+ public:
+-+  EphemeronHolderForKeyWithCallback(KeyWithCallback* key, GCed* value)
+-+      : ephemeron_pair_(key, value) {}
+-+  void Trace(cppgc::Visitor* visitor) const { visitor->Trace(ephemeron_pair_); }
+-+
+-+ private:
+-+  const EphemeronPair<KeyWithCallback, GCed> ephemeron_pair_;
+-+};
+-+
+-+}  // namespace
+-+
+-+TEST_F(EphemeronPairTest, EphemeronPairWithKeyInConstruction) {
+-+  GCed* value = MakeGarbageCollected<GCed>(GetAllocationHandle());
+-+  Persistent<EphemeronHolderForKeyWithCallback> holder;
+-+  InitializeMarker(*Heap::From(GetHeap()), GetPlatformHandle().get());
+-+  FinishSteps();
+-+  MakeGarbageCollected<KeyWithCallback>(
+-+      GetAllocationHandle(), [this, &holder, value](KeyWithCallback* thiz) {
+-+        // The test doesn't use conservative stack scanning to retain key to
+-+        // avoid retaining value as a side effect.
+-+        EXPECT_TRUE(HeapObjectHeader::FromObject(thiz).TryMarkAtomic());
+-+        holder = MakeGarbageCollected<EphemeronHolderForKeyWithCallback>(
+-+            GetAllocationHandle(), thiz, value);
+-+        // Finishing marking at this point will leave an ephemeron pair
+-+        // reachable where the key is still in construction. The GC needs to
+-+        // mark the value for such pairs as live in the atomic pause as they key
+-+        // is considered live.
+-+        FinishMarking();
+-+      });
+-+  EXPECT_TRUE(HeapObjectHeader::FromObject(value).IsMarked());
+-+}
+-+
+- }  // namespace internal
+- }  // namespace cppgc
