@@ -1842,7 +1842,7 @@ https://registry.yarnpkg.com/vscode-extension-telemetry/-/vscode-extension-telem
 https://registry.yarnpkg.com/vscode-grammar-updater/-/vscode-grammar-updater-1.0.3.tgz
 https://registry.yarnpkg.com/vscode-gulp-watch/-/vscode-gulp-watch-5.0.3.tgz
 https://registry.yarnpkg.com/vscode-html-languageservice/-/vscode-html-languageservice-4.1.1.tgz
-https://registry.yarnpkg.com/vscode-json-languageservice/-/vscode-json-languageservice-4.1.9.tgz
+https://registry.yarnpkg.com/vscode-json-languageservice/-/vscode-json-languageservice-4.1.10.tgz
 https://registry.yarnpkg.com/vscode-jsonrpc/-/vscode-jsonrpc-6.0.0.tgz
 https://registry.yarnpkg.com/vscode-languageclient/-/vscode-languageclient-7.0.0.tgz
 https://registry.yarnpkg.com/vscode-languageserver-protocol/-/vscode-languageserver-protocol-3.16.0.tgz
@@ -2006,13 +2006,12 @@ PATCHES=(
 	"${FILESDIR}/0005-Don-t-download-bundle-marketplace-extensions-in-gulp.patch"
 	"${FILESDIR}/0006-Don-t-run-yarn-install-for-web-remote-test.patch"
 	"${FILESDIR}/0007-update-product.json.patch"
-	"${FILESDIR}/0008-Don-t-warn-on-app-arg.patch"
 	"${FILESDIR}/0009-Build-without-electron.patch"
-	"${FILESDIR}/0010-Don-t-warn-on-ozone-related-args.patch"
 	"${FILESDIR}/0011-Don-t-use-git-dependence.patch"
 	"${FILESDIR}/0012-Enable-UseOzonePlatform-feature.patch"
 	"${FILESDIR}/0013-Remove-vscode-telemetry-extractor.patch"
 	"${FILESDIR}/0014-disable-crash-reporter.patch"
+	"${FILESDIR}/Dont-warn-args.patch"
 )
 
 src_unpack() {
