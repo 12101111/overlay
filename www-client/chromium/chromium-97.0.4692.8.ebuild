@@ -19,7 +19,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
 
 LICENSE="BSD"
-SLOT="0"
+SLOT="0/dev"
 KEYWORDS="~amd64 ~arm64 ~x86"
 IUSE="hevc atk lto pgo +tcmalloc component-build cups cpu_flags_arm_neon debug +hangouts headless +js-type-check kerberos +official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu vaapi wayland widevine"
 REQUIRED_USE="
@@ -151,7 +151,6 @@ if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
 	DEPEND+=" >=sys-libs/libcxx-12"
 else
 	COMMON_DEPEND="
-		app-arch/snappy:=
 		dev-libs/libxslt:=
 		>=dev-libs/re2-0.2019.08.01:=
 		>=media-libs/openh264-1.6.0:=
@@ -260,6 +259,8 @@ src_prepare() {
 		"${WORKDIR}/patches"
 		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-96-EnumTable-crash.patch"
+		"${FILESDIR}/chromium-96-xfce-maximize.patch"
+		"${FILESDIR}/chromium-glibc-2.34.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 		"${FILESDIR}/chromium-92_atk_optional.patch"
@@ -464,6 +465,7 @@ src_prepare() {
 		third_party/skia/third_party/skcms
 		third_party/skia/third_party/vulkan
 		third_party/smhasher
+		third_party/snappy
 		third_party/sqlite
 		third_party/swiftshader
 		third_party/swiftshader/third_party/astc-encoder
@@ -533,7 +535,6 @@ src_prepare() {
 		keeplibs+=( third_party/libxslt )
 		keeplibs+=( third_party/openh264 )
 		keeplibs+=( third_party/re2 )
-		keeplibs+=( third_party/snappy )
 		if use system-icu; then
 			keeplibs+=( third_party/icu )
 		fi
@@ -552,7 +553,7 @@ src_prepare() {
 	ebegin "Remove bundled libraries"
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
-	eend
+	eend 0
 
 	if use js-type-check; then
 		ln -s "${EPREFIX}"/usr/bin/java third_party/jdk/current/bin/java || die
@@ -662,7 +663,6 @@ src_configure() {
 		gn_system_libraries+=( libxslt )
 		gn_system_libraries+=( openh264 )
 		gn_system_libraries+=( re2 )
-		gn_system_libraries+=( snappy )
 	fi
 	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
 
