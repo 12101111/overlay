@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-91-patches-03.tar.xz"
+FIREFOX_PATCHSET="firefox-91esr-patches-01.tar.xz"
 
 LLVM_MAX_SLOT=13
 
@@ -37,7 +37,7 @@ MOZ_P="${MOZ_PN}-${MOZ_PV}"
 MOZ_PV_DISTFILES="${MOZ_PV}${MOZ_PV_SUFFIX}"
 MOZ_P_DISTFILES="${MOZ_PN}-${MOZ_PV_DISTFILES}"
 
-inherit autotools check-reqs desktop flag-o-matic gnome2-utils linux-info \
+inherit autotools check-reqs desktop flag-o-matic gnome2-utils \
 	llvm multiprocessing pax-utils python-any-r1 toolchain-funcs \
 	virtualx xdg
 
@@ -48,26 +48,27 @@ if [[ ${PV} == *_rc* ]] ; then
 fi
 
 PATCH_URIS=(
-	https://dev.gentoo.org/~{axs,polynomial-c,whissi}/mozilla/patchsets/${FIREFOX_PATCHSET}
+	https://dev.gentoo.org/~{polynomial-c,whissi}/mozilla/patchsets/${FIREFOX_PATCHSET}
 )
 
 SRC_URI="${MOZ_SRC_BASE_URI}/source/${MOZ_P}.source.tar.xz -> ${MOZ_P_DISTFILES}.source.tar.xz
 	${PATCH_URIS[@]}"
 
 DESCRIPTION="Thunderbird Mail Client"
-HOMEPAGE="https://www.mozilla.org/thunderbird"
+HOMEPAGE="https://www.thunderbird.net/"
 
 KEYWORDS="~amd64 ~arm64 ~ppc64 ~x86"
 
 SLOT="0/$(ver_cut 1)"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
-IUSE="+clang cpu_flags_arm_neon dbus debug eme-free +gmp-autoupdate
-	hardened hwaccel jack lto +openh264 pgo pulseaudio screencast sndio selinux
-	+system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent
-	+system-libvpx +system-webp wayland wifi"
+
+IUSE="+clang cpu_flags_arm_neon dbus debug eme-free hardened hwaccel"
+IUSE+=" jack lto +openh264 pgo pulseaudio sndio selinux"
+IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent +system-libvpx +system-webp"
+IUSE+=" wayland wifi"
 
 REQUIRED_USE="debug? ( !system-av1 )
-	screencast? ( wayland )"
+	wifi? ( dbus )"
 
 BDEPEND="${PYTHON_DEPS}
 	app-arch/unzip
@@ -129,6 +130,7 @@ CDEPEND="
 	>=dev-libs/libffi-3.0.10:=
 	media-video/ffmpeg
 	x11-libs/libX11
+	x11-libs/libxcb
 	x11-libs/libXcomposite
 	x11-libs/libXdamage
 	x11-libs/libXext
@@ -139,7 +141,6 @@ CDEPEND="
 		sys-apps/dbus
 		dev-libs/dbus-glib
 	)
-	screencast? ( media-video/pipewire:0/0.3 )
 	system-av1? (
 		>=media-libs/dav1d-0.8.1:=
 		>=media-libs/libaom-1.0.0:=
@@ -173,9 +174,12 @@ RDEPEND="${CDEPEND}
 			>=media-sound/apulse-0.1.12-r4
 		)
 	)
-	selinux? ( sec-policy/selinux-mozilla )"
+	selinux? ( sec-policy/selinux-mozilla )
+	!<x11-plugins/enigmail-2.2"
 
 DEPEND="${CDEPEND}
+	x11-libs/libICE
+	x11-libs/libSM
 	pulseaudio? (
 		|| (
 			media-sound/pulseaudio
@@ -212,10 +216,12 @@ llvm_check_deps() {
 }
 
 MOZ_LANGS=(
-	af ar ast be bg br ca cak cs cy	da de dsb el en-CA en-GB en-US
-	es-AR es-ES et eu fi fr fy-NL ga-IE gd gl he hr hsb hu hy-AM
-	id is it ja ka kab kk ko lt ms nb-NO nl nn-NO pa-IN pl pt-BR
-	pt-PT rm ro ru sk sl sq sr sv-SE th tr uz vi zh-CN zh-TW
+	af ar ast be bg br ca cak cs cy da de dsb
+	el en-CA en-GB en-US es-AR es-ES et eu
+	fi fr fy-NL ga-IE gd gl he hr hsb hu
+	id is it ja ka kab kk ko lt lv ms nb-NO nl nn-NO
+	pa-IN pl pt-BR pt-PT rm ro ru
+	sk sl sq sr sv-SE th tr uk uz vi zh-CN zh-TW
 )
 
 mozilla_set_globals() {
@@ -453,15 +459,11 @@ src_unpack() {
 
 src_prepare() {
 	use lto && rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch
-	rm "${WORKDIR}/firefox-patches/0011-bmo-1526653-Include-struct-definitions-for-user_vfp-.patch"
-	rm "${WORKDIR}/firefox-patches/0034-bmo-1721326-Allow-dynamic-PTHREAD_STACK_MIN.patch"
-	rm "${WORKDIR}/firefox-patches/0035-bmo-1721326-Use-small-stack-for-DoClone.patch"
-	rm "${WORKDIR}/firefox-patches/0036-bmo-1726515-Workaround-for-GCC-calling-into-LLVM-ABI.patch"
 	eapply "${WORKDIR}/firefox-patches"
 	eapply "${FILESDIR}/cross-pgo.patch"
 	eapply "${FILESDIR}/fix-crash.patch"
-	#eapply "${FILESDIR}/fix-crash2.patch"
-	#eapply "${FILESDIR}/fix-crash3.patch"
+	eapply "${FILESDIR}/fix-crash2.patch"
+	eapply "${FILESDIR}/fix-crash3.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
@@ -558,16 +560,17 @@ src_configure() {
 	# python/mach/mach/mixin/process.py fails to detect SHELL
 	export SHELL="${EPREFIX}/bin/bash"
 
+	# Set state path
+	export MOZBUILD_STATE_PATH="${BUILD_DIR}"
+
 	# Set MOZCONFIG
 	export MOZCONFIG="${S}/.mozconfig"
 
 	# Initialize MOZCONFIG
 	mozconfig_add_options_ac '' --enable-application=comm/mail
-	#mozconfig_add_options_ac '' --enable-calendar
 
 	# Set Gentoo defaults
 	export MOZILLA_OFFICIAL=1
-	export MOZ_REQUIRE_SIGNING=
 
 	mozconfig_add_options_ac 'Gentoo default' \
 		--allow-addon-sideload \
@@ -907,10 +910,11 @@ src_install() {
 	newins "${FILESDIR}"/distribution.ini distribution.ini
 	newins "${FILESDIR}"/disable-auto-update.policy.json policies.json
 
-	# Install system-wide preferences (from tb-78)
+	# Install system-wide preferences
 	local PREFS_DIR="${MOZILLA_FIVE_HOME}/defaults/pref"
 	insinto "${PREFS_DIR}"
 	newins "${FILESDIR}"/gentoo-default-prefs.js gentoo-prefs.js
+
 	local GENTOO_PREFS="${ED}${PREFS_DIR}/gentoo-prefs.js"
 
 	# Set dictionary path to use system hunspell
@@ -1026,12 +1030,12 @@ pkg_postinst() {
 		elog
 	fi
 
-	local show_doh_information show_normandy_information show_shortcut_information
+	local show_doh_information
+	local show_shortcut_information
 
 	if [[ -z "${REPLACING_VERSIONS}" ]] ; then
 		# New install; Tell user that DoH is disabled by default
 		show_doh_information=yes
-		show_normandy_information=yes
 		show_shortcut_information=no
 	else
 		local replacing_version
@@ -1054,29 +1058,12 @@ pkg_postinst() {
 		elog "You can enable DNS-over-HTTPS in ${PN^}'s preferences."
 	fi
 
-	# bug 713782
-	if [[ -n "${show_normandy_information}" ]] ; then
-		elog
-		elog "Upstream operates a service named Normandy which allows Mozilla to"
-		elog "push changes for default settings or even install new add-ons remotely."
-		elog "While this can be useful to address problems like 'Armagadd-on 2.0' or"
-		elog "revert previous decisions to disable TLS 1.0/1.1, privacy and security"
-		elog "concerns prevail, which is why we have switched off the use of this"
-		elog "service by default."
-		elog
-		elog "To re-enable this service set"
-		elog
-		elog "    app.normandy.enabled=true"
-		elog
-		elog "in about:config."
-	fi
-
 	if [[ -n "${show_shortcut_information}" ]] ; then
 		elog
-		elog "Since thunderbird-91.0 we no longer install multiple shortcuts for"
+		elog "Since ${PN}-91.0 we no longer install multiple shortcuts for"
 		elog "each supported display protocol.  Instead we will only install"
-		elog "one generic Mozilla Firefox shortcut."
-		elog "If you still want to be able to select between running Mozilla Firefox"
+		elog "one generic Mozilla ${PN^} shortcut."
+		elog "If you still want to be able to select between running Mozilla ${PN^}"
 		elog "on X11 or Wayland, you have to re-create these shortcuts on your own."
 	fi
 }
