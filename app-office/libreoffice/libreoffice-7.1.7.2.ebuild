@@ -113,6 +113,20 @@ BDEPEND="
 	sys-devel/flex
 	sys-devel/gettext
 	virtual/pkgconfig
+	clang? ( || (
+		(	sys-devel/clang:13
+			sys-devel/llvm:13
+			=sys-devel/lld-13*	)
+		(	sys-devel/clang:12
+			sys-devel/llvm:12
+			=sys-devel/lld-12*	)
+		(	sys-devel/clang:11
+			sys-devel/llvm:11
+			=sys-devel/lld-11*	)
+		(	sys-devel/clang:10
+			sys-devel/llvm:10
+			=sys-devel/lld-10*	)
+	) )
 	odk? ( >=app-doc/doxygen-1.8.4 )
 "
 COMMON_DEPEND="${PYTHON_DEPS}
@@ -185,22 +199,6 @@ COMMON_DEPEND="${PYTHON_DEPS}
 	bluetooth? (
 		dev-libs/glib:2
 		net-wireless/bluez
-	)
-	clang? (
-		|| (
-			(   sys-devel/clang:13
-				sys-devel/llvm:13
-				=sys-devel/lld-13*  )
-			(	sys-devel/clang:12
-				sys-devel/llvm:12
-				=sys-devel/lld-12*	)
-			(	sys-devel/clang:11
-				sys-devel/llvm:11
-				=sys-devel/lld-11*	)
-			(	sys-devel/clang:10
-				sys-devel/llvm:10
-				=sys-devel/lld-10*	)
-		)
 	)
 	coinmp? ( sci-libs/coinor-mp )
 	cups? ( net-print/cups )
@@ -300,12 +298,8 @@ PATCHES=(
 	"${FILESDIR}/${PN}-6.1-nomancompress.patch"
 	"${FILESDIR}/${PN}-7.0.3.1-qt5detect.patch"
 
-	# 7.1 branch
-	"${FILESDIR}/${P}-KF5-fix-double-buffer-graphics.patch"
-
 	# master branch
 	"${FILESDIR}/${PN}-7.1.3.2-bashism.patch" # bug 780432
-	"${FILESDIR}/${PN}-7.1.5.2-bison-3.8.patch" # bug 812923
 	"${FILESDIR}/libcxx.patch"
 	"${FILESDIR}/linux-musl.patch"
 	"${FILESDIR}/musl-stacksize.patch"
