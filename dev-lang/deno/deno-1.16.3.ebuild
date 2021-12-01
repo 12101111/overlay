@@ -91,8 +91,8 @@ CRATES="
 	dlopen_derive-0.1.4
 	dprint-core-0.47.1
 	dprint-plugin-json-0.13.2
-	dprint-plugin-markdown-0.11.2
-	dprint-plugin-typescript-0.59.1
+	dprint-plugin-markdown-0.11.3
+	dprint-plugin-typescript-0.59.2
 	dprint-swc-ecma-ast-view-0.42.0
 	ecdsa-0.12.4
 	either-1.6.1
@@ -454,7 +454,6 @@ EGIT_REPO_URI="https://github.com/denoland/rusty_v8.git"
 EGIT_COMMIT="v0.35.0"
 EGIT_CHECKOUT_DIR="${WORKDIR}/v8"
 EGIT_SUBMODULES=('v8' 'build' 'base/trace_event/common' 'third_party/jinja2' 'third_party/markupsafe' 'third_party/zlib' 'third_party/icu')
-#EGIT_OVERRIDE_COMMIT_DENOLAND_V8="da71b7d9519e2b37c3e9f6d7613c3e53bb3c3624"
 SRC_URI="
 	https://github.com/denoland/deno/releases/download/v${PV}/deno_src.tar.gz -> ${P}.tar.gz
 	$(cargo_crate_uris ${CRATES})
@@ -500,7 +499,6 @@ src_prepare() {
 	eapply "${FILESDIR}/gentoo-r1.patch"
 	popd >> /dev/null
 	pushd "${S}"
-	eapply "${FILESDIR}/v8_0.35.patch"
 	echo "[patch.crates-io]" >> Cargo.toml
 	echo "v8 = { path = '../v8' }" >> Cargo.toml
 	popd >> /dev/null
