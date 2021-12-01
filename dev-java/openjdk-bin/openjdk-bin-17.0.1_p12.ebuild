@@ -1,11 +1,11 @@
 # Copyright 1999-2021 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=6
+EAPI=8
 
-inherit java-vm-2 eapi7-ver
+inherit java-vm-2 toolchain-funcs
 
-MY_ZULU_PV="17.28.13-ca-jdk17.0.0"
+MY_ZULU_PV="17.30.15-ca-jdk17.0.1"
 MY_ZULU_ARCH="linux_musl_x64"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
@@ -23,6 +23,7 @@ IUSE="alsa cups +gentoo-vm headless-awt selinux source"
 RDEPEND="
 	media-libs/fontconfig:1.0
 	media-libs/freetype:2
+	media-libs/harfbuzz
 	>=sys-apps/baselayout-java-0.1.0-r1
 	>=sys-libs/musl-1.1.15
 	sys-libs/zlib
@@ -46,22 +47,27 @@ src_install() {
 	local dest="/opt/${P}"
 	local ddest="${ED%/}/${dest#/}"
 
-	# Not sure why they bundle this as it's commonly available and they
-	# only do so on x86_64. It's needed by libfontmanager.so. IcedTea
-	# also has an explicit dependency while Oracle seemingly dlopens it.
-	rm -vf lib/libfreetype.so || die
+	# on macOS if they would exist they would be called .dylib, but most
+	# importantly, there are no different providers, so everything
+	# that's shipped works.
+	if [[ ${A} != *_mac_* ]] ; then
+		# Not sure why they bundle this as it's commonly available and they
+		# only do so on x86_64. It's needed by libfontmanager.so. IcedTea
+		# also has an explicit dependency while Oracle seemingly dlopens it.
+		rm -vf lib/libfreetype.so || die
 
-	# prefer system copy # https://bugs.gentoo.org/776676
-	rm -vf lib/libharfbuzz.so || die
+		# prefer system copy # https://bugs.gentoo.org/776676
+		rm -vf lib/libharfbuzz.so || die
 
-	# Oracle and IcedTea have libjsoundalsa.so depending on
-	# libasound.so.2 but AdoptOpenJDK only has libjsound.so. Weird.
-	if ! use alsa ; then
-		rm -v lib/libjsound.* || die
-	fi
+		# Oracle and IcedTea have libjsoundalsa.so depending on
+		# libasound.so.2 but AdoptOpenJDK only has libjsound.so. Weird.
+		if ! use alsa ; then
+			rm -v lib/libjsound.* || die
+		fi
 
-	if use headless-awt ; then
-		rm -v lib/lib*{[jx]awt,splashscreen}* || die
+		if use headless-awt ; then
+			rm -v lib/lib*{[jx]awt,splashscreen}* || die
+		fi
 	fi
 
 	if ! use source ; then
