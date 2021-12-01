@@ -2012,6 +2012,7 @@ PATCHES=(
 	"${FILESDIR}/0013-Remove-vscode-telemetry-extractor.patch"
 	"${FILESDIR}/0014-disable-crash-reporter.patch"
 	"${FILESDIR}/Dont-warn-args.patch"
+	"${FILESDIR}/Fix-cli-path.patch"
 )
 
 src_unpack() {

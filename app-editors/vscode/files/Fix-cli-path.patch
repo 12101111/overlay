@@ -1,0 +1,13 @@
+diff --git a/src/vs/platform/native/electron-main/nativeHostMainService.ts b/src/vs/platform/native/electron-main/nativeHostMainService.ts
+index 42522056520..58cd987adc6 100644
+--- a/src/vs/platform/native/electron-main/nativeHostMainService.ts
++++ b/src/vs/platform/native/electron-main/nativeHostMainService.ts
+@@ -557,7 +557,7 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
+ 		// Linux
+ 		if (isLinux) {
+ 			if (this.environmentMainService.isBuilt) {
+-				return join(dirname(process.execPath), 'bin', `${this.productService.applicationName}`);
++				return join(this.environmentMainService.appRoot, '..', '..', 'bin', `${this.productService.applicationName}`);
+ 			}
+ 
+ 			return join(this.environmentMainService.appRoot, 'scripts', 'code-cli.sh');
