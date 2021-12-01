@@ -13,21 +13,26 @@ amd64? (
 arm? ( https://dotnetcli.azureedge.net/dotnet/Sdk/${PV}/dotnet-sdk-${PV}-linux-arm.tar.gz )
 arm64? ( https://dotnetcli.azureedge.net/dotnet/Sdk/${PV}/dotnet-sdk-${PV}-linux-arm64.tar.gz )
 "
-VER="5.0.9"
+VER="6.0.0"
 
 LICENSE="MIT"
-SLOT="5.0"
-KEYWORDS="~amd64"
+SLOT="6.0"
+KEYWORDS="~amd64 ~arm64"
 IUSE=""
 RESTRICT="splitdebug"
 
 RDEPEND="
+	app-crypt/mit-krb5
 	=dev-dotnet/coreclr-${VER}
 	=dev-dotnet/corefx-${VER}
 	>=dev-dotnet/dotnetcore-sdk-bin-common-${PV}
-	>=sys-apps/lsb-release-1.4
-	>=sys-devel/llvm-4.0
-	>=dev-util/lldb-4.0
+	dev-libs/icu
+	|| ( dev-libs/openssl dev-libs/openssl-compat:1.0.0 )
+	dev-util/lldb
+	net-misc/curl
+	sys-apps/lsb-release
+	sys-devel/llvm
+	sys-libs/zlib
 	!dev-dotnet/dotnetcore-sdk
 	!dev-dotnet/dotnetcore-sdk-bin:0
 	!dev-dotnet/dotnetcore-runtime-bin
@@ -59,55 +64,8 @@ src_prepare() {
 	rm -rfv packs/Microsoft.NETCore.App.Host.$(get_rid)
 	rm -rfv sdk/${PV}/AppHostTemplate
 	rm -rfv shared/Microsoft.NETCore.App/${VER}/{createdump,*.so,*.h,SOS_README.md,*.a}
-	rm -rf packs/NETStandard.Library.Ref
+	rm -rf packs/NETStandard.Library.Ref || die
 	default
-}
-
-_crossgen() {
-	# crossgen don't work properly and generate a broken sdk
-	if ! false; then
-		return
-	fi
-	echo "crossgen $1"
-	pushd "${T}" > /dev/null || die
-	framework="/opt/dotnet/shared/Microsoft.NETCore.App/${VER}"
-	sdk="/opt/dotnet/sdk/${PV}"
-	timeout 120 ${framework}/crossgen /MissingDependenciesOK /Platform_Assemblies_Paths \
-		${framework}:${sdk} /in $1 /out $1.ni >> $1.crossgen.log 2>&1
-	exitCode=$?
-	if [ "$exitCode" == "0" ]; then
-        rm $1.crossgen.log
-        mv $1.ni $1
-    elif grep -q -e 'The module was expected to contain an assembly manifest' \
-                 -e 'An attempt was made to load a program with an incorrect format.' \
-                 -e 'File is PE32' $1.crossgen.log
-    then
-        rm $1.crossgen.log
-        echo "skip \`$1\`"
-    else
-		mv $1 $1.x64
-		${framework}/ildasm -raweh -out=$1.il $1.x64 >> $1.ildasm.log 2>&1
-		${framework}/ilasm -output=$1 -DLL -QUIET -NOLOGO -DEBUG -OPTIMIZE $1.il >> $1.ilasm.log 2>&1
-		exitCode=$?
-		if [ "$exitCode" == "0" ]; then
-			rm $1.x64
-			rm $1.il
-			rm $1.*.log
-		else
-			mv $1.x64 $1
-			rm $1.il
-			echo "fail to crossgen \`$1\`"
-			cat $1.*.log
-			rm $1.*.log
-		fi
-	fi
-	popd > /dev/null || die
-}
-
-src_compile() {
-	find ${S} -type f -name \*.dll -or -name \*.exe | while read -r dllpath; do
-		_crossgen "$dllpath"
-	done
 }
 
 src_install() {

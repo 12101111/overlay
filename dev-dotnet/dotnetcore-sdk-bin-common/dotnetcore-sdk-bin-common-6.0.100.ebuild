@@ -6,7 +6,7 @@ EAPI="7"
 inherit eutils
 
 MY_PV="${PV}"
-VER="5.0.9"
+VER="6.0.0"
 
 DESCRIPTION="Common files shared between multiple slots of .NET Core"
 HOMEPAGE="https://www.microsoft.com/net/core"
@@ -22,7 +22,7 @@ arm64? ( https://dotnetcli.azureedge.net/dotnet/Sdk/${MY_PV}/dotnet-sdk-${MY_PV}
 "
 
 SLOT="0"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm64"
 
 QA_PREBUILT="*"
 RESTRICT="splitdebug"
