@@ -2,3 +2,8 @@ diff --git a/patches/node/build_add_mjs_support_to_js2c.patch b/patches/node/zzz
 similarity index 100%
 rename from patches/node/build_add_mjs_support_to_js2c.patch
 rename to patches/node/zzz_build_add_mjs_support_to_js2c.patch
+diff --git a/patches/chromium/allow_null_skbitmap_to_be_transferred_across_threads.patch b/patches/chromium/zzzallow_null_skbitmap_to_be_transferred_across_threads.patch
+similarity index 100%
+rename from patches/chromium/allow_null_skbitmap_to_be_transferred_across_threads.patch
+rename to patches/chromium/zzzallow_null_skbitmap_to_be_transferred_across_threads.patch
+

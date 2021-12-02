@@ -6,3 +6,8 @@ diff --git a/patches/chromium/cherry-pick-1231134.patch b/patches/chromium/zzzch
 similarity index 100%
 rename from patches/chromium/cherry-pick-1231134.patch
 rename to patches/chromium/zzzcherry-pick-1231134.patch
+diff --git a/patches/chromium/allow_null_skbitmap_to_be_transferred_across_threads.patch b/patches/chromium/zzzallow_null_skbitmap_to_be_transferred_across_threads.patch
+similarity index 100%
+rename from patches/chromium/allow_null_skbitmap_to_be_transferred_across_threads.patch
+rename to patches/chromium/zzzallow_null_skbitmap_to_be_transferred_across_threads.patch
+

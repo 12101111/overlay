@@ -19,7 +19,7 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 inherit check-reqs chromium-2 desktop flag-o-matic ninja-utils pax-utils python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils yarn
 
 # Keep this in sync with DEPS:chromium_version
-CHROMIUM_VERSION="96.0.4664.45"
+CHROMIUM_VERSION="96.0.4664.55"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="16.9.1"
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
@@ -1245,7 +1245,6 @@ BDEPEND="
 	>=dev-util/gperf-3.0.3
 	>=dev-util/ninja-1.7.2
 	>=net-libs/nodejs-7.6.0[inspector]
-	sys-apps/hwids[usb(+)]
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
