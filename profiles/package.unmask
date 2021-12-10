@@ -1,4 +1,4 @@
-dev-util/electron
+>=dev-util/electron-13.0
 app-eselect/eselect-electron
 sys-apps/pacman
 app-text/goldendict
