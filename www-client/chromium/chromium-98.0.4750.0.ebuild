@@ -13,15 +13,15 @@ inherit check-reqs chromium-2 desktop flag-o-matic ninja-utils pax-utils python-
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="4"
+PATCHSET="3"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
 
 LICENSE="BSD"
-SLOT="0/beta"
+SLOT="0/dev"
 KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="hevc atk lto pgo +tcmalloc component-build cups cpu_flags_arm_neon debug +hangouts headless +js-type-check kerberos +official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu vaapi wayland widevine"
+IUSE="hevc atk lto pgo +tcmalloc component-build cups cpu_flags_arm_neon debug +hangouts headless +js-type-check kerberos +official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland widevine"
 REQUIRED_USE="
 	component-build? ( !suid )
 	screencast? ( wayland )
@@ -59,7 +59,7 @@ COMMON_DEPEND="
 	>=media-libs/freetype-2.11.0-r1:=
 	system-harfbuzz? ( >=media-libs/harfbuzz-2.9.0:0=[icu(-)] )
 	media-libs/libjpeg-turbo:=
-	media-libs/libpng:=
+	system-png? ( media-libs/libpng:=[-apng] )
 	pulseaudio? ( media-sound/pulseaudio:= )
 	system-ffmpeg? (
 		>=media-video/ffmpeg-4.3:=
@@ -123,7 +123,6 @@ BDEPEND="
 	>=dev-util/gperf-3.0.3
 	>=dev-util/ninja-1.7.2
 	>=net-libs/nodejs-7.6.0[inspector]
-	sys-apps/hwids[usb(+)]
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
@@ -258,7 +257,8 @@ src_prepare() {
 	local PATCHES=(
 		"${WORKDIR}/patches"
 		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
-		"${FILESDIR}/chromium-96-EnumTable-crash.patch"
+		"${FILESDIR}/chromium-98-EnumTable-crash.patch"
+		"${FILESDIR}/chromium-98-system-libdrm.patch"
 		"${FILESDIR}/chromium-glibc-2.34.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
@@ -521,6 +521,9 @@ src_prepare() {
 	if ! use system-icu; then
 		keeplibs+=( third_party/icu )
 	fi
+	if ! use system-png; then
+		keeplibs+=( third_party/libpng )
+	fi
 	if use system-harfbuzz; then
 		keeplibs+=( third_party/harfbuzz-ng/utils )
 	else
@@ -614,8 +617,6 @@ src_configure() {
 
 	# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
 	myconf_gn+=" is_debug=false"
-	myconf_gn+=" symbol_level=1"
-	myconf_gn+=" blink_symbol_level=0"
 
 	# enable DCHECK with USE=debug only, increases chrome binary size by 30%, bug #811138.
 	# DCHECK is fatal by default, make it configurable at runtime, #bug 807881.
@@ -646,7 +647,6 @@ src_configure() {
 		#harfbuzz-ng
 		libdrm
 		libjpeg
-		libpng
 		libwebp
 		zlib
 	)
@@ -655,6 +655,9 @@ src_configure() {
 	fi
 	if use system-icu; then
 		gn_system_libraries+=( icu )
+	fi
+	if use system-png; then
+		gn_system_libraries+=( libpng )
 	fi
 	if [[ ${CHROMIUM_FORCE_LIBCXX} != yes ]]; then
 		# unbundle only without libc++, because libc++ is not fully ABI compatible with libstdc++
@@ -849,6 +852,8 @@ src_configure() {
 			tools/generate_shim_headers/generate_shim_headers.py || die
 		# Disable CFI: unsupported for GCC, requires clang+lto+lld
 		myconf_gn+=" is_cfi=false"
+		# Don't add symbols to build
+		myconf_gn+=" symbol_level=0"
 	fi
 
 	einfo "Configuring Chromium..."
@@ -901,6 +906,11 @@ src_compile() {
 		s|\(^Exec=\)/usr/bin/|\1|g;' \
 		chrome/installer/linux/common/desktop.template > \
 		out/Release/chromium-browser-chromium.desktop || die
+
+	# Build vk_swiftshader_icd.json; bug #827861
+	sed -e 's|${ICD_LIBRARY_PATH}|./libvk_swiftshader.so|g' \
+		third_party/swiftshader/src/Vulkan/vk_swiftshader_icd.json.tmpl > \
+		out/Release/vk_swiftshader_icd.json || die
 }
 
 src_install() {
@@ -945,7 +955,6 @@ src_install() {
 	insinto "${CHROMIUM_HOME}"
 	doins out/Release/*.bin
 	doins out/Release/*.pak
-	doins out/Release/*.json
 	(
 		shopt -s nullglob
 		local files=(out/Release/*.so out/Release/*.so.[0-9])
@@ -959,6 +968,9 @@ src_install() {
 	doins -r out/Release/locales
 	doins -r out/Release/resources
 	doins -r out/Release/MEIPreload
+
+	# Install vk_swiftshader_icd.json; bug #827861
+	doins out/Release/vk_swiftshader_icd.json
 
 	if [[ -d out/Release/swiftshader ]]; then
 		insinto "${CHROMIUM_HOME}/swiftshader"
