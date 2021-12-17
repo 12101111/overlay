@@ -1,17 +1,17 @@
-From 04846394fdc735e77a4c19c4f9bf73dd26a98bc7 Mon Sep 17 00:00:00 2001
+From 192cca0330d9d02e4ef3df18b16254967f9349cd Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 6 May 2021 10:04:18 +0800
-Subject: [PATCH 09/14] Build without electron
+Subject: [PATCH 08/14] Build without electron
 
 ---
  build/gulpfile.vscode.js | 20 +++++++++-----------
  1 file changed, 9 insertions(+), 11 deletions(-)
 
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index c9b9abbcaf4..6d175cbcaaa 100644
+index 46ca5f12cee..deb9ac9e021 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -144,6 +144,14 @@ function computeChecksum(filename) {
+@@ -146,6 +146,14 @@ function computeChecksum(filename) {
  	return hash;
  }
  
@@ -26,7 +26,7 @@ index c9b9abbcaf4..6d175cbcaaa 100644
  function packageTask(platform, arch, sourceFolderName, destinationFolderName, opts) {
  	opts = opts || {};
  
-@@ -151,7 +159,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -153,7 +161,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  	platform = platform || process.platform;
  
  	return () => {
@@ -34,7 +34,7 @@ index c9b9abbcaf4..6d175cbcaaa 100644
  		const json = require('gulp-json-editor');
  
  		const out = sourceFolderName;
-@@ -293,7 +300,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -295,7 +302,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  			.pipe(util.skipDirectories())
  			.pipe(util.fixWin32DirectoryPermissions())
  			.pipe(filter(['**', '!**/.github/**'], { dot: true })) // https://github.com/microsoft/vscode/issues/116523
@@ -43,7 +43,7 @@ index c9b9abbcaf4..6d175cbcaaa 100644
  			.pipe(filter(['**', '!LICENSE', '!LICENSES.chromium.html', '!version'], { dot: true }));
  
  		if (platform === 'linux') {
-@@ -332,15 +339,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -334,15 +341,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  				.pipe(rename('bin/' + product.applicationName)));
  		}
  
@@ -60,5 +60,5 @@ index c9b9abbcaf4..6d175cbcaaa 100644
  	};
  }
 -- 
-2.33.1
+2.34.1
 

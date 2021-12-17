@@ -1,7 +1,7 @@
-From c2294de0ec626dc7057e5bde65e5a0b51c938798 Mon Sep 17 00:00:00 2001
+From c40068863b4b371610793de9cc63d7b6ced43cdc Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 5 Nov 2021 16:20:14 +0800
-Subject: [PATCH 11/14] Don't use git dependence
+Subject: [PATCH 09/14] Don't use git dependence
 
 ---
  extensions/markdown-math/package.json | 2 +-
@@ -38,5 +38,5 @@ index afbc51221af..661d831d299 100644
      katex "^0.13.0"
  
 -- 
-2.33.1
+2.34.1
 
