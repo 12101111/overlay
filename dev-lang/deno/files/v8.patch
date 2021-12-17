@@ -1,0 +1,42 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 553b3c7c9..0f18c2864 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -4582,9 +4582,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "v8"
+-version = "0.36.0"
++version = "0.37.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "506523e86ccc15982be412bdde87a142771c139e94a8ecedda1da051a079b81d"
++checksum = "79c23626c332f60f29dbed43424b72989e9bac028ef12ac55d959da99abd9a34"
+ dependencies = [
+  "bitflags",
+  "fslock",
+diff --git a/core/Cargo.toml b/core/Cargo.toml
+index 584745e8f..9321e3eb5 100644
+--- a/core/Cargo.toml
++++ b/core/Cargo.toml
+@@ -25,7 +25,7 @@ serde = { version = "1.0.129", features = ["derive"] }
+ serde_json = { version = "1.0.66", features = ["preserve_order"] }
+ serde_v8 = { version = "0.22.0", path = "../serde_v8" }
+ url = { version = "2.2.2", features = ["serde"] }
+-v8 = "0.36.0"
++v8 = "0.37.0"
+ 
+ [[example]]
+ name = "http_bench_json_ops"
+diff --git a/serde_v8/Cargo.toml b/serde_v8/Cargo.toml
+index 2f2433e4d..6b1a8b3f2 100644
+--- a/serde_v8/Cargo.toml
++++ b/serde_v8/Cargo.toml
+@@ -12,7 +12,7 @@ description = "Rust to V8 serialization and deserialization"
+ [dependencies]
+ serde = { version = "1.0.130", features = ["derive"] }
+ serde_bytes = "0.11"
+-v8 = "0.36.0"
++v8 = "0.37.0"
+ 
+ [dev-dependencies]
+ bencher = "0.1"
