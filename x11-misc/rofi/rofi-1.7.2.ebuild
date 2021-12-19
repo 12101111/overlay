@@ -8,7 +8,7 @@ inherit meson git-r3 toolchain-funcs
 DESCRIPTION="A window switcher, run dialog and dmenu replacement"
 HOMEPAGE="https://github.com/lbonn/rofi"
 EGIT_REPO_URI="https://github.com/lbonn/rofi"
-EGIT_TAG="1.7.1+wayland1"
+EGIT_TAG="1.7.2+wayland1"
 
 LICENSE="MIT"
 SLOT="0"
@@ -16,7 +16,11 @@ KEYWORDS="~amd64"
 IUSE="test +wayland"
 RESTRICT="!test? ( test )"
 
-BDEPEND="virtual/pkgconfig"
+BDEPEND="
+	sys-devel/bison
+	sys-devel/flex
+	virtual/pkgconfig
+"
 RDEPEND="
 	dev-libs/glib:2
 	gnome-base/librsvg:2
@@ -39,10 +43,6 @@ DEPEND="
 	x11-base/xorg-proto
 	test? ( >=dev-libs/check-0.11 )
 "
-PATCHES=(
-	"${FILESDIR}"/${PN}-0.15.12-Werror.patch
-	"${FILESDIR}"/${PN}-1.5.0-gtk-settings-test.patch
-)
 
 src_prepare() {
 	default
