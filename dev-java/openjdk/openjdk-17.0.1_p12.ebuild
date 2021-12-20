@@ -3,16 +3,14 @@
 
 EAPI=6
 
-inherit check-reqs flag-o-matic java-pkg-2 java-vm-2 multiprocessing pax-utils toolchain-funcs
+inherit check-reqs eapi7-ver flag-o-matic java-pkg-2 java-vm-2 multiprocessing pax-utils toolchain-funcs
 
-# we need -ga tag to fetch tarball and unpack it, but exact number everywhere else to
-# set build version properly
-MY_PV="${PV%_p*}-ga"
-SLOT="${MY_PV%%[.+]*}"
+MY_PV="${PV//_p/+}"
+SLOT="$(ver_cut 1)"
 
 DESCRIPTION="Open source implementation of the Java programming language"
 HOMEPAGE="https://openjdk.java.net"
-SRC_URI="https://github.com/${PN}/jdk${SLOT}u-dev/archive/refs/tags/jdk-${MY_PV}.tar.gz -> ${P}.tar.gz"
+SRC_URI="https://github.com/openjdk/jdk${SLOT}u/archive/refs/tags/jdk-${MY_PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="GPL-2"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc64"
@@ -71,7 +69,7 @@ DEPEND="
 
 REQUIRED_USE="javafx? ( alsa !headless-awt )"
 
-S="${WORKDIR}/jdk${SLOT}u-dev-jdk-${MY_PV}"
+S="${WORKDIR}/jdk${SLOT}u-jdk-${MY_PV//+/-}"
 
 # The space required to build varies wildly depending on USE flags,
 # ranging from 2GB to 16GB. This function is certainly not exact but
@@ -132,20 +130,6 @@ pkg_setup() {
 
 src_prepare() {
 	default
-
-	eapply "${FILESDIR}/patches/${SLOT}/0001_fix-bootjdk-check.patch"
-	eapply "${FILESDIR}/patches/${SLOT}/fix-ub.patch"
-
-	if use elibc_musl ; then
-		eapply "${FILESDIR}/patches/${SLOT}/1001_build.patch"
-		eapply "${FILESDIR}/patches/${SLOT}/1002_aarch64.patch"
-		eapply "${FILESDIR}/patches/${SLOT}/1003_ppc64le.patch"
-
-		# this needs libthread_db which is only provided by glibc
-		# haven't found any way to disable this module so just remove it.
-		rm -rf "${S}"/src/jdk.hotspot.agent || die "failed to remove HotSpot agent"
-	fi
-
 	chmod +x configure || die
 }
 
@@ -165,6 +149,7 @@ src_configure() {
 
 	local myconf=(
 		--disable-ccache
+		--disable-warnings-as-errors
 		--enable-full-docs=no
 		--with-boot-jdk="${JDK_HOME}"
 		--with-extra-cflags="${CFLAGS}"
@@ -188,16 +173,10 @@ src_configure() {
 		--with-zlib=system
 		--enable-dtrace=$(usex systemtap yes no)
 		--enable-headless-only=$(usex headless-awt yes no)
-		--with-extra-cflags="-Wno-unused-but-set-parameter"
 		$(tc-is-clang && echo "--with-toolchain-type=clang")
 	)
 
 	if use javafx; then
-		# this is not useful for users, just for upstream developers
-		# build system compares mesa version in md file
-		# https://bugs.gentoo.org/822612
-		export LEGAL_EXCLUDES=mesa3d.md
-
 		local zip="${EPREFIX%/}/usr/$(get_libdir)/openjfx-${SLOT}/javafx-exports.zip"
 		if [[ -r ${zip} ]]; then
 			myconf+=( --with-import-modules="${zip}" )
@@ -287,7 +266,7 @@ pkg_postinst() {
 	if use gentoo-vm ; then
 		ewarn "WARNING! You have enabled the gentoo-vm USE flag, making this JDK"
 		ewarn "recognised by the system. This will almost certainly break"
-		ewarn "many java ebuilds as they are not ready for openjdk-11"
+		ewarn "many java ebuilds as they are not ready for openjdk-${SLOT}"
 	else
 		ewarn "The experimental gentoo-vm USE flag has not been enabled so this JDK"
 		ewarn "will not be recognised by the system. For example, simply calling"
