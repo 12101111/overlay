@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic ninja-utils pax-utils python-
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="3"
+PATCHSET="4"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
@@ -57,7 +57,7 @@ COMMON_DEPEND="
 	>=media-libs/alsa-lib-1.0.19:=
 	media-libs/fontconfig:=
 	>=media-libs/freetype-2.11.0-r1:=
-	system-harfbuzz? ( >=media-libs/harfbuzz-2.9.0:0=[icu(-)] )
+	system-harfbuzz? ( >=media-libs/harfbuzz-3:0=[icu(-)] )
 	media-libs/libjpeg-turbo:=
 	system-png? ( media-libs/libpng:=[-apng] )
 	pulseaudio? ( media-sound/pulseaudio:= )
@@ -91,7 +91,7 @@ COMMON_DEPEND="
 		x11-libs/gtk+:3[X]
 		wayland? (
 			dev-libs/wayland:=
-			screencast? ( media-video/pipewire:0/0.3 )
+			screencast? ( media-video/pipewire:= )
 			x11-libs/gtk+:3[wayland,X]
 			x11-libs/libdrm:=
 		)
@@ -813,9 +813,6 @@ src_configure() {
 		chromium/scripts/generate_gn.py || die
 		popd > /dev/null || die
 	fi
-
-	# Chromium relies on this, but was disabled in >=clang-10, crbug.com/1042470
-	append-cxxflags $(test-flags-CXX -flax-vector-conversions=all)
 
 	# Disable unknown warning message from clang.
 	tc-is-clang && append-flags -Wno-unknown-warning-option
