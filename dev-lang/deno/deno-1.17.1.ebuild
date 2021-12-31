@@ -3,7 +3,7 @@
 
 EAPI=7
 
-PYTHON_COMPAT=(python2_7)
+PYTHON_COMPAT=( python2_7 python3_{7..10} )
 PYTHON_REQ_USE="xml"
 
 CRATES="
@@ -81,8 +81,8 @@ CRATES="
 	data-encoding-2.3.2
 	data-url-0.1.1
 	deno_ast-0.7.0
-	deno_doc-0.23.0
-	deno_graph-0.14.2
+	deno_doc-0.24.0
+	deno_graph-0.16.0
 	deno_lint-0.20.1
 	der-0.4.5
 	derive_more-0.99.17
@@ -218,7 +218,7 @@ CRATES="
 	num_cpus-1.13.0
 	objc-0.2.7
 	objc_exception-0.1.2
-	once_cell-1.8.0
+	once_cell-1.9.0
 	opaque-debug-0.3.0
 	openssl-probe-0.1.4
 	os_pipe-0.9.2
