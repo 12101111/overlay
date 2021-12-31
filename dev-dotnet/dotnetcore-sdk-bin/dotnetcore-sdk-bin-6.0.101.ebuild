@@ -13,7 +13,7 @@ amd64? (
 arm? ( https://dotnetcli.azureedge.net/dotnet/Sdk/${PV}/dotnet-sdk-${PV}-linux-arm.tar.gz )
 arm64? ( https://dotnetcli.azureedge.net/dotnet/Sdk/${PV}/dotnet-sdk-${PV}-linux-arm64.tar.gz )
 "
-VER="6.0.0"
+VER="6.0.1"
 
 LICENSE="MIT"
 SLOT="6.0"
