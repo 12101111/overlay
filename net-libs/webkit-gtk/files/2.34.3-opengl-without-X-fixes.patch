@@ -7,9 +7,24 @@ Subject: [PATCH] Clean up OpenGLShims.h conditionals in a few places to fix
  some build configurations
 
 ---
+ Source/WebCore/platform/graphics/GLContext.cpp             | 3 +++
  Source/WebKit/UIProcess/API/glib/WebKitProtocolHandler.cpp | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletions(-)
+ 2 files changed, 7 insertions(+), 1 deletions(-)
 
+diff --git a/Source/WebCore/platform/graphics/GLContext.cpp b/Source/WebCore/platform/graphics/GLContext.cpp
+index b217988b990..1ba0eb8a482 100644
+--- a/Source/WebCore/platform/graphics/GLContext.cpp
++++ b/Source/WebCore/platform/graphics/GLContext.cpp
+@@ -28,6 +28,9 @@
+ 
+ #if USE(GLX)
+ #include "GLContextGLX.h"
++#endif
++
++#if !USE(OPENGL_ES) && !USE(LIBEPOXY) && !USE(ANGLE)
+ #include "OpenGLShims.h"
+ #endif
+ 
 diff --git a/Source/WebKit/UIProcess/API/glib/WebKitProtocolHandler.cpp b/Source/WebKit/UIProcess/API/glib/WebKitProtocolHandler.cpp
 index 3515be452b2..82cce70f14b 100644
 --- a/Source/WebKit/UIProcess/API/glib/WebKitProtocolHandler.cpp
