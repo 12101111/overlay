@@ -1,4 +1,4 @@
-# Copyright 2017-2021 Gentoo Authors
+# Copyright 2017-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -17,11 +17,11 @@ CRATES="
 	alloc-stdlib-0.2.1
 	ansi_term-0.11.0
 	ansi_term-0.12.1
-	anyhow-1.0.51
+	anyhow-1.0.52
 	arrayvec-0.5.2
 	arrayvec-0.7.2
 	ash-0.33.3+1.2.191
-	ast_node-0.7.4
+	ast_node-0.7.6
 	async-compression-0.3.8
 	async-stream-0.3.2
 	async-stream-impl-0.3.2
@@ -80,10 +80,11 @@ CRATES="
 	dashmap-4.0.2
 	data-encoding-2.3.2
 	data-url-0.1.1
-	deno_ast-0.7.0
-	deno_doc-0.24.0
-	deno_graph-0.16.0
-	deno_lint-0.20.1
+	debug_unreachable-0.1.1
+	deno_ast-0.8.0
+	deno_doc-0.25.0
+	deno_graph-0.17.0
+	deno_lint-0.21.0
 	der-0.4.5
 	derive_more-0.99.17
 	diff-0.1.12
@@ -91,11 +92,11 @@ CRATES="
 	dissimilar-1.0.2
 	dlopen-0.1.8
 	dlopen_derive-0.1.4
-	dprint-core-0.47.1
-	dprint-plugin-json-0.13.2
-	dprint-plugin-markdown-0.11.3
-	dprint-plugin-typescript-0.60.0
-	dprint-swc-ecma-ast-view-0.45.0
+	dprint-core-0.49.0
+	dprint-plugin-json-0.14.0
+	dprint-plugin-markdown-0.12.0
+	dprint-plugin-typescript-0.61.0
+	dprint-swc-ecma-ast-view-0.47.0
 	dyn-clone-1.0.4
 	ecdsa-0.12.4
 	either-1.6.1
@@ -173,7 +174,7 @@ CRATES="
 	is-macro-0.1.9
 	itoa-0.4.8
 	js-sys-0.3.49
-	jsonc-parser-0.17.0
+	jsonc-parser-0.17.1
 	kernel32-sys-0.2.2
 	khronos-egl-4.1.0
 	kqueue-1.0.4
@@ -255,7 +256,7 @@ CRATES="
 	proc-macro2-1.0.33
 	profiling-1.0.4
 	pty-0.2.2
-	pulldown-cmark-0.8.0
+	pulldown-cmark-0.9.0
 	quick-error-1.2.3
 	quote-0.6.13
 	quote-1.0.10
@@ -307,9 +308,9 @@ CRATES="
 	semver-1.0.4
 	semver-parser-0.7.0
 	semver-parser-0.10.2
-	serde-1.0.130
+	serde-1.0.133
 	serde_bytes-0.11.5
-	serde_derive-1.0.130
+	serde_derive-1.0.133
 	serde_json-1.0.72
 	serde_repr-0.1.7
 	serde_urlencoded-0.7.0
@@ -338,28 +339,28 @@ CRATES="
 	strsim-0.9.3
 	subtle-2.4.1
 	swc_atoms-0.2.9
-	swc_bundler-0.89.0
-	swc_common-0.15.0
-	swc_ecma_ast-0.59.1
-	swc_ecma_codegen-0.83.1
+	swc_bundler-0.96.0
+	swc_common-0.16.0
+	swc_ecma_ast-0.62.0
+	swc_ecma_codegen-0.86.0
 	swc_ecma_codegen_macros-0.6.0
-	swc_ecma_dep_graph-0.50.1
-	swc_ecma_loader-0.25.0
-	swc_ecma_parser-0.81.0
-	swc_ecma_transforms-0.101.0
-	swc_ecma_transforms_base-0.48.1
-	swc_ecma_transforms_classes-0.34.0
+	swc_ecma_dep_graph-0.55.0
+	swc_ecma_loader-0.26.0
+	swc_ecma_parser-0.84.0
+	swc_ecma_transforms-0.106.0
+	swc_ecma_transforms_base-0.52.0
+	swc_ecma_transforms_classes-0.39.0
 	swc_ecma_transforms_macros-0.3.0
-	swc_ecma_transforms_optimization-0.71.0
-	swc_ecma_transforms_proposal-0.63.0
-	swc_ecma_transforms_react-0.65.1
-	swc_ecma_transforms_typescript-0.67.2
-	swc_ecma_utils-0.55.1
-	swc_ecma_visit-0.45.0
-	swc_ecmascript-0.95.0
+	swc_ecma_transforms_optimization-0.76.0
+	swc_ecma_transforms_proposal-0.68.0
+	swc_ecma_transforms_react-0.70.0
+	swc_ecma_transforms_typescript-0.72.0
+	swc_ecma_utils-0.59.0
+	swc_ecma_visit-0.48.0
+	swc_ecmascript-0.103.0
 	swc_eq_ignore_macros-0.1.0
-	swc_fast_graph-0.2.0
-	swc_graph_analyzer-0.2.0
+	swc_fast_graph-0.3.0
+	swc_graph_analyzer-0.3.0
 	swc_macros_common-0.3.3
 	swc_visit-0.3.0
 	swc_visit_macros-0.3.0
@@ -411,6 +412,7 @@ CRATES="
 	unicode-width-0.1.9
 	unicode-xid-0.1.0
 	unicode-xid-0.2.2
+	unreachable-0.1.1
 	untrusted-0.7.1
 	url-2.2.2
 	urlpattern-0.1.2
@@ -420,6 +422,7 @@ CRATES="
 	vcpkg-0.2.15
 	vec_map-0.8.2
 	version_check-0.9.3
+	void-1.0.2
 	walkdir-2.3.2
 	want-0.3.0
 	wasi-0.9.0+wasi-snapshot-preview1
