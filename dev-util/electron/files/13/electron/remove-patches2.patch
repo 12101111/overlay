@@ -297,3 +297,31 @@ index e89bfbbc78..ed20c3e29f 100644
 -+
 - }  // namespace internal
 - }  // namespace cppgc
+diff --git a/patches/chromium/cachestorage_store_partial_opaque_responses.patch b/patches/chromium/cachestorage_store_partial_opaque_responses.patch
+index e28796d206..a9b879e16b 100644
+--- a/patches/chromium/cachestorage_store_partial_opaque_responses.patch
++++ b/patches/chromium/cachestorage_store_partial_opaque_responses.patch
+@@ -72,23 +72,3 @@ index 5482ce90e5a9f591016c784a0378b73b0520be03..0ec3a20cff2fdfc1ebd0f512cfdad4c9
+      exception_state.ThrowTypeError(
+          "Partial response (status code 206) is unsupported");
+      return;
+-diff --git a/third_party/blink/web_tests/external/wpt/service-workers/cache-storage/script-tests/cache-put.js b/third_party/blink/web_tests/external/wpt/service-workers/cache-storage/script-tests/cache-put.js
+-index b45910a3b8ba089e1724efa8b9e8a8d679c59320..f60c4b905ebcb61854b83177d59861ef92095624 100644
+---- a/third_party/blink/web_tests/external/wpt/service-workers/cache-storage/script-tests/cache-put.js
+-+++ b/third_party/blink/web_tests/external/wpt/service-workers/cache-storage/script-tests/cache-put.js
+-@@ -144,7 +144,14 @@ cache_test(function(cache, test) {
+-               'Test framework error: The status code should be 0 for an ' +
+-               ' opaque-filtered response. This is actually HTTP 206.');
+-           response = fetch_result.clone();
+--          return promise_rejects_js(test, TypeError, cache.put(request, fetch_result));
+-+          return cache.put(request, fetch_result);
+-+        })
+-+      .then(function() {
+-+          return cache.match(test_url);
+-+        })
+-+      .then(function(result) {
+-+          assert_not_equals(result, undefined,
+-+              'Cache.put should store an entry for the opaque response');
+-         });
+-   }, 'Cache.put with opaque-filtered HTTP 206 response');
+- 
