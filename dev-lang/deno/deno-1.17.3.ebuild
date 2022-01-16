@@ -3,7 +3,7 @@
 
 EAPI=7
 
-PYTHON_COMPAT=( python2_7 python3_{7..10} )
+PYTHON_COMPAT=( python3_{8..10} )
 PYTHON_REQ_USE="xml"
 
 CRATES="
@@ -415,7 +415,7 @@ CRATES="
 	unreachable-0.1.1
 	untrusted-0.7.1
 	url-2.2.2
-	urlpattern-0.1.2
+	urlpattern-0.1.3
 	utf-8-0.7.6
 	utf8parse-0.2.0
 	uuid-0.8.2
