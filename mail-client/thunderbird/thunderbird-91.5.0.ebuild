@@ -1,9 +1,9 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-91esr-patches-03.tar.xz"
+FIREFOX_PATCHSET="firefox-91esr-patches-04.tar.xz"
 
 LLVM_MAX_SLOT=13
 
@@ -48,7 +48,7 @@ if [[ ${PV} == *_rc* ]] ; then
 fi
 
 PATCH_URIS=(
-	https://dev.gentoo.org/~{polynomial-c,whissi}/mozilla/patchsets/${FIREFOX_PATCHSET}
+	https://dev.gentoo.org/~{juippis,polynomial-c,whissi}/mozilla/patchsets/${FIREFOX_PATCHSET}
 )
 
 SRC_URI="${MOZ_SRC_BASE_URI}/source/${MOZ_P}.source.tar.xz -> ${MOZ_P_DISTFILES}.source.tar.xz
@@ -119,7 +119,6 @@ CDEPEND="
 	>=x11-libs/gtk+-3.4.0:3[X]
 	x11-libs/gdk-pixbuf
 	>=x11-libs/pango-1.22.0
-	>=media-libs/libpng-1.6.35:0=[apng]
 	>=media-libs/mesa-10.2:*
 	media-libs/fontconfig
 	>=media-libs/freetype-2.4.10
