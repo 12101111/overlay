@@ -1,4 +1,4 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -10,10 +10,9 @@ HOMEPAGE="https://www.gtk.org/ https://gitlab.gnome.org/GNOME/gtk/"
 
 LICENSE="LGPL-2+"
 SLOT="4"
-IUSE="aqua broadway colord cups examples ffmpeg gstreamer gtk-doc +introspection sysprof test vulkan wayland +X cpu_flags_x86_f16c"
+IUSE="aqua broadway colord cups examples ffmpeg gstreamer +introspection sysprof test vulkan wayland +X cpu_flags_x86_f16c"
 REQUIRED_USE="
 	|| ( aqua wayland X )
-	gtk-doc? ( introspection )
 	test? ( introspection )
 "
 
@@ -26,7 +25,10 @@ COMMON_DEPEND="
 	>=media-libs/libepoxy-1.4[X(+)?]
 	>=x11-libs/cairo-1.14[aqua?,glib,svg,X?]
 	>=x11-libs/gdk-pixbuf-2.30:2[introspection?]
-	>=x11-libs/pango-1.47.0[introspection?]
+	>=x11-libs/pango-1.50.0[introspection?]
+	media-libs/libpng:0=
+	media-libs/tiff:0=
+	virtual/jpeg:0=
 	>=media-libs/harfbuzz-2.1.0:=
 	x11-misc/shared-mime-info
 
@@ -46,7 +48,7 @@ COMMON_DEPEND="
 		media-libs/fontconfig
 		media-libs/mesa[X(+)]
 		x11-libs/libX11
-		>=x11-libs/libXi-1.3
+		>=x11-libs/libXi-1.8
 		x11-libs/libXext
 		>=x11-libs/libXrandr-1.5
 		x11-libs/libXcursor
@@ -68,26 +70,28 @@ PDEPEND="
 	>=x11-themes/adwaita-icon-theme-3.14
 "
 BDEPEND="
-	app-text/docbook-xml-dtd:4.1.2
-	app-text/docbook-xsl-stylesheets
 	dev-libs/gobject-introspection-common
-	dev-libs/libxslt
+	dev-python/docutils
 	>=dev-util/gdbus-codegen-2.48
 	dev-util/glib-utils
 	>=sys-devel/gettext-0.19.7
 	virtual/pkgconfig
-	gtk-doc? (
-		app-text/docbook-xml-dtd:4.3
-		dev-util/gi-docgen
-	)
 	test? (
 		dev-libs/glib:2
 		wayland? ( dev-libs/weston[headless] )
-
-		media-fonts/font-misc-misc
-		media-fonts/font-cursor-misc
 	)
 "
+
+src_prepare() {
+	xdg_src_prepare
+	# dev-python/docutils installs rst2man.py, not rst2man
+	sed -i -e "s/'rst2man'/'rst2man.py'/" docs/reference/gtk/meson.build || die
+	# Nothing should use gtk4-update-icon-cache and an unversioned one is shipped by dev-util/gtk-update-icon-cache
+	sed -i -e '/gtk4-update-icon-cache/d' tools/meson.build || die
+	# Workaround RWX ELF sections, https://gitlab.gnome.org/GNOME/gtk/-/issues/4598
+	sed -i -e 's/^ld =.*/ld = disabler()/g' gtk/meson.build demos/gtk-demo/meson.build demos/widget-factory/meson.build || die
+	sed -i -e 's/^objcopy =.*/objcopy = disabler()/g' gtk/meson.build demos/gtk-demo/meson.build demos/widget-factory/meson.build || die
+}
 
 src_configure() {
 	local emesonargs=(
@@ -116,7 +120,7 @@ src_configure() {
 		$(meson_feature cpu_flags_x86_f16c f16c)
 
 		# Documentation and introspection
-		$(meson_use gtk-doc gtk_doc)
+		-Dgtk_doc=false # we ship pregenerated API docs from tarball
 		-Dman-pages=true
 		$(meson_feature introspection)
 
@@ -156,18 +160,9 @@ src_test() {
 src_install() {
 	meson_src_install
 
-	if use gtk-doc ; then
-		mkdir "${ED}"/usr/share/doc/${PF}/html || die
-
-		local docdirs=( gdk4 gsk4 gtk4 )
-		use wayland && docdirs+=( gdk4-wayland )
-		use X && docdirs+=( gdk4-x11 )
-
-		local d
-		for d in "${docdirs[@]}"; do
-			mv "${ED}"/usr/share/doc/{${d},${PF}/html/} || die
-		done
-	fi
+	insinto /usr/share/gtk-doc/html
+	# This will install API docs specific to X11 and wayland regardless of USE flags, but this is intentional
+	doins -r "${S}"/docs/reference/{gtk/gtk4,gsk/gsk4,gdk/gdk4{,-wayland,-x11}}
 }
 
 pkg_preinst() {
