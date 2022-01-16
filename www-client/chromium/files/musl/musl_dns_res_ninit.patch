@@ -43,6 +43,21 @@ index 5686762..34c3d1a 100644
  namespace net {
  
  std::unique_ptr<struct __res_state> ResolvReader::GetResState() {
+diff --git a/net/dns/public/scoped_res_state.cc b/net/dns/public/scoped_res_state.cc
+index 9706d18..b28d7a2 100644
+--- a/net/dns/public/scoped_res_state.cc
++++ b/net/dns/public/scoped_res_state.cc
+@@ -10,6 +10,10 @@
+ #include "base/check.h"
+ #include "build/build_config.h"
+
++#if defined(OS_LINUX) && !defined(__GLIBC__)
++#include "net/dns/resolv_compat.h"
++#endif
++
+ namespace net {
+
+ ScopedResState::ScopedResState() {
 diff --git a/net/dns/resolv_compat.h b/net/dns/resolv_compat.h
 new file mode 100644
 index 0000000..0f03b32
