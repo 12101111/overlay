@@ -1,4 +1,4 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -6,7 +6,7 @@ EAPI=7
 PYTHON_COMPAT=( python3_{7..10} )
 
 inherit bash-completion-r1 check-reqs estack flag-o-matic llvm multiprocessing \
-	multilib-build python-any-r1 rust-toolchain toolchain-funcs verify-sig
+	multilib multilib-build python-any-r1 rust-toolchain toolchain-funcs verify-sig
 
 if [[ ${PV} = *beta* ]]; then
 	betaver=${PV//*beta}
@@ -98,7 +98,7 @@ BDEPEND="${PYTHON_DEPS}
 		dev-util/ninja
 	)
 	test? ( sys-devel/gdb )
-	verify-sig? ( app-crypt/openpgp-keys-rust )
+	verify-sig? ( sec-keys/openpgp-keys-rust )
 "
 
 DEPEND="
@@ -130,7 +130,7 @@ REQUIRED_USE="|| ( ${ALL_LLVM_TARGETS[*]} )
 	elibc_musl? ( llvm-libunwind )
 "
 
-# we don't use cmake.eclass, but can get a warnings
+# we don't use cmake.eclass, but can get a warning
 CMAKE_WARN_UNUSED_CLI=no
 
 QA_FLAGS_IGNORED="
@@ -146,6 +146,9 @@ QA_SONAME="
 	usr/lib/${PN}/${PV}/lib/rustlib/.*/lib/lib.*.so
 "
 
+QA_PRESTRIPPED="
+	usr/lib/rust/${PV}/lib/rustlib/.*/bin/rust-llvm-dwp
+"
 # An rmeta file is custom binary format that contains the metadata for the crate.
 # rmeta files do not support linking, since they do not contain compiled object files.
 # so we can safely silence the warning for this QA check.
@@ -158,7 +161,6 @@ VERIFY_SIG_OPENPGP_KEY_PATH=${BROOT}/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
 	"${FILESDIR}"/1.55.0-ignore-broken-and-non-applicable-tests.patch
-	"${FILESDIR}"/1.57.0-selfbootstrap.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
 )
 
@@ -398,10 +400,11 @@ src_configure() {
 
 		cat <<- _EOF_ >> "${S}"/config.toml
 			[target.${rust_target}]
-			cc = "$(tc-getBUILD_CC)"
-			cxx = "$(tc-getBUILD_CXX)"
-			linker = "$(tc-getCC)"
 			ar = "$(tc-getAR)"
+			cc = "$(tc-getCC)"
+			cxx = "$(tc-getCXX)"
+			linker = "$(tc-getCC)"
+			ranlib = "$(tc-getRANLIB)"
 		_EOF_
 		# librustc_target/spec/linux_musl_base.rs sets base.crt_static_default = true;
 		if use elibc_musl; then
@@ -475,10 +478,11 @@ src_configure() {
 
 		cat <<- _EOF_ >> "${S}"/config.toml
 			[target.${cross_rust_target}]
+			ar = "${cross_toolchain}-ar"
 			cc = "${cross_toolchain}-gcc"
 			cxx = "${cross_toolchain}-g++"
 			linker = "${cross_toolchain}-gcc"
-			ar = "${cross_toolchain}-ar"
+			ranlib = "${cross_toolchain}-ranlib"
 		_EOF_
 		if use system-llvm; then
 			cat <<- _EOF_ >> "${S}"/config.toml
