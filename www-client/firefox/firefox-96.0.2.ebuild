@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-96-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-96-patches-02j.tar.xz"
 
 LLVM_MAX_SLOT=13
 
@@ -422,7 +422,7 @@ pkg_pretend() {
 		if use pgo || use lto || use debug ; then
 			CHECKREQS_DISK_BUILD="13500M"
 		else
-			CHECKREQS_DISK_BUILD="6400M"
+			CHECKREQS_DISK_BUILD="6500M"
 		fi
 
 		check-reqs_pkg_pretend
