@@ -42,7 +42,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/(-)?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
-IUSE="clippy cpu_flags_x86_sse2 debug doc miri nightly parallel-compiler rls rustfmt rust-src +system-bootstrap system-llvm test wasm wasi default-libcxx +profile +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
+IUSE="clippy cpu_flags_x86_sse2 debug dist doc miri nightly parallel-compiler rls rustfmt rust-src system-bootstrap system-llvm test wasm wasi default-libcxx +profile +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -147,8 +147,9 @@ QA_SONAME="
 "
 
 QA_PRESTRIPPED="
-	usr/lib/rust/${PV}/lib/rustlib/.*/bin/rust-llvm-dwp
+	usr/lib/${PN}/${PV}/lib/rustlib/.*/bin/rust-llvm-dwp
 "
+
 # An rmeta file is custom binary format that contains the metadata for the crate.
 # rmeta files do not support linking, since they do not contain compiled object files.
 # so we can safely silence the warning for this QA check.
@@ -323,6 +324,14 @@ src_configure() {
 		experimental-targets = ""
 		link-shared = $(toml_usex system-llvm)
 		use-libcxx = $(toml_usex default-libcxx)
+		$(case "${rust_target}" in
+			i586-*-linux-*)
+				# https://github.com/rust-lang/rust/issues/93059
+				echo 'cflags = "-fcf-protection=none"'
+				echo 'cxxflags = "-fcf-protection=none"'
+				echo 'ldflags = "-fcf-protection=none"'
+				;;
+		esac)
 		[build]
 		build-stage = 2
 		test-stage = 2
@@ -387,7 +396,7 @@ src_configure() {
 		debug-logging = true
 		[dist]
 		src-tarball = false
-		compression-formats = ["gz"]
+		compression-formats = ["xz"]
 	_EOF_
 
 	for v in $(multilib_get_enabled_abi_pairs); do
@@ -690,6 +699,11 @@ src_install() {
 
 	insinto /etc/env.d/rust
 	doins "${T}/provider-${P}"
+
+	if use dist; then
+		insinto "/usr/lib/${PN}/${PV}/dist"
+		doins -r "${S}/build/dist/."
+	fi
 }
 
 pkg_postinst() {
