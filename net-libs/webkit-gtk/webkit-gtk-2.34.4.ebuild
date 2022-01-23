@@ -158,6 +158,7 @@ pkg_setup() {
 src_prepare() {
 	eapply "${FILESDIR}"/2.34.3-opengl-without-X-fixes.patch
 	eapply "${FILESDIR}"/2.34.3-non-jumbo-fix.patch
+	eapply "${FILESDIR}"/2.34.3-jumbo-fix.patch # bug 830638
 	eapply "${FILESDIR}"/remove-at-spi2.patch
 	eapply "${FILESDIR}"/webkit-gtk-2.30.3-musl-locale.patch
 	if use elibc_musl ; then
@@ -188,7 +189,7 @@ src_configure() {
 	# Try to use less memory, bug #469942 (see Fedora .spec for reference)
 	# --no-keep-memory doesn't work on ia64, bug #502492
 	if ! use ia64; then
-		append-ldflags "-Wl,--no-keep-memory"
+		append-ldflags $(test-flags-CCLD "-Wl,--no-keep-memory")
 	fi
 
 	# Ruby situation is a bit complicated. See bug 513888
