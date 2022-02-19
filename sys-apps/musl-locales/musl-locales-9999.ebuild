@@ -12,7 +12,7 @@ EGIT_REPO_URI="https://gitlab.com/rilian-la-te/musl-locales.git"
 
 LICENSE="LGPL-3 MIT"
 SLOT="0"
-KEYWORDS="~amd64 ~x86"
+KEYWORDS="~amd64 ~arm64 ~x86"
 IUSE=""
 
 DEPEND=""
