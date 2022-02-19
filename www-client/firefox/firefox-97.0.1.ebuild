@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-96-patches-02j.tar.xz"
+FIREFOX_PATCHSET="firefox-97-patches-03j.tar.xz"
 
 LLVM_MAX_SLOT=13
 
@@ -59,11 +59,11 @@ HOMEPAGE="https://www.mozilla.com/firefox"
 
 KEYWORDS="~amd64 ~arm64 ~ppc64 ~x86"
 
-SLOT="0/$(ver_cut 1)"
+SLOT="rapid"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
 
 IUSE="+clang cpu_flags_arm_neon dbus debug eme-free hardened hwaccel"
-IUSE+=" jack lto +openh264 pgo pulseaudio sndio selinux"
+IUSE+=" jack libproxy lto +openh264 pgo pulseaudio sndio selinux"
 IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent +system-libvpx system-png +system-webp"
 IUSE+=" wayland wifi"
 
@@ -86,12 +86,12 @@ BDEPEND="${PYTHON_DEPS}
 	>=dev-util/cbindgen-0.19.0
 	>=net-libs/nodejs-10.23.1
 	virtual/pkgconfig
-	>=virtual/rust-1.53.0
+	>=virtual/rust-1.57.0
+	pgo? ( >=dev-lang/rust-1.51.0[profile] )
 	|| (
 		(
 			sys-devel/clang:13
 			sys-devel/llvm:13
-			>=dev-lang/rust-1.55.0[profile]
 			clang? (
 				=sys-devel/lld-13*
 				pgo? ( =sys-libs/compiler-rt-sanitizers-13*[profile] )
@@ -100,7 +100,6 @@ BDEPEND="${PYTHON_DEPS}
 		(
 			sys-devel/clang:12
 			sys-devel/llvm:12
-			>=dev-lang/rust-1.50.0[profile]
 			clang? (
 				=sys-devel/lld-12*
 				pgo? ( =sys-libs/compiler-rt-sanitizers-12*[profile] )
@@ -109,18 +108,17 @@ BDEPEND="${PYTHON_DEPS}
 		(
 			sys-devel/clang:11
 			sys-devel/llvm:11
-			>=dev-lang/rust-1.49.0[profile]
 			clang? (
 				=sys-devel/lld-11*
 				pgo? ( =sys-libs/compiler-rt-sanitizers-11*[profile] )
 			)
 		)
 	)
-	amd64? ( >=dev-lang/nasm-2.13 )
-	x86? ( >=dev-lang/nasm-2.13 )"
+	amd64? ( >=dev-lang/nasm-2.14 )
+	x86? ( >=dev-lang/nasm-2.14 )"
 
-CDEPEND="
-	>=dev-libs/nss-3.73
+COMMON_DEPEND="
+	>=dev-libs/nss-3.74
 	>=dev-libs/nspr-4.32
 	dev-libs/atk
 	dev-libs/expat
@@ -130,11 +128,11 @@ CDEPEND="
 	>=x11-libs/pango-1.22.0
 	>=media-libs/mesa-10.2:*
 	media-libs/fontconfig
-	>=media-libs/freetype-2.4.10
+	>=media-libs/freetype-2.9
 	kernel_linux? ( !pulseaudio? ( media-libs/alsa-lib ) )
 	virtual/freedesktop-icon-theme
 	>=x11-libs/pixman-0.19.2
-	>=dev-libs/glib-2.26:2
+	>=dev-libs/glib-2.42:2
 	>=sys-libs/zlib-1.2.3
 	>=dev-libs/libffi-3.0.10:=
 	media-video/ffmpeg
@@ -151,6 +149,7 @@ CDEPEND="
 		sys-apps/dbus
 		dev-libs/dbus-glib
 	)
+	libproxy? ( net-libs/libproxy )
 	screencast? ( media-video/pipewire:= )
 	system-av1? (
 		>=media-libs/dav1d-0.9.3:=
@@ -177,7 +176,9 @@ CDEPEND="
 	selinux? ( sec-policy/selinux-mozilla )
 	sndio? ( media-sound/sndio )"
 
-RDEPEND="${CDEPEND}
+RDEPEND="${COMMON_DEPEND}
+	!www-client/firefox:0
+	!www-client/firefox:esr
 	jack? ( virtual/jack )
 	openh264? ( media-libs/openh264:*[plugin] )
 	pulseaudio? (
@@ -188,7 +189,7 @@ RDEPEND="${CDEPEND}
 	)
 	selinux? ( sec-policy/selinux-mozilla )"
 
-DEPEND="${CDEPEND}
+DEPEND="${COMMON_DEPEND}
 	x11-libs/libICE
 	x11-libs/libSM
 	pulseaudio? (
@@ -547,12 +548,14 @@ src_prepare() {
 	eapply "${WORKDIR}/firefox-patches"
 
 	eapply "${FILESDIR}/cross-pgo.patch"
-	eapply "${FILESDIR}/fix-crash.patch"
-	eapply "${FILESDIR}/fix-crash2.patch"
-	eapply "${FILESDIR}/fix-crash3.patch"
+	#eapply "${FILESDIR}/fix-crash2.patch"
+	#eapply "${FILESDIR}/fix-crash3.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
+
+	# Make cargo respect MAKEOPTS
+	export CARGO_BUILD_JOBS="$(makeopts_jobs)"
 
 	# Make LTO respect MAKEOPTS
 	sed -i \
@@ -663,8 +666,11 @@ src_configure() {
 		--disable-cargo-incremental \
 		--disable-crashreporter \
 		--disable-install-strip \
+		--disable-parental-controls \
 		--disable-strip \
 		--disable-updater \
+		--enable-negotiateauth \
+		--enable-new-pass-manager \
 		--enable-official-branding \
 		--enable-release \
 		--enable-system-ffi \
@@ -692,6 +698,15 @@ src_configure() {
 
 	if ! use x86 && [[ ${CHOST} != armv*h* ]] ; then
 		mozconfig_add_options_ac '' --enable-rust-simd
+	fi
+
+	# For future keywording: This is currently (97.0) only supported on:
+	# amd64, arm, arm64 & x86.
+	# Might want to flip the logic around if Firefox is to support more arches.
+	if use ppc64; then
+		mozconfig_add_options_ac '' --disable-sandbox
+	else
+		mozconfig_add_options_ac '' --enable-sandbox
 	fi
 
 	if [[ -s "${S}/api-google.key" ]] ; then
@@ -735,12 +750,13 @@ src_configure() {
 	mozconfig_use_with system-harfbuzz system-graphite2
 	mozconfig_use_with system-icu
 	mozconfig_use_with system-jpeg
-	mozconfig_use_with system-libevent system-libevent "${SYSROOT}${EPREFIX}/usr"
+	mozconfig_use_with system-libevent
 	mozconfig_use_with system-libvpx
 	mozconfig_use_with system-png
 	mozconfig_use_with system-webp
 
 	mozconfig_use_enable dbus
+	mozconfig_use_enable libproxy
 
 	use eme-free && mozconfig_add_options_ac '+eme-free' --disable-eme
 
@@ -775,13 +791,15 @@ src_configure() {
 			mozconfig_add_options_ac "forcing ld=lld due to USE=clang and USE=lto" --enable-linker=lld
 
 			mozconfig_add_options_ac '+lto' --enable-lto=cross
-		else
-			# ld.gold is known to fail:
-			# /usr/lib/gcc/x86_64-pc-linux-gnu/11.2.1/../../../../x86_64-pc-linux-gnu/bin/ld.gold: internal error in set_xindex, at /var/tmp/portage/sys-devel/binutils-2.37_p1-r1/work/binutils-2.37/gold/object.h:1050
 
+		else
 			# ThinLTO is currently broken, see bmo#1644409
 			mozconfig_add_options_ac '+lto' --enable-lto=full
-			mozconfig_add_options_ac "linker is set to bfd" --enable-linker=bfd
+			if tc-ld-is-gold; then
+				mozconfig_add_options_ac "linker is set to gold" --enable-linker=gold
+			else
+				mozconfig_add_options_ac "linker is set to bfd" --enable-linker=bfd
+			fi
 		fi
 
 		if use pgo ; then
@@ -800,7 +818,11 @@ src_configure() {
 			# This is upstream's default
 			mozconfig_add_options_ac "forcing ld=lld due to USE=clang" --enable-linker=lld
 		else
-			mozconfig_add_options_ac "linker is set to bfd" --enable-linker=bfd
+			if tc-ld-is-gold; then
+				mozconfig_add_options_ac "linker is set to gold" --enable-linker=gold
+			else
+				mozconfig_add_options_ac "linker is set to bfd" --enable-linker=bfd
+			fi
 		fi
 	fi
 
@@ -920,6 +942,7 @@ src_configure() {
 	# Use system's Python environment
 	export MACH_USE_SYSTEM_PYTHON=1
 	export MACH_SYSTEM_ASSERTED_COMPATIBLE_WITH_MACH_SITE=1
+	export MACH_SYSTEM_ASSERTED_COMPATIBLE_WITH_BUILD_SITE=1
 	export PIP_NO_CACHE_DIR=off
 
 	# Disable notification when build system has finished
