@@ -1,5 +1,14 @@
+From 9e10d040b12bd0aa5c4c95848763426cd9aaf089 Mon Sep 17 00:00:00 2001
+From: 
+Date: Thu, 3 Feb 2022 18:27:20 -0600
+Subject: [PATCH] check for musl
+
+---
+ configure.ac | 23 ++++-------------------
+ 1 file changed, 4 insertions(+), 19 deletions(-)
+
 diff --git a/configure.ac b/configure.ac
-index 5cca2c0..0be9d2d 100644
+index 092fb04cc..ce4e408a6 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -879,7 +879,7 @@ solaris*)
@@ -60,3 +69,6 @@ index 5cca2c0..0be9d2d 100644
          if test "$ENABLE_JAVA" != ""; then
              pathmunge "$JAVA_HOME/bin" "after"
          fi
+-- 
+2.34.1
+
