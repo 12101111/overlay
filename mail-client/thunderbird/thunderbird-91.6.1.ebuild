@@ -3,11 +3,11 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-91esr-patches-04.tar.xz"
+FIREFOX_PATCHSET="firefox-91esr-patches-05j.tar.xz"
 
 LLVM_MAX_SLOT=13
 
-PYTHON_COMPAT=( python3_{7..10} )
+PYTHON_COMPAT=( python3_{8..10} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
 
 WANT_AUTOCONF="2.1"
@@ -38,7 +38,7 @@ MOZ_PV_DISTFILES="${MOZ_PV}${MOZ_PV_SUFFIX}"
 MOZ_P_DISTFILES="${MOZ_PN}-${MOZ_PV_DISTFILES}"
 
 inherit autotools check-reqs desktop flag-o-matic gnome2-utils \
-	llvm multiprocessing pax-utils python-any-r1 toolchain-funcs \
+	llvm multiprocessing optfeature pax-utils python-any-r1 toolchain-funcs \
 	virtualx xdg
 
 MOZ_SRC_BASE_URI="https://archive.mozilla.org/pub/${MOZ_PN}/releases/${MOZ_PV}"
@@ -59,7 +59,7 @@ HOMEPAGE="https://www.thunderbird.net/"
 
 KEYWORDS="~amd64 ~arm64 ~ppc64 ~x86"
 
-SLOT="0/$(ver_cut 1)"
+SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
 
 IUSE="+clang cpu_flags_arm_neon dbus debug eme-free hardened hwaccel"
@@ -78,11 +78,11 @@ BDEPEND="${PYTHON_DEPS}
 	>=net-libs/nodejs-10.23.1
 	virtual/pkgconfig
 	>=virtual/rust-1.51.0
+	pgo? ( >=dev-lang/rust-1.51.0[profile] )
 	|| (
 		(
 			sys-devel/clang:13
 			sys-devel/llvm:13
-			>=dev-lang/rust-1.55.0[profile]
 			clang? (
 				=sys-devel/lld-13*
 				pgo? ( =sys-libs/compiler-rt-sanitizers-13*[profile] )
@@ -91,7 +91,6 @@ BDEPEND="${PYTHON_DEPS}
 		(
 			sys-devel/clang:12
 			sys-devel/llvm:12
-			>=dev-lang/rust-1.50.0[profile]
 			clang? (
 				=sys-devel/lld-12*
 				pgo? ( =sys-libs/compiler-rt-sanitizers-12*[profile] )
@@ -100,7 +99,6 @@ BDEPEND="${PYTHON_DEPS}
 		(
 			sys-devel/clang:11
 			sys-devel/llvm:11
-			>=dev-lang/rust-1.49.0[profile]
 			clang? (
 				=sys-devel/lld-11*
 				pgo? ( =sys-libs/compiler-rt-sanitizers-11*[profile] )
@@ -110,7 +108,7 @@ BDEPEND="${PYTHON_DEPS}
 	amd64? ( >=dev-lang/nasm-2.13 )
 	x86? ( >=dev-lang/nasm-2.13 )"
 
-CDEPEND="
+COMMON_DEPEND="
 	>=dev-libs/nss-3.68
 	>=dev-libs/nspr-4.32
 	dev-libs/atk
@@ -166,7 +164,7 @@ CDEPEND="
 	selinux? ( sec-policy/selinux-mozilla )
 	sndio? ( media-sound/sndio )"
 
-RDEPEND="${CDEPEND}
+RDEPEND="${COMMON_DEPEND}
 	jack? ( virtual/jack )
 	openh264? ( media-libs/openh264:*[plugin] )
 	pulseaudio? (
@@ -178,7 +176,7 @@ RDEPEND="${CDEPEND}
 	selinux? ( sec-policy/selinux-mozilla )
 	!<x11-plugins/enigmail-2.2"
 
-DEPEND="${CDEPEND}
+DEPEND="${COMMON_DEPEND}
 	x11-libs/libICE
 	x11-libs/libSM
 	pulseaudio? (
@@ -496,6 +494,9 @@ src_prepare() {
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
+
+	# Make cargo respect MAKEOPTS
+	export CARGO_BUILD_JOBS="$(makeopts_jobs)"
 
 	# Make LTO respect MAKEOPTS
 	sed -i \
@@ -1100,4 +1101,7 @@ pkg_postinst() {
 		elog "If you still want to be able to select between running Mozilla ${PN^}"
 		elog "on X11 or Wayland, you have to re-create these shortcuts on your own."
 	fi
+
+	optfeature_header "Optional runtime features:"
+	optfeature "encrypted chat support" net-libs/libotr
 }
