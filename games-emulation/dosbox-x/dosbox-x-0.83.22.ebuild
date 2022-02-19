@@ -35,6 +35,7 @@ PATCHES=(
 	"${FILESDIR}/sys-perm.patch"
 	"${FILESDIR}/cmath.patch"
 	"${FILESDIR}/z_of_fix.patch"
+	"${FILESDIR}/fcntl.patch"
 )
 
 src_prepare() {

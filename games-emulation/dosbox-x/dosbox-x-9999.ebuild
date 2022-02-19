@@ -32,16 +32,17 @@ PATCHES=(
 	"${FILESDIR}/sys-perm.patch"
 	"${FILESDIR}/cmath.patch"
 	"${FILESDIR}/z_of_fix.patch"
+	"${FILESDIR}/fcntl.patch"
 )
 
 src_prepare() {
 	default
 	eautoreconf
-	chmod +x vs2015/sdl/build-scripts/strip_fPIC.sh
+	chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 	chmod +x configure
 	if use !sdl2; then
 		# Prefer to compile against the internal copy of SDL 1.x
-		(cd vs2015/sdl && ./build-dosbox.sh) || exit 1
+		(cd vs/sdl && ./build-dosbox.sh) || die
 	fi
 }
 
