@@ -1,0 +1,180 @@
+From d8479c9e4bfa59f5a9de63b0dd8fe5cb70460d5c Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sat, 19 Feb 2022 19:03:38 +0800
+Subject: [PATCH 01/13] remove useless dependency
+
+---
+ package.json |   4 --
+ yarn.lock    | 113 ---------------------------------------------------
+ 2 files changed, 117 deletions(-)
+
+diff --git a/package.json b/package.json
+index 7d959eed96b..5e1f83802ba 100644
+--- a/package.json
++++ b/package.json
+@@ -48,7 +48,6 @@
+     "compile-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-web",
+     "watch-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js watch-web",
+     "eslint": "node build/eslint",
+-    "playwright-install": "node build/azure-pipelines/common/installPlaywright.js",
+     "compile-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-build",
+     "compile-extensions-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-extensions-build",
+     "minify-vscode": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js minify-vscode",
+@@ -96,7 +95,6 @@
+   },
+   "devDependencies": {
+     "7zip": "0.0.6",
+-    "@playwright/test": "1.18.0",
+     "@types/applicationinsights": "0.20.0",
+     "@types/cookie": "^0.3.3",
+     "@types/copy-webpack-plugin": "^6.0.3",
+@@ -123,8 +121,6 @@
+     "@types/yazl": "^2.4.2",
+     "@typescript-eslint/eslint-plugin": "^5.10.0",
+     "@typescript-eslint/parser": "^5.10.0",
+-    "@vscode/telemetry-extractor": "^1.9.5",
+-    "@vscode/test-web": "^0.0.19",
+     "ansi-colors": "^3.2.3",
+     "asar": "^3.0.3",
+     "chromium-pickle-js": "^0.2.0",
+diff --git a/yarn.lock b/yarn.lock
+index c353a999f64..af083a53919 100644
+--- a/yarn.lock
++++ b/yarn.lock
+@@ -1014,50 +1014,6 @@
+     node-addon-api "^3.2.1"
+     node-gyp-build "^4.3.0"
+ 
+-"@playwright/test@1.18.0":
+-  version "1.18.0"
+-  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.18.0.tgz#e6ac7b588d927fdd028d72f0db1030dd777a79a7"
+-  integrity sha512-ceu4DqerPlyRsdNfke4IUyWH1WccRuBokngFdPAzc5CRzlGmSTT59NBkJyn8Fg/F01CziaMFgNRrHQIMSd4g5A==
+-  dependencies:
+-    "@babel/code-frame" "^7.14.5"
+-    "@babel/core" "^7.14.8"
+-    "@babel/plugin-proposal-class-properties" "^7.14.5"
+-    "@babel/plugin-proposal-dynamic-import" "^7.14.5"
+-    "@babel/plugin-proposal-export-namespace-from" "^7.14.5"
+-    "@babel/plugin-proposal-logical-assignment-operators" "^7.14.5"
+-    "@babel/plugin-proposal-nullish-coalescing-operator" "^7.14.5"
+-    "@babel/plugin-proposal-numeric-separator" "^7.14.5"
+-    "@babel/plugin-proposal-optional-chaining" "^7.14.5"
+-    "@babel/plugin-proposal-private-methods" "^7.14.5"
+-    "@babel/plugin-proposal-private-property-in-object" "^7.14.5"
+-    "@babel/plugin-syntax-async-generators" "^7.8.4"
+-    "@babel/plugin-syntax-json-strings" "^7.8.3"
+-    "@babel/plugin-syntax-object-rest-spread" "^7.8.3"
+-    "@babel/plugin-syntax-optional-catch-binding" "^7.8.3"
+-    "@babel/plugin-transform-modules-commonjs" "^7.14.5"
+-    "@babel/plugin-transform-react-jsx" "^7.14.5"
+-    "@babel/preset-typescript" "^7.14.5"
+-    babel-plugin-module-resolver "^4.1.0"
+-    colors "1.4.0"
+-    commander "^8.2.0"
+-    debug "^4.1.1"
+-    expect "=27.2.5"
+-    jest-matcher-utils "=27.2.5"
+-    jpeg-js "^0.4.2"
+-    json5 "^2.2.0"
+-    mime "^2.4.6"
+-    minimatch "^3.0.3"
+-    ms "^2.1.2"
+-    open "^8.3.0"
+-    pirates "^4.0.1"
+-    pixelmatch "^5.2.1"
+-    playwright-core "=1.18.0"
+-    pngjs "^5.0.0"
+-    rimraf "^3.0.2"
+-    source-map-support "^0.4.18"
+-    stack-utils "^2.0.3"
+-    yazl "^2.5.1"
+-
+ "@sindresorhus/is@^0.14.0":
+   version "0.14.0"
+   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
+@@ -1576,33 +1532,6 @@
+   resolved "https://registry.yarnpkg.com/@vscode/sudo-prompt/-/sudo-prompt-9.3.1.tgz#c562334bc6647733649fd42afc96c0eea8de3b65"
+   integrity sha512-9ORTwwS74VaTn38tNbQhsA5U44zkJfcb0BdTSyyG6frP4e8KMtHuTXYmwefe5dpL8XB1aGSIVTaLjD3BbWb5iA==
+ 
+-"@vscode/telemetry-extractor@^1.9.5":
+-  version "1.9.5"
+-  resolved "https://registry.yarnpkg.com/@vscode/telemetry-extractor/-/telemetry-extractor-1.9.5.tgz#8c77165a0b2dcc5caafa7b94d93cf6581e740838"
+-  integrity sha512-1A8eBeJu2tzPBuTqrBeUD9hwsmeCZQSpQURomTXz0LiKwED5GUS/UpRh9WNaDO4A4yix9RC0/wwJok5k8NqvCg==
+-  dependencies:
+-    command-line-args "^5.2.0"
+-    ts-morph "^12.2.0"
+-    vscode-ripgrep "^1.12.1"
+-
+-"@vscode/test-web@^0.0.19":
+-  version "0.0.19"
+-  resolved "https://registry.yarnpkg.com/@vscode/test-web/-/test-web-0.0.19.tgz#2e2b030bca049c31f56bb73709b15c03b04bcaa1"
+-  integrity sha512-7Idk5qmShFCG65OMg7zB5028L38CVk5StKONgnzJNDjKXMj4BOch5CMAK6ad1P+oah94EYVSzGrX/AF1EgpxWA==
+-  dependencies:
+-    "@koa/router" "^10.1.1"
+-    decompress "^4.2.1"
+-    decompress-targz "^4.1.1"
+-    http-proxy-agent "^4.0.1"
+-    https-proxy-agent "^5.0.0"
+-    koa "^2.13.1"
+-    koa-morgan "^1.0.1"
+-    koa-mount "^4.0.0"
+-    koa-static "^5.0.0"
+-    minimist "^1.2.5"
+-    playwright "1.14.1"
+-    vscode-uri "^3.0.2"
+-
+ "@vscode/vscode-languagedetection@1.0.21":
+   version "1.0.21"
+   resolved "https://registry.yarnpkg.com/@vscode/vscode-languagedetection/-/vscode-languagedetection-1.0.21.tgz#89b48f293f6aa3341bb888c1118d16ff13b032d3"
+@@ -9083,48 +9012,6 @@ pkg-up@^3.1.0:
+   dependencies:
+     find-up "^3.0.0"
+ 
+-playwright-core@=1.18.0:
+-  version "1.18.0"
+-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.18.0.tgz#b4d2b9068f26357adaa952a13254796fd439f322"
+-  integrity sha512-JTRlCVpfAFcC1nth+XIE07w6M5m6C8PaEoClv7wGWF97cyDMcHIij0xIVEKMKli7IG5N0mqjLDFc/akXSbMZ1g==
+-  dependencies:
+-    commander "^8.2.0"
+-    debug "^4.1.1"
+-    extract-zip "^2.0.1"
+-    https-proxy-agent "^5.0.0"
+-    jpeg-js "^0.4.2"
+-    mime "^2.4.6"
+-    pngjs "^5.0.0"
+-    progress "^2.0.3"
+-    proper-lockfile "^4.1.1"
+-    proxy-from-env "^1.1.0"
+-    rimraf "^3.0.2"
+-    socks-proxy-agent "^6.1.0"
+-    stack-utils "^2.0.3"
+-    ws "^7.4.6"
+-    yauzl "^2.10.0"
+-    yazl "^2.5.1"
+-
+-playwright@1.14.1:
+-  version "1.14.1"
+-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.14.1.tgz#73913d3044a85a58edf13148245279231072532e"
+-  integrity sha512-JYNjhwWcfsBkg0FMGLbFO9e58FVdmICE4k97/glIQV7cBULL7oxNjRQC7Ffe+Y70XVNnP0HSJLaA0W5SukyftQ==
+-  dependencies:
+-    commander "^6.1.0"
+-    debug "^4.1.1"
+-    extract-zip "^2.0.1"
+-    https-proxy-agent "^5.0.0"
+-    jpeg-js "^0.4.2"
+-    mime "^2.4.6"
+-    pngjs "^5.0.0"
+-    progress "^2.0.3"
+-    proper-lockfile "^4.1.1"
+-    proxy-from-env "^1.1.0"
+-    rimraf "^3.0.2"
+-    stack-utils "^2.0.3"
+-    ws "^7.4.6"
+-    yazl "^2.5.1"
+-
+ plist@^3.0.1:
+   version "3.0.4"
+   resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.4.tgz#a62df837e3aed2bb3b735899d510c4f186019cbe"
+-- 
+2.35.1
+

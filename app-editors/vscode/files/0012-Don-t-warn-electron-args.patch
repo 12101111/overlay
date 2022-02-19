@@ -1,7 +1,7 @@
-From 47d4b8425ca616a8af4aaafd51698365235a6c17 Mon Sep 17 00:00:00 2001
+From d82764cc6f88bf49a279f279045aae121ce4bc55 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 16 Dec 2021 13:54:31 +0800
-Subject: [PATCH 13/14] Don't warn electron args
+Subject: [PATCH 12/13] Don't warn electron args
 
 ---
  src/vs/platform/environment/common/argv.ts | 3 +++
@@ -21,10 +21,10 @@ index 6278d173a4b..06bb939d2f2 100644
 +	'ozone-platform'?: string;
  }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 1c120d191ac..5543385a93d 100644
+index 6f324a9e88c..e893cc481ec 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
-@@ -148,6 +148,9 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
+@@ -149,6 +149,9 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
  	'log-net-log': { type: 'string' },
  	'vmodule': { type: 'string' },
  	'_urls': { type: 'string[]' },
@@ -35,5 +35,5 @@ index 1c120d191ac..5543385a93d 100644
  	_: { type: 'string[]' } // main arguments
  };
 -- 
-2.34.1
+2.35.1
 

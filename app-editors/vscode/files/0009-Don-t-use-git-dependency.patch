@@ -1,7 +1,7 @@
-From c40068863b4b371610793de9cc63d7b6ced43cdc Mon Sep 17 00:00:00 2001
+From 2fa1794d6b7e3beba5e178c11e087ae64c354088 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 5 Nov 2021 16:20:14 +0800
-Subject: [PATCH 09/14] Don't use git dependence
+Date: Sat, 19 Feb 2022 18:39:17 +0800
+Subject: [PATCH 09/13] Don't use git dependency
 
 ---
  extensions/markdown-math/package.json | 2 +-
@@ -9,7 +9,7 @@ Subject: [PATCH 09/14] Don't use git dependence
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/extensions/markdown-math/package.json b/extensions/markdown-math/package.json
-index 5a4dbe3080b..2f25b828fb2 100644
+index 5a4dbe3080b..1bd65afc3ff 100644
 --- a/extensions/markdown-math/package.json
 +++ b/extensions/markdown-math/package.json
 @@ -91,7 +91,7 @@
@@ -17,12 +17,12 @@ index 5a4dbe3080b..2f25b828fb2 100644
    },
    "dependencies": {
 -    "@iktakahiro/markdown-it-katex": "https://github.com/mjbvz/markdown-it-katex.git"
-+    "@iktakahiro/markdown-it-katex": "mjbvz/markdown-it-katex#820d9025ad84937eb3f9f7efbc1be7595e20b19f"
++    "@iktakahiro/markdown-it-katex": "mjbvz/markdown-it-katex#b1ed14de467031f5d4f9c1588dd1868cab0b8744"
    },
    "devDependencies": {
      "@types/markdown-it": "^0.0.0",
 diff --git a/extensions/markdown-math/yarn.lock b/extensions/markdown-math/yarn.lock
-index afbc51221af..661d831d299 100644
+index 5909a3a8c10..6c4b5817554 100644
 --- a/extensions/markdown-math/yarn.lock
 +++ b/extensions/markdown-math/yarn.lock
 @@ -2,9 +2,9 @@
@@ -30,13 +30,13 @@ index afbc51221af..661d831d299 100644
  
  
 -"@iktakahiro/markdown-it-katex@https://github.com/mjbvz/markdown-it-katex.git":
-+"@iktakahiro/markdown-it-katex@mjbvz/markdown-it-katex#820d9025ad84937eb3f9f7efbc1be7595e20b19f":
++"@iktakahiro/markdown-it-katex@mjbvz/markdown-it-katex#b1ed14de467031f5d4f9c1588dd1868cab0b8744":
    version "4.0.1"
--  resolved "https://github.com/mjbvz/markdown-it-katex.git#820d9025ad84937eb3f9f7efbc1be7595e20b19f"
-+  resolved "https://codeload.github.com/mjbvz/markdown-it-katex/tar.gz/820d9025ad84937eb3f9f7efbc1be7595e20b19f"
+-  resolved "https://github.com/mjbvz/markdown-it-katex.git#b1ed14de467031f5d4f9c1588dd1868cab0b8744"
++  resolved "https://codeload.github.com/mjbvz/markdown-it-katex/tar.gz/b1ed14de467031f5d4f9c1588dd1868cab0b8744"
    dependencies:
      katex "^0.13.0"
  
 -- 
-2.34.1
+2.35.1
 

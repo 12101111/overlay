@@ -1,10 +1,10 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # jq -r '.builtInExtensions[] | .name +":"+ .version' product.json | sed -r 's/([^\.]*)\.([a-z0-9\-]*)\:([0-9\.]*)/["\2"]="\3"/g'
 declare -A BUILTINEXTS=(
 ["references-view"]="0.0.81"
 ["js-debug-companion"]="1.0.15"
-["js-debug"]="1.62.0"
+["js-debug"]="1.64.3"
 ["vscode-js-profile-table"]="0.0.18"
 )
 

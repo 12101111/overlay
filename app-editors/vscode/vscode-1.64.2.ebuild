@@ -13,12 +13,12 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="899d46d82c4c95423fb7e10e68eba52050e30ba3"
+COMMIT="f80445acd5a3dadef24aa209168452a3d97cc326"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
-# https://github.com/microsoft/vscode-ripgrep/blob/v1.12.1/lib/postinstall.js#L21
-RG_VERSION=("13.0.0-2")
-VSCODE_RIPGREP_VERSION=("1.12.1")
+# https://github.com/microsoft/vscode-ripgrep/blob/v1.14.1/lib/postinstall.js#L21
+RG_VERSION=("13.0.0-4")
+VSCODE_RIPGREP_VERSION=("1.14.1")
 
 # .yarnrc
 ELECTRON_VERSION="13.5.2"
@@ -28,7 +28,7 @@ ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 declare -A BUILTINEXTS=(
 ["references-view"]="0.0.81"
 ["js-debug-companion"]="1.0.15"
-["js-debug"]="1.62.0"
+["js-debug"]="1.64.3"
 ["vscode-js-profile-table"]="0.0.18"
 )
 
@@ -57,19 +57,73 @@ https://registry.yarnpkg.com/@azure/msal-common/-/msal-common-5.1.0.tgz
 https://registry.yarnpkg.com/@azure/msal-node/-/msal-node-1.3.3.tgz
 https://registry.yarnpkg.com/@azure/storage-blob/-/storage-blob-12.8.0.tgz
 https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.12.11.tgz
+https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.16.7.tgz
 https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/compat-data/-/compat-data-7.16.8.tgz
+https://registry.yarnpkg.com/@babel/core/-/core-7.16.7.tgz
 https://registry.yarnpkg.com/@babel/core/-/core-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/generator/-/generator-7.16.8.tgz
 https://registry.yarnpkg.com/@babel/generator/-/generator-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/helper-annotate-as-pure/-/helper-annotate-as-pure-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-compilation-targets/-/helper-compilation-targets-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-create-class-features-plugin/-/helper-create-class-features-plugin-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-environment-visitor/-/helper-environment-visitor-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-function-name/-/helper-function-name-7.16.7.tgz
 https://registry.yarnpkg.com/@babel/helper-function-name/-/helper-function-name-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/helper-get-function-arity/-/helper-get-function-arity-7.16.7.tgz
 https://registry.yarnpkg.com/@babel/helper-get-function-arity/-/helper-get-function-arity-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/helper-hoist-variables/-/helper-hoist-variables-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-member-expression-to-functions/-/helper-member-expression-to-functions-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-module-imports/-/helper-module-imports-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-module-transforms/-/helper-module-transforms-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-optimise-call-expression/-/helper-optimise-call-expression-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-plugin-utils/-/helper-plugin-utils-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-replace-supers/-/helper-replace-supers-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-simple-access/-/helper-simple-access-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-skip-transparent-expression-wrappers/-/helper-skip-transparent-expression-wrappers-7.16.0.tgz
+https://registry.yarnpkg.com/@babel/helper-split-export-declaration/-/helper-split-export-declaration-7.16.7.tgz
 https://registry.yarnpkg.com/@babel/helper-split-export-declaration/-/helper-split-export-declaration-7.8.3.tgz
 https://registry.yarnpkg.com/@babel/helper-validator-identifier/-/helper-validator-identifier-7.12.11.tgz
+https://registry.yarnpkg.com/@babel/helper-validator-identifier/-/helper-validator-identifier-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helper-validator-option/-/helper-validator-option-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/helpers/-/helpers-7.16.7.tgz
 https://registry.yarnpkg.com/@babel/helpers/-/helpers-7.8.3.tgz
 https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.10.4.tgz
+https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.16.7.tgz
 https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/parser/-/parser-7.16.8.tgz
 https://registry.yarnpkg.com/@babel/parser/-/parser-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/plugin-proposal-class-properties/-/plugin-proposal-class-properties-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-proposal-dynamic-import/-/plugin-proposal-dynamic-import-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-proposal-export-namespace-from/-/plugin-proposal-export-namespace-from-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-proposal-logical-assignment-operators/-/plugin-proposal-logical-assignment-operators-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-proposal-nullish-coalescing-operator/-/plugin-proposal-nullish-coalescing-operator-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-proposal-numeric-separator/-/plugin-proposal-numeric-separator-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-proposal-optional-chaining/-/plugin-proposal-optional-chaining-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-proposal-private-methods/-/plugin-proposal-private-methods-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-proposal-private-property-in-object/-/plugin-proposal-private-property-in-object-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-async-generators/-/plugin-syntax-async-generators-7.8.4.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-dynamic-import/-/plugin-syntax-dynamic-import-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-export-namespace-from/-/plugin-syntax-export-namespace-from-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-json-strings/-/plugin-syntax-json-strings-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-jsx/-/plugin-syntax-jsx-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-logical-assignment-operators/-/plugin-syntax-logical-assignment-operators-7.10.4.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-nullish-coalescing-operator/-/plugin-syntax-nullish-coalescing-operator-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-numeric-separator/-/plugin-syntax-numeric-separator-7.10.4.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-object-rest-spread/-/plugin-syntax-object-rest-spread-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-optional-catch-binding/-/plugin-syntax-optional-catch-binding-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-optional-chaining/-/plugin-syntax-optional-chaining-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-private-property-in-object/-/plugin-syntax-private-property-in-object-7.14.5.tgz
+https://registry.yarnpkg.com/@babel/plugin-syntax-typescript/-/plugin-syntax-typescript-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-transform-modules-commonjs/-/plugin-transform-modules-commonjs-7.16.8.tgz
+https://registry.yarnpkg.com/@babel/plugin-transform-react-jsx/-/plugin-transform-react-jsx-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/plugin-transform-typescript/-/plugin-transform-typescript-7.16.8.tgz
+https://registry.yarnpkg.com/@babel/preset-typescript/-/preset-typescript-7.16.7.tgz
+https://registry.yarnpkg.com/@babel/template/-/template-7.16.7.tgz
 https://registry.yarnpkg.com/@babel/template/-/template-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.16.8.tgz
 https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.8.3.tgz
+https://registry.yarnpkg.com/@babel/types/-/types-7.16.8.tgz
 https://registry.yarnpkg.com/@babel/types/-/types-7.8.3.tgz
 https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.3.tgz
 https://registry.yarnpkg.com/@electron/get/-/get-1.12.3.tgz
@@ -83,10 +137,16 @@ https://registry.yarnpkg.com/@emmetio/scanner/-/scanner-1.0.0.tgz
 https://registry.yarnpkg.com/@emmetio/stream-reader-utils/-/stream-reader-utils-0.1.0.tgz
 https://registry.yarnpkg.com/@emmetio/stream-reader/-/stream-reader-2.2.0.tgz
 https://registry.yarnpkg.com/@enonic/fnv-plus/-/fnv-plus-1.3.0.tgz
+https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-1.0.5.tgz
+https://registry.yarnpkg.com/@gar/promisify/-/promisify-1.1.2.tgz
 https://registry.yarnpkg.com/@gulp-sourcemaps/identity-map/-/identity-map-2.0.1.tgz
 https://registry.yarnpkg.com/@gulp-sourcemaps/map-sources/-/map-sources-1.0.0.tgz
+https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.9.2.tgz
+https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz
 https://registry.yarnpkg.com/@istanbuljs/schema/-/schema-0.1.2.tgz
+https://registry.yarnpkg.com/@jest/types/-/types-27.4.2.tgz
 https://registry.yarnpkg.com/@jupyterlab/coreutils/-/coreutils-3.2.0.tgz
+https://registry.yarnpkg.com/@koa/router/-/router-10.1.1.tgz
 https://registry.yarnpkg.com/@malept/cross-spawn-promise/-/cross-spawn-promise-1.1.1.tgz
 https://registry.yarnpkg.com/@microsoft/applicationinsights-analytics-js/-/applicationinsights-analytics-js-2.6.4.tgz
 https://registry.yarnpkg.com/@microsoft/applicationinsights-channel-js/-/applicationinsights-channel-js-2.6.4.tgz
@@ -98,9 +158,14 @@ https://registry.yarnpkg.com/@microsoft/applicationinsights-shims/-/applicationi
 https://registry.yarnpkg.com/@microsoft/applicationinsights-web/-/applicationinsights-web-2.6.4.tgz
 https://registry.yarnpkg.com/@microsoft/dynamicproto-js/-/dynamicproto-js-1.1.4.tgz
 https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.3.tgz
+https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.5.tgz
 https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-2.0.3.tgz
+https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-2.0.5.tgz
 https://registry.yarnpkg.com/@nodelib/fs.walk/-/fs.walk-1.2.4.tgz
+https://registry.yarnpkg.com/@nodelib/fs.walk/-/fs.walk-1.2.8.tgz
+https://registry.yarnpkg.com/@npmcli/fs/-/fs-1.0.0.tgz
 https://registry.yarnpkg.com/@npmcli/move-file/-/move-file-1.0.1.tgz
+https://registry.yarnpkg.com/@npmcli/move-file/-/move-file-1.1.2.tgz
 https://registry.yarnpkg.com/@octokit/auth-token/-/auth-token-2.4.2.tgz
 https://registry.yarnpkg.com/@octokit/auth-token/-/auth-token-2.5.0.tgz
 https://registry.yarnpkg.com/@octokit/core/-/core-3.1.1.tgz
@@ -125,7 +190,7 @@ https://registry.yarnpkg.com/@octokit/rest/-/rest-18.10.0.tgz
 https://registry.yarnpkg.com/@octokit/types/-/types-5.1.0.tgz
 https://registry.yarnpkg.com/@octokit/types/-/types-6.28.1.tgz
 https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.0.3.tgz
-https://registry.yarnpkg.com/@parcel/watcher/-/watcher-2.0.4.tgz
+https://registry.yarnpkg.com/@parcel/watcher/-/watcher-2.0.5.tgz
 https://registry.yarnpkg.com/@phosphor/algorithm/-/algorithm-1.2.0.tgz
 https://registry.yarnpkg.com/@phosphor/commands/-/commands-1.7.2.tgz
 https://registry.yarnpkg.com/@phosphor/coreutils/-/coreutils-1.3.1.tgz
@@ -143,6 +208,7 @@ https://registry.yarnpkg.com/@sinonjs/text-encoding/-/text-encoding-0.7.1.tgz
 https://registry.yarnpkg.com/@szmarczak/http-timer/-/http-timer-1.1.2.tgz
 https://registry.yarnpkg.com/@szmarczak/http-timer/-/http-timer-4.0.5.tgz
 https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz
+https://registry.yarnpkg.com/@trysound/sax/-/sax-0.2.0.tgz
 https://registry.yarnpkg.com/@ts-morph/common/-/common-0.11.1.tgz
 https://registry.yarnpkg.com/@types/ansi-colors/-/ansi-colors-3.2.0.tgz
 https://registry.yarnpkg.com/@types/anymatch/-/anymatch-1.3.1.tgz
@@ -163,7 +229,6 @@ https://registry.yarnpkg.com/@types/debounce/-/debounce-1.0.0.tgz
 https://registry.yarnpkg.com/@types/debug/-/debug-4.1.5.tgz
 https://registry.yarnpkg.com/@types/dompurify/-/dompurify-2.3.1.tgz
 https://registry.yarnpkg.com/@types/eslint-scope/-/eslint-scope-3.7.0.tgz
-https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz
 https://registry.yarnpkg.com/@types/eslint/-/eslint-4.16.1.tgz
 https://registry.yarnpkg.com/@types/eslint/-/eslint-7.2.13.tgz
 https://registry.yarnpkg.com/@types/estree/-/estree-0.0.41.tgz
@@ -187,13 +252,18 @@ https://registry.yarnpkg.com/@types/gulp-json-editor/-/gulp-json-editor-2.2.31.t
 https://registry.yarnpkg.com/@types/gulp-postcss/-/gulp-postcss-8.0.0.tgz
 https://registry.yarnpkg.com/@types/gulp-rename/-/gulp-rename-0.0.33.tgz
 https://registry.yarnpkg.com/@types/gulp-sourcemaps/-/gulp-sourcemaps-0.0.32.tgz
+https://registry.yarnpkg.com/@types/gulp-svgmin/-/gulp-svgmin-1.2.1.tgz
 https://registry.yarnpkg.com/@types/gulp/-/gulp-4.0.5.tgz
 https://registry.yarnpkg.com/@types/http-cache-semantics/-/http-cache-semantics-4.0.0.tgz
 https://registry.yarnpkg.com/@types/http-proxy-agent/-/http-proxy-agent-2.0.1.tgz
+https://registry.yarnpkg.com/@types/istanbul-lib-coverage/-/istanbul-lib-coverage-2.0.4.tgz
+https://registry.yarnpkg.com/@types/istanbul-lib-report/-/istanbul-lib-report-3.0.0.tgz
+https://registry.yarnpkg.com/@types/istanbul-reports/-/istanbul-reports-3.0.1.tgz
 https://registry.yarnpkg.com/@types/js-beautify/-/js-beautify-1.8.0.tgz
 https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.4.tgz
 https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.6.tgz
 https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.7.tgz
+https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.9.tgz
 https://registry.yarnpkg.com/@types/keytar/-/keytar-4.4.0.tgz
 https://registry.yarnpkg.com/@types/keyv/-/keyv-3.1.1.tgz
 https://registry.yarnpkg.com/@types/linkify-it/-/linkify-it-3.0.2.tgz
@@ -222,8 +292,8 @@ https://registry.yarnpkg.com/@types/node/-/node-14.0.23.tgz
 https://registry.yarnpkg.com/@types/node/-/node-14.0.5.tgz
 https://registry.yarnpkg.com/@types/node/-/node-14.14.37.tgz
 https://registry.yarnpkg.com/@types/node/-/node-14.14.43.tgz
-https://registry.yarnpkg.com/@types/node/-/node-14.17.27.tgz
 https://registry.yarnpkg.com/@types/node/-/node-14.17.33.tgz
+https://registry.yarnpkg.com/@types/node/-/node-14.18.0.tgz
 https://registry.yarnpkg.com/@types/node/-/node-4.2.22.tgz
 https://registry.yarnpkg.com/@types/node/-/node-6.0.78.tgz
 https://registry.yarnpkg.com/@types/node/-/node-8.0.51.tgz
@@ -242,7 +312,9 @@ https://registry.yarnpkg.com/@types/sha.js/-/sha.js-2.4.0.tgz
 https://registry.yarnpkg.com/@types/sinon-test/-/sinon-test-2.4.2.tgz
 https://registry.yarnpkg.com/@types/sinon/-/sinon-10.0.2.tgz
 https://registry.yarnpkg.com/@types/source-list-map/-/source-list-map-0.1.2.tgz
+https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.1.tgz
 https://registry.yarnpkg.com/@types/stoppable/-/stoppable-1.1.1.tgz
+https://registry.yarnpkg.com/@types/svgo/-/svgo-1.3.6.tgz
 https://registry.yarnpkg.com/@types/tapable/-/tapable-1.0.4.tgz
 https://registry.yarnpkg.com/@types/tapable/-/tapable-1.0.8.tgz
 https://registry.yarnpkg.com/@types/through/-/through-0.0.29.tgz
@@ -266,7 +338,6 @@ https://registry.yarnpkg.com/@types/vinyl/-/vinyl-2.0.2.tgz
 https://registry.yarnpkg.com/@types/vinyl/-/vinyl-2.0.4.tgz
 https://registry.yarnpkg.com/@types/vscode-notebook-renderer/-/vscode-notebook-renderer-1.60.0.tgz
 https://registry.yarnpkg.com/@types/vscode-webview/-/vscode-webview-1.57.0.tgz
-https://registry.yarnpkg.com/@types/vscode-windows-registry/-/vscode-windows-registry-1.0.0.tgz
 https://registry.yarnpkg.com/@types/webpack-sources/-/webpack-sources-2.1.0.tgz
 https://registry.yarnpkg.com/@types/webpack-sources/-/webpack-sources-2.1.1.tgz
 https://registry.yarnpkg.com/@types/webpack/-/webpack-4.41.25.tgz
@@ -279,27 +350,36 @@ https://registry.yarnpkg.com/@types/windows-mutex/-/windows-mutex-0.4.0.tgz
 https://registry.yarnpkg.com/@types/windows-process-tree/-/windows-process-tree-0.2.0.tgz
 https://registry.yarnpkg.com/@types/winreg/-/winreg-1.2.30.tgz
 https://registry.yarnpkg.com/@types/xml2js/-/xml2js-0.0.33.tgz
+https://registry.yarnpkg.com/@types/yargs-parser/-/yargs-parser-20.2.1.tgz
+https://registry.yarnpkg.com/@types/yargs/-/yargs-16.0.4.tgz
 https://registry.yarnpkg.com/@types/yauzl/-/yauzl-2.9.1.tgz
 https://registry.yarnpkg.com/@types/yauzl/-/yauzl-2.9.2.tgz
 https://registry.yarnpkg.com/@types/yazl/-/yazl-2.4.2.tgz
-https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-3.2.0.tgz
-https://registry.yarnpkg.com/@typescript-eslint/experimental-utils/-/experimental-utils-2.13.0.tgz
-https://registry.yarnpkg.com/@typescript-eslint/experimental-utils/-/experimental-utils-3.10.1.tgz
-https://registry.yarnpkg.com/@typescript-eslint/experimental-utils/-/experimental-utils-3.2.0.tgz
-https://registry.yarnpkg.com/@typescript-eslint/experimental-utils/-/experimental-utils-3.3.0.tgz
-https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-3.10.1.tgz
-https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-3.3.0.tgz
-https://registry.yarnpkg.com/@typescript-eslint/types/-/types-3.10.1.tgz
-https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-2.13.0.tgz
-https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-3.10.1.tgz
-https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-3.2.0.tgz
-https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-3.3.0.tgz
-https://registry.yarnpkg.com/@typescript-eslint/visitor-keys/-/visitor-keys-3.10.1.tgz
+https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-5.10.0.tgz
+https://registry.yarnpkg.com/@typescript-eslint/experimental-utils/-/experimental-utils-5.10.1.tgz
+https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-5.10.0.tgz
+https://registry.yarnpkg.com/@typescript-eslint/scope-manager/-/scope-manager-5.10.0.tgz
+https://registry.yarnpkg.com/@typescript-eslint/scope-manager/-/scope-manager-5.10.1.tgz
+https://registry.yarnpkg.com/@typescript-eslint/type-utils/-/type-utils-5.10.0.tgz
+https://registry.yarnpkg.com/@typescript-eslint/types/-/types-5.10.0.tgz
+https://registry.yarnpkg.com/@typescript-eslint/types/-/types-5.10.1.tgz
+https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-5.10.0.tgz
+https://registry.yarnpkg.com/@typescript-eslint/typescript-estree/-/typescript-estree-5.10.1.tgz
+https://registry.yarnpkg.com/@typescript-eslint/utils/-/utils-5.10.0.tgz
+https://registry.yarnpkg.com/@typescript-eslint/utils/-/utils-5.10.1.tgz
+https://registry.yarnpkg.com/@typescript-eslint/visitor-keys/-/visitor-keys-5.10.0.tgz
+https://registry.yarnpkg.com/@typescript-eslint/visitor-keys/-/visitor-keys-5.10.1.tgz
 https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz
-https://registry.yarnpkg.com/@vscode/emmet-helper/-/emmet-helper-2.8.2.tgz
+https://registry.yarnpkg.com/@vscode/debugprotocol/-/debugprotocol-1.51.0.tgz
+https://registry.yarnpkg.com/@vscode/emmet-helper/-/emmet-helper-2.8.3.tgz
+https://registry.yarnpkg.com/@vscode/extension-telemetry/-/extension-telemetry-0.4.6.tgz
+https://registry.yarnpkg.com/@vscode/iconv-lite-umd/-/iconv-lite-umd-0.7.0.tgz
+https://registry.yarnpkg.com/@vscode/ripgrep/-/ripgrep-1.14.1.tgz
 https://registry.yarnpkg.com/@vscode/sqlite3/-/sqlite3-4.0.12.tgz
 https://registry.yarnpkg.com/@vscode/sudo-prompt/-/sudo-prompt-9.3.1.tgz
+https://registry.yarnpkg.com/@vscode/test-electron/-/test-electron-2.1.0-beta.0.tgz
 https://registry.yarnpkg.com/@vscode/vscode-languagedetection/-/vscode-languagedetection-1.0.21.tgz
+https://registry.yarnpkg.com/@vscode/windows-registry/-/windows-registry-1.0.5.tgz
 https://registry.yarnpkg.com/@webassemblyjs/ast/-/ast-1.11.0.tgz
 https://registry.yarnpkg.com/@webassemblyjs/ast/-/ast-1.9.0.tgz
 https://registry.yarnpkg.com/@webassemblyjs/floating-point-hex-parser/-/floating-point-hex-parser-1.11.0.tgz
@@ -341,14 +421,16 @@ https://registry.yarnpkg.com/@xtuc/long/-/long-4.2.2.tgz
 https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz
 https://registry.yarnpkg.com/accepts/-/accepts-1.3.7.tgz
 https://registry.yarnpkg.com/acorn-jsx/-/acorn-jsx-5.3.1.tgz
+https://registry.yarnpkg.com/acorn-jsx/-/acorn-jsx-5.3.2.tgz
 https://registry.yarnpkg.com/acorn/-/acorn-6.4.2.tgz
-https://registry.yarnpkg.com/acorn/-/acorn-7.4.1.tgz
 https://registry.yarnpkg.com/acorn/-/acorn-8.4.1.tgz
+https://registry.yarnpkg.com/acorn/-/acorn-8.7.0.tgz
 https://registry.yarnpkg.com/agent-base/-/agent-base-4.2.0.tgz
 https://registry.yarnpkg.com/agent-base/-/agent-base-4.3.0.tgz
 https://registry.yarnpkg.com/agent-base/-/agent-base-5.1.1.tgz
 https://registry.yarnpkg.com/agent-base/-/agent-base-6.0.1.tgz
 https://registry.yarnpkg.com/agent-base/-/agent-base-6.0.2.tgz
+https://registry.yarnpkg.com/agentkeepalive/-/agentkeepalive-4.1.4.tgz
 https://registry.yarnpkg.com/aggregate-error/-/aggregate-error-3.1.0.tgz
 https://registry.yarnpkg.com/ajv-errors/-/ajv-errors-1.0.1.tgz
 https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-3.5.2.tgz
@@ -360,27 +442,31 @@ https://registry.yarnpkg.com/ansi-colors/-/ansi-colors-3.2.3.tgz
 https://registry.yarnpkg.com/ansi-colors/-/ansi-colors-4.1.1.tgz
 https://registry.yarnpkg.com/ansi-cyan/-/ansi-cyan-0.1.1.tgz
 https://registry.yarnpkg.com/ansi-escapes/-/ansi-escapes-3.2.0.tgz
-https://registry.yarnpkg.com/ansi-escapes/-/ansi-escapes-4.3.1.tgz
 https://registry.yarnpkg.com/ansi-gray/-/ansi-gray-0.1.1.tgz
 https://registry.yarnpkg.com/ansi-red/-/ansi-red-0.1.1.tgz
 https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-2.1.1.tgz
 https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-3.0.0.tgz
 https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-4.1.0.tgz
 https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-5.0.0.tgz
+https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-5.0.1.tgz
 https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-2.2.1.tgz
 https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-3.2.1.tgz
 https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-4.2.1.tgz
+https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-5.2.0.tgz
 https://registry.yarnpkg.com/ansi-wrap/-/ansi-wrap-0.1.0.tgz
 https://registry.yarnpkg.com/any-promise/-/any-promise-1.3.0.tgz
 https://registry.yarnpkg.com/anymatch/-/anymatch-2.0.0.tgz
 https://registry.yarnpkg.com/anymatch/-/anymatch-3.1.1.tgz
 https://registry.yarnpkg.com/anymatch/-/anymatch-3.1.2.tgz
 https://registry.yarnpkg.com/append-buffer/-/append-buffer-1.0.2.tgz
-https://registry.yarnpkg.com/applicationinsights/-/applicationinsights-1.0.8.tgz
+https://registry.yarnpkg.com/applicationinsights/-/applicationinsights-1.4.2.tgz
 https://registry.yarnpkg.com/applicationinsights/-/applicationinsights-1.5.0.tgz
 https://registry.yarnpkg.com/aproba/-/aproba-1.2.0.tgz
+https://registry.yarnpkg.com/aproba/-/aproba-2.0.0.tgz
 https://registry.yarnpkg.com/archy/-/archy-1.0.0.tgz
 https://registry.yarnpkg.com/are-we-there-yet/-/are-we-there-yet-1.1.5.tgz
+https://registry.yarnpkg.com/are-we-there-yet/-/are-we-there-yet-1.1.7.tgz
+https://registry.yarnpkg.com/are-we-there-yet/-/are-we-there-yet-2.0.0.tgz
 https://registry.yarnpkg.com/argparse/-/argparse-1.0.10.tgz
 https://registry.yarnpkg.com/argparse/-/argparse-1.0.9.tgz
 https://registry.yarnpkg.com/argparse/-/argparse-2.0.1.tgz
@@ -426,16 +512,19 @@ https://registry.yarnpkg.com/aws-sign2/-/aws-sign2-0.7.0.tgz
 https://registry.yarnpkg.com/aws4/-/aws4-1.11.0.tgz
 https://registry.yarnpkg.com/axios/-/axios-0.21.4.tgz
 https://registry.yarnpkg.com/azure-devops-node-api/-/azure-devops-node-api-11.0.1.tgz
+https://registry.yarnpkg.com/babel-plugin-dynamic-import-node/-/babel-plugin-dynamic-import-node-2.3.3.tgz
+https://registry.yarnpkg.com/babel-plugin-module-resolver/-/babel-plugin-module-resolver-4.1.0.tgz
 https://registry.yarnpkg.com/bach/-/bach-1.2.0.tgz
 https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz
 https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz
 https://registry.yarnpkg.com/base/-/base-0.11.2.tgz
 https://registry.yarnpkg.com/base64-js/-/base64-js-1.3.1.tgz
 https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz
+https://registry.yarnpkg.com/basic-auth/-/basic-auth-2.0.1.tgz
 https://registry.yarnpkg.com/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.2.tgz
 https://registry.yarnpkg.com/before-after-hook/-/before-after-hook-2.1.0.tgz
 https://registry.yarnpkg.com/before-after-hook/-/before-after-hook-2.2.2.tgz
-https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.48.tgz
+https://registry.yarnpkg.com/big-integer/-/big-integer-1.6.51.tgz
 https://registry.yarnpkg.com/big.js/-/big.js-5.2.2.tgz
 https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-1.13.1.tgz
 https://registry.yarnpkg.com/binary-extensions/-/binary-extensions-2.0.0.tgz
@@ -444,6 +533,7 @@ https://registry.yarnpkg.com/binary/-/binary-0.3.0.tgz
 https://registry.yarnpkg.com/binaryextensions/-/binaryextensions-1.0.1.tgz
 https://registry.yarnpkg.com/bindings/-/bindings-1.3.0.tgz
 https://registry.yarnpkg.com/bindings/-/bindings-1.5.0.tgz
+https://registry.yarnpkg.com/bl/-/bl-1.2.3.tgz
 https://registry.yarnpkg.com/bl/-/bl-4.0.3.tgz
 https://registry.yarnpkg.com/bl/-/bl-4.1.0.tgz
 https://registry.yarnpkg.com/block-stream/-/block-stream-0.0.9.tgz
@@ -466,6 +556,7 @@ https://registry.yarnpkg.com/browserify-rsa/-/browserify-rsa-4.1.0.tgz
 https://registry.yarnpkg.com/browserify-sign/-/browserify-sign-4.2.1.tgz
 https://registry.yarnpkg.com/browserify-zlib/-/browserify-zlib-0.2.0.tgz
 https://registry.yarnpkg.com/browserslist/-/browserslist-4.16.6.tgz
+https://registry.yarnpkg.com/browserslist/-/browserslist-4.19.1.tgz
 https://registry.yarnpkg.com/buffer-alloc-unsafe/-/buffer-alloc-unsafe-1.1.0.tgz
 https://registry.yarnpkg.com/buffer-alloc/-/buffer-alloc-1.2.0.tgz
 https://registry.yarnpkg.com/buffer-crc32/-/buffer-crc32-0.2.13.tgz
@@ -484,6 +575,7 @@ https://registry.yarnpkg.com/byline/-/byline-5.0.0.tgz
 https://registry.yarnpkg.com/bytes/-/bytes-3.1.0.tgz
 https://registry.yarnpkg.com/cacache/-/cacache-12.0.4.tgz
 https://registry.yarnpkg.com/cacache/-/cacache-15.0.5.tgz
+https://registry.yarnpkg.com/cacache/-/cacache-15.3.0.tgz
 https://registry.yarnpkg.com/cache-base/-/cache-base-1.0.1.tgz
 https://registry.yarnpkg.com/cache-content-type/-/cache-content-type-1.0.1.tgz
 https://registry.yarnpkg.com/cacheable-lookup/-/cacheable-lookup-5.0.4.tgz
@@ -500,6 +592,7 @@ https://registry.yarnpkg.com/camelcase/-/camelcase-5.3.1.tgz
 https://registry.yarnpkg.com/camelcase/-/camelcase-6.2.0.tgz
 https://registry.yarnpkg.com/caniuse-api/-/caniuse-api-3.0.0.tgz
 https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001228.tgz
+https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001299.tgz
 https://registry.yarnpkg.com/caseless/-/caseless-0.12.0.tgz
 https://registry.yarnpkg.com/chai/-/chai-4.2.0.tgz
 https://registry.yarnpkg.com/chainsaw/-/chainsaw-0.1.0.tgz
@@ -524,9 +617,7 @@ https://registry.yarnpkg.com/cipher-base/-/cipher-base-1.0.4.tgz
 https://registry.yarnpkg.com/class-utils/-/class-utils-0.3.6.tgz
 https://registry.yarnpkg.com/clean-stack/-/clean-stack-2.2.0.tgz
 https://registry.yarnpkg.com/cli-cursor/-/cli-cursor-2.1.0.tgz
-https://registry.yarnpkg.com/cli-cursor/-/cli-cursor-3.1.0.tgz
 https://registry.yarnpkg.com/cli-width/-/cli-width-2.2.1.tgz
-https://registry.yarnpkg.com/cli-width/-/cli-width-3.0.0.tgz
 https://registry.yarnpkg.com/cliui/-/cliui-3.2.0.tgz
 https://registry.yarnpkg.com/cliui/-/cliui-5.0.0.tgz
 https://registry.yarnpkg.com/cliui/-/cliui-6.0.0.tgz
@@ -583,18 +674,21 @@ https://registry.yarnpkg.com/console-browserify/-/console-browserify-1.2.0.tgz
 https://registry.yarnpkg.com/console-control-strings/-/console-control-strings-1.1.0.tgz
 https://registry.yarnpkg.com/constants-browserify/-/constants-browserify-1.0.0.tgz
 https://registry.yarnpkg.com/content-disposition/-/content-disposition-0.5.3.tgz
+https://registry.yarnpkg.com/content-disposition/-/content-disposition-0.5.4.tgz
 https://registry.yarnpkg.com/content-type/-/content-type-1.0.4.tgz
 https://registry.yarnpkg.com/continuation-local-storage/-/continuation-local-storage-3.2.1.tgz
 https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.7.0.tgz
 https://registry.yarnpkg.com/cookie/-/cookie-0.4.0.tgz
+https://registry.yarnpkg.com/cookie/-/cookie-0.4.1.tgz
 https://registry.yarnpkg.com/cookies/-/cookies-0.8.0.tgz
 https://registry.yarnpkg.com/copy-concurrently/-/copy-concurrently-1.0.5.tgz
 https://registry.yarnpkg.com/copy-descriptor/-/copy-descriptor-0.1.1.tgz
-https://registry.yarnpkg.com/copy-props/-/copy-props-2.0.4.tgz
+https://registry.yarnpkg.com/copy-props/-/copy-props-2.0.5.tgz
 https://registry.yarnpkg.com/copy-webpack-plugin/-/copy-webpack-plugin-6.4.1.tgz
 https://registry.yarnpkg.com/core-js/-/core-js-3.15.2.tgz
 https://registry.yarnpkg.com/core-js/-/core-js-3.8.3.tgz
 https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz
+https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.3.tgz
 https://registry.yarnpkg.com/cosmiconfig/-/cosmiconfig-5.2.1.tgz
 https://registry.yarnpkg.com/cpx2/-/cpx2-3.0.0.tgz
 https://registry.yarnpkg.com/create-ecdh/-/create-ecdh-4.0.4.tgz
@@ -611,10 +705,13 @@ https://registry.yarnpkg.com/css-loader/-/css-loader-3.2.0.tgz
 https://registry.yarnpkg.com/css-select-base-adapter/-/css-select-base-adapter-0.1.1.tgz
 https://registry.yarnpkg.com/css-select/-/css-select-2.1.0.tgz
 https://registry.yarnpkg.com/css-select/-/css-select-4.1.3.tgz
+https://registry.yarnpkg.com/css-select/-/css-select-4.2.1.tgz
 https://registry.yarnpkg.com/css-tree/-/css-tree-1.0.0-alpha.37.tgz
 https://registry.yarnpkg.com/css-tree/-/css-tree-1.1.2.tgz
+https://registry.yarnpkg.com/css-tree/-/css-tree-1.1.3.tgz
 https://registry.yarnpkg.com/css-what/-/css-what-3.4.2.tgz
 https://registry.yarnpkg.com/css-what/-/css-what-5.0.1.tgz
+https://registry.yarnpkg.com/css-what/-/css-what-5.1.0.tgz
 https://registry.yarnpkg.com/css/-/css-3.0.0.tgz
 https://registry.yarnpkg.com/cssesc/-/cssesc-3.0.0.tgz
 https://registry.yarnpkg.com/cssnano-preset-default/-/cssnano-preset-default-4.0.8.tgz
@@ -639,17 +736,24 @@ https://registry.yarnpkg.com/debug/-/debug-4.1.1.tgz
 https://registry.yarnpkg.com/debug/-/debug-4.2.0.tgz
 https://registry.yarnpkg.com/debug/-/debug-4.3.1.tgz
 https://registry.yarnpkg.com/debug/-/debug-4.3.2.tgz
+https://registry.yarnpkg.com/debug/-/debug-4.3.3.tgz
 https://registry.yarnpkg.com/decamelize/-/decamelize-1.2.0.tgz
 https://registry.yarnpkg.com/decamelize/-/decamelize-4.0.0.tgz
 https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.0.tgz
 https://registry.yarnpkg.com/decompress-response/-/decompress-response-3.3.0.tgz
 https://registry.yarnpkg.com/decompress-response/-/decompress-response-4.2.1.tgz
 https://registry.yarnpkg.com/decompress-response/-/decompress-response-6.0.0.tgz
+https://registry.yarnpkg.com/decompress-tar/-/decompress-tar-4.1.1.tgz
+https://registry.yarnpkg.com/decompress-tarbz2/-/decompress-tarbz2-4.1.1.tgz
+https://registry.yarnpkg.com/decompress-targz/-/decompress-targz-4.1.1.tgz
+https://registry.yarnpkg.com/decompress-unzip/-/decompress-unzip-4.0.1.tgz
+https://registry.yarnpkg.com/decompress/-/decompress-4.2.1.tgz
 https://registry.yarnpkg.com/deemon/-/deemon-1.4.0.tgz
 https://registry.yarnpkg.com/deep-eql/-/deep-eql-3.0.1.tgz
 https://registry.yarnpkg.com/deep-equal/-/deep-equal-1.0.1.tgz
 https://registry.yarnpkg.com/deep-extend/-/deep-extend-0.6.0.tgz
 https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.3.tgz
+https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.4.tgz
 https://registry.yarnpkg.com/deepmerge/-/deepmerge-3.1.0.tgz
 https://registry.yarnpkg.com/default-compare/-/default-compare-1.0.0.tgz
 https://registry.yarnpkg.com/default-resolution/-/default-resolution-2.0.0.tgz
@@ -676,9 +780,10 @@ https://registry.yarnpkg.com/detect-libc/-/detect-libc-1.0.3.tgz
 https://registry.yarnpkg.com/detect-newline/-/detect-newline-2.1.0.tgz
 https://registry.yarnpkg.com/detect-node/-/detect-node-2.0.4.tgz
 https://registry.yarnpkg.com/detect-node/-/detect-node-2.1.0.tgz
-https://registry.yarnpkg.com/diagnostic-channel-publishers/-/diagnostic-channel-publishers-0.2.1.tgz
 https://registry.yarnpkg.com/diagnostic-channel-publishers/-/diagnostic-channel-publishers-0.3.3.tgz
+https://registry.yarnpkg.com/diagnostic-channel-publishers/-/diagnostic-channel-publishers-0.3.5.tgz
 https://registry.yarnpkg.com/diagnostic-channel/-/diagnostic-channel-0.2.0.tgz
+https://registry.yarnpkg.com/diff-sequences/-/diff-sequences-27.4.0.tgz
 https://registry.yarnpkg.com/diff/-/diff-4.0.2.tgz
 https://registry.yarnpkg.com/diff/-/diff-5.0.0.tgz
 https://registry.yarnpkg.com/diffie-hellman/-/diffie-hellman-5.0.3.tgz
@@ -692,6 +797,7 @@ https://registry.yarnpkg.com/domelementtype/-/domelementtype-1.3.1.tgz
 https://registry.yarnpkg.com/domelementtype/-/domelementtype-2.1.0.tgz
 https://registry.yarnpkg.com/domelementtype/-/domelementtype-2.2.0.tgz
 https://registry.yarnpkg.com/domhandler/-/domhandler-4.2.2.tgz
+https://registry.yarnpkg.com/domhandler/-/domhandler-4.3.0.tgz
 https://registry.yarnpkg.com/dompurify/-/dompurify-2.3.3.tgz
 https://registry.yarnpkg.com/domutils/-/domutils-1.7.0.tgz
 https://registry.yarnpkg.com/domutils/-/domutils-2.8.0.tgz
@@ -709,15 +815,17 @@ https://registry.yarnpkg.com/editorconfig/-/editorconfig-0.15.2.tgz
 https://registry.yarnpkg.com/ee-first/-/ee-first-1.1.1.tgz
 https://registry.yarnpkg.com/electron-osx-sign/-/electron-osx-sign-0.4.16.tgz
 https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.737.tgz
+https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.45.tgz
 https://registry.yarnpkg.com/electron/-/electron-13.5.1.tgz
 https://registry.yarnpkg.com/elliptic/-/elliptic-6.5.4.tgz
 https://registry.yarnpkg.com/emitter-component/-/emitter-component-1.1.1.tgz
 https://registry.yarnpkg.com/emitter-listener/-/emitter-listener-1.1.2.tgz
-https://registry.yarnpkg.com/emmet/-/emmet-2.3.4.tgz
+https://registry.yarnpkg.com/emmet/-/emmet-2.3.5.tgz
 https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-7.0.3.tgz
 https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-8.0.0.tgz
 https://registry.yarnpkg.com/emojis-list/-/emojis-list-3.0.0.tgz
 https://registry.yarnpkg.com/encodeurl/-/encodeurl-1.0.2.tgz
+https://registry.yarnpkg.com/encoding/-/encoding-0.1.13.tgz
 https://registry.yarnpkg.com/end-of-stream/-/end-of-stream-1.4.4.tgz
 https://registry.yarnpkg.com/enhanced-resolve/-/enhanced-resolve-4.5.0.tgz
 https://registry.yarnpkg.com/enhanced-resolve/-/enhanced-resolve-5.8.2.tgz
@@ -727,6 +835,7 @@ https://registry.yarnpkg.com/entities/-/entities-2.2.0.tgz
 https://registry.yarnpkg.com/env-paths/-/env-paths-2.2.0.tgz
 https://registry.yarnpkg.com/env-paths/-/env-paths-2.2.1.tgz
 https://registry.yarnpkg.com/envinfo/-/envinfo-7.8.1.tgz
+https://registry.yarnpkg.com/err-code/-/err-code-2.0.3.tgz
 https://registry.yarnpkg.com/errno/-/errno-0.1.8.tgz
 https://registry.yarnpkg.com/error-ex/-/error-ex-1.3.2.tgz
 https://registry.yarnpkg.com/es-abstract/-/es-abstract-1.17.7.tgz
@@ -741,8 +850,25 @@ https://registry.yarnpkg.com/es6-promise/-/es6-promise-4.2.4.tgz
 https://registry.yarnpkg.com/es6-promisify/-/es6-promisify-5.0.0.tgz
 https://registry.yarnpkg.com/es6-symbol/-/es6-symbol-3.1.3.tgz
 https://registry.yarnpkg.com/es6-weak-map/-/es6-weak-map-2.0.3.tgz
+https://registry.yarnpkg.com/esbuild-android-arm64/-/esbuild-android-arm64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-darwin-64/-/esbuild-darwin-64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-darwin-arm64/-/esbuild-darwin-arm64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-freebsd-64/-/esbuild-freebsd-64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-freebsd-arm64/-/esbuild-freebsd-arm64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-linux-32/-/esbuild-linux-32-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-linux-64/-/esbuild-linux-64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-linux-arm/-/esbuild-linux-arm-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-linux-arm64/-/esbuild-linux-arm64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-linux-mips64le/-/esbuild-linux-mips64le-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-linux-ppc64le/-/esbuild-linux-ppc64le-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-netbsd-64/-/esbuild-netbsd-64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-openbsd-64/-/esbuild-openbsd-64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-sunos-64/-/esbuild-sunos-64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-windows-32/-/esbuild-windows-32-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-windows-64/-/esbuild-windows-64-0.14.2.tgz
+https://registry.yarnpkg.com/esbuild-windows-arm64/-/esbuild-windows-arm64-0.14.2.tgz
 https://registry.yarnpkg.com/esbuild/-/esbuild-0.11.23.tgz
-https://registry.yarnpkg.com/esbuild/-/esbuild-0.12.6.tgz
+https://registry.yarnpkg.com/esbuild/-/esbuild-0.14.2.tgz
 https://registry.yarnpkg.com/escalade/-/escalade-3.1.1.tgz
 https://registry.yarnpkg.com/escape-html/-/escape-html-1.0.3.tgz
 https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz
@@ -751,23 +877,24 @@ https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-4.0.0.t
 https://registry.yarnpkg.com/eslint-plugin-header/-/eslint-plugin-header-3.1.1.tgz
 https://registry.yarnpkg.com/eslint-plugin-jsdoc/-/eslint-plugin-jsdoc-19.1.0.tgz
 https://registry.yarnpkg.com/eslint-scope/-/eslint-scope-4.0.3.tgz
-https://registry.yarnpkg.com/eslint-scope/-/eslint-scope-5.0.0.tgz
 https://registry.yarnpkg.com/eslint-scope/-/eslint-scope-5.1.1.tgz
+https://registry.yarnpkg.com/eslint-scope/-/eslint-scope-7.1.0.tgz
 https://registry.yarnpkg.com/eslint-utils/-/eslint-utils-1.4.3.tgz
-https://registry.yarnpkg.com/eslint-utils/-/eslint-utils-2.0.0.tgz
-https://registry.yarnpkg.com/eslint-utils/-/eslint-utils-2.1.0.tgz
-https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-1.1.0.tgz
+https://registry.yarnpkg.com/eslint-utils/-/eslint-utils-3.0.0.tgz
 https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-1.3.0.tgz
+https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-2.1.0.tgz
+https://registry.yarnpkg.com/eslint-visitor-keys/-/eslint-visitor-keys-3.2.0.tgz
 https://registry.yarnpkg.com/eslint/-/eslint-5.16.0.tgz
-https://registry.yarnpkg.com/eslint/-/eslint-6.8.0.tgz
+https://registry.yarnpkg.com/eslint/-/eslint-8.7.0.tgz
 https://registry.yarnpkg.com/espree/-/espree-5.0.1.tgz
-https://registry.yarnpkg.com/espree/-/espree-6.2.1.tgz
+https://registry.yarnpkg.com/espree/-/espree-9.3.0.tgz
 https://registry.yarnpkg.com/esprima/-/esprima-4.0.1.tgz
 https://registry.yarnpkg.com/esquery/-/esquery-1.3.1.tgz
-https://registry.yarnpkg.com/esrecurse/-/esrecurse-4.2.1.tgz
+https://registry.yarnpkg.com/esquery/-/esquery-1.4.0.tgz
 https://registry.yarnpkg.com/esrecurse/-/esrecurse-4.3.0.tgz
 https://registry.yarnpkg.com/estraverse/-/estraverse-4.3.0.tgz
 https://registry.yarnpkg.com/estraverse/-/estraverse-5.2.0.tgz
+https://registry.yarnpkg.com/estraverse/-/estraverse-5.3.0.tgz
 https://registry.yarnpkg.com/esutils/-/esutils-2.0.3.tgz
 https://registry.yarnpkg.com/event-emitter/-/event-emitter-0.3.5.tgz
 https://registry.yarnpkg.com/event-stream/-/event-stream-3.3.4.tgz
@@ -781,6 +908,7 @@ https://registry.yarnpkg.com/execa/-/execa-5.1.1.tgz
 https://registry.yarnpkg.com/expand-brackets/-/expand-brackets-2.1.4.tgz
 https://registry.yarnpkg.com/expand-template/-/expand-template-2.0.3.tgz
 https://registry.yarnpkg.com/expand-tilde/-/expand-tilde-2.0.2.tgz
+https://registry.yarnpkg.com/expect/-/expect-27.2.5.tgz
 https://registry.yarnpkg.com/ext/-/ext-1.4.0.tgz
 https://registry.yarnpkg.com/extend-shallow/-/extend-shallow-1.1.4.tgz
 https://registry.yarnpkg.com/extend-shallow/-/extend-shallow-2.0.1.tgz
@@ -794,6 +922,7 @@ https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.3.0.tgz
 https://registry.yarnpkg.com/extsprintf/-/extsprintf-1.4.0.tgz
 https://registry.yarnpkg.com/fancy-log/-/fancy-log-1.3.3.tgz
 https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz
+https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.2.11.tgz
 https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.2.4.tgz
 https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.2.7.tgz
 https://registry.yarnpkg.com/fast-json-stable-stringify/-/fast-json-stable-stringify-2.1.0.tgz
@@ -801,14 +930,18 @@ https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-1.1.4.tgz
 https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz
 https://registry.yarnpkg.com/fast-plist/-/fast-plist-0.1.2.tgz
 https://registry.yarnpkg.com/fastest-levenshtein/-/fastest-levenshtein-1.0.12.tgz
+https://registry.yarnpkg.com/fastq/-/fastq-1.13.0.tgz
 https://registry.yarnpkg.com/fastq/-/fastq-1.9.0.tgz
 https://registry.yarnpkg.com/fd-slicer/-/fd-slicer-1.0.1.tgz
 https://registry.yarnpkg.com/fd-slicer/-/fd-slicer-1.1.0.tgz
 https://registry.yarnpkg.com/figgy-pudding/-/figgy-pudding-3.5.2.tgz
 https://registry.yarnpkg.com/figures/-/figures-2.0.0.tgz
-https://registry.yarnpkg.com/figures/-/figures-3.2.0.tgz
 https://registry.yarnpkg.com/file-entry-cache/-/file-entry-cache-5.0.1.tgz
+https://registry.yarnpkg.com/file-entry-cache/-/file-entry-cache-6.0.1.tgz
 https://registry.yarnpkg.com/file-loader/-/file-loader-4.2.0.tgz
+https://registry.yarnpkg.com/file-type/-/file-type-3.9.0.tgz
+https://registry.yarnpkg.com/file-type/-/file-type-5.2.0.tgz
+https://registry.yarnpkg.com/file-type/-/file-type-6.2.0.tgz
 https://registry.yarnpkg.com/file-type/-/file-type-7.2.0.tgz
 https://registry.yarnpkg.com/file-uri-to-path/-/file-uri-to-path-1.0.0.tgz
 https://registry.yarnpkg.com/file-uri-to-path/-/file-uri-to-path-2.0.0.tgz
@@ -816,6 +949,7 @@ https://registry.yarnpkg.com/filename-reserved-regex/-/filename-reserved-regex-2
 https://registry.yarnpkg.com/filenamify/-/filenamify-4.2.0.tgz
 https://registry.yarnpkg.com/fill-range/-/fill-range-4.0.0.tgz
 https://registry.yarnpkg.com/fill-range/-/fill-range-7.0.1.tgz
+https://registry.yarnpkg.com/find-babel-config/-/find-babel-config-1.2.0.tgz
 https://registry.yarnpkg.com/find-cache-dir/-/find-cache-dir-2.1.0.tgz
 https://registry.yarnpkg.com/find-cache-dir/-/find-cache-dir-3.3.1.tgz
 https://registry.yarnpkg.com/find-index/-/find-index-0.1.1.tgz
@@ -832,10 +966,12 @@ https://registry.yarnpkg.com/fined/-/fined-1.2.0.tgz
 https://registry.yarnpkg.com/first-chunk-stream/-/first-chunk-stream-2.0.0.tgz
 https://registry.yarnpkg.com/flagged-respawn/-/flagged-respawn-1.0.1.tgz
 https://registry.yarnpkg.com/flat-cache/-/flat-cache-2.0.1.tgz
+https://registry.yarnpkg.com/flat-cache/-/flat-cache-3.0.4.tgz
 https://registry.yarnpkg.com/flat/-/flat-5.0.2.tgz
 https://registry.yarnpkg.com/flatted/-/flatted-2.0.2.tgz
+https://registry.yarnpkg.com/flatted/-/flatted-3.2.4.tgz
 https://registry.yarnpkg.com/flush-write-stream/-/flush-write-stream-1.1.1.tgz
-https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.5.tgz
+https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.7.tgz
 https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz
 https://registry.yarnpkg.com/for-own/-/for-own-1.0.0.tgz
 https://registry.yarnpkg.com/foreach/-/foreach-2.0.5.tgz
@@ -863,12 +999,15 @@ https://registry.yarnpkg.com/ftp/-/ftp-0.3.10.tgz
 https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz
 https://registry.yarnpkg.com/functional-red-black-tree/-/functional-red-black-tree-1.0.1.tgz
 https://registry.yarnpkg.com/gauge/-/gauge-2.7.4.tgz
+https://registry.yarnpkg.com/gauge/-/gauge-4.0.0.tgz
 https://registry.yarnpkg.com/gensync/-/gensync-1.0.0-beta.1.tgz
+https://registry.yarnpkg.com/gensync/-/gensync-1.0.0-beta.2.tgz
 https://registry.yarnpkg.com/get-caller-file/-/get-caller-file-1.0.3.tgz
 https://registry.yarnpkg.com/get-caller-file/-/get-caller-file-2.0.5.tgz
 https://registry.yarnpkg.com/get-func-name/-/get-func-name-2.0.0.tgz
 https://registry.yarnpkg.com/get-intrinsic/-/get-intrinsic-1.0.1.tgz
 https://registry.yarnpkg.com/get-intrinsic/-/get-intrinsic-1.1.1.tgz
+https://registry.yarnpkg.com/get-stream/-/get-stream-2.3.1.tgz
 https://registry.yarnpkg.com/get-stream/-/get-stream-4.1.0.tgz
 https://registry.yarnpkg.com/get-stream/-/get-stream-5.2.0.tgz
 https://registry.yarnpkg.com/get-stream/-/get-stream-6.0.1.tgz
@@ -878,6 +1017,7 @@ https://registry.yarnpkg.com/getpass/-/getpass-0.1.7.tgz
 https://registry.yarnpkg.com/github-from-package/-/github-from-package-0.0.0.tgz
 https://registry.yarnpkg.com/glob-parent/-/glob-parent-3.1.0.tgz
 https://registry.yarnpkg.com/glob-parent/-/glob-parent-5.1.2.tgz
+https://registry.yarnpkg.com/glob-parent/-/glob-parent-6.0.2.tgz
 https://registry.yarnpkg.com/glob-stream/-/glob-stream-6.1.0.tgz
 https://registry.yarnpkg.com/glob-to-regexp/-/glob-to-regexp-0.4.1.tgz
 https://registry.yarnpkg.com/glob-watcher/-/glob-watcher-5.0.5.tgz
@@ -894,10 +1034,11 @@ https://registry.yarnpkg.com/global-modules/-/global-modules-1.0.0.tgz
 https://registry.yarnpkg.com/global-prefix/-/global-prefix-1.0.2.tgz
 https://registry.yarnpkg.com/global-tunnel-ng/-/global-tunnel-ng-2.7.1.tgz
 https://registry.yarnpkg.com/globals/-/globals-11.12.0.tgz
-https://registry.yarnpkg.com/globals/-/globals-12.4.0.tgz
+https://registry.yarnpkg.com/globals/-/globals-13.12.0.tgz
 https://registry.yarnpkg.com/globalthis/-/globalthis-1.0.1.tgz
 https://registry.yarnpkg.com/globalthis/-/globalthis-1.0.2.tgz
 https://registry.yarnpkg.com/globby/-/globby-11.0.1.tgz
+https://registry.yarnpkg.com/globby/-/globby-11.1.0.tgz
 https://registry.yarnpkg.com/glogg/-/glogg-1.0.2.tgz
 https://registry.yarnpkg.com/got/-/got-11.8.1.tgz
 https://registry.yarnpkg.com/got/-/got-9.6.0.tgz
@@ -905,6 +1046,7 @@ https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.3.tgz
 https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.4.tgz
 https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.6.tgz
 https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.8.tgz
+https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.9.tgz
 https://registry.yarnpkg.com/graceful-readlink/-/graceful-readlink-1.0.1.tgz
 https://registry.yarnpkg.com/growl/-/growl-1.10.5.tgz
 https://registry.yarnpkg.com/gulp-atom-electron/-/gulp-atom-electron-1.32.1.tgz
@@ -927,6 +1069,7 @@ https://registry.yarnpkg.com/gulp-rename/-/gulp-rename-1.2.2.tgz
 https://registry.yarnpkg.com/gulp-replace/-/gulp-replace-0.5.4.tgz
 https://registry.yarnpkg.com/gulp-shell/-/gulp-shell-0.6.5.tgz
 https://registry.yarnpkg.com/gulp-sourcemaps/-/gulp-sourcemaps-3.0.0.tgz
+https://registry.yarnpkg.com/gulp-svgmin/-/gulp-svgmin-4.1.0.tgz
 https://registry.yarnpkg.com/gulp-symdest/-/gulp-symdest-1.2.0.tgz
 https://registry.yarnpkg.com/gulp-tsb/-/gulp-tsb-4.0.6.tgz
 https://registry.yarnpkg.com/gulp-untar/-/gulp-untar-0.0.7.tgz
@@ -962,10 +1105,12 @@ https://registry.yarnpkg.com/hsla-regex/-/hsla-regex-1.0.0.tgz
 https://registry.yarnpkg.com/html-escaper/-/html-escaper-2.0.0.tgz
 https://registry.yarnpkg.com/htmlparser2/-/htmlparser2-6.1.0.tgz
 https://registry.yarnpkg.com/http-assert/-/http-assert-1.4.1.tgz
+https://registry.yarnpkg.com/http-assert/-/http-assert-1.5.0.tgz
 https://registry.yarnpkg.com/http-cache-semantics/-/http-cache-semantics-4.1.0.tgz
 https://registry.yarnpkg.com/http-errors/-/http-errors-1.6.3.tgz
 https://registry.yarnpkg.com/http-errors/-/http-errors-1.7.3.tgz
 https://registry.yarnpkg.com/http-errors/-/http-errors-1.8.0.tgz
+https://registry.yarnpkg.com/http-errors/-/http-errors-1.8.1.tgz
 https://registry.yarnpkg.com/http-proxy-agent/-/http-proxy-agent-2.1.0.tgz
 https://registry.yarnpkg.com/http-proxy-agent/-/http-proxy-agent-4.0.1.tgz
 https://registry.yarnpkg.com/http-signature/-/http-signature-1.2.0.tgz
@@ -975,17 +1120,19 @@ https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-2.2.4.tgz
 https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-4.0.0.tgz
 https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-5.0.0.tgz
 https://registry.yarnpkg.com/human-signals/-/human-signals-2.1.0.tgz
+https://registry.yarnpkg.com/humanize-ms/-/humanize-ms-1.2.1.tgz
 https://registry.yarnpkg.com/husky/-/husky-0.13.4.tgz
-https://registry.yarnpkg.com/iconv-lite-umd/-/iconv-lite-umd-0.6.10.tgz
 https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.19.tgz
 https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.24.tgz
+https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.6.3.tgz
 https://registry.yarnpkg.com/icss-utils/-/icss-utils-4.1.1.tgz
 https://registry.yarnpkg.com/ieee754/-/ieee754-1.1.13.tgz
 https://registry.yarnpkg.com/ieee754/-/ieee754-1.2.1.tgz
 https://registry.yarnpkg.com/iferr/-/iferr-0.1.5.tgz
 https://registry.yarnpkg.com/ignore/-/ignore-4.0.6.tgz
 https://registry.yarnpkg.com/ignore/-/ignore-5.1.8.tgz
-https://registry.yarnpkg.com/image-size/-/image-size-0.5.5.tgz
+https://registry.yarnpkg.com/ignore/-/ignore-5.2.0.tgz
+https://registry.yarnpkg.com/image-size/-/image-size-1.0.0.tgz
 https://registry.yarnpkg.com/import-cwd/-/import-cwd-2.1.0.tgz
 https://registry.yarnpkg.com/import-fresh/-/import-fresh-2.0.0.tgz
 https://registry.yarnpkg.com/import-fresh/-/import-fresh-3.3.0.tgz
@@ -1002,7 +1149,6 @@ https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz
 https://registry.yarnpkg.com/ini/-/ini-1.3.8.tgz
 https://registry.yarnpkg.com/innosetup/-/innosetup-6.0.5.tgz
 https://registry.yarnpkg.com/inquirer/-/inquirer-6.5.2.tgz
-https://registry.yarnpkg.com/inquirer/-/inquirer-7.3.3.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-1.4.0.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-2.2.0.tgz
 https://registry.yarnpkg.com/invert-kv/-/invert-kv-1.0.0.tgz
@@ -1028,6 +1174,7 @@ https://registry.yarnpkg.com/is-color-stop/-/is-color-stop-1.1.0.tgz
 https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.2.0.tgz
 https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.4.0.tgz
 https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.8.0.tgz
+https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.8.1.tgz
 https://registry.yarnpkg.com/is-data-descriptor/-/is-data-descriptor-0.1.4.tgz
 https://registry.yarnpkg.com/is-data-descriptor/-/is-data-descriptor-1.0.0.tgz
 https://registry.yarnpkg.com/is-date-object/-/is-date-object-1.0.2.tgz
@@ -1044,6 +1191,9 @@ https://registry.yarnpkg.com/is-fullwidth-code-point/-/is-fullwidth-code-point-3
 https://registry.yarnpkg.com/is-generator-function/-/is-generator-function-1.0.9.tgz
 https://registry.yarnpkg.com/is-glob/-/is-glob-3.1.0.tgz
 https://registry.yarnpkg.com/is-glob/-/is-glob-4.0.1.tgz
+https://registry.yarnpkg.com/is-glob/-/is-glob-4.0.3.tgz
+https://registry.yarnpkg.com/is-lambda/-/is-lambda-1.0.1.tgz
+https://registry.yarnpkg.com/is-natural-number/-/is-natural-number-4.0.1.tgz
 https://registry.yarnpkg.com/is-negated-glob/-/is-negated-glob-1.0.0.tgz
 https://registry.yarnpkg.com/is-negative-zero/-/is-negative-zero-2.0.1.tgz
 https://registry.yarnpkg.com/is-number-object/-/is-number-object-1.0.5.tgz
@@ -1088,6 +1238,12 @@ https://registry.yarnpkg.com/istanbul-lib-report/-/istanbul-lib-report-3.0.0.tgz
 https://registry.yarnpkg.com/istanbul-lib-source-maps/-/istanbul-lib-source-maps-4.0.0.tgz
 https://registry.yarnpkg.com/istanbul-reports/-/istanbul-reports-3.0.0.tgz
 https://registry.yarnpkg.com/istextorbinary/-/istextorbinary-1.0.2.tgz
+https://registry.yarnpkg.com/jest-diff/-/jest-diff-27.4.6.tgz
+https://registry.yarnpkg.com/jest-get-type/-/jest-get-type-27.4.0.tgz
+https://registry.yarnpkg.com/jest-matcher-utils/-/jest-matcher-utils-27.2.5.tgz
+https://registry.yarnpkg.com/jest-matcher-utils/-/jest-matcher-utils-27.4.6.tgz
+https://registry.yarnpkg.com/jest-message-util/-/jest-message-util-27.4.6.tgz
+https://registry.yarnpkg.com/jest-regex-util/-/jest-regex-util-27.4.0.tgz
 https://registry.yarnpkg.com/jest-worker/-/jest-worker-27.0.6.tgz
 https://registry.yarnpkg.com/jpeg-js/-/jpeg-js-0.4.3.tgz
 https://registry.yarnpkg.com/js-beautify/-/js-beautify-1.8.9.tgz
@@ -1095,6 +1251,7 @@ https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz
 https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.0.tgz
 https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.14.1.tgz
 https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.0.0.tgz
+https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz
 https://registry.yarnpkg.com/jsbi/-/jsbi-3.1.4.tgz
 https://registry.yarnpkg.com/jsbn/-/jsbn-0.1.1.tgz
 https://registry.yarnpkg.com/jschardet/-/jschardet-3.0.0.tgz
@@ -1107,6 +1264,7 @@ https://registry.yarnpkg.com/json-schema-traverse/-/json-schema-traverse-0.4.1.t
 https://registry.yarnpkg.com/json-schema/-/json-schema-0.2.3.tgz
 https://registry.yarnpkg.com/json-stable-stringify-without-jsonify/-/json-stable-stringify-without-jsonify-1.0.1.tgz
 https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz
+https://registry.yarnpkg.com/json5/-/json5-0.5.1.tgz
 https://registry.yarnpkg.com/json5/-/json5-1.0.1.tgz
 https://registry.yarnpkg.com/json5/-/json5-2.1.1.tgz
 https://registry.yarnpkg.com/json5/-/json5-2.1.3.tgz
@@ -1127,7 +1285,7 @@ https://registry.yarnpkg.com/jws/-/jws-3.2.2.tgz
 https://registry.yarnpkg.com/jws/-/jws-4.0.0.tgz
 https://registry.yarnpkg.com/katex/-/katex-0.13.0.tgz
 https://registry.yarnpkg.com/keygrip/-/keygrip-1.1.0.tgz
-https://registry.yarnpkg.com/keytar/-/keytar-7.2.0.tgz
+https://registry.yarnpkg.com/keytar/-/keytar-7.6.0.tgz
 https://registry.yarnpkg.com/keyv/-/keyv-3.1.0.tgz
 https://registry.yarnpkg.com/keyv/-/keyv-4.0.3.tgz
 https://registry.yarnpkg.com/kind-of/-/kind-of-1.1.0.tgz
@@ -1138,10 +1296,13 @@ https://registry.yarnpkg.com/kind-of/-/kind-of-6.0.3.tgz
 https://registry.yarnpkg.com/koa-compose/-/koa-compose-3.2.1.tgz
 https://registry.yarnpkg.com/koa-compose/-/koa-compose-4.1.0.tgz
 https://registry.yarnpkg.com/koa-convert/-/koa-convert-1.2.0.tgz
+https://registry.yarnpkg.com/koa-convert/-/koa-convert-2.0.0.tgz
+https://registry.yarnpkg.com/koa-morgan/-/koa-morgan-1.0.1.tgz
 https://registry.yarnpkg.com/koa-mount/-/koa-mount-4.0.0.tgz
 https://registry.yarnpkg.com/koa-send/-/koa-send-5.0.1.tgz
 https://registry.yarnpkg.com/koa-static/-/koa-static-5.0.0.tgz
 https://registry.yarnpkg.com/koa/-/koa-2.13.1.tgz
+https://registry.yarnpkg.com/koa/-/koa-2.13.4.tgz
 https://registry.yarnpkg.com/last-run/-/last-run-1.1.1.tgz
 https://registry.yarnpkg.com/lazy.js/-/lazy.js-0.4.3.tgz
 https://registry.yarnpkg.com/lazystream/-/lazystream-1.0.0.tgz
@@ -1150,6 +1311,7 @@ https://registry.yarnpkg.com/lcid/-/lcid-2.0.0.tgz
 https://registry.yarnpkg.com/lead/-/lead-1.0.0.tgz
 https://registry.yarnpkg.com/leven/-/leven-3.1.0.tgz
 https://registry.yarnpkg.com/levn/-/levn-0.3.0.tgz
+https://registry.yarnpkg.com/levn/-/levn-0.4.1.tgz
 https://registry.yarnpkg.com/liftoff/-/liftoff-3.1.0.tgz
 https://registry.yarnpkg.com/linkify-it/-/linkify-it-2.0.3.tgz
 https://registry.yarnpkg.com/linkify-it/-/linkify-it-3.0.2.tgz
@@ -1168,6 +1330,7 @@ https://registry.yarnpkg.com/locate-path/-/locate-path-6.0.0.tgz
 https://registry.yarnpkg.com/lodash._reinterpolate/-/lodash._reinterpolate-3.0.0.tgz
 https://registry.yarnpkg.com/lodash.camelcase/-/lodash.camelcase-4.3.0.tgz
 https://registry.yarnpkg.com/lodash.clone/-/lodash.clone-4.5.0.tgz
+https://registry.yarnpkg.com/lodash.clonedeep/-/lodash.clonedeep-4.5.0.tgz
 https://registry.yarnpkg.com/lodash.get/-/lodash.get-4.4.2.tgz
 https://registry.yarnpkg.com/lodash.includes/-/lodash.includes-4.3.0.tgz
 https://registry.yarnpkg.com/lodash.isboolean/-/lodash.isboolean-3.0.3.tgz
@@ -1176,13 +1339,13 @@ https://registry.yarnpkg.com/lodash.isnumber/-/lodash.isnumber-3.0.3.tgz
 https://registry.yarnpkg.com/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz
 https://registry.yarnpkg.com/lodash.isstring/-/lodash.isstring-4.0.1.tgz
 https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz
+https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz
 https://registry.yarnpkg.com/lodash.mergewith/-/lodash.mergewith-4.6.2.tgz
 https://registry.yarnpkg.com/lodash.once/-/lodash.once-4.1.1.tgz
 https://registry.yarnpkg.com/lodash.some/-/lodash.some-4.6.0.tgz
 https://registry.yarnpkg.com/lodash.template/-/lodash.template-4.5.0.tgz
 https://registry.yarnpkg.com/lodash.templatesettings/-/lodash.templatesettings-4.2.0.tgz
 https://registry.yarnpkg.com/lodash.throttle/-/lodash.throttle-4.1.1.tgz
-https://registry.yarnpkg.com/lodash.unescape/-/lodash.unescape-4.0.1.tgz
 https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz
 https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz
 https://registry.yarnpkg.com/log-symbols/-/log-symbols-4.0.0.tgz
@@ -1193,9 +1356,11 @@ https://registry.yarnpkg.com/lru-cache/-/lru-cache-4.1.5.tgz
 https://registry.yarnpkg.com/lru-cache/-/lru-cache-5.1.1.tgz
 https://registry.yarnpkg.com/lru-cache/-/lru-cache-6.0.0.tgz
 https://registry.yarnpkg.com/lru-queue/-/lru-queue-0.1.0.tgz
+https://registry.yarnpkg.com/make-dir/-/make-dir-1.3.0.tgz
 https://registry.yarnpkg.com/make-dir/-/make-dir-2.1.0.tgz
 https://registry.yarnpkg.com/make-dir/-/make-dir-3.0.0.tgz
 https://registry.yarnpkg.com/make-dir/-/make-dir-3.1.0.tgz
+https://registry.yarnpkg.com/make-fetch-happen/-/make-fetch-happen-9.1.0.tgz
 https://registry.yarnpkg.com/make-iterator/-/make-iterator-1.0.1.tgz
 https://registry.yarnpkg.com/map-age-cleaner/-/map-age-cleaner-0.1.3.tgz
 https://registry.yarnpkg.com/map-cache/-/map-cache-0.2.2.tgz
@@ -1204,8 +1369,7 @@ https://registry.yarnpkg.com/map-stream/-/map-stream-0.1.0.tgz
 https://registry.yarnpkg.com/map-visit/-/map-visit-1.0.0.tgz
 https://registry.yarnpkg.com/markdown-it-front-matter/-/markdown-it-front-matter-0.2.1.tgz
 https://registry.yarnpkg.com/markdown-it/-/markdown-it-10.0.0.tgz
-https://registry.yarnpkg.com/markdown-it/-/markdown-it-12.0.4.tgz
-https://registry.yarnpkg.com/markdown-it/-/markdown-it-12.2.0.tgz
+https://registry.yarnpkg.com/markdown-it/-/markdown-it-12.3.2.tgz
 https://registry.yarnpkg.com/matchdep/-/matchdep-2.0.0.tgz
 https://registry.yarnpkg.com/matcher/-/matcher-3.0.0.tgz
 https://registry.yarnpkg.com/md5.js/-/md5.js-1.3.5.tgz
@@ -1223,6 +1387,7 @@ https://registry.yarnpkg.com/merge-options/-/merge-options-1.0.1.tgz
 https://registry.yarnpkg.com/merge-stream/-/merge-stream-2.0.0.tgz
 https://registry.yarnpkg.com/merge/-/merge-1.2.1.tgz
 https://registry.yarnpkg.com/merge2/-/merge2-1.4.1.tgz
+https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz
 https://registry.yarnpkg.com/micromatch/-/micromatch-3.1.10.tgz
 https://registry.yarnpkg.com/micromatch/-/micromatch-4.0.2.tgz
 https://registry.yarnpkg.com/micromatch/-/micromatch-4.0.4.tgz
@@ -1231,13 +1396,15 @@ https://registry.yarnpkg.com/mime-db/-/mime-db-1.44.0.tgz
 https://registry.yarnpkg.com/mime-db/-/mime-db-1.45.0.tgz
 https://registry.yarnpkg.com/mime-db/-/mime-db-1.47.0.tgz
 https://registry.yarnpkg.com/mime-db/-/mime-db-1.48.0.tgz
+https://registry.yarnpkg.com/mime-db/-/mime-db-1.51.0.tgz
 https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.27.tgz
 https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.28.tgz
 https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.30.tgz
 https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.31.tgz
+https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.34.tgz
 https://registry.yarnpkg.com/mime/-/mime-1.4.1.tgz
 https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz
-https://registry.yarnpkg.com/mime/-/mime-2.5.2.tgz
+https://registry.yarnpkg.com/mime/-/mime-2.6.0.tgz
 https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-1.2.0.tgz
 https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-2.1.0.tgz
 https://registry.yarnpkg.com/mimic-response/-/mimic-response-1.0.1.tgz
@@ -1250,9 +1417,12 @@ https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz
 https://registry.yarnpkg.com/minimist/-/minimist-1.2.3.tgz
 https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz
 https://registry.yarnpkg.com/minipass-collect/-/minipass-collect-1.0.2.tgz
+https://registry.yarnpkg.com/minipass-fetch/-/minipass-fetch-1.4.1.tgz
 https://registry.yarnpkg.com/minipass-flush/-/minipass-flush-1.0.5.tgz
 https://registry.yarnpkg.com/minipass-pipeline/-/minipass-pipeline-1.2.4.tgz
+https://registry.yarnpkg.com/minipass-sized/-/minipass-sized-1.0.3.tgz
 https://registry.yarnpkg.com/minipass/-/minipass-3.1.3.tgz
+https://registry.yarnpkg.com/minipass/-/minipass-3.1.5.tgz
 https://registry.yarnpkg.com/minizlib/-/minizlib-2.1.2.tgz
 https://registry.yarnpkg.com/mississippi/-/mississippi-3.0.0.tgz
 https://registry.yarnpkg.com/mixin-deep/-/mixin-deep-1.3.2.tgz
@@ -1264,6 +1434,7 @@ https://registry.yarnpkg.com/mocha-multi-reporters/-/mocha-multi-reporters-1.5.1
 https://registry.yarnpkg.com/mocha/-/mocha-8.2.1.tgz
 https://registry.yarnpkg.com/mocha/-/mocha-8.4.0.tgz
 https://registry.yarnpkg.com/moment/-/moment-2.29.1.tgz
+https://registry.yarnpkg.com/morgan/-/morgan-1.10.0.tgz
 https://registry.yarnpkg.com/morphdom/-/morphdom-2.6.1.tgz
 https://registry.yarnpkg.com/move-concurrently/-/move-concurrently-1.0.1.tgz
 https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz
@@ -1272,7 +1443,6 @@ https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz
 https://registry.yarnpkg.com/multimatch/-/multimatch-2.1.0.tgz
 https://registry.yarnpkg.com/mute-stdout/-/mute-stdout-1.0.1.tgz
 https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.7.tgz
-https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz
 https://registry.yarnpkg.com/nan/-/nan-2.14.2.tgz
 https://registry.yarnpkg.com/nan/-/nan-2.15.0.tgz
 https://registry.yarnpkg.com/nanoid/-/nanoid-3.1.12.tgz
@@ -1280,7 +1450,7 @@ https://registry.yarnpkg.com/nanoid/-/nanoid-3.1.20.tgz
 https://registry.yarnpkg.com/nanomatch/-/nanomatch-1.2.13.tgz
 https://registry.yarnpkg.com/napi-build-utils/-/napi-build-utils-1.0.2.tgz
 https://registry.yarnpkg.com/native-is-elevated/-/native-is-elevated-0.4.3.tgz
-https://registry.yarnpkg.com/native-keymap/-/native-keymap-3.0.2.tgz
+https://registry.yarnpkg.com/native-keymap/-/native-keymap-3.1.0.tgz
 https://registry.yarnpkg.com/native-watchdog/-/native-watchdog-1.3.0.tgz
 https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz
 https://registry.yarnpkg.com/ncp/-/ncp-2.0.0.tgz
@@ -1291,20 +1461,22 @@ https://registry.yarnpkg.com/next-tick/-/next-tick-1.1.0.tgz
 https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz
 https://registry.yarnpkg.com/nise/-/nise-5.1.0.tgz
 https://registry.yarnpkg.com/node-abi/-/node-abi-2.21.0.tgz
+https://registry.yarnpkg.com/node-abi/-/node-abi-2.30.1.tgz
 https://registry.yarnpkg.com/node-abort-controller/-/node-abort-controller-1.2.1.tgz
 https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-3.1.0.tgz
 https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-3.2.1.tgz
-https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-4.2.0.tgz
 https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz
-https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.2.tgz
-https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.6.tgz
+https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz
 https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.3.0.tgz
+https://registry.yarnpkg.com/node-gyp/-/node-gyp-8.4.1.tgz
 https://registry.yarnpkg.com/node-libs-browser/-/node-libs-browser-2.2.1.tgz
 https://registry.yarnpkg.com/node-pty/-/node-pty-0.11.0-beta11.tgz
 https://registry.yarnpkg.com/node-releases/-/node-releases-1.1.72.tgz
+https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.1.tgz
 https://registry.yarnpkg.com/node.extend/-/node.extend-1.1.8.tgz
 https://registry.yarnpkg.com/noop-logger/-/noop-logger-0.1.1.tgz
 https://registry.yarnpkg.com/nopt/-/nopt-4.0.1.tgz
+https://registry.yarnpkg.com/nopt/-/nopt-5.0.0.tgz
 https://registry.yarnpkg.com/normalize-package-data/-/normalize-package-data-2.5.0.tgz
 https://registry.yarnpkg.com/normalize-path/-/normalize-path-1.0.0.tgz
 https://registry.yarnpkg.com/normalize-path/-/normalize-path-2.1.1.tgz
@@ -1318,6 +1490,7 @@ https://registry.yarnpkg.com/npm-run-all/-/npm-run-all-4.1.5.tgz
 https://registry.yarnpkg.com/npm-run-path/-/npm-run-path-2.0.2.tgz
 https://registry.yarnpkg.com/npm-run-path/-/npm-run-path-4.0.1.tgz
 https://registry.yarnpkg.com/npmlog/-/npmlog-4.1.2.tgz
+https://registry.yarnpkg.com/npmlog/-/npmlog-6.0.0.tgz
 https://registry.yarnpkg.com/nth-check/-/nth-check-1.0.2.tgz
 https://registry.yarnpkg.com/nth-check/-/nth-check-2.0.1.tgz
 https://registry.yarnpkg.com/number-is-nan/-/number-is-nan-1.0.1.tgz
@@ -1340,6 +1513,7 @@ https://registry.yarnpkg.com/object.pick/-/object.pick-1.3.0.tgz
 https://registry.yarnpkg.com/object.reduce/-/object.reduce-1.0.1.tgz
 https://registry.yarnpkg.com/object.values/-/object.values-1.1.2.tgz
 https://registry.yarnpkg.com/on-finished/-/on-finished-2.3.0.tgz
+https://registry.yarnpkg.com/on-headers/-/on-headers-1.0.2.tgz
 https://registry.yarnpkg.com/once/-/once-1.4.0.tgz
 https://registry.yarnpkg.com/onetime/-/onetime-2.0.1.tgz
 https://registry.yarnpkg.com/onetime/-/onetime-5.1.2.tgz
@@ -1348,6 +1522,7 @@ https://registry.yarnpkg.com/open/-/open-8.4.0.tgz
 https://registry.yarnpkg.com/opn/-/opn-6.0.0.tgz
 https://registry.yarnpkg.com/optimist/-/optimist-0.3.5.tgz
 https://registry.yarnpkg.com/optionator/-/optionator-0.8.3.tgz
+https://registry.yarnpkg.com/optionator/-/optionator-0.9.1.tgz
 https://registry.yarnpkg.com/ordered-read-streams/-/ordered-read-streams-1.0.1.tgz
 https://registry.yarnpkg.com/os-browserify/-/os-browserify-0.3.0.tgz
 https://registry.yarnpkg.com/os-homedir/-/os-homedir-1.0.2.tgz
@@ -1401,6 +1576,7 @@ https://registry.yarnpkg.com/path-posix/-/path-posix-1.0.0.tgz
 https://registry.yarnpkg.com/path-root-regex/-/path-root-regex-0.1.2.tgz
 https://registry.yarnpkg.com/path-root/-/path-root-0.1.1.tgz
 https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-1.8.0.tgz
+https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-6.2.0.tgz
 https://registry.yarnpkg.com/path-type/-/path-type-1.1.0.tgz
 https://registry.yarnpkg.com/path-type/-/path-type-3.0.0.tgz
 https://registry.yarnpkg.com/path-type/-/path-type-4.0.0.tgz
@@ -1409,20 +1585,26 @@ https://registry.yarnpkg.com/pause-stream/-/pause-stream-0.0.11.tgz
 https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.1.1.tgz
 https://registry.yarnpkg.com/pend/-/pend-1.2.0.tgz
 https://registry.yarnpkg.com/performance-now/-/performance-now-2.1.0.tgz
+https://registry.yarnpkg.com/picocolors/-/picocolors-1.0.0.tgz
 https://registry.yarnpkg.com/picomatch/-/picomatch-2.2.2.tgz
 https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.0.tgz
+https://registry.yarnpkg.com/picomatch/-/picomatch-2.3.1.tgz
 https://registry.yarnpkg.com/pidtree/-/pidtree-0.3.1.tgz
 https://registry.yarnpkg.com/pify/-/pify-2.3.0.tgz
 https://registry.yarnpkg.com/pify/-/pify-3.0.0.tgz
 https://registry.yarnpkg.com/pify/-/pify-4.0.1.tgz
 https://registry.yarnpkg.com/pinkie-promise/-/pinkie-promise-2.0.1.tgz
 https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz
+https://registry.yarnpkg.com/pirates/-/pirates-4.0.4.tgz
+https://registry.yarnpkg.com/pixelmatch/-/pixelmatch-5.2.1.tgz
 https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-3.0.0.tgz
 https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-4.2.0.tgz
+https://registry.yarnpkg.com/pkg-up/-/pkg-up-3.1.0.tgz
 https://registry.yarnpkg.com/plist/-/plist-3.0.1.tgz
 https://registry.yarnpkg.com/plist/-/plist-3.0.4.tgz
 https://registry.yarnpkg.com/plugin-error/-/plugin-error-0.1.2.tgz
 https://registry.yarnpkg.com/plugin-error/-/plugin-error-1.0.1.tgz
+https://registry.yarnpkg.com/pngjs/-/pngjs-4.0.1.tgz
 https://registry.yarnpkg.com/pngjs/-/pngjs-5.0.0.tgz
 https://registry.yarnpkg.com/posix-character-classes/-/posix-character-classes-0.1.1.tgz
 https://registry.yarnpkg.com/postcss-calc/-/postcss-calc-7.0.5.tgz
@@ -1466,8 +1648,11 @@ https://registry.yarnpkg.com/postcss/-/postcss-7.0.21.tgz
 https://registry.yarnpkg.com/postcss/-/postcss-7.0.35.tgz
 https://registry.yarnpkg.com/postcss/-/postcss-7.0.36.tgz
 https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-6.1.1.tgz
+https://registry.yarnpkg.com/prebuild-install/-/prebuild-install-6.1.4.tgz
 https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.1.2.tgz
+https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.2.1.tgz
 https://registry.yarnpkg.com/prepend-http/-/prepend-http-2.0.0.tgz
+https://registry.yarnpkg.com/pretty-format/-/pretty-format-27.4.6.tgz
 https://registry.yarnpkg.com/pretty-hrtime/-/pretty-hrtime-1.0.3.tgz
 https://registry.yarnpkg.com/priorityqueuejs/-/priorityqueuejs-1.0.0.tgz
 https://registry.yarnpkg.com/process-nextick-args/-/process-nextick-args-2.0.1.tgz
@@ -1475,6 +1660,7 @@ https://registry.yarnpkg.com/process/-/process-0.11.10.tgz
 https://registry.yarnpkg.com/progress/-/progress-1.1.8.tgz
 https://registry.yarnpkg.com/progress/-/progress-2.0.3.tgz
 https://registry.yarnpkg.com/promise-inflight/-/promise-inflight-1.0.1.tgz
+https://registry.yarnpkg.com/promise-retry/-/promise-retry-2.0.1.tgz
 https://registry.yarnpkg.com/proper-lockfile/-/proper-lockfile-4.1.2.tgz
 https://registry.yarnpkg.com/proto-list/-/proto-list-1.2.4.tgz
 https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-1.1.0.tgz
@@ -1495,15 +1681,18 @@ https://registry.yarnpkg.com/qs/-/qs-6.5.2.tgz
 https://registry.yarnpkg.com/querystring-es3/-/querystring-es3-0.2.1.tgz
 https://registry.yarnpkg.com/querystring/-/querystring-0.2.0.tgz
 https://registry.yarnpkg.com/querystringify/-/querystringify-2.2.0.tgz
+https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz
 https://registry.yarnpkg.com/queue/-/queue-3.0.6.tgz
 https://registry.yarnpkg.com/queue/-/queue-3.1.0.tgz
 https://registry.yarnpkg.com/queue/-/queue-4.5.0.tgz
+https://registry.yarnpkg.com/queue/-/queue-6.0.2.tgz
 https://registry.yarnpkg.com/quick-lru/-/quick-lru-5.1.1.tgz
 https://registry.yarnpkg.com/randombytes/-/randombytes-2.1.0.tgz
 https://registry.yarnpkg.com/randomfill/-/randomfill-1.0.4.tgz
 https://registry.yarnpkg.com/rc/-/rc-1.2.8.tgz
 https://registry.yarnpkg.com/rcedit/-/rcedit-0.3.0.tgz
 https://registry.yarnpkg.com/rcedit/-/rcedit-1.1.0.tgz
+https://registry.yarnpkg.com/react-is/-/react-is-17.0.2.tgz
 https://registry.yarnpkg.com/read-pkg-up/-/read-pkg-up-1.0.1.tgz
 https://registry.yarnpkg.com/read-pkg/-/read-pkg-1.1.0.tgz
 https://registry.yarnpkg.com/read-pkg/-/read-pkg-3.0.0.tgz
@@ -1519,7 +1708,7 @@ https://registry.yarnpkg.com/rechoir/-/rechoir-0.6.2.tgz
 https://registry.yarnpkg.com/rechoir/-/rechoir-0.7.0.tgz
 https://registry.yarnpkg.com/regex-not/-/regex-not-1.0.2.tgz
 https://registry.yarnpkg.com/regexpp/-/regexpp-2.0.1.tgz
-https://registry.yarnpkg.com/regexpp/-/regexpp-3.1.0.tgz
+https://registry.yarnpkg.com/regexpp/-/regexpp-3.2.0.tgz
 https://registry.yarnpkg.com/regextras/-/regextras-0.7.0.tgz
 https://registry.yarnpkg.com/remove-bom-buffer/-/remove-bom-buffer-3.0.0.tgz
 https://registry.yarnpkg.com/remove-bom-stream/-/remove-bom-stream-1.2.0.tgz
@@ -1531,13 +1720,14 @@ https://registry.yarnpkg.com/replace-ext/-/replace-ext-1.0.0.tgz
 https://registry.yarnpkg.com/replace-ext/-/replace-ext-1.0.1.tgz
 https://registry.yarnpkg.com/replace-homedir/-/replace-homedir-1.0.0.tgz
 https://registry.yarnpkg.com/replacestream/-/replacestream-4.0.3.tgz
-https://registry.yarnpkg.com/request-light/-/request-light-0.5.5.tgz
+https://registry.yarnpkg.com/request-light/-/request-light-0.5.7.tgz
 https://registry.yarnpkg.com/request/-/request-2.88.2.tgz
 https://registry.yarnpkg.com/requestretry/-/requestretry-4.0.0.tgz
 https://registry.yarnpkg.com/require-directory/-/require-directory-2.1.1.tgz
 https://registry.yarnpkg.com/require-main-filename/-/require-main-filename-1.0.1.tgz
 https://registry.yarnpkg.com/require-main-filename/-/require-main-filename-2.0.0.tgz
 https://registry.yarnpkg.com/requires-port/-/requires-port-1.0.0.tgz
+https://registry.yarnpkg.com/reselect/-/reselect-4.1.5.tgz
 https://registry.yarnpkg.com/resolve-alpn/-/resolve-alpn-1.0.0.tgz
 https://registry.yarnpkg.com/resolve-cwd/-/resolve-cwd-3.0.0.tgz
 https://registry.yarnpkg.com/resolve-dir/-/resolve-dir-1.0.1.tgz
@@ -1550,10 +1740,10 @@ https://registry.yarnpkg.com/resolve-url/-/resolve-url-0.2.1.tgz
 https://registry.yarnpkg.com/resolve/-/resolve-1.14.2.tgz
 https://registry.yarnpkg.com/resolve/-/resolve-1.19.0.tgz
 https://registry.yarnpkg.com/resolve/-/resolve-1.20.0.tgz
+https://registry.yarnpkg.com/resolve/-/resolve-1.21.0.tgz
 https://registry.yarnpkg.com/responselike/-/responselike-1.0.2.tgz
 https://registry.yarnpkg.com/responselike/-/responselike-2.0.0.tgz
 https://registry.yarnpkg.com/restore-cursor/-/restore-cursor-2.0.0.tgz
-https://registry.yarnpkg.com/restore-cursor/-/restore-cursor-3.1.0.tgz
 https://registry.yarnpkg.com/ret/-/ret-0.1.15.tgz
 https://registry.yarnpkg.com/retry/-/retry-0.12.0.tgz
 https://registry.yarnpkg.com/reusify/-/reusify-1.0.4.tgz
@@ -1566,6 +1756,7 @@ https://registry.yarnpkg.com/ripemd160/-/ripemd160-2.0.2.tgz
 https://registry.yarnpkg.com/roarr/-/roarr-2.15.4.tgz
 https://registry.yarnpkg.com/run-async/-/run-async-2.4.1.tgz
 https://registry.yarnpkg.com/run-parallel/-/run-parallel-1.1.10.tgz
+https://registry.yarnpkg.com/run-parallel/-/run-parallel-1.2.0.tgz
 https://registry.yarnpkg.com/run-queue/-/run-queue-1.0.3.tgz
 https://registry.yarnpkg.com/rxjs/-/rxjs-6.6.3.tgz
 https://registry.yarnpkg.com/safe-buffer/-/safe-buffer-5.1.2.tgz
@@ -1577,6 +1768,7 @@ https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz
 https://registry.yarnpkg.com/schema-utils/-/schema-utils-1.0.0.tgz
 https://registry.yarnpkg.com/schema-utils/-/schema-utils-2.5.0.tgz
 https://registry.yarnpkg.com/schema-utils/-/schema-utils-3.0.0.tgz
+https://registry.yarnpkg.com/seek-bzip/-/seek-bzip-1.0.6.tgz
 https://registry.yarnpkg.com/semaphore/-/semaphore-1.1.0.tgz
 https://registry.yarnpkg.com/semver-compare/-/semver-compare-1.0.0.tgz
 https://registry.yarnpkg.com/semver-greatest-satisfied-range/-/semver-greatest-satisfied-range-1.1.0.tgz
@@ -1612,6 +1804,7 @@ https://registry.yarnpkg.com/shimmer/-/shimmer-1.2.1.tgz
 https://registry.yarnpkg.com/side-channel/-/side-channel-1.0.4.tgz
 https://registry.yarnpkg.com/sigmund/-/sigmund-1.0.1.tgz
 https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.3.tgz
+https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.6.tgz
 https://registry.yarnpkg.com/simple-concat/-/simple-concat-1.0.1.tgz
 https://registry.yarnpkg.com/simple-get/-/simple-get-3.1.0.tgz
 https://registry.yarnpkg.com/simple-swizzle/-/simple-swizzle-0.2.2.tgz
@@ -1620,16 +1813,18 @@ https://registry.yarnpkg.com/sinon/-/sinon-11.1.1.tgz
 https://registry.yarnpkg.com/slash/-/slash-3.0.0.tgz
 https://registry.yarnpkg.com/slice-ansi/-/slice-ansi-2.1.0.tgz
 https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.1.0.tgz
+https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz
 https://registry.yarnpkg.com/snapdragon-node/-/snapdragon-node-2.1.1.tgz
 https://registry.yarnpkg.com/snapdragon-util/-/snapdragon-util-3.0.1.tgz
 https://registry.yarnpkg.com/snapdragon/-/snapdragon-0.8.2.tgz
 https://registry.yarnpkg.com/socks-proxy-agent/-/socks-proxy-agent-5.0.0.tgz
-https://registry.yarnpkg.com/socks-proxy-agent/-/socks-proxy-agent-6.1.0.tgz
+https://registry.yarnpkg.com/socks-proxy-agent/-/socks-proxy-agent-6.1.1.tgz
 https://registry.yarnpkg.com/socks/-/socks-2.6.1.tgz
 https://registry.yarnpkg.com/source-list-map/-/source-list-map-2.0.1.tgz
 https://registry.yarnpkg.com/source-map-resolve/-/source-map-resolve-0.5.3.tgz
 https://registry.yarnpkg.com/source-map-resolve/-/source-map-resolve-0.6.0.tgz
 https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.3.3.tgz
+https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.4.18.tgz
 https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.19.tgz
 https://registry.yarnpkg.com/source-map-url/-/source-map-url-0.4.0.tgz
 https://registry.yarnpkg.com/source-map/-/source-map-0.1.32.tgz
@@ -1656,7 +1851,7 @@ https://registry.yarnpkg.com/ssri/-/ssri-8.0.1.tgz
 https://registry.yarnpkg.com/stable/-/stable-0.1.8.tgz
 https://registry.yarnpkg.com/stack-chain/-/stack-chain-1.3.7.tgz
 https://registry.yarnpkg.com/stack-trace/-/stack-trace-0.0.10.tgz
-https://registry.yarnpkg.com/stack-utils/-/stack-utils-2.0.3.tgz
+https://registry.yarnpkg.com/stack-utils/-/stack-utils-2.0.5.tgz
 https://registry.yarnpkg.com/static-extend/-/static-extend-0.1.2.tgz
 https://registry.yarnpkg.com/statuses/-/statuses-1.5.0.tgz
 https://registry.yarnpkg.com/stoppable/-/stoppable-1.1.0.tgz
@@ -1675,6 +1870,7 @@ https://registry.yarnpkg.com/string-width/-/string-width-1.0.2.tgz
 https://registry.yarnpkg.com/string-width/-/string-width-2.1.1.tgz
 https://registry.yarnpkg.com/string-width/-/string-width-3.1.0.tgz
 https://registry.yarnpkg.com/string-width/-/string-width-4.2.0.tgz
+https://registry.yarnpkg.com/string-width/-/string-width-4.2.3.tgz
 https://registry.yarnpkg.com/string.prototype.padend/-/string.prototype.padend-3.1.1.tgz
 https://registry.yarnpkg.com/string.prototype.trimend/-/string.prototype.trimend-1.0.3.tgz
 https://registry.yarnpkg.com/string.prototype.trimend/-/string.prototype.trimend-1.0.4.tgz
@@ -1687,11 +1883,13 @@ https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-3.0.1.tgz
 https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-4.0.0.tgz
 https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-5.2.0.tgz
 https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.0.tgz
+https://registry.yarnpkg.com/strip-ansi/-/strip-ansi-6.0.1.tgz
 https://registry.yarnpkg.com/strip-bom-buf/-/strip-bom-buf-1.0.0.tgz
 https://registry.yarnpkg.com/strip-bom-stream/-/strip-bom-stream-2.0.0.tgz
 https://registry.yarnpkg.com/strip-bom-string/-/strip-bom-string-1.0.0.tgz
 https://registry.yarnpkg.com/strip-bom/-/strip-bom-2.0.0.tgz
 https://registry.yarnpkg.com/strip-bom/-/strip-bom-3.0.0.tgz
+https://registry.yarnpkg.com/strip-dirs/-/strip-dirs-2.1.0.tgz
 https://registry.yarnpkg.com/strip-eof/-/strip-eof-1.0.0.tgz
 https://registry.yarnpkg.com/strip-final-newline/-/strip-final-newline-2.0.0.tgz
 https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz
@@ -1707,15 +1905,19 @@ https://registry.yarnpkg.com/supports-color/-/supports-color-6.1.0.tgz
 https://registry.yarnpkg.com/supports-color/-/supports-color-7.1.0.tgz
 https://registry.yarnpkg.com/supports-color/-/supports-color-7.2.0.tgz
 https://registry.yarnpkg.com/supports-color/-/supports-color-8.1.1.tgz
+https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz
 https://registry.yarnpkg.com/sver-compat/-/sver-compat-1.5.0.tgz
 https://registry.yarnpkg.com/svgo/-/svgo-1.3.2.tgz
+https://registry.yarnpkg.com/svgo/-/svgo-2.8.0.tgz
 https://registry.yarnpkg.com/table/-/table-5.4.6.tgz
 https://registry.yarnpkg.com/tapable/-/tapable-1.1.3.tgz
 https://registry.yarnpkg.com/tapable/-/tapable-2.2.0.tgz
 https://registry.yarnpkg.com/tar-fs/-/tar-fs-2.1.1.tgz
+https://registry.yarnpkg.com/tar-stream/-/tar-stream-1.6.2.tgz
 https://registry.yarnpkg.com/tar-stream/-/tar-stream-2.2.0.tgz
 https://registry.yarnpkg.com/tar/-/tar-2.2.2.tgz
 https://registry.yarnpkg.com/tar/-/tar-6.0.5.tgz
+https://registry.yarnpkg.com/tar/-/tar-6.1.11.tgz
 https://registry.yarnpkg.com/tas-client-umd/-/tas-client-umd-0.1.4.tgz
 https://registry.yarnpkg.com/tas-client/-/tas-client-0.1.21.tgz
 https://registry.yarnpkg.com/temp/-/temp-0.8.4.tgz
@@ -1740,6 +1942,7 @@ https://registry.yarnpkg.com/tmp/-/tmp-0.0.33.tgz
 https://registry.yarnpkg.com/tmp/-/tmp-0.2.1.tgz
 https://registry.yarnpkg.com/to-absolute-glob/-/to-absolute-glob-2.0.2.tgz
 https://registry.yarnpkg.com/to-arraybuffer/-/to-arraybuffer-1.0.1.tgz
+https://registry.yarnpkg.com/to-buffer/-/to-buffer-1.1.1.tgz
 https://registry.yarnpkg.com/to-fast-properties/-/to-fast-properties-2.0.0.tgz
 https://registry.yarnpkg.com/to-object-path/-/to-object-path-0.3.0.tgz
 https://registry.yarnpkg.com/to-readable-stream/-/to-readable-stream-1.0.0.tgz
@@ -1748,6 +1951,7 @@ https://registry.yarnpkg.com/to-regex-range/-/to-regex-range-5.0.1.tgz
 https://registry.yarnpkg.com/to-regex/-/to-regex-3.0.2.tgz
 https://registry.yarnpkg.com/to-through/-/to-through-2.0.0.tgz
 https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.0.tgz
+https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.1.tgz
 https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-2.5.0.tgz
 https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-4.0.0.tgz
 https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz
@@ -1762,16 +1966,16 @@ https://registry.yarnpkg.com/tslib/-/tslib-1.9.3.tgz
 https://registry.yarnpkg.com/tslib/-/tslib-2.0.3.tgz
 https://registry.yarnpkg.com/tslib/-/tslib-2.3.1.tgz
 https://registry.yarnpkg.com/tsscmp/-/tsscmp-1.0.6.tgz
-https://registry.yarnpkg.com/tsutils/-/tsutils-3.17.1.tgz
+https://registry.yarnpkg.com/tsutils/-/tsutils-3.21.0.tgz
 https://registry.yarnpkg.com/tty-browserify/-/tty-browserify-0.0.0.tgz
 https://registry.yarnpkg.com/tunnel-agent/-/tunnel-agent-0.6.0.tgz
 https://registry.yarnpkg.com/tunnel/-/tunnel-0.0.6.tgz
 https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-0.14.5.tgz
 https://registry.yarnpkg.com/type-check/-/type-check-0.3.2.tgz
+https://registry.yarnpkg.com/type-check/-/type-check-0.4.0.tgz
 https://registry.yarnpkg.com/type-detect/-/type-detect-4.0.8.tgz
-https://registry.yarnpkg.com/type-fest/-/type-fest-0.11.0.tgz
 https://registry.yarnpkg.com/type-fest/-/type-fest-0.13.1.tgz
-https://registry.yarnpkg.com/type-fest/-/type-fest-0.8.1.tgz
+https://registry.yarnpkg.com/type-fest/-/type-fest-0.20.2.tgz
 https://registry.yarnpkg.com/type-is/-/type-is-1.6.18.tgz
 https://registry.yarnpkg.com/type/-/type-1.2.0.tgz
 https://registry.yarnpkg.com/type/-/type-2.1.0.tgz
@@ -1779,15 +1983,13 @@ https://registry.yarnpkg.com/typed-rest-client/-/typed-rest-client-1.8.6.tgz
 https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz
 https://registry.yarnpkg.com/typescript-formatter/-/typescript-formatter-7.1.0.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-2.6.2.tgz
-https://registry.yarnpkg.com/typescript/-/typescript-3.7.5.tgz
-https://registry.yarnpkg.com/typescript/-/typescript-4.3.2.tgz
-https://registry.yarnpkg.com/typescript/-/typescript-4.5.4.tgz
-https://registry.yarnpkg.com/typescript/-/typescript-4.6.0-dev.20211115.tgz
+https://registry.yarnpkg.com/typescript/-/typescript-4.5.5.tgz
+https://registry.yarnpkg.com/typescript/-/typescript-4.6.0-dev.20220110.tgz
 https://registry.yarnpkg.com/typical/-/typical-4.0.0.tgz
-https://registry.yarnpkg.com/uc.micro/-/uc.micro-1.0.3.tgz
 https://registry.yarnpkg.com/uc.micro/-/uc.micro-1.0.5.tgz
 https://registry.yarnpkg.com/uc.micro/-/uc.micro-1.0.6.tgz
 https://registry.yarnpkg.com/unbox-primitive/-/unbox-primitive-1.0.1.tgz
+https://registry.yarnpkg.com/unbzip2-stream/-/unbzip2-stream-1.4.3.tgz
 https://registry.yarnpkg.com/unc-path-regex/-/unc-path-regex-0.1.2.tgz
 https://registry.yarnpkg.com/underscore/-/underscore-1.12.1.tgz
 https://registry.yarnpkg.com/underscore/-/underscore-1.13.1.tgz
@@ -1825,7 +2027,7 @@ https://registry.yarnpkg.com/uuid/-/uuid-8.3.1.tgz
 https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz
 https://registry.yarnpkg.com/v8-compile-cache/-/v8-compile-cache-2.2.0.tgz
 https://registry.yarnpkg.com/v8-compile-cache/-/v8-compile-cache-2.3.0.tgz
-https://registry.yarnpkg.com/v8-inspect-profiler/-/v8-inspect-profiler-0.0.22.tgz
+https://registry.yarnpkg.com/v8-inspect-profiler/-/v8-inspect-profiler-0.1.0.tgz
 https://registry.yarnpkg.com/v8flags/-/v8flags-3.2.0.tgz
 https://registry.yarnpkg.com/validate-npm-package-license/-/validate-npm-package-license-3.0.4.tgz
 https://registry.yarnpkg.com/value-or-function/-/value-or-function-3.0.0.tgz
@@ -1844,39 +2046,33 @@ https://registry.yarnpkg.com/vinyl/-/vinyl-2.2.1.tgz
 https://registry.yarnpkg.com/vm-browserify/-/vm-browserify-1.1.2.tgz
 https://registry.yarnpkg.com/vsce/-/vsce-1.100.0.tgz
 https://registry.yarnpkg.com/vscode-codicons/-/vscode-codicons-0.0.14.tgz
-https://registry.yarnpkg.com/vscode-css-languageservice/-/vscode-css-languageservice-5.1.9.tgz
-https://registry.yarnpkg.com/vscode-debugprotocol/-/vscode-debugprotocol-1.51.0.tgz
-https://registry.yarnpkg.com/vscode-extension-telemetry/-/vscode-extension-telemetry-0.4.3.tgz
+https://registry.yarnpkg.com/vscode-css-languageservice/-/vscode-css-languageservice-5.1.12.tgz
 https://registry.yarnpkg.com/vscode-grammar-updater/-/vscode-grammar-updater-1.0.3.tgz
 https://registry.yarnpkg.com/vscode-gulp-watch/-/vscode-gulp-watch-5.0.3.tgz
-https://registry.yarnpkg.com/vscode-html-languageservice/-/vscode-html-languageservice-4.2.0.tgz
-https://registry.yarnpkg.com/vscode-json-languageservice/-/vscode-json-languageservice-4.2.0-next.2.tgz
+https://registry.yarnpkg.com/vscode-html-languageservice/-/vscode-html-languageservice-4.2.1.tgz
+https://registry.yarnpkg.com/vscode-json-languageservice/-/vscode-json-languageservice-4.2.0.tgz
 https://registry.yarnpkg.com/vscode-jsonrpc/-/vscode-jsonrpc-6.0.0.tgz
 https://registry.yarnpkg.com/vscode-languageclient/-/vscode-languageclient-7.0.0.tgz
 https://registry.yarnpkg.com/vscode-languageserver-protocol/-/vscode-languageserver-protocol-3.16.0.tgz
 https://registry.yarnpkg.com/vscode-languageserver-textdocument/-/vscode-languageserver-textdocument-1.0.1.tgz
-https://registry.yarnpkg.com/vscode-languageserver-textdocument/-/vscode-languageserver-textdocument-1.0.2.tgz
+https://registry.yarnpkg.com/vscode-languageserver-textdocument/-/vscode-languageserver-textdocument-1.0.3.tgz
 https://registry.yarnpkg.com/vscode-languageserver-types/-/vscode-languageserver-types-3.16.0.tgz
 https://registry.yarnpkg.com/vscode-languageserver/-/vscode-languageserver-7.0.0.tgz
 https://registry.yarnpkg.com/vscode-nls-dev/-/vscode-nls-dev-3.3.1.tgz
 https://registry.yarnpkg.com/vscode-nls/-/vscode-nls-4.0.0.tgz
 https://registry.yarnpkg.com/vscode-nls/-/vscode-nls-4.1.2.tgz
 https://registry.yarnpkg.com/vscode-nls/-/vscode-nls-5.0.0.tgz
-https://registry.yarnpkg.com/vscode-nsfw/-/vscode-nsfw-2.1.8.tgz
 https://registry.yarnpkg.com/vscode-oniguruma/-/vscode-oniguruma-1.6.1.tgz
 https://registry.yarnpkg.com/vscode-proxy-agent/-/vscode-proxy-agent-0.11.0.tgz
 https://registry.yarnpkg.com/vscode-regexpp/-/vscode-regexpp-3.1.0.tgz
-https://registry.yarnpkg.com/vscode-ripgrep/-/vscode-ripgrep-1.12.1.tgz
 https://registry.yarnpkg.com/vscode-tas-client/-/vscode-tas-client-0.1.22.tgz
-https://registry.yarnpkg.com/vscode-test/-/vscode-test-1.6.1.tgz
-https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-5.5.0.tgz
+https://registry.yarnpkg.com/vscode-textmate/-/vscode-textmate-6.0.0.tgz
 https://registry.yarnpkg.com/vscode-universal-bundler/-/vscode-universal-bundler-0.0.2.tgz
 https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-2.0.0.tgz
-https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-2.1.1.tgz
 https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-2.1.2.tgz
 https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.0.2.tgz
+https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.0.3.tgz
 https://registry.yarnpkg.com/vscode-windows-ca-certs/-/vscode-windows-ca-certs-0.3.0.tgz
-https://registry.yarnpkg.com/vscode-windows-registry/-/vscode-windows-registry-1.0.4.tgz
 https://registry.yarnpkg.com/warnings-to-errors-webpack-plugin/-/warnings-to-errors-webpack-plugin-2.3.0.tgz
 https://registry.yarnpkg.com/watch/-/watch-1.0.2.tgz
 https://registry.yarnpkg.com/watchpack-chokidar2/-/watchpack-chokidar2-2.0.1.tgz
@@ -1901,6 +2097,7 @@ https://registry.yarnpkg.com/which/-/which-1.3.0.tgz
 https://registry.yarnpkg.com/which/-/which-1.3.1.tgz
 https://registry.yarnpkg.com/which/-/which-2.0.2.tgz
 https://registry.yarnpkg.com/wide-align/-/wide-align-1.1.3.tgz
+https://registry.yarnpkg.com/wide-align/-/wide-align-1.1.5.tgz
 https://registry.yarnpkg.com/wildcard/-/wildcard-2.0.0.tgz
 https://registry.yarnpkg.com/windows-foreground-love/-/windows-foreground-love-0.4.0.tgz
 https://registry.yarnpkg.com/windows-mutex/-/windows-mutex-0.4.1.tgz
@@ -1917,7 +2114,7 @@ https://registry.yarnpkg.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz
 https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz
 https://registry.yarnpkg.com/write/-/write-1.0.3.tgz
 https://registry.yarnpkg.com/ws/-/ws-7.4.6.tgz
-https://registry.yarnpkg.com/ws/-/ws-7.5.2.tgz
+https://registry.yarnpkg.com/ws/-/ws-7.5.6.tgz
 https://registry.yarnpkg.com/xml/-/xml-1.0.1.tgz
 https://registry.yarnpkg.com/xml2js/-/xml2js-0.4.19.tgz
 https://registry.yarnpkg.com/xml2js/-/xml2js-0.4.23.tgz
@@ -1929,12 +2126,12 @@ https://registry.yarnpkg.com/xmldom/-/xmldom-0.1.31.tgz
 https://registry.yarnpkg.com/xregexp/-/xregexp-2.0.0.tgz
 https://registry.yarnpkg.com/xtend/-/xtend-2.1.2.tgz
 https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz
-https://registry.yarnpkg.com/xterm-addon-search/-/xterm-addon-search-0.9.0-beta.6.tgz
-https://registry.yarnpkg.com/xterm-addon-serialize/-/xterm-addon-serialize-0.7.0-beta.3.tgz
+https://registry.yarnpkg.com/xterm-addon-search/-/xterm-addon-search-0.9.0-beta.8.tgz
+https://registry.yarnpkg.com/xterm-addon-serialize/-/xterm-addon-serialize-0.7.0-beta.6.tgz
 https://registry.yarnpkg.com/xterm-addon-unicode11/-/xterm-addon-unicode11-0.4.0-beta.1.tgz
-https://registry.yarnpkg.com/xterm-addon-webgl/-/xterm-addon-webgl-0.12.0-beta.16.tgz
-https://registry.yarnpkg.com/xterm-headless/-/xterm-headless-4.16.0-beta.2.tgz
-https://registry.yarnpkg.com/xterm/-/xterm-4.16.0-beta.2.tgz
+https://registry.yarnpkg.com/xterm-addon-webgl/-/xterm-addon-webgl-0.12.0-beta.21.tgz
+https://registry.yarnpkg.com/xterm-headless/-/xterm-headless-4.17.0-beta.7.tgz
+https://registry.yarnpkg.com/xterm/-/xterm-4.17.0-beta.7.tgz
 https://registry.yarnpkg.com/y18n/-/y18n-3.2.2.tgz
 https://registry.yarnpkg.com/y18n/-/y18n-4.0.1.tgz
 https://registry.yarnpkg.com/y18n/-/y18n-5.0.8.tgz
@@ -1960,7 +2157,6 @@ https://registry.yarnpkg.com/yazl/-/yazl-2.4.3.tgz
 https://registry.yarnpkg.com/yazl/-/yazl-2.5.1.tgz
 https://registry.yarnpkg.com/ylru/-/ylru-1.2.1.tgz
 https://registry.yarnpkg.com/yocto-queue/-/yocto-queue-0.1.0.tgz
-https://registry.yarnpkg.com/zone.js/-/zone.js-0.7.6.tgz
 "
 
 SRC_URI="
@@ -1973,7 +2169,7 @@ SRC_URI="
 	)
 	$(yarn_uris ${YARNPKGS})
 	https://codeload.github.com/ramya-rao-a/css-parser/tar.gz/370c480ac103bd17c7bcfb34bf5d577dc40d3660
-	https://codeload.github.com/mjbvz/markdown-it-katex/tar.gz/820d9025ad84937eb3f9f7efbc1be7595e20b19f
+	https://codeload.github.com/mjbvz/markdown-it-katex/tar.gz/b1ed14de467031f5d4f9c1588dd1868cab0b8744
 "
 
 # https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${name}/${version}/vspackage
@@ -1985,7 +2181,7 @@ RESTRICT="mirror"
 
 BDEPEND="
 	>=sys-apps/yarn-1.22.4:=
-	>=net-libs/nodejs-12.20.1:=[npm]
+	>=net-libs/nodejs-14.17.5-r1:=[npm]
 	app-arch/unzip
 	app-arch/gzip
 "
@@ -2004,7 +2200,7 @@ DEPEND="
 RDEPEND="${DEPEND}"
 
 PATCHES=(
-	"${FILESDIR}/0001-remove-playwright-as-it-s-only-used-in-unit-test.patch"
+	"${FILESDIR}/0001-remove-useless-dependency.patch"
 	"${FILESDIR}/0002-Don-t-download-prebuilt-ffmpeg.patch"
 	"${FILESDIR}/0003-Allow-offline-in-args.patch"
 	"${FILESDIR}/0004-Add-install-script-for-Gentoo.patch"
@@ -2012,12 +2208,11 @@ PATCHES=(
 	"${FILESDIR}/0006-Don-t-run-yarn-install-for-web-remote-test.patch"
 	"${FILESDIR}/0007-update-product.json.patch"
 	"${FILESDIR}/0008-Build-without-electron.patch"
-	"${FILESDIR}/0009-Don-t-use-git-dependence.patch"
+	"${FILESDIR}/0009-Don-t-use-git-dependency.patch"
 	"${FILESDIR}/0010-Enable-UseOzonePlatform-feature.patch"
-	"${FILESDIR}/0011-Remove-vscode-telemetry-extractor.patch"
-	"${FILESDIR}/0012-disable-crash-reporter.patch"
-	"${FILESDIR}/0013-Don-t-warn-electron-args.patch"
-	"${FILESDIR}/0014-Fix-cli-patch.patch"
+	"${FILESDIR}/0011-disable-crash-reporter.patch"
+	"${FILESDIR}/0012-Don-t-warn-electron-args.patch"
+	"${FILESDIR}/0013-Fix-cli-patch.patch"
 )
 
 src_unpack() {
@@ -2094,8 +2289,9 @@ src_install() {
 		"${ED}${vscode_path}/bin/${app_name}"
 
 	if use system-ripgrep; then
-		rm "${ED}${vscode_path}/resources/app/node_modules.asar.unpacked/vscode-ripgrep/bin/rg"
-		ln -s /usr/bin/rg "${ED}${vscode_path}/resources/app/node_modules.asar.unpacked/vscode-ripgrep/bin/rg"
+		local ripgrep_path="${ED}${vscode_path}/resources/app/node_modules.asar.unpacked/@vscode/ripgrep/bin/rg"
+		rm "${ripgrep_path}"
+		ln -s /usr/bin/rg "${ripgrep_path}"
 	fi
 
 	#rm -rf "${ED}/usr/local"
@@ -2157,7 +2353,7 @@ get_rg_tar_name() {
 }
 
 crate_fake_bin() {
-	echo "#\!/bin/sh" >"$2"
+	echo "#!/bin/sh" >"$2"
 	echo "${1} \$@" >>"$2"
 	chmod +x "$2"
 }
