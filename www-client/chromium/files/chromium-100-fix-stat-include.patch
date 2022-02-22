@@ -1,0 +1,15 @@
+diff --git a/base/files/file.h b/base/files/file.h
+index 69d582e..49dd1c9 100644
+--- a/base/files/file.h
++++ b/base/files/file.h
+@@ -18,6 +18,10 @@
+ #include "base/trace_event/base_tracing_forward.h"
+ #include "build/build_config.h"
+ 
++#if BUILDFLAG(IS_POSIX)
++#include <sys/stat.h>
++#endif
++
+ #if BUILDFLAG(IS_BSD) || BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_NACL) || \
+     BUILDFLAG(IS_FUCHSIA) || (BUILDFLAG(IS_ANDROID) && __ANDROID_API__ < 21)
+ struct stat;
