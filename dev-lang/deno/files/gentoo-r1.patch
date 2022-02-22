@@ -1,14 +1,11 @@
 diff --git a/build.rs b/build.rs
-index 0511211..d6ec968 100644
+index 19bcf30..deef76d 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -84,20 +84,8 @@ fn main() {
- fn build_v8() {
-   env::set_var("DEPOT_TOOLS_WIN_TOOLCHAIN", "0");
+@@ -88,17 +88,8 @@ fn build_v8() {
+   // cargo publish doesn't like pyc files.
+   env::set_var("PYTHONDONTWRITEBYTECODE", "1");
  
--  // cargo publish doesn't like pyc files.
--  env::set_var("PYTHONDONTWRITEBYTECODE", "1");
--
 -  // git submodule update --init --recursive
 -  let libcxx_src = PathBuf::from("buildtools/third_party/libc++/trunk/src");
 -  if !libcxx_src.is_dir() {
@@ -24,7 +21,7 @@ index 0511211..d6ec968 100644
    }
  
    // On windows, rustc cannot link with a V8 debug build.
-@@ -116,29 +104,10 @@ fn build_v8() {
+@@ -118,35 +109,10 @@ fn build_v8() {
      gn_args.push("host_cpu=\"arm64\"".to_string())
    }
  
@@ -36,8 +33,14 @@ index 0511211..d6ec968 100644
 -    // we can't use chromiums clang plugins with a system clang
 -    gn_args.push("clang_use_chrome_plugins=false".to_string());
 -  } else {
+-    println!("using Chromiums clang");
 -    let clang_base_path = clang_download();
 -    gn_args.push(format!("clang_base_path={:?}", clang_base_path));
+-
+-    if cfg!(target_os = "android") && cfg!(target_arch = "aarch64") {
+-      gn_args.push("clang_use_chrome_plugins=false".to_string());
+-      gn_args.push("treat_warnings_as_errors=false".to_string());
+-    }
 -  }
 -
 -  if let Some(p) = env::var_os("SCCACHE") {
@@ -58,7 +61,7 @@ index 0511211..d6ec968 100644
  
    if let Ok(args) = env::var("GN_ARGS") {
      for arg in args.split_whitespace() {
-@@ -197,33 +166,6 @@ fn platform() -> &'static str {
+@@ -249,33 +215,6 @@ fn platform() -> &'static str {
    }
  }
  
@@ -92,7 +95,7 @@ index 0511211..d6ec968 100644
  fn static_lib_url() -> String {
    if let Ok(custom_archive) = env::var("RUSTY_V8_ARCHIVE") {
      return custom_archive;
-@@ -295,36 +237,11 @@ fn download_file(url: String, filename: PathBuf) {
+@@ -347,36 +286,11 @@ fn download_file(url: String, filename: PathBuf) {
      return;
    }
  
@@ -134,7 +137,7 @@ index 0511211..d6ec968 100644
  }
  
  fn download_static_lib_binaries() {
-@@ -350,6 +267,10 @@ fn print_link_flags() {
+@@ -402,6 +316,10 @@ fn print_link_flags() {
      println!("cargo:rustc-link-lib=dylib=winmm");
      println!("cargo:rustc-link-lib=dylib=dbghelp");
    }
@@ -145,7 +148,7 @@ index 0511211..d6ec968 100644
  }
  
  // Chromium depot_tools contains helpers
-@@ -368,61 +289,6 @@ fn need_gn_ninja_download() -> bool {
+@@ -420,64 +338,6 @@ fn need_gn_ninja_download() -> bool {
    !has_ninja || !has_gn
  }
  
@@ -167,6 +170,10 @@ index 0511211..d6ec968 100644
 -}
 -
 -fn find_compatible_system_clang() -> Option<PathBuf> {
+-  if cfg!(target_os = "android") {
+-    return None;
+-  }
+-
 -  if let Ok(p) = env::var("CLANG_BASE_PATH") {
 -    let base_path = Path::new(&p);
 -    let clang_path = base_path.join("bin").join("clang");
@@ -175,7 +182,6 @@ index 0511211..d6ec968 100644
 -    }
 -  }
 -
--  println!("using Chromiums clang");
 -  None
 -}
 -
@@ -207,7 +213,7 @@ index 0511211..d6ec968 100644
  struct Dirs {
    pub out: PathBuf,
    pub root: PathBuf,
-@@ -520,8 +386,12 @@ type NinjaEnv = Vec<(String, String)>;
+@@ -575,8 +435,12 @@ type NinjaEnv = Vec<(String, String)>;
  fn ninja(gn_out_dir: &Path, maybe_env: Option<NinjaEnv>) -> Command {
    let cmd_string = env::var("NINJA").unwrap_or_else(|_| "ninja".to_owned());
    let mut cmd = Command::new(cmd_string);
@@ -220,7 +226,7 @@ index 0511211..d6ec968 100644
    if let Some(env) = maybe_env {
      for item in env {
        cmd.env(item.0, item.1);
-@@ -550,6 +420,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
+@@ -636,6 +500,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
      cmd.arg(format!("--root={}", dirs.root.display()));
      cmd.arg("gen");
      cmd.arg(&gn_out_dir);
