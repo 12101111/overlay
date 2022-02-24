@@ -9,9 +9,17 @@ MY_ZULU_PV="17.32.13-ca-jdk17.0.2"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
 
+zulu_arch() {
+	case ${ABI} in
+		arm64) echo "aarch64";;
+		amd64) echo "x64";;
+		*) die "${ABI} is not supported";;
+	esac
+}
+
 SRC_URI="
-	amd64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_x64.tar.gz )
-	arm64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_aarch64.tar.gz )
+	amd64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_$(zulu_arch).tar.gz )
+	arm64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_$(zulu_arch).tar.gz )
 "
 
 DESCRIPTION="Prebuilt Java JDK binaries for musl provided by Zulu"
@@ -41,7 +49,7 @@ RDEPEND="
 RESTRICT="preserve-libs splitdebug"
 QA_PREBUILT="*"
 
-S="${WORKDIR}/zulu${MY_ZULU_PV}-${MY_ZULU_ARCH}"
+S="${WORKDIR}/zulu${MY_ZULU_PV}-linux_musl_$(zulu_arch)"
 
 src_install() {
 	local dest="/opt/${P}"
