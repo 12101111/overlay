@@ -1,0 +1,32 @@
+From 24c403cfaf8bdbcd8b19037531c8998709d2b949 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C3=ABl=20Zasso?= <targos@protonmail.com>
+Date: Tue, 5 Oct 2021 13:34:39 +0200
+Subject: [PATCH] tools: patch jinja2 for Python 3.10 compat
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+PR-URL: https://github.com/nodejs/node/pull/40296
+Fixes: https://github.com/nodejs/node/issues/40294
+Reviewed-By: Jiawen Geng <technicalcute@gmail.com>
+Reviewed-By: James M Snell <jasnell@gmail.com>
+Reviewed-By: Richard Lau <rlau@redhat.com>
+Reviewed-By: Christian Clauss <cclauss@me.com>
+Reviewed-By: Michaël Zasso <targos@protonmail.com>
+---
+ tools/inspector_protocol/jinja2/tests.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/inspector_protocol/jinja2/tests.py b/tools/inspector_protocol/jinja2/tests.py
+index 0adc3d4dbcbb..b14f85ff148c 100644
+--- a/tools/inspector_protocol/jinja2/tests.py
++++ b/tools/inspector_protocol/jinja2/tests.py
+@@ -10,7 +10,7 @@
+ """
+ import operator
+ import re
+-from collections import Mapping
++from collections.abc import Mapping
+ from jinja2.runtime import Undefined
+ from jinja2._compat import text_type, string_types, integer_types
+ import decimal

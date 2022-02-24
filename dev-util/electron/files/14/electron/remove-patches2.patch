@@ -474,3 +474,69 @@ index 369751e1dc..1ab86d6de7 100644
 -+
 -+  assert_true(counts_valid, `Opaque range request preloads were different for error and success`);
 -+}, `Opaque range preload successes and failures should be indistinguishable`);
+diff --git a/patches/chromium/cherry-pick-27eb11a28555.patch b/patches/chromium/cherry-pick-27eb11a28555.patch
+index cb11ae99ed..2d48870e97 100644
+--- a/patches/chromium/cherry-pick-27eb11a28555.patch
++++ b/patches/chromium/cherry-pick-27eb11a28555.patch
+@@ -44,28 +44,3 @@ index 6e4e8acf811f29712e87994e3fa125a811da978a..72aac202ca076fe7ea81f833549773f5
+    timing_allow_failed_flag_ = !PassesTimingAllowOriginCheck(*response_head);
+  
+    // Because we initiate a new request on redirect in some cases, we cannot
+-diff --git a/third_party/blink/web_tests/external/wpt/fetch/api/redirect/redirect-mode.any.js b/third_party/blink/web_tests/external/wpt/fetch/api/redirect/redirect-mode.any.js
+-index eed44e0414cb8947c9b7c21df6ef288f733f8994..9f1ff98c65af97bcf185867ac6c6e128dbd77715 100644
+---- a/third_party/blink/web_tests/external/wpt/fetch/api/redirect/redirect-mode.any.js
+-+++ b/third_party/blink/web_tests/external/wpt/fetch/api/redirect/redirect-mode.any.js
+-@@ -1,6 +1,7 @@
+- // META: script=/common/get-host-info.sub.js
+- 
+- var redirectLocation = "cors-top.txt";
+-+const { ORIGIN, REMOTE_ORIGIN } = get_host_info();
+- 
+- function testRedirect(origin, redirectStatus, redirectMode, corsMode) {
+-   var url = new URL("../resources/redirect.py", self.location);
+-@@ -47,4 +48,12 @@ for (var origin of ["same-origin", "cross-origin"]) {
+-   }
+- }
+- 
+-+promise_test(async (t) => {
+-+  const destination = `${ORIGIN}/common/blank.html`;
+-+  // We use /common/redirect.py intentionally, as we want a CORS error.
+-+  const url =
+-+    `${REMOTE_ORIGIN}/common/redirect.py?location=${destination}`;
+-+  await promise_rejects_js(t, TypeError,  fetch(url, { redirect: "manual" }));
+-+}, "manual redirect with a CORS error should be rejected");
+-+
+- done();
+diff --git a/patches/v8/cherry-pick-27bc67f761e6.patch b/patches/v8/cherry-pick-27bc67f761e6.patch
+index 56bd5ac7b6..ed1cacf553 100644
+--- a/patches/v8/cherry-pick-27bc67f761e6.patch
++++ b/patches/v8/cherry-pick-27bc67f761e6.patch
+@@ -226,28 +226,3 @@ index fb5949e2c90966a240ccfb1b61a01017a816f313..6c1df05ca95feb3f40db70f652a55b59
+  
+    return ReadOnlyRoots(isolate).undefined_value();
+  }
+-diff --git a/test/cctest/test-api.cc b/test/cctest/test-api.cc
+-index 5a12729d929a36fbcc89d0d2586c0cbfee72309c..f6373286cf99176b440db6965e657580321a6380 100644
+---- a/test/cctest/test-api.cc
+-+++ b/test/cctest/test-api.cc
+-@@ -62,6 +62,7 @@
+- #include "src/objects/js-array-inl.h"
+- #include "src/objects/js-promise-inl.h"
+- #include "src/objects/lookup.h"
+-+#include "src/objects/map-updater.h"
+- #include "src/objects/module-inl.h"
+- #include "src/objects/objects-inl.h"
+- #include "src/objects/string-inl.h"
+-@@ -2972,9 +2973,9 @@ TEST(InternalFieldsSubclassing) {
+-         CHECK_LE(i_value->map().GetInObjectProperties(), kMaxNofProperties);
+-       }
+- 
+--      // Make Sure we get the precise property count.
+--      i_value->map().FindRootMap(i_isolate).CompleteInobjectSlackTracking(
+--          i_isolate);
+-+      // Make sure we get the precise property count.
+-+      i::MapUpdater::CompleteInobjectSlackTracking(
+-+          i_isolate, i_value->map().FindRootMap(i_isolate));
+-       // TODO(cbruni): fix accounting to make this condition true.
+-       // CHECK_EQ(0, i_value->map()->UnusedPropertyFields());
+-       if (in_object_only) {

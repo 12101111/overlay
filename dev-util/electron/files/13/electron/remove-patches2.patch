@@ -587,3 +587,36 @@ index 5a31359b1b..475ccd468e 100644
 -+
 -+  assert_true(counts_valid, `Opaque range request preloads were different for error and success`);
 -+}, `Opaque range preload successes and failures should be indistinguishable`);
+diff --git a/patches/chromium/cherry-pick-27eb11a28555.patch b/patches/chromium/cherry-pick-27eb11a28555.patch
+index e808562660..436c96388d 100644
+--- a/patches/chromium/cherry-pick-27eb11a28555.patch
++++ b/patches/chromium/cherry-pick-27eb11a28555.patch
+@@ -44,28 +44,3 @@ index bc60ad917243aae143c9de16670f10358ff98689..2eaa10e4763745ff434ac249b92d353d
+    timing_allow_failed_flag_ = !PassesTimingAllowOriginCheck(*response_head);
+  
+    // Because we initiate a new request on redirect in some cases, we cannot
+-diff --git a/third_party/blink/web_tests/external/wpt/fetch/api/redirect/redirect-mode.any.js b/third_party/blink/web_tests/external/wpt/fetch/api/redirect/redirect-mode.any.js
+-index eed44e0414cb8947c9b7c21df6ef288f733f8994..9f1ff98c65af97bcf185867ac6c6e128dbd77715 100644
+---- a/third_party/blink/web_tests/external/wpt/fetch/api/redirect/redirect-mode.any.js
+-+++ b/third_party/blink/web_tests/external/wpt/fetch/api/redirect/redirect-mode.any.js
+-@@ -1,6 +1,7 @@
+- // META: script=/common/get-host-info.sub.js
+- 
+- var redirectLocation = "cors-top.txt";
+-+const { ORIGIN, REMOTE_ORIGIN } = get_host_info();
+- 
+- function testRedirect(origin, redirectStatus, redirectMode, corsMode) {
+-   var url = new URL("../resources/redirect.py", self.location);
+-@@ -47,4 +48,12 @@ for (var origin of ["same-origin", "cross-origin"]) {
+-   }
+- }
+- 
+-+promise_test(async (t) => {
+-+  const destination = `${ORIGIN}/common/blank.html`;
+-+  // We use /common/redirect.py intentionally, as we want a CORS error.
+-+  const url =
+-+    `${REMOTE_ORIGIN}/common/redirect.py?location=${destination}`;
+-+  await promise_rejects_js(t, TypeError,  fetch(url, { redirect: "manual" }));
+-+}, "manual redirect with a CORS error should be rejected");
+-+
+- done();
