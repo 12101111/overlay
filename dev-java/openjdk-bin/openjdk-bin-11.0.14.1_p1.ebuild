@@ -1,11 +1,11 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
 inherit java-vm-2 toolchain-funcs
 
-MY_ZULU_PV="11.52.13-ca-jdk11.0.13"
+MY_ZULU_PV="11.54.25-ca-jdk11.0.14.1"
 MY_ZULU_ARCH="linux_musl_x64"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
@@ -18,7 +18,7 @@ DESCRIPTION="Prebuilt Java JDK binaries for musl provided by Zulu"
 HOMEPAGE="https://www.azul.com/downloads/zulu-community/"
 LICENSE="GPL-2-with-classpath-exception"
 KEYWORDS="~amd64"
-IUSE="alsa cups +gentoo-vm headless-awt selinux source"
+IUSE="alsa cups headless-awt selinux source"
 
 RDEPEND="
 	media-libs/fontconfig:1.0
@@ -45,7 +45,7 @@ S="${WORKDIR}/zulu${MY_ZULU_PV}-${MY_ZULU_ARCH}"
 
 src_install() {
 	local dest="/opt/${P}"
-	local ddest="${ED%/}/${dest#/}"
+	local ddest="${ED}/${dest#/}"
 
 	# on macOS if they would exist they would be called .dylib, but most
 	# importantly, there are no different providers, so everything
@@ -75,8 +75,7 @@ src_install() {
 	fi
 
 	rm -v lib/security/cacerts || die
-	dosym ../../../../etc/ssl/certs/java/cacerts \
-		"${dest}"/lib/security/cacerts
+	dosym -r /etc/ssl/certs/java/cacerts "${dest}"/lib/security/cacerts
 
 	dodir "${dest}"
 	cp -pPR * "${ddest}" || die
@@ -84,7 +83,7 @@ src_install() {
 	# provide stable symlink
 	dosym "${P}" "/opt/${PN}-${SLOT}"
 
-	use gentoo-vm && java-vm_install-env "${FILESDIR}"/${PN}-${SLOT}.env.sh
+	java-vm_install-env "${FILESDIR}"/${PN}-${SLOT}.env.sh
 	java-vm_set-pax-markings "${ddest}"
 	java-vm_revdep-mask
 	java-vm_sandbox-predict /dev/random /proc/self/coredump_filter
@@ -92,16 +91,4 @@ src_install() {
 
 pkg_postinst() {
 	java-vm-2_pkg_postinst
-
-	if use gentoo-vm ; then
-		ewarn "WARNING! You have enabled the gentoo-vm USE flag, making this JDK"
-		ewarn "recognised by the system. This will almost certainly break"
-		ewarn "many java ebuilds as they are not ready for openjdk-11"
-	else
-		ewarn "The experimental gentoo-vm USE flag has not been enabled so this JDK"
-		ewarn "will not be recognised by the system. For example, simply calling"
-		ewarn "\"java\" will launch a different JVM. This is necessary until Gentoo"
-		ewarn "fully supports Java 11. This JDK must therefore be invoked using its"
-		ewarn "absolute location under ${EPREFIX}/opt/${P}."
-	fi
 }

@@ -1,23 +1,23 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
 inherit java-vm-2 toolchain-funcs
 
-MY_ZULU_PV="17.30.15-ca-jdk17.0.1"
-MY_ZULU_ARCH="linux_musl_x64"
+MY_ZULU_PV="17.32.13-ca-jdk17.0.2"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
 
 SRC_URI="
-	amd64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-${MY_ZULU_ARCH}.tar.gz )
+	amd64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_x64.tar.gz )
+	arm64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_aarch64.tar.gz )
 "
 
 DESCRIPTION="Prebuilt Java JDK binaries for musl provided by Zulu"
 HOMEPAGE="https://www.azul.com/downloads/zulu-community/"
 LICENSE="GPL-2-with-classpath-exception"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm64"
 IUSE="alsa cups +gentoo-vm headless-awt selinux source"
 
 RDEPEND="
@@ -45,7 +45,7 @@ S="${WORKDIR}/zulu${MY_ZULU_PV}-${MY_ZULU_ARCH}"
 
 src_install() {
 	local dest="/opt/${P}"
-	local ddest="${ED%/}/${dest#/}"
+	local ddest="${ED}/${dest#/}"
 
 	# on macOS if they would exist they would be called .dylib, but most
 	# importantly, there are no different providers, so everything
@@ -75,8 +75,7 @@ src_install() {
 	fi
 
 	rm -v lib/security/cacerts || die
-	dosym ../../../../etc/ssl/certs/java/cacerts \
-		"${dest}"/lib/security/cacerts
+	dosym -r /etc/ssl/certs/java/cacerts "${dest}"/lib/security/cacerts
 
 	dodir "${dest}"
 	cp -pPR * "${ddest}" || die

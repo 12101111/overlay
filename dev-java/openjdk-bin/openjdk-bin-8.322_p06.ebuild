@@ -1,11 +1,11 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
 inherit java-vm-2
 
-MY_ZULU_PV="8.58.0.13-ca-jdk8.0.312"
+MY_ZULU_PV="8.60.0.21-ca-jdk8.0.322"
 MY_ZULU_ARCH="linux_musl_x64"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
@@ -56,7 +56,7 @@ src_unpack() {
 
 src_install() {
 	local dest="/opt/${P}"
-	local ddest="${ED%/}/${dest#/}"
+	local ddest="${ED}/${dest#/}"
 
 	rm ASSEMBLY_EXCEPTION LICENSE THIRD_PARTY_README || die
 
