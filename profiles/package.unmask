@@ -2,3 +2,5 @@
 app-eselect/eselect-electron
 sys-apps/pacman
 app-text/goldendict
+www-client/firefox
+www-client/chromium
