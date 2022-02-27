@@ -1,3 +1,4 @@
 amd64	clang/musl/amd64		exp
 amd64	clang/musl/amd64/systemd	exp
 arm64	clang/musl/arm64		exp
+arm64	clang/musl/arm64/systemd	exp
