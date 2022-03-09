@@ -1,0 +1,1307 @@
+From b4c05db9ceb3273c36f8d072194564e1daa3fc68 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Wed, 9 Mar 2022 23:32:02 +0800
+Subject: [PATCH] use optimized memcpy & memset
+
+---
+ src/string/aarch64/memcpy.S                | 287 ++++++------
+ src/string/x86_64/memcpy.S                 | 487 +++++++++++++++++++++
+ src/string/x86_64/memcpy.s                 |  25 --
+ src/string/x86_64/{memmove.s => memmove.S} |   5 +
+ src/string/x86_64/memset.S                 | 316 +++++++++++++
+ src/string/x86_64/memset.s                 |  72 ---
+ 6 files changed, 961 insertions(+), 231 deletions(-)
+ create mode 100644 src/string/x86_64/memcpy.S
+ delete mode 100644 src/string/x86_64/memcpy.s
+ rename src/string/x86_64/{memmove.s => memmove.S} (80%)
+ create mode 100644 src/string/x86_64/memset.S
+ delete mode 100644 src/string/x86_64/memset.s
+
+diff --git a/src/string/aarch64/memcpy.S b/src/string/aarch64/memcpy.S
+index 48bb8a8d..272a727e 100644
+--- a/src/string/aarch64/memcpy.S
++++ b/src/string/aarch64/memcpy.S
+@@ -7,38 +7,38 @@
+ 
+ /* Assumptions:
+  *
+- * ARMv8-a, AArch64, unaligned accesses.
++ * ARMv8-a, AArch64, Advanced SIMD, unaligned accesses.
+  *
+  */
+ 
+-#define dstin   x0
+-#define src     x1
+-#define count   x2
+-#define dst     x3
+-#define srcend  x4
+-#define dstend  x5
+-#define A_l     x6
+-#define A_lw    w6
+-#define A_h     x7
+-#define B_l     x8
+-#define B_lw    w8
+-#define B_h     x9
+-#define C_l     x10
+-#define C_lw    w10
+-#define C_h     x11
+-#define D_l     x12
+-#define D_h     x13
+-#define E_l     x14
+-#define E_h     x15
+-#define F_l     x16
+-#define F_h     x17
+-#define G_l     count
+-#define G_h     dst
+-#define H_l     src
+-#define H_h     srcend
+-#define tmp1    x14
+-
+-/* This implementation of memcpy uses unaligned accesses and branchless
++#define dstin	x0
++#define src	x1
++#define count	x2
++#define dst	x3
++#define srcend	x4
++#define dstend	x5
++#define A_l	x6
++#define A_lw	w6
++#define A_h	x7
++#define B_l	x8
++#define B_lw	w8
++#define B_h	x9
++#define C_lw	w10
++#define tmp1	x14
++
++#define A_q	q0
++#define B_q	q1
++#define C_q	q2
++#define D_q	q3
++#define E_q	q4
++#define F_q	q5
++#define G_q	q6
++#define H_q	q7
++
++#define L(l) .L ## l
++
++/* This implementation handles overlaps and supports both memcpy and memmove
++   from a single entry point.  It uses unaligned accesses and branchless
+    sequences to keep the code small, simple and improve performance.
+ 
+    Copies are split into 3 main cases: small copies of up to 32 bytes, medium
+@@ -46,141 +46,160 @@
+    check is negligible since it is only required for large copies.
+ 
+    Large copies use a software pipelined loop processing 64 bytes per iteration.
+-   The destination pointer is 16-byte aligned to minimize unaligned accesses.
++   The source pointer is 16-byte aligned to minimize unaligned accesses.
+    The loop tail is handled by always copying 64 bytes from the end.
+ */
+ 
+ .global memcpy
+ .type memcpy,%function
+-memcpy:
+-	add     srcend, src, count
+-	add     dstend, dstin, count
+-	cmp     count, 128
+-	b.hi    .Lcopy_long
+-	cmp     count, 32
+-	b.hi    .Lcopy32_128
++.global memmove
++.type memmove,%function
++memmove:
++memcpy:	add	srcend, src, count
++	add	dstend, dstin, count
++	cmp	count, 128
++	b.hi	L(copy_long)
++	cmp	count, 32
++	b.hi	L(copy32_128)
+ 
+ 	/* Small copies: 0..32 bytes.  */
+-	cmp     count, 16
+-	b.lo    .Lcopy16
+-	ldp     A_l, A_h, [src]
+-	ldp     D_l, D_h, [srcend, -16]
+-	stp     A_l, A_h, [dstin]
+-	stp     D_l, D_h, [dstend, -16]
++	cmp	count, 16
++	b.lo	L(copy16)
++	ldr	A_q, [src]
++	ldr	B_q, [srcend, -16]
++	str	A_q, [dstin]
++	str	B_q, [dstend, -16]
+ 	ret
+ 
+ 	/* Copy 8-15 bytes.  */
+-.Lcopy16:
+-	tbz     count, 3, .Lcopy8
+-	ldr     A_l, [src]
+-	ldr     A_h, [srcend, -8]
+-	str     A_l, [dstin]
+-	str     A_h, [dstend, -8]
++L(copy16):
++	tbz	count, 3, L(copy8)
++	ldr	A_l, [src]
++	ldr	A_h, [srcend, -8]
++	str	A_l, [dstin]
++	str	A_h, [dstend, -8]
+ 	ret
+ 
+ 	.p2align 3
+ 	/* Copy 4-7 bytes.  */
+-.Lcopy8:
+-	tbz     count, 2, .Lcopy4
+-	ldr     A_lw, [src]
+-	ldr     B_lw, [srcend, -4]
+-	str     A_lw, [dstin]
+-	str     B_lw, [dstend, -4]
++L(copy8):
++	tbz	count, 2, L(copy4)
++	ldr	A_lw, [src]
++	ldr	B_lw, [srcend, -4]
++	str	A_lw, [dstin]
++	str	B_lw, [dstend, -4]
+ 	ret
+ 
+ 	/* Copy 0..3 bytes using a branchless sequence.  */
+-.Lcopy4:
+-	cbz     count, .Lcopy0
+-	lsr     tmp1, count, 1
+-	ldrb    A_lw, [src]
+-	ldrb    C_lw, [srcend, -1]
+-	ldrb    B_lw, [src, tmp1]
+-	strb    A_lw, [dstin]
+-	strb    B_lw, [dstin, tmp1]
+-	strb    C_lw, [dstend, -1]
+-.Lcopy0:
++L(copy4):
++	cbz	count, L(copy0)
++	lsr	tmp1, count, 1
++	ldrb	A_lw, [src]
++	ldrb	C_lw, [srcend, -1]
++	ldrb	B_lw, [src, tmp1]
++	strb	A_lw, [dstin]
++	strb	B_lw, [dstin, tmp1]
++	strb	C_lw, [dstend, -1]
++L(copy0):
+ 	ret
+ 
+ 	.p2align 4
+ 	/* Medium copies: 33..128 bytes.  */
+-.Lcopy32_128:
+-	ldp     A_l, A_h, [src]
+-	ldp     B_l, B_h, [src, 16]
+-	ldp     C_l, C_h, [srcend, -32]
+-	ldp     D_l, D_h, [srcend, -16]
+-	cmp     count, 64
+-	b.hi    .Lcopy128
+-	stp     A_l, A_h, [dstin]
+-	stp     B_l, B_h, [dstin, 16]
+-	stp     C_l, C_h, [dstend, -32]
+-	stp     D_l, D_h, [dstend, -16]
++L(copy32_128):
++	ldp	A_q, B_q, [src]
++	ldp	C_q, D_q, [srcend, -32]
++	cmp	count, 64
++	b.hi	L(copy128)
++	stp	A_q, B_q, [dstin]
++	stp	C_q, D_q, [dstend, -32]
+ 	ret
+ 
+ 	.p2align 4
+ 	/* Copy 65..128 bytes.  */
+-.Lcopy128:
+-	ldp     E_l, E_h, [src, 32]
+-	ldp     F_l, F_h, [src, 48]
+-	cmp     count, 96
+-	b.ls    .Lcopy96
+-	ldp     G_l, G_h, [srcend, -64]
+-	ldp     H_l, H_h, [srcend, -48]
+-	stp     G_l, G_h, [dstend, -64]
+-	stp     H_l, H_h, [dstend, -48]
+-.Lcopy96:
+-	stp     A_l, A_h, [dstin]
+-	stp     B_l, B_h, [dstin, 16]
+-	stp     E_l, E_h, [dstin, 32]
+-	stp     F_l, F_h, [dstin, 48]
+-	stp     C_l, C_h, [dstend, -32]
+-	stp     D_l, D_h, [dstend, -16]
++L(copy128):
++	ldp	E_q, F_q, [src, 32]
++	cmp	count, 96
++	b.ls	L(copy96)
++	ldp	G_q, H_q, [srcend, -64]
++	stp	G_q, H_q, [dstend, -64]
++L(copy96):
++	stp	A_q, B_q, [dstin]
++	stp	E_q, F_q, [dstin, 32]
++	stp	C_q, D_q, [dstend, -32]
+ 	ret
+ 
+-	.p2align 4
+ 	/* Copy more than 128 bytes.  */
+-.Lcopy_long:
+-
+-	/* Copy 16 bytes and then align dst to 16-byte alignment.  */
+-
+-	ldp     D_l, D_h, [src]
+-	and     tmp1, dstin, 15
+-	bic     dst, dstin, 15
+-	sub     src, src, tmp1
+-	add     count, count, tmp1      /* Count is now 16 too large.  */
+-	ldp     A_l, A_h, [src, 16]
+-	stp     D_l, D_h, [dstin]
+-	ldp     B_l, B_h, [src, 32]
+-	ldp     C_l, C_h, [src, 48]
+-	ldp     D_l, D_h, [src, 64]!
+-	subs    count, count, 128 + 16  /* Test and readjust count.  */
+-	b.ls    .Lcopy64_from_end
+-
+-.Lloop64:
+-	stp     A_l, A_h, [dst, 16]
+-	ldp     A_l, A_h, [src, 16]
+-	stp     B_l, B_h, [dst, 32]
+-	ldp     B_l, B_h, [src, 32]
+-	stp     C_l, C_h, [dst, 48]
+-	ldp     C_l, C_h, [src, 48]
+-	stp     D_l, D_h, [dst, 64]!
+-	ldp     D_l, D_h, [src, 64]!
+-	subs    count, count, 64
+-	b.hi    .Lloop64
++L(copy_long):
++	/* Use backwards copy if there is an overlap.  */
++	sub	tmp1, dstin, src
++	cmp	tmp1, count
++	b.lo	L(copy_long_backwards)
++
++	/* Copy 16 bytes and then align src to 16-byte alignment.  */
++	ldr	D_q, [src]
++	and	tmp1, src, 15
++	bic	src, src, 15
++	sub	dst, dstin, tmp1
++	add	count, count, tmp1	/* Count is now 16 too large.  */
++	ldp	A_q, B_q, [src, 16]
++	str	D_q, [dstin]
++	ldp	C_q, D_q, [src, 48]
++	subs	count, count, 128 + 16	/* Test and readjust count.  */
++	b.ls	L(copy64_from_end)
++L(loop64):
++	stp	A_q, B_q, [dst, 16]
++	ldp	A_q, B_q, [src, 80]
++	stp	C_q, D_q, [dst, 48]
++	ldp	C_q, D_q, [src, 112]
++	add	src, src, 64
++	add	dst, dst, 64
++	subs	count, count, 64
++	b.hi	L(loop64)
+ 
+ 	/* Write the last iteration and copy 64 bytes from the end.  */
+-.Lcopy64_from_end:
+-	ldp     E_l, E_h, [srcend, -64]
+-	stp     A_l, A_h, [dst, 16]
+-	ldp     A_l, A_h, [srcend, -48]
+-	stp     B_l, B_h, [dst, 32]
+-	ldp     B_l, B_h, [srcend, -32]
+-	stp     C_l, C_h, [dst, 48]
+-	ldp     C_l, C_h, [srcend, -16]
+-	stp     D_l, D_h, [dst, 64]
+-	stp     E_l, E_h, [dstend, -64]
+-	stp     A_l, A_h, [dstend, -48]
+-	stp     B_l, B_h, [dstend, -32]
+-	stp     C_l, C_h, [dstend, -16]
++L(copy64_from_end):
++	ldp	E_q, F_q, [srcend, -64]
++	stp	A_q, B_q, [dst, 16]
++	ldp	A_q, B_q, [srcend, -32]
++	stp	C_q, D_q, [dst, 48]
++	stp	E_q, F_q, [dstend, -64]
++	stp	A_q, B_q, [dstend, -32]
++	ret
++
++	/* Large backwards copy for overlapping copies.
++	   Copy 16 bytes and then align srcend to 16-byte alignment.  */
++L(copy_long_backwards):
++	cbz	tmp1, L(copy0)
++	ldr	D_q, [srcend, -16]
++	and	tmp1, srcend, 15
++	bic	srcend, srcend, 15
++	sub	count, count, tmp1
++	ldp	A_q, B_q, [srcend, -32]
++	str	D_q, [dstend, -16]
++	ldp	C_q, D_q, [srcend, -64]
++	sub	dstend, dstend, tmp1
++	subs	count, count, 128
++	b.ls	L(copy64_from_start)
++
++L(loop64_backwards):
++	str	B_q, [dstend, -16]
++	str	A_q, [dstend, -32]
++	ldp	A_q, B_q, [srcend, -96]
++	str	D_q, [dstend, -48]
++	str	C_q, [dstend, -64]!
++	ldp	C_q, D_q, [srcend, -128]
++	sub	srcend, srcend, 64
++	subs	count, count, 64
++	b.hi	L(loop64_backwards)
++
++	/* Write the last iteration and copy 64 bytes from the start.  */
++L(copy64_from_start):
++	ldp	E_q, F_q, [src, 32]
++	stp	A_q, B_q, [dstend, -32]
++	ldp	A_q, B_q, [src]
++	stp	C_q, D_q, [dstend, -64]
++	stp	E_q, F_q, [dstin, 32]
++	stp	A_q, B_q, [dstin]
+ 	ret
+ 
+ .size memcpy,.-memcpy
+diff --git a/src/string/x86_64/memcpy.S b/src/string/x86_64/memcpy.S
+new file mode 100644
+index 00000000..c972b677
+--- /dev/null
++++ b/src/string/x86_64/memcpy.S
+@@ -0,0 +1,487 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++/*
++ * __folly_memcpy: An optimized memcpy implementation that uses prefetch and
++ * AVX2 instructions.
++ *
++ * This implementation of memcpy acts as a memmove: while overlapping copies
++ * are undefined in memcpy, in some implementations they're the same function and
++ * legacy programs rely on this behavior.
++ *
++ * This implementation uses prefetch to avoid dtlb misses. This can
++ * substantially reduce dtlb store misses in cases where the destination
++ * location is absent from L1 cache and where the copy size is small enough
++ * that the hardware prefetcher doesn't have a large impact.
++ *
++ * The number of branches is limited by the use of overlapping loads & stores.
++ * This helps with copies where the source and destination cache lines are already
++ * present in L1 because there are fewer instructions to execute and fewer
++ * branches to potentially mispredict.
++ *   e.g. to copy the last 4 <= n <= 7 bytes: copy the first & last 4 bytes (overlapped):
++ *      movl        (%rsi), %r8d
++ *      movl        -4(%rsi,%rdx), %r9d
++ *      movl        %r8d, (%rdi)
++ *      movl        %r9d, -4(%rdi,%rdx)
++ *
++ *
++ * For sizes up to 256 all source data is first read into registers and then written:
++ * - n <=  16: overlapping movs
++ * - n <=  32: overlapping unaligned 16-byte SSE XMM load/stores
++ * - n <= 256: overlapping unaligned 32-byte AVX YMM load/stores
++ *
++ * Large copies (> 256 bytes) use unaligned loads + aligned stores.
++ * This is observed to always be faster than rep movsb, so the rep movsb
++ * instruction is not used.
++ * - The head & tail may be unaligned => they're always written using unaligned stores.
++ *
++ * If the copy size is humongous (> 32 KiB) and the source and destination are both
++ * aligned, this memcpy will use non-temporal operations (AVX2). This can have
++ * a substantial speedup for copies where data is absent from L1, but it
++ * is significantly slower if the source and destination data were already
++ * in L1. The use of non-temporal operations also has the effect that after
++ * the copy is complete, the data will be moved out of L1, even if the data was
++ * present before the copy started.
++ *
++ * For n > 256 and overlapping src & dst buffers (memmove):
++ * - use unaligned loads + aligned stores, but not non-temporal stores
++ * - for dst < src forward copy in 128 byte batches:
++ *   - unaligned load the first 32 bytes & last 4 x 32 bytes
++ *   - forward copy (unaligned load + aligned stores) 4 x 32 bytes at a time
++ *   - unaligned store the first 32 bytes & last 4 x 32 bytes
++ * - for dst > src backward copy in 128 byte batches:
++ *   - unaligned load the first 4 x 32 bytes & last 32 bytes
++ *   - backward copy (unaligned load + aligned stores) 4 x 32 bytes at a time
++ *   - unaligned store the first 4 x 32 bytes & last 32 bytes
++ *
++ * @author Logan Evans <lpe@fb.com>
++ */
++
++#if defined(__AVX2__)
++
++#if defined(PREFETCH)
++#undef PREFETCH
++#endif
++#if __PRFCHW__ // Broadwell+
++#define PREFETCH prefetchw
++#else
++#define PREFETCH prefetcht0
++#endif
++
++// This threshold is half of L1 cache on a Skylake machine, which means that
++// potentially all of L1 will be populated by this copy once it is executed
++// (dst and src are cached for temporal copies).
++#define NON_TEMPORAL_STORE_THRESHOLD $32768
++
++        .file       "memcpy.S"
++        .section    .text,"ax"
++
++        .type       __folly_memcpy_short, @function
++__folly_memcpy_short:
++        .cfi_startproc
++
++.L_GE1_LE7:
++        cmp         $1, %rdx
++        je          .L_EQ1
++
++        cmp         $4, %rdx
++        jae         .L_GE4_LE7
++
++.L_GE2_LE3:
++        movw        (%rsi), %r8w
++        movw        -2(%rsi,%rdx), %r9w
++        movw        %r8w, (%rdi)
++        movw        %r9w, -2(%rdi,%rdx)
++        ret
++
++        .align      2
++.L_EQ1:
++        movb        (%rsi), %r8b
++        movb        %r8b, (%rdi)
++        ret
++
++        // Aligning the target of a jump to an even address has a measurable
++        // speedup in microbenchmarks.
++        .align      2
++.L_GE4_LE7:
++        movl        (%rsi), %r8d
++        movl        -4(%rsi,%rdx), %r9d
++        movl        %r8d, (%rdi)
++        movl        %r9d, -4(%rdi,%rdx)
++        ret
++
++        .cfi_endproc
++        .size       __folly_memcpy_short, .-__folly_memcpy_short
++
++// memcpy is an alternative entrypoint into the function named __folly_memcpy.
++// The compiler is able to call memcpy since the name is global while
++// stacktraces will show __folly_memcpy since that is the name of the function.
++// This is intended to aid in debugging by making it obvious which version of
++// memcpy is being used.
++        .align      64
++        .hidden      __folly_memcpy
++        .type       __folly_memcpy, @function
++
++__folly_memcpy:
++        .cfi_startproc
++
++        mov         %rdi, %rax    # return: $rdi
++
++        test        %rdx, %rdx
++        je          .L_EQ0
++
++        PREFETCH    (%rdi)
++        PREFETCH    -1(%rdi,%rdx)
++
++        cmp         $8, %rdx
++        jb          .L_GE1_LE7
++
++.L_GE8:
++        cmp         $32, %rdx
++        ja          .L_GE33
++
++.L_GE8_LE32:
++        cmp         $16, %rdx
++        ja          .L_GE17_LE32
++
++.L_GE8_LE16:
++        mov         (%rsi), %r8
++        mov         -8(%rsi,%rdx), %r9
++        mov         %r8, (%rdi)
++        mov         %r9, -8(%rdi,%rdx)
++.L_EQ0:
++        ret
++
++        .align      2
++.L_GE17_LE32:
++        movdqu      (%rsi), %xmm0
++        movdqu      -16(%rsi,%rdx), %xmm1
++        movdqu      %xmm0, (%rdi)
++        movdqu      %xmm1, -16(%rdi,%rdx)
++        ret
++
++        .align      2
++.L_GE193_LE256:
++        vmovdqu     %ymm3, 96(%rdi)
++        vmovdqu     %ymm4, -128(%rdi,%rdx)
++
++.L_GE129_LE192:
++        vmovdqu     %ymm2, 64(%rdi)
++        vmovdqu     %ymm5, -96(%rdi,%rdx)
++
++.L_GE65_LE128:
++        vmovdqu     %ymm1, 32(%rdi)
++        vmovdqu     %ymm6, -64(%rdi,%rdx)
++
++.L_GE33_LE64:
++        vmovdqu     %ymm0, (%rdi)
++        vmovdqu     %ymm7, -32(%rdi,%rdx)
++
++        vzeroupper
++        ret
++
++        .align      2
++.L_GE33:
++        vmovdqu     (%rsi), %ymm0
++        vmovdqu     -32(%rsi,%rdx), %ymm7
++
++        cmp         $64, %rdx
++        jbe         .L_GE33_LE64
++
++        PREFETCH    64(%rdi)
++
++        vmovdqu     32(%rsi), %ymm1
++        vmovdqu     -64(%rsi,%rdx), %ymm6
++
++        cmp         $128, %rdx
++        jbe         .L_GE65_LE128
++
++        PREFETCH    128(%rdi)
++
++        vmovdqu     64(%rsi), %ymm2
++        vmovdqu     -96(%rsi,%rdx), %ymm5
++
++        cmp         $192, %rdx
++        jbe         .L_GE129_LE192
++
++        PREFETCH    192(%rdi)
++
++        vmovdqu     96(%rsi), %ymm3
++        vmovdqu     -128(%rsi,%rdx), %ymm4
++
++        cmp         $256, %rdx
++        jbe         .L_GE193_LE256
++
++.L_GE257:
++        PREFETCH    256(%rdi)
++
++        // Check if there is an overlap. If there is an overlap then the caller
++        // has a bug since this is undefined behavior. However, for legacy
++        // reasons this behavior is expected by some callers.
++        //
++        // All copies through 256 bytes will operate as a memmove since for
++        // those sizes all reads are performed before any writes.
++        //
++        // This check uses the idea that there is an overlap if
++        // (%rdi < (%rsi + %rdx)) && (%rsi < (%rdi + %rdx)),
++        // or equivalently, there is no overlap if
++        // ((%rsi + %rdx) <= %rdi) || ((%rdi + %rdx) <= %rsi).
++        //
++        // %r9 will be used after .L_ALIGNED_DST_LOOP to calculate how many
++        // bytes remain to be copied.
++
++        // (%rsi + %rdx <= %rdi) => no overlap
++        lea         (%rsi,%rdx), %r9
++        cmp         %rdi, %r9
++        jbe         .L_NO_OVERLAP
++
++        // (%rdi + %rdx <= %rsi) => no overlap
++        lea         (%rdi,%rdx), %r8
++        cmp         %rsi, %r8
++        // If no info is available in branch predictor's cache, Intel CPUs assume
++        // forward jumps are not taken. Use a forward jump as overlapping buffers
++        // are unlikely.
++        ja          .L_OVERLAP
++
++        .align      2
++.L_NO_OVERLAP:
++        vmovdqu     %ymm0, (%rdi)
++        vmovdqu     %ymm1, 32(%rdi)
++        vmovdqu     %ymm2, 64(%rdi)
++        vmovdqu     %ymm3, 96(%rdi)
++
++        // Align %rdi to a 32 byte boundary.
++        // %rcx = 128 - 31 & %rdi
++        mov         $128, %rcx
++        and         $31, %rdi
++        sub         %rdi, %rcx
++
++        lea         (%rsi,%rcx), %rsi
++        lea         (%rax,%rcx), %rdi
++        sub         %rcx, %rdx
++
++        // %r8 is the end condition for the loop.
++        lea         -128(%rsi,%rdx), %r8
++
++        cmp         NON_TEMPORAL_STORE_THRESHOLD, %rdx
++        jae         .L_NON_TEMPORAL_LOOP
++
++        .align      2
++.L_ALIGNED_DST_LOOP:
++        PREFETCH    128(%rdi)
++        PREFETCH    192(%rdi)
++
++        vmovdqu     (%rsi), %ymm0
++        vmovdqu     32(%rsi), %ymm1
++        vmovdqu     64(%rsi), %ymm2
++        vmovdqu     96(%rsi), %ymm3
++        add         $128, %rsi
++
++        vmovdqa     %ymm0, (%rdi)
++        vmovdqa     %ymm1, 32(%rdi)
++        vmovdqa     %ymm2, 64(%rdi)
++        vmovdqa     %ymm3, 96(%rdi)
++        add         $128, %rdi
++
++        cmp         %r8, %rsi
++        jb          .L_ALIGNED_DST_LOOP
++
++.L_ALIGNED_DST_LOOP_END:
++        sub         %rsi, %r9
++        mov         %r9, %rdx
++
++        vmovdqu     %ymm4, -128(%rdi,%rdx)
++        vmovdqu     %ymm5, -96(%rdi,%rdx)
++        vmovdqu     %ymm6, -64(%rdi,%rdx)
++        vmovdqu     %ymm7, -32(%rdi,%rdx)
++
++        vzeroupper
++        ret
++
++        .align      2
++.L_NON_TEMPORAL_LOOP:
++        testb       $31, %sil
++        jne         .L_ALIGNED_DST_LOOP
++        // This is prefetching the source data unlike ALIGNED_DST_LOOP which
++        // prefetches the destination data. This choice is again informed by
++        // benchmarks. With a non-temporal store the entirety of the cache line
++        // is being written so the previous data can be discarded without being
++        // fetched.
++        prefetchnta 128(%rsi)
++        prefetchnta 196(%rsi)
++
++        vmovntdqa   (%rsi), %ymm0
++        vmovntdqa   32(%rsi), %ymm1
++        vmovntdqa   64(%rsi), %ymm2
++        vmovntdqa   96(%rsi), %ymm3
++        add         $128, %rsi
++
++        vmovntdq    %ymm0, (%rdi)
++        vmovntdq    %ymm1, 32(%rdi)
++        vmovntdq    %ymm2, 64(%rdi)
++        vmovntdq    %ymm3, 96(%rdi)
++        add         $128, %rdi
++
++        cmp         %r8, %rsi
++        jb          .L_NON_TEMPORAL_LOOP
++
++        sfence
++        jmp         .L_ALIGNED_DST_LOOP_END
++
++
++.L_OVERLAP:
++        .align      2
++        cmp         %rdi, %rsi
++        jb          .L_OVERLAP_BWD  // %rsi  < %rdi => backward-copy
++        je          .L_RET          // %rsi == %rdi => return, nothing to copy
++
++        // Source & destination buffers overlap. Forward copy.
++
++        vmovdqu     (%rsi), %ymm8
++
++        // Align %rdi to a 32 byte boundary.
++        // %rcx = 32 - 31 & %rdi
++        mov         $32, %rcx
++        and         $31, %rdi
++        sub         %rdi, %rcx
++
++        lea         (%rsi,%rcx), %rsi
++        lea         (%rax,%rcx), %rdi
++        sub         %rcx, %rdx
++
++        // %r8 is the end condition for the loop.
++        lea         -128(%rsi,%rdx), %r8
++
++
++.L_OVERLAP_FWD_ALIGNED_DST_LOOP:
++        PREFETCH    128(%rdi)
++        PREFETCH    192(%rdi)
++
++        vmovdqu       (%rsi), %ymm0
++        vmovdqu     32(%rsi), %ymm1
++        vmovdqu     64(%rsi), %ymm2
++        vmovdqu     96(%rsi), %ymm3
++        add         $128, %rsi
++
++        vmovdqa     %ymm0,   (%rdi)
++        vmovdqa     %ymm1, 32(%rdi)
++        vmovdqa     %ymm2, 64(%rdi)
++        vmovdqa     %ymm3, 96(%rdi)
++        add         $128, %rdi
++
++        cmp         %r8, %rsi
++        jb          .L_OVERLAP_FWD_ALIGNED_DST_LOOP
++
++        sub         %rsi, %r9
++        mov         %r9, %rdx
++
++        vmovdqu     %ymm4, -128(%rdi,%rdx)
++        vmovdqu     %ymm5,  -96(%rdi,%rdx)
++        vmovdqu     %ymm6,  -64(%rdi,%rdx)
++        vmovdqu     %ymm7,  -32(%rdi,%rdx)
++        vmovdqu     %ymm8, (%rax)  // %rax == the original (unaligned) %rdi
++
++        vzeroupper
++
++.L_RET:
++        ret
++
++.L_OVERLAP_BWD:
++        # Save last 32 bytes.
++        vmovdqu     -32(%rsi, %rdx), %ymm8
++        lea         -32(%rdi, %rdx), %r9
++
++
++        // %r8 is the end condition for the loop.
++        lea         128(%rsi), %r8
++
++        // Align %rdi+%rdx (destination end) to a 32 byte boundary.
++        // %rcx = (%rdi + %rdx - 32) & 31
++        mov         %r9, %rcx
++        and         $31, %rcx
++        // Set %rsi & %rdi to the end of the 32 byte aligned range.
++        sub         %rcx, %rdx
++        add         %rdx, %rsi
++        add         %rdx, %rdi
++
++
++.L_OVERLAP_BWD_ALIGNED_DST_LOOP:
++        PREFETCH    -128(%rdi)
++        PREFETCH    -192(%rdi)
++
++        vmovdqu      -32(%rsi), %ymm4
++        vmovdqu      -64(%rsi), %ymm5
++        vmovdqu      -96(%rsi), %ymm6
++        vmovdqu     -128(%rsi), %ymm7
++        sub         $128, %rsi
++
++        vmovdqa     %ymm4,  -32(%rdi)
++        vmovdqa     %ymm5,  -64(%rdi)
++        vmovdqa     %ymm6,  -96(%rdi)
++        vmovdqa     %ymm7, -128(%rdi)
++        sub         $128, %rdi
++
++        cmp         %r8, %rsi
++        ja          .L_OVERLAP_BWD_ALIGNED_DST_LOOP
++
++        vmovdqu     %ymm0,   (%rax)  // %rax == the original unaligned %rdi
++        vmovdqu     %ymm1, 32(%rax)
++        vmovdqu     %ymm2, 64(%rax)
++        vmovdqu     %ymm3, 96(%rax)
++        vmovdqu     %ymm8, (%r9)
++
++        vzeroupper
++	ret
++
++        .cfi_endproc
++        .size       __folly_memcpy, .-__folly_memcpy
++
++        .global       memcpy
++        memcpy = __folly_memcpy
++
++        .global       memmove
++        memmove = __folly_memcpy
++
++#else
++// original musl implementation
++
++.global memcpy
++.global __memcpy_fwd
++.hidden __memcpy_fwd
++.type memcpy,@function
++memcpy:
++__memcpy_fwd:
++	mov %rdi,%rax
++	cmp $8,%rdx
++	jc 1f
++	test $7,%edi
++	jz 1f
++2:	movsb
++	dec %rdx
++	test $7,%edi
++	jnz 2b
++1:	mov %rdx,%rcx
++	shr $3,%rcx
++	rep
++	movsq
++	and $7,%edx
++	jz 1f
++2:	movsb
++	dec %edx
++	jnz 2b
++1:	ret
++
++#endif
+\ No newline at end of file
+diff --git a/src/string/x86_64/memcpy.s b/src/string/x86_64/memcpy.s
+deleted file mode 100644
+index 3d960efa..00000000
+--- a/src/string/x86_64/memcpy.s
++++ /dev/null
+@@ -1,25 +0,0 @@
+-.global memcpy
+-.global __memcpy_fwd
+-.hidden __memcpy_fwd
+-.type memcpy,@function
+-memcpy:
+-__memcpy_fwd:
+-	mov %rdi,%rax
+-	cmp $8,%rdx
+-	jc 1f
+-	test $7,%edi
+-	jz 1f
+-2:	movsb
+-	dec %rdx
+-	test $7,%edi
+-	jnz 2b
+-1:	mov %rdx,%rcx
+-	shr $3,%rcx
+-	rep
+-	movsq
+-	and $7,%edx
+-	jz 1f
+-2:	movsb
+-	dec %edx
+-	jnz 2b
+-1:	ret
+diff --git a/src/string/x86_64/memmove.s b/src/string/x86_64/memmove.S
+similarity index 80%
+rename from src/string/x86_64/memmove.s
+rename to src/string/x86_64/memmove.S
+index 172c0252..be31d75f 100644
+--- a/src/string/x86_64/memmove.s
++++ b/src/string/x86_64/memmove.S
+@@ -1,3 +1,7 @@
++
++#if defined(__AVX2__)
++// implemented as memcpy
++#else
+ .global memmove
+ .type memmove,@function
+ memmove:
+@@ -14,3 +18,4 @@ memmove:
+ 	cld
+ 	lea 1(%rdi),%rax
+ 	ret
++#endif
+\ No newline at end of file
+diff --git a/src/string/x86_64/memset.S b/src/string/x86_64/memset.S
+new file mode 100644
+index 00000000..a42ac3fd
+--- /dev/null
++++ b/src/string/x86_64/memset.S
+@@ -0,0 +1,316 @@
++/*
++ * Copyright (c) Facebook, Inc. and its affiliates.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#if defined(__AVX2__)
++
++#define LABEL(x)     .L##x
++
++.text
++.p2align  5, 0x90
++.hidden __folly_memset
++.type   __folly_memset, @function
++__folly_memset:
++        .cfi_startproc
++
++// RDI is the buffer
++// RSI is the value
++// RDX is length
++        vmovd           %esi, %xmm0
++        vpbroadcastb    %xmm0, %ymm0
++        mov             %rdi, %rax
++        cmp             $0x40, %rdx
++        jae             LABEL(above_64)
++
++LABEL(below_64):
++        cmp             $0x20, %rdx
++        jb              LABEL(below_32)
++        vmovdqu         %ymm0, (%rdi)
++        vmovdqu         %ymm0, -0x20(%rdi,%rdx)
++        vzeroupper
++        retq
++
++.align 32
++LABEL(below_32):
++        cmp             $0x10, %rdx
++        jae             LABEL(in_16_to_32)
++
++LABEL(below_16):
++        cmp             $0x4, %rdx
++        jbe             LABEL(below_4)
++
++LABEL(in_4_to_16):
++        // Scalar stores from this point.
++        vmovq           %xmm0, %rsi
++        cmp             $0x7, %rdx
++        jbe             LABEL(in_4_to_8)
++        // Two 8-wide stores, up to 16 bytes.
++        mov             %rsi, -0x8(%rdi, %rdx)
++        mov             %rsi, (%rdi)
++        vzeroupper
++        retq
++
++.align 32
++LABEL(below_4):
++        vmovq           %xmm0, %rsi
++        vzeroupper
++        cmp             $0x1, %rdx
++        jbe             LABEL(none_or_one)
++        mov             %si, (%rdi)
++        mov             %si, -0x2(%rdi, %rdx)
++
++LABEL(exit):
++        retq
++
++.align 16
++LABEL(in_4_to_8):
++        // two 4-wide stores, upto 8 bytes.
++        mov             %esi, -0x4(%rdi,%rdx)
++        mov             %esi, (%rdi)
++        vzeroupper
++        retq
++
++.align 32
++LABEL(in_16_to_32):
++        vmovups         %xmm0, (%rdi)
++        vmovups         %xmm0, -0x10(%rdi,%rdx)
++        vzeroupper
++        retq
++
++LABEL(above_64):
++        cmp             $0xb0, %rdx
++        ja              LABEL(above_192)
++        cmp             $0x80, %rdx
++        jbe             LABEL(in_64_to_128)
++        // Do some work filling unaligned 32bit words.
++        // last_word -> rsi
++        lea             -0x20(%rdi,%rdx), %rsi
++        // rcx -> fill pointer.
++        // We have at least 128 bytes to store.
++        vmovdqu         %ymm0, (%rdi)
++        vmovdqu         %ymm0, 0x20(%rdi)
++        vmovdqu         %ymm0, 0x40(%rdi)
++        add             $0x60, %rdi
++
++.align 32
++LABEL(fill_32):
++        vmovdqu         %ymm0, (%rdi)
++        add             $0x20, %rdi
++        cmp             %rdi, %rsi
++        ja              LABEL(fill_32)
++        // Stamp the last unaligned store.
++        vmovdqu         %ymm0, (%rsi)
++        vzeroupper
++        retq
++
++.align 32
++LABEL(in_64_to_128):
++        // Last_word -> rsi
++        vmovdqu         %ymm0, (%rdi)
++        vmovdqu         %ymm0,  0x20(%rdi)
++        vmovdqu         %ymm0, -0x40(%rdi,%rdx)
++        vmovdqu         %ymm0, -0x20(%rdi,%rdx)
++        vzeroupper
++        retq
++
++.align 32
++LABEL(above_192):
++// rdi is the buffer address
++// rsi is the value
++// rdx is length
++        cmp             $0x1000, %rdx
++        jae             LABEL(large_stosq)
++        // Store the first unaligned 32 bytes.
++        vmovdqu         %ymm0, (%rdi)
++        // The first aligned word is stored in %rsi.
++        mov             %rdi, %rsi
++        mov             %rdi, %rax
++        and             $0xffffffffffffffe0, %rsi
++        lea             0x20(%rsi), %rsi
++        // Compute the address of the last unaligned word into rdi.
++        lea             -0x20(%rdx), %rdx
++        add             %rdx, %rdi
++        // Check if we can do a full 5x32B stamp.
++        lea             0xa0(%rsi), %rcx
++        cmp             %rcx, %rdi
++        jb              LABEL(stamp_4)
++
++LABEL(fill_192):
++        vmovdqa         %ymm0, (%rsi)
++        vmovdqa         %ymm0, 0x20(%rsi)
++        vmovdqa         %ymm0, 0x40(%rsi)
++        vmovdqa         %ymm0, 0x60(%rsi)
++        vmovdqa         %ymm0, 0x80(%rsi)
++        add             $0xa0, %rsi
++        lea             0xa0(%rsi), %rcx
++        cmp             %rcx, %rdi
++        ja              LABEL(fill_192)
++
++LABEL(fill_192_tail):
++        cmp             %rsi, %rdi
++        jb              LABEL(fill_192_done)
++        vmovdqa         %ymm0, (%rsi)
++
++        lea             0x20(%rsi), %rcx
++        cmp             %rcx, %rdi
++        jb              LABEL(fill_192_done)
++        vmovdqa         %ymm0, 0x20(%rsi)
++
++        lea             0x40(%rsi), %rcx
++        cmp             %rcx, %rdi
++        jb              LABEL(fill_192_done)
++        vmovdqa         %ymm0, 0x40(%rsi)
++
++        lea             0x60(%rsi), %rcx
++        cmp             %rcx, %rdi
++        jb              LABEL(fill_192_done)
++        vmovdqa         %ymm0, 0x60(%rsi)
++
++LABEL(last_wide_store):
++        lea             0x80(%rsi), %rcx
++        cmp             %rcx, %rdi
++        jb              LABEL(fill_192_done)
++        vmovdqa         %ymm0, 0x80(%rsi)
++
++.align 16
++LABEL(fill_192_done):
++        // Stamp the last word.
++        vmovdqu         %ymm0, (%rdi)
++        vzeroupper
++        // FIXME return buffer address
++        ret
++
++LABEL(stamp_4):
++        vmovdqa         %ymm0, (%rsi)
++        vmovdqa         %ymm0, 0x20(%rsi)
++        vmovdqa         %ymm0, 0x40(%rsi)
++        vmovdqa         %ymm0, 0x60(%rsi)
++        jmp             LABEL(last_wide_store)
++
++LABEL(large_stosq):
++// rdi is the buffer address
++// rsi is the value
++// rdx is length
++        vmovd           %xmm0, %rax
++        mov             %rax, (%rdi)
++        mov             %rdi, %rsi
++        // Align rdi to 8B
++        and             $0xfffffffffffffff8, %rdi
++        lea             0x8(%rdi), %rdi
++        // Fill buffer using stosq
++        mov             %rdx, %rcx
++        sub             $0x8, %rcx
++        shrq            $0x3, %rcx
++        // rcx - number of QWORD elements
++        // rax - value
++        // rdi - buffer pointer
++        rep stosq
++        // Fill last 16 bytes
++        vmovdqu         %xmm0, -0x10(%rsi, %rdx)
++        vzeroupper
++        mov             %rsi, %rax
++        ret
++
++.align 16
++LABEL(none_or_one):
++        test            %rdx, %rdx
++        je              LABEL(exit)
++        // Store one and exit
++        mov             %sil, (%rdi)
++        ret
++
++        .cfi_endproc
++        .size       __folly_memset, .-__folly_memset
++
++        .global       memset
++        memset = __folly_memset
++
++#else
++// original musl implementation
++
++.global memset
++.type memset,@function
++memset:
++	movzbq %sil,%rax
++	mov $0x101010101010101,%r8
++	imul %r8,%rax
++
++	cmp $126,%rdx
++	ja 2f
++
++	test %edx,%edx
++	jz 1f
++
++	mov %sil,(%rdi)
++	mov %sil,-1(%rdi,%rdx)
++	cmp $2,%edx
++	jbe 1f
++
++	mov %ax,1(%rdi)
++	mov %ax,(-1-2)(%rdi,%rdx)
++	cmp $6,%edx
++	jbe 1f
++
++	mov %eax,(1+2)(%rdi)
++	mov %eax,(-1-2-4)(%rdi,%rdx)
++	cmp $14,%edx
++	jbe 1f
++
++	mov %rax,(1+2+4)(%rdi)
++	mov %rax,(-1-2-4-8)(%rdi,%rdx)
++	cmp $30,%edx
++	jbe 1f
++
++	mov %rax,(1+2+4+8)(%rdi)
++	mov %rax,(1+2+4+8+8)(%rdi)
++	mov %rax,(-1-2-4-8-16)(%rdi,%rdx)
++	mov %rax,(-1-2-4-8-8)(%rdi,%rdx)
++	cmp $62,%edx
++	jbe 1f
++
++	mov %rax,(1+2+4+8+16)(%rdi)
++	mov %rax,(1+2+4+8+16+8)(%rdi)
++	mov %rax,(1+2+4+8+16+16)(%rdi)
++	mov %rax,(1+2+4+8+16+24)(%rdi)
++	mov %rax,(-1-2-4-8-16-32)(%rdi,%rdx)
++	mov %rax,(-1-2-4-8-16-24)(%rdi,%rdx)
++	mov %rax,(-1-2-4-8-16-16)(%rdi,%rdx)
++	mov %rax,(-1-2-4-8-16-8)(%rdi,%rdx)
++
++1:	mov %rdi,%rax
++	ret
++
++2:	test $15,%edi
++	mov %rdi,%r8
++	mov %rax,-8(%rdi,%rdx)
++	mov %rdx,%rcx
++	jnz 2f
++
++1:	shr $3,%rcx
++	rep
++	stosq
++	mov %r8,%rax
++	ret
++
++2:	xor %edx,%edx
++	sub %edi,%edx
++	and $15,%edx
++	mov %rax,(%rdi)
++	mov %rax,8(%rdi)
++	sub %rdx,%rcx
++	add %rdx,%rdi
++	jmp 1b
++
++#endif // __AVX2__
+\ No newline at end of file
+diff --git a/src/string/x86_64/memset.s b/src/string/x86_64/memset.s
+deleted file mode 100644
+index 2d3f5e52..00000000
+--- a/src/string/x86_64/memset.s
++++ /dev/null
+@@ -1,72 +0,0 @@
+-.global memset
+-.type memset,@function
+-memset:
+-	movzbq %sil,%rax
+-	mov $0x101010101010101,%r8
+-	imul %r8,%rax
+-
+-	cmp $126,%rdx
+-	ja 2f
+-
+-	test %edx,%edx
+-	jz 1f
+-
+-	mov %sil,(%rdi)
+-	mov %sil,-1(%rdi,%rdx)
+-	cmp $2,%edx
+-	jbe 1f
+-
+-	mov %ax,1(%rdi)
+-	mov %ax,(-1-2)(%rdi,%rdx)
+-	cmp $6,%edx
+-	jbe 1f
+-
+-	mov %eax,(1+2)(%rdi)
+-	mov %eax,(-1-2-4)(%rdi,%rdx)
+-	cmp $14,%edx
+-	jbe 1f
+-
+-	mov %rax,(1+2+4)(%rdi)
+-	mov %rax,(-1-2-4-8)(%rdi,%rdx)
+-	cmp $30,%edx
+-	jbe 1f
+-
+-	mov %rax,(1+2+4+8)(%rdi)
+-	mov %rax,(1+2+4+8+8)(%rdi)
+-	mov %rax,(-1-2-4-8-16)(%rdi,%rdx)
+-	mov %rax,(-1-2-4-8-8)(%rdi,%rdx)
+-	cmp $62,%edx
+-	jbe 1f
+-
+-	mov %rax,(1+2+4+8+16)(%rdi)
+-	mov %rax,(1+2+4+8+16+8)(%rdi)
+-	mov %rax,(1+2+4+8+16+16)(%rdi)
+-	mov %rax,(1+2+4+8+16+24)(%rdi)
+-	mov %rax,(-1-2-4-8-16-32)(%rdi,%rdx)
+-	mov %rax,(-1-2-4-8-16-24)(%rdi,%rdx)
+-	mov %rax,(-1-2-4-8-16-16)(%rdi,%rdx)
+-	mov %rax,(-1-2-4-8-16-8)(%rdi,%rdx)
+-
+-1:	mov %rdi,%rax
+-	ret
+-
+-2:	test $15,%edi
+-	mov %rdi,%r8
+-	mov %rax,-8(%rdi,%rdx)
+-	mov %rdx,%rcx
+-	jnz 2f
+-
+-1:	shr $3,%rcx
+-	rep
+-	stosq
+-	mov %r8,%rax
+-	ret
+-
+-2:	xor %edx,%edx
+-	sub %edi,%edx
+-	and $15,%edx
+-	mov %rax,(%rdi)
+-	mov %rax,8(%rdi)
+-	sub %rdx,%rcx
+-	add %rdx,%rdi
+-	jmp 1b
+-- 
+2.35.1
+
