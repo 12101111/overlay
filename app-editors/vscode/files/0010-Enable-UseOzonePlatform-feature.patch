@@ -1,4 +1,4 @@
-From a271b36a998e61d423d1f459f07ff52455ca6b1f Mon Sep 17 00:00:00 2001
+From 1404f23b9ad4df59a6de5e30fbddd25461798346 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 16 Dec 2021 13:51:24 +0800
 Subject: [PATCH 10/13] Enable UseOzonePlatform feature
@@ -8,7 +8,7 @@ Subject: [PATCH 10/13] Enable UseOzonePlatform feature
  1 file changed, 8 insertions(+), 1 deletion(-)
 
 diff --git a/resources/linux/bin/code.sh b/resources/linux/bin/code.sh
-index 73ef78f62dc..3f5e04fd13a 100755
+index bfebec1aa8e..15243a37f22 100755
 --- a/resources/linux/bin/code.sh
 +++ b/resources/linux/bin/code.sh
 @@ -48,7 +48,14 @@ else

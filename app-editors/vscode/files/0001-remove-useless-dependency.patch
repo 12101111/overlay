@@ -1,15 +1,15 @@
-From d8479c9e4bfa59f5a9de63b0dd8fe5cb70460d5c Mon Sep 17 00:00:00 2001
+From f5052b81beb257d8b69b0e76a1147cbafa642e53 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 19 Feb 2022 19:03:38 +0800
+Date: Wed, 9 Mar 2022 14:30:20 +0800
 Subject: [PATCH 01/13] remove useless dependency
 
 ---
  package.json |   4 --
- yarn.lock    | 113 ---------------------------------------------------
- 2 files changed, 117 deletions(-)
+ yarn.lock    | 122 ---------------------------------------------------
+ 2 files changed, 126 deletions(-)
 
 diff --git a/package.json b/package.json
-index 7d959eed96b..5e1f83802ba 100644
+index 65ec542166a..de805136ae7 100644
 --- a/package.json
 +++ b/package.json
 @@ -48,7 +48,6 @@
@@ -28,17 +28,17 @@ index 7d959eed96b..5e1f83802ba 100644
      "@types/applicationinsights": "0.20.0",
      "@types/cookie": "^0.3.3",
      "@types/copy-webpack-plugin": "^6.0.3",
-@@ -123,8 +121,6 @@
+@@ -124,8 +122,6 @@
      "@types/yazl": "^2.4.2",
      "@typescript-eslint/eslint-plugin": "^5.10.0",
      "@typescript-eslint/parser": "^5.10.0",
 -    "@vscode/telemetry-extractor": "^1.9.5",
--    "@vscode/test-web": "^0.0.19",
+-    "@vscode/test-web": "^0.0.22",
      "ansi-colors": "^3.2.3",
      "asar": "^3.0.3",
      "chromium-pickle-js": "^0.2.0",
 diff --git a/yarn.lock b/yarn.lock
-index c353a999f64..af083a53919 100644
+index e08674c4d1e..122477f52c2 100644
 --- a/yarn.lock
 +++ b/yarn.lock
 @@ -1014,50 +1014,6 @@
@@ -92,7 +92,7 @@ index c353a999f64..af083a53919 100644
  "@sindresorhus/is@^0.14.0":
    version "0.14.0"
    resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
-@@ -1576,33 +1532,6 @@
+@@ -1586,33 +1542,6 @@
    resolved "https://registry.yarnpkg.com/@vscode/sudo-prompt/-/sudo-prompt-9.3.1.tgz#c562334bc6647733649fd42afc96c0eea8de3b65"
    integrity sha512-9ORTwwS74VaTn38tNbQhsA5U44zkJfcb0BdTSyyG6frP4e8KMtHuTXYmwefe5dpL8XB1aGSIVTaLjD3BbWb5iA==
  
@@ -105,28 +105,28 @@ index c353a999f64..af083a53919 100644
 -    ts-morph "^12.2.0"
 -    vscode-ripgrep "^1.12.1"
 -
--"@vscode/test-web@^0.0.19":
--  version "0.0.19"
--  resolved "https://registry.yarnpkg.com/@vscode/test-web/-/test-web-0.0.19.tgz#2e2b030bca049c31f56bb73709b15c03b04bcaa1"
--  integrity sha512-7Idk5qmShFCG65OMg7zB5028L38CVk5StKONgnzJNDjKXMj4BOch5CMAK6ad1P+oah94EYVSzGrX/AF1EgpxWA==
+-"@vscode/test-web@^0.0.22":
+-  version "0.0.22"
+-  resolved "https://registry.yarnpkg.com/@vscode/test-web/-/test-web-0.0.22.tgz#8767c80e7b16e73e78cf30da93d4dff5d4db148a"
+-  integrity sha512-sm4WYidw26eFb1AReC8w5y4aOMdBb5ma5x3ukRJcun9iUB1ajz2nM18rxiYAVimUzrIMQHr9WqC8HYBYP8aNKQ==
 -  dependencies:
 -    "@koa/router" "^10.1.1"
 -    decompress "^4.2.1"
 -    decompress-targz "^4.1.1"
--    http-proxy-agent "^4.0.1"
+-    http-proxy-agent "^5.0.0"
 -    https-proxy-agent "^5.0.0"
--    koa "^2.13.1"
+-    koa "^2.13.4"
 -    koa-morgan "^1.0.1"
 -    koa-mount "^4.0.0"
 -    koa-static "^5.0.0"
 -    minimist "^1.2.5"
--    playwright "1.14.1"
--    vscode-uri "^3.0.2"
+-    playwright "^1.18.1"
+-    vscode-uri "^3.0.3"
 -
  "@vscode/vscode-languagedetection@1.0.21":
    version "1.0.21"
    resolved "https://registry.yarnpkg.com/@vscode/vscode-languagedetection/-/vscode-languagedetection-1.0.21.tgz#89b48f293f6aa3341bb888c1118d16ff13b032d3"
-@@ -9083,48 +9012,6 @@ pkg-up@^3.1.0:
+@@ -9062,57 +8991,6 @@ pkg-up@^3.1.0:
    dependencies:
      find-up "^3.0.0"
  
@@ -152,12 +152,12 @@ index c353a999f64..af083a53919 100644
 -    yauzl "^2.10.0"
 -    yazl "^2.5.1"
 -
--playwright@1.14.1:
--  version "1.14.1"
--  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.14.1.tgz#73913d3044a85a58edf13148245279231072532e"
--  integrity sha512-JYNjhwWcfsBkg0FMGLbFO9e58FVdmICE4k97/glIQV7cBULL7oxNjRQC7Ffe+Y70XVNnP0HSJLaA0W5SukyftQ==
+-playwright-core@=1.18.1:
+-  version "1.18.1"
+-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.18.1.tgz#a5cf3f212d10692382e2acd1f7bc8c9ff9bbb849"
+-  integrity sha512-NALGl8R1GHzGLlhUApmpmfh6M1rrrPcDTygWvhTbprxwGB9qd/j9DRwyn4HTQcUB6o0/VOpo46fH9ez3+D/Rog==
 -  dependencies:
--    commander "^6.1.0"
+-    commander "^8.2.0"
 -    debug "^4.1.1"
 -    extract-zip "^2.0.1"
 -    https-proxy-agent "^5.0.0"
@@ -168,9 +168,18 @@ index c353a999f64..af083a53919 100644
 -    proper-lockfile "^4.1.1"
 -    proxy-from-env "^1.1.0"
 -    rimraf "^3.0.2"
+-    socks-proxy-agent "^6.1.0"
 -    stack-utils "^2.0.3"
 -    ws "^7.4.6"
+-    yauzl "^2.10.0"
 -    yazl "^2.5.1"
+-
+-playwright@^1.18.1:
+-  version "1.18.1"
+-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.18.1.tgz#45c2ca6ee25c44e336985de9b51955727b5f17cf"
+-  integrity sha512-8EaX9EtbtAoMq5tnzIsoA3b/V86V/6Mq2skuOU4qEw+5OVxs1lwesDwmjy/RVU1Qfx5UuwSQzhp45wyH22oa+A==
+-  dependencies:
+-    playwright-core "=1.18.1"
 -
  plist@^3.0.1:
    version "3.0.4"

@@ -1,4 +1,4 @@
-From 2fa1794d6b7e3beba5e178c11e087ae64c354088 Mon Sep 17 00:00:00 2001
+From 64d73a68a6dec75d69b4deccb2b76c5aa54ce74b Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 19 Feb 2022 18:39:17 +0800
 Subject: [PATCH 09/13] Don't use git dependency
@@ -9,10 +9,10 @@ Subject: [PATCH 09/13] Don't use git dependency
  2 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/extensions/markdown-math/package.json b/extensions/markdown-math/package.json
-index 5a4dbe3080b..1bd65afc3ff 100644
+index 8267989daee..25f45ccb0d0 100644
 --- a/extensions/markdown-math/package.json
 +++ b/extensions/markdown-math/package.json
-@@ -91,7 +91,7 @@
+@@ -90,7 +90,7 @@
      "build-notebook": "node ./esbuild"
    },
    "dependencies": {
@@ -22,7 +22,7 @@ index 5a4dbe3080b..1bd65afc3ff 100644
    "devDependencies": {
      "@types/markdown-it": "^0.0.0",
 diff --git a/extensions/markdown-math/yarn.lock b/extensions/markdown-math/yarn.lock
-index 5909a3a8c10..6c4b5817554 100644
+index 013a6eb85f6..9f72ec18b95 100644
 --- a/extensions/markdown-math/yarn.lock
 +++ b/extensions/markdown-math/yarn.lock
 @@ -2,9 +2,9 @@

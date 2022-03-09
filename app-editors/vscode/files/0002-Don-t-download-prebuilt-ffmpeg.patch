@@ -1,4 +1,4 @@
-From 2d41ed97fc416fede1ec442aba00c3f694ca4884 Mon Sep 17 00:00:00 2001
+From 7ec105067c0f9a82b6904b278bb7da040061834c Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 5 Mar 2021 10:18:41 +0800
 Subject: [PATCH 02/13] Don't download prebuilt ffmpeg
@@ -8,10 +8,10 @@ Subject: [PATCH 02/13] Don't download prebuilt ffmpeg
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 8a69232956e..f8a02697bdb 100644
+index 2f5a931e850..44569060336 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -297,7 +297,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -299,7 +299,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  			.pipe(util.skipDirectories())
  			.pipe(util.fixWin32DirectoryPermissions())
  			.pipe(filter(['**', '!**/.github/**'], { dot: true })) // https://github.com/microsoft/vscode/issues/116523

@@ -1,4 +1,4 @@
-From 0ce0d644dcef9a1574a6aac55f5266be2275b245 Mon Sep 17 00:00:00 2001
+From d185a70b8747b1c8af6f7d2b5df0d237309ba424 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 6 Aug 2021 15:20:22 +0800
 Subject: [PATCH 06/13] Don't run `yarn install` for web/remote/test
@@ -9,10 +9,10 @@ Subject: [PATCH 06/13] Don't run `yarn install` for web/remote/test
  2 files changed, 9 deletions(-)
 
 diff --git a/build/npm/dirs.js b/build/npm/dirs.js
-index 0f7ab5ff54e..b6d729adef8 100644
+index 4011050e466..6faa36560ae 100644
 --- a/build/npm/dirs.js
 +++ b/build/npm/dirs.js
-@@ -43,10 +43,4 @@ exports.dirs = [
+@@ -44,10 +44,4 @@ exports.dirs = [
  	'extensions/vscode-custom-editor-tests',
  	'extensions/vscode-notebook-tests',
  	'extensions/vscode-test-resolver',
