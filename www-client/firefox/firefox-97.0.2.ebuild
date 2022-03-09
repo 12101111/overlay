@@ -795,11 +795,7 @@ src_configure() {
 		else
 			# ThinLTO is currently broken, see bmo#1644409
 			mozconfig_add_options_ac '+lto' --enable-lto=full
-			if tc-ld-is-gold; then
-				mozconfig_add_options_ac "linker is set to gold" --enable-linker=gold
-			else
-				mozconfig_add_options_ac "linker is set to bfd" --enable-linker=bfd
-			fi
+			mozconfig_add_options_ac "linker is set to bfd" --enable-linker=bfd
 		fi
 
 		if use pgo ; then
@@ -818,11 +814,7 @@ src_configure() {
 			# This is upstream's default
 			mozconfig_add_options_ac "forcing ld=lld due to USE=clang" --enable-linker=lld
 		else
-			if tc-ld-is-gold; then
-				mozconfig_add_options_ac "linker is set to gold" --enable-linker=gold
-			else
-				mozconfig_add_options_ac "linker is set to bfd" --enable-linker=bfd
-			fi
+			mozconfig_add_options_ac "linker is set to bfd" --enable-linker=bfd
 		fi
 	fi
 
@@ -917,7 +909,7 @@ src_configure() {
 			if use clang ; then
 				# Nothing to do
 				:;
-			elif tc-ld-is-gold || use lto ; then
+			elif use lto ; then
 				append-ldflags -Wl,--no-keep-memory
 			else
 				append-ldflags -Wl,--no-keep-memory -Wl,--reduce-memory-overheads
