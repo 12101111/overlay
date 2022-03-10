@@ -10,4 +10,8 @@ diff --git a/patches/chromium/cherry-pick-6bb320d134b1.patch b/patches/chromium/
 similarity index 100%
 rename from patches/chromium/cherry-pick-6bb320d134b1.patch
 rename to patches/chromium/cherry-pick-zzz-6bb320d134b1.patch
+diff --git a/patches/chromium/cherry-pick-1283375.patch b/patches/chromium/zzz-cherry-pick-1283375.patch
+similarity index 100%
+rename from patches/chromium/cherry-pick-1283375.patch
+rename to patches/chromium/zzz-cherry-pick-1283375.patch
 
