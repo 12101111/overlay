@@ -4,3 +4,4 @@ sys-apps/pacman
 app-text/goldendict
 www-client/firefox
 www-client/chromium
+app-editors/vscode
