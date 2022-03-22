@@ -19,7 +19,7 @@ HOMEPAGE="https://llvm.org/"
 LICENSE="Apache-2.0-with-LLVM-exceptions UoI-NCSA BSD public-domain rc"
 SLOT="$(ver_cut 1)"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~riscv ~sparc ~x86 ~amd64-linux ~ppc-macos ~x64-macos"
-IUSE="+binutils-plugin debug doc exegesis libedit +libffi mlir ncurses test xar xml z3"
+IUSE="+binutils-plugin debug doc exegesis libedit +libffi mlir polly ncurses test xar xml z3"
 RESTRICT="!test? ( test )"
 
 RDEPEND="
@@ -55,7 +55,7 @@ RDEPEND="${RDEPEND}
 PDEPEND="sys-devel/llvm-common
 	binutils-plugin? ( >=sys-devel/llvmgold-${SLOT} )"
 
-LLVM_COMPONENTS=( llvm mlir )
+LLVM_COMPONENTS=( llvm mlir polly )
 LLVM_MANPAGES=pregenerated
 LLVM_PATCHSET=${PV/_/-}
 LLVM_USE_TARGETS=provide
@@ -110,13 +110,13 @@ check_distribution_components() {
 
 				case ${l} in
 					# shared libs
-					LLVM|LLVMgold)
+					LLVM|LLVMgold|MLIR|Polly)
 						;;
 					# TableGen lib + deps
-					LLVMDemangle|LLVMSupport|LLVMTableGen)
+					LLVMDemangle|LLVMSupport|LLVMTableGen|LLVMExtensions)
 						;;
 					# static libs
-					LLVM*)
+					LLVM*|MLIR*)
 						continue
 						;;
 					# meta-targets
@@ -316,9 +316,65 @@ get_distribution_components() {
 		)
 	fi
 
-	if use mlir; then
-		out+=( MLIR )
-	fi
+	use mlir && out+=(
+		MLIR
+
+		mlir-cmake-exports
+		mlir-headers
+
+		mlir-cpu-runner
+		mlir-linalg-ods-gen
+		mlir-linalg-ods-yaml-gen
+		mlir-lsp-server
+		mlir-opt
+		mlir-reduce
+		mlir-tblgen
+		mlir-translate
+		mlir_async_runtime
+		mlir_c_runner_utils
+		mlir_runner_utils
+	)
+
+	use polly && out+=(
+		Polly
+
+		LLVMBinaryFormat
+		LLVMCore
+		LLVMExtensions
+		LLVMScalarOpts
+		LLVMInstCombine
+		LLVMTransformUtils
+		LLVMAnalysis
+		LLVMipo
+		LLVMMC
+		LLVMPasses
+		LLVMLinker
+		LLVMIRReader
+		LLVMAnalysis
+		LLVMBitReader
+		LLVMMCParser
+		LLVMObject
+		LLVMProfileData
+		LLVMTarget
+		LLVMVectorize
+		LLVMRemarks
+		LLVMAsmParser
+		LLVMBitstreamReader
+		LLVMAggressiveInstCombine
+		LLVMAggressiveInstCombine
+		LLVMBitWriter
+		LLVMFrontendOpenMP
+		LLVMInstrumentation
+		LLVMBinaryFormat
+		LLVMBinaryFormat
+		LLVMDebugInfoCodeView
+		LLVMBinaryFormat
+		LLVMTextAPI
+		LLVMAggressiveInstCombine
+		LLVMCoroutines
+		LLVMObjCARCOpts
+		LLVMInstrumentation
+	)
 
 	printf "%s${sep}" "${out[@]}"
 }
@@ -372,9 +428,12 @@ multilib_src_configure() {
 		-DOCAMLFIND=NO
 	)
 
-	use mlir && mycmakeargs+=(
-		-DLLVM_ENABLE_PROJECTS="mlir"
-	)
+	local enable_projects=""
+	use mlir && enable_projects+="mlir"
+	use polly && enable_projects+=";polly"
+	if [[ ! -z "$enable_projects" ]]; then
+		mycmakeargs+=( -DLLVM_ENABLE_PROJECTS="${enable_projects#;}" )
+	fi
 
 	if is_libcxx_linked; then
 		# Smart hack: alter version suffix -> SOVERSION when linking
@@ -490,6 +549,10 @@ src_install() {
 
 multilib_src_install() {
 	DESTDIR=${D} cmake_build install-distribution
+
+	if use polly; then
+		DESTDIR=${D} cmake_build tools/polly/install
+	fi
 
 	# move headers to /usr/include for wrapping
 	rm -rf "${ED}"/usr/include || die
