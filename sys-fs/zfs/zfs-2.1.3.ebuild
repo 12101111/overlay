@@ -23,8 +23,9 @@ else
 	SRC_URI+=" verify-sig? ( https://github.com/openzfs/${PN}/releases/download/${MY_P}/${MY_P}.tar.gz.asc )"
 	S="${WORKDIR}/${P%_rc?}"
 
+	# 2.1.3 unkeyworded briefly for some testing
 	if [[ ${PV} != *_rc* ]]; then
-		KEYWORDS="amd64 arm64 ppc64 ~riscv"
+		KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv"
 	fi
 fi
 
@@ -101,9 +102,6 @@ REQUIRED_USE="
 RESTRICT="test"
 
 PATCHES=(
-	"${FILESDIR}/2.1.2-scrub-timers.patch"
-	"${FILESDIR}/2.1.2-openrc-vendor.patch"
-	"${FILESDIR}/2.1.2-musl-tests.patch"
 	"${FILESDIR}/2.1.2-musl-systemd.patch"
 )
 
@@ -285,6 +283,8 @@ pkg_postinst() {
 	else
 		[[ -e "${EROOT}/etc/runlevels/boot/zfs-import" ]] || \
 			einfo "You should add zfs-import to the boot runlevel."
+		[[ -e "${EROOT}/etc/runlevels/boot/zfs-load-key" ]] || \
+			einfo "You should add zfs-load-key to the boot runlevel."
 		[[ -e "${EROOT}/etc/runlevels/boot/zfs-mount" ]]|| \
 			einfo "You should add zfs-mount to the boot runlevel."
 		[[ -e "${EROOT}/etc/runlevels/default/zfs-share" ]] || \
