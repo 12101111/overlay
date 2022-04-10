@@ -1,6 +1,6 @@
-From efa2bfe78ba6eb3c9b84cba97ffd6832d706602c Mon Sep 17 00:00:00 2001
+From 1bde734b09d06a6f2f3eef2548d2e944fe23fdf1 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 7 Feb 2021 14:24:11 +0800
+Date: Fri, 1 Apr 2022 20:47:52 +0800
 Subject: [PATCH 03/13] Allow --offline in args
 
 ---
@@ -8,15 +8,15 @@ Subject: [PATCH 03/13] Allow --offline in args
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index 2433da29e86..98cb3e65a40 100644
+index 4fad92fd60b..d7618cbc446 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -21,7 +21,8 @@ function yarnInstall(location, opts) {
+@@ -20,7 +20,8 @@ function yarnInstall(location, opts) {
  	const raw = process.env['npm_config_argv'] || '{}';
  	const argv = JSON.parse(raw);
  	const original = argv.original || [];
--	const args = original.filter(arg => arg === '--ignore-optional' || arg === '--frozen-lockfile');
-+	const passargs = ['--ignore-optional', '--frozen-lockfile', '--offline', '--no-progress', '--verbose'];
+-	const args = original.filter(arg => arg === '--ignore-optional' || arg === '--frozen-lockfile' || arg === '--check-files');
++	const passargs = ['--ignore-optional', '--frozen-lockfile', '--check-files', '--offline', '--no-progress', '--verbose'];
 +	const args = original.filter(arg => passargs.includes(arg));
  	if (opts.ignoreEngines) {
  		args.push('--ignore-engines');
