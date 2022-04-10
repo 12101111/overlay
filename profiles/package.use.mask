@@ -1,2 +1,13 @@
+# Need clang 15+
+www-client/chromium pgo
+
 # Uses a function that is not available in media-video/ffmpeg.
 >=dev-util/electron-15.3.0 system-ffmpeg
+
+# Mostly intended for development and not for general use.
+dev-util/electron headless
+
+# Mostly intended for debugging and development,
+# not recommended for general use. Build is also often
+# broken.
+dev-util/electron component-build
