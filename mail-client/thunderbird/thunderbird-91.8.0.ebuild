@@ -3,9 +3,9 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-91esr-patches-05j.tar.xz"
+FIREFOX_PATCHSET="firefox-91esr-patches-06j.tar.xz"
 
-LLVM_MAX_SLOT=13
+LLVM_MAX_SLOT=14
 
 PYTHON_COMPAT=( python3_{8..10} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
@@ -81,6 +81,14 @@ BDEPEND="${PYTHON_DEPS}
 	pgo? ( >=dev-lang/rust-1.51.0[profile] )
 	|| (
 		(
+			sys-devel/clang:14
+			sys-devel/llvm:14
+			clang? (
+				=sys-devel/lld-14*
+				pgo? ( =sys-libs/compiler-rt-sanitizers-14*[profile] )
+			)
+		)
+		(
 			sys-devel/clang:13
 			sys-devel/llvm:13
 			clang? (
@@ -128,7 +136,7 @@ COMMON_DEPEND="
 	>=dev-libs/libffi-3.0.10:=
 	media-video/ffmpeg
 	x11-libs/libX11
-	x11-libs/libxcb
+	x11-libs/libxcb:=
 	x11-libs/libXcomposite
 	x11-libs/libXdamage
 	x11-libs/libXext
@@ -485,12 +493,24 @@ src_unpack() {
 }
 
 src_prepare() {
-	use lto && rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch
+	if use lto; then
+		rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch || die
+	fi
+
+	if use system-av1 && has_version "<media-libs/dav1d-1.0.0"; then
+		rm -v "${WORKDIR}"/firefox-patches/0033-bgo-835788-dav1d-1.0.0-support.patch || die
+		elog "<media-libs/dav1d-1.0.0 detected, removing 1.0.0 compat patch."
+	elif ! use system-av1; then
+		rm -v "${WORKDIR}"/firefox-patches/0033-bgo-835788-dav1d-1.0.0-support.patch || die
+		elog "-system-av1 USE flag detected, removing 1.0.0 compat patch."
+	fi
+
 	eapply "${WORKDIR}/firefox-patches"
 	eapply "${FILESDIR}/cross-pgo.patch"
 	eapply "${FILESDIR}/fix-crash.patch"
 	eapply "${FILESDIR}/fix-crash2.patch"
 	eapply "${FILESDIR}/fix-crash3.patch"
+	eapply "${FILESDIR}/libcxx.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
