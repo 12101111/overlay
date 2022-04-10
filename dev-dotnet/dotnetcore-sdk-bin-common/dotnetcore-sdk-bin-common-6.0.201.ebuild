@@ -6,7 +6,7 @@ EAPI="7"
 inherit eutils
 
 MY_PV="${PV}"
-VER="6.0.1"
+VER="6.0.3"
 
 DESCRIPTION="Common files shared between multiple slots of .NET Core"
 HOMEPAGE="https://www.microsoft.com/net/core"
