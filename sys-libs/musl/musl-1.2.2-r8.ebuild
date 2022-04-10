@@ -42,6 +42,7 @@ PATCHES=(
 	"${FILESDIR}"/backport-pthread_getname_np.patch
 	"${FILESDIR}"/Add-rpmalloc-for-musl.patch
 	"${FILESDIR}"/use-optimized-memcpy-memset.patch
+	"${FILESDIR}"/remove-__malloc_process_finalize.patch
 )
 
 is_crosscompile() {
@@ -83,9 +84,12 @@ src_configure() {
 	tc-getCC ${CTARGET}
 	just_headers && export CC=true
 
+	local libgcc=$($(tc-getCC) ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -print-libgcc-file-name)
+
 	local sysroot
 	is_crosscompile && sysroot=/usr/${CTARGET}
 	./configure \
+		LIBCC=${libgcc} \
 		--target=${CTARGET} \
 		--prefix=${EPREFIX}${sysroot}/usr \
 		--syslibdir=${EPREFIX}${sysroot}/lib \

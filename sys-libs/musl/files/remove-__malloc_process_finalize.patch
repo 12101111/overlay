@@ -1,0 +1,58 @@
+From cb02d1a07b8efee19af6cde9db4f9dbbc0eed7ee Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sun, 27 Mar 2022 20:33:12 +0800
+Subject: [PATCH] remove __malloc_process_finalize. let kernel handle it
+
+---
+ ldso/dynlink.c             | 2 --
+ src/malloc/lite_malloc.c   | 1 -
+ src/malloc/rpmalloc/glue.h | 3 ---
+ 3 files changed, 6 deletions(-)
+
+diff --git a/ldso/dynlink.c b/ldso/dynlink.c
+index 66f0997f..20627170 100644
+--- a/ldso/dynlink.c
++++ b/ldso/dynlink.c
+@@ -151,7 +151,6 @@ struct debug *_dl_debug_addr = &debug;
+ 
+ extern hidden int __malloc_replaced;
+ extern hidden int __malloc_process_init();
+-extern hidden void __malloc_process_finalize();
+ 
+ hidden void (*const __init_array_start)(void)=0, (*const __fini_array_start)(void)=0;
+ 
+@@ -1428,7 +1427,6 @@ void __libc_exit_fini()
+ 			fpaddr(p, dyn[DT_FINI])();
+ #endif
+ 	}
+-	__malloc_process_finalize();
+ }
+ 
+ void __ldso_atfork(int who)
+diff --git a/src/malloc/lite_malloc.c b/src/malloc/lite_malloc.c
+index 61659fe8..ae0f6370 100644
+--- a/src/malloc/lite_malloc.c
++++ b/src/malloc/lite_malloc.c
+@@ -120,5 +120,4 @@ weak_alias(default_malloc, malloc);
+ static void dummy(void) {}
+ weak_alias(dummy, __malloc_process_init);
+ weak_alias(dummy, __malloc_thread_init);
+-weak_alias(dummy, __malloc_process_finalize);
+ weak_alias(dummy, __malloc_thread_finalize);
+diff --git a/src/malloc/rpmalloc/glue.h b/src/malloc/rpmalloc/glue.h
+index 595cb61d..96b70a0d 100644
+--- a/src/malloc/rpmalloc/glue.h
++++ b/src/malloc/rpmalloc/glue.h
+@@ -23,9 +23,6 @@ hidden int __malloc_process_init() {
+ hidden void __malloc_thread_init() {
+   rpmalloc_thread_initialize();
+ }
+-hidden void __malloc_process_finalize() {
+-  rpmalloc_finalize();
+-}
+ hidden void __malloc_thread_finalize() {
+   rpmalloc_thread_finalize(1);
+ }
+-- 
+2.35.1
+
