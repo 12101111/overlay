@@ -53,6 +53,8 @@ DEPEND="
 
 RDEPEND="${DEPEND}"
 
+PATCHES=( "${FILESDIR}/libcxx.patch" )
+
 src_configure() {
 	local emesonargs=(
 		$(meson_feature mpd)
