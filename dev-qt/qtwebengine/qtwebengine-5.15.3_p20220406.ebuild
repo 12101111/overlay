@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python2_7 )
+PYTHON_COMPAT=( python3_{9,10} )
 PYTHON_REQ_USE="xml(+)"
 inherit check-reqs estack flag-o-matic multiprocessing python-any-r1 qt5-build toolchain-funcs
 
@@ -28,9 +28,10 @@ fi
 
 # ppc64 patchset based on https://github.com/chromium-ppc64le releases
 SRC_URI+=" https://dev.gentoo.org/~sam/distfiles/${CATEGORY}/${PN}/${PN}-5.15.2_p20211019-jumbo-build.patch.bz2
+	https://dev.gentoo.org/~asturm/distfiles/${PN}-5.15.3_p20220406-patchset.tar.xz
 	ppc64? ( https://dev.gentoo.org/~gyakovlev/distfiles/${PN}-5.15.2-r1-chromium87-ppc64le.tar.xz )"
 
-IUSE="alsa bindist designer geolocation +jumbo-build kerberos pulseaudio +system-ffmpeg +system-icu widgets"
+IUSE="alsa bindist designer geolocation +jumbo-build kerberos pulseaudio screencast +system-ffmpeg +system-icu widgets"
 REQUIRED_USE="designer? ( widgets )"
 
 RDEPEND="
@@ -80,6 +81,7 @@ RDEPEND="
 	geolocation? ( =dev-qt/qtpositioning-${QT5_PV}* )
 	kerberos? ( virtual/krb5 )
 	pulseaudio? ( media-sound/pulseaudio:= )
+	screencast? ( media-video/pipewire:= )
 	system-ffmpeg? ( media-video/ffmpeg:0= )
 	system-icu? ( >=dev-libs/icu-69.1:= )
 	widgets? (
@@ -106,8 +108,9 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.15.2_p20210224-chromium-87-v8-icu68.patch" # downstream, bug 757606
 	"${FILESDIR}/${PN}-5.15.2_p20210224-disable-git.patch" # downstream snapshot fix
 	"${FILESDIR}/${PN}-5.15.2_p20211015-pdfium-system-lcms2.patch" # by Debian, QTBUG-61746
-	"${FILESDIR}/${PN}-5.15.2_p20211210-sandbox-glibc-2.34.patch" # bug 828099, systemwide-clang?
+	"${FILESDIR}/${PN}-5.15.3_p20220329-clang14.patch" # by FreeBSD, bug 836604
 	"${WORKDIR}/${PN}-5.15.2_p20211019-jumbo-build.patch" # bug 813957
+	"${WORKDIR}/${PN}-5.15.3_p20220406-patchset" # bug 698988 (py2--), pipewire-
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
 )
 
@@ -130,9 +133,9 @@ qtwebengine_check-reqs() {
 	# Let's crudely assume ~2GB per compiler job for GCC.
 	local multiplier=20
 
-	# And call it ~1.5GB for Clang.
+	# And call it ~1.0GB for Clang.
 	if tc-is-clang ; then
-		multiplier=15
+		multiplier=10
 	fi
 
 	local CHECKREQS_DISK_BUILD="7G"
@@ -174,10 +177,10 @@ src_prepare() {
 		# This is made from git, and for some reason will fail w/o .git directories.
 		mkdir -p .git src/3rdparty/chromium/.git || die
 	fi
-	# We need to make sure this integrates well into Qt 5.15.2 installation.
+	# We need to make sure this integrates well into Qt 5.15.3 installation.
 	# Otherwise revdeps fail w/o heavy changes. This is the simplest way to do it.
 	# See also: https://www.qt.io/blog/building-qt-webengine-against-other-qt-versions
-	sed -e "/^MODULE_VERSION/s/5\.15\.[3456789]/${QT5_PV}/" -i .qmake.conf || die
+	sed -E "/^MODULE_VERSION/s/5\.15\.[0-9]+/${QT5_PV}/" -i .qmake.conf || die
 
 	# QTBUG-88657 - jumbo-build could still make trouble
 	if ! use jumbo-build; then
@@ -205,6 +208,10 @@ src_prepare() {
 	# src/3rdparty/gn fails with libc++ due to passing of `-static-libstdc++`
 	if tc-is-clang && has_version 'sys-devel/clang[default-libcxx]'; then
 		eapply "${FILESDIR}/${PN}-5.15.2_p20210521-clang-libc++.patch"
+	fi
+
+	if use system-ffmpeg && has_version '>=media-video/ffmpeg-5'; then
+		eapply "${FILESDIR}/${PN}-5.15.3_p20220406-ffmpeg5.patch" # by Archlinux, bug 831437
 	fi
 
 	qt_use_disable_config alsa webengine-alsa src/buildtools/config/linux.pri
@@ -251,6 +258,7 @@ src_configure() {
 		$(qt_use geolocation webengine-geolocation)
 		$(qt_use kerberos webengine-kerberos)
 		$(qt_use pulseaudio)
+		$(usex screencast -webengine-webrtc-pipewire '')
 		$(usex system-ffmpeg -system-ffmpeg -qt-ffmpeg)
 		$(qt_use system-icu webengine-icu)
 	)
