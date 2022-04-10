@@ -4,9 +4,9 @@
 EAPI=7
 PYTHON_REQ_USE="xml(+)"
 PYTHON_COMPAT=( python3_{8..10} )
-USE_RUBY="ruby26 ruby27 ruby30"
+USE_RUBY="ruby27 ruby30 ruby31"
 
-inherit check-reqs cmake flag-o-matic gnome2 pax-utils python-any-r1 ruby-single toolchain-funcs virtualx
+inherit check-reqs flag-o-matic gnome2 python-any-r1 ruby-single toolchain-funcs cmake
 
 MY_P="webkitgtk-${PV}"
 DESCRIPTION="Open source web browser engine"
@@ -15,9 +15,9 @@ SRC_URI="https://www.webkitgtk.org/releases/${MY_P}.tar.xz"
 
 LICENSE="LGPL-2+ BSD"
 SLOT="4/37" # soname version of libwebkit2gtk-4.0
-KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~riscv ~sparc ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~riscv ~x86"
 
-IUSE="aqua avif +egl examples gamepad +geolocation gles2-only gnome-keyring +gstreamer gtk-doc +introspection +jpeg2k +jumbo-build lcms libnotify seccomp spell systemd wayland +X"
+IUSE="aqua avif +egl examples gamepad +geolocation gles2-only gnome-keyring +gstreamer gtk-doc +introspection +jpeg2k +jumbo-build lcms libnotify seccomp spell systemd test wayland X"
 
 # gstreamer with opengl/gles2 needs egl
 REQUIRED_USE="
@@ -31,9 +31,7 @@ REQUIRED_USE="
 # https://bugs.webkit.org/show_bug.cgi?id=148210
 RESTRICT="test"
 
-# Aqua support in gtk3 is untested
 # Dependencies found at Source/cmake/OptionsGTK.cmake
-# Various compile-time optionals for gtk+-3.22.0 - ensure it
 # Missing WebRTC support, but ENABLE_MEDIA_STREAM/ENABLE_WEB_RTC is experimental upstream (PRIVATE OFF) and shouldn't be used yet in 2.30
 # >=gst-plugins-opus-1.14.4-r1 for opusparse (required by MSE)
 # TODO: gst-plugins-base[X] is only needed when build configuration ends up with GLX set, but that's a bit automagic too to fix
@@ -67,14 +65,16 @@ RDEPEND="
 		gles2-only? ( media-libs/gst-plugins-base:1.0[gles2] )
 		!gles2-only? ( media-libs/gst-plugins-base:1.0[opengl] )
 		>=media-plugins/gst-plugins-opus-1.14.4-r1:1.0
-		>=media-libs/gst-plugins-bad-1.14:1.0 )
+		>=media-libs/gst-plugins-bad-1.14:1.0
+	)
 
 	X? (
 		x11-libs/libX11
 		x11-libs/libXcomposite
 		x11-libs/libXdamage
 		x11-libs/libXrender
-		x11-libs/libXt )
+		x11-libs/libXt
+	)
 
 	libnotify? ( x11-libs/libnotify )
 	dev-libs/hyphen
@@ -102,7 +102,6 @@ RDEPEND="
 	gamepad? ( >=dev-libs/libmanette-0.2.4 )
 "
 DEPEND="${RDEPEND}"
-# paxctl needed for bug #407085
 # Need real bison, not yacc
 BDEPEND="
 	${PYTHON_DEPS}
@@ -126,7 +125,7 @@ BDEPEND="
 #	test? (
 #		dev-python/pygobject:3[python_targets_python2_7]
 #		x11-themes/hicolor-icon-theme
-#		jit? ( sys-apps/paxctl ) )
+#	)
 RDEPEND="${RDEPEND}
 	geolocation? ( >=app-misc/geoclue-2.1.5:2.0 )
 "
@@ -157,11 +156,8 @@ pkg_setup() {
 }
 
 src_prepare() {
-	eapply "${FILESDIR}"/2.34.3-opengl-without-X-fixes.patch
-	eapply "${FILESDIR}"/2.34.3-non-jumbo-fix.patch
-	eapply "${FILESDIR}"/2.34.3-jumbo-fix.patch # bug 830638
-	eapply "${FILESDIR}"/remove-at-spi2.patch
 	eapply "${FILESDIR}"/webkit-gtk-2.30.3-musl-locale.patch
+	eapply "${FILESDIR}"/libcxx.patch
 	if use elibc_musl ; then
 		eapply "${FILESDIR}"/${PN}-2.32.1-musl.patch
 		eapply "${FILESDIR}"/${PN}-2.28.1-lower-stack-usage.patch
@@ -226,20 +222,21 @@ src_configure() {
 		-DENABLE_UNIFIED_BUILDS=$(usex jumbo-build)
 		-DENABLE_VIDEO=$(usex gstreamer)
 		-DENABLE_WEBGL=ON
-		# Supported only under ANGLE and default off PRIVATE option still@2.34.1, see
-		# https://bugs.webkit.org/show_bug.cgi?id=225563
-		# https://bugs.webkit.org/show_bug.cgi?id=224888
+		# Supported only under ANGLE
 		-DENABLE_WEBGL2=OFF
 		-DENABLE_WEB_AUDIO=$(usex gstreamer)
 		# Source/cmake/OptionsGTK.cmake
 		-DENABLE_GLES2=$(usex gles2-only)
 		-DENABLE_GTKDOC=$(usex gtk-doc)
 		-DENABLE_INTROSPECTION=$(usex introspection)
+		-DENABLE_JOURNALD_LOG=$(usex systemd)
 		-DENABLE_QUARTZ_TARGET=$(usex aqua)
 		-DENABLE_WAYLAND_TARGET=$(usex wayland)
 		-DENABLE_X11_TARGET=$(usex X)
+		-DUSE_ANGLE_WEBGL=OFF
 		-DUSE_AVIF=$(usex avif)
 		-DUSE_GTK4=OFF
+		-DUSE_JPEGXL=OFF
 		-DUSE_LCMS=$(usex lcms)
 		-DUSE_LIBHYPHEN=ON
 		-DUSE_LIBNOTIFY=$(usex libnotify)
@@ -247,9 +244,9 @@ src_configure() {
 		-DUSE_OPENGL_OR_ES=ON
 		-DUSE_OPENJPEG=$(usex jpeg2k)
 		-DUSE_SOUP2=ON
-		-DUSE_SYSTEMD=$(usex systemd) # Whether to enable journald logging
 		-DUSE_WOFF2=ON
 		-DUSE_WPE_RENDERER=$(usex wayland) # WPE renderer is used to implement accelerated compositing under wayland
+		-DUSE_ATSPI=OFF
 	)
 
 	if use elibc_musl ; then
@@ -260,23 +257,4 @@ src_configure() {
 	append-cppflags -DNDEBUG
 
 	WK_USE_CCACHE=NO cmake_src_configure
-}
-
-src_compile() {
-	cmake_src_compile
-}
-
-src_test() {
-	# Prevents test failures on PaX systems
-	pax-mark m $(list-paxables Programs/*[Tt]ests/*) # Programs/unittests/.libs/test*
-
-	cmake_src_test
-}
-
-src_install() {
-	cmake_src_install
-
-	# Prevents crashes on PaX systems, bug #522808
-	pax-mark m "${ED}/usr/libexec/webkit2gtk-4.0/jsc" "${ED}/usr/libexec/webkit2gtk-4.0/WebKitWebProcess"
-	pax-mark m "${ED}/usr/libexec/webkit2gtk-4.0/WebKitPluginProcess"
 }

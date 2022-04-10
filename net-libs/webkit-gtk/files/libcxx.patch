@@ -1,0 +1,12 @@
+diff --git a/Source/WebCore/platform/graphics/nicosia/texmap/NicosiaGCGLANGLELayer.cpp b/Source/WebCore/platform/graphics/nicosia/texmap/NicosiaGCGLANGLELayer.cpp
+index 9917418..e668f70 100644
+--- a/Source/WebCore/platform/graphics/nicosia/texmap/NicosiaGCGLANGLELayer.cpp
++++ b/Source/WebCore/platform/graphics/nicosia/texmap/NicosiaGCGLANGLELayer.cpp
+@@ -26,6 +26,7 @@
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  */
+ 
++#include <vector>
+ #include "config.h"
+ #include "NicosiaGCGLANGLELayer.h"
+ 
