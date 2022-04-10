@@ -13,7 +13,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="e18005f0f1b33c29e81d732535d8c0e47cafb0b5"
+COMMIT="8dfae7a5cd50421d10cd99cb873990460525a898"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.14.2/lib/postinstall.js#L21
@@ -26,8 +26,8 @@ ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 
 # jq -r '.builtInExtensions[] | .name +":"+ .version' product.json | sed -r 's/([^\.]*)\.([a-z0-9\-]*)\:([0-9\.]*)/["\2"]="\3"/g'
 declare -A BUILTINEXTS=(
-["references-view"]="0.0.86"
-["js-debug-companion"]="1.0.16"
+["references-view"]="0.0.89"
+["js-debug-companion"]="1.0.17"
 ["js-debug"]="1.66.1"
 ["vscode-js-profile-table"]="1.0.0"
 )
