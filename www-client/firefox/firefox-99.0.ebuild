@@ -3,9 +3,9 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-98-patches-03j.tar.xz"
+FIREFOX_PATCHSET="firefox-99-patches-01j.tar.xz"
 
-LLVM_MAX_SLOT=13
+LLVM_MAX_SLOT=14
 
 PYTHON_COMPAT=( python3_{8..10} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
@@ -90,6 +90,14 @@ BDEPEND="${PYTHON_DEPS}
 	pgo? ( >=dev-lang/rust-1.51.0[profile] )
 	|| (
 		(
+			sys-devel/clang:14
+			sys-devel/llvm:14
+			clang? (
+				=sys-devel/lld-14*
+				pgo? ( =sys-libs/compiler-rt-sanitizers-14*[profile] )
+			)
+		)
+		(
 			sys-devel/clang:13
 			sys-devel/llvm:13
 			clang? (
@@ -118,7 +126,7 @@ BDEPEND="${PYTHON_DEPS}
 	x86? ( >=dev-lang/nasm-2.14 )"
 
 COMMON_DEPEND="
-	>=dev-libs/nss-3.75
+	>=dev-libs/nss-3.76
 	>=dev-libs/nspr-4.32
 	dev-libs/atk
 	dev-libs/expat
@@ -143,7 +151,7 @@ COMMON_DEPEND="
 	x11-libs/libXrandr
 	x11-libs/libXrender
 	x11-libs/libXtst
-	x11-libs/libxcb
+	x11-libs/libxcb:=
 	>=x11-libs/pango-1.22.0
 	dbus? (
 		sys-apps/dbus
@@ -548,6 +556,7 @@ src_prepare() {
 	eapply "${WORKDIR}/firefox-patches"
 
 	eapply "${FILESDIR}/cross-pgo.patch"
+	eapply "${FILESDIR}/patch-memory_mozalloc_throw__gcc.patch"
 	#eapply "${FILESDIR}/fix-crash2.patch"
 	#eapply "${FILESDIR}/fix-crash3.patch"
 
@@ -612,6 +621,7 @@ src_configure() {
 		einfo "Enforcing the use of clang due to USE=clang ..."
 		have_switched_compiler=yes
 		AR=llvm-ar
+		AS=clang
 		CC=${CHOST}-clang
 		CXX=${CHOST}-clang++
 		NM=llvm-nm
@@ -666,9 +676,11 @@ src_configure() {
 		--disable-cargo-incremental \
 		--disable-crashreporter \
 		--disable-install-strip \
+		--disable-minify \
 		--disable-parental-controls \
 		--disable-strip \
 		--disable-updater \
+		--enable-dom-streams \
 		--enable-negotiateauth \
 		--enable-new-pass-manager \
 		--enable-official-branding \
@@ -1224,5 +1236,13 @@ pkg_postinst() {
 		elog "one generic Mozilla ${PN^} shortcut."
 		elog "If you still want to be able to select between running Mozilla ${PN^}"
 		elog "on X11 or Wayland, you have to re-create these shortcuts on your own."
+	fi
+
+	# bug 835078
+	if use hwaccel && has_version "x11-drivers/xf86-video-nouveau"; then
+		ewarn "You have nouveau drivers installed in your system and 'hwaccel' "
+		ewarn "enabled for Firefox. Nouveau / your GPU might not supported the "
+		ewarn "required EGL, so either disable 'hwaccel' or try the workaround "
+		ewarn "explained in https://bugs.gentoo.org/835078#c5 if Firefox crashes."
 	fi
 }
