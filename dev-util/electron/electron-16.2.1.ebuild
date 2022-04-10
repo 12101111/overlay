@@ -1385,7 +1385,9 @@ src_prepare() {
 	| while read -r patchespath repopath; do
 		einfo "Apply Electron's patches to ${repopath}"
 		cd "${WORKDIR}/${repopath}" || die
-		eapply "${WORKDIR}/${patchespath}"
+		cat "${WORKDIR}/${patchespath}/.patches" | while read -r patchfile; do
+			eapply "${WORKDIR}/${patchespath}/${patchfile}"
+		done
 	done
 
 	cd "${S}" || die

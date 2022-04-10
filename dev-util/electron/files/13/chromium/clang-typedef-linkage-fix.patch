@@ -1,0 +1,39 @@
+From 5f72def9c625dc4e86e8cb5d144e4b88736351f9 Mon Sep 17 00:00:00 2001
+From: Amy Huang <akhuang@google.com>
+Date: Mon, 12 Apr 2021 17:17:37 +0000
+Subject: [PATCH] Make blink build with -Wno-non-c-typedef-for-linkage.
+
+-Wno-non-c-typedef-for-linkage was added to clang in 7ae1b4a0c to disallow
+typedef named structs that aren't C-compatible.
+
+Bug: 1050281
+Change-Id: If6d271bdb30186e845ad56c1187b0cee4a537fa1
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/2819543
+Reviewed-by: Amy Huang <akhuang@google.com>
+Reviewed-by: Stephen Chenney <schenney@chromium.org>
+Commit-Queue: Amy Huang <akhuang@google.com>
+Cr-Commit-Position: refs/heads/master@{#871521}
+---
+ .../blink/renderer/platform/text/text_break_iterator_icu.cc   | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/third_party/blink/renderer/platform/text/text_break_iterator_icu.cc b/third_party/blink/renderer/platform/text/text_break_iterator_icu.cc
+index 0e8c60a31599e..4fc5bdd560f90 100644
+--- a/third_party/blink/renderer/platform/text/text_break_iterator_icu.cc
++++ b/third_party/blink/renderer/platform/text/text_break_iterator_icu.cc
+@@ -120,11 +120,11 @@ enum TextContext { kNoContext, kPriorContext, kPrimaryContext };
+ 
+ const int kTextBufferCapacity = 16;
+ 
+-typedef struct {
++struct UTextWithBuffer {
+   DISALLOW_NEW();
+   UText text;
+   UChar buffer[kTextBufferCapacity];
+-} UTextWithBuffer;
++};
+ 
+ static inline int64_t TextPinIndex(int64_t& index, int64_t limit) {
+   if (index < 0)
+
+

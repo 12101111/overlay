@@ -729,3 +729,57 @@ index 72e1506e16..deff779a6b 100644
 -       // TODO(cbruni): fix accounting to make this condition true.
 -       // CHECK_EQ(0, i_value->map()->UnusedPropertyFields());
 -       if (in_object_only) {
+diff --git a/patches/v8/cherry-pick-26b7ad6967b1.patch b/patches/v8/cherry-pick-26b7ad6967b1.patch
+index 86adb18ac0..c8d77385d7 100644
+--- a/patches/v8/cherry-pick-26b7ad6967b1.patch
++++ b/patches/v8/cherry-pick-26b7ad6967b1.patch
+@@ -48,37 +48,3 @@ index 2f16615536ae5d44bd55774a0282e5017100a9d0..99e9ccad058406370ee6666af787e74c
+        }
+  
+        case LookupIterator::ACCESSOR: {
+-diff --git a/test/cctest/test-api-interceptors.cc b/test/cctest/test-api-interceptors.cc
+-index 815c538d227ae048d382798c9f99bebe054fb6d7..475003f73c49b8e462ef1896f3fad97857e24574 100644
+---- a/test/cctest/test-api-interceptors.cc
+-+++ b/test/cctest/test-api-interceptors.cc
+-@@ -5636,10 +5636,10 @@ void DatabaseGetter(Local<Name> name,
+-                     const v8::PropertyCallbackInfo<Value>& info) {
+-   ApiTestFuzzer::Fuzz();
+-   auto context = info.GetIsolate()->GetCurrentContext();
+--  Local<v8::Object> db = info.Holder()
+--                             ->GetRealNamedProperty(context, v8_str("db"))
+--                             .ToLocalChecked()
+--                             .As<v8::Object>();
+-+  v8::MaybeLocal<Value> maybe_db =
+-+      info.Holder()->GetRealNamedProperty(context, v8_str("db"));
+-+  if (maybe_db.IsEmpty()) return;
+-+  Local<v8::Object> db = maybe_db.ToLocalChecked().As<v8::Object>();
+-   if (!db->Has(context, name).FromJust()) return;
+-   info.GetReturnValue().Set(db->Get(context, name).ToLocalChecked());
+- }
+-diff --git a/test/unittests/api/interceptor-unittest.cc b/test/unittests/api/interceptor-unittest.cc
+-index 8a1db3f823e5d957907e193971d220853c2b2e91..bc00462a29d707ec296f72b82ee2992ea8c9031f 100644
+---- a/test/unittests/api/interceptor-unittest.cc
+-+++ b/test/unittests/api/interceptor-unittest.cc
+-@@ -170,8 +170,8 @@ TEST_F(InterceptorLoggingTest, DispatchTest) {
+-   EXPECT_EQ(Run("obj.foo"), "named getter");
+-   EXPECT_EQ(Run("obj[42]"), "indexed getter");
+- 
+--  EXPECT_EQ(Run("obj.foo = null"), "named setter");
+--  EXPECT_EQ(Run("obj[42] = null"), "indexed setter");
+-+  EXPECT_EQ(Run("obj.foo = null"), "named setter, named descriptor");
+-+  EXPECT_EQ(Run("obj[42] = null"), "indexed setter, indexed descriptor");
+- 
+-   EXPECT_EQ(Run("Object.getOwnPropertyDescriptor(obj, 'foo')"),
+-             "named descriptor");
+diff --git a/patches/v8/.patches b/patches/v8/.patches
+index 9928105a6a..2aeb832115 100644
+--- a/patches/v8/.patches
++++ b/patches/v8/.patches
+@@ -7,7 +7,6 @@ do_not_export_private_v8_symbols_on_windows.patch
+ fix_build_deprecated_attirbute_for_older_msvc_versions.patch
+ fix_disable_implies_dcheck_for_node_stream_array_buffers.patch
+ cppgc-js_support_eager_traced_value_in_ephemeron_pairs.patch
+-regexp_add_a_currently_failing_cctest_for_irregexp_reentrancy.patch
+ regexp_allow_reentrant_irregexp_execution.patch
+ regexp_remove_the_stack_parameter_from_regexp_matchers.patch
+ cherry-pick-6de4e210688e.patch

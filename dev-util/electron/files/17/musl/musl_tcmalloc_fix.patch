@@ -1,0 +1,82 @@
+diff --git a/third_party/tcmalloc/chromium/src/base/sysinfo.cc b/third_party/tcmalloc/chromium/src/base/sysinfo.cc
+index ceb8e43a52..6beb50198d 100644
+--- a/third_party/tcmalloc/chromium/src/base/sysinfo.cc
++++ b/third_party/tcmalloc/chromium/src/base/sysinfo.cc
+@@ -155,8 +155,8 @@ static size_t slow_strlen(const char *s) {
+ const char* GetenvBeforeMain(const char* name) {
+   const int namelen = slow_strlen(name);
+ #if defined(HAVE___ENVIRON)   // if we have it, it's declared in unistd.h
+-  if (__environ) {            // can exist but be NULL, if statically linked
+-    for (char** p = __environ; *p; p++) {
++  if (environ) {            // can exist but be NULL, if statically linked
++    for (char** p = environ; *p; p++) {
+       if (!slow_memcmp(*p, name, namelen) && (*p)[namelen] == '=')
+         return *p + namelen+1;
+     }
+diff --git a/third_party/tcmalloc/chromium/src/config_linux.h b/third_party/tcmalloc/chromium/src/config_linux.h
+index 4e8e3989eb..93a62a2d82 100644
+--- a/third_party/tcmalloc/chromium/src/config_linux.h
++++ b/third_party/tcmalloc/chromium/src/config_linux.h
+@@ -152,7 +152,7 @@
+ #define HAVE_STRING_H 1
+ 
+ /* Define to 1 if the system has the type `struct mallinfo'. */
+-#define HAVE_STRUCT_MALLINFO 1
++/* #undef HAVE_STRUCT_MALLINFO */
+ 
+ /* Define to 1 if you have the <sys/cdefs.h> header file. */
+ #define HAVE_SYS_CDEFS_H 1
+diff --git a/third_party/tcmalloc/chromium/src/malloc_hook_mmap_linux.h b/third_party/tcmalloc/chromium/src/malloc_hook_mmap_linux.h
+index 17415aaf53..b7c5c1545a 100644
+--- a/third_party/tcmalloc/chromium/src/malloc_hook_mmap_linux.h
++++ b/third_party/tcmalloc/chromium/src/malloc_hook_mmap_linux.h
+@@ -60,7 +60,7 @@
+ 
+ static inline void* do_mmap64(void *start, size_t length,
+                               int prot, int flags,
+-                              int fd, __off64_t offset) __THROW {
++                              int fd, off64_t offset) __THROW {
+   // The original gperftools uses sys_mmap() here.  But, it is not allowed by
+   // Chromium's sandbox.
+   return (void*)syscall(SYS_mmap, start, length, prot, flags, fd, offset);
+@@ -73,7 +73,7 @@ static inline void* do_mmap64(void *start, size_t length,
+ 
+ static inline void* do_mmap64(void *start, size_t length,
+                               int prot, int flags,
+-                              int fd, __off64_t offset) __THROW {
++                              int fd, off64_t offset) __THROW {
+   void *result;
+ 
+   // Try mmap2() unless it's not supported
+@@ -144,7 +144,7 @@ static inline void* do_mmap64(void *start, size_t length,
+ 
+ extern "C" {
+   void* mmap64(void *start, size_t length, int prot, int flags,
+-               int fd, __off64_t offset  ) __THROW
++               int fd, off64_t offset  ) __THROW
+     ATTRIBUTE_SECTION(malloc_hook);
+   void* mmap(void *start, size_t length,int prot, int flags,
+              int fd, off_t offset) __THROW
+@@ -158,8 +158,12 @@ extern "C" {
+     ATTRIBUTE_SECTION(malloc_hook);
+ }
+ 
++#ifdef mmap64
++#undef mmap64
++#endif
++
+ extern "C" void* mmap64(void *start, size_t length, int prot, int flags,
+-                        int fd, __off64_t offset) __THROW {
++                        int fd, off64_t offset) __THROW {
+   MallocHook::InvokePreMmapHook(start, length, prot, flags, fd, offset);
+   void *result;
+   if (!MallocHook::InvokeMmapReplacement(
+@@ -217,7 +217,7 @@ extern "C" void* mremap(void* old_addr, size_t old_size, size_t new_size,
+   return result;
+ }
+ 
+-#ifndef __UCLIBC__
++#if defined(__GLIBC__) && !defined(__UCLIBC__)
+ // libc's version:
+ extern "C" void* __sbrk(intptr_t increment);
+ 
