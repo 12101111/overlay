@@ -19,11 +19,11 @@ CRATES="
 	alloc-no-stdlib-2.0.3
 	alloc-stdlib-0.2.1
 	ansi_term-0.12.1
-	anyhow-1.0.53
-	arrayvec-0.5.2
+	anyhow-1.0.55
+	arrayvec-0.4.12
 	arrayvec-0.7.2
 	ash-0.34.0+1.2.203
-	ast_node-0.7.6
+	ast_node-0.7.7
 	async-compression-0.3.8
 	async-stream-0.3.2
 	async-stream-impl-0.3.2
@@ -48,13 +48,11 @@ CRATES="
 	block-padding-0.2.1
 	brotli-3.3.3
 	brotli-decompressor-2.3.2
-	build_const-0.2.2
 	bumpalo-3.9.1
 	byteorder-1.4.3
 	bytes-1.1.0
 	cache_control-0.2.0
 	cc-1.0.72
-	cfg-if-0.1.10
 	cfg-if-1.0.0
 	cfg_aliases-0.1.1
 	chrono-0.4.19
@@ -71,7 +69,8 @@ CRATES="
 	core-foundation-sys-0.8.3
 	core-graphics-types-0.1.1
 	cpufeatures-0.2.1
-	crc-1.8.1
+	crc-2.1.0
+	crc-catalog-1.1.1
 	crc32fast-1.3.0
 	crossbeam-channel-0.5.2
 	crossbeam-utils-0.8.6
@@ -86,13 +85,15 @@ CRATES="
 	darling_core-0.10.2
 	darling_macro-0.10.2
 	dashmap-4.0.2
+	dashmap-5.2.0
 	data-encoding-2.3.2
 	data-url-0.1.1
 	debug_unreachable-0.1.1
-	deno_ast-0.12.0
-	deno_doc-0.32.0
-	deno_graph-0.24.0
-	deno_lint-0.26.0
+	deno_ast-0.13.0
+	deno_doc-0.33.0
+	deno_graph-0.25.0
+	deno_lint-0.28.0
+	deno_task_shell-0.2.0
 	der-0.4.5
 	derive_more-0.99.17
 	diff-0.1.12
@@ -104,8 +105,8 @@ CRATES="
 	dprint-core-0.50.0
 	dprint-plugin-json-0.14.1
 	dprint-plugin-markdown-0.12.2
-	dprint-plugin-typescript-0.64.3
-	dprint-swc-ecma-ast-view-0.50.0
+	dprint-plugin-typescript-0.65.1
+	dprint-swc-ecma-ast-view-0.54.0
 	dyn-clone-1.0.4
 	ecdsa-0.12.4
 	either-1.6.1
@@ -117,16 +118,17 @@ CRATES="
 	env_logger-0.8.4
 	errno-0.1.8
 	error-code-2.3.0
-	eszip-0.17.0
+	eszip-0.18.0
 	fallible-iterator-0.2.0
 	fallible-streaming-iterator-0.1.9
 	fancy-regex-0.7.1
 	fd-lock-3.0.2
 	ff-0.10.1
 	filetime-0.2.15
-	fixedbitset-0.2.0
+	fixedbitset-0.4.1
 	flaky_test-0.1.0
 	flate2-1.0.22
+	fly-accept-encoding-0.2.0-alpha.5
 	fnv-1.0.7
 	foreign-types-0.3.2
 	foreign-types-shared-0.1.1
@@ -135,15 +137,15 @@ CRATES="
 	fs3-0.5.0
 	fsevent-sys-4.1.0
 	fslock-0.1.8
-	futures-0.3.19
-	futures-channel-0.3.19
-	futures-core-0.3.19
-	futures-executor-0.3.19
-	futures-io-0.3.19
-	futures-macro-0.3.19
-	futures-sink-0.3.19
-	futures-task-0.3.19
-	futures-util-0.3.19
+	futures-0.3.21
+	futures-channel-0.3.21
+	futures-core-0.3.21
+	futures-executor-0.3.21
+	futures-io-0.3.21
+	futures-macro-0.3.21
+	futures-sink-0.3.21
+	futures-task-0.3.21
+	futures-util-0.3.21
 	fwdansi-1.1.0
 	fxhash-0.2.1
 	generic-array-0.14.5
@@ -193,16 +195,21 @@ CRATES="
 	kqueue-1.0.4
 	kqueue-sys-1.0.3
 	lazy_static-1.4.0
-	lexical-5.2.2
-	lexical-core-0.7.6
+	lexical-6.1.0
+	lexical-core-0.8.3
+	lexical-parse-float-0.8.3
+	lexical-parse-integer-0.8.3
+	lexical-util-0.8.3
+	lexical-write-float-0.8.4
+	lexical-write-integer-0.8.3
 	libc-0.2.106
 	libffi-2.0.0
 	libffi-sys-1.3.0
 	libloading-0.7.3
 	libm-0.2.1
-	libsqlite3-sys-0.22.2
+	libsqlite3-sys-0.24.1
 	linked-hash-map-0.5.4
-	lock_api-0.4.5
+	lock_api-0.4.6
 	log-0.4.14
 	lru-cache-0.1.2
 	lsp-types-0.91.1
@@ -220,39 +227,47 @@ CRATES="
 	mio-0.7.14
 	miow-0.3.7
 	naga-0.8.3
-	netif-0.1.1
+	netif-0.1.3
 	new_debug_unreachable-1.0.4
 	nibble_vec-0.1.0
 	nix-0.23.0
+	node_resolver-0.1.1
+	nodrop-0.1.14
 	notify-5.0.0-pre.12
 	ntapi-0.3.6
-	num-bigint-0.2.6
+	num-bigint-0.4.3
 	num-bigint-dig-0.7.0
+	num-format-0.4.0
 	num-integer-0.1.44
 	num-iter-0.1.42
 	num-traits-0.2.14
-	num_cpus-1.13.0
+	num_cpus-1.13.1
 	objc-0.2.7
 	objc_exception-0.1.2
-	once_cell-1.9.0
+	once_cell-1.10.0
 	opaque-debug-0.3.0
 	openssl-probe-0.1.5
-	os_pipe-0.9.2
+	os_pipe-1.0.1
 	os_str_bytes-6.0.0
 	output_vt100-0.1.2
-	owning_ref-0.4.1
 	p256-0.9.0
 	p384-0.8.0
 	parking_lot-0.11.2
+	parking_lot-0.12.0
 	parking_lot_core-0.8.5
+	parking_lot_core-0.9.1
+	path-clean-0.1.0
+	path-dedot-3.0.16
 	pem-rfc7468-0.2.4
 	percent-encoding-2.1.0
 	pest-2.1.3
-	petgraph-0.5.1
-	phf-0.8.0
+	petgraph-0.6.0
+	phf-0.10.1
 	phf_generator-0.8.0
-	phf_macros-0.8.0
+	phf_generator-0.10.0
+	phf_macros-0.10.0
 	phf_shared-0.8.0
+	phf_shared-0.10.0
 	pin-project-1.0.8
 	pin-project-internal-1.0.8
 	pin-project-lite-0.2.8
@@ -264,7 +279,8 @@ CRATES="
 	polyval-0.5.3
 	ppv-lite86-0.2.16
 	precomputed-hash-0.1.1
-	pretty_assertions-0.7.2
+	pretty_assertions-1.2.0
+	proc-macro-crate-1.1.3
 	proc-macro-error-1.0.4
 	proc-macro-error-attr-1.0.4
 	proc-macro-hack-0.5.19
@@ -290,24 +306,25 @@ CRATES="
 	range-alloc-0.1.2
 	raw-window-handle-0.4.2
 	redox_syscall-0.2.10
-	regex-1.5.4
+	regex-1.5.5
 	regex-syntax-0.6.25
 	relative-path-1.6.0
 	remove_dir_all-0.5.3
 	renderdoc-sys-0.7.1
-	reqwest-0.11.9
+	reqwest-0.11.10
 	resolv-conf-0.7.0
 	retain_mut-0.1.5
 	ring-0.16.20
 	ron-0.7.0
 	rsa-0.5.0
-	rusqlite-0.25.4
+	rusqlite-0.27.0
 	rustc-hash-1.1.0
 	rustc_version-0.2.3
 	rustc_version-0.4.0
 	rustls-0.20.2
 	rustls-native-certs-0.6.1
 	rustls-pemfile-0.2.1
+	rustls-pemfile-0.3.0
 	rustyline-9.1.2
 	rustyline-derive-0.6.0
 	ryu-1.0.9
@@ -327,8 +344,9 @@ CRATES="
 	serde_derive-1.0.133
 	serde_json-1.0.75
 	serde_repr-0.1.7
-	serde_urlencoded-0.7.0
+	serde_urlencoded-0.7.1
 	sha-1-0.9.8
+	sha-1-0.10.0
 	sha2-0.9.9
 	sha2-0.10.1
 	shell-escape-0.1.5
@@ -344,38 +362,37 @@ CRATES="
 	spin-0.5.2
 	spirv-0.2.0+1.5.4
 	spki-0.4.1
-	stable_deref_trait-1.2.0
 	static_assertions-1.1.0
 	str-buf-1.0.5
-	string_cache-0.8.2
+	string_cache-0.8.3
 	string_cache_codegen-0.5.1
 	string_enum-0.3.1
 	strsim-0.9.3
 	strsim-0.10.0
 	subtle-2.4.1
 	swc_atoms-0.2.9
-	swc_bundler-0.107.0
-	swc_common-0.17.5
-	swc_ecma_ast-0.65.3
-	swc_ecma_codegen-0.90.0
-	swc_ecma_codegen_macros-0.6.0
-	swc_ecma_dep_graph-0.59.0
-	swc_ecma_loader-0.28.0
-	swc_ecma_parser-0.88.3
-	swc_ecma_transforms-0.117.0
-	swc_ecma_transforms_base-0.58.3
-	swc_ecma_transforms_classes-0.46.0
+	swc_bundler-0.127.0
+	swc_common-0.17.18
+	swc_ecma_ast-0.71.0
+	swc_ecma_codegen-0.98.1
+	swc_ecma_codegen_macros-0.7.0
+	swc_ecma_dep_graph-0.67.0
+	swc_ecma_loader-0.29.0
+	swc_ecma_parser-0.95.1
+	swc_ecma_transforms-0.136.0
+	swc_ecma_transforms_base-0.70.1
+	swc_ecma_transforms_classes-0.58.0
 	swc_ecma_transforms_macros-0.3.0
-	swc_ecma_transforms_optimization-0.87.0
-	swc_ecma_transforms_proposal-0.77.0
-	swc_ecma_transforms_react-0.80.0
-	swc_ecma_transforms_typescript-0.82.0
-	swc_ecma_utils-0.65.3
-	swc_ecma_visit-0.51.1
-	swc_ecmascript-0.114.3
+	swc_ecma_transforms_optimization-0.106.0
+	swc_ecma_transforms_proposal-0.91.0
+	swc_ecma_transforms_react-0.98.0
+	swc_ecma_transforms_typescript-0.101.0
+	swc_ecma_utils-0.74.0
+	swc_ecma_visit-0.57.0
+	swc_ecmascript-0.137.0
 	swc_eq_ignore_macros-0.1.0
-	swc_fast_graph-0.4.0
-	swc_graph_analyzer-0.4.0
+	swc_fast_graph-0.5.0
+	swc_graph_analyzer-0.6.0
 	swc_macros_common-0.3.2
 	swc_visit-0.3.0
 	swc_visit_macros-0.3.0
@@ -401,9 +418,9 @@ CRATES="
 	tokio-util-0.6.9
 	toml-0.5.8
 	tower-service-0.3.1
-	tracing-0.1.29
-	tracing-attributes-0.1.18
-	tracing-core-0.1.21
+	tracing-0.1.32
+	tracing-attributes-0.1.20
+	tracing-core-0.1.23
 	trust-dns-client-0.20.3
 	trust-dns-proto-0.20.3
 	trust-dns-resolver-0.20.3
@@ -422,6 +439,7 @@ CRATES="
 	unic-ucd-version-0.9.0
 	unicase-2.6.0
 	unicode-bidi-0.3.7
+	unicode-id-0.3.0
 	unicode-normalization-0.1.19
 	unicode-segmentation-1.8.0
 	unicode-width-0.1.9
@@ -431,7 +449,7 @@ CRATES="
 	unreachable-0.1.1
 	untrusted-0.7.1
 	url-2.2.2
-	urlpattern-0.1.5
+	urlpattern-0.1.6
 	utf-8-0.7.6
 	utf8parse-0.2.0
 	uuid-0.8.2
@@ -463,13 +481,19 @@ CRATES="
 	winapi-util-0.1.5
 	winapi-x86_64-pc-windows-gnu-0.4.0
 	windows-sys-0.28.0
+	windows-sys-0.32.0
 	windows_aarch64_msvc-0.28.0
+	windows_aarch64_msvc-0.32.0
 	windows_i686_gnu-0.28.0
+	windows_i686_gnu-0.32.0
 	windows_i686_msvc-0.28.0
+	windows_i686_msvc-0.32.0
 	windows_x86_64_gnu-0.28.0
+	windows_x86_64_gnu-0.32.0
 	windows_x86_64_msvc-0.28.0
+	windows_x86_64_msvc-0.32.0
 	winreg-0.6.2
-	winreg-0.7.0
+	winreg-0.10.1
 	winres-0.1.11
 	zeroize-1.4.3
 	zeroize_derive-1.3.1
@@ -483,7 +507,7 @@ inherit cargo check-reqs toolchain-funcs python-any-r1 git-r3
 DESCRIPTION="A secure JavaScript and TypeScript runtime"
 HOMEPAGE="https://github.com/denoland/deno"
 EGIT_REPO_URI="https://github.com/denoland/rusty_v8.git"
-EGIT_COMMIT="v0.40.0"
+EGIT_COMMIT="v0.41.0"
 EGIT_CHECKOUT_DIR="${WORKDIR}/v8"
 EGIT_SUBMODULES=('v8' 'build' 'base/trace_event/common' 'third_party/jinja2' 'third_party/markupsafe' 'third_party/zlib' 'third_party/icu')
 SRC_URI="
@@ -502,9 +526,8 @@ BDEPEND="
 	>=dev-util/gn-0.1807
 	>=dev-util/ninja-1.10.0
 	>=sys-devel/clang-10.0.0
-	dev-lang/python:2.7[xml]
 	libcxx? ( sys-libs/libcxx )
-	>=dev-lang/rust-1.51.0[wasi,wasm]
+	>=dev-lang/rust-1.56.0[wasi,wasm]
 "
 
 S="${WORKDIR}/deno"
