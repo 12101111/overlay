@@ -1,0 +1,107 @@
+diff --git a/patches/v8/cherry-pick-36b66b5cc991.patch b/patches/v8/cherry-pick-36b66b5cc991.patch
+index 49ddf5c39f..f95386647e 100644
+--- a/patches/v8/cherry-pick-36b66b5cc991.patch
++++ b/patches/v8/cherry-pick-36b66b5cc991.patch
+@@ -41,102 +41,3 @@ index 1df13df72c29f804168ab1f57117650922378a07..d823bba604936c1c99b4e3aea694afc8
+        }
+  
+        case LookupIterator::ACCESSOR: {
+-diff --git a/test/cctest/test-api-interceptors.cc b/test/cctest/test-api-interceptors.cc
+-index 909795ece407ac2089f15e562d308733371fbb65..7eb96a54f77519a8b968d40fab4d01070e0ed179 100644
+---- a/test/cctest/test-api-interceptors.cc
+-+++ b/test/cctest/test-api-interceptors.cc
+-@@ -60,6 +60,16 @@ void EmptyInterceptorDeleter(
+- void EmptyInterceptorEnumerator(
+-     const v8::PropertyCallbackInfo<v8::Array>& info) {}
+- 
+-+void EmptyInterceptorDefinerWithSideEffect(
+-+    Local<Name> name, const v8::PropertyDescriptor& desc,
+-+    const v8::PropertyCallbackInfo<v8::Value>& info) {
+-+  ApiTestFuzzer::Fuzz();
+-+  v8::Local<v8::Value> result = CompileRun("interceptor_definer_side_effect()");
+-+  if (!result->IsNull()) {
+-+    info.GetReturnValue().Set(result);
+-+  }
+-+}
+-+
+- void SimpleAccessorGetter(Local<String> name,
+-                           const v8::PropertyCallbackInfo<v8::Value>& info) {
+-   Local<Object> self = info.This().As<Object>();
+-@@ -869,13 +879,17 @@ THREADED_TEST(InterceptorHasOwnPropertyCausingGC) {
+- namespace {
+- 
+- void CheckInterceptorIC(v8::GenericNamedPropertyGetterCallback getter,
+-+                        v8::GenericNamedPropertySetterCallback setter,
+-                         v8::GenericNamedPropertyQueryCallback query,
+--                        const char* source, int expected) {
+-+                        v8::GenericNamedPropertyDefinerCallback definer,
+-+                        v8::PropertyHandlerFlags flags, const char* source,
+-+                        int expected) {
+-   v8::Isolate* isolate = CcTest::isolate();
+-   v8::HandleScope scope(isolate);
+-   v8::Local<v8::ObjectTemplate> templ = ObjectTemplate::New(isolate);
+-   templ->SetHandler(v8::NamedPropertyHandlerConfiguration(
+--      getter, nullptr, query, nullptr, nullptr, v8_str("data")));
+-+      getter, setter, query, nullptr /* deleter */, nullptr /* enumerator */,
+-+      definer, nullptr /* descriptor */, v8_str("data"), flags));
+-   LocalContext context;
+-   context->Global()
+-       ->Set(context.local(), v8_str("o"),
+-@@ -885,9 +899,17 @@ void CheckInterceptorIC(v8::GenericNamedPropertyGetterCallback getter,
+-   CHECK_EQ(expected, value->Int32Value(context.local()).FromJust());
+- }
+- 
+-+void CheckInterceptorIC(v8::GenericNamedPropertyGetterCallback getter,
+-+                        v8::GenericNamedPropertyQueryCallback query,
+-+                        const char* source, int expected) {
+-+  CheckInterceptorIC(getter, nullptr, query, nullptr,
+-+                     v8::PropertyHandlerFlags::kNone, source, expected);
+-+}
+-+
+- void CheckInterceptorLoadIC(v8::GenericNamedPropertyGetterCallback getter,
+-                             const char* source, int expected) {
+--  CheckInterceptorIC(getter, nullptr, source, expected);
+-+  CheckInterceptorIC(getter, nullptr, nullptr, nullptr,
+-+                     v8::PropertyHandlerFlags::kNone, source, expected);
+- }
+- 
+- void InterceptorLoadICGetter(Local<Name> name,
+-@@ -1581,6 +1603,38 @@ THREADED_TEST(InterceptorStoreICWithSideEffectfulCallbacks) {
+-                      19);
+- }
+- 
+-+THREADED_TEST(InterceptorDefineICWithSideEffectfulCallbacks) {
+-+  CheckInterceptorIC(EmptyInterceptorGetter, EmptyInterceptorSetter,
+-+                     EmptyInterceptorQuery,
+-+                     EmptyInterceptorDefinerWithSideEffect,
+-+                     v8::PropertyHandlerFlags::kNonMasking,
+-+                     "let inside_side_effect = false;"
+-+                     "let interceptor_definer_side_effect = function() {"
+-+                     "  if (!inside_side_effect) {"
+-+                     "    inside_side_effect = true;"
+-+                     "    o.y = 153;"
+-+                     "    inside_side_effect = false;"
+-+                     "  }"
+-+                     "  return null;"
+-+                     "};"
+-+                     "class Base {"
+-+                     "  constructor(arg) {"
+-+                     "    return arg;"
+-+                     "  }"
+-+                     "}"
+-+                     "class ClassWithField extends Base {"
+-+                     "  y = (() => {"
+-+                     "    return 42;"
+-+                     "  })();"
+-+                     "  constructor(arg) {"
+-+                     "    super(arg);"
+-+                     "  }"
+-+                     "}"
+-+                     "new ClassWithField(o);"
+-+                     "o.y",
+-+                     42);
+-+}
+-+
+- static void InterceptorStoreICSetter(
+-     Local<Name> key, Local<Value> value,
+-     const v8::PropertyCallbackInfo<v8::Value>& info) {

@@ -13,7 +13,7 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 inherit check-reqs chromium-2 desktop flag-o-matic ninja-utils pax-utils python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils yarn
 
 # Keep this in sync with DEPS:chromium_version
-CHROMIUM_VERSION="100.0.4896.60"
+CHROMIUM_VERSION="100.0.4896.75"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="16.13.2"
 # https://github.com/stha09/chromium-patches/releases
