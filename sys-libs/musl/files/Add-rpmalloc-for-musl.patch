@@ -1,21 +1,21 @@
-From ed6c57f9c91e024658e2e46a12bab162909d3c2d Mon Sep 17 00:00:00 2001
+From 39d7b7471761a3ac1ea0400cf6745968b7edd6bb Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Tue, 8 Mar 2022 00:11:39 +0800
-Subject: [PATCH] Add rpmalloc for musl
+Date: Wed, 13 Apr 2022 21:02:01 +0800
+Subject: [PATCH 1/2] Add rpmalloc for musl
 
 ---
  Makefile                       |    2 +-
  README                         |    2 +
  configure                      |    1 +
- ldso/dynlink.c                 |   14 +
+ ldso/dynlink.c                 |   12 +
  src/env/__libc_start_main.c    |    4 +
  src/internal/pthread_impl.h    |    1 +
- src/malloc/lite_malloc.c       |    6 +
- src/malloc/rpmalloc/glue.h     |   49 +
- src/malloc/rpmalloc/rpmalloc.c | 3419 ++++++++++++++++++++++++++++++++
+ src/malloc/lite_malloc.c       |    5 +
+ src/malloc/rpmalloc/glue.h     |   46 +
+ src/malloc/rpmalloc/rpmalloc.c | 3422 ++++++++++++++++++++++++++++++++
  src/malloc/rpmalloc/rpmalloc.h |  362 ++++
  src/thread/pthread_create.c    |    6 +
- 11 files changed, 3865 insertions(+), 1 deletion(-)
+ 11 files changed, 3862 insertions(+), 1 deletion(-)
  create mode 100644 src/malloc/rpmalloc/glue.h
  create mode 100644 src/malloc/rpmalloc/rpmalloc.c
  create mode 100644 src/malloc/rpmalloc/rpmalloc.h
@@ -57,27 +57,18 @@ index ca5cbc0b..24f4122d 100755
  || tryflag CFLAGS_C99FSE -fno-builtin
  tryflag CFLAGS_C99FSE -fexcess-precision=standard \
 diff --git a/ldso/dynlink.c b/ldso/dynlink.c
-index 5b9c8be4..66f0997f 100644
+index 5b9c8be4..20627170 100644
 --- a/ldso/dynlink.c
 +++ b/ldso/dynlink.c
-@@ -150,6 +150,8 @@ static struct fdpic_dummy_loadmap app_dummy_loadmap;
+@@ -150,6 +150,7 @@ static struct fdpic_dummy_loadmap app_dummy_loadmap;
  struct debug *_dl_debug_addr = &debug;
  
  extern hidden int __malloc_replaced;
 +extern hidden int __malloc_process_init();
-+extern hidden void __malloc_process_finalize();
  
  hidden void (*const __init_array_start)(void)=0, (*const __fini_array_start)(void)=0;
  
-@@ -1426,6 +1428,7 @@ void __libc_exit_fini()
- 			fpaddr(p, dyn[DT_FINI])();
- #endif
- 	}
-+	__malloc_process_finalize();
- }
- 
- void __ldso_atfork(int who)
-@@ -1550,6 +1553,11 @@ static void do_init_fini(struct dso **queue)
+@@ -1550,6 +1551,11 @@ static void do_init_fini(struct dso **queue)
  
  void __libc_start_init(void)
  {
@@ -89,7 +80,7 @@ index 5b9c8be4..66f0997f 100644
  	do_init_fini(main_ctor_queue);
  	if (!__malloc_replaced && main_ctor_queue != builtin_ctor_queue)
  		free(main_ctor_queue);
-@@ -1886,6 +1894,12 @@ void __dls3(size_t *sp, size_t *auxv)
+@@ -1886,6 +1892,12 @@ void __dls3(size_t *sp, size_t *auxv)
  	reclaim_gaps(&app);
  	reclaim_gaps(&ldso);
  
@@ -137,10 +128,10 @@ index de2b9d8b..84adf894 100644
  	/* Part 3 -- the positions of these fields relative to
  	 * the end of the structure is external and internal ABI. */
 diff --git a/src/malloc/lite_malloc.c b/src/malloc/lite_malloc.c
-index 43a988fb..61659fe8 100644
+index 43a988fb..ae0f6370 100644
 --- a/src/malloc/lite_malloc.c
 +++ b/src/malloc/lite_malloc.c
-@@ -116,3 +116,9 @@ static void *default_malloc(size_t n)
+@@ -116,3 +116,8 @@ static void *default_malloc(size_t n)
  }
  
  weak_alias(default_malloc, malloc);
@@ -148,14 +139,13 @@ index 43a988fb..61659fe8 100644
 +static void dummy(void) {}
 +weak_alias(dummy, __malloc_process_init);
 +weak_alias(dummy, __malloc_thread_init);
-+weak_alias(dummy, __malloc_process_finalize);
 +weak_alias(dummy, __malloc_thread_finalize);
 diff --git a/src/malloc/rpmalloc/glue.h b/src/malloc/rpmalloc/glue.h
 new file mode 100644
-index 00000000..595cb61d
+index 00000000..96b70a0d
 --- /dev/null
 +++ b/src/malloc/rpmalloc/glue.h
-@@ -0,0 +1,49 @@
+@@ -0,0 +1,46 @@
 +#include "rpmalloc.h"
 +#if (defined(__GNUC__) && __GNUC__ >= 9)
 +  #pragma GCC diagnostic ignored "-Wattributes"  // or we get warnings that nodiscard is ignored on a forward
@@ -181,9 +171,6 @@ index 00000000..595cb61d
 +hidden void __malloc_thread_init() {
 +  rpmalloc_thread_initialize();
 +}
-+hidden void __malloc_process_finalize() {
-+  rpmalloc_finalize();
-+}
 +hidden void __malloc_thread_finalize() {
 +  rpmalloc_thread_finalize(1);
 +}
@@ -207,10 +194,10 @@ index 00000000..595cb61d
 +}
 diff --git a/src/malloc/rpmalloc/rpmalloc.c b/src/malloc/rpmalloc/rpmalloc.c
 new file mode 100644
-index 00000000..1125a9e7
+index 00000000..05e563c6
 --- /dev/null
 +++ b/src/malloc/rpmalloc/rpmalloc.c
-@@ -0,0 +1,3419 @@
+@@ -0,0 +1,3422 @@
 +/* rpmalloc.c  -  Memory allocator  -  Public Domain  -  2016-2020 Mattias Jansson
 + *
 + * This library provides a cross-platform lock free thread caching malloc implementation in C11.
@@ -977,9 +964,12 @@ index 00000000..1125a9e7
 +_rpmalloc_mmap(size_t size, size_t* offset) {
 +	rpmalloc_assert(!(size % _memory_page_size), "Invalid mmap size");
 +	rpmalloc_assert(size >= _memory_page_size, "Invalid mmap size");
-+	_rpmalloc_stat_add_peak(&_mapped_pages, (size >> _memory_page_size_shift), _mapped_pages_peak);
-+	_rpmalloc_stat_add(&_mapped_total, (size >> _memory_page_size_shift));
-+	return _memory_config.memory_map(size, offset);
++	void* address = _memory_config.memory_map(size, offset);
++	if (EXPECTED(address != 0)) {
++		_rpmalloc_stat_add_peak(&_mapped_pages, (size >> _memory_page_size_shift), _mapped_pages_peak);
++		_rpmalloc_stat_add(&_mapped_total, (size >> _memory_page_size_shift));
++	}
++	return address;
 +}
 +
 +//! Unmap virtual memory
@@ -4030,5 +4020,5 @@ index 6f187ee8..4a917914 100644
  	return 0;
  }
 -- 
-2.35.1
+2.35.2
 

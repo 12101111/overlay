@@ -1,7 +1,7 @@
-From b4c05db9ceb3273c36f8d072194564e1daa3fc68 Mon Sep 17 00:00:00 2001
+From a865c83d0b612a8afcbb98d200794e05a31dab5d Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Wed, 9 Mar 2022 23:32:02 +0800
-Subject: [PATCH] use optimized memcpy & memset
+Subject: [PATCH 2/2] use optimized memcpy & memset
 
 ---
  src/string/aarch64/memcpy.S                | 287 ++++++------
@@ -1303,5 +1303,5 @@ index 2d3f5e52..00000000
 -	add %rdx,%rdi
 -	jmp 1b
 -- 
-2.35.1
+2.35.2
 
