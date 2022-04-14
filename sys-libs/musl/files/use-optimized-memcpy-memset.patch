@@ -1,16 +1,18 @@
-From a865c83d0b612a8afcbb98d200794e05a31dab5d Mon Sep 17 00:00:00 2001
+From 1299e4c3ef43ba7509a104fc8cdeea90c61dc7cc Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Wed, 9 Mar 2022 23:32:02 +0800
-Subject: [PATCH 2/2] use optimized memcpy & memset
+Subject: [PATCH] use optimized memcpy & memset
 
 ---
  src/string/aarch64/memcpy.S                | 287 ++++++------
+ src/string/aarch64/memmove.S               |   1 +
  src/string/x86_64/memcpy.S                 | 487 +++++++++++++++++++++
  src/string/x86_64/memcpy.s                 |  25 --
  src/string/x86_64/{memmove.s => memmove.S} |   5 +
  src/string/x86_64/memset.S                 | 316 +++++++++++++
  src/string/x86_64/memset.s                 |  72 ---
- 6 files changed, 961 insertions(+), 231 deletions(-)
+ 7 files changed, 962 insertions(+), 231 deletions(-)
+ create mode 100644 src/string/aarch64/memmove.S
  create mode 100644 src/string/x86_64/memcpy.S
  delete mode 100644 src/string/x86_64/memcpy.s
  rename src/string/x86_64/{memmove.s => memmove.S} (80%)
@@ -355,6 +357,13 @@ index 48bb8a8d..272a727e 100644
  	ret
  
  .size memcpy,.-memcpy
+diff --git a/src/string/aarch64/memmove.S b/src/string/aarch64/memmove.S
+new file mode 100644
+index 00000000..90fd94a7
+--- /dev/null
++++ b/src/string/aarch64/memmove.S
+@@ -0,0 +1 @@
++// implemented as memcpy
 diff --git a/src/string/x86_64/memcpy.S b/src/string/x86_64/memcpy.S
 new file mode 100644
 index 00000000..c972b677
