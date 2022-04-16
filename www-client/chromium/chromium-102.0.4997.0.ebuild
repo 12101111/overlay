@@ -13,7 +13,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic ninja-utils pax-utils python-
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="2"
+PATCHSET="3"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
@@ -25,6 +25,7 @@ IUSE="hevc atk lto pgo component-build cups cpu_flags_arm_neon debug gtk4 +hango
 REQUIRED_USE="
 	component-build? ( !suid !libcxx )
 	screencast? ( wayland )
+	hevc? ( vaapi )
 "
 RESTRICT="hevc? ( bindist )"
 
@@ -254,9 +255,9 @@ src_prepare() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
 
-	if use elibc_musl; then
-		eapply "${FILESDIR}/musl"
-	fi
+	use elibc_musl && eapply "${FILESDIR}/musl"
+	use hevc && eapply "${FILESDIR}/chromium-hevc.patch"
+	tc-is-clang && eapply "${FILESDIR}/remove-libatomic.patch"
 
 	local PATCHES=(
 		"${WORKDIR}/patches"
@@ -265,20 +266,17 @@ src_prepare() {
 		"${FILESDIR}/chromium-98-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-98-gtk4-build.patch"
 		"${FILESDIR}/chromium-101-libxml-unbundle.patch"
-		"${FILESDIR}/chromium-102-dawn-revert.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 		"${FILESDIR}/chromium-cross-compile.patch"
 		"${FILESDIR}/chromium-92_atk_optional.patch"
 		"${FILESDIR}/chromium-no-strip.patch"
 		"${FILESDIR}/chromium-100-fix-stat-include.patch"
+		"${FILESDIR}/arm64-16k-page-pamalloc-fix.patch"
 	)
 
 	default
 
-	if use hevc; then
-		eapply "${FILESDIR}/chromium-hevc.patch"
-	fi
 
 	mkdir -p third_party/node/linux/node-linux-x64/bin || die
 	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
@@ -352,7 +350,6 @@ src_prepare() {
 		third_party/dawn
 		third_party/dawn/third_party/gn/webgpu-cts
 		third_party/dawn/third_party/khronos
-		third_party/dawn/third_party/tint
 		third_party/depot_tools
 		third_party/devscripts
 		third_party/devtools-frontend
@@ -440,7 +437,6 @@ src_prepare() {
 		third_party/node
 		third_party/node/node_modules/polymer-bundler/lib/third_party/UglifyJS2
 		third_party/one_euro_filter
-		third_party/opencv
 		third_party/openscreen
 		third_party/openscreen/src/third_party/mozilla
 		third_party/openscreen/src/third_party/tinycbor/src/src
@@ -651,8 +647,9 @@ src_configure() {
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
-	myconf_gn+=" use_allocator=\"none\""
-	myconf_gn+=" use_allocator_shim=false"
+	#myconf_gn+=" use_allocator=\"none\""
+	#myconf_gn+=" use_allocator_shim=false"
+	#myconf_gn+=" use_partition_alloc=false"
 
 	# Disable nacl, we can't build without pnacl (http://crbug.com/269560).
 	myconf_gn+=" enable_nacl=false"
@@ -722,7 +719,7 @@ src_configure() {
 	myconf_gn+=" use_atk=$(usex atk true false)"
 	myconf_gn+=" enable_swiftshader=true enable_vulkan=true enable_swiftshader_vulkan=true"
 	if use hevc; then
-		myconf_gn+=" use_chromeos_protected_media=true use_vaapi=true"
+		myconf_gn+=" enable_platform_hevc=true use_vaapi=true"
 	fi
 
 	# TODO: link_pulseaudio=true for GN.

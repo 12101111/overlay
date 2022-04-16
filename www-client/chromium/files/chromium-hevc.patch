@@ -12,13 +12,13 @@ index c10595e7b3..f9e42ce1b0 100644
    const bool enable_cdm_factory_daemon =
        base::CommandLine::ForCurrentProcess()->HasSwitch(
 diff --git a/media/base/supported_types.cc b/media/base/supported_types.cc
-index 3e174b9320..7382fc13c5 100644
+index 41a4609a2a..da470d17ec 100644
 --- a/media/base/supported_types.cc
 +++ b/media/base/supported_types.cc
-@@ -180,14 +180,6 @@ bool IsAudioCodecProprietary(AudioCodec codec) {
- 
- bool IsHevcProfileSupported(const VideoType& type) {
- #if BUILDFLAG(ENABLE_PLATFORM_ENCRYPTED_HEVC)
+@@ -212,13 +212,6 @@ bool IsHevcProfileSupported(const VideoType& type) {
+   return true;
+ #endif  // BUILDFLAG(IS_WIN) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_LINUX)
+ #elif BUILDFLAG(ENABLE_PLATFORM_ENCRYPTED_HEVC)
 -  // Only encrypted HEVC content is supported, and normally MSE.isTypeSupported
 -  // returns false for HEVC. The kEnableClearHevcForTesting flag allows it to
 -  // return true to enable a wider array of test scenarios to function properly.
@@ -26,10 +26,9 @@ index 3e174b9320..7382fc13c5 100644
 -          switches::kEnableClearHevcForTesting)) {
 -    return false;
 -  }
--
-   // Color management required for HDR to not look terrible.
-   if (!IsColorSpaceSupported(type.color_space))
-     return false;
+   return type.profile == HEVCPROFILE_MAIN || type.profile == HEVCPROFILE_MAIN10;
+ #else
+   return false;
 diff --git a/media/filters/source_buffer_state.cc b/media/filters/source_buffer_state.cc
 index 74814c3be0..a7941daade 100644
 --- a/media/filters/source_buffer_state.cc
@@ -236,15 +235,22 @@ index 920b22bfa7..f5c1c39196 100644
      &ff_wav_demuxer,
 +    &ff_hevc_demuxer,
      NULL };
+diff --git a/third_party/ffmpeg/libavcodec/hevcdec.c b/third_party/ffmpeg/libavcodec/autorename_libavcodec_hevcdec.c
+similarity index 100%
+rename from third_party/ffmpeg/libavcodec/hevcdec.c
+rename to third_party/ffmpeg/libavcodec/autorename_libavcodec_hevcdec.c
+diff --git a/third_party/ffmpeg/libavformat/hevc.c b/third_party/ffmpeg/libavformat/autorename_libavformat_hevc.c
+similarity index 100%
+rename from third_party/ffmpeg/libavformat/hevc.c
+rename to third_party/ffmpeg/libavformat/autorename_libavformat_hevc.c
 diff --git a/third_party/ffmpeg/ffmpeg_generated.gni b/third_party/ffmpeg/ffmpeg_generated.gni
-index 6798e91e08..b8e7be7b16 100644
+index 6798e91e08..36ab3dfe3f 100644
 --- a/third_party/ffmpeg/ffmpeg_generated.gni
 +++ b/third_party/ffmpeg/ffmpeg_generated.gni
-@@ -501,7 +501,39 @@ if ((is_mac) || (is_win) || (use_linux_config)) {
+@@ -501,7 +501,41 @@ if ((is_mac) || (is_win) || (use_linux_config)) {
      "libavcodec/vp8.c",
      "libavcodec/vp8_parser.c",
      "libavcodec/vp8dsp.c",
--  ]
 +    "libavcodec/dynamic_hdr10_plus.c",
 +    "libavcodec/dynamic_hdr_vivid.c",
 +    "libavcodec/dovi_rpu.c",
@@ -261,13 +267,15 @@ index 6798e91e08..b8e7be7b16 100644
 +    "libavcodec/hevc_sei.c",
 +    "libavcodec/hevcdsp.c",
 +    "libavcodec/hevcpred.c",
-+    "libavcodec/x86/bswapdsp_init.c",
-+    "libavcodec/x86/hevcdsp_init.c",
 +    "libavformat/autorename_libavformat_hevc.c",
 +    "libavformat/hevcdec.c",
-+  ]
+   ]
 +
-+  if (current_cpu == "x64" && ffmpeg_branding == "Chrome") {
++  if (current_cpu == "x64") {
++    ffmpeg_c_sources += [
++      "libavcodec/x86/bswapdsp_init.c",
++      "libavcodec/x86/hevcdsp_init.c",
++    ]
 +    ffmpeg_asm_sources += [
 +      "libavcodec/x86/bswapdsp.asm",
 +      "libavcodec/x86/hevc_deblock.asm",
@@ -281,11 +289,19 @@ index 6798e91e08..b8e7be7b16 100644
  }
  
  if ((is_mac && current_cpu == "arm64") || (is_win && current_cpu == "arm64") || (use_linux_config && current_cpu == "arm64")) {
-diff --git a/third_party/ffmpeg/libavcodec/hevcdec.c b/third_party/ffmpeg/libavcodec/autorename_libavcodec_hevcdec.c
-similarity index 100%
-rename from third_party/ffmpeg/libavcodec/hevcdec.c
-rename to third_party/ffmpeg/libavcodec/autorename_libavcodec_hevcdec.c
-diff --git a/third_party/ffmpeg/libavformat/hevc.c b/third_party/ffmpeg/libavformat/autorename_libavformat_hevc.c
-similarity index 100%
-rename from third_party/ffmpeg/libavformat/hevc.c
-rename to third_party/ffmpeg/libavformat/autorename_libavformat_hevc.c
+@@ -510,12 +544,15 @@
+     "libavcodec/aarch64/hpeldsp_init_aarch64.c",
+     "libavcodec/aarch64/videodsp_init.c",
+     "libavcodec/aarch64/vp8dsp_init_aarch64.c",
++    "libavcodec/aarch64/hevcdsp_init_aarch64.c",
+   ]
+   ffmpeg_gas_sources += [
+     "libavcodec/aarch64/autorename_libavcodec_aarch64_h264pred_neon.S",
+     "libavcodec/aarch64/autorename_libavcodec_aarch64_hpeldsp_neon.S",
+     "libavcodec/aarch64/autorename_libavcodec_aarch64_vp8dsp_neon.S",
+     "libavcodec/aarch64/videodsp.S",
++    "libavcodec/aarch64/hevcdsp_idct_neon.S",
++    "libavcodec/aarch64/hevcdsp_sao_neon.S",
+   ]
+ }
+ 
