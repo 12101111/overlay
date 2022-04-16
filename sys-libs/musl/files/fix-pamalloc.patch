@@ -1,0 +1,14 @@
+diff --git a/src/thread/pthread_atfork.c b/src/thread/pthread_atfork.c
+index 76497401..f4e2cf7e 100644
+--- a/src/thread/pthread_atfork.c
++++ b/src/thread/pthread_atfork.c
+@@ -2,6 +2,8 @@
+ #include "libc.h"
+ #include "lock.h"
+
++#define malloc __libc_malloc
++
+ static struct atfork_funcs {
+        void (*prepare)(void);
+        void (*parent)(void);
+

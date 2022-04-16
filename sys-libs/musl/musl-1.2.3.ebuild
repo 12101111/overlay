@@ -47,6 +47,7 @@ PATCHES=(
 	"${FILESDIR}"/Make-scheduler-functions-Linux-compatible.patch
 	"${FILESDIR}"/Add-rpmalloc-for-musl.patch
 	"${FILESDIR}"/use-optimized-memcpy-memset.patch
+	"${FILESDIR}"/fix-pamalloc.patch
 )
 
 is_crosscompile() {
