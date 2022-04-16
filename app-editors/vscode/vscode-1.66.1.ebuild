@@ -8,7 +8,7 @@ inherit xdg-utils savedconfig yarn
 DESCRIPTION="Visual Studio Code - Open Source"
 HOMEPAGE="https://code.visualstudio.com/"
 
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm64"
 LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
@@ -2322,8 +2322,14 @@ get_rg_tar_name() {
 	amd64) myarch="x86_64-unknown-linux-musl" ;;
 	x86) myarch="i686-unknown-linux-musl" ;;
 	arm) myarch="arm-unknown-linux-gnueabihf" ;;
-	arm64) myarch="aarch64-unknown-linux-gnu" ;;
 	ppc64) myarch="powerpc64le-unknown-linux-gnu" ;;
+	arm64)
+		if use elibc_musl; then
+			myarch="aarch64-unknown-linux-musl"
+		else
+			myarch="aarch64-unknown-linux-gnu"
+		fi
+		;;
 	*) ;;
 	esac
 	echo "ripgrep-v${RG_VERSION[$1]}-${myarch}.tar.gz"
