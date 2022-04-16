@@ -1136,8 +1136,8 @@ NODE_S="${S}/third_party/electron_node"
 
 LICENSE="BSD"
 SLOT="${PV%%[.+]*}"
-KEYWORDS="~amd64"
-IUSE="atk lto pgo +tcmalloc custom-cflags component-build cups cpu_flags_arm_neon debug headless +js-type-check kerberos pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland"
+KEYWORDS="~amd64 ~arm64"
+IUSE="atk lto pgo custom-cflags component-build cups cpu_flags_arm_neon debug headless +js-type-check kerberos pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland"
 REQUIRED_USE="
 	component-build? ( !suid )
 	screencast? ( wayland )
@@ -1756,8 +1756,6 @@ src_configure() {
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
-
-	myconf_gn+=" use_allocator=$(usex tcmalloc \"tcmalloc\" \"none\")"
 
 	# Disable nacl, we can't build without pnacl (http://crbug.com/269560).
 	myconf_gn+=" enable_nacl=false"
