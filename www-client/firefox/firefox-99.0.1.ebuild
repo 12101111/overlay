@@ -3,7 +3,7 @@
 
 EAPI="7"
 
-FIREFOX_PATCHSET="firefox-99-patches-01j.tar.xz"
+FIREFOX_PATCHSET="firefox-99-patches-03j.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -676,11 +676,9 @@ src_configure() {
 		--disable-cargo-incremental \
 		--disable-crashreporter \
 		--disable-install-strip \
-		--disable-minify \
 		--disable-parental-controls \
 		--disable-strip \
 		--disable-updater \
-		--enable-dom-streams \
 		--enable-negotiateauth \
 		--enable-new-pass-manager \
 		--enable-official-branding \
