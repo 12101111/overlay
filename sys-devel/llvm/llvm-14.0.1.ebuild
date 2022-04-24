@@ -57,7 +57,7 @@ PDEPEND="sys-devel/llvm-common
 
 LLVM_COMPONENTS=( llvm mlir polly cmake third-party )
 LLVM_MANPAGES=pregenerated
-LLVM_PATCHSET=${PV/_/-}
+LLVM_PATCHSET=14.0.1
 LLVM_USE_TARGETS=provide
 llvm.org_set_globals
 
