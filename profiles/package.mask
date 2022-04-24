@@ -1,4 +1,3 @@
-
 # End of life in upstream
 # many security vulnerability unfixed
-dev-util/electron:13
+dev-util/electron:14
