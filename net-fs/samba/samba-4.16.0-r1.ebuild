@@ -64,10 +64,7 @@ COMMON_DEPEND="
 	dev-libs/popt[${MULTILIB_USEDEP}]
 	dev-perl/Parse-Yapp
 	>=net-libs/gnutls-3.4.7[${MULTILIB_USEDEP}]
-	|| (
-		>=sys-fs/e2fsprogs-1.46.4-r51[${MULTILIB_USEDEP}]
-		sys-libs/e2fsprogs-libs[${MULTILIB_USEDEP}]
-	)
+	>=sys-fs/e2fsprogs-1.46.4-r51[${MULTILIB_USEDEP}]
 	>=sys-libs/ldb-2.5.0[ldap(+)?,${MULTILIB_USEDEP}]
 	<sys-libs/ldb-2.6.0[ldap(+)?,${MULTILIB_USEDEP}]
 	sys-libs/libcap[${MULTILIB_USEDEP}]
@@ -115,6 +112,7 @@ COMMON_DEPEND="
 "
 DEPEND="${COMMON_DEPEND}
 	>=dev-util/cmocka-1.1.3[${MULTILIB_USEDEP}]
+	dev-perl/JSON
 	net-libs/libtirpc[${MULTILIB_USEDEP}]
 	|| (
 		net-libs/rpcsvc-proto
@@ -257,16 +255,16 @@ multilib_src_configure() {
 		myconf+=( --without-utmp )
 	fi
 
-	CPPFLAGS="-I${SYSROOT}${EPREFIX}/usr/include/et ${CPPFLAGS}" \
+	PYTHONHASHSEED=1 CPPFLAGS="-I${SYSROOT}${EPREFIX}/usr/include/et ${CPPFLAGS}" \
 		waf-utils_src_configure ${myconf[@]}
 }
 
 multilib_src_compile() {
-	waf-utils_src_compile
+	PYTHONHASHSEED=1 waf-utils_src_compile
 }
 
 multilib_src_install() {
-	waf-utils_src_install
+	PYTHONHASHSEED=1 waf-utils_src_install
 
 	# Make all .so files executable
 	find "${ED}" -type f -name "*.so" -exec chmod +x {} + || die
