@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
 <pkgmetadata>
-	<maintainer type="project">
-		<email>chromium@gentoo.org</email>
-		<name>Chromium in Gentoo Project</name>
+	<maintainer type="person">
+		<email>w12101111@gmail.com</email>
 	</maintainer>
 	<use>
 		<flag name="atk">Enable use of GNOME Accessibility Toolkit</flag>
 		<flag name="lto">Enable LTO, require Clang 13+</flag>
 		<flag name="pgo">Enable PGO with offical profile data, require Clang 14</flag>
+		<flag name="hevc">Enable support for HEVC video codec via ffmpeg</flag>
+		<flag name="system-allocator">Use memory allocator from libc instead of Chromium's partition allocator</flag>
 		<flag name="js-type-check">Enable JavaScript type-checking for Chrome's web technology-based UI. Requires Java.</flag>
 		<flag name="component-build">Split build into more shared libraries to speed up linking. Mostly intended for debugging and development, NOT RECOMMENDED for general use.</flag>
 		<flag name="debug">Enable DCHECK feature with severity configurable at runtime. Mostly intended for debugging and development, NOT RECOMMENDED for general use.</flag>
