@@ -433,3 +433,354 @@ index 60b4cb2194..635445c25f 100644
 - static void InterceptorStoreICSetter(
 -     Local<Name> key, Local<Value> value,
 -     const v8::PropertyCallbackInfo<v8::Value>& info) {
+diff --git a/patches/chromium/usb_fix_oob_access_with_non-sequential_interfaces.patch b/patches/chromium/usb_fix_oob_access_with_non-sequential_interfaces.patch
+index ff89537370..08a2b6a468 100644
+--- a/patches/chromium/usb_fix_oob_access_with_non-sequential_interfaces.patch
++++ b/patches/chromium/usb_fix_oob_access_with_non-sequential_interfaces.patch
+@@ -125,289 +125,3 @@ index ee7b79b351e5002cb02842097b89156f6e407a54..8187282e09b0f11e2a0f704555e8f557
+    return nullptr;
+  }
+  
+-diff --git a/third_party/blink/web_tests/external/wpt/webusb/resources/fake-devices.js b/third_party/blink/web_tests/external/wpt/webusb/resources/fake-devices.js
+-index 975d2242c949740217c050beea72db908ef46fc7..c5c5cadaa6af48f676565775d1dc8e27efffc3a2 100644
+---- a/third_party/blink/web_tests/external/wpt/webusb/resources/fake-devices.js
+-+++ b/third_party/blink/web_tests/external/wpt/webusb/resources/fake-devices.js
+-@@ -16,75 +16,160 @@ let fakeDeviceInit = {
+-   productName: 'The amazing imaginary printer',
+-   serialNumber: '4',
+-   activeConfigurationValue: 0,
+--  configurations: [{
+--    configurationValue: 1,
+--    configurationName: 'Printer Mode',
+--    interfaces: [{
+--      interfaceNumber: 0,
+--      alternates: [{
+--        alternateSetting: 0,
+--        interfaceClass: 0xff,
+--        interfaceSubclass: 0x01,
+--        interfaceProtocol: 0x01,
+--        interfaceName: 'Control',
+--        endpoints: [{
+--          endpointNumber: 1,
+--          direction: 'in',
+--          type: 'interrupt',
+--          packetSize: 8
+--        }]
+-+  configurations: [
+-+    {
+-+      configurationValue: 1,
+-+      configurationName: 'Printer Mode',
+-+      interfaces: [
+-+        {
+-+          interfaceNumber: 0,
+-+          alternates: [{
+-+            alternateSetting: 0,
+-+            interfaceClass: 0xff,
+-+            interfaceSubclass: 0x01,
+-+            interfaceProtocol: 0x01,
+-+            interfaceName: 'Control',
+-+            endpoints: [{
+-+              endpointNumber: 1,
+-+              direction: 'in',
+-+              type: 'interrupt',
+-+              packetSize: 8
+-+            }]
+-+          }]
+-+        },
+-+        {
+-+          interfaceNumber: 1,
+-+          alternates: [{
+-+            alternateSetting: 0,
+-+            interfaceClass: 0xff,
+-+            interfaceSubclass: 0x02,
+-+            interfaceProtocol: 0x01,
+-+            interfaceName: 'Data',
+-+            endpoints: [
+-+              {
+-+                endpointNumber: 2,
+-+                direction: 'in',
+-+                type: 'bulk',
+-+                packetSize: 1024
+-+              },
+-+              {
+-+                endpointNumber: 2,
+-+                direction: 'out',
+-+                type: 'bulk',
+-+                packetSize: 1024
+-+              }
+-+            ]
+-+          }]
+-+        }
+-+      ]
+-+    },
+-+    {
+-+      configurationValue: 2,
+-+      configurationName: 'Fighting Robot Mode',
+-+      interfaces: [{
+-+        interfaceNumber: 0,
+-+        alternates: [
+-+          {
+-+            alternateSetting: 0,
+-+            interfaceClass: 0xff,
+-+            interfaceSubclass: 0x42,
+-+            interfaceProtocol: 0x01,
+-+            interfaceName: 'Disabled',
+-+            endpoints: []
+-+          },
+-+          {
+-+            alternateSetting: 1,
+-+            interfaceClass: 0xff,
+-+            interfaceSubclass: 0x42,
+-+            interfaceProtocol: 0x01,
+-+            interfaceName: 'Activate!',
+-+            endpoints: [
+-+              {
+-+                endpointNumber: 1,
+-+                direction: 'in',
+-+                type: 'isochronous',
+-+                packetSize: 1024
+-+              },
+-+              {
+-+                endpointNumber: 1,
+-+                direction: 'out',
+-+                type: 'isochronous',
+-+                packetSize: 1024
+-+              }
+-+            ]
+-+          }
+-+        ]
+-       }]
+--    }, {
+--      interfaceNumber: 1,
+--      alternates: [{
+--        alternateSetting: 0,
+--        interfaceClass: 0xff,
+--        interfaceSubclass: 0x02,
+--        interfaceProtocol: 0x01,
+--        interfaceName: 'Data',
+--        endpoints: [{
+--          endpointNumber: 2,
+--          direction: 'in',
+--          type: 'bulk',
+--          packetSize: 1024
+--        }, {
+--          endpointNumber: 2,
+--          direction: 'out',
+--          type: 'bulk',
+--          packetSize: 1024
+--        }]
+--      }]
+--    }]
+--  }, {
+--    configurationValue: 2,
+--    configurationName: 'Fighting Robot Mode',
+--    interfaces: [{
+--      interfaceNumber: 0,
+--      alternates: [{
+--        alternateSetting: 0,
+--        interfaceClass: 0xff,
+--        interfaceSubclass: 0x42,
+--        interfaceProtocol: 0x01,
+--        interfaceName: 'Disabled',
+--        endpoints: []
+--      }, {
+--        alternateSetting: 1,
+--        interfaceClass: 0xff,
+--        interfaceSubclass: 0x42,
+--        interfaceProtocol: 0x01,
+--        interfaceName: 'Activate!',
+--        endpoints: [{
+--          endpointNumber: 1,
+--          direction: 'in',
+--          type: 'isochronous',
+--          packetSize: 1024
+--        }, {
+--          endpointNumber: 1,
+--          direction: 'out',
+--          type: 'isochronous',
+--          packetSize: 1024
+--        }]
+--      }]
+--    }]
+--  }]
+-+    },
+-+    {
+-+      configurationValue: 3,
+-+      configurationName: 'Non-sequential interface number and alternate ' +
+-+          'setting Mode',
+-+      interfaces: [
+-+        {
+-+          interfaceNumber: 0,
+-+          alternates: [
+-+            {
+-+              alternateSetting: 0,
+-+              interfaceClass: 0xff,
+-+              interfaceSubclass: 0x01,
+-+              interfaceProtocol: 0x01,
+-+              interfaceName: 'Control',
+-+              endpoints: [{
+-+                endpointNumber: 1,
+-+                direction: 'in',
+-+                type: 'interrupt',
+-+                packetSize: 8
+-+              }]
+-+            },
+-+            {
+-+              alternateSetting: 2,
+-+              interfaceClass: 0xff,
+-+              interfaceSubclass: 0x02,
+-+              interfaceProtocol: 0x01,
+-+              interfaceName: 'Data',
+-+              endpoints: [
+-+                {
+-+                  endpointNumber: 2,
+-+                  direction: 'in',
+-+                  type: 'bulk',
+-+                  packetSize: 1024
+-+                },
+-+                {
+-+                  endpointNumber: 2,
+-+                  direction: 'out',
+-+                  type: 'bulk',
+-+                  packetSize: 1024
+-+                }
+-+              ]
+-+            }
+-+          ]
+-+        },
+-+        {
+-+          interfaceNumber: 2,
+-+          alternates: [{
+-+            alternateSetting: 0,
+-+            interfaceClass: 0xff,
+-+            interfaceSubclass: 0x02,
+-+            interfaceProtocol: 0x01,
+-+            interfaceName: 'Data',
+-+            endpoints: [
+-+              {
+-+                endpointNumber: 2,
+-+                direction: 'in',
+-+                type: 'bulk',
+-+                packetSize: 1024
+-+              },
+-+              {
+-+                endpointNumber: 2,
+-+                direction: 'out',
+-+                type: 'bulk',
+-+                packetSize: 1024
+-+              }
+-+            ]
+-+          }]
+-+        }
+-+      ]
+-+    }
+-+  ]
+- };
+-diff --git a/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js b/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js
+-index 5bfd841d5248e91a5cabf10d00d78db23d11f0e5..527d238d69b703b1fcf5d8a001d02e9f87b5689a 100644
+---- a/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js
+-+++ b/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js
+-@@ -236,10 +236,11 @@ usb_test(() => {
+-   return getFakeDevice().then(({ device }) => {
+-     assert_equals(device.configuration, null);
+-     return device.open()
+--      .then(() => assertRejectsWithError(
+--            device.selectConfiguration(3), 'NotFoundError',
+--            'The configuration value provided is not supported by the device.'))
+--      .then(() => device.close());
+-+        .then(
+-+            () => assertRejectsWithError(
+-+                device.selectConfiguration(10), 'NotFoundError',
+-+                'The configuration value provided is not supported by the device.'))
+-+        .then(() => device.close());
+-   });
+- }, 'selectConfiguration rejects on invalid configurations');
+- 
+-@@ -431,6 +432,30 @@ usb_test(() => {
+-   });
+- }, 'can select an alternate interface');
+- 
+-+usb_test(
+-+    async () => {
+-+      const {device} = await getFakeDevice();
+-+      await device.open();
+-+      await device.selectConfiguration(3);
+-+      await device.claimInterface(2);
+-+      await device.selectAlternateInterface(2, 0);
+-+      await device.close();
+-+    },
+-+    'can select an alternate interface on a setting with non-sequential ' +
+-+        'interface number');
+-+
+-+usb_test(
+-+    async () => {
+-+      const {device} = await getFakeDevice();
+-+      await device.open();
+-+      await device.selectConfiguration(3);
+-+      await device.claimInterface(0);
+-+      await device.selectAlternateInterface(0, 2);
+-+      await device.close();
+-+    },
+-+    'can select an alternate interface on a setting with non-sequential ' +
+-+        'alternative setting value');
+-+
+- usb_test(() => {
+-   return getFakeDevice().then(({ device }) => {
+-     return device.open()
+diff --git a/patches/v8/cherry-pick-f546ac11eec7.patch b/patches/v8/cherry-pick-f546ac11eec7.patch
+index 8df94a7236..a7a91fd1e8 100644
+--- a/patches/v8/cherry-pick-f546ac11eec7.patch
++++ b/patches/v8/cherry-pick-f546ac11eec7.patch
+@@ -41,52 +41,3 @@ index 12ecfc9d4538acaf7471f967a6de97625936a226..19b0b8ce46334554a2765ccb2a0751dc
+  
+  DEFINE_BOOL(enable_mega_dom_ic, false, "use MegaDOM IC state for API objects")
+  
+-diff --git a/test/cctest/interpreter/bytecode_expectations/ClassAndSuperClass.golden b/test/cctest/interpreter/bytecode_expectations/ClassAndSuperClass.golden
+-index 82b6e16be98d8dd9d8fe6b8419653d2c02f7bf79..c433538d8ed52c52277f2ad7163fc4b15c29591c 100644
+---- a/test/cctest/interpreter/bytecode_expectations/ClassAndSuperClass.golden
+-+++ b/test/cctest/interpreter/bytecode_expectations/ClassAndSuperClass.golden
+-@@ -20,14 +20,18 @@ snippet: "
+-     test();
+-   })();
+- "
+--frame size: 1
+-+frame size: 5
+- parameter count: 1
+--bytecode array length: 16
+-+bytecode array length: 24
+- bytecodes: [
+-   /*  104 S> */ B(LdaImmutableCurrentContextSlot), U8(2),
+--  /*  117 E> */ B(LdaNamedPropertyFromSuper), R(this), U8(0), U8(1),
+-+                B(Star3),
+-+                B(LdaConstant), U8(0),
+-+                B(Star4),
+-+                B(Mov), R(this), R(2),
+-+  /*  117 E> */ B(CallRuntime), U16(Runtime::kLoadFromSuper), R(2), U8(3),
+-                 B(Star0),
+--  /*  117 E> */ B(CallAnyReceiver), R(0), R(this), U8(1), U8(3),
+-+  /*  117 E> */ B(CallAnyReceiver), R(0), R(this), U8(1), U8(1),
+-   /*  126 E> */ B(AddSmi), I8(1), U8(0),
+-   /*  130 S> */ B(Return),
+- ]
+-@@ -54,7 +58,7 @@ snippet: "
+- "
+- frame size: 4
+- parameter count: 1
+--bytecode array length: 24
+-+bytecode array length: 32
+- bytecodes: [
+-   /*  130 S> */ B(LdaImmutableCurrentContextSlot), U8(2),
+-                 B(Star1),
+-@@ -65,7 +69,11 @@ bytecodes: [
+-                 B(Mov), R(this), R(0),
+-   /*  138 E> */ B(CallRuntime), U16(Runtime::kStoreToSuper), R(0), U8(4),
+-   /*  143 S> */ B(LdaImmutableCurrentContextSlot), U8(2),
+--  /*  156 E> */ B(LdaNamedPropertyFromSuper), R(this), U8(0), U8(0),
+-+                B(Star1),
+-+                B(LdaConstant), U8(0),
+-+                B(Star2),
+-+                B(Mov), R(this), R(0),
+-+  /*  156 E> */ B(CallRuntime), U16(Runtime::kLoadFromSuper), R(0), U8(3),
+-   /*  158 S> */ B(Return),
+- ]
+- constant pool: [

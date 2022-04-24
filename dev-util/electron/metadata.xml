@@ -8,17 +8,20 @@
 	<use>
 		<flag name="js-type-check">Enable JavaScript type-checking for Chrome's web technology-based UI. Requires Java.</flag>
 		<flag name="atk">Add support for atk</flag>
+		<flag name="system-allocator">Use memory allocator from libc instead of Chromium's partition allocator</flag>
 		<flag name="wayland">Add wayland backend of ozone</flag>
 		<flag name="component-build">Split build into more shared libraries to speed up linking. Mostly intended for debugging and development, NOT RECOMMENDED for general use.</flag>
 		<flag name="headless">Build Ozone only with headless backend, NOT RECOMMENDED for general use.</flag>
 		<flag name="lto">Build with link time optimization enabled</flag>
 		<flag name="pgo">Build with Profile-Guided Optimization</flag>
+		<flag name="libcxx">Use bundled libc++ instead of libstdc++ for building.</flag>
 		<flag name="pic">Disable optimized assembly code that is not PIC friendly</flag>
 		<flag name="proprietary-codecs">Enable proprietary codecs like H.264, MP3</flag>
 		<flag name="screencast">Enable support for remote desktop and screen cast using <pkg>media-video/pipewire</pkg></flag>
 		<flag name="system-ffmpeg">Use system ffmpeg instead of the bundled one</flag>
+		<flag name="system-harfbuzz">Use system harfbuzz instead of the bundled one.</flag>
 		<flag name="system-icu">Use system icu instead of the bundled one</flag>
-		<flag name="tcmalloc">Use bundled tcmalloc instead of system malloc</flag>
+		<flag name="system-png">Use system libpng instead of the bundled one.</flag>
 	</use>
 	<upstream>
 		<remote-id type="github">electron/electron/</remote-id>
