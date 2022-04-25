@@ -270,7 +270,10 @@ BDEPEND="
 	virtual/pkgconfig
 	clang? (
 		|| (
-			(	sys-devel/clang:13
+			(   sys-devel/clang:14
+			    sys-devel/llvm:14
+				=sys-devel/lld-14*  )
+		    (	sys-devel/clang:13
 				sys-devel/llvm:13
 				=sys-devel/lld-13*	)
 			(	sys-devel/clang:12
@@ -301,11 +304,6 @@ PATCHES=(
 
 	# TODO upstream
 	"${FILESDIR}/${PN}-7.2.6.2-poppler-22.03.0.patch" # by Archlinux
-
-	# musl compatibility by AlpineLinux
-	"${FILESDIR}/${PN}-7.2.5.2-linux-musl.patch"
-	"${FILESDIR}/${PN}-6.1.4.2-disable-liborcus-unittest.patch"
-	"${FILESDIR}/${PN}-6.1.4.2-musl-stacksize.patch"
 )
 
 S="${WORKDIR}/${PN}-${MY_PV}"
