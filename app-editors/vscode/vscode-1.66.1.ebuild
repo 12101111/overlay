@@ -2159,6 +2159,7 @@ RESTRICT="mirror"
 BDEPEND="
 	>=sys-apps/yarn-1.22.4:=
 	>=net-libs/nodejs-14.17.5-r1:=[npm]
+	<net-libs/nodejs-17.0.0
 	app-arch/unzip
 	app-arch/gzip
 "
