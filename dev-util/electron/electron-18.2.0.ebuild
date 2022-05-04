@@ -13,22 +13,29 @@ CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 inherit check-reqs chromium-2 desktop flag-o-matic ninja-utils pax-utils python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils yarn
 
 # Keep this in sync with DEPS:chromium_version
-CHROMIUM_VERSION="96.0.4664.111"
+CHROMIUM_VERSION="100.0.4896.127"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="16.9.1"
-CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
-NODE_P="node-${NODE_VERSION}"
+NODE_VERSION="16.13.2"
+# https://github.com/stha09/chromium-patches/releases
 PATCHSET="4"
-PATCHSET_NAME="chromium-96-patchset-${PATCHSET}"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
 
 # grep resolved yarn.lock | sed 's/^[ ]*resolved \"\(.*\)\#.*\"$/\1/g' | sort | uniq | wl-copy
 YARNPKGS="
+https://registry.yarnpkg.com/@azure/abort-controller/-/abort-controller-1.0.4.tgz
+https://registry.yarnpkg.com/@azure/core-asynciterator-polyfill/-/core-asynciterator-polyfill-1.0.2.tgz
+https://registry.yarnpkg.com/@azure/core-auth/-/core-auth-1.3.2.tgz
+https://registry.yarnpkg.com/@azure/core-http/-/core-http-2.2.4.tgz
+https://registry.yarnpkg.com/@azure/core-lro/-/core-lro-2.2.4.tgz
+https://registry.yarnpkg.com/@azure/core-paging/-/core-paging-1.2.1.tgz
+https://registry.yarnpkg.com/@azure/core-tracing/-/core-tracing-1.0.0-preview.13.tgz
+https://registry.yarnpkg.com/@azure/logger/-/logger-1.0.3.tgz
+https://registry.yarnpkg.com/@azure/storage-blob/-/storage-blob-12.9.0.tgz
 https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.5.5.tgz
 https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.5.0.tgz
-https://registry.yarnpkg.com/@electron/docs-parser/-/docs-parser-0.12.2.tgz
+https://registry.yarnpkg.com/@electron/docs-parser/-/docs-parser-0.12.3.tgz
 https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-8.9.5.tgz
 https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.3.tgz
 https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-2.0.3.tgz
@@ -45,6 +52,7 @@ https://registry.yarnpkg.com/@octokit/request-error/-/request-error-2.0.2.tgz
 https://registry.yarnpkg.com/@octokit/request/-/request-5.4.7.tgz
 https://registry.yarnpkg.com/@octokit/rest/-/rest-18.0.3.tgz
 https://registry.yarnpkg.com/@octokit/types/-/types-5.2.0.tgz
+https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.0.4.tgz
 https://registry.yarnpkg.com/@primer/octicons/-/octicons-10.0.0.tgz
 https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz
 https://registry.yarnpkg.com/@szmarczak/http-timer/-/http-timer-1.1.2.tgz
@@ -62,8 +70,8 @@ https://registry.yarnpkg.com/@types/connect/-/connect-3.4.33.tgz
 https://registry.yarnpkg.com/@types/debug/-/debug-4.1.7.tgz
 https://registry.yarnpkg.com/@types/dirty-chai/-/dirty-chai-2.0.2.tgz
 https://registry.yarnpkg.com/@types/events/-/events-3.0.0.tgz
-https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-4.17.8.tgz
-https://registry.yarnpkg.com/@types/express/-/express-4.17.7.tgz
+https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-4.17.28.tgz
+https://registry.yarnpkg.com/@types/express/-/express-4.17.13.tgz
 https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-9.0.1.tgz
 https://registry.yarnpkg.com/@types/glob/-/glob-7.1.1.tgz
 https://registry.yarnpkg.com/@types/highlight.js/-/highlight.js-9.12.4.tgz
@@ -79,15 +87,17 @@ https://registry.yarnpkg.com/@types/lru-cache/-/lru-cache-5.1.0.tgz
 https://registry.yarnpkg.com/@types/markdown-it/-/markdown-it-10.0.3.tgz
 https://registry.yarnpkg.com/@types/mdast/-/mdast-3.0.7.tgz
 https://registry.yarnpkg.com/@types/mdurl/-/mdurl-1.0.2.tgz
+https://registry.yarnpkg.com/@types/mime/-/mime-1.3.2.tgz
 https://registry.yarnpkg.com/@types/mime/-/mime-2.0.1.tgz
 https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.3.tgz
 https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.0.tgz
 https://registry.yarnpkg.com/@types/mocha/-/mocha-7.0.2.tgz
 https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz
+https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.6.1.tgz
 https://registry.yarnpkg.com/@types/node/-/node-11.13.22.tgz
 https://registry.yarnpkg.com/@types/node/-/node-12.6.1.tgz
 https://registry.yarnpkg.com/@types/node/-/node-14.0.27.tgz
-https://registry.yarnpkg.com/@types/node/-/node-14.6.3.tgz
+https://registry.yarnpkg.com/@types/node/-/node-16.11.26.tgz
 https://registry.yarnpkg.com/@types/node/-/node-16.4.13.tgz
 https://registry.yarnpkg.com/@types/parse-json/-/parse-json-4.0.0.tgz
 https://registry.yarnpkg.com/@types/qs/-/qs-6.9.3.tgz
@@ -95,7 +105,7 @@ https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.3.tgz
 https://registry.yarnpkg.com/@types/repeat-string/-/repeat-string-1.6.1.tgz
 https://registry.yarnpkg.com/@types/semver/-/semver-7.3.3.tgz
 https://registry.yarnpkg.com/@types/send/-/send-0.14.5.tgz
-https://registry.yarnpkg.com/@types/serve-static/-/serve-static-1.13.4.tgz
+https://registry.yarnpkg.com/@types/serve-static/-/serve-static-1.13.10.tgz
 https://registry.yarnpkg.com/@types/source-list-map/-/source-list-map-0.1.2.tgz
 https://registry.yarnpkg.com/@types/split/-/split-1.0.0.tgz
 https://registry.yarnpkg.com/@types/stream-chain/-/stream-chain-2.0.0.tgz
@@ -105,11 +115,12 @@ https://registry.yarnpkg.com/@types/tapable/-/tapable-1.0.4.tgz
 https://registry.yarnpkg.com/@types/temp/-/temp-0.8.34.tgz
 https://registry.yarnpkg.com/@types/text-table/-/text-table-0.2.2.tgz
 https://registry.yarnpkg.com/@types/through/-/through-0.0.29.tgz
+https://registry.yarnpkg.com/@types/tunnel/-/tunnel-0.0.3.tgz
 https://registry.yarnpkg.com/@types/uglify-js/-/uglify-js-3.0.4.tgz
 https://registry.yarnpkg.com/@types/unist/-/unist-2.0.3.tgz
 https://registry.yarnpkg.com/@types/unist/-/unist-2.0.6.tgz
 https://registry.yarnpkg.com/@types/uuid/-/uuid-3.4.6.tgz
-https://registry.yarnpkg.com/@types/webpack-env/-/webpack-env-1.15.2.tgz
+https://registry.yarnpkg.com/@types/webpack-env/-/webpack-env-1.16.3.tgz
 https://registry.yarnpkg.com/@types/webpack-sources/-/webpack-sources-0.1.6.tgz
 https://registry.yarnpkg.com/@types/webpack/-/webpack-4.41.21.tgz
 https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-4.4.1.tgz
@@ -186,11 +197,12 @@ https://registry.yarnpkg.com/assign-symbols/-/assign-symbols-1.0.0.tgz
 https://registry.yarnpkg.com/astral-regex/-/astral-regex-1.0.0.tgz
 https://registry.yarnpkg.com/astral-regex/-/astral-regex-2.0.0.tgz
 https://registry.yarnpkg.com/async-each/-/async-each-1.0.3.tgz
+https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz
 https://registry.yarnpkg.com/at-least-node/-/at-least-node-1.0.0.tgz
 https://registry.yarnpkg.com/atob/-/atob-2.1.2.tgz
-https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.727.1.tgz
+https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.814.0.tgz
 https://registry.yarnpkg.com/bail/-/bail-2.0.1.tgz
-https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz
+https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz
 https://registry.yarnpkg.com/base/-/base-0.11.2.tgz
 https://registry.yarnpkg.com/base64-js/-/base64-js-1.3.0.tgz
 https://registry.yarnpkg.com/before-after-hook/-/before-after-hook-2.1.0.tgz
@@ -213,7 +225,6 @@ https://registry.yarnpkg.com/browserify-zlib/-/browserify-zlib-0.2.0.tgz
 https://registry.yarnpkg.com/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz
 https://registry.yarnpkg.com/buffer-from/-/buffer-from-1.1.1.tgz
 https://registry.yarnpkg.com/buffer-xor/-/buffer-xor-1.0.3.tgz
-https://registry.yarnpkg.com/buffer/-/buffer-4.9.1.tgz
 https://registry.yarnpkg.com/buffer/-/buffer-4.9.2.tgz
 https://registry.yarnpkg.com/builtin-status-codes/-/builtin-status-codes-3.0.0.tgz
 https://registry.yarnpkg.com/builtins/-/builtins-4.0.0.tgz
@@ -262,6 +273,7 @@ https://registry.yarnpkg.com/color-name/-/color-name-1.1.3.tgz
 https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz
 https://registry.yarnpkg.com/colors/-/colors-1.3.3.tgz
 https://registry.yarnpkg.com/colors/-/colors-1.4.0.tgz
+https://registry.yarnpkg.com/combined-stream/-/combined-stream-1.0.8.tgz
 https://registry.yarnpkg.com/commander/-/commander-2.20.0.tgz
 https://registry.yarnpkg.com/commander/-/commander-4.1.1.tgz
 https://registry.yarnpkg.com/commander/-/commander-5.1.0.tgz
@@ -311,6 +323,7 @@ https://registry.yarnpkg.com/define-property/-/define-property-0.2.5.tgz
 https://registry.yarnpkg.com/define-property/-/define-property-1.0.0.tgz
 https://registry.yarnpkg.com/define-property/-/define-property-2.0.2.tgz
 https://registry.yarnpkg.com/deglob/-/deglob-4.0.1.tgz
+https://registry.yarnpkg.com/delayed-stream/-/delayed-stream-1.0.0.tgz
 https://registry.yarnpkg.com/delegates/-/delegates-1.0.0.tgz
 https://registry.yarnpkg.com/depd/-/depd-1.1.2.tgz
 https://registry.yarnpkg.com/deprecation/-/deprecation-2.3.1.tgz
@@ -427,6 +440,8 @@ https://registry.yarnpkg.com/flatted/-/flatted-2.0.1.tgz
 https://registry.yarnpkg.com/flush-write-stream/-/flush-write-stream-1.1.1.tgz
 https://registry.yarnpkg.com/folder-hash/-/folder-hash-2.1.2.tgz
 https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz
+https://registry.yarnpkg.com/form-data/-/form-data-3.0.1.tgz
+https://registry.yarnpkg.com/form-data/-/form-data-4.0.0.tgz
 https://registry.yarnpkg.com/format/-/format-0.2.2.tgz
 https://registry.yarnpkg.com/forwarded/-/forwarded-0.1.2.tgz
 https://registry.yarnpkg.com/fragment-cache/-/fragment-cache-0.2.1.tgz
@@ -457,9 +472,8 @@ https://registry.yarnpkg.com/get-value/-/get-value-2.0.6.tgz
 https://registry.yarnpkg.com/glob-parent/-/glob-parent-3.1.0.tgz
 https://registry.yarnpkg.com/glob-parent/-/glob-parent-5.1.1.tgz
 https://registry.yarnpkg.com/glob-parent/-/glob-parent-5.1.2.tgz
-https://registry.yarnpkg.com/glob/-/glob-7.1.4.tgz
-https://registry.yarnpkg.com/glob/-/glob-7.1.5.tgz
 https://registry.yarnpkg.com/glob/-/glob-7.1.6.tgz
+https://registry.yarnpkg.com/glob/-/glob-7.2.0.tgz
 https://registry.yarnpkg.com/global-modules/-/global-modules-1.0.0.tgz
 https://registry.yarnpkg.com/global-modules/-/global-modules-2.0.0.tgz
 https://registry.yarnpkg.com/global-prefix/-/global-prefix-1.0.2.tgz
@@ -513,7 +527,6 @@ https://registry.yarnpkg.com/inherits/-/inherits-2.0.3.tgz
 https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz
 https://registry.yarnpkg.com/ini/-/ini-1.3.7.tgz
 https://registry.yarnpkg.com/inquirer/-/inquirer-7.3.0.tgz
-https://registry.yarnpkg.com/interpret/-/interpret-1.2.0.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-1.4.0.tgz
 https://registry.yarnpkg.com/ipaddr.js/-/ipaddr.js-1.9.0.tgz
 https://registry.yarnpkg.com/is-accessor-descriptor/-/is-accessor-descriptor-0.1.6.tgz
@@ -527,6 +540,7 @@ https://registry.yarnpkg.com/is-buffer/-/is-buffer-1.1.6.tgz
 https://registry.yarnpkg.com/is-buffer/-/is-buffer-2.0.5.tgz
 https://registry.yarnpkg.com/is-callable/-/is-callable-1.1.4.tgz
 https://registry.yarnpkg.com/is-callable/-/is-callable-1.2.0.tgz
+https://registry.yarnpkg.com/is-core-module/-/is-core-module-2.8.1.tgz
 https://registry.yarnpkg.com/is-data-descriptor/-/is-data-descriptor-0.1.4.tgz
 https://registry.yarnpkg.com/is-data-descriptor/-/is-data-descriptor-1.0.0.tgz
 https://registry.yarnpkg.com/is-date-object/-/is-date-object-1.0.1.tgz
@@ -680,7 +694,9 @@ https://registry.yarnpkg.com/micromatch/-/micromatch-3.1.10.tgz
 https://registry.yarnpkg.com/micromatch/-/micromatch-4.0.2.tgz
 https://registry.yarnpkg.com/miller-rabin/-/miller-rabin-4.0.1.tgz
 https://registry.yarnpkg.com/mime-db/-/mime-db-1.40.0.tgz
+https://registry.yarnpkg.com/mime-db/-/mime-db-1.52.0.tgz
 https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.24.tgz
+https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.35.tgz
 https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz
 https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-1.2.0.tgz
 https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-2.1.0.tgz
@@ -802,6 +818,7 @@ https://registry.yarnpkg.com/promise-inflight/-/promise-inflight-1.0.1.tgz
 https://registry.yarnpkg.com/prop-types/-/prop-types-15.7.2.tgz
 https://registry.yarnpkg.com/proxy-addr/-/proxy-addr-2.0.5.tgz
 https://registry.yarnpkg.com/prr/-/prr-1.0.1.tgz
+https://registry.yarnpkg.com/psl/-/psl-1.8.0.tgz
 https://registry.yarnpkg.com/public-encrypt/-/public-encrypt-4.0.3.tgz
 https://registry.yarnpkg.com/pump/-/pump-2.0.1.tgz
 https://registry.yarnpkg.com/pump/-/pump-3.0.0.tgz
@@ -895,6 +912,7 @@ https://registry.yarnpkg.com/resolve-from/-/resolve-from-4.0.0.tgz
 https://registry.yarnpkg.com/resolve-url/-/resolve-url-0.2.1.tgz
 https://registry.yarnpkg.com/resolve/-/resolve-1.11.1.tgz
 https://registry.yarnpkg.com/resolve/-/resolve-1.17.0.tgz
+https://registry.yarnpkg.com/resolve/-/resolve-1.21.0.tgz
 https://registry.yarnpkg.com/responselike/-/responselike-1.0.2.tgz
 https://registry.yarnpkg.com/restore-cursor/-/restore-cursor-2.0.0.tgz
 https://registry.yarnpkg.com/restore-cursor/-/restore-cursor-3.1.0.tgz
@@ -934,7 +952,7 @@ https://registry.yarnpkg.com/shebang-command/-/shebang-command-1.2.0.tgz
 https://registry.yarnpkg.com/shebang-command/-/shebang-command-2.0.0.tgz
 https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-1.0.0.tgz
 https://registry.yarnpkg.com/shebang-regex/-/shebang-regex-3.0.0.tgz
-https://registry.yarnpkg.com/shelljs/-/shelljs-0.8.3.tgz
+https://registry.yarnpkg.com/shelljs/-/shelljs-0.8.5.tgz
 https://registry.yarnpkg.com/shx/-/shx-0.3.2.tgz
 https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz
 https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.3.tgz
@@ -996,6 +1014,7 @@ https://registry.yarnpkg.com/supports-color/-/supports-color-5.5.0.tgz
 https://registry.yarnpkg.com/supports-color/-/supports-color-6.1.0.tgz
 https://registry.yarnpkg.com/supports-color/-/supports-color-7.1.0.tgz
 https://registry.yarnpkg.com/supports-color/-/supports-color-9.0.2.tgz
+https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz
 https://registry.yarnpkg.com/table/-/table-5.4.6.tgz
 https://registry.yarnpkg.com/tap-parser/-/tap-parser-1.2.2.tgz
 https://registry.yarnpkg.com/tap-xunit/-/tap-xunit-2.4.1.tgz
@@ -1019,14 +1038,17 @@ https://registry.yarnpkg.com/to-regex-range/-/to-regex-range-5.0.1.tgz
 https://registry.yarnpkg.com/to-regex/-/to-regex-3.0.2.tgz
 https://registry.yarnpkg.com/to-vfile/-/to-vfile-7.2.1.tgz
 https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.0.tgz
+https://registry.yarnpkg.com/tough-cookie/-/tough-cookie-4.0.0.tgz
 https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz
 https://registry.yarnpkg.com/trough/-/trough-2.0.2.tgz
 https://registry.yarnpkg.com/ts-loader/-/ts-loader-8.0.2.tgz
 https://registry.yarnpkg.com/ts-node/-/ts-node-6.2.0.tgz
 https://registry.yarnpkg.com/tsconfig-paths/-/tsconfig-paths-3.9.0.tgz
 https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz
+https://registry.yarnpkg.com/tslib/-/tslib-2.3.1.tgz
 https://registry.yarnpkg.com/tsutils/-/tsutils-3.17.1.tgz
 https://registry.yarnpkg.com/tty-browserify/-/tty-browserify-0.0.0.tgz
+https://registry.yarnpkg.com/tunnel/-/tunnel-0.0.6.tgz
 https://registry.yarnpkg.com/type-check/-/type-check-0.3.2.tgz
 https://registry.yarnpkg.com/type-check/-/type-check-0.4.0.tgz
 https://registry.yarnpkg.com/type-detect/-/type-detect-4.0.8.tgz
@@ -1035,7 +1057,7 @@ https://registry.yarnpkg.com/type-fest/-/type-fest-0.3.1.tgz
 https://registry.yarnpkg.com/type-fest/-/type-fest-0.8.1.tgz
 https://registry.yarnpkg.com/type-is/-/type-is-1.6.18.tgz
 https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz
-https://registry.yarnpkg.com/typescript/-/typescript-4.1.3.tgz
+https://registry.yarnpkg.com/typescript/-/typescript-4.5.5.tgz
 https://registry.yarnpkg.com/uc.micro/-/uc.micro-1.0.6.tgz
 https://registry.yarnpkg.com/unified-args/-/unified-args-9.0.2.tgz
 https://registry.yarnpkg.com/unified-engine/-/unified-engine-9.0.3.tgz
@@ -1075,6 +1097,7 @@ https://registry.yarnpkg.com/util/-/util-0.10.3.tgz
 https://registry.yarnpkg.com/util/-/util-0.11.1.tgz
 https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz
 https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz
+https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz
 https://registry.yarnpkg.com/v8-compile-cache/-/v8-compile-cache-2.1.1.tgz
 https://registry.yarnpkg.com/validate-npm-package-license/-/validate-npm-package-license-3.0.4.tgz
 https://registry.yarnpkg.com/vary/-/vary-1.1.2.tgz
@@ -1108,6 +1131,8 @@ https://registry.yarnpkg.com/wrapper-webpack-plugin/-/wrapper-webpack-plugin-2.1
 https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz
 https://registry.yarnpkg.com/write/-/write-1.0.3.tgz
 https://registry.yarnpkg.com/xml2js/-/xml2js-0.4.19.tgz
+https://registry.yarnpkg.com/xml2js/-/xml2js-0.4.23.tgz
+https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-11.0.1.tgz
 https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-4.2.1.tgz
 https://registry.yarnpkg.com/xmlbuilder/-/xmlbuilder-9.0.7.tgz
 https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz
@@ -1120,6 +1145,10 @@ https://registry.yarnpkg.com/yargs/-/yargs-13.3.2.tgz
 https://registry.yarnpkg.com/yn/-/yn-2.0.0.tgz
 https://registry.yarnpkg.com/zwitch/-/zwitch-2.0.2.tgz
 "
+
+CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
+NODE_P="node-${NODE_VERSION}"
+PATCHSET_NAME="chromium-${CHROMIUM_VERSION%%[.+]*}-patchset-${PATCHSET}"
 
 SRC_URI="
 	https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
@@ -1134,45 +1163,66 @@ NODE_S="${S}/third_party/electron_node"
 
 LICENSE="BSD"
 SLOT="${PV%%[.+]*}"
-KEYWORDS="~amd64"
-IUSE="atk lto pgo +system-allocator custom-cflags component-build cups cpu_flags_arm_neon debug headless +js-type-check kerberos pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu vaapi wayland"
+KEYWORDS="~amd64 ~arm64"
+IUSE="atk lto pgo system-allocator component-build custom-cflags cups cpu_flags_arm_neon debug headless +js-type-check kerberos libcxx pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland"
 REQUIRED_USE="
-	component-build? ( !suid )
+	component-build? ( !suid !libcxx )
 	screencast? ( wayland )
 "
 
 COMMON_X_DEPEND="
-	media-libs/mesa:=
-	x11-libs/libX11:=
+	x11-libs/gdk-pixbuf:2
 	x11-libs/libXcomposite:=
 	x11-libs/libXcursor:=
 	x11-libs/libXdamage:=
-	x11-libs/libXext:=
 	x11-libs/libXfixes:=
 	>=x11-libs/libXi-1.6.0:=
 	x11-libs/libXrandr:=
 	x11-libs/libXrender:=
 	x11-libs/libXtst:=
-	x11-libs/libxcb:=
 	x11-libs/libxshmfence:=
-	vaapi? ( >=x11-libs/libva-2.7:=[X,drm] )
+	virtual/opengl
 "
 
-COMMON_DEPEND="
-	app-arch/bzip2:=
-	cups? ( >=net-print/cups-1.3.11:= )
-	dev-libs/expat:=
-	dev-libs/glib:2
+COMMON_SNAPSHOT_DEPEND="
+	system-icu? ( >=dev-libs/icu-69.1:= )
 	>=dev-libs/libxml2-2.9.4-r3:=[icu]
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.26:=
-	>=media-libs/alsa-lib-1.0.19:=
+	!libcxx? ( >=dev-libs/re2-0.2019.08.01:= )
+	dev-libs/libxslt:=
 	media-libs/fontconfig:=
 	>=media-libs/freetype-2.11.0-r1:=
-	system-harfbuzz? ( >=media-libs/harfbuzz-2.9.0:0=[icu(-)] )
+	system-harfbuzz? ( >=media-libs/harfbuzz-3:0=[icu(-)] )
 	media-libs/libjpeg-turbo:=
-	media-libs/libpng:=
-	pulseaudio? ( media-sound/pulseaudio:= )
+	system-png? ( media-libs/libpng:=[-apng] )
+	>=media-libs/libwebp-0.4.0:=
+	media-libs/mesa:=[gbm(+)]
+	>=media-libs/openh264-1.6.0:=
+	sys-libs/zlib:=
+	x11-libs/libdrm:=
+	!headless? (
+		dev-libs/glib:2
+		>=media-libs/alsa-lib-1.0.19:=
+		pulseaudio? ( media-sound/pulseaudio:= )
+		sys-apps/pciutils:=
+		kerberos? ( virtual/krb5 )
+		vaapi? ( >=x11-libs/libva-2.7:=[X] )
+		x11-libs/libX11:=
+		x11-libs/libXext:=
+		x11-libs/libxcb:=
+		x11-libs/libxkbcommon:=
+		wayland? (
+			dev-libs/wayland:=
+			screencast? ( media-video/pipewire:= )
+		)
+	)
+"
+
+COMMON_DEPEND="
+	${COMMON_SNAPSHOT_DEPEND}
+	app-arch/bzip2:=
+	dev-libs/expat:=
 	system-ffmpeg? (
 		>=media-video/ffmpeg-4.3:=
 		|| (
@@ -1183,16 +1233,8 @@ COMMON_DEPEND="
 	)
 	net-misc/curl[ssl]
 	sys-apps/dbus:=
-	sys-apps/pciutils:=
-	virtual/udev
-	x11-libs/cairo:=
-	x11-libs/gdk-pixbuf:2
-	x11-libs/libxkbcommon:=
-	x11-libs/pango:=
 	media-libs/flac:=
-	>=media-libs/libwebp-0.4.0:=
 	sys-libs/zlib:=[minizip]
-	kerberos? ( virtual/krb5 )
 	!headless? (
 		${COMMON_X_DEPEND}
 		atk? (
@@ -1200,13 +1242,10 @@ COMMON_DEPEND="
 			>=app-accessibility/at-spi2-core-2.26:2
 			>=dev-libs/atk-2.26
 		)
-		x11-libs/gtk+:3[X]
-		wayland? (
-			dev-libs/wayland:=
-			screencast? ( media-video/pipewire:= )
-			x11-libs/gtk+:3[wayland,X]
-			x11-libs/libdrm:=
-		)
+		cups? ( >=net-print/cups-1.3.11:= )
+		virtual/udev
+		x11-libs/cairo:=
+		x11-libs/pango:=
 	)
 	elibc_musl? (
 		sys-libs/musl-legacy-compat
@@ -1222,23 +1261,24 @@ COMMON_DEPEND="
 	app-eselect/eselect-electron
 "
 RDEPEND="${COMMON_DEPEND}
+	!headless? ( x11-libs/gtk+:3[X,wayland?] )
 	x11-misc/xdg-utils
-	virtual/opengl
 	virtual/ttf-fonts
 	selinux? ( sec-policy/selinux-chromium )
 "
 DEPEND="${COMMON_DEPEND}
+	!headless? ( x11-libs/gtk+:3[X,wayland?] )
 "
-# dev-vcs/git - https://bugs.gentoo.org/593476
 BDEPEND="
+	${COMMON_SNAPSHOT_DEPEND}
 	${PYTHON_DEPS}
 	$(python_gen_any_dep '
 		dev-python/setuptools[${PYTHON_USEDEP}]
 	')
 	>=app-arch/gzip-1.7
+	libcxx? ( >=sys-devel/clang-12 )
 	dev-lang/perl
 	>=dev-util/gn-0.1807
-	dev-vcs/git
 	>=dev-util/gperf-3.0.3
 	>=dev-util/ninja-1.7.2
 	>=net-libs/nodejs-7.6.0[inspector]
@@ -1259,25 +1299,9 @@ BDEPEND="
 
 # These are intended for ebuild maintainer use to force clang if GCC is broken.
 : ${CHROMIUM_FORCE_CLANG=no}
-: ${CHROMIUM_FORCE_LIBCXX=no}
 
 if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
 	BDEPEND+=" >=sys-devel/clang-12"
-fi
-
-if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
-	RDEPEND+=" >=sys-libs/libcxx-12"
-	DEPEND+=" >=sys-libs/libcxx-12"
-else
-	COMMON_DEPEND="
-		app-arch/snappy:=
-		dev-libs/libxslt:=
-		>=dev-libs/re2-0.2019.08.01:=
-		>=media-libs/openh264-1.6.0:=
-		system-icu? ( >=dev-libs/icu-69.1:= )
-	"
-	RDEPEND+="${COMMON_DEPEND}"
-	DEPEND+="${COMMON_DEPEND}"
 fi
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
@@ -1290,8 +1314,9 @@ pre_build_checks() {
 		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 9.2; then
 			die "At least gcc 9.2 is required"
 		fi
-		if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || tc-is-clang; then
-			CPP="${CHOST}-clang++ -E"
+		if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || tc-is-clang || use libcxx; then
+			tc-is-cross-compiler && CPP=${CBUILD}-clang++ || CPP=${CHOST}-clang++
+			CPP+=" -E"
 			if ! ver_test "$(clang-major-version)" -ge 12; then
 				die "At least clang 12 is required"
 			fi
@@ -1318,7 +1343,8 @@ pre_build_checks() {
 
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="4G"
-	CHECKREQS_DISK_BUILD="9G"
+	CHECKREQS_DISK_BUILD="10G"
+	tc-is-cross-compiler && CHECKREQS_DISK_BUILD="13G"
 	if use lto; then
 		if ! tc-is-clang; then
 			die "lto or pgo only support clang and lld"
@@ -1338,6 +1364,14 @@ pre_build_checks() {
 
 pkg_pretend() {
 	pre_build_checks
+
+	if use headless; then
+		ewarn Headless electron is untested!
+		local headless_unused_flags=("cups" "kerberos" "pulseaudio" "vaapi" "wayland")
+		for myiuse in ${headless_unused_flags[@]}; do
+			use ${myiuse} && ewarn "Ignoring USE=${myiuse} since USE=headless is set."
+		done
+	fi
 }
 
 pkg_setup() {
@@ -1392,8 +1426,6 @@ src_prepare() {
 	cd "${S}/electron" || die
 	echo "yarn-offline-mirror \"${DISTDIR}\"" >> "${S}/electron/.yarnrc"
 
-	# remove patches for macOS
-	sed -i -e "/squirrel.mac/d" "${S}/electron/patches/config.json"
 	# Apply Gentoo patches for Electron itself.
 	eapply "${FILESDIR}/${SLOT}/electron/"
 
@@ -1404,11 +1436,15 @@ src_prepare() {
 	local patchespath repopath
 	(jq -r 'to_entries | .[] | .key + " " + .value' "${S}/electron/patches/config.json" || die) \
 	| while read -r patchespath repopath; do
-		einfo "Apply Electron's patches to ${repopath}"
-		cd "${WORKDIR}/${repopath}" || die
-		cat "${WORKDIR}/${patchespath}/.patches" | while read -r patchfile; do
-			eapply "${WORKDIR}/${patchespath}/${patchfile}"
-		done
+		if [[ $repopath == src/third_party/squirrel.mac* ]]; then
+			einfo "Ship patches for macOS: ${repopath}"
+		else
+			einfo "Apply Electron's patches to ${repopath}"
+			cd "${WORKDIR}/${repopath}" || die
+			cat "${WORKDIR}/${patchespath}/.patches" | while read -r patchfile; do
+				eapply "${WORKDIR}/${patchespath}/${patchfile}"
+			done
+		fi
 	done
 
 	cd "${S}" || die
@@ -1494,6 +1530,7 @@ src_prepare() {
 		third_party/devscripts
 		third_party/devtools-frontend
 		third_party/devtools-frontend/src/front_end/third_party/acorn
+		third_party/devtools-frontend/src/front_end/third_party/additional_readme_paths.json
 		third_party/devtools-frontend/src/front_end/third_party/axe-core
 		third_party/devtools-frontend/src/front_end/third_party/chromium
 		third_party/devtools-frontend/src/front_end/third_party/codemirror
@@ -1622,7 +1659,6 @@ src_prepare() {
 		third_party/swiftshader/third_party/marl
 		third_party/swiftshader/third_party/subzero
 		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
-		third_party/tcmalloc
 		third_party/tensorflow-text
 		third_party/tflite
 		third_party/tflite/src/third_party/eigen3
@@ -1671,6 +1707,12 @@ src_prepare() {
 	if ! use system-icu; then
 		keeplibs+=( third_party/icu )
 	fi
+	if ! use system-png; then
+		keeplibs+=( third_party/libpng )
+	fi
+	if use libcxx; then
+		keeplibs+=( third_party/re2 )
+	fi
 	if use system-harfbuzz; then
 		keeplibs+=( third_party/harfbuzz-ng/utils )
 	else
@@ -1678,15 +1720,6 @@ src_prepare() {
 	fi
 	if use wayland && ! use headless ; then
 		keeplibs+=( third_party/wayland )
-	fi
-	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
-		keeplibs+=( third_party/libxml )
-		keeplibs+=( third_party/libxslt )
-		keeplibs+=( third_party/openh264 )
-		keeplibs+=( third_party/re2 )
-		if use system-icu; then
-			keeplibs+=( third_party/icu )
-		fi
 	fi
 	if use arm64 || use ppc64 ; then
 		keeplibs+=( third_party/swiftshader/third_party/llvm-10.0 )
@@ -1696,6 +1729,9 @@ src_prepare() {
 	if use ppc64; then
 		pushd third_party/libvpx >/dev/null || die
 		mkdir -p source/config/linux/ppc64 || die
+		# requires git and clang, bug #832803
+		sed -i -e "s|^update_readme||g; s|clang-format|${EPREFIX}/bin/true|g" \
+			generate_gni.sh || die
 		./generate_gni.sh || die
 		popd >/dev/null || die
 	fi
@@ -1735,19 +1771,23 @@ src_configure() {
 	# Make sure the build system will use the right tools, bug #340795.
 	tc-export AR CC CXX NM
 
-	if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] && ! tc-is-clang; then
-		# Force clang since gcc is pretty broken at the moment.
-		CC=${CHOST}-clang
-		CXX=${CHOST}-clang++
+	if { [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || use libcxx; } && ! tc-is-clang; then
+		# Force clang since gcc is either broken or build is using libcxx.
+		if tc-is-cross-compiler; then
+			CC="${CBUILD}-clang -target ${CHOST} --sysroot ${ESYSROOT}"
+			CXX="${CBUILD}-clang++ -target ${CHOST} --sysroot ${ESYSROOT}"
+			BUILD_CC=${CBUILD}-clang
+			BUILD_CXX=${CBUILD}-clang++
+		else
+			CC=${CHOST}-clang
+			CXX=${CHOST}-clang++
+		fi
 		strip-unsupported-flags
 	fi
 
-	if tc-is-clang; then
+	if tc-is-clang || use libcxx; then
 		myconf_gn+=" is_clang=true clang_use_chrome_plugins=false"
 	else
-		if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
-			die "Compiling with sys-libs/libcxx requires clang."
-		fi
 		myconf_gn+=" is_clang=false"
 	fi
 
@@ -1758,6 +1798,18 @@ src_configure() {
 		tc-export BUILD_{AR,CC,CXX,NM}
 		myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:host\""
 		myconf_gn+=" v8_snapshot_toolchain=\"//build/toolchain/linux/unbundle:host\""
+		myconf_gn+=" pkg_config=\"$(tc-getPKG_CONFIG)\""
+		myconf_gn+=" host_pkg_config=\"$(tc-getBUILD_PKG_CONFIG)\""
+
+		# setup cups-config, build system only uses --libs option
+		if use cups; then
+			mkdir "${T}/cups-config" || die
+			cp "${ESYSROOT}/usr/bin/${CHOST}-cups-config" "${T}/cups-config/cups-config" || die
+			export PATH="${PATH}:${T}/cups-config"
+		fi
+
+		# Don't inherit PKG_CONFIG_PATH from environment
+		local -x PKG_CONFIG_PATH=
 	else
 		myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:default\""
 	fi
@@ -1785,9 +1837,7 @@ src_configure() {
 	# Use system-provided libraries.
 	# TODO: freetype -- remove sources (https://bugs.chromium.org/p/pdfium/issues/detail?id=733).
 	# TODO: use_system_hunspell (upstream changes needed).
-	# TODO: use_system_libsrtp (bug #459932).
 	# TODO: use_system_protobuf (bug #525560).
-	# TODO: use_system_ssl (http://crbug.com/58087).
 	# TODO: use_system_sqlite (http://crbug.com/22208).
 
 	# libevent: https://bugs.gentoo.org/593458
@@ -1799,8 +1849,10 @@ src_configure() {
 		#harfbuzz-ng
 		libdrm
 		libjpeg
-		libpng
 		libwebp
+		libxml
+		libxslt
+		openh264
 		zlib
 	)
 	if use system-ffmpeg; then
@@ -1809,13 +1861,12 @@ src_configure() {
 	if use system-icu; then
 		gn_system_libraries+=( icu )
 	fi
-	if [[ ${CHROMIUM_FORCE_LIBCXX} != yes ]]; then
-		# unbundle only without libc++, because libc++ is not fully ABI compatible with libstdc++
-		gn_system_libraries+=( libxml )
-		gn_system_libraries+=( libxslt )
-		gn_system_libraries+=( openh264 )
+	if use system-png; then
+		gn_system_libraries+=( libpng )
+	fi
+	# re2 library interface relies on std::string and std::vector
+	if ! use libcxx; then
 		gn_system_libraries+=( re2 )
-		gn_system_libraries+=( snappy )
 	fi
 	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
 
@@ -1827,11 +1878,20 @@ src_configure() {
 
 	# Optional dependencies.
 	myconf_gn+=" enable_js_type_check=$(usex js-type-check true false)"
-	myconf_gn+=" use_cups=$(usex cups true false)"
-	myconf_gn+=" use_kerberos=$(usex kerberos true false)"
-	myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
-	myconf_gn+=" use_vaapi=$(usex vaapi true false)"
-	myconf_gn+=" rtc_use_pipewire=$(usex screencast true false)"
+	if use headless; then
+		myconf_gn+=" use_cups=false"
+		myconf_gn+=" use_kerberos=false"
+		myconf_gn+=" use_pulseaudio=false"
+		myconf_gn+=" use_vaapi=false"
+		myconf_gn+=" rtc_use_pipewire=false"
+	else
+		myconf_gn+=" use_cups=$(usex cups true false)"
+		myconf_gn+=" use_kerberos=$(usex kerberos true false)"
+		myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
+		myconf_gn+=" use_vaapi=$(usex vaapi true false)"
+		myconf_gn+=" rtc_use_pipewire=$(usex screencast true false)"
+	fi
+
 	myconf_gn+=" use_atk=$(usex atk true false)"
 	myconf_gn+=" enable_swiftshader=true enable_vulkan=true enable_swiftshader_vulkan=true"
 
@@ -1842,7 +1902,8 @@ src_configure() {
 	# Never use bundled gold binary. Disable gold linker flags for now.
 	# Do not use bundled clang.
 	# Trying to use gold results in linker crash.
-	myconf_gn+=" use_gold=false use_sysroot=false use_custom_libcxx=false"
+	myconf_gn+=" use_gold=false use_sysroot=false"
+	myconf_gn+=" use_custom_libcxx=$(usex libcxx true false)"
 
 	if use lto; then
 		myconf_gn+=" use_thin_lto=true"
@@ -1900,11 +1961,6 @@ src_configure() {
 		fi
 	fi
 
-	if [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
-		append-flags -stdlib=libc++
-		append-ldflags -stdlib=libc++
-	fi
-
 	if [[ $myarch = amd64 ]] ; then
 		myconf_gn+=" target_cpu=\"x64\""
 		ffmpeg_target_arch=x64
@@ -1936,6 +1992,9 @@ src_configure() {
 	# Disable fatal linker warnings, bug 506268.
 	myconf_gn+=" fatal_linker_warnings=false"
 
+	# Don't use esbuild
+	myconf_gn+=" devtools_skip_typecheck=false"
+
 	# Bug 491582.
 	export TMPDIR="${WORKDIR}/temp"
 	mkdir -p -m 755 "${TMPDIR}" || die
@@ -1960,14 +2019,17 @@ src_configure() {
 		popd > /dev/null || die
 	fi
 
-	# Chromium relies on this, but was disabled in >=clang-10, crbug.com/1042470
-	append-cxxflags $(test-flags-CXX -flax-vector-conversions=all)
-
 	# Disable unknown warning message from clang.
-	tc-is-clang && append-flags -Wno-unknown-warning-option
+	if tc-is-clang; then
+		append-flags -Wno-unknown-warning-option
+		if tc-is-cross-compiler; then
+			export BUILD_CXXFLAGS+=" -Wno-unknown-warning-option"
+			export BUILD_CFLAGS+=" -Wno-unknown-warning-option"
+		fi
+	fi
 
-	# Explicitly disable ICU data file support for system-icu builds.
-	if use system-icu; then
+	# Explicitly disable ICU data file support for system-icu/headless builds.
+	if use system-icu || use headless; then
 		myconf_gn+=" icu_use_data_file=false"
 	fi
 
@@ -1978,7 +2040,12 @@ src_configure() {
 	if use wayland || use headless; then
 		if use headless; then
 			myconf_gn+=" ozone_platform=\"headless\""
-			myconf_gn+=" use_x11=false"
+			myconf_gn+=" use_xkbcommon=false use_gtk=false"
+			myconf_gn+=" use_glib=false use_gio=false"
+			myconf_gn+=" use_pangocairo=false use_alsa=false"
+			myconf_gn+=" use_libpci=false use_udev=false"
+			myconf_gn+=" enable_print_preview=false"
+			myconf_gn+=" enable_remoting=false"
 		else
 			myconf_gn+=" ozone_platform_wayland=true"
 			myconf_gn+=" use_system_libdrm=true"

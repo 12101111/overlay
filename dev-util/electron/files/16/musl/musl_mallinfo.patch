@@ -85,3 +85,16 @@ index 6a4438f480..161eacef80 100644
    rusage res;
    if (getrusage(RUSAGE_SELF, &res) == 0) {
      result.max_rss_kb = res.ru_maxrss;
+diff --git a/base/allocator/allocator_shim_default_dispatch_to_partition_alloc.cc b/base/allocator/allocator_shim_default_dispatch_to_partition_alloc.cc
+index 063f02f..a71c47c 100644
+--- a/base/allocator/allocator_shim_default_dispatch_to_partition_alloc.cc
++++ b/base/allocator/allocator_shim_default_dispatch_to_partition_alloc.cc
+@@ -588,7 +588,7 @@ SHIM_ALWAYS_EXPORT int mallopt(int cmd, int value) __THROW {
+ 
+ #endif  // !defined(OS_APPLE)
+ 
+-#if defined(OS_LINUX) || defined(OS_CHROMEOS)
++#if defined(OS_LINUX) && defined(__GLIBC__) || defined(OS_CHROMEOS)
+ SHIM_ALWAYS_EXPORT struct mallinfo mallinfo(void) __THROW {
+   base::SimplePartitionStatsDumper allocator_dumper;
+   Allocator()->DumpStats("malloc", true, &allocator_dumper);
