@@ -20,7 +20,7 @@ else
 	MY_P=${MY_PN}-${MY_PV}
 	S=${WORKDIR}/${MY_P}
 	SRC_URI="https://github.com/systemd/${MY_PN}/archive/v${MY_PV}/${MY_P}.tar.gz"
-	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~riscv ~sparc ~x86"
+	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~mips ~ppc ~ppc64 ~riscv ~sparc ~x86"
 fi
 
 inherit bash-completion-r1 linux-info meson-multilib pam python-any-r1 systemd toolchain-funcs udev usr-ldscript flag-o-matic
@@ -181,7 +181,7 @@ pkg_pretend() {
 			ewarn "See https://bugs.gentoo.org/674458."
 		fi
 
-		local CONFIG_CHECK="~AUTOFS4_FS ~BINFMT_MISC ~BLK_DEV_BSG ~CGROUPS
+		local CONFIG_CHECK=" ~BINFMT_MISC ~BLK_DEV_BSG ~CGROUPS
 			~DEVTMPFS ~EPOLL ~FANOTIFY ~FHANDLE
 			~INOTIFY_USER ~IPV6 ~NET ~NET_NS ~PROC_FS ~SIGNALFD ~SYSFS
 			~TIMERFD ~TMPFS_XATTR ~UNIX ~USER_NS
@@ -195,10 +195,16 @@ pkg_pretend() {
 		kernel_is -lt 4 7 && CONFIG_CHECK+=" ~DEVPTS_MULTIPLE_INSTANCES"
 		kernel_is -ge 4 10 && CONFIG_CHECK+=" ~CGROUP_BPF"
 
-		if kernel_is -lt 5 10 20; then
-			CONFIG_CHECK+=" ~CHECKPOINT_RESTORE"
-		else
+		if kernel_is -ge 5 10 20; then
 			CONFIG_CHECK+=" ~KCMP"
+		else
+			CONFIG_CHECK+=" ~CHECKPOINT_RESTORE"
+		fi
+
+		if kernel_is -ge 4 18; then
+			CONFIG_CHECK+=" ~AUTOFS_FS"
+		else
+			CONFIG_CHECK+=" ~AUTOFS4_FS"
 		fi
 
 		if linux_config_exists; then
@@ -237,7 +243,6 @@ src_prepare() {
 
 	# Add local patches here
 	PATCHES+=(
-		"${FILESDIR}/250.4-random-seed-hash.patch"
 	)
 
 	if ! use vanilla; then
@@ -530,6 +535,14 @@ pkg_postinst() {
 		eerror "for errors. You may need to clean up your system and/or try installing"
 		eerror "systemd again."
 		eerror
+	fi
+
+	if use hostnamed-fallback; then
+		if ! systemctl --root="${ROOT:-/}" is-enabled --quiet dbus-broker.service 2>/dev/null; then
+			ewarn "dbus-broker.service is not enabled, systemd-hostnamed will fail to run."
+			ewarn "To enable dbus-broker.service run the next command as root:"
+			ewarn "systemctl enable dbus-broker.service"
+		fi
 	fi
 }
 
