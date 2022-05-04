@@ -1,7 +1,7 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 # Subslot: libavutil major.libavcodec major.libavformat major
 # Since FFmpeg ships several libraries, subslot is kind of limited here.
@@ -28,9 +28,14 @@ HOMEPAGE="https://ffmpeg.org/"
 if [ "${PV#9999}" != "${PV}" ] ; then
 	SRC_URI=""
 elif [ "${PV%_p*}" != "${PV}" ] ; then # Snapshot
-	SRC_URI="mirror://gentoo/${P}.tar.bz2"
+	SRC_URI="mirror://gentoo/${P}.tar.xz"
 else # Release
-	SRC_URI="https://ffmpeg.org/releases/${P/_/-}.tar.bz2"
+	VERIFY_SIG_OPENPGP_KEY_PATH="${BROOT}"/usr/share/openpgp-keys/ffmpeg.asc
+	inherit verify-sig
+	SRC_URI="https://ffmpeg.org/releases/${P/_/-}.tar.xz"
+	SRC_URI+=" verify-sig? ( https://ffmpeg.org/releases/${P/_/-}.tar.xz.asc )"
+
+	BDEPEND=" verify-sig? ( sec-keys/openpgp-keys-ffmpeg )"
 fi
 FFMPEG_REVISION="${PV#*_p}"
 
@@ -59,7 +64,7 @@ LICENSE="
 	samba? ( GPL-3 )
 "
 if [ "${PV#9999}" = "${PV}" ] ; then
-	KEYWORDS="~alpha amd64 arm arm64 ~hppa ~ia64 ~mips ppc ppc64 ~riscv sparc x86 ~amd64-linux ~x86-linux"
+	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~riscv ~sparc ~x86 ~amd64-linux ~x86-linux"
 fi
 
 # Options to use as use_enable in the foo[:bar] form.
@@ -285,7 +290,9 @@ DEPEND="${RDEPEND}
 	ladspa? ( >=media-libs/ladspa-sdk-1.13-r2[${MULTILIB_USEDEP}] )
 	v4l? ( sys-kernel/linux-headers )
 "
-BDEPEND="
+
+# += for verify-sig above
+BDEPEND+="
 	>=sys-devel/make-3.81
 	virtual/pkgconfig
 	amf? ( media-libs/amf-headers )
@@ -354,6 +361,15 @@ src_prepare() {
 
 multilib_src_configure() {
 	local myconf=( )
+
+	# bug 842201
+	use ia64 && tc-is-gcc && append-flags \
+		-fno-tree-ccp \
+		-fno-tree-dominator-opts \
+		-fno-tree-fre \
+		-fno-code-hoisting \
+		-fno-tree-pre \
+		-fno-tree-vrp
 
 	local ffuse=( "${FFMPEG_FLAG_MAP[@]}" )
 	use openssl && myconf+=( --enable-nonfree )
