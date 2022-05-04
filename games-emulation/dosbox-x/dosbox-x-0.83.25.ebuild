@@ -36,6 +36,7 @@ PATCHES=(
 	"${FILESDIR}/cmath.patch"
 	"${FILESDIR}/z_of_fix.patch"
 	"${FILESDIR}/fcntl.patch"
+	"${FILESDIR}/fix.patch"
 )
 
 src_prepare() {
