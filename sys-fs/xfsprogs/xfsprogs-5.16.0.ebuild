@@ -18,8 +18,7 @@ RDEPEND=">=sys-apps/util-linux-2.17.2
 	dev-libs/inih
 	dev-libs/userspace-rcu:=
 	icu? ( dev-libs/icu:= )
-	libedit? ( dev-libs/libedit )
-"
+	libedit? ( dev-libs/libedit )"
 DEPEND="${RDEPEND}"
 BDEPEND="nls? ( sys-devel/gettext )"
 RDEPEND+=" selinux? ( sec-policy/selinux-xfs )"
@@ -46,6 +45,9 @@ src_configure() {
 	# unnecessarily clutter CFLAGS (and fortran isn't used)
 	unset FCFLAGS
 
+	# If set in user env, this breaks configure
+	unset PLATFORM
+
 	export DEBUG=-DNDEBUG
 
 	# Package is honoring CFLAGS; No need to use OPTIMIZER anymore.
@@ -53,9 +55,7 @@ src_configure() {
 	# flags.
 	export OPTIMIZER=" "
 
-	unset PLATFORM # if set in user env, this breaks configure
-
-	# Avoid automagic on libdevmapper, #709694
+	# Avoid automagic on libdevmapper (bug #709694)
 	export ac_cv_search_dm_task_create=no
 
 	# Build fails with -O3 (bug #712698)
