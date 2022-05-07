@@ -173,6 +173,7 @@ src_prepare() {
 		eapply "${FILESDIR}/musl_remove_check_for_glibc.patch"
 		eapply "${FILESDIR}/musl-pvalloc.patch"
     fi
+	use arm64 && eapply "${FILESDIR}/revert-skia-arm64-change.patch"
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
 		# This is made from git, and for some reason will fail w/o .git directories.
 		mkdir -p .git src/3rdparty/chromium/.git || die
