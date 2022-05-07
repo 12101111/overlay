@@ -1,4 +1,4 @@
-From 67af8acaa0254aeb6290889a956ebd173ce7b481 Mon Sep 17 00:00:00 2001
+From 729d8e12d8343d4f930867ee21887602e5e15bed Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Oct 2020 09:37:48 +0800
 Subject: [PATCH 04/13] Add install script for Gentoo
@@ -8,7 +8,7 @@ Subject: [PATCH 04/13] Add install script for Gentoo
  1 file changed, 54 insertions(+)
 
 diff --git a/build/gulpfile.vscode.linux.js b/build/gulpfile.vscode.linux.js
-index 3c6a7b3ee89..87f17aa7b7e 100644
+index 7d0f70f9bef..c7df36eaaea 100644
 --- a/build/gulpfile.vscode.linux.js
 +++ b/build/gulpfile.vscode.linux.js
 @@ -278,6 +278,57 @@ function buildSnapPackage(arch) {
@@ -18,7 +18,7 @@ index 3c6a7b3ee89..87f17aa7b7e 100644
 +function installGentooPackage(arch) {
 +	const binaryDir = '../VSCode-linux-' + arch;
 +	const destination = process.env.DESTDIR;
-+    const libDir = process.env.LIBDIR;
++	const libDir = process.env.LIBDIR;
 +
 +	return function () {
 +		const desktop = gulp.src('resources/linux/code.desktop', { base: '.' })

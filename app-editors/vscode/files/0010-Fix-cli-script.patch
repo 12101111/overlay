@@ -1,0 +1,23 @@
+From 4c02ca2279a25e33a191daf11514b2a5bab3ec91 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Thu, 16 Dec 2021 13:51:24 +0800
+Subject: [PATCH 10/13] Fix cli script
+
+---
+ resources/linux/bin/code.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/resources/linux/bin/code.sh b/resources/linux/bin/code.sh
+index bfebec1aa8e..eed65e8783f 100755
+--- a/resources/linux/bin/code.sh
++++ b/resources/linux/bin/code.sh
+@@ -50,5 +50,5 @@ fi
+ 
+ ELECTRON="$VSCODE_PATH/@@NAME@@"
+ CLI="$VSCODE_PATH/resources/app/out/cli.js"
+-ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --ms-enable-electron-run-as-node "$@"
++ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --app="${VSCODE_PATH}/resources/app" --ms-enable-electron-run-as-node "$@"
+ exit $?
+-- 
+2.35.1
+

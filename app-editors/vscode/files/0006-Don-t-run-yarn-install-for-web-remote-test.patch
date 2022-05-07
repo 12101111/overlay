@@ -1,4 +1,4 @@
-From b44075aabe0c32fd29ad3e7d3c1c87256af04a9c Mon Sep 17 00:00:00 2001
+From 75d8a7e2610af8feb049a7c0092c062447c293e8 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 6 Aug 2021 15:20:22 +0800
 Subject: [PATCH 06/13] Don't run `yarn install` for web/remote/test
