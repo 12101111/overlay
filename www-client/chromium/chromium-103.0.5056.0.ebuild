@@ -13,10 +13,14 @@ inherit check-reqs chromium-2 desktop flag-o-matic ninja-utils pax-utils python-
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="2"
+PATCHSET="3"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
+HEVC_PATCHSET_VERSION="103.0.5045.0"
+HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
-	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz"
+	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
+	https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding/archive/${HEVC_PATCHSET_VERSION}.tar.gz -> chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz
+"
 
 LICENSE="BSD"
 SLOT="0/dev"
@@ -26,7 +30,7 @@ REQUIRED_USE="
 	component-build? ( !suid !libcxx )
 	screencast? ( wayland )
 	!headless ( || ( X wayland ) )
-	hevc? ( vaapi )
+	hevc? ( official vaapi proprietary-codecs )
 "
 RESTRICT="hevc? ( bindist )"
 
@@ -282,8 +286,15 @@ src_prepare() {
 	python_setup
 
 	use elibc_musl && eapply "${FILESDIR}/musl"
-	use hevc && eapply "${FILESDIR}/chromium-hevc.patch"
 	tc-is-clang && eapply "${FILESDIR}/remove-libatomic.patch"
+	if use hevc; then
+		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/remove-main-main10-profile-limit.patch"
+		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-hardware-decoding-by-default.patch"
+		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/remove-clear-testing-args-passing.patch"
+		pushd third_party/ffmpeg >/dev/null || die
+		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/add-hevc-ffmpeg-decoder-parser.patch"
+		popd >/dev/null || die
+	fi
 
 	local PATCHES=(
 		"${WORKDIR}/patches"
@@ -506,7 +517,7 @@ src_prepare() {
 		third_party/swiftshader/third_party/llvm-subzero
 		third_party/swiftshader/third_party/marl
 		third_party/swiftshader/third_party/subzero
-		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
+		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv
 		third_party/swiftshader/third_party/SPIRV-Tools
 		third_party/tensorflow-text
 		third_party/tflite
@@ -753,7 +764,8 @@ src_configure() {
 	myconf_gn+=" use_atk=$(usex atk true false)"
 	myconf_gn+=" enable_swiftshader=true enable_vulkan=true enable_swiftshader_vulkan=true"
 	if use hevc; then
-		myconf_gn+=" enable_platform_hevc=true use_vaapi=true"
+		myconf_gn+=" media_use_ffmpeg=true enable_platform_encrypted_hevc=true"
+		myconf_gn+=" enable_platform_hevc=true enable_platform_hevc_decoding=true"
 	fi
 
 	# TODO: link_pulseaudio=true for GN.
