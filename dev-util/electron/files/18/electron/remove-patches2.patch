@@ -46,3 +46,49 @@ index dfa36b750a..0000000000
 -   v8::Local<BoundScript> script =
 -       CompileScript(New("2+4").ToLocalChecked(), origin).ToLocalChecked();
 -   info.GetReturnValue().Set(
+diff --git a/patches/chromium/cherry-pick-6b66a45021a0.patch b/patches/chromium/cherry-pick-6b66a45021a0.patch
+index cc5350e69e..88037e12df 100644
+--- a/patches/chromium/cherry-pick-6b66a45021a0.patch
++++ b/patches/chromium/cherry-pick-6b66a45021a0.patch
+@@ -219,41 +219,3 @@ index aa65517a568aa0b324b2c8cca8f60bb532ba085a..11815bca2741002dd8595af026ef402b
+    // While this view may be a background extension page, it can spawn a visible
+    // render view. So we just assume that the new one is not another background
+    // page instead of passing on our own value.
+-diff --git a/third_party/blink/web_tests/wpt_internal/fenced_frame/consume-user-activation.https.html b/third_party/blink/web_tests/wpt_internal/fenced_frame/consume-user-activation.https.html
+-index d78d08e18a803f66d5136b193abfa26fd7ab087a..e4ad20d17b7fdcec69f25e652dab967f9b52cf65 100644
+---- a/third_party/blink/web_tests/wpt_internal/fenced_frame/consume-user-activation.https.html
+-+++ b/third_party/blink/web_tests/wpt_internal/fenced_frame/consume-user-activation.https.html
+-@@ -88,11 +88,7 @@ promise_test(async () => {
+- 
+-   // Check that B's transient user activation was consumed.
+-   assert_activations(true, true, "A");
+--  // TODO(crbug.com/1291210): B should be inactive after consuming the
+--  // transient user activation, but due to a preexisting bug it isn't.
+--  // Replace with this once fixed:
+--  // await B.execute(assert_activations, [true, false, "B"]);
+--  await B.execute(assert_activations, [true, true, "B"]);
+-+  await B.execute(assert_activations, [true, false, "B"]);
+- 
+- }, 'user-activation');
+- </script>
+-diff --git a/third_party/blink/web_tests/wpt_internal/fenced_frame/restrict-size.https.html b/third_party/blink/web_tests/wpt_internal/fenced_frame/restrict-size.https.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..5668407d7e1e6ac7840fc47b76869787cb3f3d63
+---- /dev/null
+-+++ b/third_party/blink/web_tests/wpt_internal/fenced_frame/restrict-size.https.html
+-@@ -0,0 +1,15 @@
+-+<!DOCTYPE html>
+-+<title>Test fencedframe size restrictions in opaque ads mode.</title>
+-+<script src="/resources/testharness.js"></script>
+-+<script src="/resources/testharnessreport.js"></script>
+-+<script src="/common/utils.js"></script>
+-+<script src="/common/dispatcher/dispatcher.js"></script>
+-+<script src="resources/utils.js"></script>
+-+
+-+<body>
+-+<script>
+-+promise_test(async () => {
+-+  const frame = attachFencedFrameContext();
+-+}, 'restrict fencedframe size');
+-+</script>
+-+</body>
