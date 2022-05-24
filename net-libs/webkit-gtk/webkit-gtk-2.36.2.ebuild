@@ -15,7 +15,7 @@ SRC_URI="https://www.webkitgtk.org/releases/${MY_P}.tar.xz"
 
 LICENSE="LGPL-2+ BSD"
 SLOT="4/37" # soname version of libwebkit2gtk-4.0
-KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~riscv ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~riscv ~sparc ~x86"
 
 IUSE="aqua avif +egl examples gamepad +geolocation gles2-only gnome-keyring +gstreamer gtk-doc +introspection +jpeg2k +jumbo-build lcms libnotify seccomp spell systemd test wayland X"
 
@@ -43,7 +43,7 @@ RDEPEND="
 	>=x11-libs/gtk+-3.22.0:3[aqua?,introspection?,wayland?,X?]
 	>=media-libs/harfbuzz-1.4.2:=[icu(+)]
 	>=dev-libs/icu-61.2:=
-	virtual/jpeg:0=
+	media-libs/libjpeg-turbo:0=
 	>=net-libs/libsoup-2.54:2.4[introspection?]
 	>=dev-libs/libxml2-2.8.0:2
 	>=media-libs/libpng-1.4:0=
@@ -60,12 +60,12 @@ RDEPEND="
 	dev-libs/libtasn1:=
 	spell? ( >=app-text/enchant-0.22:2 )
 	gstreamer? (
-		>=media-libs/gstreamer-1.14:1.0
-		>=media-libs/gst-plugins-base-1.14:1.0[egl?,X?]
+		>=media-libs/gstreamer-1.20:1.0
+		>=media-libs/gst-plugins-base-1.20:1.0[egl?,X?]
 		gles2-only? ( media-libs/gst-plugins-base:1.0[gles2] )
 		!gles2-only? ( media-libs/gst-plugins-base:1.0[opengl] )
-		>=media-plugins/gst-plugins-opus-1.14.4-r1:1.0
-		>=media-libs/gst-plugins-bad-1.14:1.0
+		>=media-plugins/gst-plugins-opus-1.20:1.0
+		>=media-libs/gst-plugins-bad-1.20:1.0
 	)
 
 	X? (
