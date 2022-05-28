@@ -87,7 +87,7 @@ BDEPEND="${PYTHON_DEPS}
 	>=net-libs/nodejs-10.23.1
 	virtual/pkgconfig
 	>=virtual/rust-1.57.0
-	pgo? ( >=dev-lang/rust-1.57.0[profile] )
+	pgo? ( >=dev-lang/rust-1.57.0[profiler] )
 	|| (
 		(
 			sys-devel/clang:14
