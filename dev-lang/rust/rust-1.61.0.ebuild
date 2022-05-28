@@ -42,7 +42,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/(-)?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
-IUSE="clippy cpu_flags_x86_sse2 debug dist doc miri nightly parallel-compiler rls rustfmt rust-src system-bootstrap system-llvm test wasm wasi default-libcxx +profile +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
+IUSE="clippy cpu_flags_x86_sse2 debug dist doc miri nightly parallel-compiler profiler rls rustfmt rust-src system-bootstrap system-llvm test wasm wasi default-libcxx +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -194,10 +194,10 @@ bootstrap_rust_version_check() {
 }
 
 pre_build_checks() {
-	local M=4096
-	# multiply requirements by 1.5 if we are doing x86-multilib
+	local M=8192
+	# multiply requirements by 1.3 if we are doing x86-multilib
 	if use amd64; then
-		M=$(( $(usex abi_x86_32 15 10) * ${M} / 10 ))
+		M=$(( $(usex abi_x86_32 13 10) * ${M} / 10 ))
 	fi
 	M=$(( $(usex clippy 128 0) + ${M} ))
 	M=$(( $(usex miri 128 0) + ${M} ))
@@ -287,6 +287,9 @@ src_configure() {
 	if use miri; then
 		tools="\"miri\",$tools"
 	fi
+	if use profiler; then
+		tools="\"rust-demangler\",$tools"
+	fi
 	if use rls; then
 		tools="\"rls\",\"analysis\",$tools"
 	fi
@@ -330,6 +333,7 @@ src_configure() {
 				echo 'ldflags = "-fcf-protection=none"'
 				;;
 		esac)
+		static-libstdcpp = false
 		[build]
 		build-stage = 2
 		test-stage = 2
@@ -350,7 +354,7 @@ src_configure() {
 		tools = [${tools}]
 		verbose = 2
 		sanitizers = $(toml_usex sanitizers)
-		profiler = $(toml_usex profile)
+		profiler = $(toml_usex profiler)
 		cargo-native-static = false
 		[install]
 		prefix = "${EPREFIX}/usr/lib/${PN}/${PV}"
@@ -628,6 +632,7 @@ src_install() {
 
 	use clippy && symlinks+=( clippy-driver cargo-clippy )
 	use miri && symlinks+=( miri cargo-miri )
+	use profiler && symlinks+=( rust-demangler )
 	use rls && symlinks+=( rls )
 	use rustfmt && symlinks+=( rustfmt cargo-fmt )
 
@@ -686,6 +691,9 @@ src_install() {
 	if use miri; then
 		echo /usr/bin/miri >> "${T}/provider-${P}"
 		echo /usr/bin/cargo-miri >> "${T}/provider-${P}"
+	fi
+	if use profiler; then
+		echo /usr/bin/rust-demangler >> "${T}/provider-${P}"
 	fi
 	if use rls; then
 		echo /usr/bin/rls >> "${T}/provider-${P}"
