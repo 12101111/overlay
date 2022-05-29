@@ -42,7 +42,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/(-)?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
-IUSE="clippy cpu_flags_x86_sse2 debug dist doc miri nightly parallel-compiler profiler rls rustfmt rust-src system-bootstrap system-llvm test wasm wasi default-libcxx +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
+IUSE="clippy cpu_flags_x86_sse2 debug dist doc miri nightly parallel-compiler profiler rls rustfmt rust-src system-bootstrap system-llvm test wasm wasi +sanitizers +llvm-libunwind ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -106,7 +106,6 @@ DEPEND="
 	net-misc/curl:=[http2,ssl]
 	sys-libs/zlib:=
 	dev-libs/openssl:0=
-	default-libcxx? ( sys-devel/clang[default-libcxx] )
 	llvm-libunwind? ( sys-libs/llvm-libunwind )
 	system-llvm? ( ${LLVM_DEPEND} )
 	wasi? ( dev-libs/wasi-libc )
@@ -160,6 +159,9 @@ VERIFY_SIG_OPENPGP_KEY_PATH=${BROOT}/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
 	"${FILESDIR}"/1.55.0-ignore-broken-and-non-applicable-tests.patch
+	"${FILESDIR}"/1.61.0-llvm_selectInterleaveCount.patch
+	"${FILESDIR}"/1.61.0-llvm_addrspacecast.patch
+	"${FILESDIR}"/1.61.0-miri-cow.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
 )
 
@@ -261,7 +263,7 @@ src_prepare() {
 }
 
 src_configure() {
-	local rust_target="" rust_targets="" arch_cflags
+	local rust_target="" rust_targets="" arch_cflags use_libcxx="false"
 
 	# Collect rust target names to compile standard libs for all ABIs.
 	for v in $(multilib_get_enabled_abi_pairs); do
@@ -313,6 +315,14 @@ src_configure() {
 
 	rust_target="$(rust_abi)"
 
+	# https://bugs.gentoo.org/732632
+	if tc-is-clang; then
+		local clang_slot="$(clang-major-version)"
+		if { has_version "sys-devel/clang:${clang_slot}[default-libcxx]" || is-flagq -stdlib=libc++; }; then
+			use_libcxx="true"
+		fi
+	fi
+
 	cat <<- _EOF_ > "${S}"/config.toml
 		changelog-seen = 2
 		[llvm]
@@ -324,7 +334,7 @@ src_configure() {
 		targets = "${LLVM_TARGETS// /;}"
 		experimental-targets = ""
 		link-shared = $(toml_usex system-llvm)
-		use-libcxx = $(toml_usex default-libcxx)
+		use-libcxx = ${use_libcxx}
 		$(case "${rust_target}" in
 			i586-*-linux-*)
 				# https://github.com/rust-lang/rust/issues/93059
