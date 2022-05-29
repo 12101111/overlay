@@ -465,3 +465,11 @@ index 759ccc67b3..497761427a 100644
 -m100_fix_crash_when_pausing_xfb_then_deleting_a_buffer.patch
 -cherry-pick-d49484c21e3c.patch
  cherry-pick-a602a068e022.patch
+diff --git a/patches/angle/.patches b/patches/angle/.patches
+index 242904e..5dd06ba 100644
+--- a/patches/angle/.patches
++++ b/patches/angle/.patches
+@@ -1,3 +1,2 @@
+ cherry-pick-d27d9d059b51.patch
+-cherry-pick-a602a068e022.patch
+ cherry-pick-a4f71e40e571.patch
