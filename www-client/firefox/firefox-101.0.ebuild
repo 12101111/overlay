@@ -1,9 +1,9 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="7"
+EAPI="8"
 
-FIREFOX_PATCHSET="firefox-100-patches-02j.tar.xz"
+FIREFOX_PATCHSET="firefox-101-patches-01j.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -68,9 +68,7 @@ IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent +
 IUSE+=" wayland wifi"
 
 # Firefox-only IUSE
-IUSE+=" geckodriver"
-IUSE+=" +gmp-autoupdate"
-IUSE+=" screencast"
+IUSE+=" geckodriver +gmp-autoupdate screencast"
 
 REQUIRED_USE="debug? ( !system-av1 )
 	pgo? ( lto )
@@ -83,11 +81,10 @@ REQUIRED_USE+=" screencast? ( wayland )"
 BDEPEND="${PYTHON_DEPS}
 	app-arch/unzip
 	app-arch/zip
-	>=dev-util/cbindgen-0.19.0
+	>=dev-util/cbindgen-0.23.0
 	>=net-libs/nodejs-10.23.1
 	virtual/pkgconfig
-	>=virtual/rust-1.57.0
-	pgo? ( >=dev-lang/rust-1.57.0[profiler] )
+	>=virtual/rust-1.59.0
 	|| (
 		(
 			sys-devel/clang:14
@@ -118,23 +115,22 @@ BDEPEND="${PYTHON_DEPS}
 	x86? ( >=dev-lang/nasm-2.14 )"
 
 COMMON_DEPEND="
-	>=dev-libs/nss-3.76
-	>=dev-libs/nspr-4.32
 	dev-libs/atk
 	dev-libs/expat
+	dev-libs/glib:2
+	dev-libs/libffi:=
+	>=dev-libs/nss-3.78
+	>=dev-libs/nspr-4.32
 	media-libs/alsa-lib
-	>=media-libs/mesa-10.2:*
 	media-libs/fontconfig
-	>=media-libs/freetype-2.9
-	virtual/freedesktop-icon-theme
-	>=x11-libs/pixman-0.19.2
-	>=dev-libs/glib-2.42:2
-	>=sys-libs/zlib-1.2.3
-	>=dev-libs/libffi-3.0.10:=
+	media-libs/freetype
+	media-libs/mesa
 	media-video/ffmpeg
-	>=x11-libs/cairo-1.10[X]
-	>=x11-libs/gtk+-3.4.0:3[X]
+	sys-libs/zlib
+	virtual/freedesktop-icon-theme
+	x11-libs/cairo[X]
 	x11-libs/gdk-pixbuf
+	x11-libs/gtk+:3[X]
 	x11-libs/libX11
 	x11-libs/libXcomposite
 	x11-libs/libXdamage
@@ -144,22 +140,26 @@ COMMON_DEPEND="
 	x11-libs/libXrender
 	x11-libs/libXtst
 	x11-libs/libxcb:=
-	>=x11-libs/pango-1.22.0
+	x11-libs/pango
+	x11-libs/pixman
 	dbus? (
 		sys-apps/dbus
 		dev-libs/dbus-glib
 	)
+	jack? ( virtual/jack )
 	libproxy? ( net-libs/libproxy )
 	screencast? ( media-video/pipewire:= )
+	selinux? ( sec-policy/selinux-mozilla )
+	sndio? ( media-sound/sndio )
 	system-av1? (
 		>=media-libs/dav1d-0.9.3:=
 		>=media-libs/libaom-1.0.0:=
 	)
 	system-harfbuzz? (
-		>=media-libs/harfbuzz-2.8.1:0=
 		>=media-gfx/graphite2-1.3.13
+		>=media-libs/harfbuzz-2.8.1:0=
 	)
-	system-icu? ( >=dev-libs/icu-70.1:= )
+	system-icu? ( >=dev-libs/icu-71.1:= )
 	system-jpeg? ( >=media-libs/libjpeg-turbo-1.2.1 )
 	system-libevent? ( >=dev-libs/libevent-2.0:0=[threads] )
 	system-libvpx? ( >=media-libs/libvpx-1.8.2:0=[postproc] )
@@ -167,14 +167,11 @@ COMMON_DEPEND="
 	system-webp? ( >=media-libs/libwebp-1.1.0:0= )
 	wifi? (
 		kernel_linux? (
-			sys-apps/dbus
 			dev-libs/dbus-glib
 			net-misc/networkmanager
+			sys-apps/dbus
 		)
-	)
-	jack? ( virtual/jack )
-	selinux? ( sec-policy/selinux-mozilla )
-	sndio? ( media-sound/sndio )"
+	)"
 
 RDEPEND="${COMMON_DEPEND}
 	!www-client/firefox:0
@@ -449,6 +446,34 @@ pkg_setup() {
 
 		llvm_pkg_setup
 
+		if use clang && use lto ; then
+			local version_lld=$(ld.lld --version 2>/dev/null | awk '{ print $2 }')
+			[[ -n ${version_lld} ]] && version_lld=$(ver_cut 1 "${version_lld}")
+			[[ -z ${version_lld} ]] && die "Failed to read ld.lld version!"
+
+			local version_llvm_rust=$(rustc -Vv 2>/dev/null | grep -F -- 'LLVM version:' | awk '{ print $3 }')
+			[[ -n ${version_llvm_rust} ]] && version_llvm_rust=$(ver_cut 1 "${version_llvm_rust}")
+			[[ -z ${version_llvm_rust} ]] && die "Failed to read used LLVM version from rustc!"
+
+			if ver_test "${version_lld}" -ne "${version_llvm_rust}" ; then
+				eerror "Rust is using LLVM version ${version_llvm_rust} but ld.lld version belongs to LLVM version ${version_lld}."
+				eerror "You will be unable to link ${CATEGORY}/${PN}. To proceed you have the following options:"
+				eerror "  - Manually switch rust version using 'eselect rust' to match used LLVM version"
+				eerror "  - Switch to dev-lang/rust[system-llvm] which will guarantee matching version"
+				eerror "  - Build ${CATEGORY}/${PN} without USE=lto"
+				eerror "  - Rebuild lld with llvm that was used to build rust (may need to rebuild the whole "
+				eerror "    llvm/clang/lld/rust chain depending on your @world updates)"
+				die "LLVM version used by Rust (${version_llvm_rust}) does not match with ld.lld version (${version_lld})!"
+			fi
+		fi
+
+		if ! use clang && [[ $(gcc-major-version) -eq 11 ]] \
+			&& ! has_version -b ">sys-devel/gcc-11.1.0:11" ; then
+			# bug 792705
+			eerror "Using GCC 11 to compile firefox is currently known to be broken (see bug #792705)."
+			die "Set USE=clang or select <gcc-11 to build ${CATEGORY}/${P}."
+		fi
+
 		python-any-r1_pkg_setup
 
 		# Avoid PGO profiling problems due to enviroment leakage
@@ -667,6 +692,7 @@ src_configure() {
 		--allow-addon-sideload \
 		--disable-cargo-incremental \
 		--disable-crashreporter \
+		--disable-gpsd \
 		--disable-install-strip \
 		--disable-parental-controls \
 		--disable-strip \
@@ -780,7 +806,7 @@ src_configure() {
 	mozconfig_use_enable wifi necko-wifi
 
 	if use wayland ; then
-		mozconfig_add_options_ac '+wayland' --enable-default-toolkit=cairo-gtk3-wayland
+		mozconfig_add_options_ac '+wayland' --enable-default-toolkit=cairo-gtk3-x11-wayland
 	else
 		mozconfig_add_options_ac '' --enable-default-toolkit=cairo-gtk3
 	fi
