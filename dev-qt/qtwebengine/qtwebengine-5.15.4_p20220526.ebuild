@@ -13,8 +13,8 @@ HOMEPAGE="https://www.qt.io/"
 if [[ ${QT5_BUILD_TYPE} == release ]]; then
 	KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
-		SRC_URI="https://dev.gentoo.org/~asturm/distfiles/${PN}-5.15.3_p20220505.tar.xz"
-		S="${WORKDIR}/${PN}-5.15.3_p20220505"
+		SRC_URI="https://dev.gentoo.org/~asturm/distfiles/${P}.tar.xz"
+		S="${WORKDIR}/${P}"
 		QT5_BUILD_DIR="${S}_build"
 	fi
 else
