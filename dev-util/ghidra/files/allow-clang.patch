@@ -1,0 +1,12 @@
+diff --git a/GPL/nativeBuildProperties.gradle b/GPL/nativeBuildProperties.gradle
+index f83073e..a7fd4ef 100644
+--- a/GPL/nativeBuildProperties.gradle
++++ b/GPL/nativeBuildProperties.gradle
+@@ -44,6 +44,7 @@ model {
+ 					target("linux_arm_64")
+ 				}
+ 			}
++			clang(Clang)
+ 		}
+ 		if (isCurrentMac()) {
+ 			clang(Clang) {

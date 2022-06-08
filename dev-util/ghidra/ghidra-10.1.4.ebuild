@@ -71,6 +71,8 @@ src_prepare() {
 	#10.0 workaround
 	ln -s ../.gradle/flatRepo ./dependencies/flatRepo
 
+	eapply "${FILESDIR}/allow-clang.patch"
+
 	eapply_user
 }
 
