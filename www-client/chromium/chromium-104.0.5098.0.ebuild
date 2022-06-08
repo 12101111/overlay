@@ -10,27 +10,31 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
-inherit check-reqs chromium-2 desktop flag-o-matic llvm ninja-utils pax-utils python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils
+VIRTUALX_REQUIRED="pgo"
+
+inherit check-reqs chromium-2 desktop flag-o-matic llvm ninja-utils pax-utils python-any-r1 readme.gentoo-r1 toolchain-funcs virtualx xdg-utils
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="4"
+PATCHSET="2"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
-HEVC_PATCHSET_VERSION="103.0.5045.0"
+HEVC_PATCHSET_VERSION="104.0.5077.1"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
+	pgo? ( https://blackhole.sk/~kabel/src/chromium-profiler-0.1.tar )
 	https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding/archive/${HEVC_PATCHSET_VERSION}.tar.gz -> chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz
 "
 
 LICENSE="BSD"
 SLOT="0/dev"
-KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="hevc atk pgo system-allocator +X component-build cups cpu_flags_arm_neon debug gtk4 +hangouts headless +js-type-check kerberos libcxx lto +official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland widevine"
+KEYWORDS="~amd64 ~arm64"
+IUSE="hevc atk system-allocator +X component-build cups cpu_flags_arm_neon debug gtk4 +hangouts headless +js-type-check kerberos libcxx lto +official pgo pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland widevine"
 REQUIRED_USE="
 	component-build? ( !suid !libcxx )
 	screencast? ( wayland )
-	!headless ( || ( X wayland ) )
+	!headless? ( || ( X wayland ) )
+	pgo? ( X !wayland )
 	hevc? ( official vaapi proprietary-codecs )
 "
 RESTRICT="hevc? ( bindist )"
@@ -168,6 +172,11 @@ BDEPEND="
 	>=app-arch/gzip-1.7
 	libcxx? ( >=sys-devel/clang-12 )
 	lto? ( $(depend_clang_llvm_versions 12 13 14) )
+	pgo? (
+		>=dev-python/selenium-3.141.0
+		>=dev-util/web_page_replay_go-20220314
+		$(depend_clang_llvm_versions 12 13 14)
+	)
 	dev-lang/perl
 	>=dev-util/gn-0.1807
 	>=dev-util/gperf-3.0.3
@@ -225,20 +234,18 @@ python_check_deps() {
 }
 
 needs_clang() {
-	[[ ${CHROMIUM_FORCE_CLANG} == yes ]] || use libcxx || use lto
+	[[ ${CHROMIUM_FORCE_CLANG} == yes ]] || use libcxx || use lto || use pgo
 }
 
 llvm_check_deps() {
-	if needs_clang; then
-		if ! has_version -b "sys-devel/clang:${LLVM_SLOT}" ; then
-			einfo "sys-devel/clang:${LLVM_SLOT} is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
-			return 1
-		fi
+	if ! has_version -b "sys-devel/clang:${LLVM_SLOT}" ; then
+		einfo "sys-devel/clang:${LLVM_SLOT} is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
+		return 1
+	fi
 
-		if use lto && ! has_version -b "=sys-devel/lld-${LLVM_SLOT}*" ; then
-			einfo "=sys-devel/lld-${LLVM_SLOT}* is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
-			return 1
-		fi
+	if ( use lto || use pgo ) && ! has_version -b "=sys-devel/lld-${LLVM_SLOT}*" ; then
+		einfo "=sys-devel/lld-${LLVM_SLOT}* is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
+		return 1
 	fi
 
 	einfo "Using LLVM slot ${LLVM_SLOT} to build" >&2
@@ -246,11 +253,14 @@ llvm_check_deps() {
 
 pre_build_checks() {
 	if [[ ${MERGE_TYPE} != binary ]]; then
-		use lto && llvm_pkg_setup
+		( use lto || use pgo ) && llvm_pkg_setup
 
 		local -x CPP="$(tc-getCXX) -E"
 		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 9.2; then
 			die "At least gcc 9.2 is required"
+		fi
+		if use pgo && tc-is-cross-compiler; then
+			die "The pgo USE flag cannot be used when cross-compiling"
 		fi
 		if needs_clang || tc-is-clang; then
 			tc-is-cross-compiler && CPP=${CBUILD}-clang++ || CPP=${CHOST}-clang++
@@ -287,10 +297,11 @@ pre_build_checks() {
 	CHECKREQS_MEMORY="4G"
 	CHECKREQS_DISK_BUILD="10G"
 	tc-is-cross-compiler && CHECKREQS_DISK_BUILD="13G"
-	if use lto; then
+	if use lto || use pgo; then
 		CHECKREQS_MEMORY="9G"
 		CHECKREQS_DISK_BUILD="12G"
 		tc-is-cross-compiler && CHECKREQS_DISK_BUILD="15G"
+		use pgo && CHECKREQS_DISK_BUILD="19G"
 	fi
 	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
 		if use custom-cflags || use component-build; then
@@ -334,8 +345,7 @@ src_prepare() {
 	tc-is-clang && eapply "${FILESDIR}/remove-libatomic.patch"
 	if use hevc; then
 		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/remove-main-main10-profile-limit.patch"
-		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-hardware-decoding-by-default.patch"
-		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/remove-clear-testing-args-passing.patch"
+		eapply "${FILESDIR}/enable-hevc-hardware-decoding-by-default.patch"
 		pushd third_party/ffmpeg >/dev/null || die
 		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/add-hevc-ffmpeg-decoder-parser.patch"
 		popd >/dev/null || die
@@ -346,11 +356,11 @@ src_prepare() {
 		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-98-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-98-gtk4-build.patch"
+		"${FILESDIR}/chromium-104-tflite-system-zlib.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 		"${FILESDIR}/chromium-cross-compile.patch"
 		"${FILESDIR}/chromium-92_atk_optional.patch"
-		"${FILESDIR}/chromium-no-strip.patch"
 		"${FILESDIR}/chromium-100-fix-stat-include.patch"
 	)
 
@@ -667,7 +677,7 @@ src_prepare() {
 	ln -s "${EPREFIX}"/bin/true buildtools/third_party/eu-strip/bin/eu-strip || die
 }
 
-src_configure() {
+chromium_configure() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
 
@@ -696,13 +706,14 @@ src_configure() {
 		myconf_gn+=" is_clang=false"
 	fi
 
-	if use lto; then
+	# Force lld for lto or pgo builds only, otherwise disable, bug 641556
+	if use lto || use pgo; then
 		myconf_gn+=" use_lld=true"
 	else
 		myconf_gn+=" use_lld=false"
 	fi
 
-	if use lto; then
+	if use lto || use pgo; then
 		AR=llvm-ar
 		NM=llvm-nm
 		if tc-is-cross-compiler; then
@@ -817,10 +828,8 @@ src_configure() {
 	fi
 
 	myconf_gn+=" use_atk=$(usex atk true false)"
-	myconf_gn+=" enable_swiftshader=true enable_vulkan=true enable_swiftshader_vulkan=true"
 	if use hevc; then
-		myconf_gn+=" media_use_ffmpeg=true enable_platform_encrypted_hevc=true"
-		myconf_gn+=" enable_platform_hevc=true enable_platform_hevc_decoding=true"
+		myconf_gn+=" media_use_ffmpeg=true enable_platform_hevc=true enable_hevc_parser_and_hw_decoder=true"
 	fi
 
 	# TODO: link_pulseaudio=true for GN.
@@ -1009,13 +1018,27 @@ src_configure() {
 		myconf_gn+=" devtools_skip_typecheck=false"
 	fi
 
+	if use pgo; then
+		myconf_gn+=" chrome_pgo_phase=${1}"
+		if [[ "$1" == "2" ]]; then
+			myconf_gn+=" pgo_data_path=\"${2}\""
+		fi
+	else
+		# Disable PGO, because profile data is only compatible with >=clang-11
+		myconf_gn+=" chrome_pgo_phase=0"
+	fi
+
 	einfo "Configuring Chromium..."
 	set -- gn gen --args="${myconf_gn} ${EXTRA_GN}" out/Release
 	echo "$@"
 	"$@" || die
 }
 
-src_compile() {
+src_configure() {
+	chromium_configure $(usex pgo 1 0)
+}
+
+chromium_compile() {
 	# Final link uses lots of file descriptors.
 	ulimit -n 2048
 
@@ -1045,6 +1068,61 @@ src_compile() {
 	use suid && eninja -C out/Release chrome_sandbox
 
 	pax-mark m out/Release/chrome
+}
+
+# This function is called from virtx, and must always return so that Xvfb
+# session isn't left running. If we return 1, virtx will call die().
+chromium_profile() {
+	einfo "Profiling for PGO"
+
+	pushd "${WORKDIR}/chromium-profiler-"* >/dev/null || return 1
+
+	# Remove old profdata in case profiling was interrupted.
+	rm -rf "${1}" || return 1
+
+	if ! "${EPYTHON}" ./chromium_profiler.py \
+	     --chrome-executable "${S}/out/Release/chrome" \
+	     --chromedriver-executable "${S}/out/Release/chromedriver.unstripped" \
+	     --add-arg no-sandbox --add-arg disable-dev-shm-usage \
+	     --profile-output "${1}"; then
+		eerror "Profiling failed"
+		return 1
+	fi
+
+	popd >/dev/null || return 1
+}
+
+src_compile() {
+	if use pgo; then
+		local profdata
+
+		profdata="${WORKDIR}/chromium.profdata"
+
+		if [[ ! -e "${WORKDIR}/.pgo-profiled" ]]; then
+			chromium_compile
+			virtx chromium_profile "$profdata"
+
+			touch "${WORKDIR}/.pgo-profiled" || die
+		fi
+
+		if [[ ! -e "${WORKDIR}/.pgo-phase-2-configured" ]]; then
+			# Remove phase 1 output
+			rm -r out/Release || die
+
+			chromium_configure 2 "$profdata"
+
+			touch "${WORKDIR}/.pgo-phase-2-configured" || die
+		fi
+
+		if [[ ! -e "${WORKDIR}/.pgo-phase-2-compiled" ]]; then
+			chromium_compile
+			touch "${WORKDIR}/.pgo-phase-2-compiled" || die
+		fi
+	else
+		chromium_compile
+	fi
+
+	mv out/Release/chromedriver{.unstripped,} || die
 
 	# Build manpage; bug #684550
 	sed -e 's|@@PACKAGE@@|chromium-browser|g;
@@ -1119,7 +1197,6 @@ src_install() {
 	fi
 
 	doins -r out/Release/locales
-	doins -r out/Release/resources
 	doins -r out/Release/MEIPreload
 
 	# Install vk_swiftshader_icd.json; bug #827861

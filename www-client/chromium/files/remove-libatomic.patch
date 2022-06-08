@@ -1,8 +1,8 @@
 diff --git a/base/BUILD.gn b/base/BUILD.gn
-index 4395202468..e2674e3688 100644
+index 482e00e..22d8f2a 100644
 --- a/base/BUILD.gn
 +++ b/base/BUILD.gn
-@@ -1482,15 +1482,6 @@ mixed_component("base") {
+@@ -1495,15 +1495,6 @@ mixed_component("base") {
      "//third_party/abseil-cpp:absl",
    ]
  
@@ -10,7 +10,7 @@ index 4395202468..e2674e3688 100644
 -  # building inside the cros_sdk environment - use host_toolchain as a
 -  # more robust check for this.
 -  if (!use_sysroot &&
--      (is_android || ((is_linux || is_chromeos) && !is_chromecast)) &&
+-      (is_android || ((is_linux || is_chromeos) && !is_castos)) &&
 -      host_toolchain != "//build/toolchain/cros:host") {
 -    libs += [ "atomic" ]
 -  }
@@ -19,7 +19,7 @@ index 4395202468..e2674e3688 100644
      sources += [
        "allocator/allocator_shim.cc",
 diff --git a/build/config/linux/BUILD.gn b/build/config/linux/BUILD.gn
-index d304d08100..af1e2d6f68 100644
+index d304d08..af1e2d6 100644
 --- a/build/config/linux/BUILD.gn
 +++ b/build/config/linux/BUILD.gn
 @@ -39,11 +39,6 @@ config("runtime_library") {
