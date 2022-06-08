@@ -5,18 +5,18 @@ EAPI=7
 
 inherit flag-o-matic systemd toolchain-funcs usr-ldscript
 
-DESCRIPTION="xfs filesystem utilities"
+DESCRIPTION="XFS filesystem utilities"
 HOMEPAGE="https://xfs.wiki.kernel.org/"
 SRC_URI="https://www.kernel.org/pub/linux/utils/fs/xfs/${PN}/${P}.tar.xz"
 
 LICENSE="LGPL-2.1"
 SLOT="0"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
 IUSE="icu libedit nls selinux"
 
-RDEPEND=">=sys-apps/util-linux-2.17.2
-	dev-libs/inih
+RDEPEND="dev-libs/inih
 	dev-libs/userspace-rcu:=
+	>=sys-apps/util-linux-2.17.2
 	icu? ( dev-libs/icu:= )
 	libedit? ( dev-libs/libedit )"
 DEPEND="${RDEPEND}"
@@ -24,8 +24,8 @@ BDEPEND="nls? ( sys-devel/gettext )"
 RDEPEND+=" selinux? ( sec-policy/selinux-xfs )"
 
 PATCHES=(
-	"${FILESDIR}"/${PN}-4.15.0-docdir.patch
 	"${FILESDIR}"/${PN}-5.3.0-libdir.patch
+	"${FILESDIR}"/${PN}-5.18.0-docdir.patch
 )
 
 src_prepare() {
