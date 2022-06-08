@@ -12,6 +12,7 @@ SLOT="${MY_PV%%[.+]*}"
 
 # variable name format: <UPPERCASE_KEYWORD>_XPAK
 PPC64_XPAK="11.0.13_p8" # big-endian bootstrap tarball
+RISCV_XPAK="11.0.14_p9" # lp64d bootstrap tarball
 X86_XPAK="11.0.13_p8"
 
 # Usage: bootstrap_uri <keyword> <version> [extracond]
@@ -35,12 +36,14 @@ SRC_URI="
 		-> ${P}.tar.gz
 	!system-bootstrap? (
 		$(bootstrap_uri ppc64 ${PPC64_XPAK} big-endian)
+		$(bootstrap_uri riscv ${RISCV_XPAK})
 		$(bootstrap_uri x86 ${X86_XPAK})
 	)
+	riscv? ( https://dev.gentoo.org/~arthurzam/distfiles/dev-java/openjdk/openjdk-11.0.14-riscv.patch.xz )
 "
 
 LICENSE="GPL-2"
-KEYWORDS="amd64 ~arm arm64 ppc64 ~x86"
+KEYWORDS="~amd64 ~arm64"
 
 IUSE="alsa big-endian cups debug doc examples headless-awt javafx +jbootstrap selinux source system-bootstrap systemtap"
 
@@ -127,6 +130,8 @@ pkg_setup() {
 	openjdk_check_requirements
 	java-vm-2_pkg_setup
 
+	[[ ${MERGE_TYPE} == "binary" ]] && return
+
 	JAVA_PKG_WANT_BUILD_VM="openjdk-${SLOT} openjdk-bin-${SLOT}"
 	JAVA_PKG_WANT_SOURCE="${SLOT}"
 	JAVA_PKG_WANT_TARGET="${SLOT}"
@@ -139,13 +144,14 @@ pkg_setup() {
 			fi
 		done
 	else
-		[[ ${MERGE_TYPE} == "binary" ]] && return
 		local xpakvar="${ARCH^^}_XPAK"
 		export JDK_HOME="${WORKDIR}/openjdk-bootstrap-${!xpakvar}"
 	fi
 }
 
 src_prepare() {
+	use riscv && eapply "${WORKDIR}"/openjdk-11.0.14-riscv.patch
+	tc-is-clang && eapply "${FILESDIR}/patches/11/clang-fix.patch"
 	default
 
 	eapply "${FILESDIR}/patches/${SLOT}/0001_fix-bootjdk-check.patch"
@@ -154,7 +160,6 @@ src_prepare() {
 	if use elibc_musl ; then
 		eapply "${FILESDIR}/patches/${SLOT}/1001_build.patch"
 		eapply "${FILESDIR}/patches/${SLOT}/1002_aarch64.patch"
-		eapply "${FILESDIR}/patches/${SLOT}/1003_ppc64le.patch"
 
 		# this needs libthread_db which is only provided by glibc
 		# haven't found any way to disable this module so just remove it.
@@ -178,10 +183,10 @@ src_configure() {
 	# explicitly disabled, the flag will get auto-enabled if pandoc and
 	# graphviz are detected. pandoc has loads of dependencies anyway.
 
-	# --with-jvm-features=shenandoahgc
 	local myconf=(
 		--disable-ccache
 		--enable-precompiled-headers
+		--disable-warnings-as-errors
 		--enable-full-docs=no
 		--with-boot-jdk="${JDK_HOME}"
 		--with-extra-cflags="${CFLAGS}"
@@ -205,8 +210,10 @@ src_configure() {
 		--with-zlib="${XPAK_BOOTSTRAP:-system}"
 		--enable-dtrace=$(usex systemtap yes no)
 		--enable-headless-only=$(usex headless-awt yes no)
+		--with-stdc++lib=dynamic
 		$(tc-is-clang && echo "--with-toolchain-type=clang")
 	)
+	! use riscv && ! use elibc_musl && myconf+=( --with-jvm-features=shenandoahgc )
 
 	if use javafx; then
 		# this is not useful for users, just for upstream developers
