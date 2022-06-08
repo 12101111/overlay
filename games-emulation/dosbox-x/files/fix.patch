@@ -44,3 +44,15 @@ index a35ce7e..44626c7 100644
  GLhandleARB m_hProgramObject   = (GLhandleARB)0;
  #else
  GLhandleARB m_hProgramObject   = (GLhandleARB)NULL;
+diff --git a/include/dosbox.h b/include/dosbox.h
+index 2a0ff12..a91099d 100644
+--- a/include/dosbox.h
++++ b/include/dosbox.h
+@@ -452,6 +452,7 @@ void readString(std::istream& stream, std::string& data)
+ #if defined (WIN32)
+ int _wmkdir_p(const wchar_t *pathname);
+ #else
++#include <sys/stat.h>
+ int mkdir_p(const char *pathname, mode_t mode);
+ #endif
+ 
