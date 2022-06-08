@@ -1,9 +1,9 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI="7"
+EAPI="8"
 
-FIREFOX_PATCHSET="firefox-91esr-patches-06j.tar.xz"
+FIREFOX_PATCHSET="firefox-91esr-patches-07j.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -57,7 +57,7 @@ SRC_URI="${MOZ_SRC_BASE_URI}/source/${MOZ_P}.source.tar.xz -> ${MOZ_P_DISTFILES}
 DESCRIPTION="Thunderbird Mail Client"
 HOMEPAGE="https://www.thunderbird.net/"
 
-KEYWORDS="~amd64 ~arm64 ~ppc64 ~x86"
+KEYWORDS="amd64 ~arm64 ~ppc64 x86"
 
 SLOT="0"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
@@ -78,7 +78,6 @@ BDEPEND="${PYTHON_DEPS}
 	>=net-libs/nodejs-10.23.1
 	virtual/pkgconfig
 	>=virtual/rust-1.51.0
-	pgo? ( >=dev-lang/rust-1.51.0[profiler] )
 	|| (
 		(
 			sys-devel/clang:14
@@ -394,6 +393,34 @@ pkg_setup() {
 
 		llvm_pkg_setup
 
+		if use clang && use lto ; then
+			local version_lld=$(ld.lld --version 2>/dev/null | awk '{ print $2 }')
+			[[ -n ${version_lld} ]] && version_lld=$(ver_cut 1 "${version_lld}")
+			[[ -z ${version_lld} ]] && die "Failed to read ld.lld version!"
+
+			local version_llvm_rust=$(rustc -Vv 2>/dev/null | grep -F -- 'LLVM version:' | awk '{ print $3 }')
+			[[ -n ${version_llvm_rust} ]] && version_llvm_rust=$(ver_cut 1 "${version_llvm_rust}")
+			[[ -z ${version_llvm_rust} ]] && die "Failed to read used LLVM version from rustc!"
+
+			if ver_test "${version_lld}" -ne "${version_llvm_rust}" ; then
+				eerror "Rust is using LLVM version ${version_llvm_rust} but ld.lld version belongs to LLVM version ${version_lld}."
+				eerror "You will be unable to link ${CATEGORY}/${PN}. To proceed you have the following options:"
+				eerror "  - Manually switch rust version using 'eselect rust' to match used LLVM version"
+				eerror "  - Switch to dev-lang/rust[system-llvm] which will guarantee matching version"
+				eerror "  - Build ${CATEGORY}/${PN} without USE=lto"
+				eerror "  - Rebuild lld with llvm that was used to build rust (may need to rebuild the whole "
+				eerror "    llvm/clang/lld/rust chain depending on your @world updates)"
+				die "LLVM version used by Rust (${version_llvm_rust}) does not match with ld.lld version (${version_lld})!"
+			fi
+		fi
+
+		if ! use clang && [[ $(gcc-major-version) -eq 11 ]] \
+			&& ! has_version -b ">sys-devel/gcc-11.1.0:11" ; then
+			# bug 792705
+			eerror "Using GCC 11 to compile firefox is currently known to be broken (see bug #792705)."
+			die "Set USE=clang or select <gcc-11 to build ${CATEGORY}/${P}."
+		fi
+
 		python-any-r1_pkg_setup
 
 		# Avoid PGO profiling problems due to enviroment leakage
@@ -548,7 +575,7 @@ src_prepare() {
 	echo -n "${MOZ_API_KEY_LOCATION//gGaPi/}" > "${S}"/api-location.key || die
 	echo -n "${MOZ_API_KEY_MOZILLA//m0ap1/}" > "${S}"/api-mozilla.key || die
 
-	xdg_src_prepare
+	xdg_environment_reset
 }
 
 src_configure() {
