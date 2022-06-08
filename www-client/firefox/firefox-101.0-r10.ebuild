@@ -3,7 +3,7 @@
 
 EAPI="8"
 
-FIREFOX_PATCHSET="firefox-101-patches-01j.tar.xz"
+FIREFOX_PATCHSET="firefox-101-patches-03j.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -68,7 +68,7 @@ IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent +
 IUSE+=" wayland wifi"
 
 # Firefox-only IUSE
-IUSE+=" geckodriver +gmp-autoupdate screencast"
+IUSE+=" geckodriver +gmp-autoupdate screencast +X"
 
 REQUIRED_USE="debug? ( !system-av1 )
 	pgo? ( lto )
@@ -76,6 +76,8 @@ REQUIRED_USE="debug? ( !system-av1 )
 	wifi? ( dbus )"
 
 # Firefox-only REQUIRED_USE flags
+REQUIRED_USE+=" || ( X wayland )"
+REQUIRED_USE+=" pgo? ( X )"
 REQUIRED_USE+=" screencast? ( wayland )"
 
 BDEPEND="${PYTHON_DEPS}
@@ -115,9 +117,9 @@ BDEPEND="${PYTHON_DEPS}
 	x86? ( >=dev-lang/nasm-2.14 )"
 
 COMMON_DEPEND="
+	dev-libs/glib:2
 	dev-libs/atk
 	dev-libs/expat
-	dev-libs/glib:2
 	dev-libs/libffi:=
 	>=dev-libs/nss-3.78
 	>=dev-libs/nspr-4.32
@@ -128,29 +130,19 @@ COMMON_DEPEND="
 	media-video/ffmpeg
 	sys-libs/zlib
 	virtual/freedesktop-icon-theme
-	x11-libs/cairo[X]
+	x11-libs/cairo
 	x11-libs/gdk-pixbuf
-	x11-libs/gtk+:3[X]
-	x11-libs/libX11
-	x11-libs/libXcomposite
-	x11-libs/libXdamage
-	x11-libs/libXext
-	x11-libs/libXfixes
-	x11-libs/libXrandr
-	x11-libs/libXrender
-	x11-libs/libXtst
-	x11-libs/libxcb:=
 	x11-libs/pango
 	x11-libs/pixman
 	dbus? (
-		sys-apps/dbus
 		dev-libs/dbus-glib
+		sys-apps/dbus
 	)
 	jack? ( virtual/jack )
 	libproxy? ( net-libs/libproxy )
-	screencast? ( media-video/pipewire:= )
 	selinux? ( sec-policy/selinux-mozilla )
 	sndio? ( media-sound/sndio )
+	screencast? ( media-video/pipewire:= )
 	system-av1? (
 		>=media-libs/dav1d-0.9.3:=
 		>=media-libs/libaom-1.0.0:=
@@ -165,12 +157,31 @@ COMMON_DEPEND="
 	system-libvpx? ( >=media-libs/libvpx-1.8.2:0=[postproc] )
 	system-png? ( >=media-libs/libpng-1.6.35:0=[apng] )
 	system-webp? ( >=media-libs/libwebp-1.1.0:0= )
+	wayland? (
+		x11-libs/gtk+:3[wayland]
+		x11-libs/libdrm
+		x11-libs/libxkbcommon[wayland]
+	)
 	wifi? (
 		kernel_linux? (
 			dev-libs/dbus-glib
 			net-misc/networkmanager
 			sys-apps/dbus
 		)
+	)
+	X? (
+		virtual/opengl
+		x11-libs/cairo[X]
+		x11-libs/gtk+:3[X]
+		x11-libs/libX11
+		x11-libs/libXcomposite
+		x11-libs/libXdamage
+		x11-libs/libXext
+		x11-libs/libXfixes
+		x11-libs/libxkbcommon[X]
+		x11-libs/libXrandr
+		x11-libs/libXtst
+		x11-libs/libxcb:=
 	)"
 
 RDEPEND="${COMMON_DEPEND}
@@ -187,17 +198,16 @@ RDEPEND="${COMMON_DEPEND}
 	selinux? ( sec-policy/selinux-mozilla )"
 
 DEPEND="${COMMON_DEPEND}
-	x11-libs/libICE
-	x11-libs/libSM
 	pulseaudio? (
 		|| (
 			media-sound/pulseaudio
 			>=media-sound/apulse-0.1.12-r4[sdk]
 		)
 	)
-	wayland? ( >=x11-libs/gtk+-3.11:3[wayland] )
-	amd64? ( virtual/opengl )
-	x86? ( virtual/opengl )"
+	X? (
+		x11-libs/libICE
+		x11-libs/libSM
+	)"
 
 S="${WORKDIR}/${PN}-${PV%_*}"
 
@@ -805,10 +815,12 @@ src_configure() {
 
 	mozconfig_use_enable wifi necko-wifi
 
-	if use wayland ; then
-		mozconfig_add_options_ac '+wayland' --enable-default-toolkit=cairo-gtk3-x11-wayland
+	if use X && use wayland ; then
+		mozconfig_add_options_ac '+x11+wayland' --enable-default-toolkit=cairo-gtk3-x11-wayland
+	elif ! use X && use wayland ; then
+		mozconfig_add_options_ac '+wayland' --enable-default-toolkit=cairo-gtk3-wayland-only
 	else
-		mozconfig_add_options_ac '' --enable-default-toolkit=cairo-gtk3
+		mozconfig_add_options_ac '+x11' --enable-default-toolkit=cairo-gtk3
 	fi
 
 	if use lto ; then
@@ -1020,7 +1032,11 @@ src_compile() {
 		addpredict /root
 	fi
 
-	local -x GDK_BACKEND=x11
+	if ! use X && use wayland; then
+		local -x GDK_BACKEND=wayland
+	else
+		local -x GDK_BACKEND=x11
+	fi
 
 	${virtx_cmd} ./mach build --verbose \
 		|| die
