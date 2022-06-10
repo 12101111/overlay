@@ -31,8 +31,11 @@ SRC_URI+=" https://dev.gentoo.org/~sam/distfiles/${CATEGORY}/${PN}/${PN}-5.15.2_
 	https://dev.gentoo.org/~asturm/distfiles/${PN}-5.15.3_p20220406-patchset.tar.xz
 	ppc64? ( https://dev.gentoo.org/~gyakovlev/distfiles/${PN}-5.15.2-r1-chromium87-ppc64le.tar.xz )"
 
-IUSE="alsa bindist designer geolocation +jumbo-build kerberos pulseaudio screencast +system-ffmpeg +system-icu widgets"
-REQUIRED_USE="designer? ( widgets )"
+IUSE="pdf alsa bindist designer geolocation +jumbo-build kerberos pulseaudio screencast +system-ffmpeg +system-icu widgets"
+REQUIRED_USE="
+	designer? ( widgets )
+	pdf? ( !system-icu )
+"
 
 RDEPEND="
 	app-arch/snappy:=
@@ -251,7 +254,6 @@ src_configure() {
 
 	local myqmakeargs=(
 		--
-		-no-build-qtpdf
 		-printing-and-pdf
 		-system-opus
 		-system-webp
@@ -263,6 +265,7 @@ src_configure() {
 		$(usex screencast -webengine-webrtc-pipewire '')
 		$(usex system-ffmpeg -system-ffmpeg -qt-ffmpeg)
 		$(qt_use system-icu webengine-icu)
+		$(usex pdf '' -no-build-qtpdf)
 	)
 	qt5-build_src_configure
 }
