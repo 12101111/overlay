@@ -1,5 +1,4 @@
->=dev-util/electron-15.0
-app-eselect/eselect-electron
+>=dev-util/electron-17.0
 app-text/goldendict
 www-client/firefox
 www-client/chromium
