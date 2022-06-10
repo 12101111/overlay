@@ -1,7 +1,7 @@
-From 83f8db1f9185784e67d318253228283a7199367f Mon Sep 17 00:00:00 2001
+From 2b3fcb9ebaeb4980579de23917611a2da21900b8 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 6 May 2022 14:39:07 +0800
-Subject: [PATCH 01/13] remove useless dependency
+Subject: [PATCH 01/12] remove useless dependency
 
 ---
  package.json |   5 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 01/13] remove useless dependency
  2 files changed, 125 deletions(-)
 
 diff --git a/package.json b/package.json
-index 39c3e9f5b10..6664dc90070 100644
+index 9ac0994ecec..313236fd7a6 100644
 --- a/package.json
 +++ b/package.json
 @@ -10,7 +10,6 @@
@@ -28,7 +28,7 @@ index 39c3e9f5b10..6664dc90070 100644
      "compile-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-build",
      "compile-extensions-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-extensions-build",
      "minify-vscode": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js minify-vscode",
-@@ -95,7 +93,6 @@
+@@ -96,7 +94,6 @@
    },
    "devDependencies": {
      "7zip": "0.0.6",
@@ -36,7 +36,7 @@ index 39c3e9f5b10..6664dc90070 100644
      "@types/applicationinsights": "0.20.0",
      "@types/cookie": "^0.3.3",
      "@types/copy-webpack-plugin": "^6.0.3",
-@@ -123,8 +120,6 @@
+@@ -124,8 +121,6 @@
      "@types/yazl": "^2.4.2",
      "@typescript-eslint/eslint-plugin": "^5.10.0",
      "@typescript-eslint/parser": "^5.10.0",
@@ -46,7 +46,7 @@ index 39c3e9f5b10..6664dc90070 100644
      "asar": "^3.0.3",
      "chromium-pickle-js": "^0.2.0",
 diff --git a/yarn.lock b/yarn.lock
-index 580344c7e4d..2e684d762a7 100644
+index 3e537569240..27e6753522b 100644
 --- a/yarn.lock
 +++ b/yarn.lock
 @@ -1046,46 +1046,6 @@
@@ -130,7 +130,7 @@ index 580344c7e4d..2e684d762a7 100644
  "@vscode/vscode-languagedetection@1.0.21":
    version "1.0.21"
    resolved "https://registry.yarnpkg.com/@vscode/vscode-languagedetection/-/vscode-languagedetection-1.0.21.tgz#89b48f293f6aa3341bb888c1118d16ff13b032d3"
-@@ -8962,59 +8895,6 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
+@@ -8948,59 +8881,6 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
    dependencies:
      find-up "^4.0.0"
  

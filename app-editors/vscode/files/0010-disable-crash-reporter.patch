@@ -1,7 +1,7 @@
-From 0b0d4a0768e3a0603706a00fd480de9de94e1cd4 Mon Sep 17 00:00:00 2001
+From 1fefbe382d6e19bcf74aa19559c8a98ee51f76a4 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 3 Sep 2021 20:10:49 +0800
-Subject: [PATCH 11/13] disable crash reporter
+Subject: [PATCH 10/12] disable crash reporter
 
 ---
  src/main.js | 93 +----------------------------------------------------

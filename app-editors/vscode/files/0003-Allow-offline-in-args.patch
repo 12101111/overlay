@@ -1,14 +1,14 @@
-From dcebbc32e7b2905ea8cd71d24752a5fc95205554 Mon Sep 17 00:00:00 2001
+From e9c953a4e99044965f43c9542ad732fb429a7c76 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 1 Apr 2022 20:47:52 +0800
-Subject: [PATCH 03/13] Allow --offline in args
+Subject: [PATCH 03/12] Allow --offline in args
 
 ---
  build/npm/postinstall.js | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index 4fad92fd60b..d7618cbc446 100644
+index 187f123cd18..52e8253321f 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
 @@ -20,7 +20,8 @@ function yarnInstall(location, opts) {

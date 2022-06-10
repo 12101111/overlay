@@ -1,7 +1,7 @@
-From 75d8a7e2610af8feb049a7c0092c062447c293e8 Mon Sep 17 00:00:00 2001
+From 5da104df17a701c6fe3231319b4cd4ea3b63ad4b Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 6 Aug 2021 15:20:22 +0800
-Subject: [PATCH 06/13] Don't run `yarn install` for web/remote/test
+Date: Fri, 10 Jun 2022 20:35:12 +0800
+Subject: [PATCH 06/12] Don't run yarn install for web/remote/test
 
 ---
  build/npm/dirs.js        | 6 ------
@@ -9,7 +9,7 @@ Subject: [PATCH 06/13] Don't run `yarn install` for web/remote/test
  2 files changed, 9 deletions(-)
 
 diff --git a/build/npm/dirs.js b/build/npm/dirs.js
-index 4011050e466..6faa36560ae 100644
+index 23f57323e45..fc25cd4301b 100644
 --- a/build/npm/dirs.js
 +++ b/build/npm/dirs.js
 @@ -44,10 +44,4 @@ exports.dirs = [
@@ -24,12 +24,12 @@ index 4011050e466..6faa36560ae 100644
 -	'test/smoke',
  ];
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index d7618cbc446..fd53871a43c 100644
+index 52e8253321f..39a1d0b8b6c 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -91,6 +91,3 @@ runtime "${runtime}"`;
- 	fs.writeFileSync(yarnrcPath, yarnrc, 'utf8');
- 	yarnInstall(watchPath);
+@@ -73,6 +73,3 @@ for (let dir of dirs) {
+ 
+ 	yarnInstall(dir, opts);
  }
 -
 -cp.execSync('git config pull.rebase merges');
