@@ -5,7 +5,7 @@ EAPI=8
 
 inherit java-vm-2 toolchain-funcs
 
-MY_ZULU_PV="17.32.13-ca-jdk17.0.2"
+MY_ZULU_PV="17.34.19-ca-jdk17.0.3"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
 
@@ -18,8 +18,8 @@ zulu_arch() {
 }
 
 SRC_URI="
-	amd64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_$(zulu_arch).tar.gz )
-	arm64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_$(zulu_arch).tar.gz )
+	amd64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_x64.tar.gz )
+	arm64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_aarch64.tar.gz )
 "
 
 DESCRIPTION="Prebuilt Java JDK binaries for musl provided by Zulu"

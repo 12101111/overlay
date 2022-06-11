@@ -5,20 +5,27 @@ EAPI=8
 
 inherit java-vm-2
 
-MY_ZULU_PV="8.60.0.21-ca-jdk8.0.322"
-MY_ZULU_ARCH="linux_musl_x64"
+MY_ZULU_PV="8.62.0.19-ca-jdk8.0.332"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
 
-DESCRIPTION="Prebuilt Java JDK binaries for musl provided by Zulu"
-HOMEPAGE="https://www.azul.com/downloads/zulu-community/"
+zulu_arch() {
+	case ${ABI} in
+		arm64) echo "aarch64";;
+		amd64) echo "x64";;
+		*) die "${ABI} is not supported";;
+	esac
+}
+
 SRC_URI="
-	amd64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-${MY_ZULU_ARCH}.tar.gz )
+	amd64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_x64.tar.gz )
+	arm64? ( https://cdn.azul.com/zulu/bin/zulu${MY_ZULU_PV}-linux_musl_aarch64.tar.gz )
 "
 
+DESCRIPTION="Prebuilt Java JDK binaries for musl provided by Zulu"
+HOMEPAGE="https://www.azul.com/downloads/zulu-community/"
 LICENSE="GPL-2-with-classpath-exception"
-KEYWORDS="~amd64"
-
+KEYWORDS="~amd64 ~arm64"
 IUSE="alsa cups examples headless-awt selinux source"
 
 RDEPEND="
@@ -41,7 +48,7 @@ RDEPEND="
 RESTRICT="preserve-libs strip"
 QA_PREBUILT="*"
 
-S="${WORKDIR}/zulu${MY_ZULU_PV}-${MY_ZULU_ARCH}"
+S="${WORKDIR}/zulu${MY_ZULU_PV}-linux_musl_$(zulu_arch)"
 
 src_unpack() {
 	default
