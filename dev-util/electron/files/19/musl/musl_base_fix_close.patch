@@ -1,0 +1,20 @@
+diff --git a/base/files/scoped_file_linux.cc b/base/files/scoped_file_linux.cc
+index 26bc18e62..7d7b29b29 100644
+--- a/base/files/scoped_file_linux.cc
++++ b/base/files/scoped_file_linux.cc
+@@ -77,15 +77,3 @@ bool IsFDOwned(int fd) {
+ }
+ 
+ }  // namespace base
+-
+-extern "C" {
+-
+-int __close(int);
+-
+-__attribute__((visibility("default"), noinline)) int close(int fd) {
+-  if (base::IsFDOwned(fd) && g_is_ownership_enforced)
+-    CrashOnFdOwnershipViolation();
+-  return __close(fd);
+-}
+-
+-}  // extern "C"

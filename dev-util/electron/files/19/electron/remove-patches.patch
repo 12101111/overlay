@@ -1,0 +1,23 @@
+diff --git a/patches/config.json b/patches/config.json
+index 1f10e013b3..2d38f532d6 100644
+--- a/patches/config.json
++++ b/patches/config.json
+@@ -11,8 +11,6 @@
+ 
+   "src/electron/patches/node": "src/third_party/electron_node",
+ 
+-  "src/electron/patches/nan": "src/third_party/nan",
+-
+   "src/electron/patches/perfetto": "src/third_party/perfetto",
+ 
+   "src/electron/patches/squirrel.mac": "src/third_party/squirrel.mac",
+diff --git a/patches/node/.patches b/patches/node/.patches
+index 963b9aa108..6d2e1728fe 100644
+--- a/patches/node/.patches
++++ b/patches/node/.patches
+@@ -42,5 +42,4 @@ process_simplify_uv_write_int_calls_3519.patch
+ macos_don_t_use_thread-unsafe_strtok_3524.patch
+ process_fix_hang_after_note_exit_3521.patch
+ feat_add_uv_loop_interrupt_on_io_change_option_to_uv_loop_configure.patch
+-fix_preserve_proper_method_names_as-is_in_error_stack.patch
+ macos_avoid_posix_spawnp_cwd_bug_3597.patch
