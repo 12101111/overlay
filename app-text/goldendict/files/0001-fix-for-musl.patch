@@ -1,0 +1,37 @@
+From 3bb66d4b6826c495676e86aec7cd1948ce1b084a Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Fri, 10 Jun 2022 22:16:47 +0800
+Subject: [PATCH 1/2] fix for musl
+
+---
+ goldendict.pro | 1 +
+ main.cc        | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/goldendict.pro b/goldendict.pro
+index 440dda9a..7ddc9de4 100644
+--- a/goldendict.pro
++++ b/goldendict.pro
+@@ -189,6 +189,7 @@ unix:!mac {
+     helps.path = $$PREFIX/share/goldendict/help/
+     helps.files = help/*.qch
+     INSTALLS += helps
++    LIBS += -lexecinfo
+ }
+ freebsd {
+     LIBS +=   -lexecinfo
+diff --git a/main.cc b/main.cc
+index 1d32034d..52bec06a 100644
+--- a/main.cc
++++ b/main.cc
+@@ -2,6 +2,7 @@
+  * Part of GoldenDict. Licensed under GPLv3 or later, see the LICENSE file */
+ 
+ #include <stdio.h>
++#include <locale.h>
+ #include <QIcon>
+ #include "gdappstyle.hh"
+ #include "mainwindow.hh"
+-- 
+2.35.1
+

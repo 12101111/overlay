@@ -1,18 +1,21 @@
+diff --git a/goldendict.pro b/goldendict.pro
+index 440dda9a..f83d4b95 100644
 --- a/goldendict.pro
 +++ b/goldendict.pro
-@@ -36,7 +36,8 @@
- QT += sql
- CONFIG += exceptions \
-     rtti \
--    stl
-+    stl \
+@@ -68,7 +68,8 @@ CONFIG += exceptions \
+     stl  \
+     c++17 \
+     lrelease \
+-    embed_translations
++    embed_translations \
 +    qtsingleapplication
- OBJECTS_DIR = build
- UI_DIR = build
- MOC_DIR = build
-@@ -632,5 +633,3 @@
- TS_OUT ~= s/.ts/.qm/g
- PRE_TARGETDEPS += $$TS_OUT
  
--include( qtsingleapplication/src/qtsingleapplication.pri )
+ mac {
+     DEBUG:CONFIG += app_bundle
+@@ -612,6 +613,3 @@ TRANSLATIONS += locale/ru_RU.ts \
+ }
+ 
+ 
+-
+-include( thirdparty/qtsingleapplication/src/qtsingleapplication.pri )
 -

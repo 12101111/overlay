@@ -1,19 +1,20 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit desktop qmake-utils git-r3 toolchain-funcs
+inherit desktop git-r3 qmake-utils
 
 DESCRIPTION="Feature-rich dictionary lookup program"
 HOMEPAGE="http://goldendict.org/"
-EGIT_REPO_URI="https://github.com/goldendict/goldendict.git"
+EGIT_REPO_URI="https://github.com/xiaoyifang/${PN}.git"
+EGIT_BRANCH="staged"
 EGIT_SUBMODULES=()
 
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS=""
-IUSE="debug ffmpeg opencc zim multimedia wayland qtwebengine"
+IUSE="debug ffmpeg opencc zim multimedia wayland"
 
 RDEPEND="
 	app-arch/bzip2
@@ -25,8 +26,10 @@ RDEPEND="
 	dev-qt/qthelp:5
 	dev-qt/qtnetwork:5
 	dev-qt/qtprintsupport:5
+	dev-qt/qtsql:5
 	dev-qt/qtsingleapplication[qt5(+),X]
 	dev-qt/qtsvg:5
+	dev-qt/qtwebengine:5
 	dev-qt/qtwidgets:5
 	dev-qt/qtx11extras:5
 	dev-qt/qtxml:5
@@ -43,8 +46,6 @@ RDEPEND="
 	zim? ( app-arch/xz-utils )
 	multimedia? ( dev-qt/qtmultimedia[gstreamer] )
 	elibc_musl? ( sys-libs/libexecinfo )
-	qtwebengine? ( dev-qt/qtwebengine:5 )
-	!qtwebengine? ( dev-qt/qtwebkit:5 )
 "
 DEPEND="${RDEPEND}"
 BDEPEND="
@@ -54,15 +55,13 @@ BDEPEND="
 
 PATCHES=(
 	"${FILESDIR}/${PN}-1.5.0-qtsingleapplication-unbundle.patch"
-	#"${FILESDIR}/qtwebengine.patch"
 )
 
 src_prepare() {
 	default
 
-	use elibc_musl && eapply "${FILESDIR}/0001-musl-fix.patch"
-	use wayland && eapply "${FILESDIR}/0002-wayland.patch"
-	use qtwebengine && eapply "${FILESDIR}/qtwebengine.patch"
+	use elibc_musl && eapply "${FILESDIR}/0001-fix-for-musl.patch"
+	use wayland && eapply "${FILESDIR}/0002-remove-X11.patch"
 
 	# add trailing semicolon
 	sed -i -e '/^Categories/s/$/;/' redist/org.goldendict.GoldenDict.desktop || die
@@ -87,12 +86,12 @@ src_configure() {
 
 src_install() {
 	dobin ${PN}
-	domenu redist/org.goldendict.GoldenDict.desktop
+	domenu redist/org.${PN}.GoldenDict.desktop
 	doicon redist/icons/${PN}.png
-
-	insinto /usr/share/${PN}/locale
-	doins locale/*.qm
 
 	insinto /usr/share/${PN}/help
 	doins help/*.qch
+
+	insinto /usr/share/${PN}/locale
+	doins .qm/*.qm
 }
