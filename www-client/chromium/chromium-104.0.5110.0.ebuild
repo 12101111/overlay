@@ -342,7 +342,9 @@ src_prepare() {
 	python_setup
 
 	use elibc_musl && eapply "${FILESDIR}/musl"
-	tc-is-clang && eapply "${FILESDIR}/remove-libatomic.patch"
+	if tc-is-clang && ( has_version "sys-devel/clang[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
+		eapply "${FILESDIR}/remove-libatomic.patch"
+	fi
 	if use hevc; then
 		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/remove-main-main10-profile-limit.patch"
 		eapply "${FILESDIR}/enable-hevc-hardware-decoding-by-default.patch"
@@ -1081,10 +1083,10 @@ chromium_profile() {
 	rm -rf "${1}" || return 1
 
 	if ! "${EPYTHON}" ./chromium_profiler.py \
-	     --chrome-executable "${S}/out/Release/chrome" \
-	     --chromedriver-executable "${S}/out/Release/chromedriver.unstripped" \
-	     --add-arg no-sandbox --add-arg disable-dev-shm-usage \
-	     --profile-output "${1}"; then
+		--chrome-executable "${S}/out/Release/chrome" \
+		--chromedriver-executable "${S}/out/Release/chromedriver.unstripped" \
+		--add-arg no-sandbox --add-arg disable-dev-shm-usage \
+		--profile-output "${1}"; then
 		eerror "Profiling failed"
 		return 1
 	fi
