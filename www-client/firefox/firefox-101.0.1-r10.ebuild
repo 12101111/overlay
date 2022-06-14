@@ -3,7 +3,7 @@
 
 EAPI="8"
 
-FIREFOX_PATCHSET="firefox-101-patches-03j.tar.xz"
+FIREFOX_PATCHSET="firefox-101-patches-04jwl.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -83,7 +83,7 @@ REQUIRED_USE+=" screencast? ( wayland )"
 BDEPEND="${PYTHON_DEPS}
 	app-arch/unzip
 	app-arch/zip
-	>=dev-util/cbindgen-0.23.0
+	>=dev-util/cbindgen-0.24.0
 	>=net-libs/nodejs-10.23.1
 	virtual/pkgconfig
 	>=virtual/rust-1.59.0
@@ -141,7 +141,7 @@ COMMON_DEPEND="
 	jack? ( virtual/jack )
 	libproxy? ( net-libs/libproxy )
 	selinux? ( sec-policy/selinux-mozilla )
-	sndio? ( media-sound/sndio )
+	sndio? ( >=media-sound/sndio-1.8.0-r1 )
 	screencast? ( media-video/pipewire:= )
 	system-av1? (
 		>=media-libs/dav1d-0.9.3:=
@@ -1079,9 +1079,19 @@ src_install() {
 
 	# Force hwaccel prefs if USE=hwaccel is enabled
 	if use hwaccel ; then
-		cat "${FILESDIR}"/gentoo-hwaccel-prefs.js-r1 \
+		cat "${FILESDIR}"/gentoo-hwaccel-prefs.js-r2 \
 		>>"${GENTOO_PREFS}" \
 		|| die "failed to add prefs to force hardware-accelerated rendering to all-gentoo.js"
+
+		if use wayland; then
+			cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to set hwaccel wayland prefs"
+			pref("gfx.x11-egl.force-enabled",          false);
+			EOF
+		else
+			cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to set hwaccel x11 prefs"
+			pref("gfx.x11-egl.force-enabled",          true);
+			EOF
+		fi
 	fi
 
 	if ! use gmp-autoupdate ; then
