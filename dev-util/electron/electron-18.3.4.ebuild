@@ -1435,14 +1435,14 @@ src_prepare() {
 	local patchespath repopath
 	(jq -r 'to_entries | .[] | .key + " " + .value' "${S}/electron/patches/config.json" || die) \
 	| while read -r patchespath repopath; do
-		if [[ $repopath == src/third_party/squirrel.mac* ]]; then
-			einfo "Ship patches for macOS: ${repopath}"
-		else
+		if [[ -d "${WORKDIR}/${repopath}" ]]; then
 			einfo "Apply Electron's patches to ${repopath}"
 			cd "${WORKDIR}/${repopath}" || die
 			cat "${WORKDIR}/${patchespath}/.patches" | while read -r patchfile; do
 				eapply "${WORKDIR}/${patchespath}/${patchfile}"
 			done
+		else
+			einfo "Skip patches for ${repopath}"
 		fi
 	done
 
