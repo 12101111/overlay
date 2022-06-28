@@ -4,7 +4,7 @@
 EAPI=7
 
 DISTUTILS_OPTIONAL=1
-PYTHON_COMPAT=( python3_{8,9,10} )
+PYTHON_COMPAT=( python3_{8..10} )
 
 inherit autotools bash-completion-r1 dist-kernel-utils distutils-r1 flag-o-matic linux-info pam systemd udev usr-ldscript
 
@@ -23,7 +23,6 @@ else
 	SRC_URI+=" verify-sig? ( https://github.com/openzfs/${PN}/releases/download/${MY_P}/${MY_P}.tar.gz.asc )"
 	S="${WORKDIR}/${P%_rc?}"
 
-	# 2.1.3 unkeyworded briefly for some testing
 	if [[ ${PV} != *_rc* ]]; then
 		KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv"
 	fi
@@ -253,6 +252,8 @@ src_install() {
 }
 
 pkg_postinst() {
+	udev_reload
+
 	# we always need userspace utils in sync with zfs-kmod
 	# so force initrd update for userspace as well, to avoid
 	# situation when zfs-kmod trigger initrd rebuild before
@@ -295,6 +296,8 @@ pkg_postinst() {
 }
 
 pkg_postrm() {
+	udev_reload
+
 	if ! use kernel-builtin && [[ ${PV} == "9999" ]]; then
 		remove_moduledb
 	fi
