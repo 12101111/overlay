@@ -3,7 +3,7 @@
 
 EAPI="8"
 
-FIREFOX_PATCHSET="firefox-101-patches-04jwl.tar.xz"
+FIREFOX_PATCHSET="firefox-101-patches-09j.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -158,6 +158,7 @@ COMMON_DEPEND="
 	system-png? ( >=media-libs/libpng-1.6.35:0=[apng] )
 	system-webp? ( >=media-libs/libwebp-1.1.0:0= )
 	wayland? (
+		>=media-libs/libepoxy-1.5.10-r1
 		x11-libs/gtk+:3[wayland]
 		x11-libs/libdrm
 		x11-libs/libxkbcommon[wayland]
@@ -583,9 +584,6 @@ src_prepare() {
 	eapply "${WORKDIR}/firefox-patches"
 
 	eapply "${FILESDIR}/cross-pgo.patch"
-	eapply "${FILESDIR}/patch-memory_mozalloc_throw__gcc.patch"
-	#eapply "${FILESDIR}/fix-crash2.patch"
-	#eapply "${FILESDIR}/fix-crash3.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
