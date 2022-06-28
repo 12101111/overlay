@@ -12,7 +12,7 @@ SRC_URI="ftp://sourceware.org/pub/lvm2/${PN/lvm/LVM}.${PV}.tgz
 
 LICENSE="GPL-2"
 SLOT="0"
-KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86 ~amd64-linux ~x86-linux"
+KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86 ~amd64-linux ~x86-linux"
 IUSE="readline static static-libs systemd lvm2create-initrd sanlock selinux +udev +thin device-mapper-only"
 REQUIRED_USE="device-mapper-only? ( !lvm2create-initrd !sanlock !thin )
 	static? ( !systemd !udev )
@@ -70,6 +70,9 @@ PATCHES=(
 	"${FILESDIR}"/${PN}-2.03.05-dmeventd-no-idle-exit.patch
 	#"${FILESDIR}"/${PN}-2.02.184-allow-reading-metadata-with-invalid-creation_time.patch #682380 # merged upstream
 	"${FILESDIR}"/${PN}-2.02.184-mksh_build.patch #686652
+	"${FILESDIR}"/${PN}-2.03.14-r1-add-fcntl.patch
+	"${FILESDIR}"/${PN}-2.03.14-r1-fopen-to-freopen.patch
+	"${FILESDIR}"/${PN}-2.03.14-r1-mallinfo.patch
 )
 
 pkg_setup() {
@@ -97,8 +100,6 @@ pkg_setup() {
 }
 
 src_prepare() {
-	use elibc_musl && eapply "${FILESDIR}/musl"
-
 	default
 
 	# Users without systemd get no auto-activation of any logical volume
@@ -179,7 +180,6 @@ src_configure() {
 		--with-default-run-dir=/run/lvm
 		--with-default-locking-dir=/run/lock/lvm
 		--with-default-pid-dir=/run
-		--with-symvers=no
 		$(use_enable udev udev_rules)
 		$(use_enable udev udev_sync)
 		$(use_with udev udevdir "${EPREFIX}$(get_udevdir)"/rules.d)
@@ -187,6 +187,7 @@ src_configure() {
 		$(use_enable systemd udev-systemd-background-jobs)
 		$(use_enable systemd notify-dbus)
 		--with-systemdsystemunitdir="$(systemd_get_systemunitdir)"
+		--with-symvers=no
 		CLDFLAGS="${LDFLAGS}"
 	)
 	# Hard-wire this to bash as some shells (dash) don't know
@@ -209,14 +210,12 @@ src_compile() {
 }
 
 src_install() {
-	local inst INSTALL_TARGETS
-	INSTALL_TARGETS=( install install_tmpfiles_configuration )
+	local inst
+	local INSTALL_TARGETS=( install install_tmpfiles_configuration )
 	# install systemd related files only when requested, bug #522430
-	use systemd && INSTALL_TARGETS+=( install_systemd_units install_systemd_generators )
+	use systemd && INSTALL_TARGETS+=( SYSTEMD_GENERATOR_DIR="$(systemd_get_systemgeneratordir)" install_systemd_units install_systemd_generators )
 	use device-mapper-only && INSTALL_TARGETS=( install_device-mapper )
-	for inst in ${INSTALL_TARGETS[@]}; do
-		emake V=1 DESTDIR="${D}" ${inst}
-	done
+	emake V=1 DESTDIR="${D}" "${INSTALL_TARGETS[@]}"
 
 	newinitd "${FILESDIR}"/device-mapper.rc-2.02.105-r2 device-mapper
 	newconfd "${FILESDIR}"/device-mapper.conf-1.02.22-r3 device-mapper
