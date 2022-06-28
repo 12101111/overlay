@@ -2,13 +2,12 @@ diff --git a/build/config/linux/BUILD.gn b/build/config/linux/BUILD.gn
 index 4770424..b7c940d 100644
 --- a/build/config/linux/BUILD.gn
 +++ b/build/config/linux/BUILD.gn
-@@ -27,12 +27,6 @@ config("runtime_library") {
+@@ -39,11 +39,6 @@ config("runtime_library") {
    if (is_chromeos) {
      defines = [ "OS_CHROMEOS" ]
    }
 -
--  if ((!(is_chromeos_ash || is_chromeos_lacros) ||
--       default_toolchain != "//build/toolchain/cros:target") &&
+-  if ((!is_chromeos || default_toolchain != "//build/toolchain/cros:target") &&
 -      (!use_custom_libcxx || current_cpu == "mipsel")) {
 -    libs = [ "atomic" ]
 -  }

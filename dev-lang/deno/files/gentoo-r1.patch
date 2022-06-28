@@ -1,8 +1,16 @@
 diff --git a/build.rs b/build.rs
-index 19bcf30..deef76d 100644
+index 032c105..8f7806f 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -88,17 +88,8 @@ fn build_v8() {
+@@ -5,7 +5,6 @@ use std::env;
+ use std::fs;
+ use std::path::Path;
+ use std::path::PathBuf;
+-use std::process::exit;
+ use std::process::Command;
+ use std::process::Stdio;
+ use which::which;
+@@ -97,17 +96,8 @@ fn build_v8() {
    // cargo publish doesn't like pyc files.
    env::set_var("PYTHONDONTWRITEBYTECODE", "1");
  
@@ -21,24 +29,20 @@ index 19bcf30..deef76d 100644
    }
  
    // On windows, rustc cannot link with a V8 debug build.
-@@ -118,35 +109,10 @@ fn build_v8() {
+@@ -127,32 +117,6 @@ fn build_v8() {
      gn_args.push("host_cpu=\"arm64\"".to_string())
    }
  
 -  if let Some(clang_base_path) = find_compatible_system_clang() {
 -    println!("clang_base_path {}", clang_base_path.display());
 -    gn_args.push(format!("clang_base_path={:?}", clang_base_path));
--    // TODO: Dedupe this with the one from cc_wrapper()
 -    gn_args.push("treat_warnings_as_errors=false".to_string());
--    // we can't use chromiums clang plugins with a system clang
--    gn_args.push("clang_use_chrome_plugins=false".to_string());
 -  } else {
 -    println!("using Chromiums clang");
 -    let clang_base_path = clang_download();
 -    gn_args.push(format!("clang_base_path={:?}", clang_base_path));
 -
 -    if cfg!(target_os = "android") && cfg!(target_arch = "aarch64") {
--      gn_args.push("clang_use_chrome_plugins=false".to_string());
 -      gn_args.push("treat_warnings_as_errors=false".to_string());
 -    }
 -  }
@@ -54,21 +58,73 @@ index 19bcf30..deef76d 100644
 -  } else {
 -    println!("cargo:warning=Not using sccache or ccache");
 -  }
-+  // TODO: Dedupe this with the one from cc_wrapper()
-+  gn_args.push("treat_warnings_as_errors=false".to_string());
-+  // we can't use chromiums clang plugins with a system clang
-+  gn_args.push("clang_use_chrome_plugins=false".to_string());
- 
+-
    if let Ok(args) = env::var("GN_ARGS") {
      for arg in args.split_whitespace() {
-@@ -249,33 +215,6 @@ fn platform() -> &'static str {
+       gn_args.push(arg.to_string());
+@@ -162,16 +126,6 @@ fn build_v8() {
+   let target_triple = env::var("TARGET").unwrap();
+   // check if the target triple describes a non-native environment
+   if target_triple != env::var("HOST").unwrap() {
+-    // cross-compilation setup
+-    if target_triple == "aarch64-unknown-linux-gnu"
+-      || target_triple == "aarch64-linux-android"
+-    {
+-      gn_args.push(r#"target_cpu="arm64""#.to_string());
+-      gn_args.push("use_sysroot=true".to_string());
+-      maybe_install_sysroot("arm64");
+-      maybe_install_sysroot("amd64");
+-    };
+-
+     if target_triple == "aarch64-linux-android" {
+       gn_args.push(r#"v8_target_cpu="arm64""#.to_string());
+       gn_args.push(r#"target_os="android""#.to_string());
+@@ -201,10 +155,6 @@ fn build_v8() {
+     };
+   }
+ 
+-  if target_triple.starts_with("i686-") {
+-    gn_args.push(r#"target_cpu="x86""#.to_string());
+-  }
+-
+   let gn_root = env::var("CARGO_MANIFEST_DIR").unwrap();
+ 
+   let gn_out = maybe_gen(&gn_root, gn_args);
+@@ -226,60 +176,6 @@ fn maybe_clone_repo(dest: &str, repo: &str) {
    }
  }
  
+-fn maybe_install_sysroot(arch: &str) {
+-  let sysroot_path = format!("build/linux/debian_sid_{}-sysroot", arch);
+-  if !PathBuf::from(sysroot_path).is_dir() {
+-    let status = Command::new("python")
+-      .arg("./build/linux/sysroot_scripts/install-sysroot.py")
+-      .arg(format!("--arch={}", arch))
+-      .status()
+-      .unwrap_or_else(|_| panic!("sysroot download failed: {}", arch));
+-    assert!(status.success());
+-  }
+-}
+-
+-fn platform() -> &'static str {
+-  #[cfg(target_os = "windows")]
+-  {
+-    "win"
+-  }
+-  #[cfg(target_os = "linux")]
+-  {
+-    "linux64"
+-  }
+-  #[cfg(target_os = "macos")]
+-  {
+-    "mac"
+-  }
+-}
+-
 -fn download_ninja_gn_binaries() {
 -  let target_dir = build_dir();
 -  let bin_dir = target_dir
--    .join("ninja_gn_binaries-20210101")
+-    .join("ninja_gn_binaries-20220517")
 -    .join(platform());
 -  let gn = bin_dir.join("gn");
 -  let ninja = bin_dir.join("ninja");
@@ -95,8 +151,8 @@ index 19bcf30..deef76d 100644
  fn static_lib_url() -> String {
    if let Ok(custom_archive) = env::var("RUSTY_V8_ARCHIVE") {
      return custom_archive;
-@@ -347,36 +286,11 @@ fn download_file(url: String, filename: PathBuf) {
-     return;
+@@ -368,38 +264,6 @@ fn download_file(url: String, filename: PathBuf) {
+     std::fs::remove_file(&tmpfile).unwrap();
    }
  
 -  // Try downloading with python first. Python is a V8 build dependency,
@@ -107,7 +163,7 @@ index 19bcf30..deef76d 100644
 -    .arg("--url")
 -    .arg(&url)
 -    .arg("--filename")
--    .arg(&filename)
+-    .arg(&tmpfile)
 -    .status();
 -
 -  // Python is only a required dependency for `V8_FROM_SOURCE` builds.
@@ -120,35 +176,50 @@ index 19bcf30..deef76d 100644
 -        .arg("-L")
 -        .arg("-s")
 -        .arg("-o")
--        .arg(&filename)
+-        .arg(&tmpfile)
 -        .arg(&url)
 -        .status()
 -        .unwrap()
 -    }
 -  };
 -
+-  // Assert DL was successful
 -  assert!(status.success());
--  assert!(filename.exists());
-+  panic!(
-+    "Try to download {} to {:?}, \
-+         but network access is impossible in portage sandbox!",
-+    url, filename
-+  );
- }
+-  assert!(tmpfile.exists());
+-
+   // Write checksum (i.e url) & move file
+   std::fs::write(static_checksum_path(), url).unwrap();
+   std::fs::rename(&tmpfile, &filename).unwrap();
+@@ -427,26 +291,8 @@ fn download_static_lib_binaries() {
+ fn print_link_flags() {
+   println!("cargo:rustc-link-lib=static=rusty_v8");
  
- fn download_static_lib_binaries() {
-@@ -402,6 +316,10 @@ fn print_link_flags() {
-     println!("cargo:rustc-link-lib=dylib=winmm");
-     println!("cargo:rustc-link-lib=dylib=dbghelp");
-   }
-+
+-  let should_dyn_link_libcxx = cfg!(not(feature = "use_custom_libcxx"))
+-    || env::var("GN_ARGS").map_or(false, |gn_args| {
+-      gn_args
+-        .split_whitespace()
+-        .any(|ba| ba == "use_custom_libcxx=false")
+-    });
+-
+-  if should_dyn_link_libcxx {
+-    // Based on https://github.com/alexcrichton/cc-rs/blob/fba7feded71ee4f63cfe885673ead6d7b4f2f454/src/lib.rs#L2462
+-    let target = env::var("TARGET").unwrap();
+-    if target.contains("apple")
+-      || target.contains("freebsd")
+-      || target.contains("openbsd")
+-    {
+-      println!("cargo:rustc-link-lib=dylib=c++");
+-    } else if target.contains("linux") {
+-      println!("cargo:rustc-link-lib=dylib=stdc++");
+-    } else if target.contains("android") {
+-      println!("cargo:rustc-link-lib=dylib=c++_shared");
+-    }
 +  if let Ok(val) = std::env::var("CXXSTDLIB") {
 +    println!("cargo:rustc-link-lib={}", val);
-+  }
- }
+   }
  
- // Chromium depot_tools contains helpers
-@@ -420,64 +338,6 @@ fn need_gn_ninja_download() -> bool {
+   if cfg!(target_os = "windows") {
+@@ -481,59 +327,6 @@ fn need_gn_ninja_download() -> bool {
    !has_ninja || !has_gn
  }
  
@@ -203,17 +274,12 @@ index 19bcf30..deef76d 100644
 -
 -fn cc_wrapper(gn_args: &mut Vec<String>, sccache_path: &Path) {
 -  gn_args.push(format!("cc_wrapper={:?}", sccache_path));
--  // Disable treat_warnings_as_errors until this sccache bug is fixed:
--  // https://github.com/mozilla/sccache/issues/264
--  if cfg!(target_os = "windows") {
--    gn_args.push("treat_warnings_as_errors=false".to_string());
--  }
 -}
 -
  struct Dirs {
    pub out: PathBuf,
    pub root: PathBuf,
-@@ -575,8 +435,12 @@ type NinjaEnv = Vec<(String, String)>;
+@@ -631,8 +424,12 @@ type NinjaEnv = Vec<(String, String)>;
  fn ninja(gn_out_dir: &Path, maybe_env: Option<NinjaEnv>) -> Command {
    let cmd_string = env::var("NINJA").unwrap_or_else(|_| "ninja".to_owned());
    let mut cmd = Command::new(cmd_string);
@@ -226,7 +292,7 @@ index 19bcf30..deef76d 100644
    if let Some(env) = maybe_env {
      for item in env {
        cmd.env(item.0, item.1);
-@@ -636,6 +500,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
+@@ -692,6 +489,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
      cmd.arg(format!("--root={}", dirs.root.display()));
      cmd.arg("gen");
      cmd.arg(&gn_out_dir);
