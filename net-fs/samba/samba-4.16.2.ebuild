@@ -65,7 +65,7 @@ COMMON_DEPEND="
 	dev-perl/Parse-Yapp
 	>=net-libs/gnutls-3.4.7[${MULTILIB_USEDEP}]
 	>=sys-fs/e2fsprogs-1.46.4-r51[${MULTILIB_USEDEP}]
-	>=sys-libs/ldb-2.5.0[ldap(+)?,${MULTILIB_USEDEP}]
+	>=sys-libs/ldb-2.5.1[ldap(+)?,${MULTILIB_USEDEP}]
 	<sys-libs/ldb-2.6.0[ldap(+)?,${MULTILIB_USEDEP}]
 	sys-libs/libcap[${MULTILIB_USEDEP}]
 	sys-libs/liburing:=[${MULTILIB_USEDEP}]
@@ -141,6 +141,7 @@ BDEPEND="${PYTHON_DEPS}
 
 PATCHES=(
 	"${FILESDIR}/${PN}-4.4.0-pam.patch"
+	"${FILESDIR}/${PN}-4.16.1-netdb-defines.patch"
 )
 
 #CONFDIR="${FILESDIR}/$(get_version_component_range 1-2)"
@@ -153,6 +154,7 @@ SHAREDMODS=""
 pkg_setup() {
 	# Package fails to build with distcc
 	export DISTCC_DISABLE=1
+	export PYTHONHASHSEED=1
 
 	python-single-r1_pkg_setup
 
@@ -183,7 +185,7 @@ src_prepare() {
 		|| die
 
 	if use elibc_musl;then
-		eapply "${FILESDIR}/musl.patch"
+		eapply "${FILESDIR}"/musl.patch
 	fi
 
 	# Friggin' WAF shit
@@ -255,16 +257,16 @@ multilib_src_configure() {
 		myconf+=( --without-utmp )
 	fi
 
-	PYTHONHASHSEED=1 CPPFLAGS="-I${SYSROOT}${EPREFIX}/usr/include/et ${CPPFLAGS}" \
-		waf-utils_src_configure ${myconf[@]}
+	CPPFLAGS="-I${ESYSROOT}/usr/include/et ${CPPFLAGS}" \
+	waf-utils_src_configure ${myconf[@]}
 }
 
 multilib_src_compile() {
-	PYTHONHASHSEED=1 waf-utils_src_compile
+	waf-utils_src_compile
 }
 
 multilib_src_install() {
-	PYTHONHASHSEED=1 waf-utils_src_install
+	waf-utils_src_install
 
 	# Make all .so files executable
 	find "${ED}" -type f -name "*.so" -exec chmod +x {} + || die
