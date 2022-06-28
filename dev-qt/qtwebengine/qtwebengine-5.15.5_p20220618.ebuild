@@ -115,6 +115,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.15.3_p20220406-gcc12-includes.patch" # by openSUSE, bug 840326
 	"${WORKDIR}/${PN}-5.15.2_p20211019-jumbo-build.patch" # bug 813957
 	"${WORKDIR}/${PN}-5.15.3_p20220406-patchset" # bug 698988 (py2--), pipewire-3
+	"${FILESDIR}/${P}-fixup-CVE-2022-0796.patch" # bug 853097
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
 )
 
@@ -239,6 +240,11 @@ src_prepare() {
 		mkdir -vp source/config/linux/ppc64 || die
 		mkdir -p source/libvpx/test || die
 		touch source/libvpx/test/test.mk || die
+		# clang-format is used to re-format sources
+		# but we'd rather make it a no-op than introduce a clang dependency
+		# https://bugs.gentoo.org/849458
+		clang-format() { : ; }
+		export -f clang-format || die
 		./generate_gni.sh || die
 		popd >/dev/null || die
 	fi
