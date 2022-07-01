@@ -3,7 +3,7 @@
 
 EAPI="8"
 
-FIREFOX_PATCHSET="firefox-91esr-patches-07j.tar.xz"
+FIREFOX_PATCHSET="firefox-91esr-patches-10j.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -74,7 +74,7 @@ REQUIRED_USE="debug? ( !system-av1 )
 BDEPEND="${PYTHON_DEPS}
 	app-arch/unzip
 	app-arch/zip
-	>=dev-util/cbindgen-0.19.0
+	>=dev-util/cbindgen-0.24.0
 	>=net-libs/nodejs-10.23.1
 	virtual/pkgconfig
 	>=virtual/rust-1.51.0
@@ -529,7 +529,6 @@ src_prepare() {
 	eapply "${FILESDIR}/fix-crash.patch"
 	eapply "${FILESDIR}/fix-crash2.patch"
 	eapply "${FILESDIR}/fix-crash3.patch"
-	eapply "${FILESDIR}/libcxx.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
