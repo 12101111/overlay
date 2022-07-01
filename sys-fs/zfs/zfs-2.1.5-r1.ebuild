@@ -101,6 +101,10 @@ REQUIRED_USE="
 RESTRICT="test"
 
 PATCHES=(
+	# bug #855182
+	"${FILESDIR}"/${PV}-build-issues.patch
+	# bug #854333
+	"${FILESDIR}"/${PV}-dracut-non-root.patch
 	"${FILESDIR}/2.1.2-musl-systemd.patch"
 )
 
