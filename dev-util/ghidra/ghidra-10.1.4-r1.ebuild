@@ -25,9 +25,9 @@ KEYWORDS="amd64"
 IUSE=""
 
 #java-pkg-2 sets java based on RDEPEND so the java slot in rdepend is used to build
-RDEPEND="virtual/jre:11"
+RDEPEND=">=virtual/jre-11"
 DEPEND="${RDEPEND}
-	virtual/jdk:11
+	>=virtual/jdk-11
 	dev-java/gradle-bin:*
 	sys-devel/bison
 	dev-java/jflex
@@ -105,5 +105,4 @@ src_install() {
 	doicon GhidraDocs/GhidraClass/Beginner/Images/GhidraLogo64.png
 	# desktop entry
 	make_desktop_entry ${PN} "Ghidra" /usr/share/pixmaps/GhidraLogo64.png "Utility"
-
 }
