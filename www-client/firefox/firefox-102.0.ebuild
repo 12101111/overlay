@@ -3,7 +3,7 @@
 
 EAPI="8"
 
-FIREFOX_PATCHSET="firefox-101-patches-09j.tar.xz"
+FIREFOX_PATCHSET="firefox-102-patches-01j.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -117,12 +117,12 @@ BDEPEND="${PYTHON_DEPS}
 	x86? ( >=dev-lang/nasm-2.14 )"
 
 COMMON_DEPEND="
-	dev-libs/glib:2
 	dev-libs/atk
 	dev-libs/expat
+	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.78
-	>=dev-libs/nspr-4.32
+	>=dev-libs/nss-3.79
+	>=dev-libs/nspr-4.34
 	media-libs/alsa-lib
 	media-libs/fontconfig
 	media-libs/freetype
