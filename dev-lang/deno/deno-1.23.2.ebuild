@@ -33,6 +33,7 @@ CRATES="
 	base16ct-0.1.1
 	base64-0.11.0
 	base64-0.13.0
+	base64-simd-0.6.2
 	base64ct-1.5.0
 	bencher-0.1.5
 	better_scoped_tls-0.1.0
@@ -47,6 +48,7 @@ CRATES="
 	block-padding-0.3.2
 	brotli-3.3.4
 	brotli-decompressor-2.3.2
+	bstr-0.2.17
 	bumpalo-3.10.0
 	byteorder-1.4.3
 	bytes-1.1.0
@@ -77,6 +79,8 @@ CRATES="
 	crossbeam-utils-0.8.8
 	crypto-bigint-0.4.7
 	crypto-common-0.1.3
+	csv-1.1.6
+	csv-core-0.1.10
 	ctor-0.1.22
 	ctr-0.9.1
 	cty-0.2.2
@@ -102,6 +106,7 @@ CRATES="
 	dissimilar-1.0.3
 	dlopen-0.1.8
 	dlopen_derive-0.1.4
+	dotenv-0.15.0
 	dprint-core-0.58.2
 	dprint-plugin-json-0.15.3
 	dprint-plugin-markdown-0.13.3
@@ -155,6 +160,7 @@ CRATES="
 	getrandom-0.2.7
 	ghash-0.4.4
 	glow-0.11.2
+	google-storage1-3.1.0+20220228
 	gpu-alloc-0.5.3
 	gpu-alloc-types-0.2.0
 	gpu-descriptor-0.2.2
@@ -178,6 +184,7 @@ CRATES="
 	hyper-0.14.19
 	hyper-rustls-0.23.0
 	ident_case-1.0.1
+	idna-0.1.5
 	idna-0.2.3
 	if_chain-1.0.2
 	import_map-0.11.0
@@ -192,6 +199,7 @@ CRATES="
 	ipnet-2.5.0
 	is-macro-0.2.1
 	itertools-0.10.3
+	itoa-0.4.8
 	itoa-1.0.2
 	jobserver-0.1.24
 	js-sys-0.3.58
@@ -217,6 +225,7 @@ CRATES="
 	linked-hash-map-0.5.4
 	linux-raw-sys-0.0.46
 	lock_api-0.4.7
+	log-0.3.9
 	log-0.4.17
 	lru-cache-0.1.2
 	lsp-types-0.93.0
@@ -227,6 +236,7 @@ CRATES="
 	memchr-2.5.0
 	memoffset-0.6.5
 	metal-0.23.1
+	mime-0.2.6
 	mime-0.3.16
 	miniz_oxide-0.5.3
 	mio-0.8.3
@@ -263,6 +273,7 @@ CRATES="
 	path-dedot-3.0.17
 	pathdiff-0.2.1
 	pem-rfc7468-0.6.0
+	percent-encoding-1.0.1
 	percent-encoding-2.1.0
 	pest-2.1.3
 	petgraph-0.6.2
@@ -303,6 +314,7 @@ CRATES="
 	raw-window-handle-0.4.3
 	redox_syscall-0.2.13
 	regex-1.5.6
+	regex-automata-0.1.10
 	regex-syntax-0.6.26
 	relative-path-1.7.0
 	remove_dir_all-0.5.3
@@ -321,6 +333,7 @@ CRATES="
 	rustix-0.34.8
 	rustls-0.20.6
 	rustls-native-certs-0.6.2
+	rustls-pemfile-0.3.0
 	rustls-pemfile-1.0.0
 	rustyline-9.1.2
 	rustyline-derive-0.6.0
@@ -330,6 +343,7 @@ CRATES="
 	scoped-tls-1.0.0
 	scopeguard-1.1.0
 	sct-0.7.0
+	seahash-4.1.0
 	sec1-0.3.0
 	security-framework-2.6.1
 	security-framework-sys-2.6.1
@@ -349,6 +363,7 @@ CRATES="
 	shell-escape-0.1.5
 	signal-hook-registry-1.4.0
 	signature-1.5.0
+	simd-abstraction-0.6.2
 	siphasher-0.3.10
 	slab-0.4.6
 	slotmap-1.0.6
@@ -447,6 +462,7 @@ CRATES="
 	universal-hash-0.4.1
 	unreachable-0.1.1
 	untrusted-0.7.1
+	url-1.7.2
 	url-2.2.2
 	urlpattern-0.2.0
 	utf-8-0.7.6
@@ -494,6 +510,7 @@ CRATES="
 	winreg-0.7.0
 	winreg-0.10.1
 	winres-0.1.12
+	yup-oauth2-6.7.0
 	zeroize-1.5.5
 	zstd-0.11.1+zstd.1.5.2
 	zstd-safe-5.0.1+zstd.1.5.2
@@ -505,7 +522,7 @@ inherit cargo check-reqs toolchain-funcs python-any-r1 git-r3
 DESCRIPTION="A secure JavaScript and TypeScript runtime"
 HOMEPAGE="https://github.com/denoland/deno"
 EGIT_REPO_URI="https://github.com/denoland/rusty_v8.git"
-EGIT_COMMIT="v0.44.2"
+EGIT_COMMIT="v0.44.3"
 EGIT_CHECKOUT_DIR="${WORKDIR}/v8"
 EGIT_SUBMODULES=('v8' 'build' 'base/trace_event/common' 'third_party/jinja2' 'third_party/markupsafe' 'third_party/zlib' 'third_party/icu')
 SRC_URI="
