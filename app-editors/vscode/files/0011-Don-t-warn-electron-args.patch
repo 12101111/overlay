@@ -1,4 +1,4 @@
-From 413d1ec06009a64a2f57eb48d7d608ec4aa59f71 Mon Sep 17 00:00:00 2001
+From d60ca7f7676f5d8536048d958fc14d1d8327e876 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Wed, 9 Mar 2022 14:41:22 +0800
 Subject: [PATCH 11/12] Don't warn electron args
@@ -9,10 +9,10 @@ Subject: [PATCH 11/12] Don't warn electron args
  2 files changed, 6 insertions(+)
 
 diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
-index 1c903e2d25f..34ed2555820 100644
+index aa9c2407af0..384c6281894 100644
 --- a/src/vs/platform/environment/common/argv.ts
 +++ b/src/vs/platform/environment/common/argv.ts
-@@ -111,4 +111,7 @@ export interface NativeParsedArgs {
+@@ -112,4 +112,7 @@ export interface NativeParsedArgs {
  
  	// MS Build command line arg
  	'ms-enable-electron-run-as-node'?: boolean;
@@ -21,10 +21,10 @@ index 1c903e2d25f..34ed2555820 100644
 +	'ozone-platform'?: string;
  }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 3d26d59019b..d63f09a14eb 100644
+index bb409289757..d8376194454 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
-@@ -151,6 +151,9 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
+@@ -152,6 +152,9 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
  	'vmodule': { type: 'string' },
  	'_urls': { type: 'string[]' },
  	'disable-dev-shm-usage': { type: 'boolean' },

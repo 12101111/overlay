@@ -1,6 +1,6 @@
-From 5da104df17a701c6fe3231319b4cd4ea3b63ad4b Mon Sep 17 00:00:00 2001
+From 1ef68a13b2c04574baeea62d2ce9ced785bef8e5 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 10 Jun 2022 20:35:12 +0800
+Date: Thu, 14 Jul 2022 14:16:28 +0800
 Subject: [PATCH 06/12] Don't run yarn install for web/remote/test
 
 ---
@@ -9,11 +9,11 @@ Subject: [PATCH 06/12] Don't run yarn install for web/remote/test
  2 files changed, 9 deletions(-)
 
 diff --git a/build/npm/dirs.js b/build/npm/dirs.js
-index 23f57323e45..fc25cd4301b 100644
+index 35521822dc6..d6976f4152f 100644
 --- a/build/npm/dirs.js
 +++ b/build/npm/dirs.js
-@@ -44,10 +44,4 @@ exports.dirs = [
- 	'extensions/vscode-custom-editor-tests',
+@@ -43,10 +43,4 @@ exports.dirs = [
+ 	'extensions/vscode-colorize-tests',
  	'extensions/vscode-notebook-tests',
  	'extensions/vscode-test-resolver',
 -	'remote',

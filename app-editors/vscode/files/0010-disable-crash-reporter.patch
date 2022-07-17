@@ -1,6 +1,6 @@
-From 1fefbe382d6e19bcf74aa19559c8a98ee51f76a4 Mon Sep 17 00:00:00 2001
+From 4ac203d569d562e6d453738a1ae2362e384e9520 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 3 Sep 2021 20:10:49 +0800
+Date: Thu, 14 Jul 2022 14:17:53 +0800
 Subject: [PATCH 10/12] disable crash reporter
 
 ---
@@ -8,7 +8,7 @@ Subject: [PATCH 10/12] disable crash reporter
  1 file changed, 1 insertion(+), 92 deletions(-)
 
 diff --git a/src/main.js b/src/main.js
-index c9347d4516b..49f06852fb1 100644
+index 47f22e9909f..49f06852fb1 100644
 --- a/src/main.js
 +++ b/src/main.js
 @@ -309,98 +309,7 @@ function getArgvConfigPath() {
@@ -28,7 +28,7 @@ index c9347d4516b..49f06852fb1 100644
 -
 -		if (!fs.existsSync(crashReporterDirectory)) {
 -			try {
--				fs.mkdirSync(crashReporterDirectory);
+-				fs.mkdirSync(crashReporterDirectory, { recursive: true });
 -			} catch (error) {
 -				console.error(`The path '${crashReporterDirectory}' specified for --crash-reporter-directory does not seem to exist or cannot be created.`);
 -				app.exit(1);
