@@ -6,7 +6,7 @@ PYTHON_REQ_USE="xml(+)"
 PYTHON_COMPAT=( python3_{8..11} )
 USE_RUBY="ruby27 ruby30 ruby31"
 
-inherit check-reqs flag-o-matic gnome2 python-any-r1 ruby-single toolchain-funcs cmake
+inherit check-reqs flag-o-matic gnome2 optfeature python-any-r1 ruby-single toolchain-funcs cmake
 
 MY_P="webkitgtk-${PV}"
 DESCRIPTION="Open source web browser engine"
@@ -17,7 +17,7 @@ LICENSE="LGPL-2+ BSD"
 SLOT="4/37" # soname version of libwebkit2gtk-4.0
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~riscv ~sparc ~x86"
 
-IUSE="aqua avif +egl examples gamepad +geolocation gles2-only gnome-keyring +gstreamer gtk-doc +introspection +jpeg2k +jumbo-build lcms libnotify seccomp spell systemd test wayland X"
+IUSE="aqua avif +egl examples gamepad gles2-only gnome-keyring +gstreamer gtk-doc +introspection +jpeg2k +jumbo-build lcms libnotify seccomp spell systemd test wayland X"
 
 # gstreamer with opengl/gles2 needs egl
 REQUIRED_USE="
@@ -106,6 +106,7 @@ DEPEND="${RDEPEND}"
 BDEPEND="
 	${PYTHON_DEPS}
 	${RUBY_DEPS}
+	dev-util/gdbus-codegen
 	dev-util/glib-utils
 	>=dev-util/gperf-3.0.1
 	>=sys-devel/bison-2.4.3
@@ -119,16 +120,11 @@ BDEPEND="
 	virtual/perl-JSON-PP
 
 	gtk-doc? ( >=dev-util/gtk-doc-1.32 )
-	geolocation? ( dev-util/gdbus-codegen )
-	>=dev-util/cmake-3.10
 "
 #	test? (
 #		dev-python/pygobject:3[python_targets_python2_7]
 #		x11-themes/hicolor-icon-theme
 #	)
-RDEPEND="${RDEPEND}
-	geolocation? ( >=app-misc/geoclue-2.1.5:2.0 )
-"
 
 S="${WORKDIR}/${MY_P}"
 
@@ -216,7 +212,7 @@ src_configure() {
 		-DENABLE_API_TESTS=$(usex test)
 		-DENABLE_BUBBLEWRAP_SANDBOX=$(usex seccomp)
 		-DENABLE_GAMEPAD=$(usex gamepad)
-		-DENABLE_GEOLOCATION=$(usex geolocation) # Runtime optional (talks over dbus service)
+		-DENABLE_GEOLOCATION=ON # Runtime optional (talks over dbus service)
 		-DENABLE_MINIBROWSER=$(usex examples)
 		-DENABLE_SPELLCHECK=$(usex spell)
 		-DENABLE_UNIFIED_BUILDS=$(usex jumbo-build)
@@ -257,4 +253,8 @@ src_configure() {
 	append-cppflags -DNDEBUG
 
 	WK_USE_CCACHE=NO cmake_src_configure
+}
+
+pkg_postinst() {
+	optfeature "geolocation service (used at runtime if available)" "app-misc/geoclue"
 }
