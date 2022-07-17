@@ -1,13 +1,13 @@
 diff --git a/goldendict.pro b/goldendict.pro
-index 440dda9a..f83d4b95 100644
+index 29d2842f..c69e4fb2 100644
 --- a/goldendict.pro
 +++ b/goldendict.pro
-@@ -68,7 +68,8 @@ CONFIG += exceptions \
-     stl  \
-     c++17 \
+@@ -71,7 +71,8 @@ CONFIG += exceptions \
      lrelease \
--    embed_translations
-+    embed_translations \
+     embed_translations \
+     utf8_source \
+-    force_debug_info
++    force_debug_info \
 +    qtsingleapplication
  
  mac {
