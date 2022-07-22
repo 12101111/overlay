@@ -68,7 +68,7 @@ PDEPEND="
 
 LLVM_COMPONENTS=( llvm mlir polly cmake third-party )
 LLVM_MANPAGES=1
-LLVM_PATCHSET=${PV}
+LLVM_PATCHSET=${PV}-r1
 LLVM_USE_TARGETS=provide
 llvm.org_set_globals
 
