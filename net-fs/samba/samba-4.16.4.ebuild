@@ -65,7 +65,7 @@ COMMON_DEPEND="
 	dev-perl/Parse-Yapp
 	>=net-libs/gnutls-3.4.7[${MULTILIB_USEDEP}]
 	>=sys-fs/e2fsprogs-1.46.4-r51[${MULTILIB_USEDEP}]
-	>=sys-libs/ldb-2.5.1[ldap(+)?,${MULTILIB_USEDEP}]
+	>=sys-libs/ldb-2.5.2[ldap(+)?,${MULTILIB_USEDEP}]
 	<sys-libs/ldb-2.6.0[ldap(+)?,${MULTILIB_USEDEP}]
 	sys-libs/libcap[${MULTILIB_USEDEP}]
 	sys-libs/liburing:=[${MULTILIB_USEDEP}]
@@ -142,6 +142,7 @@ BDEPEND="${PYTHON_DEPS}
 PATCHES=(
 	"${FILESDIR}/${PN}-4.4.0-pam.patch"
 	"${FILESDIR}/${PN}-4.16.1-netdb-defines.patch"
+	"${FILESDIR}/${PN}-4.16.2-fix-musl-without-innetgr.patch"
 )
 
 #CONFDIR="${FILESDIR}/$(get_version_component_range 1-2)"
