@@ -243,3 +243,27 @@ index 8e61e340d8..7126eea4e5 100644
 -+
 - }  // namespace internal
 - }  // namespace v8
+diff --git a/patches/v8/version_10_2_154_10_cherry-pick.patch b/patches/v8/version_10_2_154_10_cherry-pick.patch
+index 29ffdee8e4..8facc808b5 100644
+--- a/patches/v8/version_10_2_154_10_cherry-pick.patch
++++ b/patches/v8/version_10_2_154_10_cherry-pick.patch
+@@ -16,19 +16,6 @@ Cr-Commit-Position: refs/branch-heads/10.2@{#18}
+ Cr-Branched-From: 374091f382e88095694c1283cbdc2acddc1b1417-refs/heads/10.2.154@{#1}
+ Cr-Branched-From: f0c353f6315eeb2212ba52478983a3b3af07b5b1-refs/heads/main@{#79976}
+ 
+-diff --git a/include/v8-version.h b/include/v8-version.h
+-index 7999dcb13f34b68d12660cdc0f6767e5e8bf6d18..ebd8289678fcf2d746e3a67a49c086058651fb28 100644
+---- a/include/v8-version.h
+-+++ b/include/v8-version.h
+-@@ -11,7 +11,7 @@
+- #define V8_MAJOR_VERSION 10
+- #define V8_MINOR_VERSION 0
+- #define V8_BUILD_NUMBER 139
+--#define V8_PATCH_LEVEL 17
+-+#define V8_PATCH_LEVEL 18
+- 
+- // Use 1 for candidates and 0 otherwise.
+- // (Boolean macro values are not supported by all preprocessors.)
+ diff --git a/src/compiler/pipeline.cc b/src/compiler/pipeline.cc
+ index 6ea2df76c863ed0466ee96fcf1ad5736192c6b44..555942c2be2287d41d443d109e305c4858579447 100644
+ --- a/src/compiler/pipeline.cc
