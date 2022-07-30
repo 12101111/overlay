@@ -27,7 +27,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 "
 
 LICENSE="BSD"
-SLOT="0/dev"
+SLOT="0/beta"
 KEYWORDS="~amd64 ~arm64"
 IUSE="hevc atk system-allocator +X component-build cups cpu_flags_arm_neon debug gtk4 +hangouts headless +js-type-check kerberos libcxx lto +official pgo pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland widevine"
 REQUIRED_USE="
@@ -253,7 +253,7 @@ llvm_check_deps() {
 
 pre_build_checks() {
 	if [[ ${MERGE_TYPE} != binary ]]; then
-		( use lto || use pgo ) && llvm_pkg_setup
+		[[ ${EBUILD_PHASE_FUNC} == pkg_setup ]] && ( use lto || use pgo ) && llvm_pkg_setup
 
 		local -x CPP="$(tc-getCXX) -E"
 		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 9.2; then
@@ -268,6 +268,9 @@ pre_build_checks() {
 			if ! ver_test "$(clang-major-version)" -ge 12; then
 				die "At least clang 12 is required"
 			fi
+		fi
+		if [[ ${EBUILD_PHASE_FUNC} == pkg_setup ]] && use js-type-check; then
+			"${BROOT}"/usr/bin/java -version 2>1 > /dev/null || die "Java VM not setup correctly"
 		fi
 	fi
 
@@ -311,7 +314,7 @@ pre_build_checks() {
 			CHECKREQS_MEMORY="16G"
 		fi
 	fi
-	check-reqs_pkg_setup
+	check-reqs_${EBUILD_PHASE_FUNC}
 }
 
 pkg_pretend() {
@@ -845,12 +848,6 @@ chromium_configure() {
 	myconf_gn+=" use_gold=false use_sysroot=false"
 	myconf_gn+=" use_custom_libcxx=$(usex libcxx true false)"
 
-	if use pgo; then
-		myconf_gn+=" chrome_pgo_phase=2"
-	else
-		myconf_gn+=" chrome_pgo_phase=0"
-	fi
-
 	# Disable pseudolocales, only used for testing
 	myconf_gn+=" enable_pseudolocales=false"
 
@@ -885,9 +882,9 @@ chromium_configure() {
 			filter-flags "-g*"
 		fi
 
-		# Prevent libvpx build failures. Bug 530248, 544702, 546984.
+		# Prevent libvpx/xnnpack build failures. Bug 530248, 544702, 546984, 853646.
 		if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
-			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4
+			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-xop
 		fi
 	fi
 
