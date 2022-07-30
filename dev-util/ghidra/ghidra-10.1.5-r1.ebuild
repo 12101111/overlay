@@ -24,6 +24,14 @@ SLOT="0"
 KEYWORDS="amd64"
 IUSE=""
 
+#FIXME:
+# * QA Notice: Files built without respecting LDFLAGS have been detected
+# *  Please include the following list of files in your report:
+# * /usr/share/ghidra/GPL/DemanglerGnu/os/linux_x86_64/demangler_gnu_v2_24
+# * /usr/share/ghidra/GPL/DemanglerGnu/os/linux_x86_64/demangler_gnu_v2_33_1
+# * /usr/share/ghidra/Ghidra/Features/Decompiler/os/linux_x86_64/decompile
+# * /usr/share/ghidra/Ghidra/Features/Decompiler/os/linux_x86_64/sleigh
+
 #java-pkg-2 sets java based on RDEPEND so the java slot in rdepend is used to build
 RDEPEND=">=virtual/jre-11"
 DEPEND="${RDEPEND}
@@ -96,6 +104,8 @@ src_install() {
 	dodir /usr/share
 	unzip build/dist/ghidra_"${PV}"_DEV_linux_x86_64.zip -d "${ED}"/usr/share/ || die "unable to unpack dist zip"
 	mv "${ED}"/usr/share/ghidra_"${PV}"_DEV "${ED}"/usr/share/ghidra || die "mv failed"
+	# remove zip files which aren't needed at runtime
+	find "${ED}"/usr/share/ghidra -type f -name '*.zip' -exec rm -f {} +
 
 	#fixme: add doc flag
 	rm -r  "${ED}"/usr/share/ghidra/docs/ || die "rm failed"
