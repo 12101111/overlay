@@ -1,5 +1,5 @@
 diff --git a/configure b/configure
-index 73bfc9d6d98..d596b720754 100755
+index 2d6a4fb8c44..021fdc85181 100755
 --- a/configure
 +++ b/configure
 @@ -701,6 +701,20 @@ DBUS_CFLAGS
@@ -757,7 +757,7 @@ index 73bfc9d6d98..d596b720754 100755
  INOTIFY_CFLAGS = $INOTIFY_CFLAGS
  INOTIFY_LIBS = $INOTIFY_LIBS
 diff --git a/configure.ac b/configure.ac
-index 5ea0d9120f0..00245cde99e 100644
+index dd4abd39e32..2a3c2b27683 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -86,6 +86,7 @@ AC_ARG_WITH(xshm,      AS_HELP_STRING([--without-xshm],[do not use XShm (shared
@@ -852,11 +852,11 @@ index 7c60466d9ee..434b0cbf778 100644
  
  static void CDECL unlock_bits_surface( struct gdi_image_bits *bits )
 diff --git a/dlls/win32u/gdiobj.c b/dlls/win32u/gdiobj.c
-index fddaf898761..26b328820e0 100644
+index aaeed2ba676..dadf5779a4e 100644
 --- a/dlls/win32u/gdiobj.c
 +++ b/dlls/win32u/gdiobj.c
-@@ -1264,6 +1264,7 @@ static struct unix_funcs unix_funcs =
-     __wine_get_vulkan_driver,
+@@ -1151,6 +1151,7 @@ static struct unix_funcs unix_funcs =
+     __wine_get_icm_profile,
      __wine_get_wgl_driver,
      __wine_send_input,
 +    __wine_send_internal_message_timeout,
@@ -864,10 +864,10 @@ index fddaf898761..26b328820e0 100644
  
  NTSTATUS gdi_init(void)
 diff --git a/dlls/win32u/message.c b/dlls/win32u/message.c
-index 0045c8a54c0..4deddd79a91 100644
+index 7045aedb4b1..37f0bf508f0 100644
 --- a/dlls/win32u/message.c
 +++ b/dlls/win32u/message.c
-@@ -2852,6 +2852,20 @@ static BOOL send_message_callback( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
+@@ -2854,6 +2854,20 @@ static BOOL send_message_callback( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
      return process_message( &info, NULL, ansi );
  }
  
@@ -889,10 +889,10 @@ index 0045c8a54c0..4deddd79a91 100644
   *           NtUserPostMessage  (win32u.@)
   */
 diff --git a/dlls/win32u/win32u.spec b/dlls/win32u/win32u.spec
-index d74685ad603..0019ef81ca3 100644
+index 3054bed8347..3f6cb6c5d69 100644
 --- a/dlls/win32u/win32u.spec
 +++ b/dlls/win32u/win32u.spec
-@@ -1334,3 +1334,6 @@
+@@ -1331,3 +1331,6 @@
  @ cdecl __wine_get_brush_bitmap_info(long ptr ptr ptr)
  @ cdecl __wine_get_icm_profile(long long ptr ptr)
  @ cdecl __wine_get_file_outline_text_metric(wstr ptr)
@@ -900,11 +900,11 @@ index d74685ad603..0019ef81ca3 100644
 +# message
 +@ cdecl __wine_send_internal_message_timeout(long long long long long long long ptr)
 diff --git a/dlls/win32u/win32u_private.h b/dlls/win32u/win32u_private.h
-index a0b3e8c2e9e..02e6837652a 100644
+index 6e9a1926891..51824cd6db8 100644
 --- a/dlls/win32u/win32u_private.h
 +++ b/dlls/win32u/win32u_private.h
-@@ -348,6 +348,9 @@ struct unix_funcs
-     const struct vulkan_funcs * (CDECL *get_vulkan_driver)( UINT version );
+@@ -209,6 +209,9 @@ struct unix_funcs
+     BOOL (CDECL *get_icm_profile)( HDC hdc, BOOL allow_default, DWORD *size, WCHAR *filename );
      struct opengl_funcs * (CDECL *get_wgl_driver)( HDC hdc, UINT version );
      BOOL (CDECL *wine_send_input)( HWND hwnd, const INPUT *input, const RAWINPUT *rawinput );
 +    LRESULT (CDECL *wine_send_internal_message_timeout)( DWORD dest_pid, DWORD dest_tid,
@@ -914,10 +914,10 @@ index a0b3e8c2e9e..02e6837652a 100644
  
  /* clipboard.c */
 diff --git a/dlls/win32u/wrappers.c b/dlls/win32u/wrappers.c
-index 609e893403b..6ead2b65a20 100644
+index c5078c8a7f7..6843a9d1d5d 100644
 --- a/dlls/win32u/wrappers.c
 +++ b/dlls/win32u/wrappers.c
-@@ -1504,6 +1504,15 @@ BOOL CDECL __wine_send_input( HWND hwnd, const INPUT *input, const RAWINPUT *raw
+@@ -810,6 +810,15 @@ BOOL CDECL __wine_send_input( HWND hwnd, const INPUT *input, const RAWINPUT *raw
      return unix_funcs->wine_send_input( hwnd, input, rawinput );
  }
  
@@ -21125,7 +21125,7 @@ index de1bf6c61eb..58f7ec6c3fd 100644
  #undef HAVE_XRENDERCREATELINEARGRADIENT
  
 diff --git a/include/wine/gdi_driver.h b/include/wine/gdi_driver.h
-index 77ccc431e51..44eb49c3130 100644
+index 58b6aa9f0b8..23f3fff1372 100644
 --- a/include/wine/gdi_driver.h
 +++ b/include/wine/gdi_driver.h
 @@ -217,6 +217,7 @@ struct window_surface
@@ -21137,10 +21137,10 @@ index 77ccc431e51..44eb49c3130 100644
  };
  
 diff --git a/include/winuser.h b/include/winuser.h
-index d2262b6d70a..a83f7a2e087 100644
+index b17f30debd3..6f0bad24fe9 100644
 --- a/include/winuser.h
 +++ b/include/winuser.h
-@@ -4760,6 +4760,9 @@ WORD        WINAPI SYSTEM_KillSystemTimer( WORD );
+@@ -4764,6 +4764,9 @@ WORD        WINAPI SYSTEM_KillSystemTimer( WORD );
  
  #ifdef __WINESRC__
  WINUSERAPI BOOL CDECL __wine_send_input( HWND hwnd, const INPUT *input, const RAWINPUT *rawinput );
@@ -21164,10 +21164,10 @@ index 96673adc254..afa711a8dbf 100644
  static BOOL using_root;
  
 diff --git a/tools/makedep.c b/tools/makedep.c
-index c5d4a37a422..eac8f6b4570 100644
+index b84090fef21..d6ef726c43e 100644
 --- a/tools/makedep.c
 +++ b/tools/makedep.c
-@@ -164,6 +164,7 @@ static const char *msgfmt;
+@@ -167,6 +167,7 @@ static const char *msgfmt;
  static const char *ln_s;
  static const char *sed_cmd;
  static const char *delay_load_flag;
@@ -21175,7 +21175,7 @@ index c5d4a37a422..eac8f6b4570 100644
  
  struct makefile
  {
-@@ -497,6 +498,15 @@ static char *replace_filename( const char *path, const char *name )
+@@ -501,6 +502,15 @@ static char *replace_filename( const char *path, const char *name )
      return ret;
  }
  
@@ -21191,7 +21191,7 @@ index c5d4a37a422..eac8f6b4570 100644
  
  /*******************************************************************
   *         replace_substr
-@@ -1381,6 +1391,9 @@ static struct file *open_include_file( const struct makefile *make, struct incl_
+@@ -1401,6 +1411,9 @@ static struct file *open_include_file( const struct makefile *make, struct incl_
          if ((file = open_local_generated_file( make, pFile, ".ico", ".svg" ))) return file;
      }
  
@@ -21201,7 +21201,7 @@ index c5d4a37a422..eac8f6b4570 100644
      /* check for extra targets */
      if (strarray_exists( &make->extra_targets, pFile->name ))
      {
-@@ -1839,6 +1852,23 @@ static void add_generated_sources( struct makefile *make )
+@@ -1868,6 +1881,23 @@ static void add_generated_sources( struct makefile *make )
              strarray_addall_uniq( &make->extra_imports,
                                    get_expanded_file_local_var( make, obj, "IMPORTS" ));
          }
@@ -21225,7 +21225,7 @@ index c5d4a37a422..eac8f6b4570 100644
      }
      if (make->testdll)
      {
-@@ -2971,6 +3001,15 @@ static void output_source_spec( struct makefile *make, struct incl_file *source,
+@@ -3002,6 +3032,15 @@ static void output_source_spec( struct makefile *make, struct incl_file *source,
      output( "\n" );
  }
  
@@ -21241,7 +21241,7 @@ index c5d4a37a422..eac8f6b4570 100644
  
  /*******************************************************************
   *         output_source_default
-@@ -3091,6 +3130,7 @@ static const struct
+@@ -3122,6 +3161,7 @@ static const struct
      { "in", output_source_in },
      { "x", output_source_x },
      { "spec", output_source_spec },
@@ -21249,7 +21249,7 @@ index c5d4a37a422..eac8f6b4570 100644
      { NULL, output_source_default }
  };
  
-@@ -3995,6 +4035,7 @@ static void output_silent_rules(void)
+@@ -4026,6 +4066,7 @@ static void output_silent_rules(void)
          "MSG",
          "SED",
          "TEST",
@@ -21257,7 +21257,7 @@ index c5d4a37a422..eac8f6b4570 100644
          "WIDL",
          "WMC",
          "WRC"
-@@ -4094,6 +4135,7 @@ static void load_sources( struct makefile *make )
+@@ -4125,6 +4166,7 @@ static void load_sources( struct makefile *make )
          "IN_SRCS",
          "PO_SRCS",
          "MANPAGES",
@@ -21265,7 +21265,7 @@ index c5d4a37a422..eac8f6b4570 100644
          NULL
      };
      const char **var;
-@@ -4341,6 +4383,7 @@ int main( int argc, char *argv[] )
+@@ -4373,6 +4415,7 @@ int main( int argc, char *argv[] )
      msgfmt             = get_expanded_make_variable( top_makefile, "MSGFMT" );
      sed_cmd            = get_expanded_make_variable( top_makefile, "SED_CMD" );
      ln_s               = get_expanded_make_variable( top_makefile, "LN_S" );
