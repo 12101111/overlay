@@ -20,6 +20,7 @@ else
 
 	MY_P="${P/_rc/-rc}"
 	SRC_URI="https://github.com/openzfs/${PN}/releases/download/${MY_P}/${MY_P}.tar.gz"
+	SRC_URI+=" https://dev.gentoo.org/~sam/distfiles/sys-fs/zfs/${P}-patches.tar.xz"
 	SRC_URI+=" verify-sig? ( https://github.com/openzfs/${PN}/releases/download/${MY_P}/${MY_P}.tar.gz.asc )"
 	S="${WORKDIR}/${P%_rc?}"
 
@@ -101,14 +102,16 @@ REQUIRED_USE="
 RESTRICT="test"
 
 PATCHES=(
-	# bug #855182
-	"${FILESDIR}"/${PV}-build-issues.patch
 	# bug #854333
 	"${FILESDIR}"/${PV}-r2-dracut-non-root.patch
-	#
+
 	"${FILESDIR}"/2.1.5-dracut-zfs-missing.patch
+
 	# bug #857228
 	"${FILESDIR}"/${PV}-dracut-mount.patch
+
+	# bug #863212, bug #855182
+	"${WORKDIR}"/${P}-patches/
 	"${FILESDIR}/2.1.2-musl-systemd.patch"
 )
 
@@ -166,6 +169,15 @@ libsoversion_check() {
 		# to keep package installable
 		[[  ${PV} == "9999" ]] || die
 	fi
+}
+
+src_unpack() {
+	if use verify-sig ; then
+		# Needed for downloaded patch (which is unsigned, which is fine)
+		verify-sig_verify_detached "${DISTDIR}"/${MY_P}.tar.gz{,.asc}
+	fi
+
+	default
 }
 
 src_prepare() {
