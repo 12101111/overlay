@@ -3,12 +3,11 @@
 
 EAPI=8
 
-inherit git-r3 toolchain-funcs
+inherit toolchain-funcs
 
 DESCRIPTION="Asahi Linux bootloader"
 HOMEPAGE="https://asahilinux.org"
-EGIT_REPO_URI="https://github.com/AsahiLinux/m1n1.git"
-EGIT_COMMIT="v${PV}"
+SRC_URI="https://github.com/AsahiLinux/m1n1/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="MIT BSD-2 GPL-2 ZLIB BSD CC0-1.0 OFL-1.1 Apache-2.0 Unlicense"
 SLOT="0"
