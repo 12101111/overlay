@@ -3,7 +3,7 @@
 
 EAPI="8"
 
-FIREFOX_PATCHSET="firefox-103-patches-02j.tar.xz"
+FIREFOX_PATCHSET="firefox-103-patches-03j.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -72,7 +72,6 @@ IUSE+=" geckodriver +gmp-autoupdate screencast +X"
 
 REQUIRED_USE="debug? ( !system-av1 )
 	pgo? ( lto )
-	wayland? ( dbus )
 	wifi? ( dbus )"
 
 # Firefox-only REQUIRED_USE flags
