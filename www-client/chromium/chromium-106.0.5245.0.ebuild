@@ -2,8 +2,8 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PYTHON_COMPAT=( python3_{8..10} )
-PYTHON_REQ_USE="xml"
+PYTHON_COMPAT=( python3_{8..11} )
+PYTHON_REQ_USE="xml(+)"
 LLVM_MAX_SLOT=14
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
@@ -16,9 +16,9 @@ inherit check-reqs chromium-2 desktop flag-o-matic llvm ninja-utils pax-utils py
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="2"
+PATCHSET="1"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
-HEVC_PATCHSET_VERSION="104.0.5077.1"
+HEVC_PATCHSET_VERSION="106.0.5211.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
@@ -27,7 +27,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 "
 
 LICENSE="BSD"
-SLOT="0/beta"
+SLOT="0/dev"
 KEYWORDS="~amd64 ~arm64"
 IUSE="hevc atk system-allocator +X component-build cups cpu_flags_arm_neon debug gtk4 +hangouts headless +js-type-check kerberos libcxx lto +official pgo pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland widevine"
 REQUIRED_USE="
@@ -171,11 +171,11 @@ BDEPEND="
 	')
 	>=app-arch/gzip-1.7
 	libcxx? ( >=sys-devel/clang-12 )
-	lto? ( $(depend_clang_llvm_versions 12 13 14) )
+	lto? ( $(depend_clang_llvm_versions 13 14) )
 	pgo? (
 		>=dev-python/selenium-3.141.0
 		>=dev-util/web_page_replay_go-20220314
-		$(depend_clang_llvm_versions 12 13 14)
+		$(depend_clang_llvm_versions 13 14)
 	)
 	dev-lang/perl
 	>=dev-util/gn-0.1807
@@ -230,7 +230,7 @@ in /etc/chromium/default.
 "
 
 python_check_deps() {
-	has_version -b "dev-python/setuptools[${PYTHON_USEDEP}]"
+	python_has_version "dev-python/setuptools[${PYTHON_USEDEP}]"
 }
 
 needs_clang() {
@@ -298,15 +298,15 @@ pre_build_checks() {
 
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="4G"
-	CHECKREQS_DISK_BUILD="10G"
-	tc-is-cross-compiler && CHECKREQS_DISK_BUILD="13G"
+	CHECKREQS_DISK_BUILD="12G"
+	tc-is-cross-compiler && CHECKREQS_DISK_BUILD="14G"
 	if use lto || use pgo; then
 		CHECKREQS_MEMORY="9G"
-		CHECKREQS_DISK_BUILD="12G"
-		tc-is-cross-compiler && CHECKREQS_DISK_BUILD="15G"
-		use pgo && CHECKREQS_DISK_BUILD="19G"
+		CHECKREQS_DISK_BUILD="13G"
+		tc-is-cross-compiler && CHECKREQS_DISK_BUILD="16G"
+		use pgo && CHECKREQS_DISK_BUILD="20G"
 	fi
-	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
+	if is-flagq '-g?(gdb)?([1-9])'; then
 		if use custom-cflags || use component-build; then
 			CHECKREQS_DISK_BUILD="25G"
 		fi
@@ -361,12 +361,12 @@ src_prepare() {
 		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-98-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-98-gtk4-build.patch"
-		"${FILESDIR}/chromium-104-tflite-system-zlib.patch"
-		"${FILESDIR}/chromium-104-swiftshader-no-wayland.patch"
+		"${FILESDIR}/chromium-105-swiftshader-no-wayland.patch"
+		"${FILESDIR}/chromium-106-python3_11.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 		"${FILESDIR}/chromium-cross-compile.patch"
-		"${FILESDIR}/chromium-92_atk_optional.patch"
+		"${FILESDIR}/chromium-106_atk_optional.patch"
 		"${FILESDIR}/chromium-100-fix-stat-include.patch"
 	)
 
@@ -408,6 +408,7 @@ src_prepare() {
 		third_party/apple_apsl
 		third_party/axe-core
 		third_party/blink
+		third_party/bidimapper
 		third_party/boringssl
 		third_party/boringssl/src/third_party/fiat
 		third_party/breakpad
@@ -430,6 +431,7 @@ src_prepare() {
 		third_party/ced
 		third_party/cld_3
 		third_party/closure_compiler
+		third_party/content_analysis_sdk
 		third_party/cpuinfo
 		third_party/crashpad
 		third_party/crashpad/crashpad/third_party/lss
@@ -483,6 +485,7 @@ src_prepare() {
 		third_party/hunspell
 		third_party/iccjpeg
 		third_party/inspector_protocol
+		third_party/ipcz
 		third_party/jinja2
 		third_party/jsoncpp
 		third_party/jstemplate
@@ -494,6 +497,7 @@ src_prepare() {
 		third_party/libaom/source/libaom/third_party/vector
 		third_party/libaom/source/libaom/third_party/x86inc
 		third_party/libavif
+		third_party/libevent
 		third_party/libgav1
 		third_party/libjingle
 		third_party/libjxl
@@ -539,7 +543,7 @@ src_prepare() {
 		third_party/pdfium/third_party/bigint
 		third_party/pdfium/third_party/freetype
 		third_party/pdfium/third_party/lcms
-		third_party/pdfium/third_party/libopenjpeg20
+		third_party/pdfium/third_party/libopenjpeg
 		third_party/pdfium/third_party/libpng16
 		third_party/pdfium/third_party/libtiff
 		third_party/pdfium/third_party/skia_shared
@@ -612,7 +616,6 @@ src_prepare() {
 		v8/third_party/v8
 
 		# gyp -> gn leftovers
-		base/third_party/libevent
 		third_party/speech-dispatcher
 		third_party/usb_ids
 		third_party/xdg-utils
@@ -636,6 +639,8 @@ src_prepare() {
 	fi
 	if use wayland && ! use headless ; then
 		keeplibs+=( third_party/wayland )
+		# only need the .gn files
+		rm -r third_party/wayland/src || die
 	fi
 	if use arm64 || use ppc64 ; then
 		keeplibs+=( third_party/swiftshader/third_party/llvm-10.0 )
@@ -884,7 +889,7 @@ chromium_configure() {
 
 		# Prevent libvpx/xnnpack build failures. Bug 530248, 544702, 546984, 853646.
 		if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
-			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-xop
+			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-xop -mno-sse4a
 		fi
 	fi
 
@@ -960,17 +965,6 @@ chromium_configure() {
 		fi
 	fi
 
-	# Disable opaque pointers, https://crbug.com/1316298
-	if tc-is-clang; then
-		if test-flag-CXX -Xclang -no-opaque-pointers; then
-			append-flags -Xclang -no-opaque-pointers
-			if tc-is-cross-compiler; then
-				export BUILD_CXXFLAGS+=" -Xclang -no-opaque-pointers"
-				export BUILD_CFLAGS+=" -Xclang -no-opaque-pointers"
-			fi
-		fi
-	fi
-
 	# Explicitly disable ICU data file support for system-icu/headless builds.
 	if use system-icu || use headless; then
 		myconf_gn+=" icu_use_data_file=false"
@@ -994,6 +988,7 @@ chromium_configure() {
 		myconf_gn+=" ozone_platform_x11=$(usex X true false)"
 		myconf_gn+=" ozone_platform_wayland=$(usex wayland true false)"
 		myconf_gn+=" ozone_platform=$(usex wayland \"wayland\" \"x11\")"
+		use wayland && myconf_gn+=" use_system_wayland_scanner=true"
 	fi
 
 	# Results in undefined references in chrome linking, may require CFI to work

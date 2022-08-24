@@ -1,8 +1,8 @@
 diff --git a/net/dns/dns_config_service_posix.cc b/net/dns/dns_config_service_posix.cc
-index 2de1457..66c4803 100644
+index 025078e..86f887c 100644
 --- a/net/dns/dns_config_service_posix.cc
 +++ b/net/dns/dns_config_service_posix.cc
-@@ -32,6 +32,10 @@
+@@ -34,6 +34,10 @@
  #include "net/dns/dns_config_watcher_mac.h"
  #endif
  
@@ -14,10 +14,10 @@ index 2de1457..66c4803 100644
  
  namespace internal {
 diff --git a/net/dns/dns_reloader.cc b/net/dns/dns_reloader.cc
-index 0672e71..252fcc2 100644
+index 43cc164..d4d8542 100644
 --- a/net/dns/dns_reloader.cc
 +++ b/net/dns/dns_reloader.cc
-@@ -17,6 +17,10 @@
+@@ -18,6 +18,10 @@
  #include "base/threading/thread_local.h"
  #include "net/base/network_change_notifier.h"
  
@@ -29,12 +29,12 @@ index 0672e71..252fcc2 100644
  
  namespace {
 diff --git a/net/dns/public/resolv_reader.cc b/net/dns/public/resolv_reader.cc
-index 5686762..34c3d1a 100644
+index e05a121..1162180 100644
 --- a/net/dns/public/resolv_reader.cc
 +++ b/net/dns/public/resolv_reader.cc
-@@ -17,6 +17,10 @@
- #include "base/check_op.h"
+@@ -19,6 +19,10 @@
  #include "net/base/ip_endpoint.h"
+ #include "third_party/abseil-cpp/absl/types/optional.h"
  
 +#if defined(OS_LINUX) && !defined(__GLIBC__)
 +#include "net/dns/resolv_compat.h"
@@ -42,7 +42,7 @@ index 5686762..34c3d1a 100644
 +
  namespace net {
  
- std::unique_ptr<struct __res_state> ResolvReader::GetResState() {
+ std::unique_ptr<ScopedResState> ResolvReader::GetResState() {
 diff --git a/net/dns/public/scoped_res_state.cc b/net/dns/public/scoped_res_state.cc
 index 9706d18..b28d7a2 100644
 --- a/net/dns/public/scoped_res_state.cc
@@ -50,13 +50,13 @@ index 9706d18..b28d7a2 100644
 @@ -10,6 +10,10 @@
  #include "base/check.h"
  #include "build/build_config.h"
-
+ 
 +#if defined(OS_LINUX) && !defined(__GLIBC__)
 +#include "net/dns/resolv_compat.h"
 +#endif
 +
  namespace net {
-
+ 
  ScopedResState::ScopedResState() {
 diff --git a/net/dns/resolv_compat.h b/net/dns/resolv_compat.h
 new file mode 100644

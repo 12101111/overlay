@@ -1,6 +1,8 @@
+diff --git a/base/BUILD.gn b/base/BUILD.gn
+index 294d82d656..d105098eb6 100644
 --- a/base/BUILD.gn
 +++ b/base/BUILD.gn
-@@ -1345,6 +1345,10 @@ component("base") {
+@@ -1446,6 +1446,10 @@ mixed_component("base") {
    libs = []
    frameworks = []
  
@@ -9,11 +11,13 @@
 +  }
 +
    configs += [
-     ":base_implementation",
-     ":memory_tagging",
+     "//build/config:precompiled_headers",
+     "//build/config/compiler:prevent_unsafe_narrowing",
+diff --git a/v8/BUILD.gn b/v8/BUILD.gn
+index dcae72be44..ed4e3de5ae 100644
 --- a/v8/BUILD.gn
 +++ b/v8/BUILD.gn
-@@ -4624,6 +4624,10 @@
+@@ -5262,6 +5262,10 @@ v8_source_set("v8_base_without_compiler") {
        "src/tracing/trace-categories.h",
      ]
    }
@@ -22,6 +26,5 @@
 +    libs += [ "execinfo" ]
 +  }
  }
-
+ 
  group("v8_base") {
-

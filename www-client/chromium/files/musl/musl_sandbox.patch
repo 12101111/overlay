@@ -1,8 +1,8 @@
 diff --git a/sandbox/linux/seccomp-bpf-helpers/syscall_parameters_restrictions.cc b/sandbox/linux/seccomp-bpf-helpers/syscall_parameters_restrictions.cc
-index a8f860f..4becce0 100644
+index 7feff3f493..db2b5e90d4 100644
 --- a/sandbox/linux/seccomp-bpf-helpers/syscall_parameters_restrictions.cc
 +++ b/sandbox/linux/seccomp-bpf-helpers/syscall_parameters_restrictions.cc
-@@ -138,21 +138,11 @@ namespace sandbox {
+@@ -133,21 +133,11 @@ namespace sandbox {
  // present (as in newer versions of posix_spawn).
  ResultExpr RestrictCloneToThreadsAndEPERMFork() {
    const Arg<unsigned long> flags(0);
@@ -29,7 +29,7 @@ index a8f860f..4becce0 100644
  
    // The following two flags are the two important flags in any vfork-emulating
    // clone call. EPERM any clone call that contains both of them.
-@@ -162,7 +152,7 @@ ResultExpr RestrictCloneToThreadsAndEPERMFork() {
+@@ -157,7 +147,7 @@ ResultExpr RestrictCloneToThreadsAndEPERMFork() {
        AnyOf((flags & (CLONE_VM | CLONE_THREAD)) == 0,
              (flags & kImportantCloneVforkFlags) == kImportantCloneVforkFlags);
  
@@ -39,10 +39,10 @@ index a8f860f..4becce0 100644
        .Else(CrashSIGSYSClone());
  }
 diff --git a/sandbox/linux/seccomp-bpf-helpers/syscall_sets.cc b/sandbox/linux/seccomp-bpf-helpers/syscall_sets.cc
-index 96c9f49..225823c 100644
+index b3cf6fc7e8..87ecedc9a4 100644
 --- a/sandbox/linux/seccomp-bpf-helpers/syscall_sets.cc
 +++ b/sandbox/linux/seccomp-bpf-helpers/syscall_sets.cc
-@@ -417,6 +417,7 @@ bool SyscallSets::IsAllowedProcessStartOrDeath(int sysno) {
+@@ -423,6 +423,7 @@ bool SyscallSets::IsAllowedProcessStartOrDeath(int sysno) {
  #if defined(__i386__)
      case __NR_waitpid:
  #endif
@@ -50,7 +50,7 @@ index 96c9f49..225823c 100644
        return true;
      case __NR_clone:  // Should be parameter-restricted.
      case __NR_setns:  // Privileged.
-@@ -429,7 +430,6 @@ bool SyscallSets::IsAllowedProcessStartOrDeath(int sysno) {
+@@ -435,7 +436,6 @@ bool SyscallSets::IsAllowedProcessStartOrDeath(int sysno) {
  #if defined(__i386__) || defined(__x86_64__) || defined(__mips__)
      case __NR_set_thread_area:
  #endif
@@ -58,7 +58,7 @@ index 96c9f49..225823c 100644
      case __NR_unshare:
  #if !defined(__mips__) && !defined(__aarch64__)
      case __NR_vfork:
-@@ -543,6 +543,8 @@ bool SyscallSets::IsAllowedAddressSpaceAccess(int sysno) {
+@@ -549,6 +549,8 @@ bool SyscallSets::IsAllowedAddressSpaceAccess(int sysno) {
      case __NR_mlock:
      case __NR_munlock:
      case __NR_munmap:
@@ -67,7 +67,7 @@ index 96c9f49..225823c 100644
        return true;
      case __NR_madvise:
      case __NR_mincore:
-@@ -560,7 +562,6 @@ bool SyscallSets::IsAllowedAddressSpaceAccess(int sysno) {
+@@ -566,7 +568,6 @@ bool SyscallSets::IsAllowedAddressSpaceAccess(int sysno) {
      case __NR_modify_ldt:
  #endif
      case __NR_mprotect:
@@ -76,7 +76,7 @@ index 96c9f49..225823c 100644
      case __NR_munlockall:
      case __NR_readahead:
 diff --git a/sandbox/linux/system_headers/arm64_linux_syscalls.h b/sandbox/linux/system_headers/arm64_linux_syscalls.h
-index ab86b36..60d8743 100644
+index ab86b36353..60d87434f1 100644
 --- a/sandbox/linux/system_headers/arm64_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/arm64_linux_syscalls.h
 @@ -1215,4 +1215,8 @@
@@ -89,7 +89,7 @@ index ab86b36..60d8743 100644
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_ARM64_LINUX_SYSCALLS_H_
 diff --git a/sandbox/linux/system_headers/arm_linux_syscalls.h b/sandbox/linux/system_headers/arm_linux_syscalls.h
-index 9c44368..40c6186 100644
+index 9c44368a8e..40c61863e7 100644
 --- a/sandbox/linux/system_headers/arm_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/arm_linux_syscalls.h
 @@ -1617,6 +1617,10 @@
@@ -104,7 +104,7 @@ index 9c44368..40c6186 100644
  #if !defined(__ARM_NR_BASE)
  #define __ARM_NR_BASE (__NR_SYSCALL_BASE + 0xF0000)
 diff --git a/sandbox/linux/system_headers/linux_syscalls.h b/sandbox/linux/system_headers/linux_syscalls.h
-index 2b78a0c..b6fedb5 100644
+index 2b78a0cc3b..b6fedb5c20 100644
 --- a/sandbox/linux/system_headers/linux_syscalls.h
 +++ b/sandbox/linux/system_headers/linux_syscalls.h
 @@ -10,6 +10,7 @@
@@ -116,7 +116,7 @@ index 2b78a0c..b6fedb5 100644
  #if defined(__x86_64__)
  #include "sandbox/linux/system_headers/x86_64_linux_syscalls.h"
 diff --git a/sandbox/linux/system_headers/mips64_linux_syscalls.h b/sandbox/linux/system_headers/mips64_linux_syscalls.h
-index ae7cb48..4ce8142 100644
+index ae7cb48f57..4ce8142a67 100644
 --- a/sandbox/linux/system_headers/mips64_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/mips64_linux_syscalls.h
 @@ -1415,4 +1415,8 @@
@@ -129,7 +129,7 @@ index ae7cb48..4ce8142 100644
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_MIPS64_LINUX_SYSCALLS_H_
 diff --git a/sandbox/linux/system_headers/mips_linux_syscalls.h b/sandbox/linux/system_headers/mips_linux_syscalls.h
-index 0937782..f5c014e 100644
+index 093778288b..f5c014e3fd 100644
 --- a/sandbox/linux/system_headers/mips_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/mips_linux_syscalls.h
 @@ -1697,4 +1697,8 @@
@@ -142,7 +142,7 @@ index 0937782..f5c014e 100644
 +
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_MIPS_LINUX_SYSCALLS_H_
 diff --git a/sandbox/linux/system_headers/x86_64_linux_syscalls.h b/sandbox/linux/system_headers/x86_64_linux_syscalls.h
-index e618c62..dc6fa8d 100644
+index e618c6237b..dc6fa8d3c7 100644
 --- a/sandbox/linux/system_headers/x86_64_linux_syscalls.h
 +++ b/sandbox/linux/system_headers/x86_64_linux_syscalls.h
 @@ -1438,5 +1438,9 @@
@@ -156,13 +156,13 @@ index e618c62..dc6fa8d 100644
  #endif  // SANDBOX_LINUX_SYSTEM_HEADERS_X86_64_LINUX_SYSCALLS_H_
  
 diff --git a/sandbox/policy/linux/bpf_renderer_policy_linux.cc b/sandbox/policy/linux/bpf_renderer_policy_linux.cc
-index f789e92..1a84c2c 100644
+index 7ec641038a..4695007307 100644
 --- a/sandbox/policy/linux/bpf_renderer_policy_linux.cc
 +++ b/sandbox/policy/linux/bpf_renderer_policy_linux.cc
-@@ -97,11 +97,11 @@ ResultExpr RendererProcessPolicy::EvaluateSyscall(int sysno) const {
-     case __NR_sysinfo:
-     case __NR_times:
-     case __NR_uname:
+@@ -102,11 +102,11 @@ ResultExpr RendererProcessPolicy::EvaluateSyscall(int sysno) const {
+ #if defined(__arm__) || defined(__aarch64__)
+     case __NR_getcpu:
+ #endif
 -      return Allow();
 -    case __NR_sched_getaffinity:
      case __NR_sched_getparam:
