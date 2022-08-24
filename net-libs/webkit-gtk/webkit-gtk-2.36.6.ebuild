@@ -152,8 +152,6 @@ pkg_setup() {
 }
 
 src_prepare() {
-	eapply "${FILESDIR}"/${PV}-fix-crash.patch
-
 	eapply "${FILESDIR}"/webkit-gtk-2.30.3-musl-locale.patch
 	eapply "${FILESDIR}"/libcxx.patch
 	if use elibc_musl ; then
