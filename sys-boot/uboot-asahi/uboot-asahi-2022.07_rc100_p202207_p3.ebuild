@@ -8,9 +8,13 @@ inherit toolchain-funcs
 DESCRIPTION="U-Boot for Apple Silicon Macs"
 HOMEPAGE="http://asahilinux.org"
 
-COMMIT="asahi-v2022.07-2"
+COMMIT="asahi-v2022.07-3"
 
-SRC_URI="https://github.com/AsahiLinux/u-boot/archive/${COMMIT}.tar.gz -> ${P}.tar.gz"
+SRC_URI="
+	https://github.com/AsahiLinux/u-boot/archive/${COMMIT}.tar.gz -> ${P}.tar.gz
+	https://dev.alpinelinux.org/~mps/m1/apritzel-firt5-video.patch
+	https://dev.alpinelinux.org/~mps/m1/mps-u-boot-ter12x24.patch
+"
 
 LICENSE="MIT GPL-2"
 SLOT="0"
@@ -23,6 +27,10 @@ BDEPEND="
 	virtual/imagemagick-tools
 "
 S="${WORKDIR}/u-boot-${COMMIT}"
+PATCHES=(
+	"${DISTDIR}/apritzel-firt5-video.patch"
+	"${DISTDIR}/mps-u-boot-ter12x24.patch"
+)
 
 _emake() {
 	emake V=1 \
@@ -43,6 +51,8 @@ _emake() {
 src_configure() {
 	default
 	_emake apple_m1_defconfig
+	sed -i "s/CONFIG_VIDEO_FONT_8X16=y/# CONFIG_VIDEO_FONT_8X16 is not set/" .config || die
+	sed -i "s/# CONFIG_VIDEO_FONT_TER16X32 is not set/CONFIG_VIDEO_FONT_TER16X32=y/" .config || die
 }
 
 src_compile() {
