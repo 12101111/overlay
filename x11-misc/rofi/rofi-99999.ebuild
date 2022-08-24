@@ -3,7 +3,7 @@
 
 EAPI=8
 
-inherit meson git-r3 toolchain-funcs
+inherit meson git-r3 toolchain-funcs xdg-utils
 
 DESCRIPTION="A window switcher, run dialog and dmenu replacement"
 HOMEPAGE="https://github.com/lbonn/rofi"
@@ -62,4 +62,10 @@ pkg_postinst() {
 			elog "For more information, please see https://github.com/davatorium/rofi/releases/tag/1.7.0"
 		fi
 	done
+
+	xdg_icon_cache_update
+}
+
+pkg_postrm() {
+	xdg_icon_cache_update
 }
