@@ -11,3 +11,5 @@ dev-util/electron headless
 # not recommended for general use. Build is also often
 # broken.
 dev-util/electron component-build
+
+www-client/firefox -clang -pgo
