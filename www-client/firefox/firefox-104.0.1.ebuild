@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-104-patches-01j.tar.xz"
+FIREFOX_PATCHSET="firefox-104-patches-02j.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -79,6 +79,10 @@ REQUIRED_USE+=" || ( X wayland )"
 REQUIRED_USE+=" pgo? ( X )"
 REQUIRED_USE+=" screencast? ( wayland )"
 
+FF_ONLY_DEPEND="!www-client/firefox:0
+	!www-client/firefox:esr
+	screencast? ( media-video/pipewire:= )
+	selinux? ( sec-policy/selinux-mozilla )"
 BDEPEND="${PYTHON_DEPS}
 	app-arch/unzip
 	app-arch/zip
@@ -106,8 +110,7 @@ BDEPEND="${PYTHON_DEPS}
 	)
 	amd64? ( >=dev-lang/nasm-2.14 )
 	x86? ( >=dev-lang/nasm-2.14 )"
-
-COMMON_DEPEND="
+COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/atk
 	dev-libs/expat
 	dev-libs/glib:2
@@ -135,7 +138,7 @@ COMMON_DEPEND="
 	sndio? ( >=media-sound/sndio-1.8.0-r1 )
 	screencast? ( media-video/pipewire:= )
 	system-av1? (
-		>=media-libs/dav1d-0.9.3:=
+		>=media-libs/dav1d-1.0.0:=
 		>=media-libs/libaom-1.0.0:=
 	)
 	system-harfbuzz? (
@@ -175,10 +178,7 @@ COMMON_DEPEND="
 		x11-libs/libXtst
 		x11-libs/libxcb:=
 	)"
-
 RDEPEND="${COMMON_DEPEND}
-	!www-client/firefox:0
-	!www-client/firefox:esr
 	jack? ( virtual/jack )
 	openh264? ( media-libs/openh264:*[plugin] )
 	pulseaudio? (
@@ -186,9 +186,7 @@ RDEPEND="${COMMON_DEPEND}
 			media-sound/pulseaudio
 			>=media-sound/apulse-0.1.12-r4
 		)
-	)
-	selinux? ( sec-policy/selinux-mozilla )"
-
+	)"
 DEPEND="${COMMON_DEPEND}
 	pulseaudio? (
 		|| (
@@ -565,6 +563,7 @@ src_unpack() {
 
 src_prepare() {
 	use lto && rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch
+	! use ppc64 && rm -v "${WORKDIR}"/firefox-patches/*bmo-1775202-ppc64*.patch
 	eapply "${WORKDIR}/firefox-patches"
 
 	eapply "${FILESDIR}/cross-pgo.patch"
