@@ -1,5 +1,5 @@
 diff --git a/configure b/configure
-index 2d6a4fb8c44..021fdc85181 100755
+index 8104ac5f0ba..a0e5739bc6b 100755
 --- a/configure
 +++ b/configure
 @@ -701,6 +701,20 @@ DBUS_CFLAGS
@@ -31,7 +31,7 @@ index 2d6a4fb8c44..021fdc85181 100755
  with_system_dllpath
  with_wine_tools
  with_wine64
-@@ -1437,6 +1452,7 @@ enable_wineps_drv
+@@ -1438,6 +1453,7 @@ enable_wineps_drv
  enable_winepulse_drv
  enable_wineusb_sys
  enable_winevulkan
@@ -39,7 +39,7 @@ index 2d6a4fb8c44..021fdc85181 100755
  enable_winex11_drv
  enable_winexinput_sys
  enable_wing32
-@@ -1699,6 +1715,18 @@ ZLIB_PE_CFLAGS
+@@ -1700,6 +1716,18 @@ ZLIB_PE_CFLAGS
  ZLIB_PE_LIBS
  XMKMF
  CPP
@@ -58,7 +58,7 @@ index 2d6a4fb8c44..021fdc85181 100755
  INOTIFY_CFLAGS
  INOTIFY_LIBS
  DBUS_CFLAGS
-@@ -2425,6 +2453,7 @@ Optional Packages:
+@@ -2426,6 +2454,7 @@ Optional Packages:
    --without-xshape        do not use the Xshape extension
    --without-xshm          do not use XShm (shared memory extension)
    --without-xxf86vm       do not use XFree video mode extension
@@ -66,7 +66,7 @@ index 2d6a4fb8c44..021fdc85181 100755
    --with-system-dllpath=PATH
                            load external PE dependencies from colon-separated
                            path PATH
-@@ -2495,6 +2524,26 @@ Some influential environment variables:
+@@ -2496,6 +2525,26 @@ Some influential environment variables:
                Linker flags for the PE zlib, overriding the bundled version
    XMKMF       Path to xmkmf, Makefile generator for X Window System
    CPP         C preprocessor
@@ -93,7 +93,7 @@ index 2d6a4fb8c44..021fdc85181 100755
    INOTIFY_CFLAGS
                C compiler flags for libinotify, overriding pkg-config
    INOTIFY_LIBS
-@@ -4446,6 +4495,13 @@ then :
+@@ -4447,6 +4496,13 @@ then :
  fi
  
  
@@ -107,7 +107,7 @@ index 2d6a4fb8c44..021fdc85181 100755
  
  # Check whether --with-system-dllpath was given.
  if test ${with_system_dllpath+y}
-@@ -15746,6 +15802,619 @@ enable_winex11_drv=${enable_winex11_drv:-no}
+@@ -15747,6 +15803,629 @@ enable_winex11_drv=${enable_winex11_drv:-no}
  fi
  fi
  
@@ -470,6 +470,16 @@ index 2d6a4fb8c44..021fdc85181 100755
 +  GBM_LIBS=""
 +fi
 +
++         ac_wine_check_funcs_save_LIBS="$LIBS"
++LIBS="$LIBS $GBM_LIBS"
++ac_fn_c_check_func "$LINENO" "gbm_surface_create_with_modifiers2" "ac_cv_func_gbm_surface_create_with_modifiers2"
++if test "x$ac_cv_func_gbm_surface_create_with_modifiers2" = xyes
++then :
++  printf "%s\n" "#define HAVE_GBM_SURFACE_CREATE_WITH_MODIFIERS2 1" >>confdefs.h
++
++fi
++
++LIBS="$ac_wine_check_funcs_save_LIBS"
 +CPPFLAGS=$ac_save_CPPFLAGS
 +
 +    if ${DRM_CFLAGS:+false} :
@@ -727,7 +737,7 @@ index 2d6a4fb8c44..021fdc85181 100755
  if test "$ac_cv_header_CL_cl_h" = "yes"
  then
      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for clGetPlatformInfo in -lOpenCL" >&5
-@@ -22001,6 +22670,7 @@ wine_fn_config_makefile dlls/wineps16.drv16 enable_win16
+@@ -22034,6 +22713,7 @@ wine_fn_config_makefile dlls/wineps16.drv16 enable_win16
  wine_fn_config_makefile dlls/winepulse.drv enable_winepulse_drv
  wine_fn_config_makefile dlls/wineusb.sys enable_wineusb_sys
  wine_fn_config_makefile dlls/winevulkan enable_winevulkan
@@ -735,7 +745,7 @@ index 2d6a4fb8c44..021fdc85181 100755
  wine_fn_config_makefile dlls/winex11.drv enable_winex11_drv
  wine_fn_config_makefile dlls/winexinput.sys enable_winexinput_sys
  wine_fn_config_makefile dlls/wing.dll16 enable_win16
-@@ -23261,6 +23931,20 @@ X_CFLAGS = $X_CFLAGS
+@@ -23294,6 +23974,20 @@ X_CFLAGS = $X_CFLAGS
  X_PRE_LIBS = $X_PRE_LIBS
  X_LIBS = $X_LIBS
  X_EXTRA_LIBS = $X_EXTRA_LIBS
@@ -757,7 +767,7 @@ index 2d6a4fb8c44..021fdc85181 100755
  INOTIFY_CFLAGS = $INOTIFY_CFLAGS
  INOTIFY_LIBS = $INOTIFY_LIBS
 diff --git a/configure.ac b/configure.ac
-index dd4abd39e32..2a3c2b27683 100644
+index 49d414e1d17..fd054c6c452 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -86,6 +86,7 @@ AC_ARG_WITH(xshm,      AS_HELP_STRING([--without-xshm],[do not use XShm (shared
@@ -768,7 +778,7 @@ index dd4abd39e32..2a3c2b27683 100644
  
  AC_ARG_WITH(system-dllpath,AS_HELP_STRING([--with-system-dllpath=PATH],[load external PE dependencies from colon-separated path PATH]),
              AC_SUBST(system_dllpath,[$withval]))
-@@ -1360,6 +1361,44 @@ else
+@@ -1360,6 +1361,45 @@ else
                       [enable_winex11_drv])
  fi
  
@@ -792,7 +802,8 @@ index dd4abd39e32..2a3c2b27683 100644
 +         AC_CHECK_LIB(xkbcommon,xkb_context_new,[:],[XKBCOMMON_LIBS=""],[$XKBCOMMON_LIBS])])
 +    WINE_PACKAGE_FLAGS(GBM,[gbm],,,,
 +        [AC_CHECK_HEADERS([gbm.h])
-+         AC_CHECK_LIB(gbm,gbm_create_device,[:],[GBM_LIBS=""],[$GBM_LIBS])])
++         AC_CHECK_LIB(gbm,gbm_create_device,[:],[GBM_LIBS=""],[$GBM_LIBS])
++         WINE_CHECK_LIB_FUNCS(gbm_surface_create_with_modifiers2, [$GBM_LIBS])])
 +    WINE_PACKAGE_FLAGS(DRM,[libdrm],,,,
 +        [AC_CHECK_HEADERS([drm.h])
 +         AC_CHECK_LIB(drm,drmPrimeHandleToFD,[:],[DRM_LIBS=""],[$DRM_LIBS])])
@@ -813,7 +824,7 @@ index dd4abd39e32..2a3c2b27683 100644
  dnl **** Check for OpenCL ****
  if test "$ac_cv_header_CL_cl_h" = "yes"
  then
-@@ -3168,6 +3207,7 @@ WINE_CONFIG_MAKEFILE(dlls/wineps16.drv16,enable_win16)
+@@ -3173,6 +3213,7 @@ WINE_CONFIG_MAKEFILE(dlls/wineps16.drv16,enable_win16)
  WINE_CONFIG_MAKEFILE(dlls/winepulse.drv)
  WINE_CONFIG_MAKEFILE(dlls/wineusb.sys)
  WINE_CONFIG_MAKEFILE(dlls/winevulkan)
@@ -852,7 +863,7 @@ index 7c60466d9ee..434b0cbf778 100644
  
  static void CDECL unlock_bits_surface( struct gdi_image_bits *bits )
 diff --git a/dlls/win32u/gdiobj.c b/dlls/win32u/gdiobj.c
-index aaeed2ba676..dadf5779a4e 100644
+index f8a1bd96f8f..b5be55e60c1 100644
 --- a/dlls/win32u/gdiobj.c
 +++ b/dlls/win32u/gdiobj.c
 @@ -1151,6 +1151,7 @@ static struct unix_funcs unix_funcs =
@@ -862,12 +873,12 @@ index aaeed2ba676..dadf5779a4e 100644
 +    __wine_send_internal_message_timeout,
  };
  
- NTSTATUS gdi_init(void)
+ void gdi_init(void)
 diff --git a/dlls/win32u/message.c b/dlls/win32u/message.c
-index 7045aedb4b1..37f0bf508f0 100644
+index f4f134e213b..e578eed6883 100644
 --- a/dlls/win32u/message.c
 +++ b/dlls/win32u/message.c
-@@ -2854,6 +2854,20 @@ static BOOL send_message_callback( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
+@@ -3095,6 +3095,20 @@ static BOOL send_message_callback( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
      return process_message( &info, NULL, ansi );
  }
  
@@ -889,7 +900,7 @@ index 7045aedb4b1..37f0bf508f0 100644
   *           NtUserPostMessage  (win32u.@)
   */
 diff --git a/dlls/win32u/win32u.spec b/dlls/win32u/win32u.spec
-index 3054bed8347..3f6cb6c5d69 100644
+index df722586ded..15c15aa2b4f 100644
 --- a/dlls/win32u/win32u.spec
 +++ b/dlls/win32u/win32u.spec
 @@ -1331,3 +1331,6 @@
@@ -900,7 +911,7 @@ index 3054bed8347..3f6cb6c5d69 100644
 +# message
 +@ cdecl __wine_send_internal_message_timeout(long long long long long long long ptr)
 diff --git a/dlls/win32u/win32u_private.h b/dlls/win32u/win32u_private.h
-index 6e9a1926891..51824cd6db8 100644
+index 298cafcf7bf..4be58a3eb3a 100644
 --- a/dlls/win32u/win32u_private.h
 +++ b/dlls/win32u/win32u_private.h
 @@ -209,6 +209,9 @@ struct unix_funcs
@@ -994,10 +1005,10 @@ index 00000000000..d1dfa4b9a7a
 +RC_SRCS = version.rc
 diff --git a/dlls/winewayland.drv/display.c b/dlls/winewayland.drv/display.c
 new file mode 100644
-index 00000000000..12c1ff3f333
+index 00000000000..735d39c28be
 --- /dev/null
 +++ b/dlls/winewayland.drv/display.c
-@@ -0,0 +1,417 @@
+@@ -0,0 +1,453 @@
 +/*
 + * WAYLAND display device functions
 + *
@@ -1022,9 +1033,6 @@ index 00000000000..12c1ff3f333
 +#if 0
 +#pragma makedep unix
 +#endif
-+
-+#define NONAMELESSUNION
-+#define NONAMELESSSTRUCT
 +
 +#include "config.h"
 +
@@ -1127,6 +1135,32 @@ index 00000000000..12c1ff3f333
 +    device_manager->add_monitor(&monitor, param);
 +}
 +
++static void populate_devmode(struct wayland_output_mode *output_mode, DEVMODEW *mode)
++{
++    mode->dmFields = DM_DISPLAYORIENTATION | DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT |
++                     DM_DISPLAYFLAGS | DM_DISPLAYFREQUENCY;
++    mode->dmDisplayOrientation = DMDO_DEFAULT;
++    mode->dmDisplayFlags = 0;
++    mode->dmBitsPerPel = output_mode->bpp;
++    mode->dmPelsWidth = output_mode->width;
++    mode->dmPelsHeight = output_mode->height;
++    mode->dmDisplayFrequency = output_mode->refresh / 1000;
++}
++
++static void wayland_add_modes(const struct gdi_device_manager *device_manager,
++                              void *param, struct wayland_output *output)
++{
++
++    struct wayland_output_mode *output_mode;
++
++    wl_list_for_each(output_mode, &output->mode_list, link)
++    {
++        DEVMODEW mode;
++        populate_devmode(output_mode, &mode);
++        device_manager->add_mode(&mode, param);
++    }
++}
++
 +/***********************************************************************
 + *      UpdateDisplayDevices (WAYLAND.@)
 + */
@@ -1154,6 +1188,7 @@ index 00000000000..12c1ff3f333
 +        /* TODO: Detect and support multiple monitors per adapter (i.e., mirroring). */
 +        wayland_add_adapter(device_manager, param, output_id);
 +        wayland_add_monitor(device_manager, param, output);
++        wayland_add_modes(device_manager, param, output);
 +
 +        output_id++;
 +    }
@@ -1177,20 +1212,6 @@ index 00000000000..12c1ff3f333
 +    return TRUE;
 +}
 +
-+static void populate_devmode(struct wayland_output_mode *output_mode, DEVMODEW *mode)
-+{
-+    mode->dmFields = DM_DISPLAYORIENTATION | DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT |
-+                     DM_DISPLAYFLAGS | DM_DISPLAYFREQUENCY | DM_POSITION;
-+    mode->u1.s2.dmDisplayOrientation = DMDO_DEFAULT;
-+    mode->u2.dmDisplayFlags = 0;
-+    mode->u1.s2.dmPosition.x = 0;
-+    mode->u1.s2.dmPosition.y = 0;
-+    mode->dmBitsPerPel = output_mode->bpp;
-+    mode->dmPelsWidth = output_mode->width;
-+    mode->dmPelsHeight = output_mode->height;
-+    mode->dmDisplayFrequency = output_mode->refresh / 1000;
-+}
-+
 +static BOOL wayland_get_current_devmode(struct wayland *wayland, LPCWSTR name, DEVMODEW *mode)
 +{
 +    struct wayland_output *output;
@@ -1203,6 +1224,10 @@ index 00000000000..12c1ff3f333
 +        return FALSE;
 +
 +    populate_devmode(output->current_wine_mode, mode);
++
++    mode->dmFields |= DM_POSITION;
++    mode->dmPosition.x = output->x;
++    mode->dmPosition.y = output->y;
 +
 +    return TRUE;
 +}
@@ -1237,36 +1262,58 @@ index 00000000000..12c1ff3f333
 +BOOL WAYLAND_EnumDisplaySettingsEx(LPCWSTR name, DWORD n, LPDEVMODEW devmode, DWORD flags)
 +{
 +    struct wayland *wayland = wayland_process_acquire();
++    BOOL ret;
 +
 +    TRACE("(%s,%d,%p,0x%08x) wayland=%p\n", debugstr_w(name), n, devmode, flags, wayland);
 +
 +    /* We don't handle n == ENUM_REGISTRY_SETTINGS here, it is handled by win32u. */
 +
-+    if (n == ENUM_CURRENT_SETTINGS)
-+    {
-+        if (!wayland_get_current_devmode(wayland, name, devmode))
-+        {
-+            ERR("Failed to get %s current display settings.\n", wine_dbgstr_w(name));
-+            goto err;
-+        }
-+        goto done;
-+    }
++    /* We don't handle n == ENUM_CURRENT_SETTINGS here, it is handled by win32u through
++     * WAYLAND_GetCurrentDisplaySettings. */
 +
-+    if (!wayland_get_devmode(wayland, name, n, devmode))
++    ret = wayland_get_devmode(wayland, name, n, devmode);
++
++    wayland_process_release();
++
++    if (ret)
++    {
++        TRACE("=> %dx%d\n", devmode->dmPelsWidth, devmode->dmPelsHeight);
++    }
++    else
 +    {
 +        WARN("Modes index out of range\n");
-+        SetLastError(ERROR_NO_MORE_FILES);
-+        goto err;
++        RtlSetLastWin32Error(ERROR_NO_MORE_FILES);
 +    }
 +
-+done:
-+    wayland_process_release();
-+    TRACE("=> %dx%d\n", devmode->dmPelsWidth, devmode->dmPelsHeight);
-+    return TRUE;
++    return ret;
++}
 +
-+err:
++/***********************************************************************
++ *             GetCurrentDisplaySettings  (WAYLAND.@)
++ *
++ */
++BOOL WAYLAND_GetCurrentDisplaySettings(LPCWSTR name, LPDEVMODEW devmode)
++{
++    struct wayland *wayland = wayland_process_acquire();
++    BOOL ret;
++
++    TRACE("(%s,%p) wayland=%p\n", debugstr_w(name), devmode, wayland);
++
++    ret = wayland_get_current_devmode(wayland, name, devmode);
++
 +    wayland_process_release();
-+    return FALSE;
++
++    if (ret)
++    {
++        TRACE("=> %d,%d+%dx%d\n", devmode->dmPosition.x, devmode->dmPosition.y,
++              devmode->dmPelsWidth, devmode->dmPelsHeight);
++    }
++    else
++    {
++        ERR("Failed to get %s current display settings.\n", wine_dbgstr_w(name));
++    }
++
++    return ret;
 +}
 +
 +static struct wayland_output_mode *get_matching_output_mode_32bpp(struct wayland_output *output,
@@ -1417,10 +1464,10 @@ index 00000000000..12c1ff3f333
 +}
 diff --git a/dlls/winewayland.drv/dllmain.c b/dlls/winewayland.drv/dllmain.c
 new file mode 100644
-index 00000000000..535bae28375
+index 00000000000..86ce435077f
 --- /dev/null
 +++ b/dlls/winewayland.drv/dllmain.c
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,70 @@
 +/*
 + * winewayland.drv entry points
 + *
@@ -1443,8 +1490,7 @@ index 00000000000..535bae28375
 +
 +#include "waylanddrv_dll.h"
 +
-+static unixlib_handle_t waylanddrv_handle;
-+NTSTATUS (CDECL *waylanddrv_unix_call)(enum waylanddrv_unix_func func, void *params);
++unixlib_handle_t waylanddrv_handle;
 +BOOL option_show_systray;
 +
 +typedef NTSTATUS (WINAPI *kernel_callback)(void *params, ULONG size);
@@ -1467,10 +1513,7 @@ index 00000000000..535bae28375
 +
 +BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, void *reserved)
 +{
-+    struct waylanddrv_unix_init_params init_params =
-+    {
-+        .pNtWaitForMultipleObjects = NtWaitForMultipleObjects,
-+    };
++    struct waylanddrv_unix_init_params init_params;
 +    DWORD tid;
 +    void **callback_table;
 +
@@ -1485,10 +1528,9 @@ index 00000000000..535bae28375
 +    memcpy(callback_table + NtUserDriverCallbackFirst, kernel_callbacks,
 +           sizeof(kernel_callbacks));
 +
-+    if (__wine_unix_call(waylanddrv_handle, waylanddrv_unix_func_init, &init_params))
++    if (WAYLANDDRV_UNIX_CALL(init, &init_params))
 +        return FALSE;
 +
-+    waylanddrv_unix_call = init_params.unix_call;
 +    option_show_systray = init_params.option_show_systray;
 +
 +    /* Read wayland events from a dedicated thread. */
@@ -1678,10 +1720,10 @@ index 00000000000..5c3904b6b3d
 +}
 diff --git a/dlls/winewayland.drv/gbm.c b/dlls/winewayland.drv/gbm.c
 new file mode 100644
-index 00000000000..66278bd94bf
+index 00000000000..b123fdd913a
 --- /dev/null
 +++ b/dlls/winewayland.drv/gbm.c
-@@ -0,0 +1,371 @@
+@@ -0,0 +1,388 @@
 +/*
 + * Wayland GBM support
 + *
@@ -1720,6 +1762,9 @@ index 00000000000..66278bd94bf
 +#include <stdlib.h>
 +#include <unistd.h>
 +#include <xf86drm.h>
++
++#include <sys/types.h>
++#include <sys/stat.h>
 +
 +WINE_DEFAULT_DEBUG_CHANNEL(waylanddrv);
 +
@@ -2047,6 +2092,20 @@ index 00000000000..66278bd94bf
 +    }
 +}
 +
++/**********************************************************************
++ *          wayland_gbm_get_render_dev
++ */
++dev_t wayland_gbm_get_render_dev()
++{
++    int dev_fd = gbm_device_get_fd(process_gbm_device);
++    struct stat dev_stat;
++
++    if (dev_fd >= 0 && !fstat(dev_fd, &dev_stat))
++        return dev_stat.st_rdev;
++
++    return 0;
++}
++
 +BOOL wayland_gbm_init(void)
 +{
 +    pthread_once(&init_once, wayland_gbm_init_once);
@@ -2294,10 +2353,10 @@ index 00000000000..8397b6b39d7
 +}
 diff --git a/dlls/winewayland.drv/opengl.c b/dlls/winewayland.drv/opengl.c
 new file mode 100644
-index 00000000000..5f12a129603
+index 00000000000..dde45e0beb8
 --- /dev/null
 +++ b/dlls/winewayland.drv/opengl.c
-@@ -0,0 +1,1928 @@
+@@ -0,0 +1,1959 @@
 +/*
 + * Wayland OpenGL functions
 + *
@@ -2612,7 +2671,9 @@ index 00000000000..5f12a129603
 +    RECT client_rect;
 +    EGLint drm_format;
 +    struct wayland_dmabuf *dmabuf;
-+    struct wayland_dmabuf_format *dmabuf_format;
++    uint64_t *modifiers;
++    size_t count_modifiers;
++    dev_t render_dev;
 +
 +    TRACE("hwnd=%p\n", gl->hwnd);
 +
@@ -2620,20 +2681,35 @@ index 00000000000..5f12a129603
 +    if (gl->surface) p_eglDestroySurface(egl_display, gl->surface);
 +    if (gl->gbm_surface) gbm_surface_destroy(gl->gbm_surface);
 +
++    if (!(render_dev = wayland_gbm_get_render_dev()))
++    {
++        ERR("Failed to get device's dev_t from GBM device.\n");
++        return;
++    }
++
 +    NtUserGetClientRect(gl->hwnd, &client_rect);
 +    gl->width = client_rect.right;
 +    gl->height = client_rect.bottom;
 +
-+    dmabuf = &wayland_process_acquire()->dmabuf;
-+
 +    drm_format = pixel_formats[gl->format - 1].native_visual_id;
-+    dmabuf_format = wayland_dmabuf_find_format(dmabuf, drm_format);
-+    if (dmabuf_format && wayland_dmabuf_format_supports_modifiers(dmabuf_format))
++
++    dmabuf = &wayland_process_acquire()->dmabuf;
++    if ((count_modifiers = wayland_dmabuf_get_format_modifiers(dmabuf, drm_format, render_dev, &modifiers)))
 +    {
++#ifdef HAVE_GBM_SURFACE_CREATE_WITH_MODIFIERS2
++        uint32_t gbm_bo_flags = GBM_BO_USE_RENDERING;
++
++        if (wayland_dmabuf_is_format_scanoutable(dmabuf, drm_format, render_dev))
++            gbm_bo_flags |= GBM_BO_USE_SCANOUT;
++
++        gl->gbm_surface =
++            gbm_surface_create_with_modifiers2(process_gbm_device, gl->width, gl->height,
++                                               drm_format, modifiers, count_modifiers, gbm_bo_flags);
++#else
 +        gl->gbm_surface =
 +            gbm_surface_create_with_modifiers(process_gbm_device, gl->width, gl->height,
-+                                              drm_format, dmabuf_format->modifiers.data,
-+                                              dmabuf_format->modifiers.size / sizeof(uint64_t));
++                                              drm_format, modifiers, count_modifiers);
++#endif
 +    }
 +    else
 +    {
@@ -3256,7 +3332,7 @@ index 00000000000..5f12a129603
 +    }
 +
 +    ret = wgl_context_make_current(ctx, NtUserWindowFromDC(draw_hdc), NtUserWindowFromDC(read_hdc));
-+    if (!ret) SetLastError(ERROR_INVALID_HANDLE);
++    if (!ret) RtlSetLastWin32Error(ERROR_INVALID_HANDLE);
 +
 +    return ret;
 +}
@@ -3622,13 +3698,13 @@ index 00000000000..5f12a129603
 +
 +    if (interval < 0)
 +    {
-+        SetLastError(ERROR_INVALID_DATA);
++        RtlSetLastWin32Error(ERROR_INVALID_DATA);
 +        return FALSE;
 +    }
 +
 +    if (!(gl = wayland_gl_drawable_get(ctx->draw_hwnd)))
 +    {
-+        SetLastError(ERROR_DC_NOT_FOUND);
++        RtlSetLastWin32Error(ERROR_DC_NOT_FOUND);
 +        return FALSE;
 +    }
 +
@@ -4014,23 +4090,32 @@ index 00000000000..5f12a129603
 +static BOOL init_pixel_formats(void)
 +{
 +    EGLint count, i, pass;
-+    EGLConfig *egl_configs;
-+    struct wayland_dmabuf *dmabuf;
++    EGLConfig *egl_configs = NULL;
++    struct wayland_dmabuf *dmabuf = NULL;
++    dev_t render_dev;
 +
 +    p_eglGetConfigs(egl_display, NULL, 0, &count);
-+    egl_configs = malloc(count * sizeof(*egl_configs));
-+    pixel_formats = malloc(count * sizeof(*pixel_formats));
-+    p_eglGetConfigs(egl_display, egl_configs, count, &count);
-+    if (!count || !egl_configs || !pixel_formats)
++    if (!count)
 +    {
-+        free(egl_configs);
-+        free(pixel_formats);
-+        ERR("eglGetConfigs returned no configs\n");
-+        return FALSE;
++        ERR("eglGetConfigs returned no configs.\n");
++        goto err;
++    }
++
++    if (!(egl_configs = malloc(count * sizeof(*egl_configs))) ||
++        !(pixel_formats = malloc(count * sizeof(*pixel_formats))))
++    {
++        ERR("Memory allocation failed.\n");
++        goto err;
++    }
++    p_eglGetConfigs(egl_display, egl_configs, count, &count);
++
++    if (!(render_dev = wayland_gbm_get_render_dev()))
++    {
++        ERR("Failed to get device's dev_t from GBM device.\n");
++        goto err;
 +    }
 +
 +    dmabuf = &wayland_process_acquire()->dmabuf;
-+
 +    /* Use two passes: the first pass adds the onscreen formats to the format list,
 +     * the second offscreen ones. */
 +    for (pass = 0; pass < 2; pass++)
@@ -4042,9 +4127,10 @@ index 00000000000..5f12a129603
 +            p_eglGetConfigAttrib(egl_display, egl_configs[i], EGL_SURFACE_TYPE, &type);
 +            if (!(type & EGL_WINDOW_BIT) == !pass) continue;
 +
-+            /* Ignore formats not supported by the compositor. */
 +            p_eglGetConfigAttrib(egl_display, egl_configs[i], EGL_NATIVE_VISUAL_ID, &visual_id);
-+            if (!wayland_dmabuf_find_format(dmabuf, visual_id))
++
++            /* Ignore formats not supported by the compositor. */
++            if (!wayland_dmabuf_is_format_supported(dmabuf, visual_id, render_dev))
 +                continue;
 +
 +            p_eglGetConfigAttrib(egl_display, egl_configs[i], EGL_RENDERABLE_TYPE, &render);
@@ -4071,12 +4157,16 @@ index 00000000000..5f12a129603
 +        }
 +        if (pass == 0) nb_onscreen_formats = nb_pixel_formats;
 +    }
-+
 +    wayland_process_release();
-+
 +    free(egl_configs);
 +
 +    return TRUE;
++
++err:
++    free(egl_configs);
++    free(pixel_formats);
++
++    return FALSE;
 +}
 +
 +static BOOL egl_init(void)
@@ -5388,10 +5478,10 @@ index 00000000000..7cce78573a7
 +}
 diff --git a/dlls/winewayland.drv/unixlib.h b/dlls/winewayland.drv/unixlib.h
 new file mode 100644
-index 00000000000..afc08d58a58
+index 00000000000..989d8d044db
 --- /dev/null
 +++ b/dlls/winewayland.drv/unixlib.h
-@@ -0,0 +1,107 @@
+@@ -0,0 +1,105 @@
 +/*
 + * Copyright 2022 Alexandros Frantzis for Collabora Ltd
 + *
@@ -5437,8 +5527,6 @@ index 00000000000..afc08d58a58
 +
 +struct waylanddrv_unix_init_params
 +{
-+    NTSTATUS (WINAPI *pNtWaitForMultipleObjects)(ULONG,const HANDLE*,BOOLEAN,BOOLEAN,const LARGE_INTEGER*);
-+    NTSTATUS (CDECL *unix_call)(enum waylanddrv_unix_func func, void *params);
 +    BOOL option_show_systray;
 +};
 +
@@ -6477,7 +6565,7 @@ index 00000000000..6400f91453d
 +#endif /* SONAME_LIBVULKAN */
 diff --git a/dlls/winewayland.drv/wayland.c b/dlls/winewayland.drv/wayland.c
 new file mode 100644
-index 00000000000..b9dcf931cfd
+index 00000000000..b8c32578bce
 --- /dev/null
 +++ b/dlls/winewayland.drv/wayland.c
 @@ -0,0 +1,710 @@
@@ -7186,8 +7274,8 @@ index 00000000000..b9dcf931cfd
 +    if (process_wayland_events(mask))
 +        return count - 1;
 +
-+    ret = pNtWaitForMultipleObjects(count, handles, !(flags & MWMO_WAITALL),
-+                                    !!(flags & MWMO_ALERTABLE), timeout);
++    ret = NtWaitForMultipleObjects(count, handles, !(flags & MWMO_WAITALL),
++                                   !!(flags & MWMO_ALERTABLE), timeout);
 +
 +    return ret;
 +}
@@ -7415,10 +7503,10 @@ index 00000000000..c2a424e947a
 +}
 diff --git a/dlls/winewayland.drv/wayland_cursor.c b/dlls/winewayland.drv/wayland_cursor.c
 new file mode 100644
-index 00000000000..23cf6f5db86
+index 00000000000..a1a6364951d
 --- /dev/null
 +++ b/dlls/winewayland.drv/wayland_cursor.c
-@@ -0,0 +1,714 @@
+@@ -0,0 +1,687 @@
 +/*
 + * Wayland cursor handling
 + *
@@ -8049,52 +8137,22 @@ index 00000000000..23cf6f5db86
 + *  Invalidate the cursor we consider to be set, effectively forcing
 + *  the application of next SetCursor call.
 + */
-+HCURSOR wayland_invalidate_set_cursor(void)
++void wayland_invalidate_set_cursor(void)
 +{
-+    return __atomic_exchange_n(&last_cursor, invalid_cursor, __ATOMIC_SEQ_CST);
++    __atomic_store_n(&last_cursor, invalid_cursor, __ATOMIC_SEQ_CST);
 +}
 +
-+static BOOL wayland_set_cursor(HCURSOR hcursor)
++static HWND wayland_get_thread_cursor_hwnd(void)
 +{
-+    HWND foreground = NULL;
 +    struct wayland *wayland = thread_wayland();
++    HWND cursor_hwnd;
 +
 +    if (wayland && wayland->pointer.focused_surface)
-+        foreground = wayland->pointer.focused_surface->hwnd;
++        cursor_hwnd = wayland->pointer.focused_surface->hwnd;
++    else
++        cursor_hwnd = NULL;
 +
-+    if (!foreground)
-+        foreground = NtUserGetForegroundWindow();
-+
-+    if (!foreground)
-+        return FALSE;
-+
-+    send_message(foreground, WM_WAYLAND_SET_CURSOR, 0, (LPARAM)hcursor);
-+
-+    /* Cursor visibility affects pointer confinement mode. */
-+    send_message(foreground, WM_WAYLAND_POINTER_CONFINEMENT_UPDATE,
-+                 WAYLAND_POINTER_CONFINEMENT_RETAIN_CLIP, 0);
-+
-+    return TRUE;
-+}
-+
-+/***********************************************************************
-+ *           wayland_set_cursor_if_current_invalid
-+ *
-+ * If the currently set cursor is invalid, apply the provided cursor,
-+ * otherwise do nothing.
-+ */
-+void wayland_set_cursor_if_current_invalid(HCURSOR hcursor)
-+{
-+    HCURSOR tmp_invalid = invalid_cursor;
-+
-+    TRACE("hcursor=%p last_cursor=%p\n", hcursor, last_cursor);
-+
-+    if (hcursor != invalid_cursor &&
-+        __atomic_compare_exchange_n(&last_cursor, &tmp_invalid, hcursor,
-+                                    FALSE, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
-+    {
-+        if (!wayland_set_cursor(hcursor)) wayland_invalidate_set_cursor();
-+    }
++    return cursor_hwnd;
 +}
 +
 +/***********************************************************************
@@ -8102,11 +8160,20 @@ index 00000000000..23cf6f5db86
 + */
 +void WAYLAND_SetCursor(HCURSOR hcursor)
 +{
-+    TRACE("hcursor=%p last_cursor=%p\n", hcursor, last_cursor);
++    HWND cursor_hwnd = wayland_get_thread_cursor_hwnd();
++
++    TRACE("hcursor=%p last_cursor=%p cursor_hwnd=%p\n",
++          hcursor, last_cursor, cursor_hwnd);
++
++    if (!cursor_hwnd) return;
 +
 +    if (__atomic_exchange_n(&last_cursor, hcursor, __ATOMIC_SEQ_CST) != hcursor)
 +    {
-+        if (!wayland_set_cursor(hcursor)) wayland_invalidate_set_cursor();
++        send_message(cursor_hwnd, WM_WAYLAND_SET_CURSOR, GetCurrentThreadId(),
++                     (LPARAM)hcursor);
++        /* Cursor visibility affects pointer confinement mode. */
++        send_message(cursor_hwnd, WM_WAYLAND_POINTER_CONFINEMENT_UPDATE,
++                     WAYLAND_POINTER_CONFINEMENT_RETAIN_CLIP, 0);
 +    }
 +}
 +
@@ -8115,21 +8182,15 @@ index 00000000000..23cf6f5db86
 + */
 +BOOL WAYLAND_ClipCursor(const RECT *clip)
 +{
-+    HWND foreground = NULL;
-+    struct wayland *wayland = thread_wayland();
-+    WPARAM confine = clip ? WAYLAND_POINTER_CONFINEMENT_SYSTEM_CLIP :
-+                            WAYLAND_POINTER_CONFINEMENT_UNSET_CLIP;
++    HWND cursor_hwnd = wayland_get_thread_cursor_hwnd();
++    WPARAM confine;
 +
-+    if (wayland && wayland->pointer.focused_surface)
-+        foreground = wayland->pointer.focused_surface->hwnd;
++    if (!cursor_hwnd) return FALSE;
 +
-+    if (!foreground)
-+        foreground = NtUserGetForegroundWindow();
++    confine = clip ? WAYLAND_POINTER_CONFINEMENT_SYSTEM_CLIP :
++                     WAYLAND_POINTER_CONFINEMENT_UNSET_CLIP;
 +
-+    if (!foreground)
-+        return FALSE;
-+
-+    send_message(foreground, WM_WAYLAND_POINTER_CONFINEMENT_UPDATE, confine, 0);
++    send_message(cursor_hwnd, WM_WAYLAND_POINTER_CONFINEMENT_UPDATE, confine, 0);
 +
 +    return TRUE;
 +}
@@ -10186,10 +10247,10 @@ index 00000000000..069a4157cbe
 +}
 diff --git a/dlls/winewayland.drv/wayland_dmabuf.c b/dlls/winewayland.drv/wayland_dmabuf.c
 new file mode 100644
-index 00000000000..3f583fd6db7
+index 00000000000..f5a96192974
 --- /dev/null
 +++ b/dlls/winewayland.drv/wayland_dmabuf.c
-@@ -0,0 +1,452 @@
+@@ -0,0 +1,528 @@
 +/*
 + * Wayland dmabuf buffers
 + *
@@ -10226,9 +10287,57 @@ index 00000000000..3f583fd6db7
 +
 +WINE_DEFAULT_DEBUG_CHANNEL(waylanddrv);
 +
++enum dmabuf_dev_prio {
++    DMABUF_DEV_NODEV,
++    DMABUF_DEV_SCANOUT,
++    DMABUF_DEV_RENDER,
++    DMABUF_DEV_MAIN
++};
++
 +/**********************************************************************
 + *          dmabuf private helpers
 + */
++
++static BOOL dmabuf_has_feedback_support(struct wayland_dmabuf *dmabuf)
++{
++    if (wl_proxy_get_version((struct wl_proxy *)dmabuf->zwp_linux_dmabuf_v1) >=
++        ZWP_LINUX_DMABUF_V1_GET_DEFAULT_FEEDBACK_SINCE_VERSION)
++        return TRUE;
++
++    return FALSE;
++}
++
++static int dmabuf_feedback_get_tranche_priority(struct wayland_dmabuf_feedback *feedback,
++                                                struct wayland_dmabuf_feedback_tranche *tranche,
++                                                dev_t render_dev)
++{
++    if (tranche->flags & ZWP_LINUX_DMABUF_FEEDBACK_V1_TRANCHE_FLAGS_SCANOUT)
++        return DMABUF_DEV_SCANOUT;
++    else if (tranche->device == render_dev)
++        return DMABUF_DEV_RENDER;
++    else if (tranche->device == feedback->main_device)
++        return DMABUF_DEV_MAIN;
++
++    return DMABUF_DEV_NODEV;
++}
++
++static BOOL dmabuf_format_supports_modifiers(struct wayland_dmabuf_format *format)
++{
++    uint64_t *mod;
++    uint32_t num_modifiers;
++
++    num_modifiers = format->modifiers.size / sizeof(uint64_t);
++
++    if (num_modifiers == 0) return FALSE;
++
++    if (num_modifiers == 1)
++    {
++        mod = (uint64_t *) format->modifiers.data;
++        if (*mod == DRM_FORMAT_MOD_INVALID) return FALSE;
++    }
++
++    return TRUE;
++}
 +
 +static BOOL dmabuf_format_has_modifier(struct wayland_dmabuf_format *format, uint64_t modifier)
 +{
@@ -10256,6 +10365,43 @@ index 00000000000..3f583fd6db7
 +    }
 +
 +    if (!format_found) dmabuf_format = NULL;
++
++    return dmabuf_format;
++}
++
++static struct wayland_dmabuf_format *dmabuf_get_format_from_optimal_tranche(struct wayland_dmabuf *dmabuf,
++                                                                            uint32_t format,
++                                                                            dev_t render_dev,
++                                                                            struct wayland_dmabuf_feedback_tranche **out_tranche)
++{
++    struct wayland_dmabuf_format *dmabuf_format = NULL;
++    struct wayland_dmabuf_feedback_tranche *format_tranche = NULL;
++    int prio;
++
++    if (dmabuf_has_feedback_support(dmabuf))
++    {
++        struct wayland_dmabuf_feedback_tranche *tranche;
++
++        for (prio = DMABUF_DEV_SCANOUT; prio <= DMABUF_DEV_MAIN; prio++)
++        {
++            wl_array_for_each(tranche, &dmabuf->feedback.tranches)
++            {
++                if (prio == dmabuf_feedback_get_tranche_priority(&dmabuf->feedback, tranche, render_dev) &&
++                    (dmabuf_format = dmabuf_format_array_find_format(&tranche->formats, format)))
++                {
++                    format_tranche = tranche;
++                    break;
++                }
++            }
++            if (dmabuf_format) break;
++        }
++    }
++    else
++    {
++        dmabuf_format = dmabuf_format_array_find_format(&dmabuf->formats, format);
++    }
++
++    if (dmabuf_format && out_tranche) *out_tranche = format_tranche;
 +
 +    return dmabuf_format;
 +}
@@ -10518,52 +10664,43 @@ index 00000000000..3f583fd6db7
 +}
 +
 +/***********************************************************************
-+ *           wayland_dmabuf_find_format
++ *           wayland_dmabuf_get_format_modifiers
 + */
-+struct wayland_dmabuf_format *wayland_dmabuf_find_format(struct wayland_dmabuf *dmabuf,
-+                                                         uint32_t format)
++size_t wayland_dmabuf_get_format_modifiers(struct wayland_dmabuf *dmabuf, uint32_t format,
++                                           dev_t render_dev, uint64_t **modifiers)
 +{
-+    uint32_t dmabuf_version =
-+        wl_proxy_get_version((struct wl_proxy *)dmabuf->zwp_linux_dmabuf_v1);
-+    struct wayland_dmabuf_format *dmabuf_format = NULL;
++    struct wayland_dmabuf_format *dmabuf_format =
++        dmabuf_get_format_from_optimal_tranche(dmabuf, format, render_dev, NULL);
 +
-+    if (dmabuf_version >= ZWP_LINUX_DMABUF_V1_GET_DEFAULT_FEEDBACK_SINCE_VERSION)
-+    {
-+        struct wayland_dmabuf_feedback_tranche *tranche;
++    if (!dmabuf_format || !dmabuf_format_supports_modifiers(dmabuf_format))
++        return 0;
 +
-+        wl_array_for_each(tranche, &dmabuf->feedback.tranches)
-+        {
-+            if ((dmabuf_format = dmabuf_format_array_find_format(&tranche->formats, format)))
-+                break;
-+        }
-+    }
-+    else
-+    {
-+        dmabuf_format = dmabuf_format_array_find_format(&dmabuf->formats, format);
-+    }
++    *modifiers = dmabuf_format->modifiers.data;
 +
-+    return dmabuf_format;
++    return dmabuf_format->modifiers.size / sizeof(uint64_t);
 +}
 +
 +/***********************************************************************
-+ *           wayland_dmabuf_format_supports_modifiers
++ *           wayland_dmabuf_is_format_scanoutable
 + */
-+BOOL wayland_dmabuf_format_supports_modifiers(struct wayland_dmabuf_format *format)
++BOOL wayland_dmabuf_is_format_scanoutable(struct wayland_dmabuf *dmabuf, uint32_t format,
++                                          dev_t render_dev)
 +{
-+    uint64_t *mod;
-+    uint32_t num_modifiers;
++    struct wayland_dmabuf_feedback_tranche *tranche;
 +
-+    num_modifiers = format->modifiers.size / sizeof(uint64_t);
++    if (!dmabuf_get_format_from_optimal_tranche(dmabuf, format, render_dev, &tranche) ||
++        !tranche)
++        return FALSE;
 +
-+    if (num_modifiers == 0) return FALSE;
++    return tranche->flags & ZWP_LINUX_DMABUF_FEEDBACK_V1_TRANCHE_FLAGS_SCANOUT;
++}
 +
-+    if (num_modifiers == 1)
-+    {
-+        mod = (uint64_t *) format->modifiers.data;
-+        if (*mod == DRM_FORMAT_MOD_INVALID) return FALSE;
-+    }
-+
-+    return TRUE;
++/***********************************************************************
++ *           wayland_dmabuf_is_format_supported
++ */
++BOOL wayland_dmabuf_is_format_supported(struct wayland_dmabuf *dmabuf, uint32_t format, dev_t render_dev)
++{
++    return dmabuf_get_format_from_optimal_tranche(dmabuf, format, render_dev, NULL) != NULL;
 +}
 +
 +/**********************************************************************
@@ -13504,10 +13641,10 @@ index 00000000000..34277d5f9c5
 +}
 diff --git a/dlls/winewayland.drv/wayland_output.c b/dlls/winewayland.drv/wayland_output.c
 new file mode 100644
-index 00000000000..15d705abe97
+index 00000000000..e5ef5346d76
 --- /dev/null
 +++ b/dlls/winewayland.drv/wayland_output.c
-@@ -0,0 +1,636 @@
+@@ -0,0 +1,676 @@
 +/*
 + * Wayland output handling
 + *
@@ -13720,79 +13857,119 @@ index 00000000000..15d705abe97
 +    }
 +}
 +
-+static struct wayland_output **
-+wayland_output_array_append(struct wayland_output **array, int size,
-+                            struct wayland_output *output)
++static int wayland_output_cmp_x(struct wayland_output *a, struct wayland_output *b)
 +{
-+    struct wayland_output **realloc_array;
++    if (a->logical_x < b->logical_x) return -1;
++    if (a->logical_x > b->logical_x) return 1;
++    if (a->logical_y < b->logical_y) return -1;
++    if (a->logical_y > b->logical_y) return 1;
++    return 0;
++}
 +
-+    realloc_array = realloc(array, sizeof(*array) * size);
-+    if (!realloc_array)
++static int wayland_output_cmp_y(struct wayland_output *a, struct wayland_output *b)
++{
++    if (a->logical_y < b->logical_y) return -1;
++    if (a->logical_y > b->logical_y) return 1;
++    if (a->logical_x < b->logical_x) return -1;
++    if (a->logical_x > b->logical_x) return 1;
++    return 0;
++}
++
++static struct wayland_output** wayland_output_list_sorted(struct wl_list *output_list,
++                                                          int (*cmp)(struct wayland_output *,
++                                                                     struct wayland_output *))
++{
++    int num_outputs = wl_list_length(output_list);
++    int num_sorted = 0;
++    struct wayland_output **sorted;
++    struct wayland_output *o;
++
++    sorted = malloc(sizeof(*sorted) * (num_outputs + 1));
++    if (!sorted)
 +    {
-+        free(array);
++        ERR("Couldn't allocate space for sorted outputs\n");
 +        return NULL;
 +    }
 +
-+    realloc_array[size - 1] = output;
++    wl_list_for_each(o, output_list, link)
++    {
++        int j = num_sorted;
++        while (j > 0 && cmp(o, sorted[j - 1]) < 0)
++        {
++            sorted[j] = sorted[j - 1];
++            j--;
++        }
++        sorted[j] = o;
++        num_sorted++;
++    }
 +
-+    return realloc_array;
++    sorted[num_outputs] = NULL;
++    return sorted;
 +}
 +
-+static void wayland_output_update_physical_coords(struct wayland_output *output)
++static void wayland_output_list_update_physical_coords(struct wl_list *output_list)
 +{
-+    struct wayland_output *o;
-+    struct wayland_output **changed = NULL;
-+    int changed_size = 0;
-+    int changed_i = 0;
++    struct wayland_output **sorted_x, **sorted_y;
++    struct wayland_output **cur_p, **prev_p;
++    struct wayland_output *cur, *prev;
 +
-+    /* Set some default values. */
-+    output->x = output->logical_x;
-+    output->y = output->logical_y;
++    /* Set default physical coordinates. */
++    wl_list_for_each(cur, output_list, link)
++    {
++        cur->x = cur->logical_x;
++        cur->y = cur->logical_y;
++    }
 +
 +    /* When compositor scaling is used, we treat logical coordinates as
 +     * physical. */
 +    if (option_hidpi_scaling == WAYLAND_HIDPI_SCALING_COMPOSITOR)
 +        return;
 +
-+    /* Update output->x,y based on other outputs that are to
-+     * to the left or above. */
-+    wl_list_for_each(o, &output->wayland->output_list, link)
-+    {
-+        if (o == output || o->logical_w == 0 || o->logical_h == 0) continue;
-+        if (output->logical_x == o->logical_x + o->logical_w)
-+            output->x = o->x + o->current_mode->width;
-+        if (output->logical_y == o->logical_y + o->logical_h)
-+            output->y = o->y + o->current_mode->height;
-+    }
++    /* Sort and process the outputs from left to right. */
++    cur_p = sorted_x = wayland_output_list_sorted(output_list, wayland_output_cmp_x);
++    if (!sorted_x) return;
 +
-+    changed = wayland_output_array_append(changed, ++changed_size, output);
-+    if (!changed) { ERR("memory allocation failed"); return; }
-+
-+    /* Update the x,y of other outputs that are to the right or below and are
-+     * directly or indirectly affected by the change output->x,y.
-+     */
-+    for (changed_i = 0; changed_i < changed_size; changed_i++)
++    while ((cur = *cur_p))
 +    {
-+        struct wayland_output *cur = changed[changed_i];
-+        wl_list_for_each(o, &output->wayland->output_list, link)
++        /* Update output->x based on other outputs that are to to the left. */
++        prev_p = sorted_x;
++        while ((prev = *prev_p) != cur)
 +        {
-+            if (o == cur || o->logical_w == 0 || o->logical_h == 0) continue;
-+            if (o->logical_x == cur->logical_x + cur->logical_w)
++            if (cur->logical_x == prev->logical_x + prev->logical_w)
 +            {
-+                o->x = cur->x + cur->current_mode->width;
-+                changed = wayland_output_array_append(changed, ++changed_size, o);
-+                if (!changed) { ERR("memory allocation failed"); return; }
++                int new_x = prev->x + prev->current_mode->width;
++                if (new_x > cur->x) cur->x = new_x;
 +            }
-+            if (o->logical_y == cur->logical_y + cur->logical_h)
-+            {
-+                o->y = cur->y + cur->current_mode->height;
-+                changed = wayland_output_array_append(changed, ++changed_size, o);
-+                if (!changed) { ERR("memory allocation failed"); return; }
-+            }
++            prev_p++;
 +        }
++
++        cur_p++;
 +    }
 +
-+    free(changed);
++    free(sorted_x);
++
++    /* Now sort and process the outputs from top to bottom. */
++    cur_p = sorted_y = wayland_output_list_sorted(output_list, wayland_output_cmp_y);
++    if (!sorted_y) return;
++
++    while ((cur = *cur_p))
++    {
++        /* Update output->y based on other outputs that are above. */
++        prev_p = sorted_y;
++        while ((prev = *prev_p) != cur)
++        {
++            if (cur->logical_y == prev->logical_y + prev->logical_h)
++            {
++                int new_y = prev->y + prev->current_mode->height;
++                if (new_y > cur->y) cur->y = new_y;
++            }
++            prev_p++;
++        }
++
++        cur_p++;
++    }
++
++    free(sorted_y);
 +}
 +
 +static void wayland_output_clear_modes(struct wayland_output *output)
@@ -13825,7 +14002,7 @@ index 00000000000..15d705abe97
 +    }
 +
 +    wayland_output_add_default_modes(output);
-+    wayland_output_update_physical_coords(output);
++    wayland_output_list_update_physical_coords(&output->wayland->output_list);
 +
 +    wl_list_for_each(mode, &output->mode_list, link)
 +    {
@@ -13875,7 +14052,7 @@ index 00000000000..15d705abe97
 +
 +    /* When compositor scaling is used, we don't use physical width/height
 +     * for modes and the current mode will be set based on logical width
-+     * and height (see wayland_output_handle()). */
++     * and height (see wayland_output_done()). */
 +    if (option_hidpi_scaling == WAYLAND_HIDPI_SCALING_COMPOSITOR)
 +        return;
 +
@@ -14146,10 +14323,10 @@ index 00000000000..15d705abe97
 +}
 diff --git a/dlls/winewayland.drv/wayland_pointer.c b/dlls/winewayland.drv/wayland_pointer.c
 new file mode 100644
-index 00000000000..7159dabeddb
+index 00000000000..801cc0c4dc4
 --- /dev/null
 +++ b/dlls/winewayland.drv/wayland_pointer.c
-@@ -0,0 +1,347 @@
+@@ -0,0 +1,344 @@
 +/*
 + * Wayland input handling
 + *
@@ -14198,6 +14375,7 @@ index 00000000000..7159dabeddb
 +                        wayland->pointer.focused_surface->hwnd : 0;
 +    INPUT input = {0};
 +    int screen_x, screen_y;
++    RECT screen_rect;
 +    RAWINPUT rawinput;
 +
 +    if (!focused_hwnd)
@@ -14207,6 +14385,16 @@ index 00000000000..7159dabeddb
 +                                     wl_fixed_to_double(sx),
 +                                     wl_fixed_to_double(sy),
 +                                     &screen_x, &screen_y);
++
++    /* Sometimes, due to rounding, we may end up with pointer coordinates
++     * slightly outside the target window, so bring them within bounds. */
++    if (NtUserGetWindowRect(focused_hwnd, &screen_rect))
++    {
++        if (screen_x >= screen_rect.right) screen_x = screen_rect.right - 1;
++        else if (screen_x < screen_rect.left) screen_x = screen_rect.left;
++        if (screen_y >= screen_rect.bottom) screen_y = screen_rect.bottom - 1;
++        else if (screen_y < screen_rect.top) screen_y = screen_rect.top;
++    }
 +
 +    TRACE("surface=%p hwnd=%p wayland_xy=%.2f,%.2f screen_xy=%d,%d\n",
 +          wayland->pointer.focused_surface, focused_hwnd,
@@ -14236,15 +14424,6 @@ index 00000000000..7159dabeddb
 +    pointer_handle_motion_internal(data, pointer, time, sx, sy);
 +}
 +
-+static void CALLBACK set_cursor_if_current_invalid(HWND hwnd, UINT msg,
-+                                                   UINT_PTR timer_id,
-+                                                   DWORD elapsed)
-+{
-+    TRACE("hwnd=%p\n", hwnd);
-+    NtUserKillTimer(hwnd, timer_id);
-+    wayland_set_cursor_if_current_invalid((HCURSOR)timer_id);
-+}
-+
 +static void pointer_handle_enter(void *data, struct wl_pointer *pointer,
 +                                 uint32_t serial, struct wl_surface *surface,
 +                                 wl_fixed_t sx, wl_fixed_t sy)
@@ -14259,18 +14438,13 @@ index 00000000000..7159dabeddb
 +    if (wayland_surface && wayland_surface->hwnd &&
 +        wayland_surface->wayland == wayland)
 +    {
-+        HCURSOR hcursor;
 +        TRACE("surface=%p hwnd=%p\n", wayland_surface, wayland_surface->hwnd);
 +        wayland->pointer.focused_surface = wayland_surface;
 +        wayland->pointer.enter_serial = serial;
 +        /* Invalidate the set cursor cache, so that next update is
 +         * unconditionally applied. */
-+        hcursor = wayland_invalidate_set_cursor();
-+        /* Schedule a cursor update, to ensure the current cursor is applied on
-+         * this surface, but only if the application hasn't updated the cursor
-+         * in the meantime. */
-+        NtUserSetTimer(wayland_surface->hwnd, (UINT_PTR)hcursor, USER_TIMER_MINIMUM,
-+                       set_cursor_if_current_invalid, TIMERV_DEFAULT_COALESCING);
++        wayland_invalidate_set_cursor();
++        WAYLAND_SetCursor(NtUserGetCursor());
 +        /* Handle the enter as a motion, to account for cases where the
 +         * window first appears beneath the pointer and won't get a separate
 +         * motion event. */
@@ -14499,10 +14673,10 @@ index 00000000000..7159dabeddb
 +}
 diff --git a/dlls/winewayland.drv/wayland_remote.c b/dlls/winewayland.drv/wayland_remote.c
 new file mode 100644
-index 00000000000..adc6ab902e3
+index 00000000000..4832e8a4c00
 --- /dev/null
 +++ b/dlls/winewayland.drv/wayland_remote.c
-@@ -0,0 +1,975 @@
+@@ -0,0 +1,976 @@
 +/*
 + * Wayland remote (cross-process) rendering
 + *
@@ -14770,6 +14944,7 @@ index 00000000000..adc6ab902e3
 +        goto err;
 +    }
 +
++    remote->ref = 1;
 +    remote->type = type;
 +    wl_list_init(&remote->buffer_list);
 +    wl_list_init(&remote->throttle_list);
@@ -17414,10 +17589,10 @@ index 00000000000..66ee8376b10
 +}
 diff --git a/dlls/winewayland.drv/waylanddrv.h b/dlls/winewayland.drv/waylanddrv.h
 new file mode 100644
-index 00000000000..a80603c7bbe
+index 00000000000..0f4f6c147dc
 --- /dev/null
 +++ b/dlls/winewayland.drv/waylanddrv.h
-@@ -0,0 +1,832 @@
+@@ -0,0 +1,831 @@
 +/*
 + * Wayland driver
 + *
@@ -17476,8 +17651,6 @@ index 00000000000..a80603c7bbe
 +
 +extern struct wl_display *process_wl_display DECLSPEC_HIDDEN;
 +extern struct gbm_device *process_gbm_device DECLSPEC_HIDDEN;
-+extern NTSTATUS (WINAPI *pNtWaitForMultipleObjects)(ULONG,const HANDLE*,BOOLEAN,
-+                                                    BOOLEAN,const LARGE_INTEGER*) DECLSPEC_HIDDEN;
 +extern const struct user_driver_funcs waylanddrv_funcs DECLSPEC_HIDDEN;
 +extern char *option_drm_device DECLSPEC_HIDDEN;
 +extern enum wayland_hidpi_scaling option_hidpi_scaling DECLSPEC_HIDDEN;
@@ -17833,7 +18006,7 @@ index 00000000000..a80603c7bbe
 +
 +static inline struct wayland_thread_data *wayland_thread_data(void)
 +{
-+    return NtUserGetThreadInfo()->driver_data;
++    return (struct wayland_thread_data *)(UINT_PTR)NtUserGetThreadInfo()->driver_data;
 +}
 +
 +static inline struct wayland *thread_init_wayland(void)
@@ -17987,9 +18160,9 @@ index 00000000000..a80603c7bbe
 +void wayland_dmabuf_init(struct wayland_dmabuf *dmabuf,
 +                         struct zwp_linux_dmabuf_v1 *zwp_linux_dmabuf_v1) DECLSPEC_HIDDEN;
 +void wayland_dmabuf_deinit(struct wayland_dmabuf *dmabuf) DECLSPEC_HIDDEN;
-+struct wayland_dmabuf_format *wayland_dmabuf_find_format(struct wayland_dmabuf *dmabuf,
-+                                                         uint32_t format) DECLSPEC_HIDDEN;
-+BOOL wayland_dmabuf_format_supports_modifiers(struct wayland_dmabuf_format *format) DECLSPEC_HIDDEN;
++BOOL wayland_dmabuf_is_format_supported(struct wayland_dmabuf *dmabuf, uint32_t format, dev_t render_dev) DECLSPEC_HIDDEN;
++size_t wayland_dmabuf_get_format_modifiers(struct wayland_dmabuf *dmabuf, uint32_t format, dev_t render_dev, uint64_t **modifiers) DECLSPEC_HIDDEN;
++BOOL wayland_dmabuf_is_format_scanoutable(struct wayland_dmabuf *dmabuf, uint32_t format, dev_t render_dev) DECLSPEC_HIDDEN;
 +struct wayland_dmabuf_buffer *wayland_dmabuf_buffer_create_from_native(struct wayland *wayland,
 +                                                                       struct wayland_native_buffer *native) DECLSPEC_HIDDEN;
 +void wayland_dmabuf_buffer_destroy(struct wayland_dmabuf_buffer *dmabuf_buffer) DECLSPEC_HIDDEN;
@@ -18048,14 +18221,14 @@ index 00000000000..a80603c7bbe
 +void wayland_pointer_update_cursor_from_win32(struct wayland_pointer *pointer,
 +                                              HCURSOR handle) DECLSPEC_HIDDEN;
 +BOOL wayland_init_set_cursor(void) DECLSPEC_HIDDEN;
-+HCURSOR wayland_invalidate_set_cursor(void) DECLSPEC_HIDDEN;
-+void wayland_set_cursor_if_current_invalid(HCURSOR hcursor) DECLSPEC_HIDDEN;
++void wayland_invalidate_set_cursor(void) DECLSPEC_HIDDEN;
 +
 +/**********************************************************************
 + *          GBM support
 + */
 +
 +BOOL wayland_gbm_init(void) DECLSPEC_HIDDEN;
++dev_t wayland_gbm_get_render_dev(void) DECLSPEC_HIDDEN;
 +
 +/**********************************************************************
 + *          OpenGL support
@@ -18206,6 +18379,7 @@ index 00000000000..a80603c7bbe
 +BOOL WAYLAND_CreateWindow(HWND hwnd) DECLSPEC_HIDDEN;
 +void WAYLAND_DestroyWindow(HWND hwnd) DECLSPEC_HIDDEN;
 +BOOL WAYLAND_EnumDisplaySettingsEx(LPCWSTR name, DWORD n, LPDEVMODEW devmode, DWORD flags) DECLSPEC_HIDDEN;
++BOOL WAYLAND_GetCurrentDisplaySettings(LPCWSTR name, LPDEVMODEW devmode) DECLSPEC_HIDDEN;
 +INT WAYLAND_GetKeyNameText(LONG lparam, LPWSTR buffer, INT size) DECLSPEC_HIDDEN;
 +UINT WAYLAND_MapVirtualKeyEx(UINT code, UINT maptype, HKL hkl) DECLSPEC_HIDDEN;
 +NTSTATUS WAYLAND_MsgWaitForMultipleObjectsEx(DWORD count, const HANDLE *handles,
@@ -18252,10 +18426,10 @@ index 00000000000..a80603c7bbe
 +#endif /* __WINE_WAYLANDDRV_H */
 diff --git a/dlls/winewayland.drv/waylanddrv_dll.h b/dlls/winewayland.drv/waylanddrv_dll.h
 new file mode 100644
-index 00000000000..f46eab3612d
+index 00000000000..21a61898db3
 --- /dev/null
 +++ b/dlls/winewayland.drv/waylanddrv_dll.h
-@@ -0,0 +1,38 @@
+@@ -0,0 +1,37 @@
 +/*
 + * Wayland driver DLL definitions
 + *
@@ -18285,9 +18459,8 @@ index 00000000000..f46eab3612d
 +
 +#include "unixlib.h"
 +
-+/* FIXME: Use __wine_unix_call instead */
-+extern NTSTATUS (CDECL *waylanddrv_unix_call)(enum waylanddrv_unix_func func, void *params) DECLSPEC_HIDDEN;
-+#define WAYLANDDRV_UNIX_CALL(func, params) waylanddrv_unix_call(waylanddrv_unix_func_ ## func, params)
++extern unixlib_handle_t waylanddrv_handle DECLSPEC_HIDDEN;
++#define WAYLANDDRV_UNIX_CALL(func, params) __wine_unix_call(waylanddrv_handle, waylanddrv_unix_func_ ## func, params)
 +extern BOOL option_show_systray DECLSPEC_HIDDEN;
 +
 +NTSTATUS WINAPI waylanddrv_client_create_clipboard_window(void *arg, ULONG size);
@@ -18296,10 +18469,10 @@ index 00000000000..f46eab3612d
 +#endif /* __WINE_WAYLANDDRV_DLL_H */
 diff --git a/dlls/winewayland.drv/waylanddrv_main.c b/dlls/winewayland.drv/waylanddrv_main.c
 new file mode 100644
-index 00000000000..9e291394b82
+index 00000000000..f538ec0ab83
 --- /dev/null
 +++ b/dlls/winewayland.drv/waylanddrv_main.c
-@@ -0,0 +1,225 @@
+@@ -0,0 +1,207 @@
 +/*
 + * WAYLANDDRV initialization code
 + *
@@ -18338,16 +18511,6 @@ index 00000000000..9e291394b82
 +
 +WINE_DEFAULT_DEBUG_CHANNEL(waylanddrv);
 +WINE_DECLARE_DEBUG_CHANNEL(winediag);
-+
-+/* We use use pointer to call NtWaitForMultipleObjects to make it go through
-+ * syscall dispatcher. We need that because win32u bypasses syscall thunks and
-+ * if we called NtWaitForMultipleObjects directly, it wouldn't be able to handle
-+ * user APCs. This will be removed as soon as we may use syscall interface
-+ * for NtUserMsgWaitForMultipleObjectsEx. */
-+NTSTATUS (WINAPI *pNtWaitForMultipleObjects)(ULONG, const HANDLE *, BOOLEAN,
-+                                             BOOLEAN, const LARGE_INTEGER*);
-+
-+static NTSTATUS CDECL waylanddrv_unix_call(enum waylanddrv_unix_func func, void *params);
 +
 +static void set_queue_fd(struct wayland *wayland)
 +{
@@ -18403,7 +18566,7 @@ index 00000000000..9e291394b82
 +    }
 +
 +    set_queue_fd(&data->wayland);
-+    NtUserGetThreadInfo()->driver_data = data;
++    NtUserGetThreadInfo()->driver_data = (UINT_PTR)data;
 +
 +    /* Create the clipboard window outside of thread init. We delay window
 +     * creation since the thread init function may be invoked from within the
@@ -18428,7 +18591,7 @@ index 00000000000..9e291394b82
 +        wayland_deinit(&data->wayland);
 +        free(data);
 +        /* clear data in case we get re-entered from user32 before the thread is truly dead */
-+        NtUserGetThreadInfo()->driver_data = NULL;
++        NtUserGetThreadInfo()->driver_data = 0;
 +    }
 +}
 +
@@ -18445,6 +18608,7 @@ index 00000000000..9e291394b82
 +    .pCreateWindow = WAYLAND_CreateWindow,
 +    .pDestroyWindow = WAYLAND_DestroyWindow,
 +    .pEnumDisplaySettingsEx = WAYLAND_EnumDisplaySettingsEx,
++    .pGetCurrentDisplaySettings = WAYLAND_GetCurrentDisplaySettings,
 +    .pGetKeyNameText = WAYLAND_GetKeyNameText,
 +    .pMapVirtualKeyEx = WAYLAND_MapVirtualKeyEx,
 +    .pMsgWaitForMultipleObjectsEx = WAYLAND_MsgWaitForMultipleObjectsEx,
@@ -18471,8 +18635,6 @@ index 00000000000..9e291394b82
 +{
 +    struct waylanddrv_unix_init_params *params = arg;
 +
-+    pNtWaitForMultipleObjects = params->pNtWaitForMultipleObjects;
-+
 +    __wine_set_user_driver(&waylanddrv_funcs, WINE_GDI_DRIVER_VERSION);
 +
 +    wayland_read_options_from_registry();
@@ -18483,7 +18645,6 @@ index 00000000000..9e291394b82
 +
 +    if (!wayland_process_init()) return STATUS_UNSUCCESSFUL;
 +
-+    params->unix_call = waylanddrv_unix_call;
 +    params->option_show_systray = option_show_systray;
 +
 +    return 0;
@@ -18508,12 +18669,6 @@ index 00000000000..9e291394b82
 +};
 +
 +C_ASSERT(ARRAYSIZE(__wine_unix_call_funcs) == waylanddrv_unix_func_count);
-+
-+/* FIXME: Use __wine_unix_call instead */
-+static NTSTATUS CDECL waylanddrv_unix_call(enum waylanddrv_unix_func func, void *params)
-+{
-+    return __wine_unix_call_funcs[func](params);
-+}
 +
 +/***********************************************************************
 + *           waylanddrv_client_call
@@ -21078,7 +21233,7 @@ index 00000000000..475af4b5bd6
 +    return utf8_len;
 +}
 diff --git a/include/config.h.in b/include/config.h.in
-index de1bf6c61eb..58f7ec6c3fd 100644
+index de1bf6c61eb..d107b581c47 100644
 --- a/include/config.h.in
 +++ b/include/config.h.in
 @@ -53,6 +53,9 @@
@@ -21091,17 +21246,21 @@ index de1bf6c61eb..58f7ec6c3fd 100644
  /* Define to 1 if you have the <EGL/egl.h> header file. */
  #undef HAVE_EGL_EGL_H
  
-@@ -89,6 +92,9 @@
+@@ -89,6 +92,13 @@
  /* Define to 1 if you have the `futimesat' function. */
  #undef HAVE_FUTIMESAT
  
 +/* Define to 1 if you have the <gbm.h> header file. */
 +#undef HAVE_GBM_H
 +
++/* Define to 1 if you have the `gbm_surface_create_with_modifiers2' function.
++   */
++#undef HAVE_GBM_SURFACE_CREATE_WITH_MODIFIERS2
++
  /* Define to 1 if you have the `getaddrinfo' function. */
  #undef HAVE_GETADDRINFO
  
-@@ -700,6 +706,12 @@
+@@ -700,6 +710,12 @@
  /* Define to 1 if you have the <valgrind/valgrind.h> header file. */
  #undef HAVE_VALGRIND_VALGRIND_H
  
@@ -21114,7 +21273,7 @@ index de1bf6c61eb..58f7ec6c3fd 100644
  /* Define to 1 if you have the <X11/extensions/shape.h> header file. */
  #undef HAVE_X11_EXTENSIONS_SHAPE_H
  
-@@ -754,6 +766,9 @@
+@@ -754,6 +770,9 @@
  /* Define if you have the XKB extension */
  #undef HAVE_XKB
  
@@ -21125,7 +21284,7 @@ index de1bf6c61eb..58f7ec6c3fd 100644
  #undef HAVE_XRENDERCREATELINEARGRADIENT
  
 diff --git a/include/wine/gdi_driver.h b/include/wine/gdi_driver.h
-index 58b6aa9f0b8..23f3fff1372 100644
+index 0ba4851a2c3..ad793d03f3b 100644
 --- a/include/wine/gdi_driver.h
 +++ b/include/wine/gdi_driver.h
 @@ -217,6 +217,7 @@ struct window_surface
