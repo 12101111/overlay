@@ -9,7 +9,7 @@ if [[ "${PV}" == 9999 ]]; then
 	inherit git-r3
 	EGIT_REPO_URI="https://github.com/joncampbell123/dosbox-x.git"
 else
-	SRC_URI="https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-windows-v${PV}.tar.gz"
+	SRC_URI="https://github.com/joncampbell123/dosbox-x/archive/dosbox-x-v${PV}.tar.gz"
 	S="${WORKDIR}/${PN}-${PN}-windows-v${PV}"
 	KEYWORDS="~amd64"
 fi
