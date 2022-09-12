@@ -1,24 +1,24 @@
-From b8df5bbd108675724a2f56f39970cdea5398f340 Mon Sep 17 00:00:00 2001
+From edd8b549cb0c5e7cc57293457a341d0e71f76cef Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 6 May 2022 14:45:56 +0800
-Subject: [PATCH 05/12] Don't download bundle marketplace extensions in gulp
+Date: Sun, 11 Sep 2022 00:02:36 +0800
+Subject: [PATCH 05/13] Don't download bundle marketplace extensions in gulp
 
 ---
  build/gulpfile.extensions.js | 1 -
  1 file changed, 1 deletion(-)
 
 diff --git a/build/gulpfile.extensions.js b/build/gulpfile.extensions.js
-index a07071e345d..bdd5ad970c7 100644
+index 04132cd4400..ddc01adba67 100644
 --- a/build/gulpfile.extensions.js
 +++ b/build/gulpfile.extensions.js
-@@ -236,7 +236,6 @@ const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimr
+@@ -236,7 +236,6 @@ exports.compileExtensionMediaBuildTask = compileExtensionMediaBuildTask;
+ const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimraf('.build/extensions'));
  const compileExtensionsBuildTask = task.define('compile-extensions-build', task.series(
  	cleanExtensionsBuildTask,
+-	task.define('bundle-marketplace-extensions-build', () => ext.packageMarketplaceExtensionsStream(false).pipe(gulp.dest('.build'))),
  	task.define('bundle-extensions-build', () => ext.packageLocalExtensionsStream(false).pipe(gulp.dest('.build'))),
--	task.define('bundle-marketplace-extensions-build', () => ext.packageMarketplaceExtensionsStream(false, product.extensionsGallery?.serviceUrl).pipe(gulp.dest('.build'))),
  ));
  
- gulp.task(compileExtensionsBuildTask);
 -- 
-2.35.1
+2.37.3
 
