@@ -16,7 +16,7 @@ if [[ ${PV} = *_rc* ]]; then
 	SRC_URI="mirror://samba/rc/${MY_P}.tar.gz"
 else
 	SRC_URI="mirror://samba/stable/${MY_P}.tar.gz"
-	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~ppc ~ppc64 ~riscv ~sparc ~x86"
+	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 fi
 S="${WORKDIR}/${MY_P}"
 
@@ -143,6 +143,8 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.4.0-pam.patch"
 	"${FILESDIR}/${PN}-4.16.1-netdb-defines.patch"
 	"${FILESDIR}/${PN}-4.16.2-fix-musl-without-innetgr.patch"
+	"${FILESDIR}/ldb-2.5.2-skip-wav-tevent-check.patch"
+	"${FILESDIR}/${P}-glibc-2.36.patch"
 )
 
 #CONFDIR="${FILESDIR}/$(get_version_component_range 1-2)"
@@ -336,17 +338,4 @@ multilib_src_test() {
 
 pkg_postinst() {
 	tmpfiles_process samba.conf
-
-	if [[ -z ${REPLACING_VERSIONS} ]] ; then
-		elog "Be aware that this release contains the best of all of Samba's"
-		elog "technology parts, both a file server (that you can reasonably expect"
-		elog "to upgrade existing Samba 3.x releases to) and the AD domain"
-		elog "controller work previously known as 'samba4'."
-		elog
-	fi
-	if [[ "${PV}" != *_rc* ]] ; then
-		elog "For further information and migration steps make sure to read "
-		elog "https://samba.org/samba/history/${P}.html "
-		elog "https://wiki.samba.org/index.php/Samba4/HOWTO "
-	fi
 }
