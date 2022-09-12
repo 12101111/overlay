@@ -3,17 +3,17 @@
 
 EAPI=8
 
-KFMIN=5.90.0
+KFMIN=5.95.0
 PVCUT=$(ver_cut 1-3)
-QTMIN=5.15.2
-inherit ecm kde.org
+QTMIN=5.15.5
+inherit ecm plasma.kde.org
 
 DESCRIPTION="Breeze visual style for the Plasma desktop"
 HOMEPAGE="https://invent.kde.org/plasma/breeze"
 
 LICENSE="GPL-2" # TODO: CHECK
 SLOT="5"
-KEYWORDS="amd64 ~arm arm64 ~ppc64 ~riscv x86"
+KEYWORDS="~amd64 ~arm64"
 IUSE="X kde"
 
 RDEPEND="
