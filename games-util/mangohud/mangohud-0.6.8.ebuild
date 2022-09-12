@@ -53,7 +53,7 @@ DEPEND="
 		xnvctrl? ( x11-drivers/nvidia-drivers[static-libs] )
 	)
 	wayland? ( dev-libs/wayland )
-	gamescope? ( games-util/gamescope )
+	gamescope? ( gui-wm/gamescope )
 "
 
 RDEPEND="${DEPEND}"
