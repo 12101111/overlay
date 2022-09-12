@@ -1,7 +1,7 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit cmake xdg-utils git-r3
 
@@ -26,7 +26,6 @@ DEPEND="
 	dev-qt/qtwebengine:5[widgets]
 	dev-qt/qtwidgets:5
 	dev-qt/qtx11extras:5
-	kde-frameworks/extra-cmake-modules:5
 	x11-libs/libX11
 	x11-libs/libxcb:=
 	>=x11-libs/xcb-util-keysyms-0.3.9
@@ -34,6 +33,7 @@ DEPEND="
 RDEPEND="${DEPEND}
 	x11-themes/hicolor-icon-theme
 "
+BDEPEND="kde-frameworks/extra-cmake-modules:5"
 
 PATCHES=(
 	"${FILESDIR}/0002-settings-disable-checking-for-updates-by-default.patch"
