@@ -35,12 +35,18 @@ fi
 
 DESCRIPTION="Light, fast and simple C library focused on standards-conformance and safety"
 HOMEPAGE="https://musl.libc.org"
+
 LICENSE="MIT LGPL-2 GPL-2"
 SLOT="0"
-IUSE="headers-only"
+IUSE="crypt headers-only"
 
 QA_SONAME="/usr/lib/libc.so"
 QA_DT_NEEDED="/usr/lib/libc.so"
+
+RDEPEND="
+	crypt? ( !sys-libs/libxcrypt[system] )
+	!crypt? ( sys-libs/libxcrypt[system] )
+"
 
 PATCHES=(
 	"${FILESDIR}"/musl-1.2.2-gethostid.patch
@@ -143,6 +149,12 @@ src_install() {
 	local ldso=$(basename "${ED}"${sysroot}/lib/ld-musl-*)
 	dosym ${EPREFIX}${sysroot}/lib/${ldso} ${sysroot}/usr/bin/ldd
 
+	if ! use crypt ; then
+		# Allow sys-libs/libxcrypt[system] to provide it instead
+		rm "${ED}"/usr/include/crypt.h || die
+		rm "${ED}"/usr/lib/libcrypt.a || die
+	fi
+
 	if [[ ${CATEGORY} != cross-* ]] ; then
 		# Fish out of config:
 		#   ARCH = ...
@@ -179,7 +191,7 @@ src_install() {
 pkg_postinst() {
 	is_crosscompile && return 0
 
-	[ "${ROOT}" != "/" ] && return 0
+	[ -n "${ROOT}" ] && return 0
 
 	ldconfig || die
 }
