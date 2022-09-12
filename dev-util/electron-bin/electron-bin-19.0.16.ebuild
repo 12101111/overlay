@@ -14,9 +14,8 @@ HOMEPAGE="https://www.electronjs.org/"
 
 REPO="https://github.com/electron/electron/releases/download"
 SRC_URI="
-https://atom.io/download/electron/v${PV}/node-v${PV}-headers.tar.gz -> electron-v${PV}-headers.tar.gz
+https://www.electronjs.org/headers/v${PV}/node-v${PV}-headers.tar.gz -> electron-v${PV}-headers.tar.gz
 amd64? ( ${REPO}/v${PV}/electron-v${PV}-linux-x64.zip )
-x86? ( ${REPO}/v${PV}/electron-v${PV}-linux-ia32.zip )
 arm? ( ${REPO}/v${PV}/electron-v${PV}-linux-armv7l.zip )
 arm64? ( ${REPO}/v${PV}/electron-v${PV}-linux-arm64.zip )
 "
@@ -38,6 +37,7 @@ RDEPEND="
 	x11-libs/libXtst
 	app-crypt/libsecret[crypt]
 	app-eselect/eselect-electron
+	!dev-util/electron:${SLOT}
 "
 DEPEND="${RDEPEND}"
 BDEPEND=""
