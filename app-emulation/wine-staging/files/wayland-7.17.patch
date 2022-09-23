@@ -1,5 +1,5 @@
 diff --git a/configure b/configure
-index 8104ac5f0ba..a0e5739bc6b 100755
+index e77a4c87c2c..b6df6651b41 100755
 --- a/configure
 +++ b/configure
 @@ -701,6 +701,20 @@ DBUS_CFLAGS
@@ -1005,10 +1005,10 @@ index 00000000000..d1dfa4b9a7a
 +RC_SRCS = version.rc
 diff --git a/dlls/winewayland.drv/display.c b/dlls/winewayland.drv/display.c
 new file mode 100644
-index 00000000000..735d39c28be
+index 00000000000..a4f56c5fa29
 --- /dev/null
 +++ b/dlls/winewayland.drv/display.c
-@@ -0,0 +1,453 @@
+@@ -0,0 +1,382 @@
 +/*
 + * WAYLAND display device functions
 + *
@@ -1043,6 +1043,8 @@ index 00000000000..735d39c28be
 +#include "ntuser.h"
 +
 +WINE_DEFAULT_DEBUG_CHANNEL(waylanddrv);
++
++#define NEXT_DEVMODEW(mode) ((DEVMODEW *)((char *)((mode) + 1) + (mode)->dmDriverExtra))
 +
 +static BOOL force_display_devices_refresh;
 +
@@ -1320,24 +1322,11 @@ index 00000000000..735d39c28be
 +                                                                  LPDEVMODEW devmode)
 +{
 +    struct wayland_output_mode *output_mode;
-+    DEVMODEW full_mode;
-+
-+    if (output->current_wine_mode)
-+        populate_devmode(output->current_wine_mode, &full_mode);
-+    else
-+        populate_devmode(output->current_mode, &full_mode);
-+
-+    if (devmode->dmFields & DM_PELSWIDTH)
-+        full_mode.dmPelsWidth = devmode->dmPelsWidth;
-+    if (devmode->dmFields & DM_PELSHEIGHT)
-+        full_mode.dmPelsHeight = devmode->dmPelsHeight;
-+    if (devmode->dmFields & DM_BITSPERPEL)
-+        full_mode.dmBitsPerPel = devmode->dmBitsPerPel;
 +
 +    wl_list_for_each(output_mode, &output->mode_list, link)
 +    {
-+        if (full_mode.dmPelsWidth == output_mode->width &&
-+            full_mode.dmPelsHeight == output_mode->height &&
++        if (devmode->dmPelsWidth == output_mode->width &&
++            devmode->dmPelsHeight == output_mode->height &&
 +            output_mode->bpp == 32)
 +        {
 +            return output_mode;
@@ -1347,59 +1336,26 @@ index 00000000000..735d39c28be
 +    return NULL;
 +}
 +
-+static BOOL wayland_restore_all_outputs(struct wayland *wayland)
-+{
-+    struct wayland_output *output;
-+
-+    wl_list_for_each(output, &wayland->output_list, link)
-+    {
-+        struct wayland_output_mode *output_mode = NULL;
-+        DEVMODEW devmode;
-+        UNICODE_STRING device;
-+
-+        RtlInitUnicodeString(&device, output->wine_name);
-+
-+        if (NtUserEnumDisplaySettings(&device, ENUM_REGISTRY_SETTINGS, &devmode, 0))
-+            output_mode = get_matching_output_mode_32bpp(output, &devmode);
-+        else
-+            output_mode = output->current_mode;
-+
-+        if (!output_mode)
-+            return FALSE;
-+
-+        if (output_mode != output->current_wine_mode)
-+        {
-+            wayland_output_set_wine_mode(output, output_mode->width,
-+                                         output_mode->height);
-+        }
-+    }
-+
-+    return TRUE;
-+}
-+
 +/***********************************************************************
-+ *		ChangeDisplaySettingsEx  (WAYLAND.@)
++ *		ChangeDisplaySettings  (WAYLAND.@)
 + *
 + */
-+LONG WAYLAND_ChangeDisplaySettingsEx(LPCWSTR devname, LPDEVMODEW devmode,
-+                                     HWND hwnd, DWORD flags, LPVOID lpvoid)
++LONG WAYLAND_ChangeDisplaySettings(LPDEVMODEW displays, HWND hwnd, DWORD flags,
++                                   LPVOID lpvoid)
 +{
 +    LONG ret;
 +    struct wayland *wayland = wayland_process_acquire();
 +    struct wayland_output *output;
 +    struct wayland_output_mode *output_mode;
++    DEVMODEW *devmode;
 +
-+    TRACE("(%s,%p,%p,0x%08x,%p) %dx%d@%d wayland=%p\n",
-+          debugstr_w(devname), devmode, hwnd, flags, lpvoid,
-+          devmode ? devmode->dmPelsWidth : -1,
-+          devmode ? devmode->dmPelsHeight : -1,
-+          devmode ? devmode->dmDisplayFrequency : -1, wayland);
-+
-+    if (devname && devmode)
++    for (devmode = displays; devmode->dmSize; devmode = NEXT_DEVMODEW(devmode))
 +    {
-+        DEVMODEW full_mode;
++        TRACE("device=%s devmode=%dx%d@%d\n",
++               wine_dbgstr_w(devmode->dmDeviceName), devmode->dmPelsWidth,
++               devmode->dmPelsHeight, devmode->dmDisplayFrequency);
 +
-+        output = wayland_output_get_by_wine_name(wayland, devname);
++        output = wayland_output_get_by_wine_name(wayland, devmode->dmDeviceName);
 +        if (!output)
 +        {
 +            ret = DISP_CHANGE_BADPARAM;
@@ -1413,28 +1369,11 @@ index 00000000000..735d39c28be
 +            goto out;
 +        }
 +
-+        populate_devmode(output_mode, &full_mode);
-+    }
-+
-+    /* We don't handle the CDS_UPDATEREGISTRY flag here, it is handled by win32u. */
-+
-+    if (flags & (CDS_TEST | CDS_NORESET))
-+    {
-+        ret = DISP_CHANGE_SUCCESSFUL;
-+        goto out;
-+    }
-+
-+    if (devname && devmode)
-+    {
 +        wayland_output_set_wine_mode(output, output_mode->width, output_mode->height);
-+    }
-+    else
-+    {
-+        if (!wayland_restore_all_outputs(wayland))
-+        {
-+            ret = DISP_CHANGE_BADMODE;
-+            goto out;
-+        }
++
++        TRACE("output=%s (%s) set current wine mode %dx%d wine_scale %f\n",
++              output->name, wine_dbgstr_w(output->wine_name),
++              output_mode->width, output_mode->height, output->wine_scale);
 +    }
 +
 +    wayland_refresh_display_devices();
@@ -1445,16 +1384,6 @@ index 00000000000..735d39c28be
 +
 +    wayland_notify_wine_monitor_change();
 +    wayland_broadcast_wm_display_change();
-+
-+    if (devname && devmode)
-+    {
-+        TRACE("set current wine mode %dx%d wine_scale %f\n",
-+              output_mode->width, output_mode->height, output->wine_scale);
-+    }
-+    else
-+    {
-+        TRACE("restored all outputs to registry (or native) settings\n");
-+    }
 +
 +    return DISP_CHANGE_SUCCESSFUL;
 +
@@ -7503,10 +7432,10 @@ index 00000000000..c2a424e947a
 +}
 diff --git a/dlls/winewayland.drv/wayland_cursor.c b/dlls/winewayland.drv/wayland_cursor.c
 new file mode 100644
-index 00000000000..a1a6364951d
+index 00000000000..9dbaacf5579
 --- /dev/null
 +++ b/dlls/winewayland.drv/wayland_cursor.c
-@@ -0,0 +1,687 @@
+@@ -0,0 +1,704 @@
 +/*
 + * Wayland cursor handling
 + *
@@ -7811,6 +7740,23 @@ index 00000000000..a1a6364951d
 +            for (j = 0; j < bm.bmWidth; j++, ptr++)
 +                if (!((mask_bits[i * width_bytes + j / 8] << (j % 8)) & 0x80)) *ptr |= 0xff000000;
 +        free(mask_bits);
++    }
++
++    /* Wayland requires pre-multiplied alpha values */
++    for (ptr = bits, i = 0; i < bm.bmWidth * bm.bmHeight; ptr++, i++)
++    {
++        unsigned char alpha = *ptr >> 24;
++        if (alpha == 0)
++        {
++            *ptr = 0;
++        }
++        else if (alpha != 255)
++        {
++            *ptr = (alpha << 24) |
++                   (((BYTE)(*ptr >> 16) * alpha / 255) << 16) |
++                   (((BYTE)(*ptr >> 8) * alpha / 255) << 8) |
++                   (((BYTE)*ptr * alpha / 255));
++        }
 +    }
 +
 +    return shm_buffer;
@@ -17589,7 +17535,7 @@ index 00000000000..66ee8376b10
 +}
 diff --git a/dlls/winewayland.drv/waylanddrv.h b/dlls/winewayland.drv/waylanddrv.h
 new file mode 100644
-index 00000000000..0f4f6c147dc
+index 00000000000..17954ea17ab
 --- /dev/null
 +++ b/dlls/winewayland.drv/waylanddrv.h
 @@ -0,0 +1,831 @@
@@ -18373,8 +18319,8 @@ index 00000000000..0f4f6c147dc
 + *          USER driver functions
 + */
 +
-+LONG WAYLAND_ChangeDisplaySettingsEx(LPCWSTR devname, LPDEVMODEW devmode,
-+                                     HWND hwnd, DWORD flags, LPVOID lpvoid) DECLSPEC_HIDDEN;
++LONG WAYLAND_ChangeDisplaySettings(LPDEVMODEW devmode, HWND hwnd, DWORD flags,
++                                   LPVOID lpvoid) DECLSPEC_HIDDEN;
 +BOOL WAYLAND_ClipCursor(const RECT *clip) DECLSPEC_HIDDEN;
 +BOOL WAYLAND_CreateWindow(HWND hwnd) DECLSPEC_HIDDEN;
 +void WAYLAND_DestroyWindow(HWND hwnd) DECLSPEC_HIDDEN;
@@ -18469,7 +18415,7 @@ index 00000000000..21a61898db3
 +#endif /* __WINE_WAYLANDDRV_DLL_H */
 diff --git a/dlls/winewayland.drv/waylanddrv_main.c b/dlls/winewayland.drv/waylanddrv_main.c
 new file mode 100644
-index 00000000000..f538ec0ab83
+index 00000000000..7a5e2d1799b
 --- /dev/null
 +++ b/dlls/winewayland.drv/waylanddrv_main.c
 @@ -0,0 +1,207 @@
@@ -18603,7 +18549,7 @@ index 00000000000..f538ec0ab83
 +    .dc_funcs.pPutImage = WAYLAND_PutImage,
 +    .dc_funcs.priority = GDI_PRIORITY_GRAPHICS_DRV,
 +
-+    .pChangeDisplaySettingsEx = WAYLAND_ChangeDisplaySettingsEx,
++    .pChangeDisplaySettings = WAYLAND_ChangeDisplaySettings,
 +    .pClipCursor = WAYLAND_ClipCursor,
 +    .pCreateWindow = WAYLAND_CreateWindow,
 +    .pDestroyWindow = WAYLAND_DestroyWindow,
@@ -21284,7 +21230,7 @@ index de1bf6c61eb..d107b581c47 100644
  #undef HAVE_XRENDERCREATELINEARGRADIENT
  
 diff --git a/include/wine/gdi_driver.h b/include/wine/gdi_driver.h
-index 0ba4851a2c3..ad793d03f3b 100644
+index e1d8998d812..73a310ea45f 100644
 --- a/include/wine/gdi_driver.h
 +++ b/include/wine/gdi_driver.h
 @@ -217,6 +217,7 @@ struct window_surface
@@ -21323,10 +21269,10 @@ index 96673adc254..afa711a8dbf 100644
  static BOOL using_root;
  
 diff --git a/tools/makedep.c b/tools/makedep.c
-index b84090fef21..d6ef726c43e 100644
+index 69b4a4c660b..69228d48a68 100644
 --- a/tools/makedep.c
 +++ b/tools/makedep.c
-@@ -167,6 +167,7 @@ static const char *msgfmt;
+@@ -168,6 +168,7 @@ static const char *msgfmt;
  static const char *ln_s;
  static const char *sed_cmd;
  static const char *delay_load_flag;
@@ -21384,7 +21330,7 @@ index b84090fef21..d6ef726c43e 100644
      }
      if (make->testdll)
      {
-@@ -3002,6 +3032,15 @@ static void output_source_spec( struct makefile *make, struct incl_file *source,
+@@ -3001,6 +3031,15 @@ static void output_source_spec( struct makefile *make, struct incl_file *source,
      output( "\n" );
  }
  
@@ -21400,7 +21346,7 @@ index b84090fef21..d6ef726c43e 100644
  
  /*******************************************************************
   *         output_source_default
-@@ -3122,6 +3161,7 @@ static const struct
+@@ -3121,6 +3160,7 @@ static const struct
      { "in", output_source_in },
      { "x", output_source_x },
      { "spec", output_source_spec },
@@ -21408,7 +21354,7 @@ index b84090fef21..d6ef726c43e 100644
      { NULL, output_source_default }
  };
  
-@@ -4026,6 +4066,7 @@ static void output_silent_rules(void)
+@@ -4022,6 +4062,7 @@ static void output_silent_rules(void)
          "MSG",
          "SED",
          "TEST",
@@ -21416,7 +21362,7 @@ index b84090fef21..d6ef726c43e 100644
          "WIDL",
          "WMC",
          "WRC"
-@@ -4125,6 +4166,7 @@ static void load_sources( struct makefile *make )
+@@ -4121,6 +4162,7 @@ static void load_sources( struct makefile *make )
          "IN_SRCS",
          "PO_SRCS",
          "MANPAGES",
@@ -21424,7 +21370,7 @@ index b84090fef21..d6ef726c43e 100644
          NULL
      };
      const char **var;
-@@ -4373,6 +4415,7 @@ int main( int argc, char *argv[] )
+@@ -4374,6 +4416,7 @@ int main( int argc, char *argv[] )
      msgfmt             = get_expanded_make_variable( top_makefile, "MSGFMT" );
      sed_cmd            = get_expanded_make_variable( top_makefile, "SED_CMD" );
      ln_s               = get_expanded_make_variable( top_makefile, "LN_S" );

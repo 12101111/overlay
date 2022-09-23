@@ -1,0 +1,100 @@
+diff --git a/configure b/configure
+index d596b720754..233cbd4cfe7 100755
+--- a/configure
++++ b/configure
+@@ -10493,14 +10493,14 @@ fi
+ 
+     case $host_cpu in
+       *i[3456789]86* | x86_64 | *aarch64* | arm*)
+-        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler supports -Wl,-Ttext-segment=0x7bc00000" >&5
+-printf %s "checking whether the compiler supports -Wl,-Ttext-segment=0x7bc00000... " >&6; }
++        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler supports -Wl,--image-base=0x7bc00000" >&5
++printf %s "checking whether the compiler supports -Wl,--image-base=0x7bc00000... " >&6; }
+ if test ${ac_cv_cflags__Wl__Ttext_segment_0x7bc00000+y}
+ then :
+   printf %s "(cached) " >&6
+ else $as_nop
+   ac_wine_try_cflags_saved=$CFLAGS
+-CFLAGS="$CFLAGS -Wl,-Ttext-segment=0x7bc00000"
++CFLAGS="$CFLAGS -Wl,--image-base=0x7bc00000"
+ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ /* end confdefs.h.  */
+ int main(int argc, char **argv) { return 0; }
+@@ -10520,8 +10520,8 @@ printf "%s\n" "$ac_cv_cflags__Wl__Ttext_segment_0x7bc00000" >&6; }
+ if test "x$ac_cv_cflags__Wl__Ttext_segment_0x7bc00000" = xyes
+ then :
+   case $host_os in
+-                         freebsd* | kfreebsd*-gnu) WINELOADER_LDFLAGS="$WINELOADER_LDFLAGS -Wl,-Ttext-segment=0x60000000" ;;
+-                         *) WINELOADER_LDFLAGS="$WINELOADER_LDFLAGS -Wl,-Ttext-segment=0x7d000000" ;;
++                         freebsd* | kfreebsd*-gnu) WINELOADER_LDFLAGS="$WINELOADER_LDFLAGS -Wl,--image-base=0x60000000" ;;
++                         *) WINELOADER_LDFLAGS="$WINELOADER_LDFLAGS -Wl,--image-base=0x7d000000" ;;
+                          esac
+ else $as_nop
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler supports -Wl,--section-start,.interp=0x7d000400" >&5
+diff --git a/configure.ac b/configure.ac
+index 00245cde99e..f14384de294 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -832,10 +832,10 @@ case $host_os in
+ 
+     case $host_cpu in
+       *i[[3456789]]86* | x86_64 | *aarch64* | arm*)
+-        WINE_TRY_CFLAGS([-Wl,-Ttext-segment=0x7bc00000],
++        WINE_TRY_CFLAGS([-Wl,--image-base=0x7bc00000],
+                         [case $host_os in
+-                         freebsd* | kfreebsd*-gnu) WINELOADER_LDFLAGS="$WINELOADER_LDFLAGS -Wl,-Ttext-segment=0x60000000" ;;
+-                         *) WINELOADER_LDFLAGS="$WINELOADER_LDFLAGS -Wl,-Ttext-segment=0x7d000000" ;;
++                         freebsd* | kfreebsd*-gnu) WINELOADER_LDFLAGS="$WINELOADER_LDFLAGS -Wl,--image-base=0x60000000" ;;
++                         *) WINELOADER_LDFLAGS="$WINELOADER_LDFLAGS -Wl,--image-base=0x7d000000" ;;
+                          esac],
+                         [WINE_TRY_CFLAGS([-Wl,--section-start,.interp=0x7d000400],
+                                          [case $host_os in
+diff --git a/tools/winebuild/spec32.c b/tools/winebuild/spec32.c
+index c09e58084cc..56baf261a43 100644
+--- a/tools/winebuild/spec32.c
++++ b/tools/winebuild/spec32.c
+@@ -635,30 +635,10 @@ void output_module( DLLSPEC *spec )
+         output( "\t.space 65536\n" );
+         break;
+     case PLATFORM_SOLARIS:
+-        output( "\n\t.section \".text\",\"ax\"\n" );
+-        output( "__wine_spec_pe_header:\n" );
+-        output( "\t.skip %u\n", 65536 + page_size );
+-        break;
+     default:
+-        switch (target.cpu)
+-        {
+-        case CPU_i386:
+-        case CPU_x86_64:
+-            output( "\n\t.section \".init\",\"ax\"\n" );
+-            output( "\tjmp 1f\n" );
+-            break;
+-        case CPU_ARM:
+-            output( "\n\t.section \".text\",\"ax\"\n" );
+-            output( "\tb 1f\n" );
+-            break;
+-        case CPU_ARM64:
+-            output( "\n\t.section \".init\",\"ax\"\n" );
+-            output( "\tb 1f\n" );
+-            break;
+-        }
++        output( "\n\t.section \".text\",\"ax\"\n" );
+         output( "__wine_spec_pe_header:\n" );
+         output( "\t.skip %u\n", 65536 + page_size );
+-        output( "1:\n" );
+         break;
+     }
+ 
+diff --git a/tools/winegcc/winegcc.c b/tools/winegcc/winegcc.c
+index ab26adb07e8..50f7ccd2b7a 100644
+--- a/tools/winegcc/winegcc.c
++++ b/tools/winegcc/winegcc.c
+@@ -517,6 +517,8 @@ static struct strarray get_link_args( struct options *opts, const char *output_n
+         {
+             if (!try_link( opts->prefix, link_args, strmake("-Wl,-Ttext-segment=%s", opts->image_base)) )
+                 strarray_add( &flags, strmake("-Wl,-Ttext-segment=%s", opts->image_base) );
++            else if (!try_link( opts->prefix, link_args, strmake("-Wl,--image-base=%s", opts->image_base)) )
++		        strarray_add( &flags, strmake("-Wl,--image-base=%s", opts->image_base) );
+             else
+                 opts->prelink = PRELINK;
+         }
