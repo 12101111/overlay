@@ -40,13 +40,23 @@ LICENSE="MIT LGPL-2 GPL-2"
 SLOT="0"
 IUSE="crypt headers-only"
 
-QA_SONAME="/usr/lib/libc.so"
-QA_DT_NEEDED="/usr/lib/libc.so"
+QA_SONAME="usr/lib/libc.so"
+QA_DT_NEEDED="usr/lib/libc.so"
+# bug #830213
+QA_PRESTRIPPED="usr/lib/crtn.o"
 
-RDEPEND="
-	crypt? ( !sys-libs/libxcrypt[system] )
-	!crypt? ( sys-libs/libxcrypt[system] )
-"
+# We want crypt on by default for this as sys-libs/libxcrypt isn't (yet?)
+# built as part as crossdev. Also, elide the blockers when in cross-*,
+# as it doesn't make sense to block the normal CBUILD libxcrypt at all
+# there when we're installing into /usr/${CHOST} anyway.
+if [[ ${CATEGORY} == cross-* ]] ; then
+	IUSE="${IUSE/crypt/+crypt}"
+else
+	RDEPEND="
+		crypt? ( !sys-libs/libxcrypt[system] )
+		!crypt? ( sys-libs/libxcrypt[system] )
+	"
+fi
 
 PATCHES=(
 	"${FILESDIR}"/musl-1.2.2-gethostid.patch
@@ -151,8 +161,8 @@ src_install() {
 
 	if ! use crypt ; then
 		# Allow sys-libs/libxcrypt[system] to provide it instead
-		rm "${ED}"/usr/include/crypt.h || die
-		rm "${ED}"/usr/lib/libcrypt.a || die
+		rm "${ED}/usr/include/crypt.h" || die
+		rm "${ED}/usr/$(get_libdir)/libcrypt.a" || die
 	fi
 
 	if [[ ${CATEGORY} != cross-* ]] ; then
