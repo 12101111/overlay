@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-104-patches-02j.tar.xz"
+FIREFOX_PATCHSET="firefox-105-patches-01j.tar.xz"
 
 LLVM_MAX_SLOT=14
 
@@ -89,7 +89,7 @@ BDEPEND="${PYTHON_DEPS}
 	>=dev-util/cbindgen-0.24.3
 	net-libs/nodejs
 	virtual/pkgconfig
-	virtual/rust
+	>=virtual/rust-1.61.0
 	|| (
 		(
 			sys-devel/clang:14
@@ -115,7 +115,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.81
+	>=dev-libs/nss-3.82
 	>=dev-libs/nspr-4.34.1
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -481,7 +481,11 @@ pkg_setup() {
 			XDG_SESSION_COOKIE
 
 		# Build system is using /proc/self/oom_score_adj, bug #604394
-		addpredict /proc/self/oom_score_adj
+		# Update 105.0: "/proc/self/oom_score_adj" isn't enough anymore, but not sure whether that's
+		# due to better OOM handling by Firefox, or portage (PORTAGE_SCHEDULING_POLICY) update...
+		# addpredict /proc/self/oom_score_adj
+		addpredict /proc
+		# addpredict /dev/dri
 
 		if use pgo ; then
 			# Allow access to GPU during PGO run
@@ -696,6 +700,7 @@ src_configure() {
 		--enable-release \
 		--enable-system-ffi \
 		--enable-system-pixman \
+		--enable-system-policies \
 		--host="${CBUILD:-${CHOST}}" \
 		--libdir="${EPREFIX}/usr/$(get_libdir)" \
 		--prefix="${EPREFIX}/usr" \
