@@ -27,7 +27,7 @@ ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 # jq -r '.builtInExtensions[] | .name +":"+ .version' product.json | sed -r 's/([^\.]*)\.([a-z0-9\-]*)\:([0-9\.]*)/["\2"]="\3"/g'
 declare -A BUILTINEXTS=(
 ["js-debug-companion"]="1.0.18"
-["js-debug"]="1.71.0"
+["js-debug"]="1.71.1"
 ["vscode-js-profile-table"]="1.0.3"
 )
 
