@@ -99,9 +99,8 @@ src_compile() {
 	)
 	mwt-binutils() {
 		# symlink gcc's lto plugin for AR (bug #854516)
-		mkdir "${sysroot}"/${CTARGET}/lib/bfd-plugins || die
-		ln -s ../../../libexec/gcc/${CTARGET}/${GCC_PV}/liblto_plugin.so \
-			"${sysroot}"/${CTARGET}/lib/bfd-plugins || die
+		ln -s ../../libexec/gcc/${CTARGET}/${GCC_PV}/liblto_plugin.so \
+			"${sysroot}"/lib/bfd-plugins || die
 	}
 
 	# gcc (minimal -- if need more, disable only in stage1 / enable in stage3)
@@ -185,6 +184,7 @@ src_compile() {
 				# cross-compiling, cleanup and let ./configure handle it
 				unset AR AS CC CPP CXX LD NM OBJCOPY OBJDUMP RANLIB RC STRIP
 				CHOST=${CTARGET}
+				filter-flags '-fstack-protector*' #870136
 				filter-flags '-fuse-ld=*'
 				strip-unsupported-flags
 				mwt-build "${@:2}"
@@ -285,7 +285,7 @@ pkg_postinst() {
 		elog "packages to depend on without needing a manual crossdev setup."
 		elog
 		elog "Settings are oriented only for what these need and simplicity."
-		elog "Please use sys-devel/crossdev for full toolchain/customization:"
+		elog "Use sys-devel/crossdev if need full toolchain/customization:"
 		elog "    https://wiki.gentoo.org/wiki/Mingw"
 		elog "    https://wiki.gentoo.org/wiki/Crossdev"
 	fi
