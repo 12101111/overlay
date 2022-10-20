@@ -1,1 +1,3 @@
 sys-apps/systemd
+sys-process/systemd-cron
+sys-apps/gentoo-systemd-integration
