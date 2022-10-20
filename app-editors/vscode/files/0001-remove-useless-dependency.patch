@@ -1,6 +1,6 @@
-From 16036bd2f319fd3415676e7e2dcc29ac1ccb7518 Mon Sep 17 00:00:00 2001
+From bf995e9e0238b5aa7f825eca9c7d7626fbe41ac4 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 11 Sep 2022 00:01:25 +0800
+Date: Thu, 20 Oct 2022 15:28:41 +0800
 Subject: [PATCH 01/13] remove useless dependency
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 01/13] remove useless dependency
  2 files changed, 59 deletions(-)
 
 diff --git a/package.json b/package.json
-index f2e233feecc..9ed6777f189 100644
+index 1c69ca8e81d..145aa9f36ab 100644
 --- a/package.json
 +++ b/package.json
 @@ -10,7 +10,6 @@
@@ -32,13 +32,13 @@ index f2e233feecc..9ed6777f189 100644
    },
    "devDependencies": {
      "7zip": "0.0.6",
--    "@playwright/test": "1.24.2",
+-    "@playwright/test": "1.26.0",
+     "@swc/cli": "0.1.57",
+     "@swc/core": "1.2.245",
      "@types/cookie": "^0.3.3",
-     "@types/copy-webpack-plugin": "^6.0.3",
-     "@types/cssnano": "^4.0.0",
-@@ -125,8 +122,6 @@
-     "@types/yazl": "^2.4.2",
+@@ -128,8 +125,6 @@
      "@typescript-eslint/eslint-plugin": "^5.10.0",
+     "@typescript-eslint/experimental-utils": "^5.10.0",
      "@typescript-eslint/parser": "^5.10.0",
 -    "@vscode/telemetry-extractor": "^1.9.8",
 -    "@vscode/test-web": "^0.0.29",
@@ -46,25 +46,25 @@ index f2e233feecc..9ed6777f189 100644
      "asar": "^3.0.3",
      "chromium-pickle-js": "^0.2.0",
 diff --git a/yarn.lock b/yarn.lock
-index 76c096b796a..ccc06facc87 100644
+index ebf28175131..7768b98a1f7 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -622,14 +622,6 @@
+@@ -637,14 +637,6 @@
      node-addon-api "^3.2.1"
      node-gyp-build "^4.3.0"
  
--"@playwright/test@1.24.2":
--  version "1.24.2"
--  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.24.2.tgz#283ea8cc497f9742037458659bf235f4776cf1f0"
--  integrity sha512-Q4X224pRHw4Dtkk5PoNJplZCokLNvVbXD9wDQEMrHcEuvWpJWEQDeJ9gEwkZ3iCWSFSWBshIX177B231XW4wOQ==
+-"@playwright/test@1.26.0":
+-  version "1.26.0"
+-  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.26.0.tgz#d0c4a7ffaa7df5b4a63e0d8dea133fdb1d6c5aef"
+-  integrity sha512-D24pu1k/gQw3Lhbpc38G5bXlBjGDrH5A52MsrH12wz6ohGDeQ+aZg/JFSEsT/B3G8zlJe/EU4EkJK74hpqsjEg==
 -  dependencies:
 -    "@types/node" "*"
--    playwright-core "1.24.2"
+-    playwright-core "1.26.0"
 -
  "@sindresorhus/is@^0.14.0":
    version "0.14.0"
    resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
-@@ -1115,35 +1107,6 @@
+@@ -1319,35 +1311,6 @@
    resolved "https://registry.yarnpkg.com/@vscode/sudo-prompt/-/sudo-prompt-9.3.1.tgz#c562334bc6647733649fd42afc96c0eea8de3b65"
    integrity sha512-9ORTwwS74VaTn38tNbQhsA5U44zkJfcb0BdTSyyG6frP4e8KMtHuTXYmwefe5dpL8XB1aGSIVTaLjD3BbWb5iA==
  
@@ -100,7 +100,7 @@ index 76c096b796a..ccc06facc87 100644
  "@vscode/vscode-languagedetection@1.0.21":
    version "1.0.21"
    resolved "https://registry.yarnpkg.com/@vscode/vscode-languagedetection/-/vscode-languagedetection-1.0.21.tgz#89b48f293f6aa3341bb888c1118d16ff13b032d3"
-@@ -8220,23 +8183,6 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
+@@ -8459,23 +8422,6 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
    dependencies:
      find-up "^4.0.0"
  
@@ -109,10 +109,10 @@ index 76c096b796a..ccc06facc87 100644
 -  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.23.4.tgz#e8a45e549faf6bfad24a0e9998e451979514d41e"
 -  integrity sha512-h5V2yw7d8xIwotjyNrkLF13nV9RiiZLHdXeHo+nVJIYGVlZ8U2qV0pMxNJKNTvfQVT0N8/A4CW6/4EW2cOcTiA==
 -
--playwright-core@1.24.2:
--  version "1.24.2"
--  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.24.2.tgz#47bc5adf3dcfcc297a5a7a332449c9009987db26"
--  integrity sha512-zfAoDoPY/0sDLsgSgLZwWmSCevIg1ym7CppBwllguVBNiHeixZkc1AdMuYUPZC6AdEYc4CxWEyLMBTw2YcmRrA==
+-playwright-core@1.26.0:
+-  version "1.26.0"
+-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.26.0.tgz#850228f0638d410a5cdd69800d552f60e4d295cd"
+-  integrity sha512-p8huU8eU4gD3VkJd3DA1nA7R3XA6rFvFL+1RYS96cSljCF2yJE9CWEHTPF4LqX8KN9MoWCrAfVKP5381X3CZqg==
 -
 -playwright@^1.23.1:
 -  version "1.23.4"
@@ -125,5 +125,5 @@ index 76c096b796a..ccc06facc87 100644
    version "3.0.5"
    resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.5.tgz#2cbeb52d10e3cdccccf0c11a63a85d830970a987"
 -- 
-2.37.3
+2.38.1
 

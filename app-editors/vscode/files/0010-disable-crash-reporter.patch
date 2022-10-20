@@ -1,6 +1,6 @@
-From c3eb1fcbe19925ed40f8f18bc6f916f331485416 Mon Sep 17 00:00:00 2001
+From bc4203f1952d9c0e49264e80d1b7787997d95b2b Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Thu, 14 Jul 2022 14:17:53 +0800
+Date: Thu, 20 Oct 2022 15:31:37 +0800
 Subject: [PATCH 10/13] disable crash reporter
 
 ---
@@ -8,10 +8,10 @@ Subject: [PATCH 10/13] disable crash reporter
  1 file changed, 1 insertion(+), 92 deletions(-)
 
 diff --git a/src/main.js b/src/main.js
-index 41c50d9518b..acb647d53c2 100644
+index f7e6e49a967..9504e35a611 100644
 --- a/src/main.js
 +++ b/src/main.js
-@@ -306,98 +306,7 @@ function getArgvConfigPath() {
+@@ -308,98 +308,7 @@ function getArgvConfigPath() {
  }
  
  function configureCrashReporter() {
@@ -99,7 +99,7 @@ index 41c50d9518b..acb647d53c2 100644
 -	// Start crash reporter for all processes
 -	const productName = (product.crashReporter ? product.crashReporter.productName : undefined) || product.nameShort;
 -	const companyName = (product.crashReporter ? product.crashReporter.companyName : undefined) || 'Microsoft';
--	const uploadToServer = !process.env['VSCODE_DEV'] && submitURL && !crashReporterDirectory;
+-	const uploadToServer = Boolean(!process.env['VSCODE_DEV'] && submitURL && !crashReporterDirectory);
 -	crashReporter.start({
 -		companyName,
 -		productName: process.env['VSCODE_DEV'] ? `${productName} Dev` : productName,
@@ -112,5 +112,5 @@ index 41c50d9518b..acb647d53c2 100644
  
  /**
 -- 
-2.37.3
+2.38.1
 
