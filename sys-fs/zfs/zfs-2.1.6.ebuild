@@ -20,7 +20,6 @@ else
 
 	MY_P="${P/_rc/-rc}"
 	SRC_URI="https://github.com/openzfs/${PN}/releases/download/${MY_P}/${MY_P}.tar.gz"
-	SRC_URI+=" https://dev.gentoo.org/~sam/distfiles/sys-fs/zfs/${P}-patches.tar.xz"
 	SRC_URI+=" verify-sig? ( https://github.com/openzfs/${PN}/releases/download/${MY_P}/${MY_P}.tar.gz.asc )"
 	S="${WORKDIR}/${P%_rc?}"
 
@@ -75,7 +74,6 @@ RDEPEND="${DEPEND}
 	rootfs? (
 		app-arch/cpio
 		app-misc/pax-utils
-		!<sys-kernel/genkernel-3.5.1.1
 	)
 	test-suite? (
 		app-shells/ksh
@@ -103,20 +101,14 @@ RESTRICT="test"
 
 PATCHES=(
 	# bug #854333
-	"${FILESDIR}"/${PV}-r2-dracut-non-root.patch
+	"${FILESDIR}"/2.1.5-r2-dracut-non-root.patch
 
 	"${FILESDIR}"/2.1.5-dracut-zfs-missing.patch
 
 	# bug #857228
-	"${FILESDIR}"/${PV}-dracut-mount.patch
+	"${FILESDIR}"/2.1.5-dracut-mount.patch
 
-	# bug #863212, bug #855182
-	"${WORKDIR}"/${P}-patches/
-
-	# https://github.com/openzfs/zfs/pull/13769
-	# https://github.com/openzfs/zfs/pull/13585
-	"${FILESDIR}"/2.1.5-dracut-zfs-bootfs-snapshot-fixes.patch
-
+	"${FILESDIR}"/2.1.6-fgrep.patch
 	"${FILESDIR}/2.1.2-musl-systemd.patch"
 )
 
