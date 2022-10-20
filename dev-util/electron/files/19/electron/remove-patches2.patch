@@ -127,3 +127,131 @@ index ea80cc9e69..4ce8f498b0 100644
 -+  }, "Make sure inertial scrolling is not broken with pointer-events:none overlay.");
 -+}
 -+</script>
+diff --git a/patches/chromium/dpwa_enable_window_controls_overlay_by_default.patch b/patches/chromium/dpwa_enable_window_controls_overlay_by_default.patch
+index e1c08a6554..e90d6ee95f 100644
+--- a/patches/chromium/dpwa_enable_window_controls_overlay_by_default.patch
++++ b/patches/chromium/dpwa_enable_window_controls_overlay_by_default.patch
+@@ -40,86 +40,3 @@ index 47cfcc8c758bed2fe46c6c75ba45b3cec2576ba6..ebf862fcc88579db6300b6972187f4b0
+      },
+      {
+        name: "WebAssemblyCSP",
+-diff --git a/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-navigated-expected.txt b/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-navigated-expected.txt
+-index a2bac6e1f0fc6404a8fabbab87cd78da3e50570c..d6e4d3d5846ec3de2056af5a89a74f168a0e216d 100644
+---- a/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-navigated-expected.txt
+-+++ b/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-navigated-expected.txt
+-@@ -77,6 +77,8 @@ PASS window.cached_navigator_virtualKeyboard.boundingRect.x is 0
+- PASS window.cached_navigator_virtualKeyboard.boundingRect.y is 0
+- PASS window.cached_navigator_virtualKeyboard.ongeometrychange is null
+- PASS window.cached_navigator_virtualKeyboard.overlaysContent is false
+-+PASS window.cached_navigator_windowControlsOverlay.ongeometrychange is null
+-+PASS window.cached_navigator_windowControlsOverlay.visible is false
+- PASS window.cached_navigator_xr.ondevicechange is null
+- PASS window.cached_performance.onresourcetimingbufferfull is null
+- PASS window.cached_performance_navigation.redirectCount is 0
+-diff --git a/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-removed-and-gced-expected.txt b/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-removed-and-gced-expected.txt
+-index 9b413dea03d864d6cef496279187b39cf81ba4b0..5cfdedb36e5f9bd0dbfae11d5ba5cc1172823071 100644
+---- a/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-removed-and-gced-expected.txt
+-+++ b/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-removed-and-gced-expected.txt
+-@@ -77,6 +77,8 @@ PASS window.cached_navigator_virtualKeyboard.boundingRect.x is 0
+- PASS window.cached_navigator_virtualKeyboard.boundingRect.y is 0
+- PASS window.cached_navigator_virtualKeyboard.ongeometrychange is null
+- PASS window.cached_navigator_virtualKeyboard.overlaysContent is false
+-+PASS window.cached_navigator_windowControlsOverlay.ongeometrychange is null
+-+PASS window.cached_navigator_windowControlsOverlay.visible is false
+- PASS window.cached_navigator_xr.ondevicechange is null
+- PASS window.cached_performance.onresourcetimingbufferfull is null
+- PASS window.cached_performance_navigation.redirectCount is 0
+-diff --git a/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-removed-expected.txt b/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-removed-expected.txt
+-index 6f480ccfc7031fbdab98b50511a667aed5840af1..37bba469a00c719128762f861313e383d1ad4b86 100644
+---- a/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-removed-expected.txt
+-+++ b/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-properties-after-frame-removed-expected.txt
+-@@ -77,6 +77,8 @@ PASS window.cached_navigator_virtualKeyboard.boundingRect.x is 0
+- PASS window.cached_navigator_virtualKeyboard.boundingRect.y is 0
+- PASS window.cached_navigator_virtualKeyboard.ongeometrychange is null
+- PASS window.cached_navigator_virtualKeyboard.overlaysContent is false
+-+PASS window.cached_navigator_windowControlsOverlay.ongeometrychange is null
+-+PASS window.cached_navigator_windowControlsOverlay.visible is false
+- PASS window.cached_navigator_xr.ondevicechange is null
+- PASS window.cached_performance.onresourcetimingbufferfull is null
+- PASS window.cached_performance_navigation.redirectCount is 0
+-diff --git a/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-window-after-frame-navigated-expected.txt b/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-window-after-frame-navigated-expected.txt
+-index ef72385e2cc50ae9519f2d0cf496e8cc771cf5aa..36efa30d35e4b8e5e7752bfde58f50cdef865e89 100644
+---- a/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-window-after-frame-navigated-expected.txt
+-+++ b/third_party/blink/web_tests/virtual/stable/fast/dom/Window/property-access-on-cached-window-after-frame-navigated-expected.txt
+-@@ -87,6 +87,8 @@ PASS oldChildWindow.navigator.virtualKeyboard.boundingRect.y is newChildWindow.n
+- PASS oldChildWindow.navigator.virtualKeyboard.ongeometrychange is newChildWindow.navigator.virtualKeyboard.ongeometrychange
+- PASS oldChildWindow.navigator.virtualKeyboard.overlaysContent is newChildWindow.navigator.virtualKeyboard.overlaysContent
+- PASS oldChildWindow.navigator.webdriver is newChildWindow.navigator.webdriver
+-+PASS oldChildWindow.navigator.windowControlsOverlay.ongeometrychange is newChildWindow.navigator.windowControlsOverlay.ongeometrychange
+-+PASS oldChildWindow.navigator.windowControlsOverlay.visible is newChildWindow.navigator.windowControlsOverlay.visible
+- PASS oldChildWindow.navigator.xr.ondevicechange is newChildWindow.navigator.xr.ondevicechange
+- PASS oldChildWindow.onabort is newChildWindow.onabort
+- PASS oldChildWindow.onafterprint is newChildWindow.onafterprint
+-diff --git a/third_party/blink/web_tests/virtual/stable/webexposed/global-interface-listing-expected.txt b/third_party/blink/web_tests/virtual/stable/webexposed/global-interface-listing-expected.txt
+-index 1f0f00e9879c0e5f24029617d146f760e6abb100..6789814dd76154ce4d2547d5e89616255585249f 100644
+---- a/third_party/blink/web_tests/virtual/stable/webexposed/global-interface-listing-expected.txt
+-+++ b/third_party/blink/web_tests/virtual/stable/webexposed/global-interface-listing-expected.txt
+-@@ -4955,6 +4955,7 @@ interface Navigator
+-     getter webdriver
+-     getter webkitPersistentStorage
+-     getter webkitTemporaryStorage
+-+    getter windowControlsOverlay
+-     getter xr
+-     method clearAppBadge
+-     method constructor
+-@@ -9646,6 +9647,18 @@ interface Window : EventTarget
+-     attribute PERSISTENT
+-     attribute TEMPORARY
+-     method constructor
+-+interface WindowControlsOverlay : EventTarget
+-+    attribute @@toStringTag
+-+    getter ongeometrychange
+-+    getter visible
+-+    method constructor
+-+    method getTitlebarAreaRect
+-+    setter ongeometrychange
+-+interface WindowControlsOverlayGeometryChangeEvent : Event
+-+    attribute @@toStringTag
+-+    getter titlebarAreaRect
+-+    getter visible
+-+    method constructor
+- interface Worker : EventTarget
+-     attribute @@toStringTag
+-     getter onerror
+diff --git a/patches/chromium/cherry-pick-1eb1e18ad41d.patch b/patches/chromium/cherry-pick-1eb1e18ad41d.patch
+index cb2ad3c060..5eb40c6eb2 100644
+--- a/patches/chromium/cherry-pick-1eb1e18ad41d.patch
++++ b/patches/chromium/cherry-pick-1eb1e18ad41d.patch
+@@ -153,32 +153,3 @@ index ae863c8df923f55b116ed1c70557e5d5916794d3..dbc654e9079f4f79fe6883a6ea34e8fa
+  
+    const bool has_font_units = false;
+    const bool has_root_font_units = false;
+-diff --git a/third_party/blink/web_tests/external/wpt/css/css-properties-values-api/registered-property-computation-expected.txt b/third_party/blink/web_tests/external/wpt/css/css-properties-values-api/registered-property-computation-expected.txt
+-index 3823a752b99f506d11c50aee36474c6c51c849cd..eeed0dfc0def17b1ba636f7f6a076caf770e1327 100644
+---- a/third_party/blink/web_tests/external/wpt/css/css-properties-values-api/registered-property-computation-expected.txt
+-+++ b/third_party/blink/web_tests/external/wpt/css/css-properties-values-api/registered-property-computation-expected.txt
+-@@ -1,5 +1,5 @@
+- This is a testharness.js-based test.
+--Found 60 tests; 59 PASS, 1 FAIL, 0 TIMEOUT, 0 NOTRUN.
+-+Found 61 tests; 60 PASS, 1 FAIL, 0 TIMEOUT, 0 NOTRUN.
+- PASS <length> values computed are correctly via var()-reference
+- PASS <length> values computed are correctly via var()-reference when font-size is inherited
+- PASS <length> values are computed correctly when font-size is inherited [14em]
+-@@ -60,5 +60,6 @@ PASS * values are computed correctly [50dpi]
+- PASS <resolution> values are computed correctly [1dppx]
+- PASS <resolution> values are computed correctly [96dpi]
+- FAIL <resolution> values are computed correctly [calc(1dppx + 96dpi)] assert_equals: expected "2dppx" but got "0dppx"
+-+PASS * values are computed correctly [url(why)]
+- Harness: the test ran to completion.
+- 
+-diff --git a/third_party/blink/web_tests/external/wpt/css/css-properties-values-api/registered-property-computation.html b/third_party/blink/web_tests/external/wpt/css/css-properties-values-api/registered-property-computation.html
+-index f03b257246e520bd93055203a5cb27188babc8ca..168495247a3b16a2203fb361f662b6db83044d09 100644
+---- a/third_party/blink/web_tests/external/wpt/css/css-properties-values-api/registered-property-computation.html
+-+++ b/third_party/blink/web_tests/external/wpt/css/css-properties-values-api/registered-property-computation.html
+-@@ -167,4 +167,6 @@ test_computed_value('<resolution>', '1dppx', '1dppx');
+- test_computed_value('<resolution>', '96dpi', '1dppx');
+- test_computed_value('<resolution>', 'calc(1dppx + 96dpi)', '2dppx');
+- 
+-+test_computed_value('*', 'url(why)', 'url(why)');
+-+
+- </script>
