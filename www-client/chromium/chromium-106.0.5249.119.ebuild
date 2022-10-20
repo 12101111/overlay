@@ -16,7 +16,7 @@ inherit check-reqs chromium-2 desktop flag-o-matic llvm ninja-utils pax-utils py
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="1"
+PATCHSET="3"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
 HEVC_PATCHSET_VERSION="106.0.5211.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
@@ -74,7 +74,7 @@ COMMON_SNAPSHOT_DEPEND="
 		pulseaudio? ( media-sound/pulseaudio:= )
 		sys-apps/pciutils:=
 		kerberos? ( virtual/krb5 )
-		vaapi? ( >=x11-libs/libva-2.7:=[X?,wayland?] )
+		vaapi? ( >=media-libs/libva-2.7:=[X?,wayland?] )
 		X? (
 			x11-libs/libX11:=
 			x11-libs/libXext:=
@@ -106,10 +106,9 @@ COMMON_DEPEND="
 	sys-libs/zlib:=[minizip]
 	!headless? (
 		X? ( ${COMMON_X_DEPEND} )
-		atk? (
-			>=app-accessibility/at-spi2-atk-2.26:2
-			>=app-accessibility/at-spi2-core-2.26:2
-			>=dev-libs/atk-2.26
+		|| (
+			>=app-accessibility/at-spi2-core-2.46.0:2
+			( app-accessibility/at-spi2-atk dev-libs/atk )
 		)
 		media-libs/mesa:=[X?,wayland?]
 		cups? ( >=net-print/cups-1.3.11:= )
@@ -171,11 +170,11 @@ BDEPEND="
 	')
 	>=app-arch/gzip-1.7
 	libcxx? ( >=sys-devel/clang-12 )
-	lto? ( $(depend_clang_llvm_versions 13 14) )
+	lto? ( $(depend_clang_llvm_versions 13 14 15) )
 	pgo? (
 		>=dev-python/selenium-3.141.0
 		>=dev-util/web_page_replay_go-20220314
-		$(depend_clang_llvm_versions 13 14)
+		$(depend_clang_llvm_versions 13 14 15)
 	)
 	dev-lang/perl
 	>=dev-util/gn-0.1807
@@ -363,10 +362,10 @@ src_prepare() {
 		"${FILESDIR}/chromium-98-gtk4-build.patch"
 		"${FILESDIR}/chromium-105-swiftshader-no-wayland.patch"
 		"${FILESDIR}/chromium-106-python3_11.patch"
+		"${FILESDIR}/chromium-106-revert-GlobalMediaControlsCastStartStop.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 		"${FILESDIR}/chromium-cross-compile.patch"
-		"${FILESDIR}/chromium-106_atk_optional.patch"
 		"${FILESDIR}/chromium-100-fix-stat-include.patch"
 	)
 
@@ -838,7 +837,6 @@ chromium_configure() {
 		myconf_gn+=" gtk_version=$(usex gtk4 4 3)"
 	fi
 
-	myconf_gn+=" use_atk=$(usex atk true false)"
 	if use hevc; then
 		myconf_gn+=" media_use_ffmpeg=true enable_platform_hevc=true enable_hevc_parser_and_hw_decoder=true"
 	fi
@@ -1008,9 +1006,6 @@ chromium_configure() {
 		myconf_gn+=" is_cfi=false"
 		# Don't add symbols to build
 		myconf_gn+=" symbol_level=0"
-	else
-		# Need esbuild
-		myconf_gn+=" devtools_skip_typecheck=false"
 	fi
 
 	if use pgo; then
@@ -1027,6 +1022,11 @@ chromium_configure() {
 	if use arm64 && tc-is-gcc; then
 		sed -i '/^#if HAVE_ARM64_CRC32C/a #pragma GCC target ("+crc+crypto")' \
 			third_party/crc32c/src/src/crc32c_arm64.cc || die
+	fi
+
+	# skipping typecheck is only supported on amd64, bug #876157
+	if true; then
+		myconf_gn+=" devtools_skip_typecheck=false"
 	fi
 
 	einfo "Configuring Chromium..."
