@@ -5,7 +5,7 @@ EAPI=8
 
 inherit java-vm-2 toolchain-funcs
 
-MY_ZULU_PV="11.56.19-ca-jdk11.0.15"
+MY_ZULU_PV="11.60.19-ca-jdk11.0.17"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
 

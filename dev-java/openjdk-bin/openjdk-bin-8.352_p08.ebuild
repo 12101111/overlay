@@ -5,7 +5,7 @@ EAPI=8
 
 inherit java-vm-2
 
-MY_ZULU_PV="8.62.0.19-ca-jdk8.0.332"
+MY_ZULU_PV="8.66.0.15-ca-jdk8.0.352"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
 
