@@ -1,21 +1,20 @@
 diff --git a/goldendict.pro b/goldendict.pro
-index 29d2842f..c69e4fb2 100644
+index a24facaf..e44a0dd3 100644
 --- a/goldendict.pro
 +++ b/goldendict.pro
-@@ -71,7 +71,8 @@ CONFIG += exceptions \
+@@ -68,7 +68,8 @@ CONFIG += exceptions \
+     c++17 \
      lrelease \
-     embed_translations \
      utf8_source \
 -    force_debug_info
 +    force_debug_info \
 +    qtsingleapplication
  
  mac {
-     DEBUG:CONFIG += app_bundle
-@@ -612,6 +613,3 @@ TRANSLATIONS += locale/ru_RU.ts \
- }
+     CONFIG += app_bundle
+@@ -667,5 +668,3 @@ TS_OUT = $$TRANSLATIONS
+ TS_OUT ~= s/.ts/.qm/g
+ PRE_TARGETDEPS += $$TS_OUT
  
- 
--
 -include( thirdparty/qtsingleapplication/src/qtsingleapplication.pri )
 -
