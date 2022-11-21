@@ -28,7 +28,7 @@ IUSE+=" snapper spotlight syslog system-heimdal +system-mitkrb5 systemd test unw
 IUSE+=" zeroconf"
 
 REQUIRED_USE="${PYTHON_REQUIRED_USE}
-	addc? ( python json winbind )
+	addc? ( json python !system-mitkrb5 winbind )
 	ads? ( acl ldap python winbind )
 	cluster? ( ads )
 	gpg? ( addc )
