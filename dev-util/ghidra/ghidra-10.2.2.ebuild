@@ -4,7 +4,7 @@
 EAPI=7
 inherit java-pkg-2 desktop
 
-GRADLE_DEP_VER="20220131"
+GRADLE_DEP_VER="20221104"
 
 DESCRIPTION="A software reverse engineering framework"
 HOMEPAGE="https://ghidra-sre.org/"
@@ -13,11 +13,13 @@ SRC_URI="https://github.com/NationalSecurityAgency/${PN}/archive/Ghidra_${PV}_bu
 	https://github.com/pxb1988/dex2jar/releases/download/2.0/dex-tools-2.0.zip
 	https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/android4me/AXMLPrinter2.jar
 	https://sourceforge.net/projects/catacombae/files/HFSExplorer/0.21/hfsexplorer-0_21-bin.zip
-	mirror://sourceforge/yajsw/yajsw/yajsw-beta-13.01.zip
+	mirror://sourceforge/yajsw/yajsw/yajsw-stable-13.05.zip
 	https://dev.pentoo.ch/~blshkv/distfiles/cdt-8.6.0.zip
 	mirror://sourceforge/project/pydev/pydev/PyDev%206.3.1/PyDev%206.3.1.zip -> PyDev-6.3.1.zip"
 # run: "pentoo/scripts/gradle_dependencies.py buildGhidra" from "${S}" directory to generate dependencies
 #	https://www.eclipse.org/downloads/download.php?r=1&protocol=https&file=/tools/cdt/releases/8.6/cdt-8.6.0.zip
+
+#	https://sourceforge.net/projects/yajsw/files/yajsw/yajsw-stable-13.05/yajsw-stable-13.05.zip/download
 
 LICENSE="Apache-2.0"
 SLOT="0"
@@ -33,15 +35,29 @@ IUSE=""
 # * /usr/share/ghidra/Ghidra/Features/Decompiler/os/linux_x86_64/sleigh
 
 #java-pkg-2 sets java based on RDEPEND so the java slot in rdepend is used to build
-RDEPEND=">=virtual/jre-11"
+RDEPEND="virtual/jre:17"
 DEPEND="${RDEPEND}
-	>=virtual/jdk-11
-	dev-java/gradle-bin:*
+	virtual/jdk:17
+	>=dev-java/gradle-bin-7.3:*
 	sys-devel/bison
 	dev-java/jflex
 	app-arch/unzip"
 
 S="${WORKDIR}/ghidra-Ghidra_${PV}_build"
+
+pkg_setup() {
+	java-pkg-2_pkg_setup
+	gradle_link_target=$(readlink -n /usr/bin/gradle)
+	currentver="${gradle_link_target/gradle-bin-/}"
+	requiredver="7.3"
+	einfo "Gradle version ${currentver} currently set."
+	if [ "$(printf '%s\n' "$requiredver" "$currentver" | sort -V | head -n1)" = "$requiredver" ]; then
+		einfo "Gradle version ${currentver} is >= ${requiredver}, proceeding with build..."
+	else
+		eerror "Gradle version ${requiredver} or higher must be eselected before building ${PN}."
+		die "Please run 'eselect gradle set gradle-bin-XX' when XX is a version of gradle higher than ${requiredver}"
+	fi
+}
 
 src_unpack() {
 	# https://github.com/NationalSecurityAgency/ghidra/blob/master/DevGuide.md
@@ -59,7 +75,7 @@ src_unpack() {
 
 	mkdir -p "${WORKDIR}"/ghidra.bin/Ghidra/Features/GhidraServer/ || die "(6) mkdir failed"
 #	cp "${DISTDIR}"/yajsw-stable-12.12.zip "${WORKDIR}"/ghidra.bin/Ghidra/Features/GhidraServer/ || die "(7) cp failed"
-	cp "${DISTDIR}"/yajsw-beta-13.01.zip "${WORKDIR}"/ghidra.bin/Ghidra/Features/GhidraServer/ || die "(7) cp failed"
+	cp "${DISTDIR}"/yajsw-stable-13.05.zip "${WORKDIR}"/ghidra.bin/Ghidra/Features/GhidraServer/ || die "(7) cp failed"
 
 	mkdir -p "${WORKDIR}"/ghidra.bin/GhidraBuild/EclipsePlugins/GhidraDev/buildDependencies/ || die "(8) mkdir failed"
 	cp "${DISTDIR}"/PyDev-6.3.1.zip "${WORKDIR}/ghidra.bin/GhidraBuild/EclipsePlugins/GhidraDev/buildDependencies/PyDev 6.3.1.zip" || die "(9) cp failed"
@@ -80,6 +96,7 @@ src_prepare() {
 	ln -s ../.gradle/flatRepo ./dependencies/flatRepo
 
 	eapply "${FILESDIR}/allow-clang.patch"
+	eapply "${FILESDIR}/fix-c.patch"
 
 	eapply_user
 }
@@ -88,7 +105,7 @@ src_compile() {
 	export _JAVA_OPTIONS="$_JAVA_OPTIONS -Duser.home=$HOME -Djava.io.tmpdir=${T}"
 
 	GRADLE="gradle --gradle-user-home .gradle --console rich --no-daemon"
-	GRADLE="${GRADLE} --offline"
+	GRADLE="${GRADLE} --offline --parallel --max-workers $(nproc)"
 	unset TERM
 	${GRADLE} prepDev -x check -x test || die
 	${GRADLE} buildGhidra -x check -x test --parallel || die
