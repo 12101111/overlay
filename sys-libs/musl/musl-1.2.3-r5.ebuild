@@ -52,10 +52,8 @@ QA_PRESTRIPPED="usr/lib/crtn.o"
 if [[ ${CATEGORY} == cross-* ]] ; then
 	IUSE="${IUSE/crypt/+crypt}"
 else
-	RDEPEND="
-		crypt? ( !sys-libs/libxcrypt[system] )
-		!crypt? ( sys-libs/libxcrypt[system] )
-	"
+	RDEPEND="crypt? ( !sys-libs/libxcrypt[system] )"
+	PDEPEND="!crypt? ( sys-libs/libxcrypt[system] )"
 fi
 
 PATCHES=(
@@ -112,6 +110,7 @@ src_prepare() {
 }
 
 src_configure() {
+	filter-lto # bug #877343
 	tc-getCC ${CTARGET}
 
 	just_headers && export CC=true
