@@ -1,23 +1,23 @@
-# Copyright 2009-2021 Gentoo Authors
+# Copyright 2009-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-
 PYTHON_COMPAT=( python3_{8..10} )
-PYTHON_REQ_USE="xml"
+PYTHON_REQ_USE="xml(+)"
+LLVM_MAX_SLOT=15
 
-CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
+CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
-	sv sw ta te th tr uk vi zh-CN zh-TW"
+	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
-inherit check-reqs chromium-2 desktop flag-o-matic ninja-utils pax-utils python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils yarn
+inherit check-reqs chromium-2 desktop flag-o-matic llvm ninja-utils pax-utils python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils yarn
 
 # Keep this in sync with DEPS:chromium_version
-CHROMIUM_VERSION="100.0.4896.127"
+CHROMIUM_VERSION="104.0.5112.110"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="16.13.2"
+NODE_VERSION="16.15.0"
 # https://github.com/stha09/chromium-patches/releases
-PATCHSET="4"
+PATCHSET="2"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
@@ -35,7 +35,8 @@ https://registry.yarnpkg.com/@azure/logger/-/logger-1.0.3.tgz
 https://registry.yarnpkg.com/@azure/storage-blob/-/storage-blob-12.9.0.tgz
 https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.5.5.tgz
 https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.5.0.tgz
-https://registry.yarnpkg.com/@electron/docs-parser/-/docs-parser-0.12.3.tgz
+https://registry.yarnpkg.com/@electron/asar/-/asar-3.2.1.tgz
+https://registry.yarnpkg.com/@electron/docs-parser/-/docs-parser-0.12.4.tgz
 https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-8.9.5.tgz
 https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.3.tgz
 https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-2.0.3.tgz
@@ -158,10 +159,7 @@ https://registry.yarnpkg.com/acorn/-/acorn-7.3.1.tgz
 https://registry.yarnpkg.com/aggregate-error/-/aggregate-error-3.0.1.tgz
 https://registry.yarnpkg.com/ajv-errors/-/ajv-errors-1.0.1.tgz
 https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-3.4.1.tgz
-https://registry.yarnpkg.com/ajv/-/ajv-6.10.1.tgz
-https://registry.yarnpkg.com/ajv/-/ajv-6.10.2.tgz
-https://registry.yarnpkg.com/ajv/-/ajv-6.12.2.tgz
-https://registry.yarnpkg.com/ajv/-/ajv-6.12.3.tgz
+https://registry.yarnpkg.com/ajv/-/ajv-6.12.6.tgz
 https://registry.yarnpkg.com/ansi-colors/-/ansi-colors-4.1.1.tgz
 https://registry.yarnpkg.com/ansi-escapes/-/ansi-escapes-4.3.1.tgz
 https://registry.yarnpkg.com/ansi-regex/-/ansi-regex-2.1.1.tgz
@@ -189,7 +187,6 @@ https://registry.yarnpkg.com/array-union/-/array-union-2.1.0.tgz
 https://registry.yarnpkg.com/array-unique/-/array-unique-0.3.2.tgz
 https://registry.yarnpkg.com/array.prototype.flat/-/array.prototype.flat-1.2.3.tgz
 https://registry.yarnpkg.com/arrify/-/arrify-1.0.1.tgz
-https://registry.yarnpkg.com/asar/-/asar-3.1.0.tgz
 https://registry.yarnpkg.com/asn1.js/-/asn1.js-4.10.1.tgz
 https://registry.yarnpkg.com/assert/-/assert-1.5.0.tgz
 https://registry.yarnpkg.com/assertion-error/-/assertion-error-1.1.0.tgz
@@ -417,10 +414,9 @@ https://registry.yarnpkg.com/extend-shallow/-/extend-shallow-3.0.2.tgz
 https://registry.yarnpkg.com/extend/-/extend-3.0.2.tgz
 https://registry.yarnpkg.com/external-editor/-/external-editor-3.1.0.tgz
 https://registry.yarnpkg.com/extglob/-/extglob-2.0.4.tgz
-https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-2.0.1.tgz
-https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.1.tgz
+https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz
 https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.2.4.tgz
-https://registry.yarnpkg.com/fast-json-stable-stringify/-/fast-json-stable-stringify-2.0.0.tgz
+https://registry.yarnpkg.com/fast-json-stable-stringify/-/fast-json-stable-stringify-2.1.0.tgz
 https://registry.yarnpkg.com/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz
 https://registry.yarnpkg.com/fastq/-/fastq-1.8.0.tgz
 https://registry.yarnpkg.com/fault/-/fault-2.0.0.tgz
@@ -704,8 +700,7 @@ https://registry.yarnpkg.com/mimic-response/-/mimic-response-1.0.1.tgz
 https://registry.yarnpkg.com/minimalistic-assert/-/minimalistic-assert-1.0.1.tgz
 https://registry.yarnpkg.com/minimalistic-crypto-utils/-/minimalistic-crypto-utils-1.0.1.tgz
 https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.4.tgz
-https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz
-https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz
+https://registry.yarnpkg.com/minimist/-/minimist-1.2.6.tgz
 https://registry.yarnpkg.com/minipass/-/minipass-2.9.0.tgz
 https://registry.yarnpkg.com/minizlib/-/minizlib-1.3.3.tgz
 https://registry.yarnpkg.com/mississippi/-/mississippi-3.0.0.tgz
@@ -716,7 +711,6 @@ https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz
 https://registry.yarnpkg.com/ms/-/ms-2.1.1.tgz
 https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz
 https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz
-https://registry.yarnpkg.com/nan/-/nan-2.14.0.tgz
 https://registry.yarnpkg.com/nanomatch/-/nanomatch-1.2.13.tgz
 https://registry.yarnpkg.com/natural-compare/-/natural-compare-1.4.0.tgz
 https://registry.yarnpkg.com/needle/-/needle-2.4.0.tgz
@@ -791,7 +785,7 @@ https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.7.tgz
 https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-0.1.7.tgz
 https://registry.yarnpkg.com/path-type/-/path-type-2.0.0.tgz
 https://registry.yarnpkg.com/path-type/-/path-type-4.0.0.tgz
-https://registry.yarnpkg.com/pathval/-/pathval-1.1.0.tgz
+https://registry.yarnpkg.com/pathval/-/pathval-1.1.1.tgz
 https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.0.17.tgz
 https://registry.yarnpkg.com/picomatch/-/picomatch-2.0.7.tgz
 https://registry.yarnpkg.com/picomatch/-/picomatch-2.2.2.tgz
@@ -1085,7 +1079,7 @@ https://registry.yarnpkg.com/unpipe/-/unpipe-1.0.0.tgz
 https://registry.yarnpkg.com/unset-value/-/unset-value-1.0.0.tgz
 https://registry.yarnpkg.com/unzip-response/-/unzip-response-2.0.1.tgz
 https://registry.yarnpkg.com/upath/-/upath-1.1.2.tgz
-https://registry.yarnpkg.com/uri-js/-/uri-js-4.2.2.tgz
+https://registry.yarnpkg.com/uri-js/-/uri-js-4.4.1.tgz
 https://registry.yarnpkg.com/urix/-/urix-0.1.0.tgz
 https://registry.yarnpkg.com/url-parse-lax/-/url-parse-lax-1.0.0.tgz
 https://registry.yarnpkg.com/url-parse-lax/-/url-parse-lax-3.0.0.tgz
@@ -1155,6 +1149,7 @@ SRC_URI="
 	https://github.com/electron/electron/archive/v${PV}.tar.gz -> ${P}.tar.gz
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
+	https://codeload.github.com/nodejs/nan/tar.gz/16fa32231e2ccd89d2804b3f765319128b20c4ac
 	$(yarn_uris ${YARNPKGS})
 "
 
@@ -1164,14 +1159,13 @@ NODE_S="${S}/third_party/electron_node"
 LICENSE="BSD"
 SLOT="${PV%%[.+]*}"
 KEYWORDS="~amd64 ~arm64"
-IUSE="atk lto pgo system-allocator component-build custom-cflags cups cpu_flags_arm_neon debug headless +js-type-check kerberos libcxx pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland"
+IUSE="atk custom-cflags lto pgo system-allocator +X component-build cups cpu_flags_arm_neon debug headless +js-type-check kerberos libcxx +official pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland"
 REQUIRED_USE="
 	component-build? ( !suid !libcxx )
 	screencast? ( wayland )
 "
 
 COMMON_X_DEPEND="
-	x11-libs/gdk-pixbuf:2
 	x11-libs/libXcomposite:=
 	x11-libs/libXcursor:=
 	x11-libs/libXdamage:=
@@ -1181,11 +1175,10 @@ COMMON_X_DEPEND="
 	x11-libs/libXrender:=
 	x11-libs/libXtst:=
 	x11-libs/libxshmfence:=
-	virtual/opengl
 "
 
 COMMON_SNAPSHOT_DEPEND="
-	system-icu? ( >=dev-libs/icu-69.1:= )
+	system-icu? ( >=dev-libs/icu-71.1:= )
 	>=dev-libs/libxml2-2.9.4-r3:=[icu]
 	dev-libs/nspr:=
 	>=dev-libs/nss-3.26:=
@@ -1207,10 +1200,12 @@ COMMON_SNAPSHOT_DEPEND="
 		pulseaudio? ( media-sound/pulseaudio:= )
 		sys-apps/pciutils:=
 		kerberos? ( virtual/krb5 )
-		vaapi? ( >=media-libs/libva-2.7:=[X] )
-		x11-libs/libX11:=
-		x11-libs/libXext:=
-		x11-libs/libxcb:=
+		vaapi? ( >=media-libs/libva-2.7:=[X?,wayland?] )
+		X? (
+			x11-libs/libX11:=
+			x11-libs/libXext:=
+			x11-libs/libxcb:=
+		)
 		x11-libs/libxkbcommon:=
 		wayland? (
 			dev-libs/wayland:=
@@ -1236,15 +1231,17 @@ COMMON_DEPEND="
 	media-libs/flac:=
 	sys-libs/zlib:=[minizip]
 	!headless? (
-		${COMMON_X_DEPEND}
+		X? ( ${COMMON_X_DEPEND} )
 		atk? (
 			>=app-accessibility/at-spi2-atk-2.26:2
 			>=app-accessibility/at-spi2-core-2.26:2
 			>=dev-libs/atk-2.26
 		)
+		media-libs/mesa:=[X?,wayland?]
 		cups? ( >=net-print/cups-1.3.11:= )
 		virtual/udev
 		x11-libs/cairo:=
+		x11-libs/gdk-pixbuf:2
 		x11-libs/pango:=
 	)
 	elibc_musl? (
@@ -1268,6 +1265,28 @@ RDEPEND="${COMMON_DEPEND}
 DEPEND="${COMMON_DEPEND}
 	!headless? ( x11-libs/gtk+:3[X,wayland?] )
 "
+
+depend_clang_llvm_version() {
+	echo "sys-devel/clang:$1"
+	echo "sys-devel/llvm:$1"
+	echo "=sys-devel/lld-$1*"
+}
+
+depend_clang_llvm_versions() {
+	local _v
+	if [[ $# -gt 1 ]]; then
+		echo "|| ("
+		for _v in "$@"; do
+			echo "("
+			depend_clang_llvm_version "${_v}"
+			echo ")"
+		done
+		echo ")"
+	elif [[ $# -eq 1 ]]; then
+		depend_clang_llvm_version "$1"
+	fi
+}
+
 BDEPEND="
 	${COMMON_SNAPSHOT_DEPEND}
 	${PYTHON_DEPS}
@@ -1280,20 +1299,15 @@ BDEPEND="
 	>=dev-util/gn-0.1807
 	>=dev-util/gperf-3.0.3
 	>=dev-util/ninja-1.7.2
+	dev-vcs/git
 	>=net-libs/nodejs-7.6.0[inspector]
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
 	js-type-check? ( virtual/jre )
 	app-misc/jq
-	pgo? (
-		>=sys-devel/clang-12.0.1
-		>=sys-devel/lld-12.0.1
-	)
-	lto? (
-		>=sys-devel/clang-12.0.1
-		>=sys-devel/lld-12.0.1
-	)
+	lto? ( $(depend_clang_llvm_versions 14 15) )
+	pgo? ( $(depend_clang_llvm_versions 14 15) )
 "
 
 # These are intended for ebuild maintainer use to force clang if GCC is broken.
@@ -1307,18 +1321,30 @@ if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
 	EBUILD_DEATH_HOOKS+=" chromium_pkg_die";
 fi
 
+needs_clang() {
+	[[ ${CHROMIUM_FORCE_CLANG} == yes ]] || use libcxx || use lto || use pgo
+}
+
 pre_build_checks() {
 	if [[ ${MERGE_TYPE} != binary ]]; then
+		[[ ${EBUILD_PHASE_FUNC} == pkg_setup ]] && ( use lto || use pgo ) && llvm_pkg_setup
+
 		local -x CPP="$(tc-getCXX) -E"
 		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 9.2; then
 			die "At least gcc 9.2 is required"
 		fi
-		if [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || tc-is-clang || use libcxx; then
+		if use pgo && tc-is-cross-compiler; then
+			die "The pgo USE flag cannot be used when cross-compiling"
+		fi
+		if needs_clang || tc-is-clang; then
 			tc-is-cross-compiler && CPP=${CBUILD}-clang++ || CPP=${CHOST}-clang++
 			CPP+=" -E"
 			if ! ver_test "$(clang-major-version)" -ge 12; then
 				die "At least clang 12 is required"
 			fi
+		fi
+		if [[ ${EBUILD_PHASE_FUNC} == pkg_setup ]] && use js-type-check; then
+			"${BROOT}"/usr/bin/java -version 2>1 > /dev/null || die "Java VM not setup correctly"
 		fi
 	fi
 
@@ -1340,17 +1366,21 @@ pre_build_checks() {
 		fi
 	fi
 
+	if use system-allocator; then
+		ewarn "Use system allocator is not tested by upstream and may break in the future"
+	fi
+
 	# Check build requirements, bug #541816 and bug #471810 .
 	CHECKREQS_MEMORY="4G"
-	CHECKREQS_DISK_BUILD="10G"
+	CHECKREQS_DISK_BUILD="12G"
 	tc-is-cross-compiler && CHECKREQS_DISK_BUILD="13G"
-	if use lto; then
-		if ! tc-is-clang; then
-			die "lto or pgo only support clang and lld"
-		fi
-		CHECKREQS_MEMORY="8G"
+	if use lto || use pgo; then
+		CHECKREQS_MEMORY="9G"
+		CHECKREQS_DISK_BUILD="12G"
+		tc-is-cross-compiler && CHECKREQS_DISK_BUILD="15G"
+		use pgo && CHECKREQS_DISK_BUILD="19G"
 	fi
-	if ( shopt -s extglob; is-flagq '-g?(gdb)?([1-9])' ); then
+	if is-flagq '-g?(gdb)?([1-9])'; then
 		if use custom-cflags || use component-build; then
 			CHECKREQS_DISK_BUILD="25G"
 		fi
@@ -1358,7 +1388,7 @@ pre_build_checks() {
 			CHECKREQS_MEMORY="16G"
 		fi
 	fi
-	check-reqs_pkg_setup
+	check-reqs_${EBUILD_PHASE_FUNC}
 }
 
 pkg_pretend() {
@@ -1427,6 +1457,7 @@ src_prepare() {
 
 	# Apply Gentoo patches for Electron itself.
 	eapply "${FILESDIR}/${SLOT}/electron/"
+	use elibc_musl && eapply "${FILESDIR}/${SLOT}/electron-musl-stack-size.patch"
 
 	yarn install --ignore-optional --frozen-lockfile --offline \
 		--ignore-scripts --no-progress --verbose || die
@@ -1451,7 +1482,9 @@ src_prepare() {
 	eapply "${WORKDIR}/patches"
 	eapply "${FILESDIR}/${SLOT}/chromium/"
 	use elibc_musl && eapply "${FILESDIR}/${SLOT}/musl/"
-	tc-is-clang && eapply "${FILESDIR}/${SLOT}/remove-libatomic.patch"
+	if tc-is-clang && ( has_version "sys-devel/clang[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
+		eapply "${FILESDIR}/${SLOT}/remove-libatomic.patch"
+	fi
 	sed -i -e "s/from collections import Mapping/from collections.abc import Mapping/" \
 		"${S}/third_party/electron_node/tools/inspector_protocol/jinja2/tests.py" || die
 	sed -i -e "s/from collections import Mapping/from collections.abc import Mapping/" \
@@ -1516,6 +1549,7 @@ src_prepare() {
 		third_party/ced
 		third_party/cld_3
 		third_party/closure_compiler
+		third_party/cpuinfo
 		third_party/crashpad
 		third_party/crashpad/crashpad/third_party/lss
 		third_party/crashpad/crashpad/third_party/zlib
@@ -1523,8 +1557,8 @@ src_prepare() {
 		third_party/cros_system_api
 		third_party/dav1d
 		third_party/dawn
+		third_party/dawn/third_party/gn/webgpu-cts
 		third_party/dawn/third_party/khronos
-		third_party/dawn/third_party/tint
 		third_party/depot_tools
 		third_party/devscripts
 		third_party/devtools-frontend
@@ -1552,8 +1586,10 @@ src_prepare() {
 		third_party/fdlibm
 		third_party/fft2d
 		third_party/flatbuffers
+		third_party/fp16
 		third_party/freetype
 		third_party/fusejs
+		third_party/fxdiv
 		third_party/highway
 		third_party/libgifcodec
 		third_party/liburlpattern
@@ -1571,7 +1607,6 @@ src_prepare() {
 		third_party/jstemplate
 		third_party/khronos
 		third_party/leveldatabase
-		third_party/libXNVCtrl
 		third_party/libaddressinput
 		third_party/libaom
 		third_party/libaom/source/libaom/third_party/fastfeat
@@ -1613,7 +1648,6 @@ src_prepare() {
 		third_party/node
 		third_party/node/node_modules/polymer-bundler/lib/third_party/UglifyJS2
 		third_party/one_euro_filter
-		third_party/opencv
 		third_party/openscreen
 		third_party/openscreen/src/third_party/mozilla
 		third_party/openscreen/src/third_party/tinycbor/src/src
@@ -1637,6 +1671,7 @@ src_prepare() {
 		third_party/private_membership
 		third_party/protobuf
 		third_party/protobuf/third_party/six
+		third_party/pthreadpool
 		third_party/pyjson5
 		third_party/qcms
 		third_party/rnnoise
@@ -1657,7 +1692,8 @@ src_prepare() {
 		third_party/swiftshader/third_party/llvm-subzero
 		third_party/swiftshader/third_party/marl
 		third_party/swiftshader/third_party/subzero
-		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv/unified1
+		third_party/swiftshader/third_party/SPIRV-Headers/include/spirv
+		third_party/swiftshader/third_party/SPIRV-Tools
 		third_party/tensorflow-text
 		third_party/tflite
 		third_party/tflite/src/third_party/eigen3
@@ -1666,7 +1702,6 @@ src_prepare() {
 		third_party/six
 		third_party/ukey2
 		third_party/unrar
-		third_party/usrsctp
 		third_party/utf
 		third_party/vulkan
 		third_party/web-animations-js
@@ -1685,6 +1720,7 @@ src_prepare() {
 		third_party/wuffs
 		third_party/x11proto
 		third_party/xcbproto
+		third_party/xnnpack
 		third_party/zxcvbn-cpp
 		third_party/zlib/google
 		url/third_party/mozilla
@@ -1733,6 +1769,11 @@ src_prepare() {
 			generate_gni.sh || die
 		./generate_gni.sh || die
 		popd >/dev/null || die
+
+		pushd third_party/ffmpeg >/dev/null || die
+		cp libavcodec/ppc/h264dsp.c libavcodec/ppc/h264dsp_ppc.c || die
+		cp libavcodec/ppc/h264qpel.c libavcodec/ppc/h264qpel_ppc.c || die
+		popd >/dev/null || die
 	fi
 	ebegin "Remove bundled libraries"
 	# Remove most bundled libraries. Some are still needed.
@@ -1770,7 +1811,7 @@ src_configure() {
 	# Make sure the build system will use the right tools, bug #340795.
 	tc-export AR CC CXX NM
 
-	if { [[ ${CHROMIUM_FORCE_CLANG} == yes ]] || use libcxx; } && ! tc-is-clang; then
+	if needs_clang && ! tc-is-clang; then
 		# Force clang since gcc is either broken or build is using libcxx.
 		if tc-is-cross-compiler; then
 			CC="${CBUILD}-clang -target ${CHOST} --sysroot ${ESYSROOT}"
@@ -1784,10 +1825,26 @@ src_configure() {
 		strip-unsupported-flags
 	fi
 
-	if tc-is-clang || use libcxx; then
+	if tc-is-clang; then
 		myconf_gn+=" is_clang=true clang_use_chrome_plugins=false"
 	else
 		myconf_gn+=" is_clang=false"
+	fi
+
+	# Force lld for lto or pgo builds only, otherwise disable, bug 641556
+	if use lto || use pgo; then
+		myconf_gn+=" use_lld=true"
+	else
+		myconf_gn+=" use_lld=false"
+	fi
+
+	if use lto || use pgo; then
+		AR=llvm-ar
+		NM=llvm-nm
+		if tc-is-cross-compiler; then
+			BUILD_AR=llvm-ar
+			BUILD_NM=llvm-nm
+		fi
 	fi
 
 	# Define a custom toolchain for GN
@@ -1904,16 +1961,6 @@ src_configure() {
 	myconf_gn+=" use_gold=false use_sysroot=false"
 	myconf_gn+=" use_custom_libcxx=$(usex libcxx true false)"
 
-	if use lto; then
-		myconf_gn+=" use_thin_lto=true"
-		myconf_gn+=" use_lld=true"
-		myconf_gn+=" thin_lto_enable_optimizations=true"
-	else
-		# Disable forced lld, bug 641556
-		myconf_gn+=" use_thin_lto=false"
-		myconf_gn+=" use_lld=false"
-	fi
-
 	if use pgo; then
 		myconf_gn+=" chrome_pgo_phase=2"
 	else
@@ -1954,9 +2001,9 @@ src_configure() {
 			filter-flags "-g*"
 		fi
 
-		# Prevent libvpx build failures. Bug 530248, 544702, 546984.
+		# Prevent libvpx/xnnpack build failures. Bug 530248, 544702, 546984, 853646.
 		if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
-			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4
+			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-xop -mno-sse4a
 		fi
 	fi
 
@@ -1991,8 +2038,13 @@ src_configure() {
 	# Disable fatal linker warnings, bug 506268.
 	myconf_gn+=" fatal_linker_warnings=false"
 
-	# Don't use esbuild
-	myconf_gn+=" devtools_skip_typecheck=false"
+	# Disable external code space for V8 for ppc64. It is disabled for ppc64
+	# by default, but cross-compiling on amd64 enables it again.
+	if tc-is-cross-compiler; then
+		if ! use amd64 && ! use arm64; then
+			myconf_gn+=" v8_enable_external_code_space=false"
+		fi
+	fi
 
 	# Bug 491582.
 	export TMPDIR="${WORKDIR}/temp"
@@ -2027,6 +2079,17 @@ src_configure() {
 		fi
 	fi
 
+	# Disable opaque pointers, https://crbug.com/1316298
+	if tc-is-clang; then
+		if test-flag-CXX -Xclang -no-opaque-pointers; then
+			append-flags -Xclang -no-opaque-pointers
+			if tc-is-cross-compiler; then
+				export BUILD_CXXFLAGS+=" -Xclang -no-opaque-pointers"
+				export BUILD_CFLAGS+=" -Xclang -no-opaque-pointers"
+			fi
+		fi
+	fi
+
 	# Explicitly disable ICU data file support for system-icu/headless builds.
 	if use system-icu || use headless; then
 		myconf_gn+=" icu_use_data_file=false"
@@ -2035,25 +2098,49 @@ src_configure() {
 	# Enable ozone wayland and/or headless support
 	myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
 	myconf_gn+=" ozone_platform_headless=true"
-	myconf_gn+=" ozone_platform_x11=$(usex headless false true)"
-	if use wayland || use headless; then
-		if use headless; then
-			myconf_gn+=" ozone_platform=\"headless\""
-			myconf_gn+=" use_xkbcommon=false use_gtk=false"
-			myconf_gn+=" use_glib=false use_gio=false"
-			myconf_gn+=" use_pangocairo=false use_alsa=false"
-			myconf_gn+=" use_libpci=false use_udev=false"
-			myconf_gn+=" enable_print_preview=false"
-			myconf_gn+=" enable_remoting=false"
-		else
-			myconf_gn+=" ozone_platform_wayland=true"
-			myconf_gn+=" use_system_libdrm=true"
-			myconf_gn+=" use_system_minigbm=true"
-			myconf_gn+=" use_xkbcommon=true"
-			myconf_gn+=" ozone_platform=\"wayland\""
-		fi
+	if use headless; then
+		myconf_gn+=" ozone_platform=\"headless\""
+		myconf_gn+=" use_xkbcommon=false use_gtk=false"
+		myconf_gn+=" use_glib=false use_gio=false"
+		myconf_gn+=" use_pangocairo=false use_alsa=false"
+		myconf_gn+=" use_libpci=false use_udev=false"
+		myconf_gn+=" enable_print_preview=false"
+		myconf_gn+=" enable_remoting=false"
 	else
-		myconf_gn+=" ozone_platform=\"x11\""
+		myconf_gn+=" use_system_libdrm=true"
+		myconf_gn+=" use_system_minigbm=true"
+		myconf_gn+=" use_xkbcommon=true"
+		myconf_gn+=" ozone_platform_x11=$(usex X true false)"
+		myconf_gn+=" ozone_platform_wayland=$(usex wayland true false)"
+		myconf_gn+=" ozone_platform=$(usex wayland \"wayland\" \"x11\")"
+	fi
+
+	# Results in undefined references in chrome linking, may require CFI to work
+	if use arm64; then
+		myconf_gn+=" arm_control_flow_integrity=\"none\""
+	fi
+
+	# Enable official builds
+	myconf_gn+=" is_official_build=$(usex official true false)"
+	myconf_gn+=" use_thin_lto=$(usex lto true false)"
+	myconf_gn+=" thin_lto_enable_optimizations=$(usex lto true false)"
+	if use official; then
+		# Allow building against system libraries in official builds
+		sed -i 's/OFFICIAL_BUILD/GOOGLE_CHROME_BUILD/' \
+			tools/generate_shim_headers/generate_shim_headers.py || die
+		# Disable CFI: unsupported for GCC, requires clang+lto+lld
+		myconf_gn+=" is_cfi=false"
+		# Don't add symbols to build
+		myconf_gn+=" symbol_level=0"
+	else
+		# Need esbuild
+		myconf_gn+=" devtools_skip_typecheck=false"
+	fi
+
+	# user CXXFLAGS might overwrite -march=armv8-a+crc+crypto, bug #851639
+	if use arm64 && tc-is-gcc; then
+		sed -i '/^#if HAVE_ARM64_CRC32C/a #pragma GCC target ("+crc+crypto")' \
+			third_party/crc32c/src/src/crc32c_arm64.cc || die
 	fi
 
 	# This configutation can generate config.gypi

@@ -34,8 +34,9 @@ https://registry.yarnpkg.com/@azure/logger/-/logger-1.0.3.tgz
 https://registry.yarnpkg.com/@azure/storage-blob/-/storage-blob-12.9.0.tgz
 https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.5.5.tgz
 https://registry.yarnpkg.com/@babel/highlight/-/highlight-7.5.0.tgz
-https://registry.yarnpkg.com/@electron/docs-parser/-/docs-parser-0.12.4.tgz
-https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-8.9.5.tgz
+https://registry.yarnpkg.com/@electron/asar/-/asar-3.2.1.tgz
+https://registry.yarnpkg.com/@electron/docs-parser/-/docs-parser-1.0.0.tgz
+https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-8.10.0.tgz
 https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.3.tgz
 https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-2.0.3.tgz
 https://registry.yarnpkg.com/@nodelib/fs.walk/-/fs.walk-1.2.4.tgz
@@ -185,7 +186,6 @@ https://registry.yarnpkg.com/array-union/-/array-union-2.1.0.tgz
 https://registry.yarnpkg.com/array-unique/-/array-unique-0.3.2.tgz
 https://registry.yarnpkg.com/array.prototype.flat/-/array.prototype.flat-1.2.3.tgz
 https://registry.yarnpkg.com/arrify/-/arrify-1.0.1.tgz
-https://registry.yarnpkg.com/asar/-/asar-3.1.0.tgz
 https://registry.yarnpkg.com/asn1.js/-/asn1.js-4.10.1.tgz
 https://registry.yarnpkg.com/assert/-/assert-1.5.0.tgz
 https://registry.yarnpkg.com/assertion-error/-/assertion-error-1.1.0.tgz
