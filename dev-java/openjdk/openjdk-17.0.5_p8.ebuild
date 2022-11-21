@@ -26,11 +26,17 @@ bootstrap_uri() {
 	echo "${kw}? ( ${cond:+${cond}? (} ${baseuri}-${ver}-${kw}${musl:+-musl}.${suff} ${cond:+) })"
 }
 
-MY_PV="${PV//_p/+}"
-SLOT="$(ver_cut 1)"
+# don't change versioning scheme
+# to find correct _p number, look at
+# https://github.com/openjdk/jdk${SLOT}u/tags
+# you will see, for example, jdk-17.0.4.1-ga and jdk-17.0.4.1+1, both point
+# to exact same commit sha. we should always use the full version.
+# -ga tag is just for humans to easily identify General Availability release tag.
+MY_PV="${PV%_p*}-ga"
+SLOT="${MY_PV%%[.+]*}"
 
 DESCRIPTION="Open source implementation of the Java programming language"
-HOMEPAGE="https://openjdk.java.net"
+HOMEPAGE="https://openjdk.org"
 SRC_URI="
 	https://github.com/${PN}/jdk${SLOT}u/archive/refs/tags/jdk-${MY_PV}.tar.gz
 		-> ${P}.tar.gz
@@ -44,9 +50,9 @@ SRC_URI="
 "
 
 LICENSE="GPL-2"
-KEYWORDS="amd64 ~arm arm64 ppc64 ~riscv x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
 
-IUSE="alsa big-endian cups debug doc examples +gentoo-vm headless-awt javafx +jbootstrap selinux source system-bootstrap systemtap"
+IUSE="alsa big-endian cups debug doc examples headless-awt javafx +jbootstrap selinux source system-bootstrap systemtap"
 
 REQUIRED_USE="
 	javafx? ( alsa !headless-awt )
@@ -156,7 +162,6 @@ pkg_setup() {
 
 src_prepare() {
 	use riscv && eapply "${WORKDIR}"/openjdk-17.0.3-riscv.patch
-	tc-is-clang && eapply "${FILESDIR}/patches/17/clang-fix.patch"
 	default
 	chmod +x configure || die
 }
@@ -293,7 +298,7 @@ src_install() {
 	einfo "Creating the Class Data Sharing archives and disabling usage tracking"
 	"${ddest}/bin/java" -server -Xshare:dump -Djdk.disableLastUsageTracking || die
 
-	use gentoo-vm && java-vm_install-env "${FILESDIR}"/${PN}.env.sh
+	java-vm_install-env "${FILESDIR}"/${PN}.env.sh
 	java-vm_revdep-mask
 	java-vm_sandbox-predict /dev/random /proc/self/coredump_filter
 
