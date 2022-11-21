@@ -1,4 +1,4 @@
-From bc4203f1952d9c0e49264e80d1b7787997d95b2b Mon Sep 17 00:00:00 2001
+From b7dbe9b4bd93a1858bca58af32b5e0eb591576de Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 20 Oct 2022 15:31:37 +0800
 Subject: [PATCH 10/13] disable crash reporter

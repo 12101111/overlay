@@ -1,4 +1,4 @@
-From bbddaa6ead0af429a20febbaf26d01ed8b5ce710 Mon Sep 17 00:00:00 2001
+From aa64bac1b2103638dfbbce25c9b8a49ee9266351 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 6 May 2021 10:04:18 +0800
 Subject: [PATCH 08/13] Build without electron
@@ -8,10 +8,10 @@ Subject: [PATCH 08/13] Build without electron
  1 file changed, 9 insertions(+), 2 deletions(-)
 
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 657101c774c..1ef001a4fdf 100644
+index 56e27719814..c2795a26473 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -183,6 +183,14 @@ function computeChecksum(filename) {
+@@ -185,6 +185,14 @@ function computeChecksum(filename) {
  	return hash;
  }
  
@@ -26,7 +26,7 @@ index 657101c774c..1ef001a4fdf 100644
  function packageTask(platform, arch, sourceFolderName, destinationFolderName, opts) {
  	opts = opts || {};
  
-@@ -190,7 +198,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -192,7 +200,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  	platform = platform || process.platform;
  
  	return () => {
@@ -34,7 +34,7 @@ index 657101c774c..1ef001a4fdf 100644
  		const json = require('gulp-json-editor');
  
  		const out = sourceFolderName;
-@@ -333,7 +340,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -336,7 +343,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  			.pipe(util.skipDirectories())
  			.pipe(util.fixWin32DirectoryPermissions())
  			.pipe(filter(['**', '!**/.github/**'], { dot: true })) // https://github.com/microsoft/vscode/issues/116523
