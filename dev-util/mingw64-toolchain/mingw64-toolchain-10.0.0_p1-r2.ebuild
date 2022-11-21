@@ -43,8 +43,10 @@ RDEPEND="
 DEPEND="${RDEPEND}"
 
 PATCHES=(
+	"${FILESDIR}"/mingw64-runtime-10.0.0-msvcr-extra-race.patch
 	"${FILESDIR}"/mingw64-runtime-10.0.0-tmp-files-clash.patch
 	"${FILESDIR}"/gcc-11.3.0-plugin-objdump.patch
+	"${FILESDIR}"/gcc-12.2.0-drop-cflags-sed.patch
 )
 
 pkg_pretend() {
@@ -184,8 +186,10 @@ src_compile() {
 				# cross-compiling, cleanup and let ./configure handle it
 				unset AR AS CC CPP CXX LD NM OBJCOPY OBJDUMP RANLIB RC STRIP
 				CHOST=${CTARGET}
+				filter-flags '-fstack-clash-protection' #758914
 				filter-flags '-fstack-protector*' #870136
 				filter-flags '-fuse-ld=*'
+				filter-flags '-mfunction-return=thunk*' #878849
 				strip-unsupported-flags
 				mwt-build "${@:2}"
 			)
@@ -208,7 +212,7 @@ src_compile() {
 
 		einfo "Building ${id}${2+ ${2}} in ${build_dir} ..."
 
-		mkdir "${build_dir}" || die
+		mkdir -p "${build_dir}" || die
 		pushd "${build_dir}" >/dev/null || die
 
 		edo "${conf[@]}"
@@ -220,6 +224,9 @@ src_compile() {
 
 		popd >/dev/null || die
 	}
+
+	# workaround race condition with out-of-source crt build (bug #879537)
+	mkdir -p mingw64_runtime-build/mingw-w64-crt/lib{32,64} || die
 
 	# build with same ordering that crossdev would do + stage3 for pthreads
 	mwt-build binutils
@@ -250,7 +257,8 @@ src_compile() {
 		for bin in ${CTARGET}-*; do
 			bin32=${bin/x86_64-w64/i686-w64}
 			case ${bin#${CTARGET}-} in
-				gcc|gcc-${GCC_PV}|g++|widl) mwt-i686_wrapper -m32;;
+				as) mwt-i686_wrapper --32;;
+				cpp|gcc|gcc-${GCC_PV}|g++|widl) mwt-i686_wrapper -m32;;
 				ld|ld.bfd) mwt-i686_wrapper -m i386pe;;
 				windres) mwt-i686_wrapper --target=pe-i386;;
 				*) ln -s ${bin} ${bin32} || die;;
