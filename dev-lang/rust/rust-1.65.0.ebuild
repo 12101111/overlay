@@ -50,7 +50,7 @@ IUSE="clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind miri nightly paral
 
 # How to use it:
 # List all the working slots in LLVM_VALID_SLOTS, newest first.
-LLVM_VALID_SLOTS=( 14 )
+LLVM_VALID_SLOTS=( 15 )
 LLVM_MAX_SLOT="${LLVM_VALID_SLOTS[0]}"
 
 # splitting usedeps needed to avoid CI/pkgcheck's UncheckableDep limitation
@@ -60,14 +60,14 @@ for _s in ${LLVM_VALID_SLOTS[@]}; do
 	LLVM_DEPEND+=" ( "
 	for _x in ${ALL_LLVM_TARGETS[@]}; do
 		LLVM_DEPEND+="
-			${_x}? ( sys-devel/llvm:${_s}[${_x}(-)] )"
+			${_x}? ( sys-devel/llvm:${_s}[${_x}(-)] )
+			wasm? ( sys-devel/lld:${_s} )"
 	done
 	LLVM_DEPEND+=" )"
 done
 unset _s _x
 LLVM_DEPEND+=" )
 	<sys-devel/llvm-$(( LLVM_MAX_SLOT + 1 )):=
-	wasm? ( sys-devel/lld )
 "
 
 # to bootstrap we need at least exactly previous version, or same.
@@ -165,8 +165,8 @@ RESTRICT="test"
 VERIFY_SIG_OPENPGP_KEY_PATH=${BROOT}/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
-	"${FILESDIR}"/1.55.0-ignore-broken-and-non-applicable-tests.patch
-	"${FILESDIR}"/${PV}-vendor-rustix-sparc-has-no-SIGSTKFLT.patch
+	"${FILESDIR}"/1.65.0-ignore-broken-and-non-applicable-tests.patch
+	"${FILESDIR}"/1.64.0-vendor-rustix-sparc-has-no-SIGSTKFLT.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
 )
 
@@ -234,6 +234,17 @@ llvm_check_deps() {
 	has_version -r "sys-devel/llvm:${LLVM_SLOT}[${LLVM_TARGET_USEDEPS// /,}]"
 }
 
+# Is LLVM being linked against libc++?
+is_libcxx_linked() {
+	local code='#include <ciso646>
+#if defined(_LIBCPP_VERSION)
+	HAVE_LIBCXX
+#endif
+'
+	local out=$($(tc-getCXX) ${CXXFLAGS} ${CPPFLAGS} -x c++ -E -P - <<<"${code}") || return 1
+	[[ ${out} == *HAVE_LIBCXX* ]]
+}
+
 pkg_pretend() {
 	pre_build_checks
 }
@@ -277,7 +288,7 @@ esetup_unwind_hack() {
 src_prepare() {
 	# this supidity is needed because patch is too large to be in filesdir
 	# and if we move it to devspace - it lacks checksum for sig verification
-	if [[ "${PV}" == 1.64.0 ]]; then
+	if [[ "${PV}" == 1.65.0 ]]; then
 			sed -i \
 			-e 's/516ba32a547b46a8e80ad20d4a17bf24a00bff0b69b74f56df119f770f3dfff6/fc7eb88c2f5104865379128b76767d36ce5b5fdb9f3483e683d150e514ebc3a3/' \
 			-e 's/fba10dc8ca9eaf4d481cb82bd1540cf5c05620533c44f917c09a22ea55ef408c/9cc4d1b4511a1f0d91231eb0f11c67ae5e8e38e4becd0bf5eb9e26d043796056/' \
@@ -300,7 +311,7 @@ src_prepare() {
 src_configure() {
 	#filter-flags '-flto*' # https://bugs.gentoo.org/862109 https://bugs.gentoo.org/866231
 
-	local rust_target="" rust_targets="" arch_cflags use_libcxx="false"
+	local rust_target="" rust_targets="" arch_cflags
 
 	# Collect rust target names to compile standard libs for all ABIs.
 	for v in $(multilib_get_enabled_abi_pairs); do
@@ -341,14 +352,6 @@ src_configure() {
 
 	rust_target="$(rust_abi)"
 
-	# https://bugs.gentoo.org/732632
-	if tc-is-clang; then
-		local clang_slot="$(clang-major-version)"
-		if { has_version "sys-devel/clang:${clang_slot}[default-libcxx]" || is-flagq -stdlib=libc++; }; then
-			use_libcxx="true"
-		fi
-	fi
-
 	local cm_btype="$(usex debug DEBUG RELEASE)"
 	cat <<- _EOF_ > "${S}"/config.toml
 		changelog-seen = 2
@@ -361,7 +364,8 @@ src_configure() {
 		targets = "${LLVM_TARGETS// /;}"
 		experimental-targets = ""
 		link-shared = $(toml_usex system-llvm)
-		$(if [[ ${use_libcxx} == true ]]; then
+		$(if is_libcxx_linked; then
+			# https://bugs.gentoo.org/732632
 			echo "use-libcxx = true"
 			echo "static-libstdcpp = false"
 		fi)
@@ -386,7 +390,6 @@ src_configure() {
 		[build]
 		build-stage = 2
 		test-stage = 2
-		doc-stage = 2
 		build = "${rust_target}"
 		host = ["${rust_target}"]
 		target = [${rust_targets}]
@@ -635,12 +638,8 @@ src_test() {
 	for i in "${tests[@]}"; do
 		local t="src/test/${i}"
 		einfo "rust_src_test: running ${t}"
-		if ! (
-				IFS=$'\n'
-				env $(cat "${S}"/config.env) RUST_BACKTRACE=1 \
-				"${EPYTHON}" ./x.py test -vv --config="${S}"/config.toml \
+		if ! RUST_BACKTRACE=1 "${EPYTHON}" ./x.py test -vv --config="${S}"/config.toml \
 				-j$(makeopts_jobs) --no-doc --no-fail-fast "${t}"
-			)
 		then
 				failed+=( "${t}" )
 				eerror "rust_src_test: ${t} failed"
@@ -654,12 +653,7 @@ src_test() {
 }
 
 src_install() {
-	unset RUSTC_WRAPPER
-	(
-	IFS=$'\n'
-	env $(cat "${S}"/config.env) DESTDIR="${D}" \
-		"${EPYTHON}" ./x.py install	-vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
-	)
+	DESTDIR="${D}" "${EPYTHON}" ./x.py install -vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
 
 	# bug #689562, #689160
 	rm -v "${ED}/usr/lib/${PN}/${PV}/etc/bash_completion.d/cargo" || die
