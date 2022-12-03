@@ -235,9 +235,7 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
-		# Breaks Clang. Revert the commit for now and force off F_S=3.
-		# bug #841770.
-		"${FILESDIR}/251-revert-fortify-source-3-fix.patch"
+		"${FILESDIR}/251-gpt-auto-no-cryptsetup.patch"
 	)
 
 	if ! use vanilla; then
@@ -263,8 +261,7 @@ src_configure() {
 	# Prevent conflicts with i686 cross toolchain, bug 559726
 	tc-export AR CC NM OBJCOPY RANLIB
 
-	# Broken with FORTIFY_SOURCE=3 without a patch. We have to revert
-	# the upstream patch for it because it breaks Clang: bug #841770.
+	# Broken with FORTIFY_SOURCE=3: bug #841770.
 	#
 	# Our toolchain sets F_S=2 by default w/ >= -O2, so we need
 	# to unset F_S first, then explicitly set 2, to negate any default
