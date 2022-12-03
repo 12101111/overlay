@@ -1,0 +1,20 @@
+diff --git a/patches/node/fix_preserve_proper_method_names_as-is_in_error_stack.patch b/patches/node/fix_preserve_proper_method_names_as-is_in_error_stack.patch
+index e14acc34fa..ba13af68cd 100644
+--- a/patches/node/fix_preserve_proper_method_names_as-is_in_error_stack.patch
++++ b/patches/node/fix_preserve_proper_method_names_as-is_in_error_stack.patch
+@@ -71,15 +71,6 @@ index 2ef95b535dafe7b0a918b8d6a844e4c4a617818d..dc5e6e7d28cef3a23ca7ba2cfb1435ca
+      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:*:*)
+      at node:internal/main/run_main_module:*:* {
+    generatedMessage: true,
+-diff --git a/test/message/error_with_nul.out b/test/message/error_with_nul.out
+-index 7fbb33f08e8dc342b9efc899e66f5e3350e9489b..a359999420fa76bd09b401a732acb7dcdfaa2198 100644
+-GIT binary patch
+-delta 13
+-VcmdnUvXEuMi;3^+Czmts0st)*2A2Q;
+-
+-delta 31
+-ncmZ3;vXN!N3wHmctkmQZy@@aCIo(S0l1no4^YkXCGwuQa$o~w9
+-
+ diff --git a/test/message/events_unhandled_error_common_trace.out b/test/message/events_unhandled_error_common_trace.out
+ index 19e89869ba74fae3f447e299904939da5a683280..2bdbe3df1b4c7e13ba33f099ae89f88365e6b690 100644
+ --- a/test/message/events_unhandled_error_common_trace.out

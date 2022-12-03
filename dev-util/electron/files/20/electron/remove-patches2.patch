@@ -126,3 +126,27 @@ index 62d68c1599..a1ddd58b2b 100644
 -+PASS * values are computed correctly [url(why)]
 - Harness: the test ran to completion.
 - 
+diff --git a/patches/chromium/cherry-pick-81cb17c24788.patch b/patches/chromium/cherry-pick-81cb17c24788.patch
+index fef119e270..86174ed5b6 100644
+--- a/patches/chromium/cherry-pick-81cb17c24788.patch
++++ b/patches/chromium/cherry-pick-81cb17c24788.patch
+@@ -25,19 +25,6 @@ Commit-Queue: Dominic Battré <battre@chromium.org>
+ Cr-Commit-Position: refs/branch-heads/5249@{#907}
+ Cr-Branched-From: 4f7bea5de862aaa52e6bde5920755a9ef9db120b-refs/heads/main@{#1036826}
+ 
+-diff --git a/chrome/test/data/autofill/captured_sites/testcases.json b/chrome/test/data/autofill/captured_sites/testcases.json
+-index bb7ac2a638a410b3e83b9871314eae27aa8ef229..2e69d8f8532760103b9cccd5efc4ca7a4ad016a1 100644
+---- a/chrome/test/data/autofill/captured_sites/testcases.json
+-+++ b/chrome/test/data/autofill/captured_sites/testcases.json
+-@@ -17,7 +17,7 @@
+-     { "site_name": "bath_and_body_works" },
+-     { "site_name": "beachbody" },
+-     { "site_name": "bed_bath_beyond" },
+--    { "site_name": "belk" },
+-+    { "site_name": "belk", "bug_number": 1376637 },
+-     { "site_name": "bestbuy" },
+-     { "site_name": "bhphotovideo", "bug_number":1173033 },
+-     { "site_name": "bloomingdales" },
+ diff --git a/components/autofill/core/browser/browser_autofill_manager.cc b/components/autofill/core/browser/browser_autofill_manager.cc
+ index 2dad433c7deb91a2d06f7a10077c9197bd2eba98..0a6e94a1f5327600c1c13cd6fd7586c7ca09037e 100644
+ --- a/components/autofill/core/browser/browser_autofill_manager.cc
