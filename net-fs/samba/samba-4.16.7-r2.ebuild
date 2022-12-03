@@ -149,6 +149,7 @@ PATCHES=(
 	"${FILESDIR}/${PN}-4.16.2-fix-musl-without-innetgr.patch"
 	"${FILESDIR}/ldb-2.5.2-skip-wav-tevent-check.patch"
 	"${FILESDIR}/${PN}-4.15.9-libunwind-automagic.patch"
+	"${FILESDIR}/${PN}-4.15.12-configure-clang16.patch"
 )
 
 CONFDIR="${FILESDIR}/4.4"
@@ -314,6 +315,8 @@ multilib_src_install() {
 
 	# Make all .so files executable
 	find "${ED}" -type f -name "*.so" -exec chmod +x {} + || die
+	# smbspool_krb5_wrapper must only be accessible to root, bug #880739
+	find "${ED}" -type f -name "smbspool_krb5_wrapper" -exec chmod go-rwx {} + || die
 
 	if multilib_is_native_abi ; then
 		# Install ldap schema for server (bug #491002)
