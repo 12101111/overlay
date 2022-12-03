@@ -1,0 +1,13 @@
+diff --git a/include/string.h b/include/string.h
+index 43ad0942..35df7527 100644
+--- a/include/string.h
++++ b/include/string.h
+@@ -88,7 +88,7 @@ void explicit_bzero (void *, size_t);
+ #endif
+ 
+ #ifdef _GNU_SOURCE
+-#define	strdupa(x)	strcpy(alloca(strlen(x)+1),x)
++#define	strdupa(x)	strcpy((char*)alloca(strlen(x)+1),x)
+ int strverscmp (const char *, const char *);
+ char *strchrnul(const char *, int);
+ char *strcasestr(const char *, const char *);

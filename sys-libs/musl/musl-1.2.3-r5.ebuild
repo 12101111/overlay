@@ -62,6 +62,7 @@ PATCHES=(
 	"${FILESDIR}"/Add-rpmalloc-for-musl.patch
 	"${FILESDIR}"/use-optimized-memcpy-memset.patch
 	"${FILESDIR}"/fix-pamalloc.patch
+	"${FILESDIR}"/fix-strdupa.patch
 )
 
 is_crosscompile() {
