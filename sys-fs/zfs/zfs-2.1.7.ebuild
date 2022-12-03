@@ -1,7 +1,7 @@
 # Copyright 1999-2022 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 DISTUTILS_OPTIONAL=1
 PYTHON_COMPAT=( python3_{8..10} )
@@ -24,7 +24,7 @@ else
 	S="${WORKDIR}/${P%_rc?}"
 
 	if [[ ${PV} != *_rc* ]]; then
-		KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv"
+		KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv ~sparc"
 	fi
 fi
 
@@ -48,7 +48,7 @@ DEPEND="
 	)
 "
 
-BDEPEND="virtual/awk
+BDEPEND="app-alternatives/awk
 	virtual/pkgconfig
 	nls? ( sys-devel/gettext )
 	python? (
@@ -69,7 +69,7 @@ RDEPEND="${DEPEND}
 	!kernel-builtin? ( ~sys-fs/zfs-kmod-${PV}:= )
 	!prefix? ( virtual/udev )
 	sys-fs/udev-init-scripts
-	virtual/awk
+	app-alternatives/awk
 	dist-kernel? ( virtual/dist-kernel:= )
 	rootfs? (
 		app-arch/cpio
