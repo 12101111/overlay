@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{9,10} )
+PYTHON_COMPAT=( python3_{9..10} )
 PYTHON_REQ_USE="xml(+)"
 inherit check-reqs estack flag-o-matic multiprocessing python-any-r1 qt5-build toolchain-funcs
 
@@ -83,7 +83,7 @@ RDEPEND="
 	designer? ( =dev-qt/designer-${QT5_PV}* )
 	geolocation? ( =dev-qt/qtpositioning-${QT5_PV}* )
 	kerberos? ( virtual/krb5 )
-	pulseaudio? ( media-sound/pulseaudio:= )
+	pulseaudio? ( media-libs/libpulse )
 	screencast? ( media-video/pipewire:= )
 	system-ffmpeg? ( media-video/ffmpeg:0= )
 	system-icu? ( >=dev-libs/icu-69.1:= )
@@ -115,7 +115,6 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.15.3_p20220406-gcc12-includes.patch" # by openSUSE, bug 840326
 	"${WORKDIR}/${PN}-5.15.2_p20211019-jumbo-build.patch" # bug 813957
 	"${WORKDIR}/${PN}-5.15.3_p20220406-patchset" # bug 698988 (py2--), pipewire-3
-	"${FILESDIR}/${P}-fixup-CVE-2022-0796.patch" # bug 853097
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
 )
 
@@ -212,8 +211,10 @@ src_prepare() {
 	fi
 
 	# src/3rdparty/gn fails with libc++ due to passing of `-static-libstdc++`
-	if tc-is-clang && has_version 'sys-devel/clang[default-libcxx]'; then
-		eapply "${FILESDIR}/${PN}-5.15.2_p20210521-clang-libc++.patch"
+	if tc-is-clang ; then
+		if has_version 'sys-devel/clang[default-libcxx(-)]' || has_version 'sys-devel/clang-common[default-libcxx(-)]' ; then
+			eapply "${FILESDIR}/${PN}-5.15.2_p20210521-clang-libc++.patch"
+		fi
 	fi
 
 	if use system-ffmpeg && has_version '>=media-video/ffmpeg-5'; then
