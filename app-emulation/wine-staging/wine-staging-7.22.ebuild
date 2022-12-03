@@ -17,22 +17,21 @@ else
 	SRC_URI="
 		https://dl.winehq.org/wine/source/${WINE_SDIR}/wine-${PV}.tar.xz
 		https://github.com/wine-staging/wine-staging/archive/v${PV}.tar.gz -> ${P}.tar.gz"
-	KEYWORDS="-* ~amd64 ~x86"
+	KEYWORDS="-* ~amd64"
 fi
 S="${WORKDIR}/wine-${PV}"
 
 DESCRIPTION="Free implementation of Windows(tm) on Unix, with Wine-Staging patchset"
 HOMEPAGE="https://wiki.winehq.org/Wine-Staging"
 
-LICENSE="LGPL-2.1+ BSD-2 IJG MIT ZLIB gsm libpng2 libtiff"
+LICENSE="LGPL-2.1+ BSD-2 IJG MIT OPENLDAP ZLIB gsm libpng2 libtiff"
 SLOT="${PV}"
 IUSE="
-	+X +alsa capi crossdev-mingw cups dos
+	+X +alsa capi crossdev-mingw cups dos wayland
 	llvm-libunwind debug custom-cflags +fontconfig +gecko gphoto2
-	+gstreamer kerberos ldap +mingw +mono netapi nls odbc opencl
-	+opengl osmesa pcap perl pulseaudio samba scanner +sdl selinux
-	+ssl +truetype udev udisks +unwind usb v4l +vulkan +xcomposite
-	xinerama wayland"
+	+gstreamer kerberos +mingw +mono netapi nls odbc opencl +opengl
+	osmesa pcap perl pulseaudio samba scanner +sdl selinux +ssl
+	+truetype udev udisks +unwind usb v4l +vulkan +xcomposite xinerama"
 REQUIRED_USE="
 	X? ( truetype )
 	crossdev-mingw? ( mingw )" # bug #551124 for truetype
@@ -83,7 +82,6 @@ WINE_COMMON_DEPEND="
 		media-libs/gst-plugins-base:1.0
 		media-libs/gstreamer:1.0
 	)
-	ldap? ( net-nds/openldap:= )
 	opencl? ( virtual/opencl )
 	pcap? ( net-libs/libpcap )
 	pulseaudio? ( media-libs/libpulse )
@@ -121,14 +119,13 @@ BDEPEND="
 		>=dev-util/mingw64-toolchain-10.0.0_p1-r2
 	) )
 	nls? ( sys-devel/gettext )"
-IDEPEND="app-eselect/eselect-wine"
+IDEPEND=">=app-eselect/eselect-wine-2"
 
 QA_TEXTRELS="usr/lib/*/wine/i386-unix/*.so" # uses -fno-PIC -Wl,-z,notext
 
 PATCHES=(
 	"${FILESDIR}"/${PN}-7.17-noexecstack.patch
 	"${FILESDIR}"/${PN}-7.20-unwind.patch
-	"${FILESDIR}"/${PN}-7.21-crossflags.patch
 	"${FILESDIR}"/wayland-${PV}.patch
 )
 
@@ -232,7 +229,6 @@ src_configure() {
 		$(use_with gstreamer)
 		$(use_with kerberos gssapi)
 		$(use_with kerberos krb5)
-		$(use_with ldap)
 		$(use_with mingw)
 		$(use_with netapi)
 		$(use_with nls gettext)
@@ -292,8 +288,6 @@ src_compile() {
 src_install() {
 	emake DESTDIR="${D}" -C ../build install
 
-	dosym wine64 ${WINE_PREFIX}/bin/wine
-	dosym wine64-preloader ${WINE_PREFIX}/bin/wine-preloader
 	local man
 	for man in ../build/loader/wine.*man; do
 		: "${man##*/wine}"
@@ -323,21 +317,10 @@ src_install() {
 	dodoc ANNOUNCE AUTHORS README* documentation/README*
 }
 
-wine-eselect() {
-	ebegin "${1^}ing ${P} using eselect-wine"
-	eselect wine ${1} ${P} &&
-		eselect wine ${1} --${PN#wine-} ${P} &&
-		eselect wine update --if-unset &&
-		eselect wine update --${PN#wine-} --if-unset
-	eend ${?} || die -n "eselect failed, may need to manually handle ${P}"
-}
-
 pkg_postinst() {
-	wine-eselect register
+	eselect wine update --if-unset || die
 }
 
-pkg_prerm() {
-	if [[ ${REPLACED_BY_VERSION%-r*} != ${PV} ]]; then #881035
-		nonfatal wine-eselect deregister
-	fi
+pkg_postrm() {
+	eselect wine update --if-unset || die
 }
