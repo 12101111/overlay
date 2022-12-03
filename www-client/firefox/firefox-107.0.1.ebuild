@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-107-patches-01j.tar.xz"
+FIREFOX_PATCHSET="firefox-107-patches-02j.tar.xz"
 
 LLVM_MAX_SLOT=15
 
@@ -89,6 +89,7 @@ BDEPEND="${PYTHON_DEPS}
 			sys-devel/llvm:15
 			clang? (
 				sys-devel/lld:15
+				virtual/rust:0/llvm-15
 				pgo? ( =sys-libs/compiler-rt-sanitizers-15*[profile] )
 			)
 		)
@@ -97,19 +98,17 @@ BDEPEND="${PYTHON_DEPS}
 			sys-devel/llvm:14
 			clang? (
 				sys-devel/lld:14
+				virtual/rust:0/llvm-14
 				pgo? ( =sys-libs/compiler-rt-sanitizers-14*[profile] )
 			)
 		)
-	)
-	|| (
-		virtual/rust:0/llvm-15
-		virtual/rust:0/llvm-14
 	)
 	app-arch/unzip
 	app-arch/zip
 	>=dev-util/cbindgen-0.24.3
 	net-libs/nodejs
 	virtual/pkgconfig
+	!clang? ( virtual/rust )
 	amd64? ( >=dev-lang/nasm-2.14 )
 	x86? ( >=dev-lang/nasm-2.14 )
 	pgo? (
@@ -123,10 +122,7 @@ BDEPEND="${PYTHON_DEPS}
 		)
 	)"
 COMMON_DEPEND="${FF_ONLY_DEPEND}
-	|| (
-		>=app-accessibility/at-spi2-core-2.46.0:2
-		dev-libs/atk
-	)
+	>=app-accessibility/at-spi2-core-2.46.0:2
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
@@ -234,9 +230,14 @@ llvm_check_deps() {
 			return 1
 		fi
 
+		if ! has_version -b "virtual/rust:0/llvm-${LLVM_SLOT}" ; then
+			einfo "virtual/rust:0/llvm-${LLVM_SLOT} is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
+			return 1
+		fi
+
 		if use pgo ; then
-			if ! has_version -b "=sys-libs/compiler-rt-sanitizers-${LLVM_SLOT}*" ; then
-				einfo "=sys-libs/compiler-rt-sanitizers-${LLVM_SLOT}* is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
+			if ! has_version -b "=sys-libs/compiler-rt-sanitizers-${LLVM_SLOT}*[profile]" ; then
+				einfo "=sys-libs/compiler-rt-sanitizers-${LLVM_SLOT}*[profile] is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
 				return 1
 			fi
 		fi
@@ -643,6 +644,9 @@ src_prepare() {
 
 	einfo "Removing pre-built binaries ..."
 	find "${S}"/third_party -type f \( -name '*.so' -o -name '*.o' \) -print -delete || die
+
+	# Clearing crate checksums where we have applied patches
+	moz_clear_vendor_checksums bindgen
 
 	# Create build dir
 	BUILD_DIR="${WORKDIR}/${PN}_build"
