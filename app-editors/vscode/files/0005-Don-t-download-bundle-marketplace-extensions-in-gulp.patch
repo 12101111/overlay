@@ -1,4 +1,4 @@
-From df30928afd0b8f8915796dbefd7bef0eb3e1fc86 Mon Sep 17 00:00:00 2001
+From 2d1bb1d4d690db8760535cc75e6838a1bfcddf55 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 11 Sep 2022 00:02:36 +0800
 Subject: [PATCH 05/13] Don't download bundle marketplace extensions in gulp
@@ -8,10 +8,10 @@ Subject: [PATCH 05/13] Don't download bundle marketplace extensions in gulp
  1 file changed, 1 deletion(-)
 
 diff --git a/build/gulpfile.extensions.js b/build/gulpfile.extensions.js
-index c0b79bc0f9d..607b09a177d 100644
+index 3c5f90f16d6..d54bd142ea1 100644
 --- a/build/gulpfile.extensions.js
 +++ b/build/gulpfile.extensions.js
-@@ -235,7 +235,6 @@ exports.compileExtensionMediaBuildTask = compileExtensionMediaBuildTask;
+@@ -236,7 +236,6 @@ exports.compileExtensionMediaBuildTask = compileExtensionMediaBuildTask;
  const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimraf('.build/extensions'));
  const compileExtensionsBuildTask = task.define('compile-extensions-build', task.series(
  	cleanExtensionsBuildTask,

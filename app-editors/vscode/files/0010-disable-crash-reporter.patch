@@ -1,4 +1,4 @@
-From b7dbe9b4bd93a1858bca58af32b5e0eb591576de Mon Sep 17 00:00:00 2001
+From 936d468a76162190fe4919baf09e132e692e4889 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 20 Oct 2022 15:31:37 +0800
 Subject: [PATCH 10/13] disable crash reporter
@@ -8,10 +8,10 @@ Subject: [PATCH 10/13] disable crash reporter
  1 file changed, 1 insertion(+), 92 deletions(-)
 
 diff --git a/src/main.js b/src/main.js
-index f7e6e49a967..9504e35a611 100644
+index f8dd756c314..ba3a77205b4 100644
 --- a/src/main.js
 +++ b/src/main.js
-@@ -308,98 +308,7 @@ function getArgvConfigPath() {
+@@ -327,98 +327,7 @@ function getArgvConfigPath() {
  }
  
  function configureCrashReporter() {

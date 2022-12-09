@@ -1,6 +1,6 @@
-From a99ae44e953b80f405dfd4d994e7980504b6877d Mon Sep 17 00:00:00 2001
+From 7bda193c32140440152e3ee5f5608dea4bbd085a Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Thu, 20 Oct 2022 15:33:53 +0800
+Date: Thu, 8 Dec 2022 18:01:27 +0800
 Subject: [PATCH 13/13] fix missing package
 
 ---
@@ -9,24 +9,24 @@ Subject: [PATCH 13/13] fix missing package
  2 files changed, 6 insertions(+)
 
 diff --git a/extensions/npm/package.json b/extensions/npm/package.json
-index cae1fd7eab1..558b47b5799 100644
+index 40ec7e7f4ae..4cc3d17bb5f 100644
 --- a/extensions/npm/package.json
 +++ b/extensions/npm/package.json
-@@ -23,6 +23,7 @@
+@@ -22,6 +22,7 @@
+     "jsonc-parser": "^2.2.1",
      "minimatch": "^3.0.4",
      "request-light": "^0.5.7",
-     "vscode-nls": "^5.2.0",
 +    "vscode-uri": "^3.0.3",
      "which": "^2.0.2",
      "which-pm": "^2.0.0"
    },
 diff --git a/extensions/npm/yarn.lock b/extensions/npm/yarn.lock
-index bfd3b4b3de1..90b973ef518 100644
+index 4ee6067114b..9047e24c062 100644
 --- a/extensions/npm/yarn.lock
 +++ b/extensions/npm/yarn.lock
-@@ -197,6 +197,11 @@ vscode-nls@^5.2.0:
-   resolved "https://registry.yarnpkg.com/vscode-nls/-/vscode-nls-5.2.0.tgz#3cb6893dd9bd695244d8a024bdf746eea665cc3f"
-   integrity sha512-RAaHx7B14ZU04EU31pT+rKz2/zSl7xMsfIZuo8pd+KZO6PXtQmpevpq3vxvWNcrGbdmhM/rr5Uw5Mz+NBfhVng==
+@@ -192,6 +192,11 @@ to-regex-range@^5.0.1:
+   dependencies:
+     is-number "^7.0.0"
  
 +vscode-uri@^3.0.3:
 +  version "3.0.3"

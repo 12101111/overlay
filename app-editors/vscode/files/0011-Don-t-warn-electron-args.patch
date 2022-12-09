@@ -1,4 +1,4 @@
-From 56cf2e6bc52de9165458d08a095e00dff13f7e71 Mon Sep 17 00:00:00 2001
+From 3a3ba15d9a92a944d7ad8645f8a99249a9979e1a Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 11 Sep 2022 00:04:59 +0800
 Subject: [PATCH 11/13] Don't warn electron args
@@ -21,7 +21,7 @@ index 0ef429408f2..481486b01ff 100644
 +	'ozone-platform'?: string;
  }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index ec934e807eb..878eddf650c 100644
+index 58b552d390a..33020b05209 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
 @@ -185,6 +185,9 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
