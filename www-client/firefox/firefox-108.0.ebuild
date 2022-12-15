@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-107-patches-02j.tar.xz"
+FIREFOX_PATCHSET="firefox-108-patches-01j.tar.xz"
 
 LLVM_MAX_SLOT=15
 
@@ -113,6 +113,7 @@ BDEPEND="${PYTHON_DEPS}
 	x86? ( >=dev-lang/nasm-2.14 )
 	pgo? (
 		X? (
+			sys-devel/gettext
 			x11-base/xorg-server[xvfb]
 			x11-apps/xhost
 		)
@@ -126,7 +127,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.84
+	>=dev-libs/nss-3.85
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -433,6 +434,7 @@ virtwl() {
 
 	# TODO: don't run addpredict in utility function. WLR_RENDERER=pixman doesn't work
 	addpredict /dev/dri
+	addpredict /dev/snd
 	local VIRTWL VIRTWL_PID
 	coproc VIRTWL { WLR_BACKENDS=headless exec tinywl -s 'echo $WAYLAND_DISPLAY; read _; kill $PPID'; }
 	local -x WAYLAND_DISPLAY
@@ -735,6 +737,7 @@ src_configure() {
 		--disable-install-strip \
 		--disable-parental-controls \
 		--disable-strip \
+		--disable-tests \
 		--disable-updater \
 		--enable-negotiateauth \
 		--enable-new-pass-manager \
