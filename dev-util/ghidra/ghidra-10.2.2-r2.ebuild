@@ -45,10 +45,7 @@ BDEPEND=">=dev-java/gradle-bin-7.3:*"
 
 S="${WORKDIR}/ghidra-Ghidra_${PV}_build"
 
-pkg_setup() {
-	java-pkg-2_pkg_setup
-	# somehow this was unset on livecd run and it shouldn't be unset
-	eselect gradle update ifunset
+check_gradle_binary() {
 	gradle_link_target=$(readlink -n /usr/bin/gradle)
 	currentver="${gradle_link_target/gradle-bin-/}"
 	requiredver="7.3"
@@ -104,6 +101,7 @@ src_prepare() {
 }
 
 src_compile() {
+	check_gradle_binary
 	export _JAVA_OPTIONS="$_JAVA_OPTIONS -Duser.home=$HOME -Djava.io.tmpdir=${T}"
 
 	GRADLE="gradle --gradle-user-home .gradle --console rich --no-daemon"
