@@ -13,7 +13,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="5235c6bb189b60b01b1f49062f4ffa42384f8c91"
+COMMIT="e8a3071ea4344d9d48ef8a4df2c097372b0c5161"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.14.2/lib/postinstall.js#L21
@@ -1984,7 +1984,7 @@ https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz
 https://registry.yarnpkg.com/typescript-formatter/-/typescript-formatter-7.1.0.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-2.6.2.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.8.4.tgz
-https://registry.yarnpkg.com/typescript/-/typescript-4.9.3.tgz
+https://registry.yarnpkg.com/typescript/-/typescript-4.9.4.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-5.0.0-dev.20221108.tgz
 https://registry.yarnpkg.com/typical/-/typical-4.0.0.tgz
 https://registry.yarnpkg.com/uc.micro/-/uc.micro-1.0.5.tgz
@@ -2278,6 +2278,11 @@ src_configure() {
 }
 
 src_compile() {
+	#Fix node build error: https://github.com/webpack/webpack/issues/14532#issuecomment-947012063
+	if has_version ">=dev-libs/openssl-3.0.0"; then
+		export NODE_OPTIONS=--openssl-legacy-provider
+	fi
+
 	yarn gulp vscode-linux-$(get_arch)-min || die
 }
 
