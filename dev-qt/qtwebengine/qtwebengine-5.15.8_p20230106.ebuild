@@ -1,9 +1,9 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{9..10} )
+PYTHON_COMPAT=( python3_{9,10} )
 PYTHON_REQ_USE="xml(+)"
 inherit check-reqs estack flag-o-matic multiprocessing python-any-r1 qt5-build toolchain-funcs
 
@@ -115,6 +115,8 @@ PATCHES=(
 	"${FILESDIR}/${PN}-5.15.3_p20220406-gcc12-includes.patch" # by openSUSE, bug 840326
 	"${WORKDIR}/${PN}-5.15.2_p20211019-jumbo-build.patch" # bug 813957
 	"${WORKDIR}/${PN}-5.15.3_p20220406-patchset" # bug 698988 (py2--), pipewire-3
+	"${FILESDIR}/${P}-v8-opcode-constexpr.patch" # bug 889042
+	"${FILESDIR}/${P}-widevine.patch" # bug 888783
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
 )
 
