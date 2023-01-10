@@ -1,36 +1,36 @@
 diff --git a/src/basic/user-util.c b/src/basic/user-util.c
-index 63bef51..4bc96a1 100644
+index e2857b3..1f20118 100644
 --- a/src/basic/user-util.c
 +++ b/src/basic/user-util.c
-@@ -1013,7 +1013,7 @@ int fgetpwent_sane(FILE *stream, struct passwd **pw) {
+@@ -995,7 +995,7 @@ int fgetpwent_sane(FILE *stream, struct passwd **pw) {
  
          errno = 0;
-         p = fgetpwent(stream);
+         struct passwd *p = fgetpwent(stream);
 -        if (!p && errno != ENOENT)
 +        if (!p && errno > 0 && errno != ENOENT)
                  return errno_or_else(EIO);
  
          *pw = p;
-@@ -1028,7 +1028,7 @@ int fgetspent_sane(FILE *stream, struct spwd **sp) {
+@@ -1008,7 +1008,7 @@ int fgetspent_sane(FILE *stream, struct spwd **sp) {
  
          errno = 0;
-         s = fgetspent(stream);
+         struct spwd *s = fgetspent(stream);
 -        if (!s && errno != ENOENT)
 +        if (!s && errno > 0 && errno != ENOENT)
                  return errno_or_else(EIO);
  
          *sp = s;
-@@ -1043,7 +1043,7 @@ int fgetgrent_sane(FILE *stream, struct group **gr) {
+@@ -1021,7 +1021,7 @@ int fgetgrent_sane(FILE *stream, struct group **gr) {
  
          errno = 0;
-         g = fgetgrent(stream);
+         struct group *g = fgetgrent(stream);
 -        if (!g && errno != ENOENT)
 +        if (!g && errno > 0 && errno != ENOENT)
                  return errno_or_else(EIO);
  
          *gr = g;
 diff --git a/src/portable/portable.c b/src/portable/portable.c
-index eb70e11..20df33c 100644
+index 2dde92c..2ddd003 100644
 --- a/src/portable/portable.c
 +++ b/src/portable/portable.c
 @@ -1,6 +1,7 @@

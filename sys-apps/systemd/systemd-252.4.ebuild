@@ -26,7 +26,8 @@ else
 	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
 fi
 
-inherit bash-completion-r1 flag-o-matic linux-info meson-multilib pam python-any-r1 systemd toolchain-funcs udev usr-ldscript
+inherit bash-completion-r1 flag-o-matic linux-info meson-multilib pam
+inherit python-any-r1 systemd toolchain-funcs udev usr-ldscript
 
 DESCRIPTION="System and service manager for Linux"
 HOMEPAGE="http://systemd.io/"
@@ -34,7 +35,7 @@ HOMEPAGE="http://systemd.io/"
 LICENSE="GPL-2 LGPL-2.1 MIT public-domain"
 SLOT="0/2"
 IUSE="
-	acl apparmor audit build cgroup-hybrid cryptsetup curl +dns-over-tls elfutils
+	acl apparmor audit cgroup-hybrid cryptsetup curl +dns-over-tls elfutils
 	fido2 +gcrypt gnuefi gnutls homed http idn importd iptables +kmod
 	+lz4 lzma +openssl pam pcre pkcs11 policykit pwquality qrcode
 	+resolvconf +seccomp selinux split-usr +sysv-utils test tpm vanilla xkb +zstd
@@ -130,11 +131,6 @@ RDEPEND="${COMMON_DEPEND}
 	)
 	!sysv-utils? ( sys-apps/sysvinit )
 	resolvconf? ( !net-dns/openresolv )
-	!build? ( || (
-		sys-apps/util-linux[kill(-)]
-		sys-process/procps[kill(+)]
-		sys-apps/coreutils[kill(-)]
-	) )
 	!sys-apps/hwids[udev]
 	!sys-auth/nss-myhostname
 	!sys-fs/eudev
@@ -235,7 +231,6 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
-		"${FILESDIR}/251-gpt-auto-no-cryptsetup.patch"
 	)
 
 	if ! use vanilla; then
@@ -490,16 +485,15 @@ migrate_locale() {
 pkg_preinst() {
 	if ! use split-usr; then
 		local dir
-		for dir in bin sbin lib; do
-			if [[ ! ${EROOT}/${dir} -ef ${EROOT}/usr/${dir} ]]; then
-				eerror "\"${EROOT}/${dir}\" and \"${EROOT}/usr/${dir}\" are not merged."
-				eerror "One of them should be a symbolic link to the other one."
+		for dir in bin sbin lib usr/sbin; do
+			if [[ ! -L ${EROOT}/${dir} ]]; then
+				eerror "'${EROOT}/${dir}' is not a symbolic link."
 				FAIL=1
 			fi
 		done
 		if [[ ${FAIL} ]]; then
 			eerror "Migration to system layout with merged directories must be performed before"
-			eerror "rebuilding ${CATEGORY}/${PN} with USE=\"-split-usr\" to avoid run-time breakage."
+			eerror "installing ${CATEGORY}/${PN} with USE=\"-split-usr\" to avoid run-time breakage."
 			die "System layout with split directories still used"
 		fi
 	fi
