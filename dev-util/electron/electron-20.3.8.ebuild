@@ -2213,6 +2213,11 @@ src_compile() {
 	#	fi
 	#done
 
+	#Fix node build error: https://github.com/webpack/webpack/issues/14532#issuecomment-947012063
+	if has_version ">=dev-libs/openssl-3.0.0"; then
+		export NODE_OPTIONS=--openssl-legacy-provider
+	fi
+
 	# Even though ninja autodetects number of CPUs, we respect
 	# user's options, for debugging with -j 1 or any other reason.
 	eninja -C out/Release electron chromedriver
