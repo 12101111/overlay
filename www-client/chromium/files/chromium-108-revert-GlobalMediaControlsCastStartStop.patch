@@ -18,15 +18,18 @@ Cr-Commit-Position: refs/heads/main@{#961658}
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/chrome/browser/media/router/media_router_feature.cc b/chrome/browser/media/router/media_router_feature.cc
-index dcb025a..f7ea08a 100644
+index 862329e..47c8912 100644
 --- a/chrome/browser/media/router/media_router_feature.cc
 +++ b/chrome/browser/media/router/media_router_feature.cc
-@@ -48,7 +48,7 @@ const base::Feature kGlobalMediaControlsCastStartStop{
-     "GlobalMediaControlsCastStartStop", base::FEATURE_DISABLED_BY_DEFAULT};
+@@ -54,7 +54,7 @@ BASE_FEATURE(kGlobalMediaControlsCastStartStop,
  #else
- const base::Feature kGlobalMediaControlsCastStartStop{
--    "GlobalMediaControlsCastStartStop", base::FEATURE_ENABLED_BY_DEFAULT};
-+    "GlobalMediaControlsCastStartStop", base::FEATURE_DISABLED_BY_DEFAULT};
+ BASE_FEATURE(kGlobalMediaControlsCastStartStop,
+              "GlobalMediaControlsCastStartStop",
+-             base::FEATURE_ENABLED_BY_DEFAULT);
++             base::FEATURE_DISABLED_BY_DEFAULT);
  #endif  // BUILDFLAG(IS_CHROMEOS)
  
  #endif  // !BUILDFLAG(IS_ANDROID)
+-- 
+2.35.1
+

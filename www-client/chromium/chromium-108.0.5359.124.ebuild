@@ -4,7 +4,7 @@
 EAPI=8
 PYTHON_COMPAT=( python3_{8..11} )
 PYTHON_REQ_USE="xml(+)"
-LLVM_MAX_SLOT=14
+LLVM_MAX_SLOT=15
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
@@ -12,24 +12,28 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 
 VIRTUALX_REQUIRED="pgo"
 
-inherit check-reqs chromium-2 desktop flag-o-matic llvm ninja-utils pax-utils python-any-r1 readme.gentoo-r1 toolchain-funcs virtualx xdg-utils
+inherit check-reqs chromium-2 desktop flag-o-matic llvm ninja-utils pax-utils
+inherit python-any-r1 qmake-utils readme.gentoo-r1 toolchain-funcs virtualx xdg-utils
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
-PATCHSET="3"
+PATCHSET="2"
 PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
-HEVC_PATCHSET_VERSION="106.0.5211.0"
+PATCHSET_URI_PPC64="https://quickbuild.io/~raptor-engineering-public"
+PATCHSET_NAME_PPC64="chromium_108.0.5359.71-2raptor0~deb11u1.debian"
+HEVC_PATCHSET_VERSION="110.0.5456.1"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
-	pgo? ( https://blackhole.sk/~kabel/src/chromium-profiler-0.1.tar )
+	ppc64? ( ${PATCHSET_URI_PPC64}/+archive/ubuntu/chromium/+files/${PATCHSET_NAME_PPC64}.tar.xz )
+	pgo? ( https://github.com/elkablo/chromium-profiler/releases/download/v0.2/chromium-profiler-0.2.tar )
 	https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding/archive/${HEVC_PATCHSET_VERSION}.tar.gz -> chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz
 "
 
 LICENSE="BSD"
-SLOT="0/dev"
-KEYWORDS="~amd64 ~arm64"
-IUSE="hevc atk system-allocator +X component-build cups cpu_flags_arm_neon debug gtk4 +hangouts headless +js-type-check kerberos libcxx lto +official pgo pic +proprietary-codecs pulseaudio screencast selinux +suid +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland widevine"
+SLOT="0/stable"
+KEYWORDS="amd64 arm64 ~ppc64"
+IUSE="hevc system-allocator +X component-build cups cpu_flags_arm_neon debug gtk4 +hangouts headless +js-type-check kerberos libcxx lto +official pgo pic +proprietary-codecs pulseaudio qt5 screencast selinux +suid +system-av1 +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland widevine"
 REQUIRED_USE="
 	component-build? ( !suid !libcxx )
 	screencast? ( wayland )
@@ -62,10 +66,14 @@ COMMON_SNAPSHOT_DEPEND="
 	>=media-libs/freetype-2.11.0-r1:=
 	system-harfbuzz? ( >=media-libs/harfbuzz-3:0=[icu(-)] )
 	media-libs/libjpeg-turbo:=
-	system-png? ( media-libs/libpng:=[-apng] )
+	system-png? ( media-libs/libpng:=[-apng(-)] )
 	>=media-libs/libwebp-0.4.0:=
 	media-libs/mesa:=[gbm(+)]
 	>=media-libs/openh264-1.6.0:=
+	system-av1? (
+		>=media-libs/dav1d-1.0.0:=
+		>=media-libs/libaom-3.4.0:=
+	)
 	sys-libs/zlib:=
 	x11-libs/libdrm:=
 	!headless? (
@@ -116,6 +124,10 @@ COMMON_DEPEND="
 		x11-libs/cairo:=
 		x11-libs/gdk-pixbuf:2
 		x11-libs/pango:=
+		qt5? (
+			dev-qt/qtcore:5
+			dev-qt/qtwidgets:5
+		)
 	)
 	elibc_musl? (
 		sys-libs/musl-legacy-compat
@@ -129,6 +141,7 @@ RDEPEND="${COMMON_DEPEND}
 			x11-libs/gtk+:3[X?,wayland?]
 			gui-libs/gtk:4[X?,wayland?]
 		)
+		qt5? ( dev-qt/qtgui:5[X?,wayland?] )
 		x11-misc/xdg-utils
 	)
 	virtual/ttf-fonts
@@ -169,7 +182,10 @@ BDEPEND="
 		dev-python/setuptools[${PYTHON_USEDEP}]
 	')
 	>=app-arch/gzip-1.7
-	libcxx? ( >=sys-devel/clang-12 )
+	!headless? (
+		qt5? ( dev-qt/qtcore:5 )
+	)
+	libcxx? ( >=sys-devel/clang-13 )
 	lto? ( $(depend_clang_llvm_versions 13 14 15) )
 	pgo? (
 		>=dev-python/selenium-3.141.0
@@ -192,7 +208,7 @@ BDEPEND="
 : ${CHROMIUM_FORCE_CLANG=no}
 
 if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
-	BDEPEND+=" >=sys-devel/clang-12"
+	BDEPEND+=" >=sys-devel/clang-13"
 fi
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
@@ -255,8 +271,8 @@ pre_build_checks() {
 		[[ ${EBUILD_PHASE_FUNC} == pkg_setup ]] && ( use lto || use pgo ) && llvm_pkg_setup
 
 		local -x CPP="$(tc-getCXX) -E"
-		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 9.2; then
-			die "At least gcc 9.2 is required"
+		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 10.4; then
+			die "At least gcc 10.4 is required"
 		fi
 		if use pgo && tc-is-cross-compiler; then
 			die "The pgo USE flag cannot be used when cross-compiling"
@@ -264,8 +280,8 @@ pre_build_checks() {
 		if needs_clang || tc-is-clang; then
 			tc-is-cross-compiler && CPP=${CBUILD}-clang++ || CPP=${CHOST}-clang++
 			CPP+=" -E"
-			if ! ver_test "$(clang-major-version)" -ge 12; then
-				die "At least clang 12 is required"
+			if ! ver_test "$(clang-major-version)" -ge 13; then
+				die "At least clang 13 is required"
 			fi
 		fi
 		if [[ ${EBUILD_PHASE_FUNC} == pkg_setup ]] && use js-type-check; then
@@ -320,7 +336,7 @@ pkg_pretend() {
 	pre_build_checks
 
 	if use headless; then
-		local headless_unused_flags=("cups" "kerberos" "pulseaudio" "vaapi" "wayland")
+		local headless_unused_flags=("cups" "kerberos" "pulseaudio" "qt5" "vaapi" "wayland")
 		for myiuse in ${headless_unused_flags[@]}; do
 			use ${myiuse} && ewarn "Ignoring USE=${myiuse} since USE=headless is set."
 		done
@@ -344,30 +360,45 @@ src_prepare() {
 	python_setup
 
 	use elibc_musl && eapply "${FILESDIR}/musl"
-	if tc-is-clang && ( has_version "sys-devel/clang[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
+	if tc-is-clang && ( has_version "sys-devel/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
 		eapply "${FILESDIR}/remove-libatomic.patch"
 	fi
 	if use hevc; then
 		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/remove-main-main10-profile-limit.patch"
-		eapply "${FILESDIR}/enable-hevc-hardware-decoding-by-default.patch"
 		pushd third_party/ffmpeg >/dev/null || die
-		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/add-hevc-ffmpeg-decoder-parser.patch"
+		node "${WORKDIR}/${HEVC_PATCHSET_NAME}/add-hevc-ffmpeg-decoder-parser.js"
 		popd >/dev/null || die
 	fi
 
 	local PATCHES=(
 		"${WORKDIR}/patches"
 		"${FILESDIR}/chromium-93-InkDropHost-crash.patch"
-		"${FILESDIR}/chromium-98-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-98-gtk4-build.patch"
-		"${FILESDIR}/chromium-105-swiftshader-no-wayland.patch"
-		"${FILESDIR}/chromium-106-python3_11.patch"
-		"${FILESDIR}/chromium-106-revert-GlobalMediaControlsCastStartStop.patch"
+		"${FILESDIR}/chromium-107-system-zlib.patch"
+		"${FILESDIR}/chromium-108-EnumTable-crash.patch"
+		"${FILESDIR}/chromium-108-revert-GlobalMediaControlsCastStartStop.patch"
+		"${FILESDIR}/chromium-108-DocumentLoader-private.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-shim_headers.patch"
 		"${FILESDIR}/chromium-cross-compile.patch"
 		"${FILESDIR}/chromium-100-fix-stat-include.patch"
 	)
+
+	# Applied upstream, can drop on next patchset creation
+	rm "${WORKDIR}/patches/chromium-108-LabToLCH-include.patch" || die
+
+	if use ppc64 ; then
+		local p
+		for p in $(grep -v "^#" "${WORKDIR}"/debian/patches/series | grep "^ppc64le" || die); do
+			if [[ $p =~ "fix-breakpad-compile.patch" ]]; then
+				eapply "${FILESDIR}/ppc64le/fix-breakpad-compile.patch"
+			else
+				eapply "${WORKDIR}/debian/patches/${p}"
+			fi
+		done
+		eapply "${FILESDIR}/ppc64le/libpng-pdfium-compile-98.patch"
+		eapply "${FILESDIR}/ppc64le/fix-swiftshader-compile.patch"
+	fi
 
 	default
 
@@ -437,7 +468,6 @@ src_prepare() {
 		third_party/crashpad/crashpad/third_party/zlib
 		third_party/crc32c
 		third_party/cros_system_api
-		third_party/dav1d
 		third_party/dawn
 		third_party/dawn/third_party/gn/webgpu-cts
 		third_party/dawn/third_party/khronos
@@ -473,7 +503,6 @@ src_prepare() {
 		third_party/fusejs
 		third_party/fxdiv
 		third_party/highway
-		third_party/libgifcodec
 		third_party/liburlpattern
 		third_party/libzip
 		third_party/gemmlowp
@@ -491,10 +520,6 @@ src_prepare() {
 		third_party/khronos
 		third_party/leveldatabase
 		third_party/libaddressinput
-		third_party/libaom
-		third_party/libaom/source/libaom/third_party/fastfeat
-		third_party/libaom/source/libaom/third_party/vector
-		third_party/libaom/source/libaom/third_party/x86inc
 		third_party/libavif
 		third_party/libevent
 		third_party/libgav1
@@ -530,7 +555,7 @@ src_prepare() {
 		third_party/nearby
 		third_party/neon_2_sse
 		third_party/node
-		third_party/node/node_modules/polymer-bundler/lib/third_party/UglifyJS2
+		third_party/omnibox_proto
 		third_party/one_euro_filter
 		third_party/openscreen
 		third_party/openscreen/src/third_party/mozilla
@@ -564,9 +589,7 @@ src_prepare() {
 		third_party/shell-encryption
 		third_party/simplejson
 		third_party/skia
-		third_party/skia/include/third_party/skcms
 		third_party/skia/include/third_party/vulkan
-		third_party/skia/third_party/skcms
 		third_party/skia/third_party/vulkan
 		third_party/smhasher
 		third_party/snappy
@@ -628,18 +651,24 @@ src_prepare() {
 	if ! use system-png; then
 		keeplibs+=( third_party/libpng )
 	fi
+	if ! use system-av1; then
+		keeplibs+=(
+			third_party/dav1d
+			third_party/libaom
+			third_party/libaom/source/libaom/third_party/fastfeat
+			third_party/libaom/source/libaom/third_party/SVT-AV1
+			third_party/libaom/source/libaom/third_party/vector
+			third_party/libaom/source/libaom/third_party/x86inc
+		)
+	fi
+	if ! use system-harfbuzz; then
+		keeplibs+=( third_party/harfbuzz-ng )
+	fi
 	if use libcxx; then
 		keeplibs+=( third_party/re2 )
 	fi
-	if use system-harfbuzz; then
-		keeplibs+=( third_party/harfbuzz-ng/utils )
-	else
-		keeplibs+=( third_party/harfbuzz-ng )
-	fi
 	if use wayland && ! use headless ; then
 		keeplibs+=( third_party/wayland )
-		# only need the .gn files
-		rm -r third_party/wayland/src || die
 	fi
 	if use arm64 || use ppc64 ; then
 		keeplibs+=( third_party/swiftshader/third_party/llvm-10.0 )
@@ -804,6 +833,9 @@ chromium_configure() {
 	fi
 	if use system-png; then
 		gn_system_libraries+=( libpng )
+	fi
+	if use system-av1; then
+		gn_system_libraries+=( dav1d libaom )
 	fi
 	# re2 library interface relies on std::string and std::vector
 	if ! use libcxx; then
@@ -973,7 +1005,7 @@ chromium_configure() {
 	myconf_gn+=" ozone_platform_headless=true"
 	if use headless; then
 		myconf_gn+=" ozone_platform=\"headless\""
-		myconf_gn+=" use_xkbcommon=false use_gtk=false"
+		myconf_gn+=" use_xkbcommon=false use_gtk=false use_qt=false"
 		myconf_gn+=" use_glib=false use_gio=false"
 		myconf_gn+=" use_pangocairo=false use_alsa=false"
 		myconf_gn+=" use_libpci=false use_udev=false"
@@ -983,10 +1015,24 @@ chromium_configure() {
 		myconf_gn+=" use_system_libdrm=true"
 		myconf_gn+=" use_system_minigbm=true"
 		myconf_gn+=" use_xkbcommon=true"
+		if use qt5; then
+			local moc_dir="$(qt5_get_bindir)"
+			if tc-is-cross-compiler; then
+				# Hack to workaround get_libdir not being able to handle CBUILD, bug #794181
+				local cbuild_libdir=$($(tc-getBUILD_PKG_CONFIG) --keep-system-libs --libs-only-L libxslt)
+				cbuild_libdir=${cbuild_libdir:2}
+				moc_dir="${EPREFIX}"/${cbuild_libdir/% }/qt5/bin
+			fi
+			export PATH="${PATH}:${moc_dir}"
+		fi
+		myconf_gn+=" use_qt=$(usex qt5 true false)"
 		myconf_gn+=" ozone_platform_x11=$(usex X true false)"
 		myconf_gn+=" ozone_platform_wayland=$(usex wayland true false)"
 		myconf_gn+=" ozone_platform=$(usex wayland \"wayland\" \"x11\")"
-		use wayland && myconf_gn+=" use_system_wayland_scanner=true"
+		if use wayland; then
+			myconf_gn+=" use_system_libwayland=true"
+			myconf_gn+=" use_system_wayland_scanner=true"
+		fi
 	fi
 
 	# Results in undefined references in chrome linking, may require CFI to work
@@ -1048,8 +1094,6 @@ chromium_compile() {
 
 	# Don't inherit PYTHONPATH from environment, bug #789021, #812689
 	local -x PYTHONPATH=
-
-	#"${EPYTHON}" tools/clang/scripts/update.py --force-local-build --gcc-toolchain /usr --skip-checkout --use-system-cmake --without-android || die
 
 	# Build mksnapshot and pax-mark it.
 	#local x
@@ -1124,6 +1168,8 @@ src_compile() {
 	fi
 
 	mv out/Release/chromedriver{.unstripped,} || die
+
+	rm -f out/Release/locales/*.pak.info || die
 
 	# Build manpage; bug #684550
 	sed -e 's|@@PACKAGE@@|chromium-browser|g;
