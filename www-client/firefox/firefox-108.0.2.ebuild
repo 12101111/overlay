@@ -1,9 +1,9 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-108-patches-01j.tar.xz"
+FIREFOX_PATCHSET="firefox-108-patches-03j.tar.xz"
 
 LLVM_MAX_SLOT=15
 
@@ -195,18 +195,19 @@ RDEPEND="${COMMON_DEPEND}
 	openh264? ( media-libs/openh264:*[plugin] )
 	pulseaudio? (
 		|| (
-			media-sound/pulseaudio
+			media-libs/libpulse
 			>=media-sound/apulse-0.1.12-r4
 		)
 	)"
 DEPEND="${COMMON_DEPEND}
 	pulseaudio? (
 		|| (
-			media-sound/pulseaudio
+			media-libs/libpulse
 			>=media-sound/apulse-0.1.12-r4[sdk]
 		)
 	)
 	X? (
+		x11-base/xorg-proto
 		x11-libs/libICE
 		x11-libs/libSM
 	)"
@@ -434,7 +435,6 @@ virtwl() {
 
 	# TODO: don't run addpredict in utility function. WLR_RENDERER=pixman doesn't work
 	addpredict /dev/dri
-	addpredict /dev/snd
 	local VIRTWL VIRTWL_PID
 	coproc VIRTWL { WLR_BACKENDS=headless exec tinywl -s 'echo $WAYLAND_DISPLAY; read _; kill $PPID'; }
 	local -x WAYLAND_DISPLAY
