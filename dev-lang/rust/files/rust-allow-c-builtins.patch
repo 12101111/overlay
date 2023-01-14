@@ -1,0 +1,17 @@
+diff --git a/src/bootstrap/compile.rs b/src/bootstrap/compile.rs
+index e02a10b81..32ebbd932 100644
+--- a/src/bootstrap/compile.rs
++++ b/src/bootstrap/compile.rs
+@@ -311,12 +311,6 @@ pub fn std_cargo(builder: &Builder<'_>, target: TargetSelection, stage: u32, car
+     // `compiler-builtins` crate is enabled and it's configured to learn where
+     // `compiler-rt` is located.
+     let compiler_builtins_c_feature = if builder.config.optimized_compiler_builtins {
+-        if !builder.is_rust_llvm(target) {
+-            panic!(
+-                "need a managed LLVM submodule for optimized intrinsics support; unset `llvm-config` or `optimized-compiler-builtins`"
+-            );
+-        }
+-
+         builder.update_submodule(&Path::new("src").join("llvm-project"));
+         let compiler_builtins_root = builder.src.join("src/llvm-project/compiler-rt");
+         // Note that `libprofiler_builtins/build.rs` also computes this so if
