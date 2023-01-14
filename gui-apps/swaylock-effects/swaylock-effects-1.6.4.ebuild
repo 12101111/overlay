@@ -16,7 +16,7 @@ else
 	MY_PV="$(ver_rs 2 -)"
 	S="${WORKDIR}/swaylock-effects-${MY_PV}"
 	SRC_URI="https://github.com/mortie/swaylock-effects/archive/v${MY_PV}.tar.gz -> ${P}.tar.gz"
-	KEYWORDS="~amd64"
+	KEYWORDS="~amd64 ~arm64"
 fi
 
 LICENSE="MIT"
