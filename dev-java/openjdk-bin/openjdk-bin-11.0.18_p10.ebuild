@@ -1,11 +1,11 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
 inherit java-vm-2 toolchain-funcs
 
-MY_ZULU_PV="11.60.19-ca-jdk11.0.17"
+MY_ZULU_PV="11.62.17-ca-jdk11.0.18"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
 
@@ -91,7 +91,7 @@ src_install() {
 	# provide stable symlink
 	dosym "${P}" "/opt/${PN}-${SLOT}"
 
-	java-vm_install-env "${FILESDIR}"/${PN}-${SLOT}.env.sh
+	java-vm_install-env "${FILESDIR}"/${PN}.env.sh
 	java-vm_set-pax-markings "${ddest}"
 	java-vm_revdep-mask
 	java-vm_sandbox-predict /dev/random /proc/self/coredump_filter

@@ -1,11 +1,11 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
 inherit java-vm-2
 
-MY_ZULU_PV="8.66.0.15-ca-jdk8.0.352"
+MY_ZULU_PV="8.68.0.21-ca-jdk8.0.362"
 MY_PV=${PV/_p/+}
 SLOT=${MY_PV%%[.+]*}
 
