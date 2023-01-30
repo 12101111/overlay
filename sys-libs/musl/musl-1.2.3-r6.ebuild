@@ -1,4 +1,4 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -38,7 +38,7 @@ HOMEPAGE="https://musl.libc.org"
 
 LICENSE="MIT LGPL-2 GPL-2"
 SLOT="0"
-IUSE="crypt headers-only"
+IUSE="crypt headers-only split-usr"
 
 QA_SONAME="usr/lib/libc.so"
 QA_DT_NEEDED="usr/lib/libc.so"
@@ -111,7 +111,7 @@ src_prepare() {
 }
 
 src_configure() {
-	filter-lto # bug #877343
+	strip-flags # Prevent issues caused by aggressive optimizations & bug #877343
 	tc-getCC ${CTARGET}
 
 	just_headers && export CC=true
@@ -178,10 +178,19 @@ src_install() {
 		# using musl so that file may not exist. Use a relative symlink within
 		# ${D} instead.
 		rm -f "${ED}"/lib/ld-musl-${arch}.so.1 || die
-		dosym8 -r /usr/lib/libc.so /lib/ld-musl-${arch}.so.1
+		if use split-usr; then
+			dosym8 -r /usr/lib/libc.so /lib/ld-musl-${arch}.so.1
+		else
+			dosym8 libc.so /usr/lib/ld-musl-${arch}.so.1
+		fi
 
-		# If it's still a dead symlnk, OK, we really do need to abort.
-		[[ -e "${ED}"/lib/ld-musl-${arch}.so.1 ]] || die
+		if use split-usr; then
+			# If it's still a dead symlnk, OK, we really do need to abort.
+			[[ -e "${ED}"/lib/ld-musl-${arch}.so.1 ]] || die
+		else
+			[[ -L "/lib" ]] || die
+			[[ -e "${ED}"/usr/lib/ld-musl-${arch}.so.1 ]] || die
+		fi
 
 		cp "${FILESDIR}"/ldconfig.in-r3 "${T}"/ldconfig.in || die
 		sed -e "s|@@ARCH@@|${arch}|" "${T}"/ldconfig.in > "${T}"/ldconfig || die
@@ -194,6 +203,12 @@ src_install() {
 		dobin "${T}"/iconv
 		echo 'LDPATH="include ld.so.conf.d/*.conf"' > "${T}"/00musl || die
 		doenvd "${T}"/00musl
+	fi
+
+	if is_crosscompile ; then
+		into /usr/${CTARGET}
+		dolib.a libssp_nonshared.a
+	else
 		dolib.a libssp_nonshared.a
 	fi
 }
