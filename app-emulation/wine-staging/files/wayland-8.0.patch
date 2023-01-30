@@ -1,5 +1,5 @@
 diff --git a/configure b/configure
-index b29f480b726..a0b99711d82 100755
+index bdffe3e28b2..317bbdc5969 100755
 --- a/configure
 +++ b/configure
 @@ -701,6 +701,20 @@ DBUS_CFLAGS
@@ -39,7 +39,7 @@ index b29f480b726..a0b99711d82 100755
  enable_winex11_drv
  enable_winexinput_sys
  enable_wing32
-@@ -1734,6 +1750,18 @@ ZLIB_PE_CFLAGS
+@@ -1735,6 +1751,18 @@ ZLIB_PE_CFLAGS
  ZLIB_PE_LIBS
  XMKMF
  CPP
@@ -58,7 +58,7 @@ index b29f480b726..a0b99711d82 100755
  INOTIFY_CFLAGS
  INOTIFY_LIBS
  DBUS_CFLAGS
-@@ -2458,6 +2486,7 @@ Optional Packages:
+@@ -2459,6 +2487,7 @@ Optional Packages:
    --without-xshape        do not use the Xshape extension
    --without-xshm          do not use XShm (shared memory extension)
    --without-xxf86vm       do not use XFree video mode extension
@@ -66,7 +66,7 @@ index b29f480b726..a0b99711d82 100755
    --with-system-dllpath=PATH
                            load external PE dependencies from colon-separated
                            path PATH
-@@ -2532,6 +2561,26 @@ Some influential environment variables:
+@@ -2533,6 +2562,26 @@ Some influential environment variables:
                Linker flags for the PE zlib, overriding the bundled version
    XMKMF       Path to xmkmf, Makefile generator for X Window System
    CPP         C preprocessor
@@ -93,7 +93,7 @@ index b29f480b726..a0b99711d82 100755
    INOTIFY_CFLAGS
                C compiler flags for libinotify, overriding pkg-config
    INOTIFY_LIBS
-@@ -4473,6 +4522,13 @@ then :
+@@ -4441,6 +4490,13 @@ then :
  fi
  
  
@@ -107,7 +107,7 @@ index b29f480b726..a0b99711d82 100755
  
  # Check whether --with-system-dllpath was given.
  if test ${with_system_dllpath+y}
-@@ -6242,7 +6298,7 @@ printf "%s\n" "$wine_cv_cc_m32" >&6; }
+@@ -6210,7 +6266,7 @@ printf "%s\n" "$wine_cv_cc_m32" >&6; }
        host_cpu="i386"
        notice_platform="32-bit "
        TARGETFLAGS="$TARGETFLAGS -m32"
@@ -116,7 +116,7 @@ index b29f480b726..a0b99711d82 100755
        export PKG_CONFIG_LIBDIR
        with_unwind=${with_unwind:-no}
      else
-@@ -15862,6 +15918,629 @@ enable_winex11_drv=${enable_winex11_drv:-no}
+@@ -15644,6 +15700,629 @@ enable_winex11_drv=${enable_winex11_drv:-no}
  fi
  fi
  
@@ -746,7 +746,7 @@ index b29f480b726..a0b99711d82 100755
  if test "$ac_cv_header_CL_cl_h" = "yes"
  then
      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for clGetPlatformInfo in -lOpenCL" >&5
-@@ -21917,6 +22596,7 @@ wine_fn_config_makefile dlls/wineps16.drv16 enable_win16
+@@ -21815,6 +22494,7 @@ wine_fn_config_makefile dlls/wineps16.drv16 enable_win16
  wine_fn_config_makefile dlls/winepulse.drv enable_winepulse_drv
  wine_fn_config_makefile dlls/wineusb.sys enable_wineusb_sys
  wine_fn_config_makefile dlls/winevulkan enable_winevulkan
@@ -754,7 +754,7 @@ index b29f480b726..a0b99711d82 100755
  wine_fn_config_makefile dlls/winex11.drv enable_winex11_drv
  wine_fn_config_makefile dlls/winexinput.sys enable_winexinput_sys
  wine_fn_config_makefile dlls/wing.dll16 enable_win16
-@@ -23217,6 +23897,20 @@ X_CFLAGS = $X_CFLAGS
+@@ -23116,6 +23796,20 @@ X_CFLAGS = $X_CFLAGS
  X_PRE_LIBS = $X_PRE_LIBS
  X_LIBS = $X_LIBS
  X_EXTRA_LIBS = $X_EXTRA_LIBS
@@ -776,10 +776,10 @@ index b29f480b726..a0b99711d82 100755
  INOTIFY_CFLAGS = $INOTIFY_CFLAGS
  INOTIFY_LIBS = $INOTIFY_LIBS
 diff --git a/configure.ac b/configure.ac
-index 7313fde9a4e..b7facb5b134 100644
+index 3c30db8fd45..3f7c28ba426 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -83,6 +83,7 @@ AC_ARG_WITH(xshm,      AS_HELP_STRING([--without-xshm],[do not use XShm (shared
+@@ -82,6 +82,7 @@ AC_ARG_WITH(xshm,      AS_HELP_STRING([--without-xshm],[do not use XShm (shared
              [if test "x$withval" = "xno"; then ac_cv_header_X11_extensions_XShm_h=no; fi])
  AC_ARG_WITH(xxf86vm,   AS_HELP_STRING([--without-xxf86vm],[do not use XFree video mode extension]),
              [if test "x$withval" = "xno"; then ac_cv_header_X11_extensions_xf86vmode_h=no; ac_cv_header_X11_extensions_xf86vmproto_h=no; fi])
@@ -787,7 +787,7 @@ index 7313fde9a4e..b7facb5b134 100644
  
  AC_ARG_WITH(system-dllpath,AS_HELP_STRING([--with-system-dllpath=PATH],[load external PE dependencies from colon-separated path PATH]),
              AC_SUBST(system_dllpath,[$withval]))
-@@ -129,7 +130,7 @@ case $host in
+@@ -128,7 +129,7 @@ case $host in
        host_cpu="i386"
        notice_platform="32-bit "
        TARGETFLAGS="$TARGETFLAGS -m32"
@@ -796,7 +796,7 @@ index 7313fde9a4e..b7facb5b134 100644
        export PKG_CONFIG_LIBDIR
        with_unwind=${with_unwind:-no}
      else
-@@ -1407,6 +1408,45 @@ else
+@@ -1359,6 +1360,45 @@ else
                       [enable_winex11_drv])
  fi
  
@@ -842,7 +842,7 @@ index 7313fde9a4e..b7facb5b134 100644
  dnl **** Check for OpenCL ****
  if test "$ac_cv_header_CL_cl_h" = "yes"
  then
-@@ -3200,6 +3240,7 @@ WINE_CONFIG_MAKEFILE(dlls/wineps16.drv16,enable_win16)
+@@ -3153,6 +3193,7 @@ WINE_CONFIG_MAKEFILE(dlls/wineps16.drv16,enable_win16)
  WINE_CONFIG_MAKEFILE(dlls/winepulse.drv)
  WINE_CONFIG_MAKEFILE(dlls/wineusb.sys)
  WINE_CONFIG_MAKEFILE(dlls/winevulkan)
@@ -851,7 +851,7 @@ index 7313fde9a4e..b7facb5b134 100644
  WINE_CONFIG_MAKEFILE(dlls/winexinput.sys)
  WINE_CONFIG_MAKEFILE(dlls/wing.dll16,enable_win16)
 diff --git a/dlls/win32u/dibdrv/dc.c b/dlls/win32u/dibdrv/dc.c
-index 7c60466d9ee..434b0cbf778 100644
+index 68a009f576e..23ef7f64390 100644
 --- a/dlls/win32u/dibdrv/dc.c
 +++ b/dlls/win32u/dibdrv/dc.c
 @@ -731,7 +731,6 @@ struct windrv_physdev
@@ -893,10 +893,10 @@ index f88efbaa679..df273beadde 100644
  
  void gdi_init(void)
 diff --git a/dlls/win32u/message.c b/dlls/win32u/message.c
-index 6f78c99921a..d8811939fe3 100644
+index f439b7da23b..13c8a47cbf7 100644
 --- a/dlls/win32u/message.c
 +++ b/dlls/win32u/message.c
-@@ -3102,6 +3102,20 @@ static BOOL send_message_callback( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
+@@ -3388,6 +3388,20 @@ static BOOL send_message_callback( HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
      return process_message( &info, NULL, ansi );
  }
  
@@ -918,7 +918,7 @@ index 6f78c99921a..d8811939fe3 100644
   *           NtUserPostMessage  (win32u.@)
   */
 diff --git a/dlls/win32u/win32u.spec b/dlls/win32u/win32u.spec
-index c9c126ec2f3..b34618dc28a 100644
+index c3ed3c0559a..3b6b239fcc2 100644
 --- a/dlls/win32u/win32u.spec
 +++ b/dlls/win32u/win32u.spec
 @@ -1328,3 +1328,6 @@
@@ -929,7 +929,7 @@ index c9c126ec2f3..b34618dc28a 100644
 +# message
 +@ cdecl __wine_send_internal_message_timeout(long long long long long long long ptr)
 diff --git a/dlls/win32u/win32u_private.h b/dlls/win32u/win32u_private.h
-index 8fc00cf3296..10cd9e52be7 100644
+index 96b1b7647fe..153f4f58bbc 100644
 --- a/dlls/win32u/win32u_private.h
 +++ b/dlls/win32u/win32u_private.h
 @@ -208,6 +208,9 @@ struct unix_funcs
@@ -963,10 +963,10 @@ index e128705ef37..d0d068c3e78 100644
  {
      const void *args;
 diff --git a/dlls/winevulkan/make_vulkan b/dlls/winevulkan/make_vulkan
-index 45418e362c5..2697a9b82a1 100755
+index 801b804745f..8d3fb8fd7b7 100755
 --- a/dlls/winevulkan/make_vulkan
 +++ b/dlls/winevulkan/make_vulkan
-@@ -106,14 +106,9 @@ UNSUPPORTED_EXTENSIONS = [
+@@ -107,14 +107,9 @@ UNSUPPORTED_EXTENSIONS = [
      "VK_NV_external_memory_rdma", # Needs shared resources work.
  
      # Extensions for other platforms
@@ -981,7 +981,7 @@ index 45418e362c5..2697a9b82a1 100755
      "VK_SEC_amigo_profiling", # Angle specific.
  
      # Extensions which require callback handling
-@@ -129,6 +124,11 @@ UNSUPPORTED_EXTENSIONS = [
+@@ -130,6 +125,11 @@ UNSUPPORTED_EXTENSIONS = [
  # but not expose to applications (useful for test commits)
  UNEXPOSED_EXTENSIONS = {
      "VK_KHR_external_memory_win32",
@@ -993,7 +993,7 @@ index 45418e362c5..2697a9b82a1 100755
  }
  
  # The Vulkan loader provides entry-points for core functionality and important
-@@ -187,7 +187,7 @@ FUNCTION_OVERRIDES = {
+@@ -189,7 +189,7 @@ FUNCTION_OVERRIDES = {
      "vkGetInstanceProcAddr": {"dispatch" : False, "driver" : True, "thunk" : ThunkType.NONE, "loader_thunk" : ThunkType.NONE},
  
      # Instance functions
@@ -1002,7 +1002,7 @@ index 45418e362c5..2697a9b82a1 100755
      "vkDestroyInstance" : {"dispatch" : False, "driver" : True, "thunk" : ThunkType.NONE, "loader_thunk" : ThunkType.PRIVATE},
      "vkEnumerateDeviceExtensionProperties" : {"dispatch" : True, "driver" : False, "thunk" : ThunkType.NONE},
      "vkEnumerateDeviceLayerProperties": {"dispatch": True, "driver": False, "thunk": ThunkType.NONE},
-@@ -204,7 +204,7 @@ FUNCTION_OVERRIDES = {
+@@ -206,7 +206,7 @@ FUNCTION_OVERRIDES = {
      "vkAllocateCommandBuffers" : {"dispatch" : True, "driver" : False, "thunk" : ThunkType.NONE, "loader_thunk" : ThunkType.PRIVATE},
      "vkCreateCommandPool" : {"dispatch": True, "driver" : False, "thunk" : ThunkType.NONE, "loader_thunk" : ThunkType.PRIVATE, "extra_param" : "client_ptr"},
      "vkDestroyCommandPool" : {"dispatch": True, "driver" : False, "thunk" : ThunkType.NONE, "loader_thunk" : ThunkType.PRIVATE},
@@ -1011,7 +1011,7 @@ index 45418e362c5..2697a9b82a1 100755
      "vkFreeCommandBuffers" : {"dispatch" : True, "driver" : False, "thunk" : ThunkType.NONE, "loader_thunk" : ThunkType.PRIVATE},
      "vkGetDeviceProcAddr" : {"dispatch" : False, "driver" : True, "thunk" : ThunkType.NONE, "loader_thunk" : ThunkType.NONE},
      "vkGetDeviceQueue" : {"dispatch": True, "driver" : False, "thunk" : ThunkType.NONE},
-@@ -227,6 +227,7 @@ FUNCTION_OVERRIDES = {
+@@ -234,6 +234,7 @@ FUNCTION_OVERRIDES = {
      "vkGetPhysicalDeviceWin32PresentationSupportKHR" : {"dispatch" : True, "driver" : True, "thunk" : ThunkType.PUBLIC},
  
      # VK_KHR_swapchain
@@ -1019,18 +1019,8 @@ index 45418e362c5..2697a9b82a1 100755
      "vkCreateSwapchainKHR" : {"dispatch" : True, "driver" : True, "thunk" : ThunkType.PUBLIC},
      "vkDestroySwapchainKHR" : {"dispatch" : True, "driver" : True, "thunk" : ThunkType.PUBLIC},
      "vkGetSwapchainImagesKHR": {"dispatch" : True, "driver" : True, "thunk" : ThunkType.PUBLIC},
-@@ -1901,7 +1902,8 @@ class VkStruct(Sequence):
-         # Those structs seem to be broken in spec, they are specified as
-         # returned only, but documented as input structs.
-         if name in ["VkSubpassShadingPipelineCreateInfoHUAWEI",
--                    "VkPipelineShaderStageRequiredSubgroupSizeCreateInfo"]:
-+                    "VkPipelineShaderStageRequiredSubgroupSizeCreateInfo",
-+                    "VkSubresourceLayout"]:
-             returnedonly = False
- 
-         # Those structs don't have returnedonly in spec, but they could (should?).
 diff --git a/dlls/winevulkan/vulkan_thunks.c b/dlls/winevulkan/vulkan_thunks.c
-index dad8991e095..199606342bf 100644
+index 8cf554b6fff..efd40cac37d 100644
 --- a/dlls/winevulkan/vulkan_thunks.c
 +++ b/dlls/winevulkan/vulkan_thunks.c
 @@ -108,6 +108,14 @@ typedef struct VkExportMemoryWin32HandleInfoKHR32
@@ -1048,7 +1038,7 @@ index dad8991e095..199606342bf 100644
  typedef struct VkMemoryAllocateFlagsInfo32
  {
      VkStructureType sType;
-@@ -3202,6 +3210,15 @@ typedef struct VkGraphicsPipelineCreateInfo32
+@@ -3216,6 +3224,15 @@ typedef struct VkGraphicsPipelineCreateInfo32
      int32_t basePipelineIndex;
  } VkGraphicsPipelineCreateInfo32;
  
@@ -1064,7 +1054,7 @@ index dad8991e095..199606342bf 100644
  typedef struct VkDedicatedAllocationImageCreateInfoNV32
  {
      VkStructureType sType;
-@@ -3233,6 +3250,23 @@ typedef struct VkImageFormatListCreateInfo32
+@@ -3247,6 +3264,23 @@ typedef struct VkImageFormatListCreateInfo32
  } VkImageFormatListCreateInfo32;
  typedef VkImageFormatListCreateInfo32 VkImageFormatListCreateInfoKHR32;
  
@@ -1088,7 +1078,7 @@ index dad8991e095..199606342bf 100644
  typedef struct VkImageStencilUsageCreateInfo32
  {
      VkStructureType sType;
-@@ -4246,15 +4280,6 @@ typedef struct VkImageSparseMemoryRequirementsInfo232
+@@ -4277,15 +4311,6 @@ typedef struct VkImageSparseMemoryRequirementsInfo232
  } VkImageSparseMemoryRequirementsInfo232;
  typedef VkImageSparseMemoryRequirementsInfo232 VkImageSparseMemoryRequirementsInfo2KHR32;
  
@@ -1104,7 +1094,7 @@ index dad8991e095..199606342bf 100644
  typedef struct VkImageSubresource2EXT32
  {
      VkStructureType sType;
-@@ -4400,6 +4425,28 @@ typedef struct VkExternalSemaphoreProperties32
+@@ -4431,6 +4456,28 @@ typedef struct VkExternalSemaphoreProperties32
  } VkExternalSemaphoreProperties32;
  typedef VkExternalSemaphoreProperties32 VkExternalSemaphorePropertiesKHR32;
  
@@ -1133,7 +1123,7 @@ index dad8991e095..199606342bf 100644
  typedef struct VkSubpassResolvePerformanceQueryEXT32
  {
      VkStructureType sType;
-@@ -4417,6 +4464,14 @@ typedef struct VkFormatProperties332
+@@ -4448,6 +4495,14 @@ typedef struct VkFormatProperties332
  } VkFormatProperties332;
  typedef VkFormatProperties332 VkFormatProperties3KHR32;
  
@@ -1148,7 +1138,7 @@ index dad8991e095..199606342bf 100644
  typedef struct VkFormatProperties232
  {
      VkStructureType sType;
-@@ -4450,6 +4505,16 @@ typedef struct VkPhysicalDeviceExternalImageFormatInfo32
+@@ -4481,6 +4536,16 @@ typedef struct VkPhysicalDeviceExternalImageFormatInfo32
  } VkPhysicalDeviceExternalImageFormatInfo32;
  typedef VkPhysicalDeviceExternalImageFormatInfo32 VkPhysicalDeviceExternalImageFormatInfoKHR32;
  
@@ -1165,7 +1155,7 @@ index dad8991e095..199606342bf 100644
  typedef struct VkPhysicalDeviceImageViewImageFormatInfoEXT32
  {
      VkStructureType sType;
-@@ -6205,6 +6270,18 @@ static inline void convert_VkMemoryAllocateInfo_win32_to_host(struct conversion_
+@@ -6289,6 +6354,18 @@ static inline void convert_VkMemoryAllocateInfo_win32_to_host(struct conversion_
              out_header = (void *)out_ext;
              break;
          }
@@ -1184,7 +1174,7 @@ index dad8991e095..199606342bf 100644
          case VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO:
          {
              VkMemoryAllocateFlagsInfo *out_ext = conversion_context_alloc(ctx, sizeof(*out_ext));
-@@ -14365,6 +14442,33 @@ static inline void convert_VkGraphicsPipelineCreateInfo_array_host_to_win32(cons
+@@ -14588,6 +14665,33 @@ static inline void convert_VkGraphicsPipelineCreateInfo_array_host_to_win32(cons
      }
  }
  
@@ -1218,7 +1208,7 @@ index dad8991e095..199606342bf 100644
  static inline void convert_VkImageCreateInfo_win32_to_host(struct conversion_context *ctx, const VkImageCreateInfo32 *in, VkImageCreateInfo *out)
  {
      const VkBaseInStructure32 *in_header;
-@@ -14437,6 +14541,31 @@ static inline void convert_VkImageCreateInfo_win32_to_host(struct conversion_con
+@@ -14660,6 +14764,31 @@ static inline void convert_VkImageCreateInfo_win32_to_host(struct conversion_con
              out_header = (void *)out_ext;
              break;
          }
@@ -1250,7 +1240,25 @@ index dad8991e095..199606342bf 100644
          case VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO:
          {
              VkImageStencilUsageCreateInfo *out_ext = conversion_context_alloc(ctx, sizeof(*out_ext));
-@@ -20815,6 +20944,68 @@ static inline void convert_VkPhysicalDeviceFeatures2_host_to_win32(const VkPhysi
+@@ -17495,17 +17624,6 @@ static inline void convert_VkImageSparseMemoryRequirementsInfo2_win32_to_host(co
+         FIXME("Unexpected pNext\n");
+ }
+ 
+-static inline void convert_VkSubresourceLayout_win32_to_host(const VkSubresourceLayout32 *in, VkSubresourceLayout *out)
+-{
+-    if (!in) return;
+-
+-    out->offset = in->offset;
+-    out->size = in->size;
+-    out->rowPitch = in->rowPitch;
+-    out->arrayPitch = in->arrayPitch;
+-    out->depthPitch = in->depthPitch;
+-}
+-
+ static inline void convert_VkSubresourceLayout_host_to_win32(const VkSubresourceLayout *in, VkSubresourceLayout32 *out)
+ {
+     if (!in) return;
+@@ -21156,6 +21274,68 @@ static inline void convert_VkPhysicalDeviceFeatures2_host_to_win32(const VkPhysi
      }
  }
  
@@ -1319,7 +1327,7 @@ index dad8991e095..199606342bf 100644
  static inline void convert_VkFormatProperties2_win32_to_host(struct conversion_context *ctx, const VkFormatProperties232 *in, VkFormatProperties2 *out)
  {
      const VkBaseInStructure32 *in_header;
-@@ -20829,6 +21020,17 @@ static inline void convert_VkFormatProperties2_win32_to_host(struct conversion_c
+@@ -21170,6 +21350,17 @@ static inline void convert_VkFormatProperties2_win32_to_host(struct conversion_c
      {
          switch (in_header->sType)
          {
@@ -1337,7 +1345,7 @@ index dad8991e095..199606342bf 100644
          case VK_STRUCTURE_TYPE_SUBPASS_RESOLVE_PERFORMANCE_QUERY_EXT:
          {
              VkSubpassResolvePerformanceQueryEXT *out_ext = conversion_context_alloc(ctx, sizeof(*out_ext));
-@@ -20847,6 +21049,17 @@ static inline void convert_VkFormatProperties2_win32_to_host(struct conversion_c
+@@ -21188,6 +21379,17 @@ static inline void convert_VkFormatProperties2_win32_to_host(struct conversion_c
              out_header = (void *)out_ext;
              break;
          }
@@ -1355,7 +1363,7 @@ index dad8991e095..199606342bf 100644
          default:
              FIXME("Unhandled sType %u.", in_header->sType);
              break;
-@@ -20867,6 +21080,16 @@ static inline void convert_VkFormatProperties2_host_to_win32(const VkFormatPrope
+@@ -21208,6 +21410,16 @@ static inline void convert_VkFormatProperties2_host_to_win32(const VkFormatPrope
      {
          switch (in_header->sType)
          {
@@ -1372,7 +1380,7 @@ index dad8991e095..199606342bf 100644
          case VK_STRUCTURE_TYPE_SUBPASS_RESOLVE_PERFORMANCE_QUERY_EXT:
          {
              VkSubpassResolvePerformanceQueryEXT32 *out_ext = find_next_struct32(out_header, VK_STRUCTURE_TYPE_SUBPASS_RESOLVE_PERFORMANCE_QUERY_EXT);
-@@ -20887,6 +21110,16 @@ static inline void convert_VkFormatProperties2_host_to_win32(const VkFormatPrope
+@@ -21228,6 +21440,16 @@ static inline void convert_VkFormatProperties2_host_to_win32(const VkFormatPrope
              out_header = (void *)out_ext;
              break;
          }
@@ -1389,7 +1397,7 @@ index dad8991e095..199606342bf 100644
          default:
              break;
          }
-@@ -20992,6 +21225,20 @@ static inline void convert_VkPhysicalDeviceImageFormatInfo2_win32_to_host(struct
+@@ -21333,6 +21555,20 @@ static inline void convert_VkPhysicalDeviceImageFormatInfo2_win32_to_host(struct
              out_header = (void *)out_ext;
              break;
          }
@@ -1410,14 +1418,6 @@ index dad8991e095..199606342bf 100644
          case VK_STRUCTURE_TYPE_IMAGE_STENCIL_USAGE_CREATE_INFO:
          {
              VkImageStencilUsageCreateInfo *out_ext = conversion_context_alloc(ctx, sizeof(*out_ext));
-@@ -36852,6 +37099,7 @@ static NTSTATUS thunk32_vkGetImageSubresourceLayout(void *args)
- 
-     TRACE("%#x, 0x%s, %#x, %#x\n", params->device, wine_dbgstr_longlong(params->image), params->pSubresource, params->pLayout);
- 
-+    convert_VkSubresourceLayout_win32_to_host((VkSubresourceLayout32 *)UlongToPtr(params->pLayout), &pLayout_host);
-     wine_device_from_handle((VkDevice)UlongToPtr(params->device))->funcs.p_vkGetImageSubresourceLayout(wine_device_from_handle((VkDevice)UlongToPtr(params->device))->device, params->image, (const VkImageSubresource *)UlongToPtr(params->pSubresource), &pLayout_host);
-     convert_VkSubresourceLayout_host_to_win32(&pLayout_host, (VkSubresourceLayout32 *)UlongToPtr(params->pLayout));
-     return STATUS_SUCCESS;
 diff --git a/dlls/winewayland.drv/Makefile.in b/dlls/winewayland.drv/Makefile.in
 new file mode 100644
 index 00000000000..7551d44f67e
@@ -1479,10 +1479,10 @@ index 00000000000..7551d44f67e
 +RC_SRCS = version.rc
 diff --git a/dlls/winewayland.drv/display.c b/dlls/winewayland.drv/display.c
 new file mode 100644
-index 00000000000..3f633a26463
+index 00000000000..4025594db8e
 --- /dev/null
 +++ b/dlls/winewayland.drv/display.c
-@@ -0,0 +1,388 @@
+@@ -0,0 +1,419 @@
 +/*
 + * WAYLAND display device functions
 + *
@@ -1754,10 +1754,7 @@ index 00000000000..3f633a26463
 +    struct wayland_output *output;
 +
 +    output = wayland_output_get_by_wine_name(wayland, name);
-+    if (!output)
-+        return FALSE;
-+
-+    if (!output->current_wine_mode)
++    if (!output || !output->current_wine_mode)
 +        return FALSE;
 +
 +    populate_devmode(output->current_wine_mode, mode);
@@ -1797,6 +1794,40 @@ index 00000000000..3f633a26463
 +    }
 +
 +    return ret;
++}
++
++static INT wayland_get_current_bpp(struct wayland *wayland, LPCWSTR name)
++{
++    struct wayland_output *output;
++
++    output = wayland_output_get_by_wine_name(wayland, name);
++    if (!output || !output->current_wine_mode)
++        return 0;
++
++    return output->current_wine_mode->bpp;
++}
++
++/***********************************************************************
++ *             GetDisplayDepth  (WAYLAND.@)
++ *
++ */
++INT WAYLAND_GetDisplayDepth(LPCWSTR name, BOOL is_primary)
++{
++    struct wayland *wayland = wayland_process_acquire();
++    INT bpp;
++
++    TRACE("(%s) wayland=%p\n", debugstr_w(name), wayland);
++
++    bpp = wayland_get_current_bpp(wayland, name);
++
++    wayland_process_release();
++
++    if (bpp > 0)
++        TRACE("=> %dbpp\n", bpp);
++    else
++        ERR("Failed to get %s display depth, returning 32.\n", wine_dbgstr_w(name));
++
++    return bpp > 0 ? bpp : 32;
 +}
 +
 +static struct wayland_output_mode *get_matching_output_mode(struct wayland_output *output,
@@ -2126,10 +2157,10 @@ index 00000000000..5c3904b6b3d
 +}
 diff --git a/dlls/winewayland.drv/gbm.c b/dlls/winewayland.drv/gbm.c
 new file mode 100644
-index 00000000000..82cb99c45e3
+index 00000000000..4632a32b6ed
 --- /dev/null
 +++ b/dlls/winewayland.drv/gbm.c
-@@ -0,0 +1,429 @@
+@@ -0,0 +1,445 @@
 +/*
 + * Wayland GBM support
 + *
@@ -2161,6 +2192,7 @@ index 00000000000..82cb99c45e3
 +
 +#include <assert.h>
 +#include <errno.h>
++#include <drm_fourcc.h>
 +#include <fcntl.h>
 +#ifdef HAVE_LIBUDEV_H
 +#include <libudev.h>
@@ -2401,11 +2433,10 @@ index 00000000000..82cb99c45e3
 +                                               BOOL format_is_scanoutable)
 +{
 +    uint32_t gbm_bo_flags = GBM_BO_USE_RENDERING;
++    size_t i;
 +
 +    if (TRACE_ON(waylanddrv))
 +    {
-+        size_t i;
-+
 +        TRACE("%dx%d %.4s scanout=%d count_mods=%zu\n",
 +              width, height, (const char *)&drm_format,
 +              format_is_scanoutable, count_modifiers);
@@ -2418,13 +2449,29 @@ index 00000000000..82cb99c45e3
 +
 +    if (count_modifiers)
 +    {
++        struct gbm_surface *surf;
++
 +#ifdef HAVE_GBM_SURFACE_CREATE_WITH_MODIFIERS2
-+        return gbm_surface_create_with_modifiers2(process_gbm_device, width, height,
++        surf = gbm_surface_create_with_modifiers2(process_gbm_device, width, height,
 +                                                  drm_format, modifiers, count_modifiers, gbm_bo_flags);
 +#else
-+        return gbm_surface_create_with_modifiers(process_gbm_device, width, height,
++        surf = gbm_surface_create_with_modifiers(process_gbm_device, width, height,
 +                                                 drm_format, modifiers, count_modifiers);
 +#endif
++        if (surf) return surf;
++
++        TRACE("Failed to create gbm surface with explicit modifiers API " \
++              "(errno=%d), falling back to implicit modifiers API\n", errno);
++
++        for (i = 0; i < count_modifiers; i++)
++            if (modifiers[i] == DRM_FORMAT_MOD_INVALID) break;
++
++        if (i == count_modifiers)
++        {
++            ERR("Will not create gbm surface with implicit modifiers API, as " \
++                "that is not supported by the compositor\n");
++            return NULL;
++        }
 +    }
 +
 +    return gbm_surface_create(process_gbm_device, width, height, drm_format, gbm_bo_flags);
@@ -2800,7 +2847,7 @@ index 00000000000..054ac1ce06e
 +}
 diff --git a/dlls/winewayland.drv/opengl.c b/dlls/winewayland.drv/opengl.c
 new file mode 100644
-index 00000000000..4603ec76b97
+index 00000000000..2f75c90f12e
 --- /dev/null
 +++ b/dlls/winewayland.drv/opengl.c
 @@ -0,0 +1,2011 @@
@@ -3716,8 +3763,8 @@ index 00000000000..4603ec76b97
 +/***********************************************************************
 + *		wayland_wglCopyContext
 + */
-+static BOOL WINAPI wayland_wglCopyContext(struct wgl_context *src,
-+                                          struct wgl_context *dst, UINT mask)
++static BOOL wayland_wglCopyContext(struct wgl_context *src,
++                                   struct wgl_context *dst, UINT mask)
 +{
 +    FIXME("%p -> %p mask %#x unsupported\n", src, dst, mask);
 +    return FALSE;
@@ -3726,7 +3773,7 @@ index 00000000000..4603ec76b97
 +/***********************************************************************
 + *		wayland_wglCreateContext
 + */
-+static struct wgl_context * WINAPI wayland_wglCreateContext(HDC hdc)
++static struct wgl_context *wayland_wglCreateContext(HDC hdc)
 +{
 +    TRACE("hdc=%p\n", hdc);
 +
@@ -3800,7 +3847,7 @@ index 00000000000..4603ec76b97
 +/***********************************************************************
 + *		wayland_wglDeleteContext
 + */
-+static BOOL WINAPI wayland_wglDeleteContext(struct wgl_context *ctx)
++static BOOL wayland_wglDeleteContext(struct wgl_context *ctx)
 +{
 +    wayland_mutex_lock(&gl_object_mutex);
 +    wl_list_remove(&ctx->link);
@@ -3837,7 +3884,7 @@ index 00000000000..4603ec76b97
 +/***********************************************************************
 + *		wayland_wglMakeCurrent
 + */
-+static BOOL WINAPI wayland_wglMakeCurrent(HDC hdc, struct wgl_context *ctx)
++static BOOL wayland_wglMakeCurrent(HDC hdc, struct wgl_context *ctx)
 +{
 +    return wayland_wglMakeContextCurrentARB(hdc, hdc, ctx);
 +}
@@ -3845,8 +3892,8 @@ index 00000000000..4603ec76b97
 +/***********************************************************************
 + *		wayland_wglDescribePixelFormat
 + */
-+static int WINAPI wayland_wglDescribePixelFormat(HDC hdc, int fmt, UINT size,
-+                                                 PIXELFORMATDESCRIPTOR *pfd)
++static int wayland_wglDescribePixelFormat(HDC hdc, int fmt, UINT size,
++                                          PIXELFORMATDESCRIPTOR *pfd)
 +{
 +    EGLint val;
 +    EGLConfig config;
@@ -3893,7 +3940,7 @@ index 00000000000..4603ec76b97
 +/***********************************************************************
 + *		wayland_wglGetPixelFormat
 + */
-+static int WINAPI wayland_wglGetPixelFormat(HDC hdc)
++static int wayland_wglGetPixelFormat(HDC hdc)
 +{
 +    struct wayland_gl_drawable *gl;
 +    int ret = 0;
@@ -3911,7 +3958,7 @@ index 00000000000..4603ec76b97
 +/***********************************************************************
 + *		wayland_wglGetProcAddress
 + */
-+static PROC WINAPI wayland_wglGetProcAddress(LPCSTR name)
++static PROC wayland_wglGetProcAddress(LPCSTR name)
 +{
 +    PROC ret;
 +    if (!strncmp(name, "wgl", 3)) return NULL;
@@ -3923,8 +3970,8 @@ index 00000000000..4603ec76b97
 +/***********************************************************************
 + *		wayland_wglSetPixelFormat
 + */
-+static BOOL WINAPI wayland_wglSetPixelFormat(HDC hdc, int format,
-+                                             const PIXELFORMATDESCRIPTOR *pfd)
++static BOOL wayland_wglSetPixelFormat(HDC hdc, int format,
++                                      const PIXELFORMATDESCRIPTOR *pfd)
 +{
 +    return set_pixel_format(hdc, format, FALSE);
 +}
@@ -3940,8 +3987,8 @@ index 00000000000..4603ec76b97
 +/***********************************************************************
 + *		wayland_wglShareLists
 + */
-+static BOOL WINAPI wayland_wglShareLists(struct wgl_context *org,
-+                                         struct wgl_context *dest)
++static BOOL wayland_wglShareLists(struct wgl_context *org,
++                                  struct wgl_context *dest)
 +{
 +    TRACE("(%p, %p)\n", org, dest);
 +
@@ -3985,7 +4032,7 @@ index 00000000000..4603ec76b97
 +/***********************************************************************
 + *		wayland_wglSwapBuffers
 + */
-+static BOOL WINAPI wayland_wglSwapBuffers(HDC hdc)
++static BOOL wayland_wglSwapBuffers(HDC hdc)
 +{
 +    struct wgl_context *ctx = NtCurrentTeb()->glContext;
 +    HWND hwnd = NtUserWindowFromDC(hdc);
@@ -13339,10 +13386,10 @@ index 00000000000..78c5185d5bf
 +}
 diff --git a/dlls/winewayland.drv/wayland_keyboard.c b/dlls/winewayland.drv/wayland_keyboard.c
 new file mode 100644
-index 00000000000..051fd227941
+index 00000000000..9ad0fce0052
 --- /dev/null
 +++ b/dlls/winewayland.drv/wayland_keyboard.c
-@@ -0,0 +1,1340 @@
+@@ -0,0 +1,1387 @@
 +/*
 + * Keyboard related functions
 + *
@@ -13654,7 +13701,6 @@ index 00000000000..051fd227941
 +static void send_keyboard_input(HWND hwnd, WORD vkey, WORD scan, DWORD flags)
 +{
 +    INPUT input;
-+    RAWINPUT rawinput = { 0 };
 +
 +    input.type             = INPUT_KEYBOARD;
 +    input.u.ki.wVk         = vkey;
@@ -13663,7 +13709,7 @@ index 00000000000..051fd227941
 +    input.u.ki.time        = 0;
 +    input.u.ki.dwExtraInfo = 0;
 +
-+    __wine_send_input(hwnd, &input, &rawinput);
++    __wine_send_input(hwnd, &input, NULL);
 +}
 +
 +static WCHAR dead_xkb_keysym_to_wchar(xkb_keysym_t xkb_keysym)
@@ -13870,7 +13916,7 @@ index 00000000000..051fd227941
 +    return wchar;
 +}
 +
-+static void wayland_keyboard_emit(struct wayland_keyboard *keyboard, uint32_t key,
++static BOOL wayland_keyboard_emit(struct wayland_keyboard *keyboard, uint32_t key,
 +                                  uint32_t state, HWND hwnd)
 +{
 +    xkb_keycode_t xkb_keycode = linux_input_keycode_to_xkb(key);
@@ -13881,13 +13927,15 @@ index 00000000000..051fd227941
 +    TRACE_(key)("xkb_keycode=%u vkey=0x%x scan=0x%x state=%d hwnd=%p\n",
 +                xkb_keycode, vkey, scan, state, hwnd);
 +
-+    if (vkey == 0) return;
++    if (vkey == 0) return FALSE;
 +
 +    flags = 0;
 +    if (state == WL_KEYBOARD_KEY_STATE_RELEASED) flags |= KEYEVENTF_KEYUP;
 +    if (scan & 0xff00) flags |= KEYEVENTF_EXTENDEDKEY;
 +
 +    send_keyboard_input(hwnd, vkey, scan & 0xff, flags);
++
++    return TRUE;
 +}
 +
 +static struct xkb_state *_xkb_state_new_from_wine(struct wayland_keyboard *keyboard,
@@ -13896,12 +13944,27 @@ index 00000000000..051fd227941
 +    struct xkb_state *xkb_state;
 +    UINT mods[] = {VK_LSHIFT, VK_RSHIFT, VK_LCONTROL, VK_RCONTROL, VK_LMENU, VK_RMENU};
 +    UINT toggles[] = {VK_CAPITAL, VK_NUMLOCK, VK_SCROLL};
++    xkb_mod_mask_t depressed_mods, latched_mods, locked_mods;
 +    int i;
 +
-+    /* Create a new xkb_state using the currently active layout. */
++    /* Create a new xkb_state using the currently active layout and the state
++     * of Mod5 (AltGr) only. */
 +    xkb_state = xkb_state_new(xkb_state_get_keymap(keyboard->xkb_state));
 +    if (!xkb_state) return NULL;
-+    xkb_state_update_mask(xkb_state, 0, 0, 0, 0, 0,
++    depressed_mods = xkb_state_serialize_mods(keyboard->xkb_state,
++                                             XKB_STATE_MODS_DEPRESSED) &
++                     keyboard->xkb_mod5_mask;
++    latched_mods = xkb_state_serialize_mods(keyboard->xkb_state,
++                                           XKB_STATE_MODS_LATCHED) &
++                   keyboard->xkb_mod5_mask;
++    locked_mods = xkb_state_serialize_mods(keyboard->xkb_state,
++                                          XKB_STATE_MODS_LOCKED) &
++                  keyboard->xkb_mod5_mask;
++    xkb_state_update_mask(xkb_state, depressed_mods, latched_mods, locked_mods,
++                          xkb_state_serialize_layout(keyboard->xkb_state,
++                                                     XKB_STATE_LAYOUT_DEPRESSED),
++                          xkb_state_serialize_layout(keyboard->xkb_state,
++                                                     XKB_STATE_LAYOUT_LATCHED),
 +                          xkb_state_serialize_layout(keyboard->xkb_state,
 +                                                     XKB_STATE_LAYOUT_LOCKED));
 +
@@ -14049,6 +14112,7 @@ index 00000000000..051fd227941
 +    struct xkb_keymap *xkb_keymap = NULL;
 +    struct xkb_state *xkb_state = NULL;
 +    char *keymap_str;
++    xkb_mod_index_t i, num_mods;
 +
 +    TRACE("format=%d fd=%d size=%d\n", format, fd, size);
 +
@@ -14067,6 +14131,18 @@ index 00000000000..051fd227941
 +    munmap(keymap_str, size);
 +    if (!xkb_keymap)
 +        goto out;
++
++    /* Find the Mod5 (i.e., AltGr) mask */
++    wayland->keyboard.xkb_mod5_mask = 0;
++    num_mods = xkb_keymap_num_mods(xkb_keymap);
++    for (i = 0; i < num_mods; i++)
++    {
++        if (!strcmp(xkb_keymap_mod_get_name(xkb_keymap, i), "Mod5"))
++        {
++            wayland->keyboard.xkb_mod5_mask = (1 << i);
++            break;
++        }
++    }
 +
 +    xkb_state = xkb_state_new(xkb_keymap);
 +    xkb_keymap_unref(xkb_keymap);
@@ -14228,6 +14304,19 @@ index 00000000000..051fd227941
 +    }
 +}
 +
++static BOOL wayland_keyboard_is_modifier_key(struct wayland_keyboard *keyboard,
++                                             uint32_t key)
++{
++    xkb_keycode_t xkb_keycode = linux_input_keycode_to_xkb(key);
++    UINT vkey = _xkb_keycode_to_vkey(keyboard, xkb_keycode);
++
++    return vkey == VK_CAPITAL || vkey == VK_LWIN || vkey == VK_RWIN ||
++           vkey == VK_NUMLOCK || vkey == VK_SCROLL ||
++           vkey == VK_LSHIFT || vkey == VK_RSHIFT ||
++           vkey == VK_LCONTROL || vkey == VK_RCONTROL ||
++           vkey == VK_LMENU || vkey == VK_RMENU;
++}
++
 +static void keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
 +                                uint32_t serial, uint32_t time, uint32_t key,
 +                                uint32_t state)
@@ -14245,7 +14334,12 @@ index 00000000000..051fd227941
 +    wayland->last_dispatch_mask |= QS_KEY | QS_HOTKEY;
 +    wayland->last_event_type = INPUT_KEYBOARD;
 +
-+    wayland_keyboard_emit(&wayland->keyboard, key, state, focused_hwnd);
++    if (!wayland_keyboard_emit(&wayland->keyboard, key, state, focused_hwnd))
++        return;
++
++    /* Do not repeat modifier keys. */
++    if (wayland_keyboard_is_modifier_key(&wayland->keyboard, key))
++        return;
 +
 +    if (state == WL_KEYBOARD_KEY_STATE_PRESSED)
 +    {
@@ -16919,10 +17013,10 @@ index 00000000000..ecb9c6cfa13
 +}
 diff --git a/dlls/winewayland.drv/wayland_pointer.c b/dlls/winewayland.drv/wayland_pointer.c
 new file mode 100644
-index 00000000000..cd46072eec7
+index 00000000000..255d2d4af5f
 --- /dev/null
 +++ b/dlls/winewayland.drv/wayland_pointer.c
-@@ -0,0 +1,352 @@
+@@ -0,0 +1,348 @@
 +/*
 + * Wayland input handling
 + *
@@ -16972,7 +17066,6 @@ index 00000000000..cd46072eec7
 +    INPUT input = {0};
 +    int screen_x, screen_y;
 +    RECT screen_rect;
-+    RAWINPUT rawinput;
 +
 +    if (!focused_hwnd)
 +        return;
@@ -17005,7 +17098,7 @@ index 00000000000..cd46072eec7
 +    wayland->last_dispatch_mask |= QS_MOUSEMOVE;
 +    wayland->last_event_type = INPUT_MOUSE;
 +
-+    __wine_send_input(focused_hwnd, &input, &rawinput);
++    __wine_send_input(focused_hwnd, &input, NULL);
 +}
 +
 +static void pointer_handle_motion(void *data, struct wl_pointer *pointer,
@@ -17080,7 +17173,6 @@ index 00000000000..cd46072eec7
 +    HWND focused_hwnd = wayland->pointer.focused_surface ?
 +                        wayland->pointer.focused_surface->hwnd : 0;
 +    INPUT input = {0};
-+    RAWINPUT rawinput;
 +
 +    if (!focused_hwnd)
 +        return;
@@ -17108,7 +17200,7 @@ index 00000000000..cd46072eec7
 +    else
 +        wayland->last_button_serial = 0;
 +
-+    __wine_send_input(focused_hwnd, &input, &rawinput);
++    __wine_send_input(focused_hwnd, &input, NULL);
 +}
 +
 +static void pointer_handle_axis(void *data, struct wl_pointer *wl_pointer,
@@ -17137,7 +17229,6 @@ index 00000000000..cd46072eec7
 +    HWND focused_hwnd = wayland->pointer.focused_surface ?
 +                        wayland->pointer.focused_surface->hwnd : 0;
 +    INPUT input = {0};
-+    RAWINPUT rawinput;
 +
 +    if (!focused_hwnd)
 +        return;
@@ -17162,7 +17253,7 @@ index 00000000000..cd46072eec7
 +    wayland->last_dispatch_mask |= QS_MOUSEBUTTON;
 +    wayland->last_event_type = INPUT_MOUSE;
 +
-+    __wine_send_input(focused_hwnd, &input, &rawinput);
++    __wine_send_input(focused_hwnd, &input, NULL);
 +}
 +
 +static const struct wl_pointer_listener pointer_listener = {
@@ -17191,7 +17282,6 @@ index 00000000000..cd46072eec7
 +                        wayland->pointer.focused_surface->hwnd : 0;
 +    int wine_dx, wine_dy;
 +    INPUT input = {0};
-+    RAWINPUT rawinput;
 +
 +    if (!focused_hwnd)
 +        return;
@@ -17212,7 +17302,7 @@ index 00000000000..cd46072eec7
 +    wayland->last_dispatch_mask |= QS_MOUSEMOVE;
 +    wayland->last_event_type = INPUT_MOUSE;
 +
-+    __wine_send_input(focused_hwnd, &input, &rawinput);
++    __wine_send_input(focused_hwnd, &input, NULL);
 +}
 +
 +static const struct zwp_relative_pointer_v1_listener zwp_relative_pointer_v1_listener = {
@@ -18595,10 +18685,10 @@ index 00000000000..b2e69be33e4
 +}
 diff --git a/dlls/winewayland.drv/wayland_surface.c b/dlls/winewayland.drv/wayland_surface.c
 new file mode 100644
-index 00000000000..06251bd5319
+index 00000000000..504ed1d9f78
 --- /dev/null
 +++ b/dlls/winewayland.drv/wayland_surface.c
-@@ -0,0 +1,1618 @@
+@@ -0,0 +1,1598 @@
 +/*
 + * Wayland surfaces
 + *
@@ -18664,10 +18754,7 @@ index 00000000000..06251bd5319
 +        return;
 +    }
 +
-+    if (surface->hwnd)
-+        NtUserPostMessage(surface->hwnd, WM_WAYLAND_CONFIGURE, 0, 0);
-+    else
-+        wayland_surface_ack_pending_configure(surface);
++    NtUserPostMessage(surface->hwnd, WM_WAYLAND_CONFIGURE, 0, 0);
 +}
 +
 +/**********************************************************************
@@ -18920,7 +19007,7 @@ index 00000000000..06251bd5319
 +    surface->role = WAYLAND_SURFACE_ROLE_TOPLEVEL;
 +
 +    /* Wait for the first configure event. */
-+    while (!surface->current.serial)
++    while (!surface->pending.serial)
 +        wl_display_roundtrip_queue(wayland->wl_display, wayland->wl_event_queue);
 +
 +    return;
@@ -18964,8 +19051,6 @@ index 00000000000..06251bd5319
 +    wl_subsurface_set_desync(surface->wl_subsurface);
 +
 +    surface->main_output = parent->main_output;
-+    wl_surface_set_buffer_scale(surface->wl_surface,
-+                                wayland_surface_get_buffer_scale(parent));
 +
 +    wl_surface_commit(surface->wl_surface);
 +
@@ -19408,7 +19493,6 @@ index 00000000000..06251bd5319
 +
 +    glvk->hwnd = surface->hwnd;
 +    glvk->main_output = surface->main_output;
-+    wl_surface_set_buffer_scale(glvk->wl_surface, wayland_surface_get_buffer_scale(surface));
 +    glvk->role = WAYLAND_SURFACE_ROLE_SUBSURFACE;
 +
 +    return glvk;
@@ -19454,7 +19538,7 @@ index 00000000000..06251bd5319
 +    wayland_mutex_unlock(&surface->mutex);
 +
 +    /* Set initial position in the client area. */
-+    wayland_get_client_rect_in_win_coords(surface->hwnd, &client_rect);
++    wayland_get_client_rect_in_win_top_left_coords(surface->hwnd, &client_rect);
 +
 +    wayland_surface_reconfigure_glvk(surface,
 +                                     client_rect.left, client_rect.top,
@@ -19786,16 +19870,6 @@ index 00000000000..06251bd5319
 + *
 + * Ensure that the wayland surface is mapped, by committing a dummy
 + * buffer if necessary.
-+ *
-+ * The contents of GL or Vulkan windows are rendered on subsurfaces
-+ * with the parent surface used for the decorations. Such GL/VK
-+ * subsurfaces may want to commit their contents before the parent
-+ * surface has had a chance to commit. In such cases the GL/VK commit
-+ * will not be displayed, but, more importantly, will not get a frame
-+ * callback until the parent surface is also committed. Depending on
-+ * the presentation mode, a second GL/VK buffer swap may indefinitely
-+ * block waiting on the frame callback. By calling this function before a
-+ * GL/VK buffer swap we can avoid this situation.
 + */
 +void wayland_surface_ensure_mapped(struct wayland_surface *surface)
 +{
@@ -19902,8 +19976,7 @@ index 00000000000..06251bd5319
 +    if (!wayland->zwp_pointer_constraints_v1 || !wayland->pointer.wl_pointer)
 +        return;
 +
-+    wayland_get_client_rect_in_win_coords(surface->hwnd, &client_rect);
-+    NtUserMapWindowPoints(surface->hwnd, NULL, (POINT*)&client_rect, 2);
++    wayland_get_client_rect_in_screen_coords(surface->hwnd, &client_rect);
 +
 +    vscreen_rect.top = NtUserGetSystemMetrics(SM_YVIRTUALSCREEN);
 +    vscreen_rect.left = NtUserGetSystemMetrics(SM_XVIRTUALSCREEN);
@@ -20074,19 +20147,17 @@ index 00000000000..06251bd5319
 +        wayland_surface_unref_glvk(glvk->parent);
 +}
 +
-+static void wayland_surface_tree_set_main_output_and_scale(struct wayland_surface *surface,
-+                                                           struct wayland_output *output,
-+                                                           int scale)
++static void wayland_surface_tree_set_main_output(struct wayland_surface *surface,
++                                                 struct wayland_output *output)
 +{
 +    struct wayland_surface *child;
 +
 +    surface->main_output = output;
-+    wl_surface_set_buffer_scale(surface->wl_surface, scale);
 +
 +    wayland_mutex_lock(&surface->mutex);
 +
 +    wl_list_for_each(child, &surface->child_list, parent_link)
-+        wayland_surface_tree_set_main_output_and_scale(child, output, scale);
++        wayland_surface_tree_set_main_output(child, output);
 +
 +    wayland_mutex_unlock(&surface->mutex);
 +}
@@ -20110,8 +20181,7 @@ index 00000000000..06251bd5319
 +
 +    if (surface->main_output != output)
 +    {
-+        wayland_surface_tree_set_main_output_and_scale(surface, output,
-+                                                       output ? output->scale : 1);
++        wayland_surface_tree_set_main_output(surface, output);
 +        if (surface->hwnd)
 +            send_message(surface->hwnd, WM_WAYLAND_SURFACE_OUTPUT_CHANGE, 0, 0);
 +    }
@@ -20170,7 +20240,7 @@ index 00000000000..06251bd5319
 +          surface->main_output ? surface->main_output->name : NULL,
 +          output ? output->name : NULL);
 +
-+    wayland_surface_tree_set_main_output_and_scale(surface, output, output->scale);
++    wayland_surface_tree_set_main_output(surface, output);
 +}
 +
 +/**********************************************************************
@@ -20219,10 +20289,10 @@ index 00000000000..06251bd5319
 +}
 diff --git a/dlls/winewayland.drv/waylanddrv.h b/dlls/winewayland.drv/waylanddrv.h
 new file mode 100644
-index 00000000000..9b633cd9d9c
+index 00000000000..1f33d328c03
 --- /dev/null
 +++ b/dlls/winewayland.drv/waylanddrv.h
-@@ -0,0 +1,888 @@
+@@ -0,0 +1,891 @@
 +/*
 + * Wayland driver
 + *
@@ -20389,6 +20459,7 @@ index 00000000000..9b633cd9d9c
 +    struct xkb_compose_state *xkb_compose_state;
 +    UINT xkb_keycode_to_vkey[256];
 +    WORD xkb_keycode_to_scancode[256];
++    xkb_mod_mask_t xkb_mod5_mask;
 +};
 +
 +struct wayland_cursor
@@ -20983,7 +21054,8 @@ index 00000000000..9b633cd9d9c
 +size_t ascii_to_unicode_z(WCHAR *dst, size_t dst_max_chars,
 +                          const char *src, size_t src_max_chars) DECLSPEC_HIDDEN;
 +int wayland_shmfd_create(const char *name, int size) DECLSPEC_HIDDEN;
-+void wayland_get_client_rect_in_win_coords(HWND hwnd, RECT *client_rect) DECLSPEC_HIDDEN;
++void wayland_get_client_rect_in_screen_coords(HWND hwnd, RECT *client_rect) DECLSPEC_HIDDEN;
++void wayland_get_client_rect_in_win_top_left_coords(HWND hwnd, RECT *client_rect) DECLSPEC_HIDDEN;
 +void dump_pixels(const char *fpattern, int dbgid, unsigned int *pixels, int width, int height,
 +                 BOOL alpha, HRGN damage, HRGN win_region) DECLSPEC_HIDDEN;
 +
@@ -21066,6 +21138,7 @@ index 00000000000..9b633cd9d9c
 +void WAYLAND_DestroyWindow(HWND hwnd) DECLSPEC_HIDDEN;
 +BOOL WAYLAND_GetCurrentDisplaySettings(LPCWSTR name, BOOL is_primary,
 +                                       LPDEVMODEW devmode) DECLSPEC_HIDDEN;
++INT WAYLAND_GetDisplayDepth(LPCWSTR name, BOOL is_primary) DECLSPEC_HIDDEN;
 +INT WAYLAND_GetKeyNameText(LONG lparam, LPWSTR buffer, INT size) DECLSPEC_HIDDEN;
 +UINT WAYLAND_MapVirtualKeyEx(UINT code, UINT maptype, HKL hkl) DECLSPEC_HIDDEN;
 +NTSTATUS WAYLAND_MsgWaitForMultipleObjectsEx(DWORD count, const HANDLE *handles,
@@ -21155,10 +21228,10 @@ index 00000000000..cb9b695a62b
 +#endif /* __WINE_WAYLANDDRV_DLL_H */
 diff --git a/dlls/winewayland.drv/waylanddrv_main.c b/dlls/winewayland.drv/waylanddrv_main.c
 new file mode 100644
-index 00000000000..318c0c28c8f
+index 00000000000..ec361811825
 --- /dev/null
 +++ b/dlls/winewayland.drv/waylanddrv_main.c
-@@ -0,0 +1,248 @@
+@@ -0,0 +1,249 @@
 +/*
 + * WAYLANDDRV initialization code
 + *
@@ -21297,6 +21370,7 @@ index 00000000000..318c0c28c8f
 +    .pDesktopWindowProc = WAYLAND_DesktopWindowProc,
 +    .pDestroyWindow = WAYLAND_DestroyWindow,
 +    .pGetCurrentDisplaySettings = WAYLAND_GetCurrentDisplaySettings,
++    .pGetDisplayDepth = WAYLAND_GetDisplayDepth,
 +    .pGetKeyNameText = WAYLAND_GetKeyNameText,
 +    .pMapVirtualKeyEx = WAYLAND_MapVirtualKeyEx,
 +    .pMsgWaitForMultipleObjectsEx = WAYLAND_MsgWaitForMultipleObjectsEx,
@@ -21409,10 +21483,10 @@ index 00000000000..318c0c28c8f
 +}
 diff --git a/dlls/winewayland.drv/window.c b/dlls/winewayland.drv/window.c
 new file mode 100644
-index 00000000000..8eecb6e90d8
+index 00000000000..4de89f636a3
 --- /dev/null
 +++ b/dlls/winewayland.drv/window.c
-@@ -0,0 +1,1812 @@
+@@ -0,0 +1,1881 @@
 +/*
 + * Window related functions
 + *
@@ -21893,6 +21967,7 @@ index 00000000000..8eecb6e90d8
 +    {
 +        surface = wayland_surface_create_plain(wayland);
 +        if (surface) wayland_mutex_lock(&surface->mutex);
++        surface->hwnd = data->hwnd;
 +    }
 +    else
 +    {
@@ -21900,18 +21975,12 @@ index 00000000000..8eecb6e90d8
 +         * while we are updating. */
 +        wayland_mutex_lock(&surface->mutex);
 +        wayland_surface_clear_role(surface);
-+        /* Clear the associated HWND, to allow a potential invocation of
-+         * wayland_surface_make_toplevel below, to properly handle the
-+         * initial configure event. */
-+        surface->hwnd = 0;
 +    }
 +
 +    if (role == WAYLAND_SURFACE_ROLE_TOPLEVEL)
 +        wayland_surface_make_toplevel(surface, parent_surface);
 +    else if (role == WAYLAND_SURFACE_ROLE_SUBSURFACE)
 +        wayland_surface_make_subsurface(surface, parent_surface);
-+
-+    surface->hwnd = data->hwnd;
 +
 +    wayland_mutex_unlock(&surface->mutex);
 +
@@ -22098,6 +22167,9 @@ index 00000000000..8eecb6e90d8
 +        data->fullscreen = TRUE;
 +    }
 +
++    /* Ensure state change requests reach the compositor promptly. */
++    wl_display_flush(thread_wayland()->wl_display);
++
 +    if (!(conf_flags & WAYLAND_CONFIGURE_FLAG_FULLSCREEN) &&
 +        !(conf_flags & WAYLAND_CONFIGURE_FLAG_MAXIMIZED) &&
 +        !(style & WS_MINIMIZE))
@@ -22158,6 +22230,56 @@ index 00000000000..8eecb6e90d8
 +    return TRUE;
 +}
 +
++static BOOL wayland_win_data_is_fullscreen_with_overshoot(struct wayland_win_data *data)
++{
++    RECT monitor_rect;
++    struct wayland_output *output;
++
++    if (!data->fullscreen) return FALSE;
++    if (!data->wayland_surface) return FALSE;
++
++    output = data->wayland_surface->main_output;
++    if (!output || !output->current_wine_mode) return FALSE;
++
++    SetRect(&monitor_rect, output->x, output->y,
++            output->x + output->current_wine_mode->width,
++            output->y + output->current_wine_mode->height);
++
++    return data->window_rect.left < monitor_rect.left &&
++           data->window_rect.top < monitor_rect.top &&
++           data->window_rect.right >= monitor_rect.right &&
++           data->window_rect.bottom >= monitor_rect.bottom;
++}
++
++static void wayland_win_data_get_wine_size_for_conf(struct wayland_win_data *data,
++                                                    struct wayland_surface_configure *conf,
++                                                    int *wine_width, int *wine_height)
++{
++    if ((conf->configure_flags & WAYLAND_CONFIGURE_FLAG_FULLSCREEN) &&
++        wayland_win_data_is_fullscreen_with_overshoot(data))
++    {
++        /* If the window is fullscreen while overshooting the monitor bounds
++         * don't try to resize it. Forcing the Wayland preferred size in such
++         * cases may trigger an endless loop of resizes while both the
++         * compositor and the app try to enforce different window sizes. */
++        *wine_width = data->window_rect.right - data->window_rect.left;
++        *wine_height = data->window_rect.bottom - data->window_rect.top;
++    }
++    else if ((conf->configure_flags & WAYLAND_CONFIGURE_FLAG_FULLSCREEN) &&
++             !(conf->configure_flags & WAYLAND_CONFIGURE_FLAG_MAXIMIZED))
++    {
++        wayland_surface_find_wine_fullscreen_fit(data->wayland_surface,
++                                                 conf->width, conf->height,
++                                                 wine_width, wine_height);
++    }
++    else
++    {
++        wayland_surface_coords_to_wine(data->wayland_surface,
++                                       conf->width, conf->height,
++                                       wine_width, wine_height);
++    }
++}
++
 +static void wayland_win_data_get_rect_in_monitor(struct wayland_win_data *data,
 +                                                 enum wayland_configure_flags flags,
 +                                                 RECT *rect)
@@ -22196,12 +22318,11 @@ index 00000000000..8eecb6e90d8
 +    enum wayland_configure_flags conf_flags =
 +        data->wayland_surface->current.configure_flags;
 +
-+    /* Get the window size corresponding to the Wayland surfaces configuration. */
-+    wayland_surface_coords_to_wine(data->wayland_surface,
-+                                   data->wayland_surface->current.width,
-+                                   data->wayland_surface->current.height,
-+                                   &wine_conf_width,
-+                                   &wine_conf_height);
++    /* Get the window size corresponding to the Wayland surface configuration. */
++    wayland_win_data_get_wine_size_for_conf(data,
++                                            &data->wayland_surface->current,
++                                            &wine_conf_width,
++                                            &wine_conf_height);
 +
 +    /* If Wayland requires a surface size smaller than what wine provides,
 +     * use part of the window contents for the surface. */
@@ -22293,35 +22414,19 @@ index 00000000000..8eecb6e90d8
 +                                     data->client_rect.right - data->client_rect.left,
 +                                     data->client_rect.bottom - data->client_rect.top);
 +
-+    wayland_surface_reconfigure_apply(data->wayland_surface);
-+
 +    if (wsurface->xdg_toplevel || wsurface->wl_subsurface)
 +        wsurface->drawing_allowed = TRUE;
++
++    /* Some compositors require the surface to be mapped when we have an
++     * ack-ed configuration. */
++    if (wsurface->current.serial)
++        wayland_surface_ensure_mapped(wsurface);
++
++    wayland_surface_reconfigure_apply(wsurface);
 +
 +    wayland_mutex_unlock(&wsurface->mutex);
 +
 +    wayland_surface_update_pointer_constraint(wsurface);
-+}
-+
-+static BOOL wayland_win_data_is_fullscreen_with_overshoot(struct wayland_win_data *data)
-+{
-+    RECT monitor_rect;
-+    struct wayland_output *output;
-+
-+    if (!data->fullscreen) return FALSE;
-+    if (!data->wayland_surface) return FALSE;
-+
-+    output = data->wayland_surface->main_output;
-+    if (!output || !output->current_wine_mode) return FALSE;
-+
-+    SetRect(&monitor_rect, output->x, output->y,
-+            output->x + output->current_wine_mode->width,
-+            output->y + output->current_wine_mode->height);
-+
-+    return data->window_rect.left < monitor_rect.left &&
-+           data->window_rect.top < monitor_rect.top &&
-+           data->window_rect.right >= monitor_rect.right &&
-+           data->window_rect.bottom >= monitor_rect.bottom;
 +}
 +
 +static struct wayland_win_data *update_wayland_state(struct wayland_win_data *data)
@@ -22460,14 +22565,16 @@ index 00000000000..8eecb6e90d8
 +    data->parent = (parent == NtUserGetDesktopWindow()) ? 0 : parent;
 +    data->window_rect = *window_rect;
 +    data->client_rect = *client_rect;
-+    data->visible = (style & WS_VISIBLE) == WS_VISIBLE || (swp_flags & SWP_SHOWWINDOW);
++    data->visible = ((style & WS_VISIBLE) == WS_VISIBLE ||
++                     (swp_flags & SWP_SHOWWINDOW)) &&
++                    !(swp_flags & SWP_HIDEWINDOW);
 +
 +    /* Release the dummy surface wine provides for toplevels. */
 +    if (*surface) window_surface_release(*surface);
 +    *surface = NULL;
 +
 +    /* Check if we don't want a dedicated window surface. */
-+    if (data->parent || (swp_flags & SWP_HIDEWINDOW) || !data->visible) goto done;
++    if (data->parent || !data->visible) goto done;
 +
 +    surface_rect = *window_rect;
 +    OffsetRect(&surface_rect, -surface_rect.left, -surface_rect.top);
@@ -22901,27 +23008,8 @@ index 00000000000..8eecb6e90d8
 +        wsurface->pending.height = height;
 +    }
 +
-+    if ((flags & WAYLAND_CONFIGURE_FLAG_FULLSCREEN) &&
-+        wayland_win_data_is_fullscreen_with_overshoot(data))
-+    {
-+        /* If the window is fullscreen while overshooting the monitor bounds
-+         * don't try to resize it. Forcing the Wayland preferred size in such
-+         * cases may trigger an endless loop of resizes while both the
-+         * compositor and the app try to enforce different window sizes. */
-+        wine_width = 0;
-+        wine_height = 0;
-+    }
-+    else if ((flags & WAYLAND_CONFIGURE_FLAG_FULLSCREEN) &&
-+             !(flags & WAYLAND_CONFIGURE_FLAG_MAXIMIZED))
-+    {
-+        wayland_surface_find_wine_fullscreen_fit(wsurface, width, height,
-+                                                 &wine_width, &wine_height);
-+    }
-+    else
-+    {
-+        wayland_surface_coords_to_wine(wsurface, width, height,
-+                                       &wine_width, &wine_height);
-+    }
++    wayland_win_data_get_wine_size_for_conf(data, &wsurface->pending,
++                                            &wine_width, &wine_height);
 +
 +    TRACE("hwnd=%p effective_size=%dx%d wine_size=%dx%d\n",
 +          data->hwnd, width, height, wine_width, wine_height);
@@ -23019,6 +23107,9 @@ index 00000000000..8eecb6e90d8
 +
 +    if (wsurface->main_output)
 +    {
++        struct wayland_surface_configure *conf;
++        int wine_width = 0;
++        int wine_height = 0;
 +        UINT swp_flags = SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOOWNERZORDER |
 +                         SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_NOSIZE;
 +        int x = wsurface->main_output->x;
@@ -23026,7 +23117,37 @@ index 00000000000..8eecb6e90d8
 +
 +        TRACE("moving window to %d,%d\n", x, y);
 +
-+        NtUserSetWindowPos(hwnd, 0, x, y, 0, 0, swp_flags);
++        if (wsurface->pending.serial)
++            conf = &wsurface->pending;
++        else if (wsurface->current.serial)
++            conf = &wsurface->current;
++        else
++            conf = NULL;
++
++        /* If we have a configuration that has size requirements (maximized or
++         * fullscreen), resize the window to ensure it matches the expected
++         * Wayland size (taking the new output scale into account). */
++        if (conf && conf->width > 0 && conf->height > 0 &&
++            ((conf->configure_flags & WAYLAND_CONFIGURE_FLAG_MAXIMIZED) ||
++             (conf->configure_flags & WAYLAND_CONFIGURE_FLAG_FULLSCREEN)))
++        {
++            wayland_win_data_get_wine_size_for_conf(data, conf,
++                                                    &wine_width, &wine_height);
++
++            TRACE("resizing using %s configuration wayland=%dx%d wine=%dx%d\n",
++                  conf == &wsurface->pending ? "pending" : "current",
++                  conf->width, conf->height,
++                  wine_width, wine_height);
++
++            swp_flags &= ~SWP_NOSIZE;
++            /* Treat the resize as part of compositor initiated configuration. */
++            data->handling_wayland_configure_event = TRUE;
++            data->wayland_configure_event_flags = conf->configure_flags;
++        }
++
++        NtUserSetWindowPos(hwnd, 0, x, y, wine_width, wine_height, swp_flags);
++
++        data->handling_wayland_configure_event = FALSE;
 +    }
 +
 +out:
@@ -23173,20 +23294,42 @@ index 00000000000..8eecb6e90d8
 +}
 +
 +/*****************************************************************************
-+ *           wayland_get_client_rect_in_win_coords
++ *           wayland_get_client_rect_in_screen_coords
++ *
++ * On Windows, screen coordinates always have their origin at the top-left.
 + */
-+void wayland_get_client_rect_in_win_coords(HWND hwnd, RECT *client_rect)
++void wayland_get_client_rect_in_screen_coords(HWND hwnd, RECT *client_rect)
 +{
-+    RECT window_rect;
-+    POINT origin = {0, 0};
-+
-+    if (!NtUserClientToScreen(hwnd, &origin)) goto err;
-+    if (!NtUserGetWindowRect(hwnd, &window_rect)) goto err;
 +    if (!NtUserGetClientRect(hwnd, client_rect)) goto err;
 +
-+    OffsetRect(client_rect,
-+               origin.x - window_rect.left,
-+               origin.y - window_rect.top);
++    RtlSetLastWin32Error(ERROR_SUCCESS);
++    if (!NtUserMapWindowPoints(hwnd, NULL, (POINT *)client_rect, 2) &&
++        RtlGetLastWin32Error() != ERROR_SUCCESS)
++    {
++        goto err;
++    }
++
++    return;
++
++err:
++    ERR("Failed to get client rect for hwnd %p", hwnd);
++    SetRectEmpty(client_rect);
++}
++
++/*****************************************************************************
++ *           wayland_get_client_rect_in_top_left_win_coords
++ *
++ * On Windows, windows coordinates might have their origin at the top-left (LTR
++ * setups) or top-right (RTL setups) corner. This function returns the
++ * client_rect with the origin at the top-left corner.
++ */
++void wayland_get_client_rect_in_win_top_left_coords(HWND hwnd, RECT *client_rect)
++{
++    RECT window_rect;
++
++    wayland_get_client_rect_in_screen_coords(hwnd, client_rect);
++    if (!NtUserGetWindowRect(hwnd, &window_rect)) goto err;
++    if (!OffsetRect(client_rect, -window_rect.left, -window_rect.top)) goto err;
 +
 +    return;
 +
@@ -23227,10 +23370,10 @@ index 00000000000..8eecb6e90d8
 +}
 diff --git a/dlls/winewayland.drv/window_surface.c b/dlls/winewayland.drv/window_surface.c
 new file mode 100644
-index 00000000000..123edd20197
+index 00000000000..b268aa2fc67
 --- /dev/null
 +++ b/dlls/winewayland.drv/window_surface.c
-@@ -0,0 +1,691 @@
+@@ -0,0 +1,707 @@
 +/*
 + * Wayland window surface implementation
 + *
@@ -23557,6 +23700,22 @@ index 00000000000..123edd20197
 +        wws->last_flush_failed = TRUE;
 +        goto done;
 +    }
++
++    if (needs_flush)
++    {
++        BOOL drawing_allowed;
++        wayland_mutex_lock(&wws->wayland_surface->mutex);
++        drawing_allowed = wws->wayland_surface->drawing_allowed;
++        wayland_mutex_unlock(&wws->wayland_surface->mutex);
++        if (!drawing_allowed)
++        {
++            TRACE("drawing disallowed on wayland surface=%p, returning\n",
++                  wws->wayland_surface);
++            wws->last_flush_failed = TRUE;
++            goto done;
++        }
++    }
++
 +    wws->last_flush_failed = FALSE;
 +
 +    if (!needs_flush) goto done;
@@ -24072,10 +24231,10 @@ index 101504a7887..08e57c4def0 100644
  
  static void *X11DRV_get_vk_device_proc_addr(const char *name)
 diff --git a/include/config.h.in b/include/config.h.in
-index 509dd2869bf..4d567bc667f 100644
+index 0e43013a8ab..95475e4b377 100644
 --- a/include/config.h.in
 +++ b/include/config.h.in
-@@ -53,6 +53,9 @@
+@@ -39,6 +39,9 @@
  /* Define to 1 if you have the `dlinfo' function. */
  #undef HAVE_DLINFO
  
@@ -24085,7 +24244,7 @@ index 509dd2869bf..4d567bc667f 100644
  /* Define to 1 if you have the <EGL/egl.h> header file. */
  #undef HAVE_EGL_EGL_H
  
-@@ -89,6 +92,13 @@
+@@ -75,6 +78,13 @@
  /* Define to 1 if you have the `futimesat' function. */
  #undef HAVE_FUTIMESAT
  
@@ -24099,7 +24258,7 @@ index 509dd2869bf..4d567bc667f 100644
  /* Define to 1 if you have the `getaddrinfo' function. */
  #undef HAVE_GETADDRINFO
  
-@@ -688,6 +698,12 @@
+@@ -651,6 +661,12 @@
  /* Define to 1 if you have the <valgrind/valgrind.h> header file. */
  #undef HAVE_VALGRIND_VALGRIND_H
  
@@ -24112,7 +24271,7 @@ index 509dd2869bf..4d567bc667f 100644
  /* Define to 1 if you have the <X11/extensions/shape.h> header file. */
  #undef HAVE_X11_EXTENSIONS_SHAPE_H
  
-@@ -742,6 +758,9 @@
+@@ -705,6 +721,9 @@
  /* Define if you have the XKB extension */
  #undef HAVE_XKB
  
@@ -24123,7 +24282,7 @@ index 509dd2869bf..4d567bc667f 100644
  #undef HAVE_XRENDERCREATELINEARGRADIENT
  
 diff --git a/include/wine/gdi_driver.h b/include/wine/gdi_driver.h
-index d074c09cceb..464e351ada8 100644
+index 3db3d0d6af3..6ee8909f90e 100644
 --- a/include/wine/gdi_driver.h
 +++ b/include/wine/gdi_driver.h
 @@ -217,6 +217,7 @@ struct window_surface
@@ -24135,7 +24294,7 @@ index d074c09cceb..464e351ada8 100644
  };
  
 diff --git a/include/wine/vulkan.h b/include/wine/vulkan.h
-index fd24fe0fad3..e66c03d30f7 100644
+index 77c5cc02ae7..b7a9147bff0 100644
 --- a/include/wine/vulkan.h
 +++ b/include/wine/vulkan.h
 @@ -150,10 +150,14 @@
@@ -24180,7 +24339,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  #define VK_EXT_VALIDATION_CACHE_SPEC_VERSION 1
  #define VK_EXT_VALIDATION_CACHE_EXTENSION_NAME "VK_EXT_validation_cache"
  #define VK_EXT_DESCRIPTOR_INDEXING_SPEC_VERSION 2
-@@ -1849,6 +1859,7 @@ typedef enum VkExternalMemoryHandleTypeFlagBits
+@@ -1859,6 +1869,7 @@ typedef enum VkExternalMemoryHandleTypeFlagBits
      VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12_RESOURCE_BIT = 0x00000040,
      VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_ALLOCATION_BIT_EXT = 0x00000080,
      VK_EXTERNAL_MEMORY_HANDLE_TYPE_HOST_MAPPED_FOREIGN_MEMORY_BIT_EXT = 0x00000100,
@@ -24188,7 +24347,7 @@ index fd24fe0fad3..e66c03d30f7 100644
      VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
      VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
      VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT_KHR = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT,
-@@ -2434,6 +2445,10 @@ typedef enum VkImageAspectFlagBits
+@@ -2444,6 +2455,10 @@ typedef enum VkImageAspectFlagBits
      VK_IMAGE_ASPECT_PLANE_0_BIT = 0x00000010,
      VK_IMAGE_ASPECT_PLANE_1_BIT = 0x00000020,
      VK_IMAGE_ASPECT_PLANE_2_BIT = 0x00000040,
@@ -24199,7 +24358,7 @@ index fd24fe0fad3..e66c03d30f7 100644
      VK_IMAGE_ASPECT_PLANE_0_BIT_KHR = VK_IMAGE_ASPECT_PLANE_0_BIT,
      VK_IMAGE_ASPECT_PLANE_1_BIT_KHR = VK_IMAGE_ASPECT_PLANE_1_BIT,
      VK_IMAGE_ASPECT_PLANE_2_BIT_KHR = VK_IMAGE_ASPECT_PLANE_2_BIT,
-@@ -2549,6 +2564,7 @@ typedef enum VkImageTiling
+@@ -2559,6 +2574,7 @@ typedef enum VkImageTiling
  {
      VK_IMAGE_TILING_OPTIMAL = 0,
      VK_IMAGE_TILING_LINEAR = 1,
@@ -24207,7 +24366,7 @@ index fd24fe0fad3..e66c03d30f7 100644
      VK_IMAGE_TILING_MAX_ENUM = 0x7fffffff,
  } VkImageTiling;
  
-@@ -3420,6 +3436,7 @@ typedef enum VkResult
+@@ -3446,6 +3462,7 @@ typedef enum VkResult
      VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS = -1000257000,
      VK_ERROR_NOT_PERMITTED_KHR = -1000174001,
      VK_ERROR_FRAGMENTATION = -1000161000,
@@ -24215,7 +24374,7 @@ index fd24fe0fad3..e66c03d30f7 100644
      VK_ERROR_INVALID_EXTERNAL_HANDLE = -1000072003,
      VK_ERROR_OUT_OF_POOL_MEMORY = -1000069000,
      VK_ERROR_INVALID_SHADER_NV = -1000012000,
-@@ -3833,9 +3850,14 @@ typedef enum VkStructureType
+@@ -3859,9 +3876,14 @@ typedef enum VkStructureType
      VK_STRUCTURE_TYPE_EXPORT_MEMORY_WIN32_HANDLE_INFO_KHR = 1000073001,
      VK_STRUCTURE_TYPE_MEMORY_WIN32_HANDLE_PROPERTIES_KHR = 1000073002,
      VK_STRUCTURE_TYPE_MEMORY_GET_WIN32_HANDLE_INFO_KHR = 1000073003,
@@ -24230,7 +24389,7 @@ index fd24fe0fad3..e66c03d30f7 100644
      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PUSH_DESCRIPTOR_PROPERTIES_KHR = 1000080000,
      VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_CONDITIONAL_RENDERING_INFO_EXT = 1000081000,
      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CONDITIONAL_RENDERING_FEATURES_EXT = 1000081001,
-@@ -3867,6 +3889,8 @@ typedef enum VkStructureType
+@@ -3893,6 +3915,8 @@ typedef enum VkStructureType
      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTERNAL_FENCE_INFO = 1000112000,
      VK_STRUCTURE_TYPE_EXTERNAL_FENCE_PROPERTIES = 1000112001,
      VK_STRUCTURE_TYPE_EXPORT_FENCE_CREATE_INFO = 1000113000,
@@ -24239,7 +24398,7 @@ index fd24fe0fad3..e66c03d30f7 100644
      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_FEATURES_KHR = 1000116000,
      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PERFORMANCE_QUERY_PROPERTIES_KHR = 1000116001,
      VK_STRUCTURE_TYPE_QUERY_POOL_PERFORMANCE_CREATE_INFO_KHR = 1000116002,
-@@ -3943,6 +3967,12 @@ typedef enum VkStructureType
+@@ -3969,6 +3993,12 @@ typedef enum VkStructureType
      VK_STRUCTURE_TYPE_SAMPLER_YCBCR_CONVERSION_IMAGE_FORMAT_PROPERTIES = 1000156005,
      VK_STRUCTURE_TYPE_BIND_BUFFER_MEMORY_INFO = 1000157000,
      VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_INFO = 1000157001,
@@ -24252,7 +24411,7 @@ index fd24fe0fad3..e66c03d30f7 100644
      VK_STRUCTURE_TYPE_VALIDATION_CACHE_CREATE_INFO_EXT = 1000160000,
      VK_STRUCTURE_TYPE_SHADER_MODULE_VALIDATION_CACHE_CREATE_INFO_EXT = 1000160001,
      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO = 1000161000,
-@@ -5805,6 +5835,36 @@ typedef struct VkDrawMeshTasksIndirectCommandNV
+@@ -5842,6 +5872,36 @@ typedef struct VkDrawMeshTasksIndirectCommandNV
      uint32_t firstTask;
  } VkDrawMeshTasksIndirectCommandNV;
  
@@ -24289,7 +24448,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef struct VkEventCreateInfo
  {
      VkStructureType sType;
-@@ -5915,6 +5975,14 @@ typedef struct VkFenceCreateInfo
+@@ -5952,6 +6012,14 @@ typedef struct VkFenceCreateInfo
      VkFenceCreateFlags flags;
  } VkFenceCreateInfo;
  
@@ -24304,7 +24463,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef struct VkFilterCubicImageViewImageFormatPropertiesEXT
  {
      VkStructureType sType;
-@@ -6089,6 +6157,21 @@ typedef struct VkImageCreateInfo
+@@ -6126,6 +6194,21 @@ typedef struct VkImageCreateInfo
      VkImageLayout initialLayout;
  } VkImageCreateInfo;
  
@@ -24326,7 +24485,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef struct VkImageFormatListCreateInfo
  {
      VkStructureType sType;
-@@ -6243,6 +6326,24 @@ typedef struct VkImageViewUsageCreateInfo
+@@ -6280,6 +6363,24 @@ typedef struct VkImageViewUsageCreateInfo
  } VkImageViewUsageCreateInfo;
  typedef VkImageViewUsageCreateInfo VkImageViewUsageCreateInfoKHR;
  
@@ -24351,7 +24510,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef struct VkImportMemoryHostPointerInfoEXT
  {
      VkStructureType sType;
-@@ -6260,6 +6361,16 @@ typedef struct VkImportMemoryWin32HandleInfoKHR
+@@ -6297,6 +6398,16 @@ typedef struct VkImportMemoryWin32HandleInfoKHR
      LPCWSTR name;
  } VkImportMemoryWin32HandleInfoKHR;
  
@@ -24368,7 +24527,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef struct VkIndirectCommandsLayoutTokenNV
  {
      VkStructureType sType;
-@@ -6383,6 +6494,21 @@ typedef struct VkMemoryDedicatedRequirements
+@@ -6420,6 +6531,21 @@ typedef struct VkMemoryDedicatedRequirements
  } VkMemoryDedicatedRequirements;
  typedef VkMemoryDedicatedRequirements VkMemoryDedicatedRequirementsKHR;
  
@@ -24390,7 +24549,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef struct VkMemoryGetWin32HandleInfoKHR
  {
      VkStructureType sType;
-@@ -7523,6 +7649,16 @@ typedef struct VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT
+@@ -7560,6 +7686,16 @@ typedef struct VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT
      VkBool32 imageCompressionControlSwapchain;
  } VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT;
  
@@ -24407,7 +24566,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef struct VkPhysicalDeviceImageFormatInfo2
  {
      VkStructureType sType;
-@@ -9847,6 +9983,14 @@ typedef struct VkSemaphoreCreateInfo
+@@ -9907,6 +10043,14 @@ typedef struct VkSemaphoreCreateInfo
      VkSemaphoreCreateFlags flags;
  } VkSemaphoreCreateInfo;
  
@@ -24422,7 +24581,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef struct VkSemaphoreSignalInfo
  {
      VkStructureType sType;
-@@ -10862,6 +11006,15 @@ typedef struct VkImageCopy2
+@@ -10981,6 +11125,15 @@ typedef struct VkImageCopy2
  } VkImageCopy2;
  typedef VkImageCopy2 VkImageCopy2KHR;
  
@@ -24438,7 +24597,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef struct VkImageMemoryBarrier
  {
      VkStructureType sType;
-@@ -11843,9 +11996,11 @@ typedef void (VKAPI_PTR *PFN_vkGetDeviceQueue2)(VkDevice, const VkDeviceQueueInf
+@@ -11962,9 +12115,11 @@ typedef void (VKAPI_PTR *PFN_vkGetDeviceQueue2)(VkDevice, const VkDeviceQueueInf
  typedef VkResult (VKAPI_PTR *PFN_vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI)(VkDevice, VkRenderPass, VkExtent2D *);
  typedef VkResult (VKAPI_PTR *PFN_vkGetDynamicRenderingTilePropertiesQCOM)(VkDevice, const VkRenderingInfo *, VkTilePropertiesQCOM *);
  typedef VkResult (VKAPI_PTR *PFN_vkGetEventStatus)(VkDevice, VkEvent);
@@ -24450,7 +24609,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef void (VKAPI_PTR *PFN_vkGetImageMemoryRequirements)(VkDevice, VkImage, VkMemoryRequirements *);
  typedef void (VKAPI_PTR *PFN_vkGetImageMemoryRequirements2)(VkDevice, const VkImageMemoryRequirementsInfo2 *, VkMemoryRequirements2 *);
  typedef void (VKAPI_PTR *PFN_vkGetImageMemoryRequirements2KHR)(VkDevice, const VkImageMemoryRequirementsInfo2 *, VkMemoryRequirements2 *);
-@@ -11859,6 +12014,8 @@ typedef VkResult (VKAPI_PTR *PFN_vkGetImageViewAddressNVX)(VkDevice, VkImageView
+@@ -11978,6 +12133,8 @@ typedef VkResult (VKAPI_PTR *PFN_vkGetImageViewAddressNVX)(VkDevice, VkImageView
  typedef uint32_t (VKAPI_PTR *PFN_vkGetImageViewHandleNVX)(VkDevice, const VkImageViewHandleInfoNVX *);
  typedef VkResult (VKAPI_PTR *PFN_vkGetImageViewOpaqueCaptureDescriptorDataEXT)(VkDevice, const VkImageViewCaptureDescriptorDataInfoEXT *, void *);
  typedef PFN_vkVoidFunction (VKAPI_PTR *PFN_vkGetInstanceProcAddr)(VkInstance, const char *);
@@ -24459,7 +24618,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryHostPointerPropertiesEXT)(VkDevice, VkExternalMemoryHandleTypeFlagBits, const void *, VkMemoryHostPointerPropertiesEXT *);
  typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryWin32HandleKHR)(VkDevice, const VkMemoryGetWin32HandleInfoKHR *, HANDLE *);
  typedef VkResult (VKAPI_PTR *PFN_vkGetMemoryWin32HandlePropertiesKHR)(VkDevice, VkExternalMemoryHandleTypeFlagBits, HANDLE, VkMemoryWin32HandlePropertiesKHR *);
-@@ -11926,11 +12083,14 @@ typedef void (VKAPI_PTR *PFN_vkGetRenderAreaGranularity)(VkDevice, VkRenderPass,
+@@ -12045,11 +12202,14 @@ typedef void (VKAPI_PTR *PFN_vkGetRenderAreaGranularity)(VkDevice, VkRenderPass,
  typedef VkResult (VKAPI_PTR *PFN_vkGetSamplerOpaqueCaptureDescriptorDataEXT)(VkDevice, const VkSamplerCaptureDescriptorDataInfoEXT *, void *);
  typedef VkResult (VKAPI_PTR *PFN_vkGetSemaphoreCounterValue)(VkDevice, VkSemaphore, uint64_t *);
  typedef VkResult (VKAPI_PTR *PFN_vkGetSemaphoreCounterValueKHR)(VkDevice, VkSemaphore, uint64_t *);
@@ -24474,7 +24633,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  typedef VkResult (VKAPI_PTR *PFN_vkInitializePerformanceApiINTEL)(VkDevice, const VkInitializePerformanceApiInfoINTEL *);
  typedef VkResult (VKAPI_PTR *PFN_vkInvalidateMappedMemoryRanges)(VkDevice, uint32_t, const VkMappedMemoryRange *);
  typedef VkResult (VKAPI_PTR *PFN_vkMapMemory)(VkDevice, VkDeviceMemory, VkDeviceSize, VkDeviceSize, VkMemoryMapFlags, void **);
-@@ -12376,9 +12536,11 @@ void VKAPI_CALL vkGetDeviceQueue2(VkDevice device, const VkDeviceQueueInfo2 *pQu
+@@ -12496,9 +12656,11 @@ void VKAPI_CALL vkGetDeviceQueue2(VkDevice device, const VkDeviceQueueInfo2 *pQu
  VkResult VKAPI_CALL vkGetDeviceSubpassShadingMaxWorkgroupSizeHUAWEI(VkDevice device, VkRenderPass renderpass, VkExtent2D *pMaxWorkgroupSize);
  VkResult VKAPI_CALL vkGetDynamicRenderingTilePropertiesQCOM(VkDevice device, const VkRenderingInfo *pRenderingInfo, VkTilePropertiesQCOM *pProperties);
  VkResult VKAPI_CALL vkGetEventStatus(VkDevice device, VkEvent event);
@@ -24486,7 +24645,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  void VKAPI_CALL vkGetImageMemoryRequirements(VkDevice device, VkImage image, VkMemoryRequirements *pMemoryRequirements);
  void VKAPI_CALL vkGetImageMemoryRequirements2(VkDevice device, const VkImageMemoryRequirementsInfo2 *pInfo, VkMemoryRequirements2 *pMemoryRequirements);
  void VKAPI_CALL vkGetImageMemoryRequirements2KHR(VkDevice device, const VkImageMemoryRequirementsInfo2 *pInfo, VkMemoryRequirements2 *pMemoryRequirements);
-@@ -12392,6 +12554,8 @@ VkResult VKAPI_CALL vkGetImageViewAddressNVX(VkDevice device, VkImageView imageV
+@@ -12512,6 +12674,8 @@ VkResult VKAPI_CALL vkGetImageViewAddressNVX(VkDevice device, VkImageView imageV
  uint32_t VKAPI_CALL vkGetImageViewHandleNVX(VkDevice device, const VkImageViewHandleInfoNVX *pInfo);
  VkResult VKAPI_CALL vkGetImageViewOpaqueCaptureDescriptorDataEXT(VkDevice device, const VkImageViewCaptureDescriptorDataInfoEXT *pInfo, void *pData);
  PFN_vkVoidFunction VKAPI_CALL vkGetInstanceProcAddr(VkInstance instance, const char *pName);
@@ -24495,7 +24654,7 @@ index fd24fe0fad3..e66c03d30f7 100644
  VkResult VKAPI_CALL vkGetMemoryHostPointerPropertiesEXT(VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, const void *pHostPointer, VkMemoryHostPointerPropertiesEXT *pMemoryHostPointerProperties);
  VkResult VKAPI_CALL vkGetMemoryWin32HandleKHR(VkDevice device, const VkMemoryGetWin32HandleInfoKHR *pGetWin32HandleInfo, HANDLE *pHandle);
  VkResult VKAPI_CALL vkGetMemoryWin32HandlePropertiesKHR(VkDevice device, VkExternalMemoryHandleTypeFlagBits handleType, HANDLE handle, VkMemoryWin32HandlePropertiesKHR *pMemoryWin32HandleProperties);
-@@ -12459,11 +12623,14 @@ void VKAPI_CALL vkGetRenderAreaGranularity(VkDevice device, VkRenderPass renderP
+@@ -12579,11 +12743,14 @@ void VKAPI_CALL vkGetRenderAreaGranularity(VkDevice device, VkRenderPass renderP
  VkResult VKAPI_CALL vkGetSamplerOpaqueCaptureDescriptorDataEXT(VkDevice device, const VkSamplerCaptureDescriptorDataInfoEXT *pInfo, void *pData);
  VkResult VKAPI_CALL vkGetSemaphoreCounterValue(VkDevice device, VkSemaphore semaphore, uint64_t *pValue);
  VkResult VKAPI_CALL vkGetSemaphoreCounterValueKHR(VkDevice device, VkSemaphore semaphore, uint64_t *pValue);
@@ -24550,10 +24709,10 @@ index f5269d554fb..99d301061aa 100644
          return vulkan_funcs->p_vkCreateWin32SurfaceKHR;
      if (!strcmp(name, "DestroyInstance"))
 diff --git a/include/winuser.h b/include/winuser.h
-index a82a6ec26c5..0ce6956bb76 100644
+index d1e03461d07..90a1901182f 100644
 --- a/include/winuser.h
 +++ b/include/winuser.h
-@@ -4764,6 +4764,9 @@ WORD        WINAPI SYSTEM_KillSystemTimer( WORD );
+@@ -4766,6 +4766,9 @@ WORD        WINAPI SYSTEM_KillSystemTimer( WORD );
  
  #ifdef __WINESRC__
  WINUSERAPI BOOL CDECL __wine_send_input( HWND hwnd, const INPUT *input, const RAWINPUT *rawinput );
@@ -24577,7 +24736,7 @@ index 96673adc254..afa711a8dbf 100644
  static BOOL using_root;
  
 diff --git a/tools/makedep.c b/tools/makedep.c
-index 893808930fb..f58c0c299e0 100644
+index 6379b5b69d9..32b77a97cf9 100644
 --- a/tools/makedep.c
 +++ b/tools/makedep.c
 @@ -158,6 +158,7 @@ static const char *icotool;
@@ -24614,7 +24773,7 @@ index 893808930fb..f58c0c299e0 100644
      /* check for extra targets */
      if (strarray_exists( &make->extra_targets, pFile->name ))
      {
-@@ -1918,6 +1931,23 @@ static void add_generated_sources( struct makefile *make )
+@@ -1917,6 +1930,23 @@ static void add_generated_sources( struct makefile *make )
              strarray_addall_uniq( &make->extra_imports,
                                    get_expanded_file_local_var( make, obj, "IMPORTS" ));
          }
@@ -24654,7 +24813,7 @@ index 893808930fb..f58c0c299e0 100644
  
  /*******************************************************************
   *         output_source_one_arch
-@@ -3258,6 +3297,7 @@ static const struct
+@@ -3252,6 +3291,7 @@ static const struct
      { "in", output_source_in },
      { "x", output_source_x },
      { "spec", output_source_spec },
@@ -24662,7 +24821,7 @@ index 893808930fb..f58c0c299e0 100644
      { NULL, output_source_default }
  };
  
-@@ -4104,6 +4144,7 @@ static void output_silent_rules(void)
+@@ -4099,6 +4139,7 @@ static void output_silent_rules(void)
          "MSG",
          "SED",
          "TEST",
@@ -24670,7 +24829,7 @@ index 893808930fb..f58c0c299e0 100644
          "WIDL",
          "WMC",
          "WRC"
-@@ -4203,6 +4244,7 @@ static void load_sources( struct makefile *make )
+@@ -4198,6 +4239,7 @@ static void load_sources( struct makefile *make )
          "IN_SRCS",
          "PO_SRCS",
          "MANPAGES",
@@ -24678,7 +24837,7 @@ index 893808930fb..f58c0c299e0 100644
          NULL
      };
      const char **var;
-@@ -4438,6 +4480,7 @@ int main( int argc, char *argv[] )
+@@ -4433,6 +4475,7 @@ int main( int argc, char *argv[] )
      msgfmt             = get_expanded_make_variable( top_makefile, "MSGFMT" );
      sed_cmd            = get_expanded_make_variable( top_makefile, "SED_CMD" );
      ln_s               = get_expanded_make_variable( top_makefile, "LN_S" );

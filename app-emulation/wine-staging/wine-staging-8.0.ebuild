@@ -1,4 +1,4 @@
-# Copyright 2022 Gentoo Authors
+# Copyright 2022-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -112,6 +112,7 @@ DEPEND="
 	X? ( x11-base/xorg-proto )"
 BDEPEND="
 	dev-lang/perl
+	sys-devel/binutils
 	sys-devel/bison
 	sys-devel/flex
 	virtual/pkgconfig
@@ -153,7 +154,7 @@ src_unpack() {
 		EGIT_CHECKOUT_DIR=${WORKDIR}/${P}
 		git-r3_src_unpack
 
-		EGIT_COMMIT=$(<"${EGIT_CHECKOUT_DIR}"/staging/upstream-commit) || die
+		EGIT_COMMIT=$("${BASH}" "${EGIT_CHECKOUT_DIR}"/patches/patchinstall.sh --upstream-commit) || die
 		EGIT_REPO_URI=${WINE_EGIT_REPO_URI}
 		EGIT_CHECKOUT_DIR=${S}
 		einfo "Fetching Wine commit matching the current patchset by default (${EGIT_COMMIT})"
@@ -253,7 +254,9 @@ src_configure() {
 		$(usev !odbc ac_cv_lib_soname_odbc=)
 	)
 
-	use custom-cflags || strip-flags # can break in obscure ways, also no lto
+	filter-lto # build failure
+	use mingw || filter-flags -fno-plt # build failure
+	use custom-cflags || strip-flags # can break in obscure ways at runtime
 	use crossdev-mingw || PATH=${BROOT}/usr/lib/mingw64-toolchain/bin:${PATH}
 
 	local -i bits
@@ -268,6 +271,8 @@ src_configure() {
 	if use mingw; then
 		# use *FLAGS for mingw, but strip unsupported
 		: "${CROSSCFLAGS:=$(
+			# >=wine-7.21 configure.ac no longer adds -fno-strict by mistake
+			append-cflags '-fno-strict-aliasing'
 			filter-flags '-fstack-clash-protection' #758914
 			filter-flags '-fstack-protector*' #870136
 			filter-flags '-mfunction-return=thunk*' #878849
