@@ -1,10 +1,10 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
 DISTUTILS_OPTIONAL=1
-PYTHON_COMPAT=( python3_{8..10} )
+PYTHON_COMPAT=( python3_{9..10} )
 
 inherit autotools bash-completion-r1 dist-kernel-utils distutils-r1 flag-o-matic linux-info pam systemd udev usr-ldscript
 
@@ -106,13 +106,6 @@ PATCHES=(
 
 	"${FILESDIR}"/2.1.5-dracut-zfs-missing.patch
 
-	# bug #857228
-	"${FILESDIR}"/2.1.5-dracut-mount.patch
-
-	"${FILESDIR}"/2.1.6-fgrep.patch
-	# systemd fixups
-	"${FILESDIR}"/2.1.7-dracut-include-systemd-overrides.patch
-	"${FILESDIR}"/2.1.7-systemd-zed-restart-always.patch
 	"${FILESDIR}/2.1.2-musl-systemd.patch"
 )
 
