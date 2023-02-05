@@ -1,9 +1,9 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{8..10} )
+PYTHON_COMPAT=( python3_{9..11} )
 PYTHON_REQ_USE="threads(+),xml(+)"
 inherit python-single-r1 flag-o-matic waf-utils multilib-minimal linux-info systemd pam tmpfiles
 
@@ -60,17 +60,17 @@ TDB_VERSION="1.4.6"
 TEVENT_VERSION="0.11.0"
 
 COMMON_DEPEND="
-	>=app-arch/libarchive-3.1.2[${MULTILIB_USEDEP}]
+	>=app-arch/libarchive-3.1.2:=[${MULTILIB_USEDEP}]
 	dev-lang/perl:=
 	dev-libs/icu:=[${MULTILIB_USEDEP}]
 	dev-libs/libbsd[${MULTILIB_USEDEP}]
-	dev-libs/libtasn1[${MULTILIB_USEDEP}]
+	dev-libs/libtasn1:=[${MULTILIB_USEDEP}]
 	dev-libs/popt[${MULTILIB_USEDEP}]
 	dev-perl/Parse-Yapp
-	>=net-libs/gnutls-3.4.7[${MULTILIB_USEDEP}]
+	>=net-libs/gnutls-3.4.7:=[${MULTILIB_USEDEP}]
 	>=sys-fs/e2fsprogs-1.46.4-r51[${MULTILIB_USEDEP}]
-	>=sys-libs/ldb-2.5.2[ldap(+)?,${MULTILIB_USEDEP}]
-	<sys-libs/ldb-2.6.0[ldap(+)?,${MULTILIB_USEDEP}]
+	>=sys-libs/ldb-2.5.2:=[ldap(+)?,${MULTILIB_USEDEP}]
+	<sys-libs/ldb-2.6.0:=[ldap(+)?,${MULTILIB_USEDEP}]
 	sys-libs/libcap[${MULTILIB_USEDEP}]
 	sys-libs/liburing:=[${MULTILIB_USEDEP}]
 	sys-libs/ncurses:=
@@ -318,6 +318,9 @@ multilib_src_install() {
 	# smbspool_krb5_wrapper must only be accessible to root, bug #880739
 	find "${ED}" -type f -name "smbspool_krb5_wrapper" -exec chmod go-rwx {} + || die
 
+	# Remove empty runtime dirs created by build system (bug #892341)
+	find "${ED}"/{run,var} -type d -empty -delete || die
+
 	if multilib_is_native_abi ; then
 		# Install ldap schema for server (bug #491002)
 		if use ldap ; then
@@ -366,12 +369,6 @@ multilib_src_install() {
 		insinto /etc/security
 		doins examples/pam_winbind/pam_winbind.conf
 	fi
-
-	keepdir /var/cache/samba
-	keepdir /var/lib/ctdb
-	keepdir /var/lib/samba/{bind-dns,private}
-	keepdir /var/lock/samba
-	keepdir /var/log/samba
 }
 
 pkg_postinst() {
