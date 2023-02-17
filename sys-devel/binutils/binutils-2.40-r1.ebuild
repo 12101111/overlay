@@ -19,7 +19,7 @@ IUSE="+ld +gas +binutils +gprof cet doc gold gprofng multitarget +nls pgo +plugi
 # PATCH_DEV          - Use download URI https://dev.gentoo.org/~{PATCH_DEV}/distfiles/...
 #                      for the patchsets
 
-PATCH_VER=1
+PATCH_VER=2
 PATCH_DEV=dilfridge
 
 if [[ ${PV} == 9999* ]]; then
@@ -171,7 +171,7 @@ src_configure() {
 
 	# Keep things sane
 	strip-flags
-
+	use cet && filter-flags -mindirect-branch -mindirect-branch=*
 	use elibc_musl && append-ldflags -Wl,-z,stack-size=2097152
 
 	local x
