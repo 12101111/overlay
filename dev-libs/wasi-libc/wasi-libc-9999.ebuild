@@ -15,10 +15,12 @@ KEYWORDS="~amd64 ~arm64 ~x86"
 
 DEPEND="
 	sys-devel/clang
-	sys-devel/llvm
+	sys-devel/lld
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
+
+PATCHES=( "${FILESDIR}"/ignore-macro.patch )
 
 src_compile() {
 	emake SYSROOT="${S}/sysroot"
