@@ -1,4 +1,4 @@
-From 6673c05c40d04ed7a76f8b6a1286b3a520952c6e Mon Sep 17 00:00:00 2001
+From b58bd1aba0ea54f81913a14571b3745891cee603 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 6 May 2021 10:04:18 +0800
 Subject: [PATCH 08/13] Build without electron
@@ -44,5 +44,5 @@ index 8df9463e564..0ef653dba9d 100644
  
  		if (platform === 'linux') {
 -- 
-2.38.1
+2.39.2
 

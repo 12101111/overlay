@@ -1,4 +1,4 @@
-From 0c992c99975e868a779adb9ad394459c0a1a9542 Mon Sep 17 00:00:00 2001
+From 7edb3740eea4a2924e2c5d016ada99524a54165a Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 20 Oct 2022 15:30:03 +0800
 Subject: [PATCH 06/13] Don't run yarn install for web/remote/test
@@ -35,5 +35,5 @@ index 52e8253321f..39a1d0b8b6c 100644
 -cp.execSync('git config pull.rebase merges');
 -cp.execSync('git config blame.ignoreRevsFile .git-blame-ignore');
 -- 
-2.38.1
+2.39.2
 

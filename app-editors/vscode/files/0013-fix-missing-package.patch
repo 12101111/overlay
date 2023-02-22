@@ -1,6 +1,6 @@
-From 7bda193c32140440152e3ee5f5608dea4bbd085a Mon Sep 17 00:00:00 2001
+From 9dea1c80fe558df374886b06df309c6905ec4ee9 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Thu, 8 Dec 2022 18:01:27 +0800
+Date: Sun, 19 Feb 2023 00:52:55 +0800
 Subject: [PATCH 13/13] fix missing package
 
 ---
@@ -9,19 +9,19 @@ Subject: [PATCH 13/13] fix missing package
  2 files changed, 6 insertions(+)
 
 diff --git a/extensions/npm/package.json b/extensions/npm/package.json
-index 40ec7e7f4ae..4cc3d17bb5f 100644
+index 5f39c6cd1b2..b112f7fbe57 100644
 --- a/extensions/npm/package.json
 +++ b/extensions/npm/package.json
-@@ -22,6 +22,7 @@
+@@ -25,6 +25,7 @@
      "jsonc-parser": "^2.2.1",
      "minimatch": "^3.0.4",
-     "request-light": "^0.5.7",
+     "request-light": "^0.7.0",
 +    "vscode-uri": "^3.0.3",
      "which": "^2.0.2",
      "which-pm": "^2.0.0"
    },
 diff --git a/extensions/npm/yarn.lock b/extensions/npm/yarn.lock
-index 4ee6067114b..9047e24c062 100644
+index cb1d0710210..432e0799f00 100644
 --- a/extensions/npm/yarn.lock
 +++ b/extensions/npm/yarn.lock
 @@ -192,6 +192,11 @@ to-regex-range@^5.0.1:
@@ -29,13 +29,13 @@ index 4ee6067114b..9047e24c062 100644
      is-number "^7.0.0"
  
 +vscode-uri@^3.0.3:
-+  version "3.0.3"
-+  resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.0.3.tgz#a95c1ce2e6f41b7549f86279d19f47951e4f4d84"
-+  integrity sha512-EcswR2S8bpR7fD0YPeS7r2xXExrScVMxg4MedACaWHEtx9ftCF/qHG1xGkolzTPcEmjTavCQgbVzHUIdTMzFGA==
++  version "3.0.7"
++  resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.0.7.tgz#6d19fef387ee6b46c479e5fb00870e15e58c1eb8"
++  integrity sha512-eOpPHogvorZRobNqJGhapa0JdwaxpjVvyBp0QIUMRMSf8ZAlqOdEquKuRmw9Qwu0qXtJIWqFtMkmvJjUZmMjVA==
 +
  which-pm@^2.0.0:
    version "2.0.0"
    resolved "https://registry.yarnpkg.com/which-pm/-/which-pm-2.0.0.tgz#8245609ecfe64bf751d0eef2f376d83bf1ddb7ae"
 -- 
-2.38.1
+2.39.2
 

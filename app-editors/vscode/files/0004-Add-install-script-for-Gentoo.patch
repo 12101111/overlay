@@ -1,4 +1,4 @@
-From 14cfc6333e584d265ca5671f08990be6f314ba92 Mon Sep 17 00:00:00 2001
+From 41b8fe049f2b5126b0121cff32b7396e1a20e3e3 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Oct 2020 09:37:48 +0800
 Subject: [PATCH 04/13] Add install script for Gentoo
@@ -78,5 +78,5 @@ index cdc887013d8..0af6e8913f1 100644
 +	gulp.task(installGentooTask);
  });
 -- 
-2.38.1
+2.39.2
 
