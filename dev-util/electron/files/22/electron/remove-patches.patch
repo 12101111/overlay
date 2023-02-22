@@ -1,0 +1,38 @@
+diff --git a/patches/node/fix_preserve_proper_method_names_as-is_in_error_stack.patch b/patches/node/fix_preserve_proper_method_names_as-is_in_error_stack.patch
+index bcd1c3ae56..8cbb8c980a 100644
+--- a/patches/node/fix_preserve_proper_method_names_as-is_in_error_stack.patch
++++ b/patches/node/fix_preserve_proper_method_names_as-is_in_error_stack.patch
+@@ -95,15 +95,6 @@ index 2ef95b535dafe7b0a918b8d6a844e4c4a617818d..dc5e6e7d28cef3a23ca7ba2cfb1435ca
+      at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:*:*)
+      at node:internal/main/run_main_module:*:* {
+    generatedMessage: true,
+-diff --git a/test/message/error_with_nul.out b/test/message/error_with_nul.out
+-index 7fbb33f08e8dc342b9efc899e66f5e3350e9489b..a359999420fa76bd09b401a732acb7dcdfaa2198 100644
+-GIT binary patch
+-delta 13
+-VcmdnUvXEuMi;3^+Czmts0st)*2A2Q;
+-
+-delta 31
+-ncmZ3;vXN!N3wHmctkmQZy@@aCIo(S0l1no4^YkXCGwuQa$o~w9
+-
+ diff --git a/test/message/events_unhandled_error_common_trace.out b/test/message/events_unhandled_error_common_trace.out
+ index 19e89869ba74fae3f447e299904939da5a683280..2bdbe3df1b4c7e13ba33f099ae89f88365e6b690 100644
+ --- a/test/message/events_unhandled_error_common_trace.out
+diff --git a/patches/chromium/axselectedtextmarkerrange_should_not_be_backwards.patch b/patches/chromium/axselectedtextmarkerrange_should_not_be_backwards.patch
+index 2fd993bdd0..4b8bb86998 100644
+--- a/patches/chromium/axselectedtextmarkerrange_should_not_be_backwards.patch
++++ b/patches/chromium/axselectedtextmarkerrange_should_not_be_backwards.patch
+@@ -45,13 +45,3 @@ index 55cce7ff53b355cea2787abca6140f122f6a0369..202923773d7adb2fad5c15be4558bfd5
+  }
+  
+  - (NSString*)sortDirection {
+-diff --git a/content/test/data/accessibility/mac/selection/selectall-textarea-expected.txt b/content/test/data/accessibility/mac/selection/selectall-textarea-expected.txt
+-index f2638c5d03b16266e781bb74cfc08c65f7c0a60d..34036471ad01d0fcfc7bd9b7213f1b4edcded719 100644
+---- a/content/test/data/accessibility/mac/selection/selectall-textarea-expected.txt
+-+++ b/content/test/data/accessibility/mac/selection/selectall-textarea-expected.txt
+-@@ -1,4 +1,4 @@
+- textarea_range={anchor: {:3, 0, down}, focus: {:3, 19, down}}
+- textarea.AXSelectedTextMarkerRange={anchor: {:3, 0, down}, focus: {:3, 19, down}}
+- AXSelectedTextChanged on AXTextArea AXValue='The quick brown fox' AXTextSelectionDirection=AXTextSelectionDirectionUnknown AXTextSelectionGranularity=AXTextSelectionGranularityUnknown AXTextStateChangeType=AXTextStateChangeTypeSelectionMove
+--textarea.AXSelectedTextMarkerRange={anchor: {:3, 19, down}, focus: {:3, 0, down}}
+-+textarea.AXSelectedTextMarkerRange={anchor: {:3, 0, down}, focus: {:3, 19, down}}
