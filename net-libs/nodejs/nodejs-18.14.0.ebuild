@@ -4,7 +4,7 @@
 EAPI=8
 
 CONFIG_CHECK="~ADVISE_SYSCALLS"
-PYTHON_COMPAT=( python3_{8..11} )
+PYTHON_COMPAT=( python3_{9..11} )
 PYTHON_REQ_USE="threads(+)"
 
 inherit bash-completion-r1 check-reqs flag-o-matic linux-info pax-utils python-any-r1 toolchain-funcs xdg-utils
@@ -33,7 +33,7 @@ REQUIRED_USE="inspector? ( icu ssl )
 RESTRICT="!test? ( test )"
 
 RDEPEND=">=app-arch/brotli-1.0.9:=
-	>=dev-libs/libuv-1.40.0:=
+	>=dev-libs/libuv-1.44.0:=
 	>=net-dns/c-ares-1.17.2:=
 	>=net-libs/nghttp2-1.41.0:=
 	sys-libs/zlib
@@ -49,7 +49,6 @@ DEPEND="${RDEPEND}"
 
 PATCHES=(
 	"${FILESDIR}"/${PN}-12.22.5-shared_c-ares_nameser_h.patch
-	"${FILESDIR}"/${PN}-15.2.0-global-npm-config.patch
 )
 
 # These are measured on a loong machine with -ggdb on, and only checked
@@ -204,6 +203,8 @@ src_install() {
 
 	if use npm; then
 		keepdir /etc/npm
+		echo "NPM_CONFIG_GLOBALCONFIG=${EPREFIX}/etc/npm/npmrc" > "${T}"/50npm
+		doenvd "${T}"/50npm
 
 		# Install bash completion for `npm`
 		local tmp_npm_completion_file="$(TMPDIR="${T}" mktemp -t npm.XXXXXXXXXX)"
@@ -246,4 +247,11 @@ src_test() {
 
 	out/${BUILDTYPE}/cctest || die
 	"${EPYTHON}" tools/test.py --mode=${BUILDTYPE,,} --flaky-tests=dontcare -J message parallel sequential || die
+}
+
+pkg_postinst() {
+	if use npm; then
+		ewarn "remember to run: source /etc/profile if you plan to use nodejs"
+		ewarn "	in your current shell"
+	fi
 }
