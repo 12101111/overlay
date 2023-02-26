@@ -3,7 +3,8 @@
 
 EAPI=8
 
-inherit autotools flag-o-matic toolchain-funcs wrapper
+PYTHON_COMPAT=( python3_{9..11} )
+inherit autotools edo flag-o-matic python-any-r1 toolchain-funcs wrapper
 
 WINE_GECKO=2.47.3
 WINE_MONO=7.4.0
@@ -29,7 +30,7 @@ SLOT="${PV}"
 IUSE="
 	+X +alsa capi crossdev-mingw cups dos wayland
 	llvm-libunwind debug custom-cflags +fontconfig +gecko gphoto2
-	+gstreamer kerberos +mingw +mono netapi nls odbc opencl +opengl
+	+gstreamer kerberos +mingw +mono netapi nls opencl +opengl
 	osmesa pcap perl pulseaudio samba scanner +sdl selinux +ssl
 	+truetype udev udisks +unwind usb v4l +vulkan +xcomposite xinerama"
 REQUIRED_USE="
@@ -60,7 +61,6 @@ WINE_DLOPEN_DEPEND="
 	fontconfig? ( media-libs/fontconfig )
 	kerberos? ( virtual/krb5 )
 	netapi? ( net-fs/samba )
-	odbc? ( dev-db/unixODBC )
 	sdl? ( media-libs/libsdl2[haptic,joystick] )
 	ssl? ( net-libs/gnutls:= )
 	truetype? ( media-libs/freetype )
@@ -110,7 +110,16 @@ DEPEND="
 	${WINE_COMMON_DEPEND}
 	sys-kernel/linux-headers
 	X? ( x11-base/xorg-proto )"
+# gitapply.sh prefers git but can fallback to patch+extras
 BDEPEND="
+	${PYTHON_DEPS}
+	|| (
+		dev-vcs/git
+		(
+			sys-apps/gawk
+			sys-apps/util-linux
+		)
+	)
 	dev-lang/perl
 	sys-devel/binutils
 	sys-devel/bison
@@ -122,6 +131,7 @@ BDEPEND="
 	nls? ( sys-devel/gettext )"
 IDEPEND=">=app-eselect/eselect-wine-2"
 
+QA_FLAGS_IGNORED="usr/lib/.*/wine/.*-unix/odbc32.so" # has no compiled objects
 QA_TEXTRELS="usr/lib/*/wine/i386-unix/*.so" # uses -fno-PIC -Wl,-z,notext
 
 PATCHES=(
@@ -165,19 +175,14 @@ src_unpack() {
 }
 
 src_prepare() {
-	local staging=(
-		./patchinstall.sh DESTDIR="${S}"
+	local patchinstallargs=(
 		--all
-		--backend=eapply
 		--no-autoconf
 		-W winemenubuilder-Desktop_Icon_Path #652176
 		${MY_WINE_STAGING_CONF}
 	)
 
-	# source patcher in a subshell so can use eapply as a backend
-	ebegin "Running ${staging[*]}"
-	( cd ../${P}/patches && . "${staging[@]}" )
-	eend ${?} || die "Failed to apply the patchset"
+	edo "${PYTHON}" ../${P}/staging/patchinstall.py "${patchinstallargs[@]}"
 
 	# sanity check, bumping these has a history of oversights
 	local geckomono=$(sed -En '/^#define (GECKO|MONO)_VER/{s/[^0-9.]//gp}' \
@@ -251,7 +256,6 @@ src_configure() {
 		$(use_with vulkan)
 		$(use_with xcomposite)
 		$(use_with xinerama)
-		$(usev !odbc ac_cv_lib_soname_odbc=)
 	)
 
 	filter-lto # build failure
