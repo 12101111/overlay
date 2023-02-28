@@ -776,6 +776,8 @@ chromium_configure() {
 	if use system-allocator; then
 		myconf_gn+=" use_allocator=\"none\""
 		myconf_gn+=" use_allocator_shim=false"
+		myconf_gn+=" use_partition_alloc_as_malloc=false"
+		myconf_gn+=" enable_backup_ref_ptr_support=false"
 	fi
 
 	# Disable nacl, we can't build without pnacl (http://crbug.com/269560).
