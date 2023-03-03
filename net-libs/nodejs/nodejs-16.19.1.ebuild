@@ -4,7 +4,7 @@
 EAPI=8
 
 CONFIG_CHECK="~ADVISE_SYSCALLS"
-PYTHON_COMPAT=( python3_{8..10} )
+PYTHON_COMPAT=( python3_{9..10} )
 PYTHON_REQ_USE="threads(+)"
 
 inherit bash-completion-r1 flag-o-matic linux-info pax-utils python-any-r1 toolchain-funcs xdg-utils
@@ -20,7 +20,7 @@ if [[ ${PV} == *9999 ]]; then
 else
 	SRC_URI="https://nodejs.org/dist/v${PV}/node-v${PV}.tar.xz"
 	SLOT="0/$(ver_cut 1)"
-	KEYWORDS="amd64 arm arm64 ppc64 ~riscv ~x86 ~amd64-linux ~x64-macos"
+	KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~riscv ~x86 ~amd64-linux ~x64-macos"
 	S="${WORKDIR}/node-v${PV}"
 fi
 
