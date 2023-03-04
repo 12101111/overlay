@@ -1,14 +1,14 @@
-From 41b8fe049f2b5126b0121cff32b7396e1a20e3e3 Mon Sep 17 00:00:00 2001
+From 3462e4efe43ac397650b9b43739dce8ff2043161 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Oct 2020 09:37:48 +0800
-Subject: [PATCH 04/13] Add install script for Gentoo
+Subject: [PATCH 02/11] Add install script for Gentoo
 
 ---
  build/gulpfile.vscode.linux.js | 54 ++++++++++++++++++++++++++++++++++
  1 file changed, 54 insertions(+)
 
 diff --git a/build/gulpfile.vscode.linux.js b/build/gulpfile.vscode.linux.js
-index cdc887013d8..0af6e8913f1 100644
+index 90f75ccfabd..61d262a25e3 100644
 --- a/build/gulpfile.vscode.linux.js
 +++ b/build/gulpfile.vscode.linux.js
 @@ -288,6 +288,57 @@ function buildSnapPackage(arch) {

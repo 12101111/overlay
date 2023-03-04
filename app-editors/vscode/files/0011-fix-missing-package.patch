@@ -1,7 +1,7 @@
-From 9dea1c80fe558df374886b06df309c6905ec4ee9 Mon Sep 17 00:00:00 2001
+From dd77ba7be22ade3ab1c23acbf7297bcbe4a33d09 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 19 Feb 2023 00:52:55 +0800
-Subject: [PATCH 13/13] fix missing package
+Subject: [PATCH 11/11] fix missing package
 
 ---
  extensions/npm/package.json | 1 +
@@ -9,7 +9,7 @@ Subject: [PATCH 13/13] fix missing package
  2 files changed, 6 insertions(+)
 
 diff --git a/extensions/npm/package.json b/extensions/npm/package.json
-index 5f39c6cd1b2..b112f7fbe57 100644
+index d87e2f1d016..5f6f7921ee2 100644
 --- a/extensions/npm/package.json
 +++ b/extensions/npm/package.json
 @@ -25,6 +25,7 @@

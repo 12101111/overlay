@@ -1,7 +1,7 @@
-From 575312e8553329d354f26edf575d57c3455fcadb Mon Sep 17 00:00:00 2001
+From b05768218f8fcbd0c4491b419327aa36f350c4f2 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 10 Jun 2022 20:39:33 +0800
-Subject: [PATCH 09/13] Fix cli script
+Subject: [PATCH 07/11] Fix cli script
 
 ---
  resources/linux/bin/code.sh | 2 +-

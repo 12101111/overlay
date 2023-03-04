@@ -1,7 +1,7 @@
-From 7edb3740eea4a2924e2c5d016ada99524a54165a Mon Sep 17 00:00:00 2001
+From 4737e92ac92001e629c00563e3402dd8d9d1c6e3 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 20 Oct 2022 15:30:03 +0800
-Subject: [PATCH 06/13] Don't run yarn install for web/remote/test
+Subject: [PATCH 04/11] Don't run yarn install for web/remote/test
 
 ---
  build/npm/dirs.js        | 6 ------
