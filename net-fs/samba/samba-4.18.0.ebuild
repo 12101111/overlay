@@ -55,9 +55,9 @@ MULTILIB_WRAPPED_HEADERS=(
 	/usr/include/samba-4.0/ctdb_version.h
 )
 
-TALLOC_VERSION="2.3.3"
-TDB_VERSION="1.4.6"
-TEVENT_VERSION="0.11.0"
+TALLOC_VERSION="2.4.0"
+TDB_VERSION="1.4.8"
+TEVENT_VERSION="0.14.1"
 
 COMMON_DEPEND="
 	>=app-arch/libarchive-3.1.2:=[${MULTILIB_USEDEP}]
@@ -69,8 +69,8 @@ COMMON_DEPEND="
 	dev-perl/Parse-Yapp
 	>=net-libs/gnutls-3.4.7:=[${MULTILIB_USEDEP}]
 	>=sys-fs/e2fsprogs-1.46.4-r51[${MULTILIB_USEDEP}]
-	>=sys-libs/ldb-2.5.2:=[ldap(+)?,${MULTILIB_USEDEP}]
-	<sys-libs/ldb-2.6.0:=[ldap(+)?,${MULTILIB_USEDEP}]
+	>=sys-libs/ldb-2.7.1:=[ldap(+)?,${MULTILIB_USEDEP}]
+	<sys-libs/ldb-2.8.0:=[ldap(+)?,${MULTILIB_USEDEP}]
 	sys-libs/libcap[${MULTILIB_USEDEP}]
 	sys-libs/liburing:=[${MULTILIB_USEDEP}]
 	sys-libs/ncurses:=
@@ -146,10 +146,7 @@ BDEPEND="${PYTHON_DEPS}
 PATCHES=(
 	"${FILESDIR}/${PN}-4.4.0-pam.patch"
 	"${FILESDIR}/${PN}-4.16.1-netdb-defines.patch"
-	"${FILESDIR}/${PN}-4.16.2-fix-musl-without-innetgr.patch"
 	"${FILESDIR}/ldb-2.5.2-skip-wav-tevent-check.patch"
-	"${FILESDIR}/${PN}-4.15.9-libunwind-automagic.patch"
-	"${FILESDIR}/${PN}-4.15.12-configure-clang16.patch"
 )
 
 CONFDIR="${FILESDIR}/4.4"
