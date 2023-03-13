@@ -195,9 +195,8 @@ BDEPEND="
 	wayland? ( dev-util/wayland-scanner )
 "
 
-S="${WORKDIR}/${MY_P}"
+S="${WORKDIR}/${PN}-${MY_PV}"
 EGIT_CHECKOUT_DIR=${S}
-BUILD_DIR=${WORKDIR}/${P}-build
 
 QA_WX_LOAD="
 x86? (
