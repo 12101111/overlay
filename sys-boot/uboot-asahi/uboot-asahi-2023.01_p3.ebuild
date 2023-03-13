@@ -8,7 +8,7 @@ inherit toolchain-funcs
 DESCRIPTION="U-Boot for Apple Silicon Macs"
 HOMEPAGE="http://asahilinux.org"
 
-COMMIT="asahi-v2023.01-1"
+COMMIT="asahi-v2023.01-3"
 
 SRC_URI="
 	https://github.com/AsahiLinux/u-boot/archive/${COMMIT}.tar.gz -> ${P}.tar.gz
