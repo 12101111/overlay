@@ -42,6 +42,7 @@ IUSE="
 "
 REQUIRED_USE="
 	dns-over-tls? ( || ( gnutls openssl ) )
+	fido2? ( openssl )
 	homed? ( cryptsetup pam openssl )
 	importd? ( curl lzma || ( gcrypt openssl ) )
 	pwquality? ( homed )
@@ -231,14 +232,13 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
-		"${FILESDIR}/252-no-stack-protector-bpf.patch"
+		"${FILESDIR}/systemd-253-initrd-generators.patch"
 	)
 
 	if ! use vanilla; then
 		PATCHES+=(
 			"${FILESDIR}/gentoo-generator-path-r2.patch"
-			"${FILESDIR}/gentoo-systemctl-disable-sysv-sync-r1.patch"
-			"${FILESDIR}/gentoo-journald-audit.patch"
+			"${FILESDIR}/gentoo-journald-audit-r1.patch"
 		)
 	fi
 
@@ -273,6 +273,9 @@ multilib_src_configure() {
 		$(meson_use split-usr split-bin)
 		-Drootprefix="$(usex split-usr "${EPREFIX:-/}" "${EPREFIX}/usr")"
 		-Drootlibdir="${EPREFIX}/usr/$(get_libdir)"
+		# Disable compatibility with sysvinit
+		-Dsysvinit-path=
+		-Dsysvrcnd-path=
 		# Avoid infinite exec recursion, bug 642724
 		-Dtelinit-path="${EPREFIX}/lib/sysvinit/telinit"
 		# no deps
@@ -362,6 +365,7 @@ multilib_src_configure() {
 
 multilib_src_test() {
 	unset DBUS_SESSION_BUS_ADDRESS XDG_RUNTIME_DIR
+	local -x COLUMNS=80
 	meson_src_test
 }
 
@@ -379,13 +383,10 @@ multilib_src_install_all() {
 		rm -f "${ED}${rootprefix}/${sbin}"/resolvconf || die
 	fi
 
-	rm "${ED}"/etc/init.d/README || die
-	rm "${ED}${rootprefix}"/lib/systemd/system-generators/systemd-sysv-generator || die
-
 	if ! use sysv-utils; then
-		rm "${ED}${rootprefix}/${sbin}"/{halt,init,poweroff,reboot,runlevel,shutdown,telinit} || die
+		rm "${ED}${rootprefix}/${sbin}"/{halt,init,poweroff,reboot,shutdown} || die
 		rm "${ED}"/usr/share/man/man1/init.1 || die
-		rm "${ED}"/usr/share/man/man8/{halt,poweroff,reboot,runlevel,shutdown,telinit}.8 || die
+		rm "${ED}"/usr/share/man/man8/{halt,poweroff,reboot,shutdown}.8 || die
 	fi
 
 	if ! use resolvconf && ! use sysv-utils && use split-usr; then

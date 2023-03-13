@@ -22,9 +22,11 @@ Signed-off-by: Scott Murray <scott.murray@konsulko.com>
  create mode 100644 src/basic/parse-printf-format.c
  create mode 100644 src/basic/parse-printf-format.h
 
+diff --git a/meson.build b/meson.build
+index bfc8685..fb96143 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -739,6 +739,7 @@ endif
+@@ -755,6 +755,7 @@ endif
  foreach header : ['crypt.h',
                    'linux/memfd.h',
                    'linux/vm_sockets.h',
@@ -32,9 +34,11 @@ Signed-off-by: Scott Murray <scott.murray@konsulko.com>
                    'sys/auxv.h',
                    'valgrind/memcheck.h',
                    'valgrind/valgrind.h',
+diff --git a/src/basic/meson.build b/src/basic/meson.build
+index 7aae031..1aa9f50 100644
 --- a/src/basic/meson.build
 +++ b/src/basic/meson.build
-@@ -337,6 +337,11 @@ endforeach
+@@ -173,6 +173,11 @@ endforeach
  
  basic_sources += generated_gperf_headers
  
@@ -46,6 +50,9 @@ Signed-off-by: Scott Murray <scott.murray@konsulko.com>
  ############################################################
  
  arch_list = [
+diff --git a/src/basic/parse-printf-format.c b/src/basic/parse-printf-format.c
+new file mode 100644
+index 0000000..49437e5
 --- /dev/null
 +++ b/src/basic/parse-printf-format.c
 @@ -0,0 +1,273 @@
@@ -322,6 +329,9 @@ Signed-off-by: Scott Murray <scott.murray@konsulko.com>
 +
 +        return last;
 +}
+diff --git a/src/basic/parse-printf-format.h b/src/basic/parse-printf-format.h
+new file mode 100644
+index 0000000..47be752
 --- /dev/null
 +++ b/src/basic/parse-printf-format.h
 @@ -0,0 +1,57 @@
@@ -382,9 +392,11 @@ Signed-off-by: Scott Murray <scott.murray@konsulko.com>
 +size_t parse_printf_format(const char *fmt, size_t n, int *types);
 +
 +#endif /* HAVE_PRINTF_H */
+diff --git a/src/basic/stdio-util.h b/src/basic/stdio-util.h
+index 4e93ac9..f9deb6f 100644
 --- a/src/basic/stdio-util.h
 +++ b/src/basic/stdio-util.h
-@@ -1,13 +1,13 @@
+@@ -1,12 +1,12 @@
  /* SPDX-License-Identifier: LGPL-2.1-or-later */
  #pragma once
  
@@ -394,11 +406,12 @@ Signed-off-by: Scott Murray <scott.murray@konsulko.com>
  #include <sys/types.h>
  
  #include "macro.h"
- #include "memory-util.h"
 +#include "parse-printf-format.h"
  
- #define snprintf_ok(buf, len, fmt, ...)                                 \
-         ({                                                              \
+ _printf_(3, 4)
+ static inline char *snprintf_ok(char *buf, size_t len, const char *format, ...) {
+diff --git a/src/libsystemd/sd-journal/journal-send.c b/src/libsystemd/sd-journal/journal-send.c
+index a87b115..8a75ba4 100644
 --- a/src/libsystemd/sd-journal/journal-send.c
 +++ b/src/libsystemd/sd-journal/journal-send.c
 @@ -2,7 +2,6 @@
