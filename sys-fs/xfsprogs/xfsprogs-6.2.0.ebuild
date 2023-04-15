@@ -1,12 +1,12 @@
 # Copyright 1999-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit flag-o-matic systemd toolchain-funcs usr-ldscript
 
 DESCRIPTION="XFS filesystem utilities"
-HOMEPAGE="https://xfs.wiki.kernel.org/"
+HOMEPAGE="https://xfs.wiki.kernel.org/ https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git/"
 SRC_URI="https://www.kernel.org/pub/linux/utils/fs/xfs/${PN}/${P}.tar.xz"
 
 LICENSE="LGPL-2.1"
@@ -65,6 +65,7 @@ src_configure() {
 	# https://www.spinics.net/lists/linux-xfs/msg30185.html
 	# https://www.spinics.net/lists/linux-xfs/msg30272.html
 	local myconf=(
+		--enable-static
 		--enable-blkid
 		--with-crond-dir="${EPREFIX}/etc/cron.d"
 		--with-systemd-unit-dir="$(systemd_get_systemunitdir)"
