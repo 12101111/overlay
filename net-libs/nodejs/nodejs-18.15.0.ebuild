@@ -4,10 +4,10 @@
 EAPI=8
 
 CONFIG_CHECK="~ADVISE_SYSCALLS"
-PYTHON_COMPAT=( python3_{9..10} )
+PYTHON_COMPAT=( python3_{9..11} )
 PYTHON_REQ_USE="threads(+)"
 
-inherit bash-completion-r1 flag-o-matic linux-info pax-utils python-any-r1 toolchain-funcs xdg-utils
+inherit bash-completion-r1 check-reqs flag-o-matic linux-info pax-utils python-any-r1 toolchain-funcs xdg-utils
 
 DESCRIPTION="A JavaScript runtime built on Chrome's V8 JavaScript engine"
 HOMEPAGE="https://nodejs.org/"
@@ -20,7 +20,7 @@ if [[ ${PV} == *9999 ]]; then
 else
 	SRC_URI="https://nodejs.org/dist/v${PV}/node-v${PV}.tar.xz"
 	SLOT="0/$(ver_cut 1)"
-	KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~riscv ~x86 ~amd64-linux ~x64-macos"
+	KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc64 ~riscv ~x86 ~amd64-linux ~x64-macos"
 	S="${WORKDIR}/node-v${PV}"
 fi
 
@@ -33,7 +33,7 @@ REQUIRED_USE="inspector? ( icu ssl )
 RESTRICT="!test? ( test )"
 
 RDEPEND=">=app-arch/brotli-1.0.9:=
-	>=dev-libs/libuv-1.40.0:=
+	>=dev-libs/libuv-1.44.0:=
 	>=net-dns/c-ares-1.17.2:=
 	>=net-libs/nghttp2-1.41.0:=
 	sys-libs/zlib
@@ -47,15 +47,26 @@ BDEPEND="${PYTHON_DEPS}
 	pax-kernel? ( sys-apps/elfix )"
 DEPEND="${RDEPEND}"
 
-PATCHES=(
-	"${FILESDIR}"/${PN}-12.22.5-shared_c-ares_nameser_h.patch
-	"${FILESDIR}"/${PN}-15.2.0-global-npm-config.patch
-	"${FILESDIR}"/${PN}-gcc-13.patch
-)
+# These are measured on a loong machine with -ggdb on, and only checked
+# if debugging flags are present in CFLAGS.
+#
+# The final link consumed a little more than 7GiB alone, so 8GiB is the lower
+# limit for memory usage. Disk usage was 19.1GiB for the build directory and
+# 1.2GiB for the installed image, so we leave some room for architectures with
+# fatter binaries and set the disk requirement to 22GiB.
+CHECKREQS_MEMORY="8G"
+CHECKREQS_DISK_BUILD="22G"
 
 pkg_pretend() {
 	(use x86 && ! use cpu_flags_x86_sse2) && \
 		die "Your CPU doesn't support the required SSE2 instruction."
+
+	if [[ ${MERGE_TYPE} != "binary" ]]; then
+		if is-flagq "-g*" && ! is-flagq "-g*0" ; then
+			einfo "Checking for sufficient disk space and memory to build ${PN} with debugging CFLAGS"
+			check-reqs_pkg_pretend
+		fi
+	fi
 }
 
 pkg_setup() {
@@ -92,7 +103,7 @@ src_prepare() {
 	fi
 
 	# We need to disable mprotect on two files when it builds Bug 694100.
-	use pax-kernel && PATCHES+=( "${FILESDIR}"/${PN}-16.4.2-paxmarking.patch )
+	use pax-kernel && PATCHES+=( "${FILESDIR}"/${PN}-18.3.0-paxmarking.patch )
 
 	# All this test does is check if the npm CLI produces warnings of any sort,
 	# failing if it does. Overkill, much? Especially given one possible warning
@@ -142,14 +153,15 @@ src_configure() {
 	fi
 
 	local myarch=""
-	case ${ABI} in
-		amd64) myarch="x64";;
-		arm) myarch="arm";;
-		arm64) myarch="arm64";;
-		lp64*) myarch="riscv64";;
-		ppc64) myarch="ppc64";;
-		x32) myarch="x32";;
-		x86) myarch="ia32";;
+	case "${ARCH}:${ABI}" in
+		*:amd64) myarch="x64";;
+		*:arm) myarch="arm";;
+		*:arm64) myarch="arm64";;
+		loong:lp64*) myarch="loong64";;
+		riscv:lp64*) myarch="riscv64";;
+		*:ppc64) myarch="ppc64";;
+		*:x32) myarch="x32";;
+		*:x86) myarch="ia32";;
 		*) myarch="${ABI}";;
 	esac
 
@@ -187,6 +199,8 @@ src_install() {
 
 	if use npm; then
 		keepdir /etc/npm
+		echo "NPM_CONFIG_GLOBALCONFIG=${EPREFIX}/etc/npm/npmrc" > "${T}"/50npm
+		doenvd "${T}"/50npm
 
 		# Install bash completion for `npm`
 		local tmp_npm_completion_file="$(TMPDIR="${T}" mktemp -t npm.XXXXXXXXXX)"
@@ -221,6 +235,7 @@ src_install() {
 }
 
 src_test() {
+	rm -f "${S}"/tests/parallel/test-dns-setserver-when-querying.js
 	if has usersandbox ${FEATURES}; then
 		rm -f "${S}"/test/parallel/test-fs-mkdir.js
 		ewarn "You are emerging ${PN} with 'usersandbox' enabled. Excluding tests known to fail in this mode." \
@@ -229,4 +244,11 @@ src_test() {
 
 	out/${BUILDTYPE}/cctest || die
 	"${EPYTHON}" tools/test.py --mode=${BUILDTYPE,,} --flaky-tests=dontcare -J message parallel sequential || die
+}
+
+pkg_postinst() {
+	if use npm; then
+		ewarn "remember to run: source /etc/profile if you plan to use nodejs"
+		ewarn "	in your current shell"
+	fi
 }
