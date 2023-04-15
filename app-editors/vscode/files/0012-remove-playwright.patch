@@ -1,0 +1,148 @@
+From 57235e62069c304669f8ed055045e4c6097f316b Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sun, 26 Mar 2023 17:52:18 +0800
+Subject: [PATCH 12/12] remove playwright
+
+---
+ package.json |  7 ------
+ yarn.lock    | 66 ----------------------------------------------------
+ 2 files changed, 73 deletions(-)
+
+diff --git a/package.json b/package.json
+index af473ea6bba..cfc7706ca41 100644
+--- a/package.json
++++ b/package.json
+@@ -10,8 +10,6 @@
+   "private": true,
+   "scripts": {
+     "test": "echo Please run any of the test scripts from the scripts folder.",
+-    "test-browser": "npx playwright install && node test/unit/browser/index.js",
+-    "test-browser-no-install": "node test/unit/browser/index.js",
+     "test-node": "mocha test/unit/node/index.js --delay --ui=tdd --timeout=5000 --exit",
+     "preinstall": "node build/npm/preinstall.js",
+     "postinstall": "node build/npm/postinstall.js",
+@@ -48,7 +46,6 @@
+     "compile-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-web",
+     "watch-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js watch-web",
+     "eslint": "node build/eslint",
+-    "playwright-install": "node build/azure-pipelines/common/installPlaywright.js",
+     "compile-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-build",
+     "compile-extensions-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-extensions-build",
+     "minify-vscode": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js minify-vscode",
+@@ -99,7 +96,6 @@
+   },
+   "devDependencies": {
+     "7zip": "0.0.6",
+-    "@playwright/test": "1.27.1",
+     "@swc/cli": "0.1.57",
+     "@swc/core": "1.3.32",
+     "@types/cookie": "^0.3.3",
+@@ -130,9 +126,6 @@
+     "@typescript-eslint/experimental-utils": "^5.39.0",
+     "@typescript-eslint/parser": "^5.39.0",
+     "@vscode/l10n-dev": "0.0.21",
+-    "@vscode/telemetry-extractor": "^1.9.8",
+-    "@vscode/test-web": "^0.0.34",
+-    "@vscode/vscode-perf": "^0.0.6",
+     "ansi-colors": "^3.2.3",
+     "asar": "^3.0.3",
+     "chromium-pickle-js": "^0.2.0",
+diff --git a/yarn.lock b/yarn.lock
+index e4e5585ac46..c79ef551a45 100644
+--- a/yarn.lock
++++ b/yarn.lock
+@@ -638,14 +638,6 @@
+     node-addon-api "^3.2.1"
+     node-gyp-build "^4.3.0"
+ 
+-"@playwright/test@1.27.1":
+-  version "1.27.1"
+-  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.27.1.tgz#9364d1e02021261211c8ff586d903faa79ce95c4"
+-  integrity sha512-mrL2q0an/7tVqniQQF6RBL2saskjljXzqNcCOVMUjRIgE6Y38nCNaP+Dc2FBW06bcpD3tqIws/HT9qiMHbNU0A==
+-  dependencies:
+-    "@types/node" "*"
+-    playwright-core "1.27.1"
+-
+ "@sindresorhus/is@^0.14.0":
+   version "0.14.0"
+   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
+@@ -1262,52 +1254,11 @@
+   resolved "https://registry.yarnpkg.com/@vscode/sudo-prompt/-/sudo-prompt-9.3.1.tgz#c562334bc6647733649fd42afc96c0eea8de3b65"
+   integrity sha512-9ORTwwS74VaTn38tNbQhsA5U44zkJfcb0BdTSyyG6frP4e8KMtHuTXYmwefe5dpL8XB1aGSIVTaLjD3BbWb5iA==
+ 
+-"@vscode/telemetry-extractor@^1.9.8":
+-  version "1.9.8"
+-  resolved "https://registry.yarnpkg.com/@vscode/telemetry-extractor/-/telemetry-extractor-1.9.8.tgz#ffc000720ea2b9cd3421ba8a7bd172972c398b06"
+-  integrity sha512-L27/fgC/gM7AY6AXriFGrznnX1M4Nc7VmHabYinDPoJDQYLjbSEDDVjjlSS6BiVkzc3OrFQStqXpHBhImis2eQ==
+-  dependencies:
+-    "@vscode/ripgrep" "^1.14.2"
+-    command-line-args "^5.2.1"
+-    ts-morph "^15.1.0"
+-
+-"@vscode/test-web@^0.0.34":
+-  version "0.0.34"
+-  resolved "https://registry.yarnpkg.com/@vscode/test-web/-/test-web-0.0.34.tgz#1e9aafacc06dd8206624cdb4c8336c82b1e001d7"
+-  integrity sha512-KYoRogXJHBZrhajgWx5AAAbV+FufxlTQ+ywKDUu8C4/n3kI5HR+Ye/NCRHOW1DBMcMtEzznLr7RSgV7In4OCfg==
+-  dependencies:
+-    "@koa/cors" "^4.0.0"
+-    "@koa/router" "^12.0.0"
+-    decompress "^4.2.1"
+-    decompress-targz "^4.1.1"
+-    get-stream "6.0.1"
+-    http-proxy-agent "^5.0.0"
+-    https-proxy-agent "^5.0.1"
+-    koa "^2.14.1"
+-    koa-morgan "^1.0.1"
+-    koa-mount "^4.0.0"
+-    koa-static "^5.0.0"
+-    minimist "^1.2.7"
+-    playwright "^1.29.2"
+-    vscode-uri "^3.0.7"
+-
+ "@vscode/vscode-languagedetection@1.0.21":
+   version "1.0.21"
+   resolved "https://registry.yarnpkg.com/@vscode/vscode-languagedetection/-/vscode-languagedetection-1.0.21.tgz#89b48f293f6aa3341bb888c1118d16ff13b032d3"
+   integrity sha512-zSUH9HYCw5qsCtd7b31yqkpaCU6jhtkKLkvOOA8yTrIRfBSOFb8PPhgmMicD7B/m+t4PwOJXzU1XDtrM9Fd3/g==
+ 
+-"@vscode/vscode-perf@^0.0.6":
+-  version "0.0.6"
+-  resolved "https://registry.yarnpkg.com/@vscode/vscode-perf/-/vscode-perf-0.0.6.tgz#a2070882c953ba422badcf459d70e15852f93432"
+-  integrity sha512-d/deAaHLT2SSA1hXPmPbM0mtm6G4fgBWohirk+AKkL+6IGQCVDeZadvY0yAWpeTeLdQFJcSRkOrXu1S05/eD0w==
+-  dependencies:
+-    chalk "^4.x"
+-    commander "^9.4.0"
+-    cookie "^0.5.0"
+-    js-base64 "^3.7.4"
+-    node-fetch "2.6.8"
+-    playwright "^1.29.2"
+-
+ "@vscode/windows-registry@1.0.6":
+   version "1.0.6"
+   resolved "https://registry.yarnpkg.com/@vscode/windows-registry/-/windows-registry-1.0.6.tgz#8b9fb9a55bf5a0be4ea11849c45ae94c6910e3e4"
+@@ -8577,23 +8528,6 @@ pkg-dir@^4.1.0, pkg-dir@^4.2.0:
+   dependencies:
+     find-up "^4.0.0"
+ 
+-playwright-core@1.27.1:
+-  version "1.27.1"
+-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.27.1.tgz#840ef662e55a3ed759d8b5d3d00a5f885a7184f4"
+-  integrity sha512-9EmeXDncC2Pmp/z+teoVYlvmPWUC6ejSSYZUln7YaP89Z6lpAaiaAnqroUt/BoLo8tn7WYShcfaCh+xofZa44Q==
+-
+-playwright-core@1.30.0:
+-  version "1.30.0"
+-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.30.0.tgz#de987cea2e86669e3b85732d230c277771873285"
+-  integrity sha512-7AnRmTCf+GVYhHbLJsGUtskWTE33SwMZkybJ0v6rqR1boxq2x36U7p1vDRV7HO2IwTZgmycracLxPEJI49wu4g==
+-
+-playwright@^1.29.2:
+-  version "1.30.0"
+-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.30.0.tgz#b1d7be2d45d97fbb59f829f36f521f12010fe072"
+-  integrity sha512-ENbW5o75HYB3YhnMTKJLTErIBExrSlX2ZZ1C/FzmHjUYIfxj/UnI+DWpQr992m+OQVSg0rCExAOlRwB+x+yyIg==
+-  dependencies:
+-    playwright-core "1.30.0"
+-
+ plist@^3.0.1:
+   version "3.0.5"
+   resolved "https://registry.yarnpkg.com/plist/-/plist-3.0.5.tgz#2cbeb52d10e3cdccccf0c11a63a85d830970a987"
+-- 
+2.40.0
+

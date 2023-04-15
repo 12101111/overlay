@@ -13,7 +13,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="5e805b79fcb6ba4c2d23712967df89a089da575b"
+COMMIT="ee2b180d582a7f601fa6ecfdad8d9fd269ab1884"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.14.2/lib/postinstall.js#L21
@@ -27,7 +27,7 @@ ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 # jq -r '.builtInExtensions[] | .name +":"+ .version' product.json | sed -r 's/([^\.]*)\.([a-z0-9\-]*)\:([0-9\.]*)/["\2"]="\3"/g'
 declare -A BUILTINEXTS=(
 ["js-debug-companion"]="1.0.18"
-["js-debug"]="1.76.0"
+["js-debug"]="1.76.1"
 ["vscode-js-profile-table"]="1.0.3"
 )
 
@@ -193,7 +193,6 @@ https://registry.yarnpkg.com/@opentelemetry/sdk-trace-base/-/sdk-trace-base-1.8.
 https://registry.yarnpkg.com/@opentelemetry/semantic-conventions/-/semantic-conventions-1.7.0.tgz
 https://registry.yarnpkg.com/@opentelemetry/semantic-conventions/-/semantic-conventions-1.8.0.tgz
 https://registry.yarnpkg.com/@parcel/watcher/-/watcher-2.1.0.tgz
-https://registry.yarnpkg.com/@playwright/test/-/test-1.27.1.tgz
 https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz
 https://registry.yarnpkg.com/@sindresorhus/is/-/is-4.0.0.tgz
 https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.8.3.tgz
@@ -1641,9 +1640,6 @@ https://registry.yarnpkg.com/pinkie-promise/-/pinkie-promise-2.0.1.tgz
 https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz
 https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-3.0.0.tgz
 https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-4.2.0.tgz
-https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.27.1.tgz
-https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.30.0.tgz
-https://registry.yarnpkg.com/playwright/-/playwright-1.30.0.tgz
 https://registry.yarnpkg.com/plist/-/plist-3.0.5.tgz
 https://registry.yarnpkg.com/plugin-error/-/plugin-error-0.1.2.tgz
 https://registry.yarnpkg.com/plugin-error/-/plugin-error-1.0.1.tgz
@@ -2263,6 +2259,7 @@ PATCHES=(
 	"${FILESDIR}/0009-Don-t-warn-electron-args.patch"
 	"${FILESDIR}/0010-Fix-cli-path.patch"
 	"${FILESDIR}/0011-fix-missing-package.patch"
+	"${FILESDIR}/0012-remove-playwright.patch"
 )
 
 src_unpack() {
