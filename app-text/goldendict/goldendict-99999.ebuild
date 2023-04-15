@@ -33,6 +33,7 @@ RDEPEND="
 	dev-qt/qtwidgets:5
 	dev-qt/qtx11extras:5
 	dev-qt/qtxml:5
+	dev-qt/qtspeech:5
 	media-libs/libvorbis
 	media-libs/tiff:0
 	sys-libs/zlib
