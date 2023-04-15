@@ -1,13 +1,13 @@
 diff --git a/Makefile b/Makefile
-index 8084ea8..11e7765 100644
+index f350ecb..d17c304 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -708,7 +708,7 @@ check-symbols: startup_files libc
+@@ -706,7 +706,7 @@ check-symbols: startup_files libc
  
  	# Check that the computed metadata matches the expected metadata.
  	# This ignores whitespace because on Windows the output has CRLF line endings.
--	diff -wur "$(CURDIR)/expected/$(TARGET_TRIPLE)" "$(SYSROOT_SHARE)"
-+	diff -wur "$(CURDIR)/expected/$(TARGET_TRIPLE)" "$(SYSROOT_SHARE)" || true
+-	diff -wur "expected/$(TARGET_TRIPLE)" "$(SYSROOT_SHARE)"
++	diff -wur "expected/$(TARGET_TRIPLE)" "$(SYSROOT_SHARE)" || true
  
  install: finish
  	mkdir -p "$(INSTALL_DIR)"
