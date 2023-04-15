@@ -19,7 +19,7 @@ IUSE="+ld +gas +binutils +gprof cet doc gold gprofng multitarget +nls pgo +plugi
 # PATCH_DEV          - Use download URI https://dev.gentoo.org/~{PATCH_DEV}/distfiles/...
 #                      for the patchsets
 
-PATCH_VER=3
+PATCH_VER=4
 PATCH_DEV=dilfridge
 
 if [[ ${PV} == 9999* ]]; then
