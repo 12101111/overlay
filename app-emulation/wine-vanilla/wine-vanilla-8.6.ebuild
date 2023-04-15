@@ -5,7 +5,7 @@ EAPI=8
 
 inherit autotools flag-o-matic toolchain-funcs wrapper
 
-WINE_GECKO=2.47.3
+WINE_GECKO=2.47.4
 WINE_MONO=7.4.0
 
 if [[ ${PV} == *9999 ]]; then
@@ -26,11 +26,12 @@ HOMEPAGE="
 LICENSE="LGPL-2.1+ BSD-2 IJG MIT OPENLDAP ZLIB gsm libpng2 libtiff"
 SLOT="${PV}"
 IUSE="
-	+X +alsa capi crossdev-mingw cups dos wayland
+	+X +alsa capi crossdev-mingw cups dos
 	llvm-libunwind debug custom-cflags +fontconfig +gecko gphoto2
 	+gstreamer kerberos +mingw +mono netapi nls odbc opencl +opengl
-	osmesa pcap perl pulseaudio samba scanner +sdl selinux +ssl
-	+truetype udev udisks +unwind usb v4l +vulkan +xcomposite xinerama"
+	osmesa pcap perl pulseaudio samba scanner +sdl selinux smartcard
+	+ssl +truetype udev udisks +unwind usb v4l +vulkan wayland
+	+xcomposite xinerama"
 REQUIRED_USE="
 	X? ( truetype )
 	crossdev-mingw? ( mingw )" # bug #551124 for truetype
@@ -72,7 +73,6 @@ WINE_COMMON_DEPEND="
 		x11-libs/libX11
 		x11-libs/libXext
 	)
-	wayland? ( dev-libs/wayland )
 	alsa? ( media-libs/alsa-lib )
 	capi? ( net-libs/libcapi:= )
 	gphoto2? ( media-libs/libgphoto2:= )
@@ -85,12 +85,14 @@ WINE_COMMON_DEPEND="
 	pcap? ( net-libs/libpcap )
 	pulseaudio? ( media-libs/libpulse )
 	scanner? ( media-gfx/sane-backends )
+	smartcard? ( sys-apps/pcsc-lite )
 	udev? ( virtual/libudev:= )
 	unwind? (
 		llvm-libunwind? ( sys-libs/llvm-libunwind )
 		!llvm-libunwind? ( sys-libs/libunwind:= )
 	)
-	usb? ( dev-libs/libusb:1 )"
+	usb? ( dev-libs/libusb:1 )
+	wayland? ( dev-libs/wayland )"
 RDEPEND="
 	${WINE_COMMON_DEPEND}
 	app-emulation/wine-desktop-common
@@ -121,12 +123,15 @@ BDEPEND="
 	nls? ( sys-devel/gettext )"
 IDEPEND=">=app-eselect/eselect-wine-2"
 
+QA_CONFIG_IMPL_DECL_SKIP=(
+	__clear_cache # unused on amd64+x86 (bug #900338)
+	res_getservers # false positive
+)
 QA_TEXTRELS="usr/lib/*/wine/i386-unix/*.so" # uses -fno-PIC -Wl,-z,notext
 
 PATCHES=(
 	"${FILESDIR}"/${PN}-7.0-noexecstack.patch
 	"${FILESDIR}"/${PN}-7.20-unwind.patch
-	"${FILESDIR}"/wayland-${PV}.patch
 )
 
 pkg_pretend() {
@@ -160,7 +165,6 @@ src_prepare() {
 
 	if use elibc_musl; then
 		PATCHES+=(
-			"${FILESDIR}"/pthread.patch
 			"${FILESDIR}"/rpath.patch
 		)
 	fi
@@ -191,7 +195,6 @@ src_configure() {
 		$(use_enable mono mscoree)
 		--disable-tests
 		$(use_with X x)
-		$(use_with wayland)
 		$(use_with alsa)
 		$(use_with capi)
 		$(use_with cups)
@@ -211,6 +214,7 @@ src_configure() {
 		$(use_with pulseaudio pulse)
 		$(use_with scanner sane)
 		$(use_with sdl)
+		$(use_with smartcard pcsclite)
 		$(use_with ssl gnutls)
 		$(use_with truetype freetype)
 		$(use_with udev)
@@ -219,6 +223,7 @@ src_configure() {
 		$(use_with usb)
 		$(use_with v4l v4l2)
 		$(use_with vulkan)
+		$(use_with wayland)
 		$(use_with xcomposite)
 		$(use_with xinerama)
 		$(usev !odbc ac_cv_lib_soname_odbc=)
