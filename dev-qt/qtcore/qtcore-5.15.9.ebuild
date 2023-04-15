@@ -4,12 +4,12 @@
 EAPI=8
 
 if [[ ${PV} != *9999* ]]; then
-	QT5_KDEPATCHSET_REV=5
-	KEYWORDS="amd64 ~arm ~arm64 ~hppa ~loong ~ppc ppc64 ~riscv ~sparc ~x86"
+	QT5_KDEPATCHSET_REV=1
+	KEYWORDS="~amd64 ~arm ~arm64 ~hppa ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 fi
 
 QT5_MODULE="qtbase"
-inherit linux-info flag-o-matic toolchain-funcs qt5-build
+inherit linux-info flag-o-matic qt5-build
 
 DESCRIPTION="Cross-platform application development framework"
 SLOT=5/${QT5_PV}
@@ -78,12 +78,9 @@ src_prepare() {
 		append-flags -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
 	fi
 
-	# Leads to miscompiled qtcore, bug #865339
-	tc-is-clang && append-flags -fno-stack-clash-protection
-
 	qt5-build_src_prepare
 
-	# workaround for 0148-Annotate-QMutex-...patch adding a header
+	# workaround for 0113-Annotate-QMutex-...patch adding a header
 	perl bin/syncqt.pl -version ${PV} || die
 }
 
