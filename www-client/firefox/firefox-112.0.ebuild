@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-110-patches-01j.tar.xz"
+FIREFOX_PATCHSET="firefox-112-patches-02j.tar.xz"
 
 LLVM_MAX_SLOT=15
 
@@ -38,7 +38,7 @@ MOZ_PV_DISTFILES="${MOZ_PV}${MOZ_PV_SUFFIX}"
 MOZ_P_DISTFILES="${MOZ_PN}-${MOZ_PV_DISTFILES}"
 
 inherit autotools check-reqs desktop flag-o-matic gnome2-utils linux-info \
-	llvm multiprocessing pax-utils python-any-r1 toolchain-funcs \
+	llvm multiprocessing optfeature pax-utils python-any-r1 toolchain-funcs \
 	virtualx xdg
 
 MOZ_SRC_BASE_URI="https://archive.mozilla.org/pub/${MOZ_PN}/releases/${MOZ_PV}"
@@ -57,7 +57,7 @@ SRC_URI="${MOZ_SRC_BASE_URI}/source/${MOZ_P}.source.tar.xz -> ${MOZ_P_DISTFILES}
 DESCRIPTION="Firefox Web Browser"
 HOMEPAGE="https://www.mozilla.com/firefox"
 
-KEYWORDS="~amd64 ~arm64 ~ppc64 ~x86"
+KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv ~x86"
 
 SLOT="rapid"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
@@ -74,9 +74,6 @@ REQUIRED_USE="|| ( X wayland )
 	debug? ( !system-av1 )
 	pgo? ( lto )
 	wifi? ( dbus )"
-
-# Firefox-only REQUIRED_USE flags
-REQUIRED_USE+=" screencast? ( wayland )"
 
 FF_ONLY_DEPEND="!www-client/firefox:0
 	!www-client/firefox:esr
@@ -118,7 +115,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.87
+	>=dev-libs/nss-3.89
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -254,6 +251,7 @@ MOZ_LANGS+=( es-CL )
 MOZ_LANGS+=( es-MX )
 MOZ_LANGS+=( fa )
 MOZ_LANGS+=( ff )
+MOZ_LANGS+=( fur )
 MOZ_LANGS+=( gn )
 MOZ_LANGS+=( gu-IN )
 MOZ_LANGS+=( hi-IN )
@@ -267,6 +265,7 @@ MOZ_LANGS+=( mr )
 MOZ_LANGS+=( my )
 MOZ_LANGS+=( ne-NP )
 MOZ_LANGS+=( oc )
+MOZ_LANGS+=( sc )
 MOZ_LANGS+=( sco )
 MOZ_LANGS+=( si )
 MOZ_LANGS+=( son )
@@ -757,6 +756,7 @@ src_configure() {
 		--disable-strip \
 		--disable-tests \
 		--disable-updater \
+		--disable-wmf \
 		--enable-negotiateauth \
 		--enable-new-pass-manager \
 		--enable-official-branding \
@@ -792,11 +792,16 @@ src_configure() {
 	# For future keywording: This is currently (97.0) only supported on:
 	# amd64, arm, arm64 & x86.
 	# Might want to flip the logic around if Firefox is to support more arches.
-	if use ppc64; then
+	# bug 833001, bug 903411#c8
+	if use ppc64 || use riscv; then
 		mozconfig_add_options_ac '' --disable-sandbox
 	else
 		mozconfig_add_options_ac '' --enable-sandbox
 	fi
+
+	# Enable JIT on riscv64 explicitly
+	# Can be removed once upstream enable it by default in the future.
+	use riscv && mozconfig_add_options_ac 'Enable JIT for RISC-V 64' --enable-jit
 
 	if [[ -s "${S}/api-google.key" ]] ; then
 		local key_origin="Gentoo default"
@@ -1007,6 +1012,10 @@ src_configure() {
 			append-cxxflags -fno-tree-loop-vectorize
 		fi
 	fi
+
+        if use elibc_musl && use arm64 ; then
+               	mozconfig_add_options_ac 'elf-hack is broken when using musl/arm64' --disable-elf-hack
+        fi
 
 	# Additional ARCH support
 	case "${ARCH}" in
@@ -1367,4 +1376,8 @@ pkg_postinst() {
 	elog "Or install an addon to change your useragent."
 	elog "See: https://support.mozilla.org/en-US/kb/difficulties-opening-or-using-website-firefox-100"
 	elog
+
+	optfeature_header "Optional programs for extra features:"
+	optfeature "desktop notifications" x11-libs/libnotify
+	optfeature "fallback mouse cursor theme e.g. on WMs" gnome-base/gsettings-desktop-schemas
 }
