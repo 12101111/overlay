@@ -164,7 +164,7 @@ RESTRICT="test"
 VERIFY_SIG_OPENPGP_KEY_PATH=${BROOT}/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
-	"${FILESDIR}"/1.65.0-ignore-broken-and-non-applicable-tests.patch
+	"${FILESDIR}"/1.68.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
 )
