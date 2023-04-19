@@ -1,18 +1,30 @@
-diff -urNp node-v15.8.0-orig/node.gyp node-v15.8.0-dwok/node.gyp
---- node-v15.8.0-orig/node.gyp	2021-02-24 22:21:44.202911780 +0100
-+++ node-v15.8.0-dwok/node.gyp	2021-02-24 22:25:34.298281739 +0100
-@@ -55,6 +55,7 @@
-       'deps/undici/undici.js',
+From 4c910c45a73c61f908f85661a1568a614afde081 Mon Sep 17 00:00:00 2001
+From: William Hubbs <w.d.hubbs@gmail.com>
+Date: Mon, 17 Apr 2023 11:43:17 -0500
+Subject: [PATCH] pax marking
+
+---
+ node.gyp                 | 17 ++++++++++++++++-
+ tools/v8_gypfiles/v8.gyp | 24 +++++++++++++++++++++++-
+ 2 files changed, 39 insertions(+), 2 deletions(-)
+
+diff --git a/node.gyp b/node.gyp
+index cf52281bb4..80352dfcc5 100644
+--- a/node.gyp
++++ b/node.gyp
+@@ -54,6 +54,7 @@
+       '<@(node_builtin_shareable_builtins)',
      ],
      'node_mksnapshot_exec': '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)node_mksnapshot<(EXECUTABLE_SUFFIX)',
 +    'node_mksnapshot_u_exec': '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)node_mksnapshot_u<(EXECUTABLE_SUFFIX)',
      'conditions': [
        ['GENERATOR == "ninja"', {
          'node_text_start_object_path': 'src/large_pages/node_text_start.node_text_start.o'
-@@ -331,10 +332,24 @@
+@@ -337,11 +338,25 @@
+               ],
              }, {
                'actions': [
-                 {
++                {
 +                  'action_name': 'run_pax_mksnapshot',
 +                  'inputs': [
 +                    '<(node_mksnapshot_exec)',
@@ -26,7 +38,7 @@ diff -urNp node-v15.8.0-orig/node.gyp node-v15.8.0-dwok/node.gyp
 +                    'mv <(node_mksnapshot_exec) <(node_mksnapshot_u_exec) && paxmark.sh m <(node_mksnapshot_u_exec)',
 +                  ],
 +                },
-+                {
+                 {
                    'action_name': 'node_mksnapshot',
                    'process_outputs_as_sources': 1,
                    'inputs': [
@@ -35,9 +47,10 @@ diff -urNp node-v15.8.0-orig/node.gyp node-v15.8.0-dwok/node.gyp
                    ],
                    'outputs': [
                      '<(SHARED_INTERMEDIATE_DIR)/node_snapshot.cc',
-diff -urNp node-v15.8.0-orig/tools/v8_gypfiles/v8.gyp node-v15.8.0-dwok/tools/v8_gypfiles/v8.gyp
---- node-v15.8.0-orig/tools/v8_gypfiles/v8.gyp	2021-02-24 22:21:44.654910571 +0100
-+++ node-v15.8.0-dwok/tools/v8_gypfiles/v8.gyp	2021-02-24 22:25:54.834224791 +0100
+diff --git a/tools/v8_gypfiles/v8.gyp b/tools/v8_gypfiles/v8.gyp
+index a721ffb41a..4a52a1f822 100644
+--- a/tools/v8_gypfiles/v8.gyp
++++ b/tools/v8_gypfiles/v8.gyp
 @@ -9,6 +9,7 @@
      'v8_vector_stores%': 0,
      'v8_embed_script%': "",
@@ -46,7 +59,7 @@ diff -urNp node-v15.8.0-orig/tools/v8_gypfiles/v8.gyp node-v15.8.0-dwok/tools/v8
      'v8_os_page_size%': 0,
      'generate_bytecode_output_root': '<(SHARED_INTERMEDIATE_DIR)/generate-bytecode-output-root',
      'generate_bytecode_builtins_list_output': '<(generate_bytecode_output_root)/builtins-generated/bytecodes-builtins-list.h',
-@@ -1413,7 +1414,7 @@
+@@ -1419,7 +1420,7 @@
        ],
      },  # bytecode_builtins_list_generator
      {
@@ -55,8 +68,8 @@ diff -urNp node-v15.8.0-orig/tools/v8_gypfiles/v8.gyp node-v15.8.0-dwok/tools/v8
        'type': 'executable',
        'dependencies': [
          'v8_base_without_compiler',
-@@ -1432,6 +1433,27 @@
-           'toolsets': ['host'],
+@@ -1446,6 +1447,27 @@
+           ],
          }],
        ],
 +    },  # mksnapshot_u
@@ -83,3 +96,6 @@ diff -urNp node-v15.8.0-orig/tools/v8_gypfiles/v8.gyp node-v15.8.0-dwok/tools/v8
      },  # mksnapshot
      {
        'target_name': 'torque',
+-- 
+2.39.2
+
