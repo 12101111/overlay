@@ -1,8 +1,8 @@
 diff --git a/goldendict.pro b/goldendict.pro
-index cc17ea5e..068a6f6e 100644
+index 5b16a6e8..d8c517b2 100644
 --- a/goldendict.pro
 +++ b/goldendict.pro
-@@ -160,10 +160,6 @@ win32 {
+@@ -165,10 +165,6 @@ win32 {
      DEFINES += INCLUDE_LIBRARY_PATH
  }
  unix:!mac {
@@ -13,7 +13,7 @@ index cc17ea5e..068a6f6e 100644
      CONFIG += link_pkgconfig
  
      PKGCONFIG += vorbisfile \
-@@ -176,9 +172,6 @@ unix:!mac {
+@@ -181,9 +177,6 @@ unix:!mac {
              libavcodec \
              libswresample \
      }
@@ -23,10 +23,10 @@ index cc17ea5e..068a6f6e 100644
  
      # Install prefix: first try to use qmake's PREFIX variable,
      # then $PREFIX from system environment, and if both fails,
-diff --git a/hotkeywrapper.cc b/hotkeywrapper.cc
+diff --git a/src/hotkeywrapper.cc b/src/hotkeywrapper.cc
 index 9adbf771..cd7cfbb6 100644
---- a/hotkeywrapper.cc
-+++ b/hotkeywrapper.cc
+--- a/src/hotkeywrapper.cc
++++ b/src/hotkeywrapper.cc
 @@ -479,11 +479,14 @@ bool QHotkeyApplication::nativeEventFilter( const QByteArray & /*eventType*/, vo
  #else
  
@@ -131,10 +131,10 @@ index 9adbf771..cd7cfbb6 100644
    (static_cast<QHotkeyApplication*>(qApp))->unregisterWrapper(this);
  }
  
-diff --git a/hotkeywrapper.hh b/hotkeywrapper.hh
+diff --git a/src/hotkeywrapper.hh b/src/hotkeywrapper.hh
 index e1705576..83c2f2af 100644
---- a/hotkeywrapper.hh
-+++ b/hotkeywrapper.hh
+--- a/src/hotkeywrapper.hh
++++ b/src/hotkeywrapper.hh
 @@ -120,13 +120,16 @@ private:
  
  #else
@@ -160,10 +160,10 @@ index e1705576..83c2f2af 100644
  
  signals:
  
-diff --git a/keyboardstate.cc b/keyboardstate.cc
+diff --git a/src/keyboardstate.cc b/src/keyboardstate.cc
 index 2d336ed0..c481bc08 100644
---- a/keyboardstate.cc
-+++ b/keyboardstate.cc
+--- a/src/keyboardstate.cc
++++ b/src/keyboardstate.cc
 @@ -43,8 +43,7 @@ bool KeyboardState::checkModifiersPressed( int mask )
      ( mask & Ctrl && !( keys & ( 1 << cmdKeyBit ) ) ) ||
      ( mask & Shift && !( keys & ( 1 << shiftKeyBit ) ) ) ||
@@ -183,11 +183,11 @@ index 2d336ed0..c481bc08 100644
    #endif
  }
  
-diff --git a/main.cc b/main.cc
-index b8cac235..15c78772 100644
---- a/main.cc
-+++ b/main.cc
-@@ -206,7 +206,7 @@ public:
+diff --git a/src/main.cc b/src/main.cc
+index b672a9e5..f7445867 100644
+--- a/src/main.cc
++++ b/src/main.cc
+@@ -196,7 +196,7 @@ public:
  
  int main( int argc, char ** argv )
  {
@@ -196,11 +196,11 @@ index b8cac235..15c78772 100644
      // GoldenDict use lots of X11 functions and it currently cannot work
      // natively on Wayland. This workaround will force GoldenDict to use
      // XWayland.
-diff --git a/scanpopup.cc b/scanpopup.cc
-index 789c0c84..c38dc3d9 100644
---- a/scanpopup.cc
-+++ b/scanpopup.cc
-@@ -40,7 +40,7 @@ static const Qt::WindowFlags pinnedWindowFlags =
+diff --git a/src/ui/scanpopup.cc b/src/ui/scanpopup.cc
+index 81861976..5d2f7805 100644
+--- a/src/ui/scanpopup.cc
++++ b/src/ui/scanpopup.cc
+@@ -39,7 +39,7 @@ static const Qt::WindowFlags pinnedWindowFlags =
  /// Qt::Window allows to use the scan popup and the main window independently.
  Qt::Window
  #else
@@ -209,7 +209,7 @@ index 789c0c84..c38dc3d9 100644
  #endif
  ;
  
-@@ -576,7 +576,7 @@ void ScanPopup::engagePopup( bool forcePopup, bool giveFocus )
+@@ -595,7 +595,7 @@ void ScanPopup::engagePopup( bool forcePopup, bool giveFocus )
  #endif
  
    if ( ui.pinButton->isChecked() )
@@ -218,7 +218,7 @@ index 789c0c84..c38dc3d9 100644
  
    /// Too large strings make window expand which is probably not what user
    /// wants
-@@ -956,7 +956,7 @@ void ScanPopup::pinButtonClicked( bool checked )
+@@ -991,7 +991,7 @@ void ScanPopup::pinButtonClicked( bool checked )
      setAttribute(Qt::WA_MacAlwaysShowToolWindow);
  #endif
  

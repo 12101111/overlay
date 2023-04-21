@@ -15,5 +15,6 @@
 		<flag name="opencc">Add chinese conversion support</flag>
 		<flag name="wayland">Allow run under wayland.</flag>
 		<flag name="zim">Add Zim and Slob formats support</flag>
+		<flag name="xapian">Add Xapian full text search support</flag>
 	</use>
 </pkgmetadata>

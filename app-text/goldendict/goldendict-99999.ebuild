@@ -3,21 +3,22 @@
 
 EAPI=8
 
-inherit desktop git-r3 qmake-utils
+inherit desktop git-r3 qmake-utils flag-o-matic
 
-DESCRIPTION="Feature-rich dictionary lookup program"
-HOMEPAGE="http://goldendict.org/"
-EGIT_REPO_URI="https://github.com/xiaoyifang/${PN}.git"
+DESCRIPTION="Feature-rich dictionary lookup program (qtwebengine fork)"
+HOMEPAGE="https://github.com/xiaoyifang/goldendict-ng"
+EGIT_REPO_URI="https://github.com/xiaoyifang/goldendict-ng.git"
 EGIT_BRANCH="staged"
 EGIT_SUBMODULES=()
 
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS=""
-IUSE="debug ffmpeg opencc zim multimedia wayland"
+IUSE="debug ffmpeg opencc zim multimedia wayland xapian"
 
 RDEPEND="
 	app-arch/bzip2
+	virtual/libiconv
 	>=app-text/hunspell-1.2:=
 	dev-libs/eb
 	dev-libs/lzo
@@ -35,7 +36,6 @@ RDEPEND="
 	dev-qt/qtxml:5
 	dev-qt/qtspeech:5
 	media-libs/libvorbis
-	media-libs/tiff:0
 	sys-libs/zlib
 	x11-libs/libX11
 	x11-libs/libXtst
@@ -46,7 +46,7 @@ RDEPEND="
 	opencc? ( app-i18n/opencc )
 	zim? ( app-arch/xz-utils )
 	multimedia? ( dev-qt/qtmultimedia[gstreamer] )
-	elibc_musl? ( sys-libs/libexecinfo )
+	xapian? ( dev-libs/xapian )
 "
 DEPEND="${RDEPEND}"
 BDEPEND="
@@ -61,7 +61,6 @@ PATCHES=(
 src_prepare() {
 	default
 
-	use elibc_musl && eapply "${FILESDIR}/0001-fix-for-musl.patch"
 	use wayland && eapply "${FILESDIR}/0002-remove-X11.patch"
 
 	# add trailing semicolon
@@ -73,11 +72,12 @@ src_prepare() {
 }
 
 src_configure() {
-	local myconf=()
+	local myconf=( "CONFIG+=use_iconv" )
 	use opencc && myconf+=( "CONFIG+=chinese_conversion_support" )
 	use zim && myconf+=( "CONFIG+=zim_support" )
 	use ffmpeg || myconf+=( "CONFIG+=no_ffmpeg_player" )
 	use multimedia || myconf+=( "CONFIG+=no_qtmultimedia_player" )
+	use xapian && myconf+=( "CONFIG+=use_xapian" )
 
 	# stack overfow & std::bad_alloc on musl
 	use elibc_musl && append-ldflags -Wl,-z,stack-size=2097152
@@ -89,9 +89,6 @@ src_install() {
 	dobin ${PN}
 	domenu redist/org.${PN}.GoldenDict.desktop
 	doicon redist/icons/${PN}.png
-
-	insinto /usr/share/${PN}/help
-	doins help/*.qch
 
 	insinto /usr/share/${PN}/locale
 	doins .qm/*.qm
