@@ -1,7 +1,7 @@
-From dd77ba7be22ade3ab1c23acbf7297bcbe4a33d09 Mon Sep 17 00:00:00 2001
+From 0afe153914ec0332e522c2eed3f3ae04d38e8bbf Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 19 Feb 2023 00:52:55 +0800
-Subject: [PATCH 11/11] fix missing package
+Subject: [PATCH 11/12] fix missing package
 
 ---
  extensions/npm/package.json | 1 +
@@ -37,5 +37,5 @@ index cb1d0710210..432e0799f00 100644
    version "2.0.0"
    resolved "https://registry.yarnpkg.com/which-pm/-/which-pm-2.0.0.tgz#8245609ecfe64bf751d0eef2f376d83bf1ddb7ae"
 -- 
-2.39.2
+2.40.0
 

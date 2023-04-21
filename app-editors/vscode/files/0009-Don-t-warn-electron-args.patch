@@ -1,7 +1,7 @@
-From 7891ba470a92e82be948d7e0bea32fe6b74c60bd Mon Sep 17 00:00:00 2001
+From 28ba2adb61b3d3f486d70db425b4dd36e362c831 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 11 Sep 2022 00:04:59 +0800
-Subject: [PATCH 09/11] Don't warn electron args
+Subject: [PATCH 09/12] Don't warn electron args
 
 ---
  src/vs/platform/environment/common/argv.ts | 3 +++
@@ -35,5 +35,5 @@ index 8f94ff9c6c4..89b164dfd8b 100644
  	_: { type: 'string[]' } // main arguments
  };
 -- 
-2.39.2
+2.40.0
 

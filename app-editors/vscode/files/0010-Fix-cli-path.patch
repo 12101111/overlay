@@ -1,17 +1,17 @@
-From 45c05d29420a92bed70a9c0f24816a95a81e3ef3 Mon Sep 17 00:00:00 2001
+From 5b7ac3278ed4ff50fac67c0de930b18b9e750115 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 16 Dec 2021 13:55:01 +0800
-Subject: [PATCH 10/11] Fix cli path
+Subject: [PATCH 10/12] Fix cli path
 
 ---
  src/vs/platform/native/electron-main/nativeHostMainService.ts | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/vs/platform/native/electron-main/nativeHostMainService.ts b/src/vs/platform/native/electron-main/nativeHostMainService.ts
-index 91e1efc080f..a1c9669a121 100644
+index c0f093010fc..7f4c6678fa6 100644
 --- a/src/vs/platform/native/electron-main/nativeHostMainService.ts
 +++ b/src/vs/platform/native/electron-main/nativeHostMainService.ts
-@@ -525,7 +525,7 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
+@@ -540,7 +540,7 @@ export class NativeHostMainService extends Disposable implements INativeHostMain
  		// Linux
  		if (isLinux) {
  			if (this.environmentMainService.isBuilt) {
@@ -21,5 +21,5 @@ index 91e1efc080f..a1c9669a121 100644
  
  			return join(this.environmentMainService.appRoot, 'scripts', 'code-cli.sh');
 -- 
-2.39.2
+2.40.0
 
