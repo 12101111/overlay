@@ -2351,6 +2351,7 @@ src_compile() {
 	if has_version ">=dev-libs/openssl-3.0.0"; then
 		export NODE_OPTIONS=--openssl-legacy-provider
 	fi
+	export BUILD_SOURCEVERSION=${COMMIT}
 
 	yarn gulp vscode-linux-$(get_arch)-min || die
 }
@@ -2372,7 +2373,7 @@ src_install() {
 		done
 	fi
 
-	sed -i "2i	\"commit\": \"${COMMIT}\"," "${ED}${vscode_path}/resources/app/product.json"
+	# sed -i "2i	\"commit\": \"${COMMIT}\"," "${ED}${vscode_path}/resources/app/product.json"
 	sed -i "s/ELECTRON=\"\$VSCODE_PATH\/${app_name}\"/ELECTRON=\"\/usr\/$(get_libdir)\/electron-${ELECTRON_SLOT}\/electron\"/g" \
 		"${ED}${vscode_path}/bin/${app_name}"
 

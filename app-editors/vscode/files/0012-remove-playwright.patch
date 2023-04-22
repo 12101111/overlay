@@ -1,12 +1,49 @@
-From 6dbc0143e060c57d9220af1528bb9bb977f2cbda Mon Sep 17 00:00:00 2001
+From 2c47440ec73ec991a993445208b5b9a8540cd440 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 21 Apr 2023 23:14:51 +0800
 Subject: [PATCH 12/12] remove playwright
 
 ---
- package.json | 7 -------
- 1 file changed, 7 deletions(-)
+ build/gulpfile.vscode.js | 5 -----
+ build/package.json       | 1 -
+ package.json             | 7 -------
+ 3 files changed, 13 deletions(-)
 
+diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
+index 0837287c8d1..55a67254576 100644
+--- a/build/gulpfile.vscode.js
++++ b/build/gulpfile.vscode.js
+@@ -33,7 +33,6 @@ const createAsar = require('./lib/asar').createAsar;
+ const minimist = require('minimist');
+ const { compileBuildTask } = require('./gulpfile.compile');
+ const { compileExtensionsBuildTask, compileExtensionMediaBuildTask } = require('./gulpfile.extensions');
+-const { getSettingsSearchBuildId, shouldSetupSettingsSearch } = require('./azure-pipelines/upload-configuration');
+ const { promisify } = require('util');
+ const glob = promisify(require('glob'));
+ const rcedit = promisify(require('rcedit'));
+@@ -251,10 +250,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+ 		const date = new Date().toISOString();
+ 		const productJsonUpdate = { commit, date, checksums, version };
+ 
+-		if (shouldSetupSettingsSearch()) {
+-			productJsonUpdate.settingsSearchBuildId = getSettingsSearchBuildId(packageJson);
+-		}
+-
+ 		const productJsonStream = gulp.src(['product.json'], { base: '.' })
+ 			.pipe(json(productJsonUpdate));
+ 
+diff --git a/build/package.json b/build/package.json
+index 9aec4333189..3f3da4aaf33 100644
+--- a/build/package.json
++++ b/build/package.json
+@@ -4,7 +4,6 @@
+   "license": "MIT",
+   "devDependencies": {
+     "@azure/cosmos": "^3.14.1",
+-    "@azure/identity": "^2.0.4",
+     "@azure/storage-blob": "^12.8.0",
+     "@electron/get": "^1.12.4",
+     "@types/ansi-colors": "^3.2.0",
 diff --git a/package.json b/package.json
 index 4b1f3640ea6..78482962fb3 100644
 --- a/package.json
