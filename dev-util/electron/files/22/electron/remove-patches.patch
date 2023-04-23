@@ -36,3 +36,38 @@ index 2fd993bdd0..4b8bb86998 100644
 - AXSelectedTextChanged on AXTextArea AXValue='The quick brown fox' AXTextSelectionDirection=AXTextSelectionDirectionUnknown AXTextSelectionGranularity=AXTextSelectionGranularityUnknown AXTextStateChangeType=AXTextStateChangeTypeSelectionMove
 --textarea.AXSelectedTextMarkerRange={anchor: {:3, 19, down}, focus: {:3, 0, down}}
 -+textarea.AXSelectedTextMarkerRange={anchor: {:3, 0, down}, focus: {:3, 19, down}}
+diff --git a/patches/chromium/.patches b/patches/chromium/.patches
+index 0a4ea51087..57d96acc5b 100644
+--- a/patches/chromium/.patches
++++ b/patches/chromium/.patches
+@@ -136,7 +136,6 @@ cherry-pick-aeec1ba5893d.patch
+ cherry-pick-0407102d19b9.patch
+ fix_crash_in_annotationagentimpl.patch
+ cherry-pick-bfd926be8178.patch
+-cherry-pick-9aa4c45f21b1.patch
+ m108-lts_prevent_potential_integer_overflow_in.patch
+ m108-lts_do_not_register_browser_watcher_activity_report_with.patch
+ cherry-pick-38de42d2bbc3.patch
+diff --git a/patches/chromium/cherry-pick-26bfa5807606.patch b/patches/chromium/cherry-pick-26bfa5807606.patch
+index 54805c0053..7942cb0edc 100644
+--- a/patches/chromium/cherry-pick-26bfa5807606.patch
++++ b/patches/chromium/cherry-pick-26bfa5807606.patch
+@@ -44,18 +44,3 @@ index 2c1bcba6022519c3a865ae8e3c2ffcd5bc385cf3..0cde402b49510514599201d2b3104e56
+      current_value = To<CSSValueList>(css_value)->Copy();
+    } else {
+      current_value = CssValueListForPropertyID(property_id);
+-diff --git a/third_party/blink/web_tests/external/wpt/css/css-typed-om/the-stylepropertymap/inline/append.tentative.html b/third_party/blink/web_tests/external/wpt/css/css-typed-om/the-stylepropertymap/inline/append.tentative.html
+-index ee9a9e4ddbcf78a7517d8d038d66844880719e63..f80875622366939f48a7471513fb6319f75be718 100644
+---- a/third_party/blink/web_tests/external/wpt/css/css-typed-om/the-stylepropertymap/inline/append.tentative.html
+-+++ b/third_party/blink/web_tests/external/wpt/css/css-typed-om/the-stylepropertymap/inline/append.tentative.html
+-@@ -56,4 +56,10 @@ test(t => {
+-   assert_style_value_array_equals(result, [CSS.s(5), CSS.s(10), CSS.s(1), CSS.s(2)]);
+- }, 'StylePropertyMap.append is case-insensitive');
+- 
+-+// https://crbug.com/1417176
+-+test(t => {
+-+  let styleMap = createInlineStyleMap(t, 'transition-duration: inherit');
+-+  assert_throws_js(TypeError, () => styleMap.append('transition-duration', '1s'));
+-+}, 'StylePropertyMap.append rejects appending to CSS-wide keywords');
+-+
+- </script>
