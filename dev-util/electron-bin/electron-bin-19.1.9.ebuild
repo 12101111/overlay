@@ -14,7 +14,7 @@ HOMEPAGE="https://www.electronjs.org/"
 
 REPO="https://github.com/electron/electron/releases/download"
 SRC_URI="
-https://www.electronjs.org/headers/v${PV}/node-v${PV}-headers.tar.gz -> electron-v${PV}-headers.tar.gz
+https://electronjs.org/headers/v${PV}/node-v${PV}-headers.tar.gz -> electron-v${PV}-headers.tar.gz
 amd64? ( ${REPO}/v${PV}/electron-v${PV}-linux-x64.zip )
 arm? ( ${REPO}/v${PV}/electron-v${PV}-linux-armv7l.zip )
 arm64? ( ${REPO}/v${PV}/electron-v${PV}-linux-arm64.zip )
