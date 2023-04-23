@@ -105,7 +105,7 @@ BDEPEND="${PYTHON_DEPS}
 
 PATCHES=(
 	"${WORKDIR}/${PN}-5.15.8_p20230313-patchset"
-	"${FILESDIR}/${PN}-5.15.9_p20230404-gcc-13.patch"
+	"${FILESDIR}/${P}-gcc-13.patch"
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
 )
 
@@ -169,6 +169,9 @@ src_prepare() {
 		eapply "${FILESDIR}/musl-pvalloc.patch"
 	fi
 	use arm64 && eapply "${FILESDIR}/revert-skia-arm64-change.patch"
+	# replaced by new patch in FILESDIR but not spinning new patchset just yet
+	rm "${WORKDIR}"/qtwebengine-5.15.8_p20230313-patchset/015-gcc13.patch || die
+
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
 		# This is made from git, and for some reason will fail w/o .git directories.
 		mkdir -p .git src/3rdparty/chromium/.git || die
