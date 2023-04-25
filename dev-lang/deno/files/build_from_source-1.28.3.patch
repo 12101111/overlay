@@ -1,0 +1,298 @@
+diff --git a/build.rs b/build.rs
+index 2f2121e..1a401f0 100644
+--- a/build.rs
++++ b/build.rs
+@@ -96,17 +96,8 @@ fn build_v8() {
+   // cargo publish doesn't like pyc files.
+   env::set_var("PYTHONDONTWRITEBYTECODE", "1");
+ 
+-  // git submodule update --init --recursive
+-  let libcxx_src = PathBuf::from("buildtools/third_party/libc++/trunk/src");
+-  if !libcxx_src.is_dir() {
+-    eprintln!(
+-      "missing source code. Run 'git submodule update --init --recursive'"
+-    );
+-    exit(1);
+-  }
+-
+   if need_gn_ninja_download() {
+-    download_ninja_gn_binaries();
++    panic!("gn and ninja must be installed");
+   }
+ 
+   // On windows, rustc cannot link with a V8 debug build.
+@@ -126,32 +117,6 @@ fn build_v8() {
+     gn_args.push("host_cpu=\"arm64\"".to_string())
+   }
+ 
+-  if let Some(clang_base_path) = find_compatible_system_clang() {
+-    println!("clang_base_path {}", clang_base_path.display());
+-    gn_args.push(format!("clang_base_path={:?}", clang_base_path));
+-    gn_args.push("treat_warnings_as_errors=false".to_string());
+-  } else {
+-    println!("using Chromiums clang");
+-    let clang_base_path = clang_download();
+-    gn_args.push(format!("clang_base_path={:?}", clang_base_path));
+-
+-    if cfg!(target_os = "android") && cfg!(target_arch = "aarch64") {
+-      gn_args.push("treat_warnings_as_errors=false".to_string());
+-    }
+-  }
+-
+-  if let Some(p) = env::var_os("SCCACHE") {
+-    cc_wrapper(&mut gn_args, Path::new(&p));
+-  } else if let Ok(p) = which("sccache") {
+-    cc_wrapper(&mut gn_args, &p);
+-  } else if let Some(p) = env::var_os("CCACHE") {
+-    cc_wrapper(&mut gn_args, Path::new(&p));
+-  } else if let Ok(p) = which("ccache") {
+-    cc_wrapper(&mut gn_args, &p);
+-  } else {
+-    println!("cargo:warning=Not using sccache or ccache");
+-  }
+-
+   if let Ok(args) = env::var("GN_ARGS") {
+     for arg in args.split_whitespace() {
+       gn_args.push(arg.to_string());
+@@ -161,16 +126,6 @@ fn build_v8() {
+   let target_triple = env::var("TARGET").unwrap();
+   // check if the target triple describes a non-native environment
+   if target_triple != env::var("HOST").unwrap() {
+-    // cross-compilation setup
+-    if target_triple == "aarch64-unknown-linux-gnu"
+-      || target_triple == "aarch64-linux-android"
+-    {
+-      gn_args.push(r#"target_cpu="arm64""#.to_string());
+-      gn_args.push("use_sysroot=true".to_string());
+-      maybe_install_sysroot("arm64");
+-      maybe_install_sysroot("amd64");
+-    };
+-
+     if target_triple == "aarch64-linux-android" {
+       gn_args.push(r#"v8_target_cpu="arm64""#.to_string());
+       gn_args.push(r#"target_os="android""#.to_string());
+@@ -200,10 +155,6 @@ fn build_v8() {
+     };
+   }
+ 
+-  if target_triple.starts_with("i686-") {
+-    gn_args.push(r#"target_cpu="x86""#.to_string());
+-  }
+-
+   let gn_root = env::var("CARGO_MANIFEST_DIR").unwrap();
+ 
+   let gn_out = maybe_gen(&gn_root, gn_args);
+@@ -236,60 +187,6 @@ fn maybe_clone_repo(dest: &str, repo: &str) {
+   }
+ }
+ 
+-fn maybe_install_sysroot(arch: &str) {
+-  let sysroot_path = format!("build/linux/debian_sid_{}-sysroot", arch);
+-  if !PathBuf::from(sysroot_path).is_dir() {
+-    assert!(Command::new("python")
+-      .arg("./build/linux/sysroot_scripts/install-sysroot.py")
+-      .arg(format!("--arch={}", arch))
+-      .status()
+-      .unwrap()
+-      .success());
+-  }
+-}
+-
+-fn platform() -> &'static str {
+-  #[cfg(target_os = "windows")]
+-  {
+-    "win"
+-  }
+-  #[cfg(target_os = "linux")]
+-  {
+-    "linux64"
+-  }
+-  #[cfg(target_os = "macos")]
+-  {
+-    "mac"
+-  }
+-}
+-
+-fn download_ninja_gn_binaries() {
+-  let target_dir = build_dir();
+-  let bin_dir = target_dir
+-    .join("ninja_gn_binaries-20220517")
+-    .join(platform());
+-  let gn = bin_dir.join("gn");
+-  let ninja = bin_dir.join("ninja");
+-  #[cfg(windows)]
+-  let gn = gn.with_extension("exe");
+-  #[cfg(windows)]
+-  let ninja = ninja.with_extension("exe");
+-
+-  if !gn.exists() || !ninja.exists() {
+-    assert!(Command::new("python")
+-      .arg("./tools/ninja_gn_binaries.py")
+-      .arg("--dir")
+-      .arg(&target_dir)
+-      .status()
+-      .unwrap()
+-      .success());
+-  }
+-  assert!(gn.exists());
+-  assert!(ninja.exists());
+-  env::set_var("GN", gn);
+-  env::set_var("NINJA", ninja);
+-}
+-
+ fn static_lib_url() -> String {
+   if let Ok(custom_archive) = env::var("RUSTY_V8_ARCHIVE") {
+     return custom_archive;
+@@ -378,39 +275,6 @@ fn download_file(url: String, filename: PathBuf) {
+     std::fs::remove_file(&tmpfile).unwrap();
+   }
+ 
+-  // Try downloading with python first. Python is a V8 build dependency,
+-  // so this saves us from adding a Rust HTTP client dependency.
+-  println!("Downloading {}", url);
+-  let status = Command::new("python")
+-    .arg("./tools/download_file.py")
+-    .arg("--url")
+-    .arg(&url)
+-    .arg("--filename")
+-    .arg(&tmpfile)
+-    .status();
+-
+-  // Python is only a required dependency for `V8_FROM_SOURCE` builds.
+-  // If python is not available, try falling back to curl.
+-  let status = match status {
+-    Ok(status) if status.success() => status,
+-    _ => {
+-      println!("Python downloader failed, trying with curl.");
+-      Command::new("curl")
+-        .arg("-L")
+-        .arg("-f")
+-        .arg("-s")
+-        .arg("-o")
+-        .arg(&tmpfile)
+-        .arg(&url)
+-        .status()
+-        .unwrap()
+-    }
+-  };
+-
+-  // Assert DL was successful
+-  assert!(status.success());
+-  assert!(tmpfile.exists());
+-
+   // Write checksum (i.e url) & move file
+   std::fs::write(static_checksum_path(), url).unwrap();
+   std::fs::rename(&tmpfile, &filename).unwrap();
+@@ -438,28 +302,10 @@ fn download_static_lib_binaries() {
+ fn print_link_flags() {
+   println!("cargo:rustc-link-lib=static=rusty_v8");
+ 
+-  let should_dyn_link_libcxx = cfg!(not(feature = "use_custom_libcxx"))
+-    || env::var("GN_ARGS").map_or(false, |gn_args| {
+-      gn_args
+-        .split_whitespace()
+-        .any(|ba| ba == "use_custom_libcxx=false")
+-    });
+-
+-  if should_dyn_link_libcxx {
+-    // Based on https://github.com/alexcrichton/cc-rs/blob/fba7feded71ee4f63cfe885673ead6d7b4f2f454/src/lib.rs#L2462
+-    let target = env::var("TARGET").unwrap();
+-    if target.contains("apple")
+-      || target.contains("freebsd")
+-      || target.contains("openbsd")
+-    {
+-      println!("cargo:rustc-link-lib=dylib=c++");
+-    } else if target.contains("linux") {
+-      println!("cargo:rustc-link-lib=dylib=stdc++");
+-    } else if target.contains("android") {
+-      println!("cargo:rustc-link-lib=dylib=c++_shared");
+-    }
++  if let Ok(val) = std::env::var("CXXSTDLIB") {
++    println!("cargo:rustc-link-lib={}", val);
+   }
+-
++  
+   if cfg!(target_os = "windows") {
+     println!("cargo:rustc-link-lib=dylib=winmm");
+     println!("cargo:rustc-link-lib=dylib=dbghelp");
+@@ -492,59 +338,6 @@ fn need_gn_ninja_download() -> bool {
+   !has_ninja || !has_gn
+ }
+ 
+-// Chromiums gn arg clang_base_path is currently compatible with:
+-// * Apples clang and clang from homebrew's llvm@x packages
+-// * the official binaries from releases.llvm.org
+-// * unversioned (Linux) packages of clang (if recent enough)
+-// but unfortunately it doesn't work with version-suffixed packages commonly
+-// found in Linux packet managers
+-fn is_compatible_clang_version(clang_path: &Path) -> bool {
+-  if let Ok(o) = Command::new(clang_path).arg("--version").output() {
+-    let _output = String::from_utf8(o.stdout).unwrap();
+-    // TODO check version output to make sure it's supported.
+-    const _MIN_APPLE_CLANG_VER: f32 = 11.0;
+-    const _MIN_LLVM_CLANG_VER: f32 = 8.0;
+-    return true;
+-  }
+-  false
+-}
+-
+-fn find_compatible_system_clang() -> Option<PathBuf> {
+-  if cfg!(target_os = "android") {
+-    return None;
+-  }
+-
+-  if let Ok(p) = env::var("CLANG_BASE_PATH") {
+-    let base_path = Path::new(&p);
+-    let clang_path = base_path.join("bin").join("clang");
+-    if is_compatible_clang_version(&clang_path) {
+-      return Some(base_path.to_path_buf());
+-    }
+-  }
+-
+-  None
+-}
+-
+-// Download chromium's clang into OUT_DIR because Cargo will not allow us to
+-// modify the source directory.
+-fn clang_download() -> PathBuf {
+-  let clang_base_path = build_dir().join("clang");
+-  println!("clang_base_path {}", clang_base_path.display());
+-  assert!(Command::new("python")
+-    .arg("./tools/clang/scripts/update.py")
+-    .arg("--output-dir")
+-    .arg(&clang_base_path)
+-    .status()
+-    .unwrap()
+-    .success());
+-  assert!(clang_base_path.exists());
+-  clang_base_path
+-}
+-
+-fn cc_wrapper(gn_args: &mut Vec<String>, sccache_path: &Path) {
+-  gn_args.push(format!("cc_wrapper={:?}", sccache_path));
+-}
+-
+ struct Dirs {
+   pub out: PathBuf,
+   pub root: PathBuf,
+@@ -642,8 +435,12 @@ type NinjaEnv = Vec<(String, String)>;
+ fn ninja(gn_out_dir: &Path, maybe_env: Option<NinjaEnv>) -> Command {
+   let cmd_string = env::var("NINJA").unwrap_or_else(|_| "ninja".to_owned());
+   let mut cmd = Command::new(cmd_string);
++  cmd.arg("-v");
+   cmd.arg("-C");
+   cmd.arg(gn_out_dir);
++  if let Ok(env) = env::var("MAKEOPTS") {
++      cmd.arg(&env);
++  }
+   if let Some(env) = maybe_env {
+     for item in env {
+       cmd.env(item.0, item.1);
+@@ -672,6 +469,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
+       .arg(format!("--root={}", dirs.root.display()))
+       .arg("gen")
+       .arg(&gn_out_dir)
++      .arg("-vv")
+       .arg("--args=".to_owned() + &args)
+       .stdout(Stdio::inherit())
+       .stderr(Stdio::inherit())

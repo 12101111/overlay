@@ -1,8 +1,8 @@
 diff --git a/build.rs b/build.rs
-index f9e3dbf..3fd054f 100644
+index 7f8fb36..4d742e8 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -96,17 +96,8 @@ fn build_v8() {
+@@ -97,17 +97,8 @@ fn build_v8() {
    // cargo publish doesn't like pyc files.
    env::set_var("PYTHONDONTWRITEBYTECODE", "1");
  
@@ -21,7 +21,7 @@ index f9e3dbf..3fd054f 100644
    }
  
    // On windows, rustc cannot link with a V8 debug build.
-@@ -126,32 +117,6 @@ fn build_v8() {
+@@ -127,32 +118,6 @@ fn build_v8() {
      gn_args.push("host_cpu=\"arm64\"".to_string())
    }
  
@@ -54,7 +54,7 @@ index f9e3dbf..3fd054f 100644
    if let Ok(args) = env::var("GN_ARGS") {
      for arg in args.split_whitespace() {
        gn_args.push(arg.to_string());
-@@ -161,16 +126,6 @@ fn build_v8() {
+@@ -162,16 +127,6 @@ fn build_v8() {
    let target_triple = env::var("TARGET").unwrap();
    // check if the target triple describes a non-native environment
    if target_triple != env::var("HOST").unwrap() {
@@ -71,7 +71,7 @@ index f9e3dbf..3fd054f 100644
      if target_triple == "aarch64-linux-android" {
        gn_args.push(r#"v8_target_cpu="arm64""#.to_string());
        gn_args.push(r#"target_os="android""#.to_string());
-@@ -200,10 +155,6 @@ fn build_v8() {
+@@ -201,10 +156,6 @@ fn build_v8() {
      };
    }
  
@@ -82,14 +82,14 @@ index f9e3dbf..3fd054f 100644
    let gn_root = env::var("CARGO_MANIFEST_DIR").unwrap();
  
    let gn_out = maybe_gen(&gn_root, gn_args);
-@@ -236,60 +187,6 @@ fn maybe_clone_repo(dest: &str, repo: &str) {
+@@ -238,61 +189,6 @@ fn maybe_clone_repo(dest: &str, repo: &str) {
    }
  }
  
 -fn maybe_install_sysroot(arch: &str) {
 -  let sysroot_path = format!("build/linux/debian_sid_{}-sysroot", arch);
 -  if !PathBuf::from(sysroot_path).is_dir() {
--    assert!(Command::new("python")
+-    assert!(Command::new(python())
 -      .arg("./build/linux/sysroot_scripts/install-sysroot.py")
 -      .arg(format!("--arch={}", arch))
 -      .status()
@@ -98,25 +98,26 @@ index f9e3dbf..3fd054f 100644
 -  }
 -}
 -
--fn platform() -> &'static str {
--  #[cfg(target_os = "windows")]
--  {
--    "win"
--  }
+-fn platform() -> String {
 -  #[cfg(target_os = "linux")]
--  {
--    "linux64"
--  }
+-  let os = "linux";
 -  #[cfg(target_os = "macos")]
--  {
--    "mac"
--  }
+-  let os = "mac";
+-  #[cfg(target_os = "windows")]
+-  let os = "windows";
+-
+-  #[cfg(target_arch = "x86_64")]
+-  let arch = "amd64";
+-  #[cfg(target_arch = "aarch64")]
+-  let arch = "arm64";
+-
+-  format!("{os}-{arch}")
 -}
 -
 -fn download_ninja_gn_binaries() {
 -  let target_dir = build_dir();
 -  let bin_dir = target_dir
--    .join("ninja_gn_binaries-20220517")
+-    .join("ninja_gn_binaries-20221218")
 -    .join(platform());
 -  let gn = bin_dir.join("gn");
 -  let ninja = bin_dir.join("ninja");
@@ -126,7 +127,7 @@ index f9e3dbf..3fd054f 100644
 -  let ninja = ninja.with_extension("exe");
 -
 -  if !gn.exists() || !ninja.exists() {
--    assert!(Command::new("python")
+-    assert!(Command::new(python())
 -      .arg("./tools/ninja_gn_binaries.py")
 -      .arg("--dir")
 -      .arg(&target_dir)
@@ -143,14 +144,14 @@ index f9e3dbf..3fd054f 100644
  fn static_lib_url() -> String {
    if let Ok(custom_archive) = env::var("RUSTY_V8_ARCHIVE") {
      return custom_archive;
-@@ -378,39 +275,6 @@ fn download_file(url: String, filename: PathBuf) {
+@@ -381,39 +277,6 @@ fn download_file(url: String, filename: PathBuf) {
      std::fs::remove_file(&tmpfile).unwrap();
    }
  
 -  // Try downloading with python first. Python is a V8 build dependency,
 -  // so this saves us from adding a Rust HTTP client dependency.
 -  println!("Downloading {}", url);
--  let status = Command::new("python")
+-  let status = Command::new(python())
 -    .arg("./tools/download_file.py")
 -    .arg("--url")
 -    .arg(&url)
@@ -183,7 +184,7 @@ index f9e3dbf..3fd054f 100644
    // Write checksum (i.e url) & move file
    std::fs::write(static_checksum_path(), url).unwrap();
    std::fs::rename(&tmpfile, &filename).unwrap();
-@@ -438,28 +302,10 @@ fn download_static_lib_binaries() {
+@@ -441,28 +304,10 @@ fn download_static_lib_binaries() {
  fn print_link_flags() {
    println!("cargo:rustc-link-lib=static=rusty_v8");
  
@@ -215,7 +216,7 @@ index f9e3dbf..3fd054f 100644
    if cfg!(target_os = "windows") {
      println!("cargo:rustc-link-lib=dylib=winmm");
      println!("cargo:rustc-link-lib=dylib=dbghelp");
-@@ -492,59 +338,6 @@ fn need_gn_ninja_download() -> bool {
+@@ -495,59 +340,6 @@ fn need_gn_ninja_download() -> bool {
    !has_ninja || !has_gn
  }
  
@@ -257,7 +258,7 @@ index f9e3dbf..3fd054f 100644
 -fn clang_download() -> PathBuf {
 -  let clang_base_path = build_dir().join("clang");
 -  println!("clang_base_path {}", clang_base_path.display());
--  assert!(Command::new("python")
+-  assert!(Command::new(python())
 -    .arg("./tools/clang/scripts/update.py")
 -    .arg("--output-dir")
 -    .arg(&clang_base_path)
@@ -275,45 +276,24 @@ index f9e3dbf..3fd054f 100644
  struct Dirs {
    pub out: PathBuf,
    pub root: PathBuf,
-@@ -642,8 +435,12 @@ type NinjaEnv = Vec<(String, String)>;
+@@ -653,8 +445,12 @@ type NinjaEnv = Vec<(String, String)>;
  fn ninja(gn_out_dir: &Path, maybe_env: Option<NinjaEnv>) -> Command {
    let cmd_string = env::var("NINJA").unwrap_or_else(|_| "ninja".to_owned());
    let mut cmd = Command::new(cmd_string);
 +  cmd.arg("-v");
    cmd.arg("-C");
-   cmd.arg(&gn_out_dir);
+   cmd.arg(gn_out_dir);
 +  if let Ok(env) = env::var("MAKEOPTS") {
-+    cmd.arg(&env);
-+  }  
++      cmd.arg(&env);
++  }
    if let Some(env) = maybe_env {
      for item in env {
        cmd.env(item.0, item.1);
-@@ -672,6 +469,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
-       .arg(format!("--root={}", dirs.root.display()))
+@@ -684,6 +480,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
+       .arg(format!("--script-executable={}", python()))
        .arg("gen")
        .arg(&gn_out_dir)
 +      .arg("-vv")
        .arg("--args=".to_owned() + &args)
        .stdout(Stdio::inherit())
        .stderr(Stdio::inherit())
-diff --git a/cli/build.rs b/cli/build.rs
-index 3bdf2dfb3..fde339e6c 100644
---- a/cli/build.rs
-+++ b/cli/build.rs
-@@ -360,11 +360,13 @@ fn main() {
- 
-   #[cfg(target_os = "linux")]
-   {
--    let ver = glibc_version::get_version().unwrap();
--
-     // If a custom compiler is set, the glibc version is not reliable.
-     // Here, we assume that if a custom compiler is used, that it will be modern enough to support a dynamic symbol list.
--    if env::var("CC").is_err() && ver.major <= 2 && ver.minor < 35 {
-+    if env::var("CC").is_err()
-+      && glibc_version::get_version()
-+        .map(|ver| ver.major <= 2 && ver.minor < 35)
-+        .unwrap_or(false)
-+    {
-       println!("cargo:warning=Compiling with all symbols exported, this will result in a larger binary. Please use glibc 2.35 or later for an optimised build.");
-       println!("cargo:rustc-link-arg-bin=deno=-rdynamic");
-     } else {

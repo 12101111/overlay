@@ -1,0 +1,12 @@
+diff --git a/build.rs b/build.rs
+index 4d742e8..5bfc661 100644
+--- a/build.rs
++++ b/build.rs
+@@ -103,6 +103,7 @@ fn build_v8() {
+ 
+   // On windows, rustc cannot link with a V8 debug build.
+   let mut gn_args = if is_debug() && !cfg!(target_os = "windows") {
++    println!("cargo:rustc-link-lib=dylib=execinfo");
+     // Note: When building for Android aarch64-qemu, use release instead of debug.
+     vec!["is_debug=true".to_string()]
+   } else {

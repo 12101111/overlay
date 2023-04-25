@@ -1,0 +1,18 @@
+diff --git a/runtime/build.rs b/runtime/build.rs
+index d47bee941..82b2af2fc 100644
+--- a/runtime/build.rs
++++ b/runtime/build.rs
+@@ -364,5 +364,12 @@ fn main() {
+     not(feature = "docsrs"),
+     not(feature = "dont_create_runtime_snapshot")
+   ))]
+-  startup_snapshot::create_runtime_snapshot(runtime_snapshot_path)
++  {
++    let thread = std::thread::Builder::new().stack_size(8 * 1024 * 1024);
++    thread
++      .spawn(move || startup_snapshot::create_runtime_snapshot(runtime_snapshot_path))
++      .unwrap()
++      .join()
++      .unwrap();
++  }
+ }
