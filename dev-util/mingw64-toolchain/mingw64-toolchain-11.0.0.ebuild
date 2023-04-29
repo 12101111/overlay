@@ -1,4 +1,4 @@
-# Copyright 2022 Gentoo Authors
+# Copyright 2022-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -6,12 +6,11 @@ EAPI=8
 MULTILIB_COMPAT=( abi_x86_{32,64} )
 inherit edo flag-o-matic multilib-build toolchain-funcs
 
-# Pick versions known to work for Wine and use vanilla for simplicity,
-# ideally update only on mingw64-runtime bumps or if there's known issues
-# (please report) to avoid rebuilding the entire toolchain too often.
-# Do _p1++ rather than revbump if changing without bumping mingw64 itself.
-BINUTILS_PV=2.39
-GCC_PV=12.2.0
+# Pick versions known to work for wine+dxvk, and avoid too frequent updates
+# due to slow rebuilds. Do _p1++ rather than revbump on changes (not using
+# Gentoo patchsets for simplicity, their changes are mostly unneeded here).
+BINUTILS_PV=2.40
+GCC_PV=13.1.0
 MINGW_PV=$(ver_cut 1-3)
 
 DESCRIPTION="All-in-one mingw64 toolchain intended for building Wine without crossdev"
@@ -21,8 +20,14 @@ HOMEPAGE="
 	https://sourceware.org/binutils/"
 SRC_URI="
 	mirror://sourceforge/mingw-w64/mingw-w64/mingw-w64-release/mingw-w64-v${MINGW_PV}.tar.bz2
-	mirror://gnu/gcc/gcc-${GCC_PV}/gcc-${GCC_PV}.tar.xz
 	mirror://gnu/binutils/binutils-${BINUTILS_PV}.tar.xz"
+if [[ ${GCC_PV} == *-* ]]; then
+	SRC_URI+=" mirror://gcc/snapshots/${GCC_PV}/gcc-${GCC_PV}.tar.xz"
+else
+	SRC_URI+="
+		mirror://gcc/gcc-${GCC_PV}/gcc-${GCC_PV}.tar.xz
+		mirror://gnu/gcc/gcc-${GCC_PV}/gcc-${GCC_PV}.tar.xz"
+fi
 S="${WORKDIR}"
 
 # l1:binutils+gcc, l2:gcc(libraries), l3:mingw64-runtime
@@ -42,10 +47,12 @@ RDEPEND="
 	virtual/libiconv"
 DEPEND="${RDEPEND}"
 
+QA_CONFIG_IMPL_DECL_SKIP=(
+	strerror_r # libstdc++ test using -Wimplicit+error
+)
+
 PATCHES=(
-	"${FILESDIR}"/mingw64-runtime-10.0.0-msvcr-extra-race.patch
-	"${FILESDIR}"/mingw64-runtime-10.0.0-tmp-files-clash.patch
-	"${FILESDIR}"/gcc-11.3.0-plugin-objdump.patch
+	"${FILESDIR}"/binutils-2.40-import-lib.patch
 	"${FILESDIR}"/gcc-12.2.0-drop-cflags-sed.patch
 )
 
@@ -72,12 +79,13 @@ src_compile() {
 
 	CTARGET=$(usex x86 i686 x86_64)-w64-mingw32
 
-	MWT_D=${T}/root # use ${T} to respect VariableScope for ${D}
+	MWT_D=${T}/root # moved to ${D} in src_install
 	local mwtdir=/usr/lib/${PN}
 	local prefix=${EPREFIX}${mwtdir}
 	local sysroot=${MWT_D}${prefix}
 	local -x PATH=${sysroot}/bin:${PATH}
 
+	filter-lto # requires setting up, and may be messy with mingw static libs
 	use custom-cflags || strip-flags # fancy flags are not realistic here
 
 	# global configure flags
@@ -98,10 +106,11 @@ src_compile() {
 		--with-system-zlib
 		--without-debuginfod
 		--without-msgpack
+		--without-zstd
 	)
 	mwt-binutils() {
 		# symlink gcc's lto plugin for AR (bug #854516)
-		ln -s ../../libexec/gcc/${CTARGET}/${GCC_PV}/liblto_plugin.so \
+		ln -s ../../libexec/gcc/${CTARGET}/${GCC_PV%%[.-]*}/liblto_plugin.so \
 			"${sysroot}"/lib/bfd-plugins || die
 	}
 
@@ -119,6 +128,7 @@ src_compile() {
 		--disable-libvtv
 		--disable-shared
 		--disable-werror
+		--with-gcc-major-version-only
 		--with-system-zlib
 		--without-isl
 		--without-zstd
@@ -186,8 +196,6 @@ src_compile() {
 				# cross-compiling, cleanup and let ./configure handle it
 				unset AR AS CC CPP CXX LD NM OBJCOPY OBJDUMP RANLIB RC STRIP
 				CHOST=${CTARGET}
-				filter-flags '-fstack-clash-protection' #758914
-				filter-flags '-fstack-protector*' #870136
 				filter-flags '-fuse-ld=*'
 				filter-flags '-mfunction-return=thunk*' #878849
 				strip-unsupported-flags
@@ -258,7 +266,7 @@ src_compile() {
 			bin32=${bin/x86_64-w64/i686-w64}
 			case ${bin#${CTARGET}-} in
 				as) mwt-i686_wrapper --32;;
-				cpp|gcc|gcc-${GCC_PV}|g++|widl) mwt-i686_wrapper -m32;;
+				cpp|gcc|gcc-${GCC_PV%%[.-]*}|g++|widl) mwt-i686_wrapper -m32;;
 				ld|ld.bfd) mwt-i686_wrapper -m i386pe;;
 				windres) mwt-i686_wrapper --target=pe-i386;;
 				*) ln -s ${bin} ${bin32} || die;;
@@ -280,10 +288,8 @@ src_compile() {
 }
 
 src_install() {
-	# use mv over copying given it's ~370MB
 	mv "${MWT_D}${EPREFIX}"/* "${ED}" || die
 
-	# gcc handles static libs internally without needing .la
 	find "${ED}" -type f -name '*.la' -delete || die
 }
 
