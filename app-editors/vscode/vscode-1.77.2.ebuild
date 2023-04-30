@@ -2261,10 +2261,10 @@ SRC_URI+="
 )"
 
 RESTRICT="mirror"
-#	<net-libs/nodejs-17.0.0:=[npm]
 BDEPEND="
 	>=sys-apps/yarn-1.22.17:=
 	>=net-libs/nodejs-16.18.1:=[npm]
+	<net-libs/nodejs-20.0.0:=[npm]
 	app-arch/unzip
 	app-arch/gzip
 "
