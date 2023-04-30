@@ -16,11 +16,11 @@ if [[ ${PV} == *9999 ]]; then
 else
 	(( $(ver_cut 2) )) && WINE_SDIR=$(ver_cut 1).x || WINE_SDIR=$(ver_cut 1).0
 	SRC_URI="
-		https://dl.winehq.org/wine/source/${WINE_SDIR}/wine-$(ver_cut 1-2).tar.xz
+		https://dl.winehq.org/wine/source/${WINE_SDIR}/wine-${PV}.tar.xz
 		https://github.com/wine-staging/wine-staging/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 	KEYWORDS="-* ~amd64"
 fi
-S="${WORKDIR}/wine-$(ver_cut 1-2)"
+S="${WORKDIR}/wine-${PV}"
 
 DESCRIPTION="Free implementation of Windows(tm) on Unix, with Wine-Staging patchset"
 HOMEPAGE="https://wiki.winehq.org/Wine-Staging"
@@ -130,7 +130,8 @@ BDEPEND="
 	mingw? ( !crossdev-mingw? (
 		>=dev-util/mingw64-toolchain-10.0.0_p1-r2
 	) )
-	nls? ( sys-devel/gettext )"
+	nls? ( sys-devel/gettext )
+	wayland? ( dev-util/wayland-scanner )"
 IDEPEND=">=app-eselect/eselect-wine-2"
 
 QA_CONFIG_IMPL_DECL_SKIP=(
