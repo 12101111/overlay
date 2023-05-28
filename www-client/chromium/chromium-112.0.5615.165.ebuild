@@ -2,9 +2,10 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
+
 PYTHON_COMPAT=( python3_{9..11} )
 PYTHON_REQ_USE="xml(+)"
-LLVM_MAX_SLOT=15
+LLVM_MAX_SLOT=16
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
@@ -22,6 +23,7 @@ PATCHSET_NAME_PPC64="chromium_112.0.5615.49-2raptor0~deb11u1.debian"
 HEVC_PATCHSET_VERSION="112.0.5612.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
+	https://dev.gentoo.org/~sam/distfiles/www-client/chromium/chromium-112-gcc-13-patches.tar.xz
 	ppc64? (
 		${PATCHSET_URI_PPC64}/+archive/ubuntu/chromium/+files/${PATCHSET_NAME_PPC64}.tar.xz
 		https://dev.gentoo.org/~sultan/distfiles/www-client/chromium/chromium-ppc64le-gentoo-patches-1.tar.xz
@@ -181,12 +183,12 @@ BDEPEND="
 	!headless? (
 		qt5? ( dev-qt/qtcore:5 )
 	)
-	libcxx? ( >=sys-devel/clang-13 )
-	lto? ( $(depend_clang_llvm_versions 14 15) )
+	libcxx? ( >=sys-devel/clang-16 )
+	lto? ( $(depend_clang_llvm_versions 16) )
 	pgo? (
 		>=dev-python/selenium-3.141.0
 		>=dev-util/web_page_replay_go-20220314
-		$(depend_clang_llvm_versions 14 15)
+		$(depend_clang_llvm_versions 16)
 	)
 	dev-lang/perl
 	>=dev-util/gn-0.1807
@@ -203,7 +205,7 @@ BDEPEND="
 : ${CHROMIUM_FORCE_CLANG=no}
 
 if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
-	BDEPEND+=" >=sys-devel/clang-13"
+	BDEPEND+=" >=sys-devel/clang-16"
 fi
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
@@ -271,9 +273,10 @@ pre_build_checks() {
 		fi
 		if [[ -z "$patched" ]]; then
 			eerror "You need patch musl libc to use chromium's PartitionAlloc. You can choose:"
+			eerror "(1) Upgrade to sys-libs/musl-1.2.4"
 			eerror "(1) Disable USE=system-allocator"
 			eerror "(2) Install musl from this overlay: emerge sys-libs/musl::12101111-overlay"
-			eerror "(3) patch musl yourself. Copy the patch file to /etc/portage/patches/sys-libs/musl/"
+			eerror "(3) Patch musl yourself. Copy the patch file to /etc/portage/patches/sys-libs/musl/"
 			eerror "Patch file is at <This overlay>/sys-libs/musl/files/fix-pamalloc.patch"
 			eerror "Otherwise the build will deadlock and hang."
 			die "chromium's PartitionAlloc can't work with unpatched musl!"
@@ -337,8 +340,8 @@ pkg_setup() {
 			else
 				CPP="${CHOST}-clang++ -E"
 			fi
-			if ! ver_test "$(clang-major-version)" -ge 13; then
-				die "At least clang 13 is required"
+			if ! ver_test "$(clang-major-version)" -ge 16; then
+				die "At least clang 16 is required"
 			fi
 		fi
 	fi
@@ -380,6 +383,9 @@ src_prepare() {
 		"${FILESDIR}/chromium-112-libstdc++.patch"
 		"${FILESDIR}/chromium-112-libstdc++-1.patch"
 		"${FILESDIR}/chromium-112-sql-relax.patch"
+		"${FILESDIR}/chromium-112-gcc-mno-outline.patch"
+		"${FILESDIR}/chromium-112-swiftshader.patch"
+		"${WORKDIR}/chromium-112-gcc-13-patches"
 	)
 
 	if use ppc64 ; then
@@ -920,6 +926,11 @@ chromium_configure() {
 		# Prevent libvpx/xnnpack build failures. Bug 530248, 544702, 546984, 853646.
 		if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
 			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-xop -mno-sse4a
+		fi
+
+		if tc-is-gcc; then
+			# https://bugs.gentoo.org/904455
+			append-cxxflags "$(test-flags-CXX -fno-tree-vectorize)"
 		fi
 	fi
 
