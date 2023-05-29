@@ -1,0 +1,24 @@
+diff --git a/src/Cafe/CMakeLists.txt b/src/Cafe/CMakeLists.txt
+index 0daffbb..9e1d561 100644
+--- a/src/Cafe/CMakeLists.txt
++++ b/src/Cafe/CMakeLists.txt
+@@ -501,6 +501,7 @@ target_link_libraries(CemuCafe PRIVATE
+ 	ZArchive::zarchive
+ 	ZLIB::ZLIB
+ 	zstd::zstd
++	ucontext
+ )
+ 
+ if (ENABLE_WAYLAND)
+diff --git a/src/Common/CMakeLists.txt b/src/Common/CMakeLists.txt
+index 7ed3d67..264aae4 100644
+--- a/src/Common/CMakeLists.txt
++++ b/src/Common/CMakeLists.txt
+@@ -64,6 +64,7 @@ target_link_libraries(CemuCommon PRIVATE
+ 	Boost::nowide
+ 	Boost::filesystem
+ 	glm::glm
++	execinfo
+ )
+ 
+ if (UNIX AND NOT APPLE)
