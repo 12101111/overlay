@@ -1,0 +1,100 @@
+diff --git a/src/3rdparty/chromium/v8/include/v8-internal.h b/src/3rdparty/chromium/v8/include/v8-internal.h
+index 0d9cce82b..d38ab8145 100644
+--- a/src/3rdparty/chromium/v8/include/v8-internal.h
++++ b/src/3rdparty/chromium/v8/include/v8-internal.h
+@@ -196,7 +196,7 @@ class Internals {
+ 
+   static const int kNodeClassIdOffset = 1 * kApiSystemPointerSize;
+   static const int kNodeFlagsOffset = 1 * kApiSystemPointerSize + 3;
+-  static const int kNodeStateMask = 0x7;
++  static const int kNodeStateMask = 0x3;
+   static const int kNodeStateIsWeakValue = 2;
+   static const int kNodeStateIsPendingValue = 3;
+ 
+diff --git a/src/3rdparty/chromium/v8/src/ast/ast.h b/src/3rdparty/chromium/v8/src/ast/ast.h
+index 4213c60f2..3106a750a 100644
+--- a/src/3rdparty/chromium/v8/src/ast/ast.h
++++ b/src/3rdparty/chromium/v8/src/ast/ast.h
+@@ -998,7 +998,7 @@ class Literal final : public Expression {
+   friend class AstNodeFactory;
+   friend Zone;
+ 
+-  using TypeField = Expression::NextBitField<Type, 4>;
++  using TypeField = Expression::NextBitField<Type, 3>;
+ 
+   Literal(int smi, int position) : Expression(position, kLiteral), smi_(smi) {
+     bit_field_ = TypeField::update(bit_field_, kSmi);
+diff --git a/src/3rdparty/chromium/v8/src/base/bit-field.h b/src/3rdparty/chromium/v8/src/base/bit-field.h
+index ca5fb4592..21eace19b 100644
+--- a/src/3rdparty/chromium/v8/src/base/bit-field.h
++++ b/src/3rdparty/chromium/v8/src/base/bit-field.h
+@@ -40,7 +40,15 @@ class BitField final {
+   static constexpr U kNumValues = U{1} << kSize;
+ 
+   // Value for the field with all bits set.
++  // If clang complains
++  // "constexpr variable 'kMax' must be initialized by a constant expression"
++  // on this line, then you're creating a BitField for an enum with more bits
++  // than needed for the enum values. Either reduce the BitField size,
++  // or give the enum an explicit underlying type.
++#pragma clang diagnostic push
++#pragma clang diagnostic ignored "-Wenum-constexpr-conversion"
+   static constexpr T kMax = static_cast<T>(kNumValues - 1);
++#pragma clang diagnostic pop
+ 
+   template <class T2, int size2>
+   using Next = BitField<T2, kShift + kSize, size2, U>;
+diff --git a/src/3rdparty/chromium/v8/src/compiler/backend/instruction-codes.h b/src/3rdparty/chromium/v8/src/compiler/backend/instruction-codes.h
+index 8772a78df..7552f535e 100644
+--- a/src/3rdparty/chromium/v8/src/compiler/backend/instruction-codes.h
++++ b/src/3rdparty/chromium/v8/src/compiler/backend/instruction-codes.h
+@@ -187,7 +187,7 @@ V8_EXPORT_PRIVATE std::ostream& operator<<(std::ostream& os,
+   V(None)                       \
+   TARGET_ADDRESSING_MODE_LIST(V)
+ 
+-enum AddressingMode {
++enum AddressingMode : uint8_t {
+ #define DECLARE_ADDRESSING_MODE(Name) kMode_##Name,
+   ADDRESSING_MODE_LIST(DECLARE_ADDRESSING_MODE)
+ #undef DECLARE_ADDRESSING_MODE
+diff --git a/src/3rdparty/chromium/v8/src/compiler/backend/instruction.h b/src/3rdparty/chromium/v8/src/compiler/backend/instruction.h
+index 041992879..7098a7349 100644
+--- a/src/3rdparty/chromium/v8/src/compiler/backend/instruction.h
++++ b/src/3rdparty/chromium/v8/src/compiler/backend/instruction.h
+@@ -563,8 +563,8 @@ class LocationOperand : public InstructionOperand {
+   }
+ 
+   STATIC_ASSERT(KindField::kSize == 3);
+-  using LocationKindField = base::BitField64<LocationKind, 3, 2>;
+-  using RepresentationField = base::BitField64<MachineRepresentation, 5, 8>;
++  using LocationKindField = base::BitField64<LocationKind, 3, 1>;
++  using RepresentationField = LocationKindField::Next<MachineRepresentation, 8>;
+   using IndexField = base::BitField64<int32_t, 35, 29>;
+ };
+ 
+diff --git a/src/3rdparty/chromium/v8/src/handles/global-handles.cc b/src/3rdparty/chromium/v8/src/handles/global-handles.cc
+index 7a91116ac..456cdef07 100644
+--- a/src/3rdparty/chromium/v8/src/handles/global-handles.cc
++++ b/src/3rdparty/chromium/v8/src/handles/global-handles.cc
+@@ -612,7 +612,7 @@ class GlobalHandles::Node final : public NodeBase<GlobalHandles::Node> {
+ 
+   // This stores three flags (independent, partially_dependent and
+   // in_young_list) and a State.
+-  using NodeState = base::BitField8<State, 0, 3>;
++  using NodeState = base::BitField8<State, 0, 2>;
+   using IsInYoungList = NodeState::Next<bool, 1>;
+   using NodeWeaknessType = IsInYoungList::Next<WeaknessType, 2>;
+ 
+diff --git a/src/3rdparty/chromium/v8/src/wasm/wasm-code-manager.h b/src/3rdparty/chromium/v8/src/wasm/wasm-code-manager.h
+index 5e8ed5475..c96f43543 100644
+--- a/src/3rdparty/chromium/v8/src/wasm/wasm-code-manager.h
++++ b/src/3rdparty/chromium/v8/src/wasm/wasm-code-manager.h
+@@ -333,7 +333,7 @@ class V8_EXPORT_PRIVATE WasmCode final {
+   int trap_handler_index_ = -1;
+ 
+   // Bits encoded in {flags_}:
+-  using KindField = base::BitField8<Kind, 0, 3>;
++  using KindField = base::BitField8<Kind, 0, 2>;
+   using ExecutionTierField = KindField::Next<ExecutionTier, 2>;
+   using ForDebuggingField = ExecutionTierField::Next<ForDebugging, 2>;
+ 
