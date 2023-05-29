@@ -3,27 +3,30 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{9..11} )
+PYTHON_COMPAT=( python3_{10..12} )
 inherit autotools edo flag-o-matic python-any-r1 toolchain-funcs wrapper
 
 WINE_GECKO=2.47.4
-WINE_MONO=7.4.0
+WINE_MONO=8.0.0
+WINE_P=wine-$(ver_cut 1-2)
 
 if [[ ${PV} == *9999 ]]; then
 	inherit git-r3
-	EGIT_REPO_URI="https://github.com/wine-staging/wine-staging.git"
+	EGIT_REPO_URI="https://gitlab.winehq.org/wine/wine-staging.git"
 	WINE_EGIT_REPO_URI="https://gitlab.winehq.org/wine/wine.git"
 else
 	(( $(ver_cut 2) )) && WINE_SDIR=$(ver_cut 1).x || WINE_SDIR=$(ver_cut 1).0
 	SRC_URI="
-		https://dl.winehq.org/wine/source/${WINE_SDIR}/wine-${PV}.tar.xz
+		https://dl.winehq.org/wine/source/${WINE_SDIR}/${WINE_P}.tar.xz
 		https://github.com/wine-staging/wine-staging/archive/v${PV}.tar.gz -> ${P}.tar.gz"
 	KEYWORDS="-* ~amd64"
 fi
-S="${WORKDIR}/wine-${PV}"
+S="${WORKDIR}/${WINE_P}"
 
 DESCRIPTION="Free implementation of Windows(tm) on Unix, with Wine-Staging patchset"
-HOMEPAGE="https://wiki.winehq.org/Wine-Staging"
+HOMEPAGE="
+	https://wiki.winehq.org/Wine-Staging
+	https://gitlab.winehq.org/wine/wine-staging/"
 
 LICENSE="LGPL-2.1+ BSD-2 IJG MIT OPENLDAP ZLIB gsm libpng2 libtiff"
 SLOT="${PV}"
@@ -97,7 +100,12 @@ WINE_COMMON_DEPEND="
 RDEPEND="
 	${WINE_COMMON_DEPEND}
 	app-emulation/wine-desktop-common
-	dos? ( games-emulation/dosbox )
+	dos? (
+		|| (
+			games-emulation/dosbox
+			games-emulation/dosbox-staging
+		)
+	)
 	gecko? ( app-emulation/wine-gecko:${WINE_GECKO} )
 	gstreamer? ( media-plugins/gst-plugins-meta:1.0 )
 	mono? ( app-emulation/wine-mono:${WINE_MONO} )
