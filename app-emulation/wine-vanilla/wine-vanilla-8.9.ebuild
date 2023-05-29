@@ -6,7 +6,7 @@ EAPI=8
 inherit autotools flag-o-matic toolchain-funcs wrapper
 
 WINE_GECKO=2.47.4
-WINE_MONO=7.4.0
+WINE_MONO=8.0.0
 
 if [[ ${PV} == *9999 ]]; then
 	inherit git-r3
@@ -96,7 +96,12 @@ WINE_COMMON_DEPEND="
 RDEPEND="
 	${WINE_COMMON_DEPEND}
 	app-emulation/wine-desktop-common
-	dos? ( games-emulation/dosbox )
+	dos? (
+		|| (
+			games-emulation/dosbox
+			games-emulation/dosbox-staging
+		)
+	)
 	gecko? ( app-emulation/wine-gecko:${WINE_GECKO} )
 	gstreamer? ( media-plugins/gst-plugins-meta:1.0 )
 	mono? ( app-emulation/wine-mono:${WINE_MONO} )
