@@ -3,9 +3,10 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{8..11} )
-inherit cmake llvm.org multilib-minimal pax-utils python-any-r1 \
-	toolchain-funcs
+PYTHON_COMPAT=( python3_{9..11} )
+
+inherit cmake llvm.org multilib-minimal pax-utils python-any-r1
+inherit toolchain-funcs
 
 DESCRIPTION="Low Level Virtual Machine"
 HOMEPAGE="https://llvm.org/"
@@ -18,7 +19,7 @@ HOMEPAGE="https://llvm.org/"
 
 LICENSE="Apache-2.0-with-LLVM-exceptions UoI-NCSA BSD public-domain rc"
 SLOT="${LLVM_MAJOR}/${LLVM_SOABI}"
-KEYWORDS="~amd64 ~arm ~arm64 ~ppc ~ppc64 ~riscv ~sparc ~x86 ~amd64-linux ~ppc-macos ~x64-macos"
+KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86 ~amd64-linux ~ppc-macos ~x64-macos"
 IUSE="
 	+binutils-plugin debug doc exegesis libedit +libffi ncurses test xar
 	xml z3 zstd polly
@@ -27,7 +28,6 @@ RESTRICT="!test? ( test )"
 
 RDEPEND="
 	sys-libs/zlib:0=[${MULTILIB_USEDEP}]
-	binutils-plugin? ( >=sys-devel/binutils-2.31.1-r4:*[plugins] )
 	exegesis? ( dev-libs/libpfm:= )
 	libedit? ( dev-libs/libedit:0=[${MULTILIB_USEDEP}] )
 	libffi? ( >=dev-libs/libffi-3.0.13-r1:0=[${MULTILIB_USEDEP}] )
@@ -68,9 +68,9 @@ PDEPEND="
 	binutils-plugin? ( >=sys-devel/llvmgold-${LLVM_MAJOR} )
 "
 
-LLVM_COMPONENTS=( llvm polly cmake third-party )
+LLVM_COMPONENTS=( llvm polly cmake )
+LLVM_TEST_COMPONENTS=( third-party )
 LLVM_MANPAGES=1
-LLVM_PATCHSET=${PV/_/-}
 LLVM_USE_TARGETS=provide
 llvm.org_set_globals
 
@@ -237,6 +237,7 @@ get_distribution_components() {
 			llvm-cxxdump
 			llvm-cxxfilt
 			llvm-cxxmap
+			llvm-debuginfo-analyzer
 			llvm-debuginfod
 			llvm-debuginfod-find
 			llvm-diff
@@ -277,6 +278,7 @@ get_distribution_components() {
 			llvm-readobj
 			llvm-reduce
 			llvm-remark-size-diff
+			llvm-remarkutil
 			llvm-rtdyld
 			llvm-sim
 			llvm-size
@@ -346,6 +348,8 @@ multilib_src_configure() {
 		# is that the former list is explicitly verified at cmake time
 		-DLLVM_TARGETS_TO_BUILD=""
 		-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD="${LLVM_TARGETS// /;}"
+		-DLLVM_INCLUDE_BENCHMARKS=OFF
+		-DLLVM_INCLUDE_TESTS=$(usex test)
 		-DLLVM_BUILD_TESTS=$(usex test)
 
 		-DLLVM_ENABLE_FFI=$(usex libffi)
@@ -378,23 +382,24 @@ multilib_src_configure() {
 		mycmakeargs+=( -DLLVM_ENABLE_PROJECTS="${enable_projects#;}" )
 	fi
 
+	local suffix=
+	if [[ -n ${EGIT_VERSION} && ${EGIT_BRANCH} != release/* ]]; then
+		# the ABI of the main branch is not stable, so let's include
+		# the commit id in the SOVERSION to contain the breakage
+		suffix+="git${EGIT_VERSION::8}"
+	fi
 	if [[ $(tc-get-cxx-stdlib) == libc++ ]]; then
 		# Smart hack: alter version suffix -> SOVERSION when linking
 		# against libc++. This way we won't end up mixing LLVM libc++
 		# libraries with libstdc++ clang, and the other way around.
+		suffix+="+libcxx"
 		mycmakeargs+=(
-			-DLLVM_VERSION_SUFFIX="libcxx"
 			-DLLVM_ENABLE_LIBCXX=ON
 		)
 	fi
-
-#	Note: go bindings have no CMake rules at the moment
-#	but let's kill the check in case they are introduced
-#	if ! multilib_is_native_abi || ! use go; then
-		mycmakeargs+=(
-			-DGO_EXECUTABLE=GO_EXECUTABLE-NOTFOUND
-		)
-#	fi
+	mycmakeargs+=(
+		-DLLVM_VERSION_SUFFIX="${suffix}"
+	)
 
 	use test && mycmakeargs+=(
 		-DLLVM_LIT_ARGS="$(get_lit_flags)"
@@ -420,16 +425,6 @@ multilib_src_configure() {
 		)
 		use binutils-plugin && mycmakeargs+=(
 			-DLLVM_BINUTILS_INCDIR="${EPREFIX}"/usr/include
-		)
-	fi
-
-	if tc-is-cross-compiler; then
-		local tblgen="${BROOT}/usr/lib/llvm/${LLVM_MAJOR}/bin/llvm-tblgen"
-		[[ -x "${tblgen}" ]] \
-			|| die "${tblgen} not found or usable"
-		mycmakeargs+=(
-			-DCMAKE_CROSSCOMPILING=ON
-			-DLLVM_TABLEGEN="${tblgen}"
 		)
 	fi
 
