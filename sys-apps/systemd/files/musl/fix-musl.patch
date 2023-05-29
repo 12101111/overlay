@@ -41,16 +41,3 @@ index 2dde92c..2ddd003 100644
  
  #include "bus-common-errors.h"
  #include "bus-error.h"
-diff --git a/src/shared/meson.build b/src/shared/meson.build
-index f668978..8f0b7a6 100644
---- a/src/shared/meson.build
-+++ b/src/shared/meson.build
-@@ -222,7 +222,7 @@ if conf.get('ENABLE_NSCD') == 1
-         shared_sources += files('nscd-flush.c')
- endif
- 
--if conf.get('HAVE_LIBFIDO2') == 1
-+if conf.get('HAVE_LIBFIDO2') == 1 and conf.get('HAVE_LIBCRYPTSETUP') == 1 and conf.get('HAVE_CRYPT_TOKEN_MAX') == 1
-         shared_sources += files('cryptsetup-fido2.c')
- endif
- 
