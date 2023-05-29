@@ -166,6 +166,7 @@ VERIFY_SIG_OPENPGP_KEY_PATH=${BROOT}/usr/share/openpgp-keys/rust.asc
 PATCHES=(
 	"${FILESDIR}"/1.68.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
+	"${FILESDIR}"/1.69.0-vendor-libc-musl-lfs64-fix.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
 )
 
@@ -284,6 +285,20 @@ esetup_unwind_hack() {
 }
 
 src_prepare() {
+	if [[ "${PV}" == 1.69.0 ]]; then
+		sed -i \
+			-e 's/8d8b50a0bf7ec53bd4d2ea92e8bfae14529f0beb3f22a65b55623f7086fee8ac/e9be601d5a12566d92cb924b998a4684609b39407716efa7f1f7bafe19949700/' \
+			-e 's/8862912e65ae64dd26728ced492eacbdd3753b7a19432fc8fdf5a673ff7526c9/e889ee3f446226b5004a86abd36a30c2d72cfec6b135daa985ba6e68d375f598/' \
+			-e 's/759e65c13f7e49a6efd1a979c821c53c478648f7f00cb29da65d92904c7c6814/d0339b374db3a8d9ee1b3861ec0ea5c318808822e69cc81e8413f2444a53d94e/' \
+			vendor/libc/.cargo-checksum.json || die
+		if use sanitizers; then
+			pushd "${S}/src/llvm-project" > /dev/null || die
+			eapply "${FILESDIR}/sanitizer-dont-intercept-lfs64-symbols-on-musl.patch"
+			popd > /dev/null || die
+		fi
+	else
+		die "patch is outdated" || die
+	fi
 	if ! use system-bootstrap; then
 		has_version sys-devel/gcc || esetup_unwind_hack
 		local rust_stage0_root="${WORKDIR}"/rust-stage0

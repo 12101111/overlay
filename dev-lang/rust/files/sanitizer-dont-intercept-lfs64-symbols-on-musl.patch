@@ -1,0 +1,228 @@
+From a5519b99bc73d50f362d6fb306411e9fcb758b53 Mon Sep 17 00:00:00 2001
+From: Fangrui Song <i@maskray.me>
+Date: Mon, 9 Jan 2023 12:43:23 -0800
+Subject: [PATCH] [sanitizer] Don't intercept LFS64 symbols on musl
+
+LFS64 symbols in musl are for glibc-ABI-compat and not intended for linking
+(correct usage will not create LFS64 references). The next release 1.2.4 will
+disallow linking against LFS64 symbols[1].
+
+For sanitizers, let's just remove LFS64 interceptors. In case of erroneous LFS64
+references, asan/tsan will detect fewer problems and msan may have false
+positives.
+
+[1]: https://git.musl-libc.org/cgit/musl/commit/?id=246f1c811448f37a44b41cd8df8d0ef9736d95f4
+
+Reviewed By: thesamesam
+
+Differential Revision: https://reviews.llvm.org/D141186
+---
+ .../interception/interception_type_test.cpp   |  4 +--
+ .../sanitizer_common_syscalls.inc             | 28 ++++++++++---------
+ .../sanitizer_platform_interceptors.h         | 14 +++++-----
+ .../sanitizer_platform_limits_posix.cpp       |  6 ++--
+ .../sanitizer_platform_limits_posix.h         |  5 ++--
+ 5 files changed, 29 insertions(+), 28 deletions(-)
+
+diff --git a/compiler-rt/lib/interception/interception_type_test.cpp b/compiler-rt/lib/interception/interception_type_test.cpp
+index 2a118fb214fff..7c3de82a1e869 100644
+--- a/compiler-rt/lib/interception/interception_type_test.cpp
++++ b/compiler-rt/lib/interception/interception_type_test.cpp
+@@ -24,9 +24,9 @@ COMPILER_CHECK(sizeof(::SSIZE_T) == sizeof(ssize_t));
+ COMPILER_CHECK(sizeof(::PTRDIFF_T) == sizeof(ptrdiff_t));
+ COMPILER_CHECK(sizeof(::INTMAX_T) == sizeof(intmax_t));
+ 
+-#if !SANITIZER_APPLE
++#  if SANITIZER_GLIBC || SANITIZER_ANDROID
+ COMPILER_CHECK(sizeof(::OFF64_T) == sizeof(off64_t));
+-#endif
++#  endif
+ 
+ // The following are the cases when pread (and friends) is used instead of
+ // pread64. In those cases we need OFF_T to match off_t. We don't care about the
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_common_syscalls.inc b/compiler-rt/lib/sanitizer_common/sanitizer_common_syscalls.inc
+index e7cf7cfca1935..9d7518ac9476c 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_common_syscalls.inc
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_common_syscalls.inc
+@@ -910,24 +910,26 @@ POST_SYSCALL(statfs)(long res, const void *path, void *buf) {
+   }
+ }
+ 
+-PRE_SYSCALL(statfs64)(const void *path, long sz, void *buf) {
+-  if (path)
+-    PRE_READ(path, __sanitizer::internal_strlen((const char *)path) + 1);
+-}
++PRE_SYSCALL(fstatfs)(long fd, void *buf) {}
+ 
+-POST_SYSCALL(statfs64)(long res, const void *path, long sz, void *buf) {
++POST_SYSCALL(fstatfs)(long res, long fd, void *buf) {
+   if (res >= 0) {
+     if (buf)
+-      POST_WRITE(buf, struct_statfs64_sz);
++      POST_WRITE(buf, struct_statfs_sz);
+   }
+ }
++#  endif  // !SANITIZER_ANDROID
+ 
+-PRE_SYSCALL(fstatfs)(long fd, void *buf) {}
++#  if SANITIZER_GLIBC
++PRE_SYSCALL(statfs64)(const void *path, long sz, void *buf) {
++  if (path)
++    PRE_READ(path, __sanitizer::internal_strlen((const char *)path) + 1);
++}
+ 
+-POST_SYSCALL(fstatfs)(long res, long fd, void *buf) {
++POST_SYSCALL(statfs64)(long res, const void *path, long sz, void *buf) {
+   if (res >= 0) {
+     if (buf)
+-      POST_WRITE(buf, struct_statfs_sz);
++      POST_WRITE(buf, struct_statfs64_sz);
+   }
+ }
+ 
+@@ -939,7 +941,7 @@ POST_SYSCALL(fstatfs64)(long res, long fd, long sz, void *buf) {
+       POST_WRITE(buf, struct_statfs64_sz);
+   }
+ }
+-#  endif  // !SANITIZER_ANDROID
++#  endif  // SANITIZER_GLIBC
+ 
+ PRE_SYSCALL(lstat)(const void *filename, void *statbuf) {
+   if (filename)
+@@ -998,7 +1000,7 @@ POST_SYSCALL(newfstat)(long res, long fd, void *statbuf) {
+   }
+ }
+ 
+-#  if !SANITIZER_ANDROID
++#  if SANITIZER_GLIBC
+ PRE_SYSCALL(ustat)(long dev, void *ubuf) {}
+ 
+ POST_SYSCALL(ustat)(long res, long dev, void *ubuf) {
+@@ -1007,7 +1009,7 @@ POST_SYSCALL(ustat)(long res, long dev, void *ubuf) {
+       POST_WRITE(ubuf, struct_ustat_sz);
+   }
+ }
+-#  endif  // !SANITIZER_ANDROID
++#  endif  // SANITIZER_GLIBC
+ 
+ PRE_SYSCALL(stat64)(const void *filename, void *statbuf) {
+   if (filename)
+@@ -2231,7 +2233,7 @@ POST_SYSCALL(setrlimit)(long res, long resource, void *rlim) {
+   }
+ }
+ 
+-#  if !SANITIZER_ANDROID
++#  if SANITIZER_GLIBC
+ PRE_SYSCALL(prlimit64)
+ (long pid, long resource, const void *new_rlim, void *old_rlim) {
+   if (new_rlim)
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_platform_interceptors.h b/compiler-rt/lib/sanitizer_common/sanitizer_platform_interceptors.h
+index 7d61af606e613..712a938544d81 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_platform_interceptors.h
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_platform_interceptors.h
+@@ -269,7 +269,7 @@
+ #define SANITIZER_INTERCEPT_INET_ATON SI_POSIX
+ #define SANITIZER_INTERCEPT_SYSINFO SI_LINUX
+ #define SANITIZER_INTERCEPT_READDIR SI_POSIX
+-#define SANITIZER_INTERCEPT_READDIR64 SI_LINUX_NOT_ANDROID || SI_SOLARIS32
++#define SANITIZER_INTERCEPT_READDIR64 SI_GLIBC || SI_SOLARIS32
+ #if SI_LINUX_NOT_ANDROID &&                                                \
+     (defined(__i386) || defined(__x86_64) || defined(__mips64) ||          \
+      defined(__powerpc64__) || defined(__aarch64__) || defined(__arm__) || \
+@@ -308,7 +308,7 @@
+ #define SANITIZER_INTERCEPT_XPG_STRERROR_R SI_LINUX_NOT_ANDROID
+ #define SANITIZER_INTERCEPT_SCANDIR \
+   (SI_FREEBSD || SI_NETBSD || SI_LINUX_NOT_ANDROID || SI_SOLARIS)
+-#define SANITIZER_INTERCEPT_SCANDIR64 SI_LINUX_NOT_ANDROID || SI_SOLARIS32
++#define SANITIZER_INTERCEPT_SCANDIR64 SI_GLIBC || SI_SOLARIS32
+ #define SANITIZER_INTERCEPT_GETGROUPS SI_POSIX
+ #define SANITIZER_INTERCEPT_POLL SI_POSIX
+ #define SANITIZER_INTERCEPT_PPOLL SI_LINUX_NOT_ANDROID || SI_SOLARIS
+@@ -330,10 +330,10 @@
+ #define SANITIZER_INTERCEPT_GETMNTENT_R SI_LINUX_NOT_ANDROID
+ #define SANITIZER_INTERCEPT_STATFS \
+   (SI_FREEBSD || SI_MAC || SI_LINUX_NOT_ANDROID || SI_SOLARIS)
+-#define SANITIZER_INTERCEPT_STATFS64 SI_LINUX_NOT_ANDROID && SANITIZER_HAS_STATFS64
++#define SANITIZER_INTERCEPT_STATFS64 SI_GLIBC && SANITIZER_HAS_STATFS64
+ #define SANITIZER_INTERCEPT_STATVFS \
+   (SI_FREEBSD || SI_NETBSD || SI_LINUX_NOT_ANDROID)
+-#define SANITIZER_INTERCEPT_STATVFS64 SI_LINUX_NOT_ANDROID
++#define SANITIZER_INTERCEPT_STATVFS64 SI_GLIBC
+ #define SANITIZER_INTERCEPT_INITGROUPS SI_POSIX
+ #define SANITIZER_INTERCEPT_ETHER_NTOA_ATON SI_POSIX
+ #define SANITIZER_INTERCEPT_ETHER_HOST \
+@@ -469,9 +469,9 @@
+ #define SANITIZER_INTERCEPT_LSTAT (SI_NETBSD || SI_FREEBSD || SI_STAT_LINUX)
+ #define SANITIZER_INTERCEPT___XSTAT \
+   ((!SANITIZER_INTERCEPT_STAT && SI_POSIX) || SI_STAT_LINUX)
+-#define SANITIZER_INTERCEPT___XSTAT64 SI_LINUX_NOT_ANDROID
++#define SANITIZER_INTERCEPT___XSTAT64 SI_GLIBC
+ #define SANITIZER_INTERCEPT___LXSTAT SANITIZER_INTERCEPT___XSTAT
+-#define SANITIZER_INTERCEPT___LXSTAT64 SI_LINUX_NOT_ANDROID
++#define SANITIZER_INTERCEPT___LXSTAT64 SI_GLIBC
+ 
+ #define SANITIZER_INTERCEPT_UTMP \
+   (SI_POSIX && !SI_MAC && !SI_FREEBSD && !SI_NETBSD)
+@@ -482,7 +482,7 @@
+   (SI_LINUX_NOT_ANDROID || SI_MAC || SI_FREEBSD || SI_NETBSD)
+ 
+ #define SANITIZER_INTERCEPT_MMAP SI_POSIX
+-#define SANITIZER_INTERCEPT_MMAP64 SI_LINUX_NOT_ANDROID || SI_SOLARIS
++#define SANITIZER_INTERCEPT_MMAP64 SI_GLIBC || SI_SOLARIS
+ #define SANITIZER_INTERCEPT_MALLOPT_AND_MALLINFO (SI_GLIBC || SI_ANDROID)
+ #define SANITIZER_INTERCEPT_MEMALIGN (!SI_FREEBSD && !SI_MAC && !SI_NETBSD)
+ #define SANITIZER_INTERCEPT___LIBC_MEMALIGN SI_GLIBC
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.cpp b/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.cpp
+index 4e0d428d3284f..cb647bea4df7a 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.cpp
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.cpp
+@@ -260,7 +260,7 @@ namespace __sanitizer {
+   unsigned struct_itimerspec_sz = sizeof(struct itimerspec);
+ #endif // SANITIZER_LINUX
+ 
+-#if SANITIZER_LINUX && !SANITIZER_ANDROID
++#if SANITIZER_GLIBC
+   // Use pre-computed size of struct ustat to avoid <sys/ustat.h> which
+   // has been removed from glibc 2.28.
+ #if defined(__aarch64__) || defined(__s390x__) || defined(__mips64) ||     \
+@@ -281,7 +281,7 @@ namespace __sanitizer {
+   unsigned struct_ustat_sz = SIZEOF_STRUCT_USTAT;
+   unsigned struct_rlimit64_sz = sizeof(struct rlimit64);
+   unsigned struct_statvfs64_sz = sizeof(struct statvfs64);
+-#endif // SANITIZER_LINUX && !SANITIZER_ANDROID
++#endif // SANITIZER_GLIBC
+ 
+ #if SANITIZER_INTERCEPT_CRYPT_R
+   unsigned struct_crypt_data_sz = sizeof(struct crypt_data);
+@@ -1092,7 +1092,7 @@ CHECK_SIZE_AND_OFFSET(dirent, d_off);
+ #endif
+ CHECK_SIZE_AND_OFFSET(dirent, d_reclen);
+ 
+-#if SANITIZER_LINUX && !SANITIZER_ANDROID
++#if SANITIZER_GLIBC
+ COMPILER_CHECK(sizeof(__sanitizer_dirent64) <= sizeof(dirent64));
+ CHECK_SIZE_AND_OFFSET(dirent64, d_ino);
+ CHECK_SIZE_AND_OFFSET(dirent64, d_off);
+diff --git a/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.h b/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.h
+index 5aee8b31cf87f..2146daf7b119e 100644
+--- a/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.h
++++ b/compiler-rt/lib/sanitizer_common/sanitizer_platform_limits_posix.h
+@@ -28,8 +28,7 @@
+ #define SANITIZER_HAS_STAT64 0
+ #define SANITIZER_HAS_STATFS64 0
+ #endif
+-#else
+-// Must be SANITIZER_LINUX then
++#elif SANITIZER_GLIBC || SANITIZER_ANDROID
+ #define SANITIZER_HAS_STAT64 1
+ #define SANITIZER_HAS_STATFS64 1
+ #endif
+@@ -517,7 +516,7 @@ struct __sanitizer_dirent {
+ };
+ #  endif
+ 
+-#  if SANITIZER_LINUX && !SANITIZER_ANDROID
++#  if SANITIZER_GLIBC
+ struct __sanitizer_dirent64 {
+   unsigned long long d_ino;
+   unsigned long long d_off;
