@@ -1,0 +1,130 @@
+diff --git a/copy/xfs_copy.c b/copy/xfs_copy.c
+index 79f6594..52390b7 100644
+--- a/copy/xfs_copy.c
++++ b/copy/xfs_copy.c
+@@ -14,6 +14,8 @@
+ #include "libxlog.h"
+ #include "libfrog/platform.h"
+ 
++#define off64_t off_t
++
+ #define	rounddown(x, y)	(((x)/(y))*(y))
+ #define uuid_equal(s,d) (platform_uuid_compare((s),(d)) == 0)
+ 
+diff --git a/fsr/xfs_fsr.c b/fsr/xfs_fsr.c
+index ba02506..4290bde 100644
+--- a/fsr/xfs_fsr.c
++++ b/fsr/xfs_fsr.c
+@@ -26,7 +26,7 @@
+ 
+ #define _PATH_FSRLAST		"/var/tmp/.fsrlast_xfs"
+ #define _PATH_PROC_MOUNTS	"/proc/mounts"
+-
++#define off64_t off_t
+ 
+ char *progname;
+ 
+diff --git a/io/cowextsize.c b/io/cowextsize.c
+index f6b134d..9f05725 100644
+--- a/io/cowextsize.c
++++ b/io/cowextsize.c
+@@ -15,6 +15,8 @@
+ #include "io.h"
+ #include "input.h"
+ #include "libfrog/paths.h"
++#define stat64 stat
++#define fstat64 fstat
+ 
+ static cmdinfo_t cowextsize_cmd;
+ static long cowextsize;
+diff --git a/io/io.h b/io/io.h
+index fe474fa..528bfab 100644
+--- a/io/io.h
++++ b/io/io.h
+@@ -7,6 +7,8 @@
+ #include "xfs.h"
+ #include "libfrog/paths.h"
+ 
++#define off64_t off_t
++
+ /*
+  * Read/write patterns (default is always "forward")
+  */
+diff --git a/libxfs/rdwr.c b/libxfs/rdwr.c
+index ccd1501..8fdc43a 100644
+--- a/libxfs/rdwr.c
++++ b/libxfs/rdwr.c
+@@ -21,6 +21,8 @@
+ 
+ #include "libxfs.h"
+ 
++#define off64_t off_t
++
+ static void libxfs_brelse(struct cache_node *node);
+ 
+ /*
+diff --git a/mdrestore/xfs_mdrestore.c b/mdrestore/xfs_mdrestore.c
+index 7c1a66c..4434e8e 100644
+--- a/mdrestore/xfs_mdrestore.c
++++ b/mdrestore/xfs_mdrestore.c
+@@ -7,6 +7,8 @@
+ #include "libxfs.h"
+ #include "xfs_metadump.h"
+ 
++#define off64_t off_t
++
+ static int	show_progress = 0;
+ static int	show_info = 0;
+ static int	progress_since_warning = 0;
+diff --git a/repair/prefetch.c b/repair/prefetch.c
+index 017750e..1374020 100644
+--- a/repair/prefetch.c
++++ b/repair/prefetch.c
+@@ -17,6 +17,8 @@
+ #include "prefetch.h"
+ #include "progress.h"
+ 
++#define off64_t off_t
++
+ int do_prefetch = 1;
+ 
+ /*
+diff --git a/scrub/spacemap.c b/scrub/spacemap.c
+index 03440d3..0453791 100644
+--- a/scrub/spacemap.c
++++ b/scrub/spacemap.c
+@@ -15,6 +15,8 @@
+ #include "common.h"
+ #include "spacemap.h"
+ 
++#define off64_t off_t
++
+ /*
+  * Filesystem space map iterators.
+  *
+diff --git a/spaceman/freesp.c b/spaceman/freesp.c
+index 70dcdb5..d195b52 100644
+--- a/spaceman/freesp.c
++++ b/spaceman/freesp.c
+@@ -16,6 +16,8 @@
+ #include "space.h"
+ #include "input.h"
+ 
++#define off64_t off_t
++
+ struct histent
+ {
+ 	long long	low;
+diff --git a/spaceman/trim.c b/spaceman/trim.c
+index e9ed47e..754198f 100644
+--- a/spaceman/trim.c
++++ b/spaceman/trim.c
+@@ -12,6 +12,8 @@
+ #include "space.h"
+ #include "input.h"
+ 
++#define off64_t off_t
++
+ static cmdinfo_t trim_cmd;
+ 
+ /*

@@ -38,6 +38,8 @@ src_prepare() {
 
 	# Don't install compressed docs
 	sed 's@\(CHANGES\)\.gz[[:space:]]@\1 @' -i doc/Makefile || die
+
+	use elibc_musl && eapply "${FILESDIR}/musl-lfs64-fix.patch"
 }
 
 src_configure() {
