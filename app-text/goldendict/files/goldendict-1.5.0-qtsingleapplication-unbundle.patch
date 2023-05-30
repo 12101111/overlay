@@ -1,20 +1,20 @@
 diff --git a/goldendict.pro b/goldendict.pro
-index a24facaf..e44a0dd3 100644
+index 9ed90bd7..cc024afc 100644
 --- a/goldendict.pro
 +++ b/goldendict.pro
-@@ -68,7 +68,8 @@ CONFIG += exceptions \
+@@ -111,7 +111,8 @@ CONFIG += exceptions \
+     stl  \
      c++17 \
      lrelease \
-     utf8_source \
--    force_debug_info
-+    force_debug_info \
+-    utf8_source
++    utf8_source \
 +    qtsingleapplication
  
  mac {
      CONFIG += app_bundle
-@@ -667,5 +668,3 @@ TS_OUT = $$TRANSLATIONS
- TS_OUT ~= s/.ts/.qm/g
- PRE_TARGETDEPS += $$TS_OUT
+@@ -641,5 +642,3 @@ PRE_TARGETDEPS += $$TS_OUT
+ #QTBUG-105984
+ # avoid qt6.4.0-6.4.2 .  the qtmultimedia module is buggy in all these versions
  
 -include( thirdparty/qtsingleapplication/src/qtsingleapplication.pri )
 -

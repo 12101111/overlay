@@ -9,12 +9,13 @@ DESCRIPTION="Feature-rich dictionary lookup program (qtwebengine fork)"
 HOMEPAGE="https://github.com/xiaoyifang/goldendict-ng"
 EGIT_REPO_URI="https://github.com/xiaoyifang/goldendict-ng.git"
 EGIT_BRANCH="staged"
+EGIT_TAG="v23.05.03-alpha.230528.cba9a295"
 EGIT_SUBMODULES=()
 
 LICENSE="GPL-3"
 SLOT="0"
-KEYWORDS=""
-IUSE="debug ffmpeg opencc zim multimedia wayland xapian"
+KEYWORDS="~amd64 ~arm64"
+IUSE="debug ffmpeg opencc multimedia wayland xapian"
 
 RDEPEND="
 	app-arch/bzip2
@@ -44,7 +45,6 @@ RDEPEND="
 		media-video/ffmpeg:0=
 	)
 	opencc? ( app-i18n/opencc )
-	zim? ( app-arch/xz-utils )
 	multimedia? ( dev-qt/qtmultimedia[gstreamer] )
 	xapian? ( dev-libs/xapian )
 "
@@ -63,9 +63,6 @@ src_prepare() {
 
 	use wayland && eapply "${FILESDIR}/0002-remove-X11.patch"
 
-	# add trailing semicolon
-	sed -i -e '/^Categories/s/$/;/' redist/org.goldendict.GoldenDict.desktop || die
-
 	# fix flags
 	echo "QMAKE_CXXFLAGS_RELEASE = ${CFLAGS}" >> goldendict.pro
 	echo "QMAKE_CFLAGS_RELEASE = ${CXXFLAGS}" >> goldendict.pro
@@ -74,7 +71,6 @@ src_prepare() {
 src_configure() {
 	local myconf=( "CONFIG+=use_iconv" )
 	use opencc && myconf+=( "CONFIG+=chinese_conversion_support" )
-	use zim && myconf+=( "CONFIG+=zim_support" )
 	use ffmpeg || myconf+=( "CONFIG+=no_ffmpeg_player" )
 	use multimedia || myconf+=( "CONFIG+=no_qtmultimedia_player" )
 	use xapian && myconf+=( "CONFIG+=use_xapian" )
@@ -87,7 +83,7 @@ src_configure() {
 
 src_install() {
 	dobin ${PN}
-	domenu redist/org.${PN}.GoldenDict.desktop
+	domenu redist/org.xiaoyifang.GoldenDict_NG.desktop
 	doicon redist/icons/${PN}.png
 
 	insinto /usr/share/${PN}/locale
