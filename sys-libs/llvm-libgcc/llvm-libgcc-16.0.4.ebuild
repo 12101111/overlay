@@ -25,7 +25,6 @@ BDEPEND="
 "
 
 LLVM_COMPONENTS=( compiler-rt cmake llvm/cmake llvm-libgcc )
-LLVM_PATCHSET=${PV/_/-}
 llvm.org_set_globals
 
 src_configure() {
