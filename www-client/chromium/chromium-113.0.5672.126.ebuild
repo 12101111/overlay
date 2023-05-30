@@ -19,7 +19,7 @@ inherit python-any-r1 qmake-utils readme.gentoo-r1 toolchain-funcs virtualx xdg-
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
 PATCHSET_URI_PPC64="https://quickbuild.io/~raptor-engineering-public"
-PATCHSET_NAME_PPC64="chromium_112.0.5615.49-2raptor0~deb11u1.debian"
+PATCHSET_NAME_PPC64="chromium_113.0.5672.63-2raptor0~deb11u1.debian"
 HEVC_PATCHSET_VERSION="112.0.5612.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
@@ -328,8 +328,8 @@ pkg_setup() {
 
 	if [[ ${MERGE_TYPE} != binary ]]; then
 		local -x CPP="$(tc-getCXX) -E"
-		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 10.4; then
-			die "At least gcc 10.4 is required"
+		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 12; then
+			die "At least gcc 12 is required"
 		fi
 		if use pgo && tc-is-cross-compiler; then
 			die "The pgo USE flag cannot be used when cross-compiling"
@@ -370,6 +370,10 @@ src_prepare() {
 		popd >/dev/null || die
 	fi
 
+	rm "${WORKDIR}/chromium-112-gcc-13-patches/chromium-112-gcc-13-0002-perfetto.patch" || die
+	rm "${WORKDIR}/chromium-112-gcc-13-patches/chromium-112-gcc-13-0012-webrtc-base64.patch" || die
+	rm "${WORKDIR}/chromium-112-gcc-13-patches/chromium-112-gcc-13-0013-quiche.patch" || die
+
 	local PATCHES=(
 		#"${WORKDIR}/patches"
 		"${FILESDIR}/chromium-98-gtk4-build.patch"
@@ -379,13 +383,13 @@ src_prepare() {
 		"${FILESDIR}/chromium-111-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-cross-compile.patch"
-		"${FILESDIR}/chromium-112-compiler.patch"
-		"${FILESDIR}/chromium-112-libstdc++.patch"
-		"${FILESDIR}/chromium-112-libstdc++-1.patch"
-		"${FILESDIR}/chromium-112-sql-relax.patch"
-		"${FILESDIR}/chromium-112-gcc-mno-outline.patch"
-		"${FILESDIR}/chromium-112-swiftshader.patch"
+		"${FILESDIR}/chromium-113-compiler.patch"
 		"${WORKDIR}/chromium-112-gcc-13-patches"
+		"${FILESDIR}/chromium-113-swiftshader-cstdint.patch"
+		"${FILESDIR}/chromium-113-system-zlib.patch"
+		"${FILESDIR}/chromium-113-web_view_impl-cstring.patch"
+		"${FILESDIR}/chromium-113-std-monospace.patch"
+		"${FILESDIR}/chromium-113-gcc-13-0001-vulkanmemoryallocator.patch"
 	)
 
 	if use ppc64 ; then
