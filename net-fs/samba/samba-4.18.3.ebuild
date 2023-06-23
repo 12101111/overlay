@@ -69,7 +69,7 @@ COMMON_DEPEND="
 	dev-perl/Parse-Yapp
 	>=net-libs/gnutls-3.4.7:=[${MULTILIB_USEDEP}]
 	>=sys-fs/e2fsprogs-1.46.4-r51[${MULTILIB_USEDEP}]
-	>=sys-libs/ldb-2.7.1:=[ldap(+)?,${MULTILIB_USEDEP}]
+	>=sys-libs/ldb-2.7.2:=[ldap(+)?,${MULTILIB_USEDEP}]
 	<sys-libs/ldb-2.8.0:=[ldap(+)?,${MULTILIB_USEDEP}]
 	sys-libs/libcap[${MULTILIB_USEDEP}]
 	sys-libs/liburing:=[${MULTILIB_USEDEP}]
@@ -232,6 +232,25 @@ multilib_src_configure() {
 	# no reason. bug #802531
 	if ! use test ; then
 		bundled_libs="cmocka,${bundled_libs}"
+	fi
+
+	# bug #874633
+	if use llvm-libunwind ; then
+		mkdir -p "${T}"/${ABI}/pkgconfig || die
+
+		local -x PKG_CONFIG_PATH="${T}/${ABI}/pkgconfig:${PKG_CONFIG_PATH}"
+
+		cat <<-EOF > "${T}"/${ABI}/pkgconfig/libunwind-generic.pc || die
+		exec_prefix=\${prefix}
+		libdir=/usr/$(get_libdir)
+		includedir=\${prefix}/include
+
+		Name: libunwind-generic
+		Description: libunwind generic library
+		Version: 1.70
+		Libs: -L\${libdir} -lunwind
+		Cflags: -I\${includedir}
+		EOF
 	fi
 
 	local myconf=(
