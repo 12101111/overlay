@@ -4,7 +4,8 @@
 EAPI=8
 
 DISTUTILS_OPTIONAL=1
-PYTHON_COMPAT=( python3_{9..11} )
+DISTUTILS_USE_PEP517=setuptools
+PYTHON_COMPAT=( python3_{10..11} )
 
 inherit autotools bash-completion-r1 dist-kernel-utils distutils-r1 flag-o-matic linux-info pam systemd udev usr-ldscript
 
@@ -44,7 +45,7 @@ DEPEND="
 	!minimal? ( ${PYTHON_DEPS} )
 	pam? ( sys-libs/pam )
 	python? (
-		virtual/python-cffi[${PYTHON_USEDEP}]
+		$(python_gen_cond_dep 'dev-python/cffi[${PYTHON_USEDEP}]' 'python*')
 	)
 "
 
@@ -52,7 +53,7 @@ BDEPEND="app-alternatives/awk
 	virtual/pkgconfig
 	nls? ( sys-devel/gettext )
 	python? (
-		dev-python/setuptools[${PYTHON_USEDEP}]
+		${DISTUTILS_DEPS}
 		|| (
 			dev-python/packaging[${PYTHON_USEDEP}]
 			dev-python/distlib[${PYTHON_USEDEP}]
@@ -105,8 +106,6 @@ PATCHES=(
 	"${FILESDIR}"/2.1.5-r2-dracut-non-root.patch
 
 	"${FILESDIR}"/2.1.5-dracut-zfs-missing.patch
-
-	"${FILESDIR}/2.1.2-musl-systemd.patch"
 )
 
 pkg_pretend() {
@@ -163,15 +162,6 @@ libsoversion_check() {
 		# to keep package installable
 		[[  ${PV} == "9999" ]] || die
 	fi
-}
-
-src_unpack() {
-	if use verify-sig ; then
-		# Needed for downloaded patch (which is unsigned, which is fine)
-		verify-sig_verify_detached "${DISTDIR}"/${MY_P}.tar.gz{,.asc}
-	fi
-
-	default
 }
 
 src_prepare() {
@@ -293,12 +283,6 @@ pkg_postinst() {
 		fi
 	fi
 
-	if ! use kernel-builtin && [[ ${PV} == "9999" ]]; then
-		einfo "Adding ${P} to the module database to ensure that the"
-		einfo "kernel modules and userland utilities stay in sync."
-		update_moduledb
-	fi
-
 	if systemd_is_booted || has_version sys-apps/systemd; then
 		einfo "Please refer to ${EROOT}/$(systemd_get_systempresetdir)/50-zfs.preset"
 		einfo "for default zfs systemd service configuration"
@@ -318,8 +302,4 @@ pkg_postinst() {
 
 pkg_postrm() {
 	udev_reload
-
-	if ! use kernel-builtin && [[ ${PV} == "9999" ]]; then
-		remove_moduledb
-	fi
 }
