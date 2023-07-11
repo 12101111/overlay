@@ -233,6 +233,7 @@ src_unpack() {
 src_prepare() {
 	local PATCHES=(
 		"${FILESDIR}/systemd-253-initrd-generators.patch"
+		"${FILESDIR}/systemd-253.5-services-stop.patch"
 	)
 
 	if ! use vanilla; then
