@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{9..11} )
+PYTHON_COMPAT=( python3_{9..12} )
 
 inherit bash-completion-r1 check-reqs estack flag-o-matic llvm multiprocessing \
 	multilib multilib-build python-any-r1 rust-toolchain toolchain-funcs verify-sig
@@ -23,7 +23,7 @@ else
 	KEYWORDS="~amd64 ~arm ~arm64 ~mips ~ppc ~ppc64 ~riscv ~sparc ~x86"
 fi
 
-RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).2"
+RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).0"
 
 DESCRIPTION="Systems programming language from Mozilla"
 HOMEPAGE="https://www.rust-lang.org/"
@@ -35,14 +35,14 @@ SRC_URI="
 "
 
 # keep in sync with llvm ebuild of the same version as bundled one.
-ALL_LLVM_TARGETS=( AArch64 AMDGPU ARM AVR BPF Hexagon Lanai Mips MSP430
-	NVPTX PowerPC RISCV Sparc SystemZ WebAssembly X86 XCore )
+ALL_LLVM_TARGETS=( AArch64 AMDGPU ARM AVR BPF Hexagon Lanai LoongArch Mips MSP430
+	NVPTX PowerPC RISCV Sparc SystemZ VE WebAssembly X86 XCore )
 ALL_LLVM_TARGETS=( "${ALL_LLVM_TARGETS[@]/#/llvm_targets_}" )
 LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/(-)?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
-IUSE="clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind miri nightly parallel-compiler profiler rustfmt rust-analyzer rust-src system-bootstrap system-llvm test wasm wasi +sanitizers ${ALL_LLVM_TARGETS[*]}"
+IUSE="clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind +lto miri nightly parallel-compiler profiler rustfmt rust-analyzer rust-src system-bootstrap system-llvm test wasm wasi +sanitizers ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -50,7 +50,7 @@ IUSE="clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind miri nightly paral
 
 # How to use it:
 # List all the working slots in LLVM_VALID_SLOTS, newest first.
-LLVM_VALID_SLOTS=( 15 )
+LLVM_VALID_SLOTS=( 16 )
 LLVM_MAX_SLOT="${LLVM_VALID_SLOTS[0]}"
 
 # splitting usedeps needed to avoid CI/pkgcheck's UncheckableDep limitation
@@ -106,6 +106,9 @@ DEPEND="
 	net-misc/curl:=[http2,ssl]
 	sys-libs/zlib:=
 	dev-libs/openssl:0=
+	!system-bootstrap? (
+		elibc_musl? ( <sys-libs/musl-1.2.4 )
+	)
 	system-llvm? (
 		${LLVM_DEPEND}
 		llvm-libunwind? ( sys-libs/llvm-libunwind:= )
@@ -126,6 +129,7 @@ RDEPEND="${DEPEND}
 REQUIRED_USE="|| ( ${ALL_LLVM_TARGETS[*]} )
 	miri? ( nightly )
 	parallel-compiler? ( nightly )
+	rust-analyzer? ( rust-src )
 	test? ( ${ALL_LLVM_TARGETS[*]} )
 	wasm? ( llvm_targets_WebAssembly )
 	wasi? ( llvm_targets_WebAssembly wasm )
@@ -164,13 +168,27 @@ RESTRICT="test"
 VERIFY_SIG_OPENPGP_KEY_PATH=${BROOT}/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
-	"${FILESDIR}"/1.68.0-ignore-broken-and-non-applicable-tests.patch
+	"${FILESDIR}"/1.70.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
-	"${FILESDIR}"/1.69.0-vendor-libc-musl-lfs64-fix.patch
+	"${FILESDIR}"/1.69.0-musl-1.2.4.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
+
+rehash_crate() {
+	local cargo='.cargo-checksum.json'
+
+	local _ f
+	grep -- '+++' "${1:?}" | while read -r _ f; do
+		local file="${f#*/}"
+		local orig_sum="$(grep -Po "(?<=\"${file}\":\")[0-9a-fA-F]+(?=\")" "${cargo}")" || die
+		if [ -n "${orig_sum}" ]; then
+			local sum="$(sha256sum "${file}")" || die
+			sed -i "s|${orig_sum}|${sum%% *}|" "${cargo}" || die
+		fi
+	done
+}
 
 toml_usex() {
 	usex "${1}" true false
@@ -285,22 +303,17 @@ esetup_unwind_hack() {
 }
 
 src_prepare() {
-	if [[ "${PV}" == 1.69.0 ]]; then
-		sed -i \
-			-e 's/8d8b50a0bf7ec53bd4d2ea92e8bfae14529f0beb3f22a65b55623f7086fee8ac/e9be601d5a12566d92cb924b998a4684609b39407716efa7f1f7bafe19949700/' \
-			-e 's/8862912e65ae64dd26728ced492eacbdd3753b7a19432fc8fdf5a673ff7526c9/e889ee3f446226b5004a86abd36a30c2d72cfec6b135daa985ba6e68d375f598/' \
-			-e 's/759e65c13f7e49a6efd1a979c821c53c478648f7f00cb29da65d92904c7c6814/d0339b374db3a8d9ee1b3861ec0ea5c318808822e69cc81e8413f2444a53d94e/' \
-			vendor/libc/.cargo-checksum.json || die
-		if use sanitizers; then
-			pushd "${S}/src/llvm-project" > /dev/null || die
-			eapply "${FILESDIR}/sanitizer-dont-intercept-lfs64-symbols-on-musl.patch"
-			popd > /dev/null || die
-		fi
-	else
-		die "patch is outdated" || die
-	fi
+	local crate
+	for crate in getrandom libc-0.2.138 libc-0.2.139 libc; do
+		local patch="${FILESDIR}/1.69.0-musl-1.2.4-${crate}.patch"
+		pushd "${S}"/vendor/${crate} > /dev/null || die
+		eapply "${patch}"
+		rehash_crate "${patch}"
+		popd > /dev/null || die
+	done
+
 	if ! use system-bootstrap; then
-		has_version sys-devel/gcc || esetup_unwind_hack
+		has_version sys-devel/gcc || has_version sys-libs/llvm-libgcc || esetup_unwind_hack
 		local rust_stage0_root="${WORKDIR}"/rust-stage0
 		local rust_stage0="rust-${RUST_STAGE0_VERSION}-$(rust_abi)"
 
@@ -382,6 +395,7 @@ src_configure() {
 			*)
 				;;
 		esac)
+		enable-warnings = false
 		[llvm.build-config]
 		CMAKE_VERBOSE_MAKEFILE = "ON"
 		CMAKE_C_FLAGS_${cm_btype} = "${CFLAGS}"
@@ -449,10 +463,12 @@ src_configure() {
 		deny-warnings = $(usex wasm $(usex doc false true) true)
 		backtrace-on-ice = true
 		jemalloc = false
+		lto = "$(usex lto fat off)"
 		debug-logging = true
 		[dist]
 		src-tarball = false
 		compression-formats = ["xz"]
+		compression-profile = "balanced"
 	_EOF_
 
 	for v in $(multilib_get_enabled_abi_pairs); do
