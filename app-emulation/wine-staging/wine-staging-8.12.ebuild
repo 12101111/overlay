@@ -32,9 +32,9 @@ LICENSE="LGPL-2.1+ BSD-2 IJG MIT OPENLDAP ZLIB gsm libpng2 libtiff"
 SLOT="${PV}"
 IUSE="
 	+X +alsa capi crossdev-mingw cups dos
-	llvm-libunwind debug custom-cflags +fontconfig +gecko gphoto2
+	llvm-libunwind custom-cflags +fontconfig +gecko gphoto2
 	+gstreamer kerberos +mingw +mono netapi nls opencl +opengl osmesa
-	pcap perl pulseaudio samba scanner +sdl selinux smartcard +ssl
+	pcap perl pulseaudio samba scanner +sdl selinux smartcard +ssl +strip
 	+truetype udev udisks +unwind usb v4l +vulkan wayland +xcomposite
 	xinerama"
 REQUIRED_USE="
@@ -178,11 +178,15 @@ src_unpack() {
 		EGIT_CHECKOUT_DIR=${WORKDIR}/${P}
 		git-r3_src_unpack
 
-		EGIT_COMMIT=$(<"${EGIT_CHECKOUT_DIR}"/staging/upstream-commit) || die
-		EGIT_REPO_URI=${WINE_EGIT_REPO_URI}
-		EGIT_CHECKOUT_DIR=${S}
-		einfo "Fetching Wine commit matching the current patchset by default (${EGIT_COMMIT})"
-		git-r3_src_unpack
+		# hack: use subshell to preserve state (including what git-r3 unpack
+		# sets) for smart-live-rebuild as this is not the repo to look at
+		(
+			EGIT_COMMIT=$(<"${EGIT_CHECKOUT_DIR}"/staging/upstream-commit) || die
+			EGIT_REPO_URI=${WINE_EGIT_REPO_URI}
+			EGIT_CHECKOUT_DIR=${S}
+			einfo "Fetching Wine commit matching the current patchset by default (${EGIT_COMMIT})"
+			git-r3_src_unpack
+		)
 	else
 		default
 	fi
@@ -192,7 +196,6 @@ src_prepare() {
 	local patchinstallargs=(
 		--all
 		--no-autoconf
-		-W winemenubuilder-Desktop_Icon_Path #652176
 		${MY_WINE_STAGING_CONF}
 	)
 
@@ -289,11 +292,13 @@ src_configure() {
 	if use mingw; then
 		# use *FLAGS for mingw, but strip unsupported
 		: "${CROSSCFLAGS:=$(
-			# >=wine-7.21 configure.ac no longer adds -fno-strict by mistake
-			append-cflags '-fno-strict-aliasing'
-			filter-flags '-fstack-clash-protection' #758914
 			filter-flags '-fstack-protector*' #870136
 			filter-flags '-mfunction-return=thunk*' #878849
+			# -mavx with mingw-gcc has a history of obscure issues and
+			# disabling is seen as safer, e.g. `WINEARCH=win32 winecfg`
+			# crashes with -march=skylake >=wine-8.10, similar issues with
+			# znver4: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110273
+			append-cflags -mno-avx
 			CC=x86_64-w64-mingw32-gcc test-flags-CC ${CFLAGS:--O2})}"
 		: "${CROSSLDFLAGS:=$(
 			filter-flags '-fuse-ld=*'
@@ -328,13 +333,17 @@ src_install() {
 		make_wrapper "${bin##*/}-${P#wine-}" "${bin#"${ED}"}"
 	done
 
-	# don't let portage try to strip PE files with the wrong
-	# strip executable and instead handle it here (saves ~120MB)
 	if use mingw; then
+		# don't let portage try to strip PE files with the wrong
+		# strip executable and instead handle it here (saves ~120MB)
 		dostrip -x ${WINE_PREFIX}/wine/{i386,x86_64}-windows
-		use debug ||
+
+		if use strip; then
+			ebegin "Stripping Windows (PE) binaries"
 			find "${ED}"${WINE_PREFIX}/wine/*-windows -regex '.*\.\(a\|dll\|exe\)' \
-				-exec x86_64-w64-mingw32-strip --strip-unneeded {} + || die
+				-exec x86_64-w64-mingw32-strip --strip-unneeded {} +
+			eend ${?} || die
+		fi
 	fi
 
 	dodoc ANNOUNCE AUTHORS README* documentation/README*
