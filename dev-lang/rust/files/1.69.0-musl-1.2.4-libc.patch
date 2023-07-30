@@ -1,6 +1,7 @@
 https://bugs.gentoo.org/903607
 https://github.com/rust-lang/libc/issues/2934
 https://github.com/rust-lang/libc/pull/2935
+https://github.com/rust-lang/libc/commit/1e8c55cbed0b6e05a6c5063baa1fea50cad49269
 
 --- a/src/unix/linux_like/linux/mod.rs
 +++ b/src/unix/linux_like/linux/mod.rs
@@ -16,10 +17,11 @@ https://github.com/rust-lang/libc/pull/2935
      pub struct glob_t {
          pub gl_pathc: ::size_t,
          pub gl_pathv: *mut *mut c_char,
-@@ -625,6 +620,10 @@ s! {
+@@ -625,6 +620,11 @@ s! {
          pub flag: *mut ::c_int,
          pub val: ::c_int,
      }
++
 +    pub struct rlimit64 {
 +        pub rlim_cur: rlim64_t,
 +        pub rlim_max: rlim64_t,
@@ -27,7 +29,7 @@ https://github.com/rust-lang/libc/pull/2935
  }
  
  s_no_extra_traits! {
-@@ -643,14 +642,6 @@ s_no_extra_traits! {
+@@ -643,14 +643,6 @@ s_no_extra_traits! {
          pub d_name: [::c_char; 256],
      }
  
@@ -42,10 +44,11 @@ https://github.com/rust-lang/libc/pull/2935
      pub struct sockaddr_alg {
          pub salg_family: ::sa_family_t,
          pub salg_type: [::c_uchar; 14],
-@@ -738,6 +729,13 @@ s_no_extra_traits! {
+@@ -738,6 +730,14 @@ s_no_extra_traits! {
          #[cfg(not(libc_union))]
          pub ifr_ifru: ::sockaddr,
      }
++
 +    pub struct dirent64 {
 +        pub d_ino: ::ino64_t,
 +        pub d_off: ::off64_t,
@@ -56,7 +59,7 @@ https://github.com/rust-lang/libc/pull/2935
  }
  
  s_no_extra_traits! {
-@@ -3872,21 +3870,8 @@ extern "C" {
+@@ -3872,21 +3872,8 @@ extern "C" {
      pub fn mprotect(addr: *mut ::c_void, len: ::size_t, prot: ::c_int) -> ::c_int;
      pub fn __errno_location() -> *mut ::c_int;
  
@@ -78,7 +81,7 @@ https://github.com/rust-lang/libc/pull/2935
      pub fn readahead(fd: ::c_int, offset: ::off64_t, count: ::size_t) -> ::ssize_t;
      pub fn getxattr(
          path: *const c_char,
-@@ -4203,12 +4188,6 @@ extern "C" {
+@@ -4203,12 +4190,6 @@ extern "C" {
          offset: *mut off_t,
          count: ::size_t,
      ) -> ::ssize_t;
@@ -91,7 +94,7 @@ https://github.com/rust-lang/libc/pull/2935
      pub fn sigsuspend(mask: *const ::sigset_t) -> ::c_int;
      pub fn getgrgid_r(
          gid: ::gid_t,
-@@ -4460,6 +4439,40 @@ extern "C" {
+@@ -4460,6 +4441,40 @@ extern "C" {
      ) -> ::c_int;
  }
  
@@ -202,7 +205,7 @@ https://github.com/rust-lang/libc/pull/2935
 +
 +#[inline]
 +pub unsafe extern "C" fn fgetpos64(stream: *mut ::FILE, pos: *mut ::fpos64_t) -> ::c_int {
-+    ::fgetpos(stream, pos.cast())
++    ::fgetpos(stream, pos as *mut _)
 +}
 +
 +#[inline]
@@ -230,12 +233,12 @@ https://github.com/rust-lang/libc/pull/2935
 +
 +#[inline]
 +pub unsafe extern "C" fn fsetpos64(stream: *mut ::FILE, pos: *const ::fpos64_t) -> ::c_int {
-+    ::fsetpos(stream, pos.cast())
++    ::fsetpos(stream, pos as *mut _)
 +}
 +
 +#[inline]
 +pub unsafe extern "C" fn fstat64(fildes: ::c_int, buf: *mut ::stat64) -> ::c_int {
-+    ::fstat(fildes, buf.cast())
++    ::fstat(fildes, buf as *mut _)
 +}
 +
 +#[inline]
@@ -245,17 +248,17 @@ https://github.com/rust-lang/libc/pull/2935
 +    buf: *mut ::stat64,
 +    flag: ::c_int,
 +) -> ::c_int {
-+    ::fstatat(fd, path, buf.cast(), flag)
++    ::fstatat(fd, path, buf as *mut _, flag)
 +}
 +
 +#[inline]
 +pub unsafe extern "C" fn fstatfs64(fd: ::c_int, buf: *mut ::statfs64) -> ::c_int {
-+    ::fstatfs(fd, buf.cast())
++    ::fstatfs(fd, buf as *mut _)
 +}
 +
 +#[inline]
 +pub unsafe extern "C" fn fstatvfs64(fd: ::c_int, buf: *mut ::statvfs64) -> ::c_int {
-+    ::fstatvfs(fd, buf.cast())
++    ::fstatvfs(fd, buf as *mut _)
 +}
 +
 +#[inline]
@@ -270,7 +273,7 @@ https://github.com/rust-lang/libc/pull/2935
 +
 +#[inline]
 +pub unsafe extern "C" fn getrlimit64(resource: ::c_int, rlim: *mut ::rlimit64) -> ::c_int {
-+    ::getrlimit(resource, rlim.cast())
++    ::getrlimit(resource, rlim as *mut _)
 +}
 +
 +#[inline]
@@ -280,7 +283,7 @@ https://github.com/rust-lang/libc/pull/2935
 +
 +#[inline]
 +pub unsafe extern "C" fn lstat64(path: *const ::c_char, buf: *mut ::stat64) -> ::c_int {
-+    ::lstat(path, buf.cast())
++    ::lstat(path, buf as *mut _)
 +}
 +
 +#[inline]
@@ -301,7 +304,7 @@ https://github.com/rust-lang/libc/pull/2935
 +    flags: ::c_int,
 +    mode: ::mode_t,
 +) -> ::c_int {
-+    ::open(pathname, flags | ::O_LARGEFILE, mode)
++    ::open(pathname, flags, mode)
 +}
 +
 +#[inline]
@@ -311,7 +314,7 @@ https://github.com/rust-lang/libc/pull/2935
 +    flags: ::c_int,
 +    mode: ::mode_t,
 +) -> ::c_int {
-+    ::openat(dirfd, pathname, flags | ::O_LARGEFILE, mode)
++    ::openat(dirfd, pathname, flags, mode)
 +}
 +
 +#[inline]
@@ -360,7 +363,7 @@ https://github.com/rust-lang/libc/pull/2935
 +    new_limit: *const ::rlimit64,
 +    old_limit: *mut ::rlimit64,
 +) -> ::c_int {
-+    ::prlimit(pid, resource, new_limit.cast(), old_limit.cast())
++    ::prlimit(pid, resource, new_limit as *mut _, old_limit as *mut _)
 +}
 +
 +#[inline]
@@ -385,7 +388,7 @@ https://github.com/rust-lang/libc/pull/2935
 +
 +#[inline]
 +pub unsafe extern "C" fn readdir64(dirp: *mut ::DIR) -> *mut ::dirent64 {
-+    ::readdir(dirp).cast()
++    ::readdir(dirp) as *mut _
 +}
 +
 +#[inline]
@@ -394,7 +397,7 @@ https://github.com/rust-lang/libc/pull/2935
 +    entry: *mut ::dirent64,
 +    result: *mut *mut ::dirent64,
 +) -> ::c_int {
-+    ::readdir_r(dirp, entry.cast(), result.cast())
++    ::readdir_r(dirp, entry as *mut _, result as *mut _)
 +}
 +
 +#[inline]
@@ -409,22 +412,22 @@ https://github.com/rust-lang/libc/pull/2935
 +
 +#[inline]
 +pub unsafe extern "C" fn setrlimit64(resource: ::c_int, rlim: *const ::rlimit64) -> ::c_int {
-+    ::setrlimit(resource, rlim.cast())
++    ::setrlimit(resource, rlim as *mut _)
 +}
 +
 +#[inline]
 +pub unsafe extern "C" fn stat64(pathname: *const ::c_char, statbuf: *mut ::stat64) -> ::c_int {
-+    ::stat(pathname, statbuf.cast())
++    ::stat(pathname, statbuf as *mut _)
 +}
 +
 +#[inline]
 +pub unsafe extern "C" fn statfs64(pathname: *const ::c_char, buf: *mut ::statfs64) -> ::c_int {
-+    ::statfs(pathname, buf.cast())
++    ::statfs(pathname, buf as *mut _)
 +}
 +
 +#[inline]
 +pub unsafe extern "C" fn statvfs64(path: *const ::c_char, buf: *mut ::statvfs64) -> ::c_int {
-+    ::statvfs(path, buf.cast())
++    ::statvfs(path, buf as *mut _)
 +}
 +
 +#[inline]
@@ -631,7 +634,7 @@ https://github.com/rust-lang/libc/pull/2935
 +}
 +
 +cfg_if! {
-+    if #[cfg(not(any(target_env = "ulibc", target_env = "musl")))] {
++    if #[cfg(not(any(target_env = "uclibc", target_env = "musl")))] {
          extern "C" {
              pub fn preadv64(
                  fd: ::c_int,

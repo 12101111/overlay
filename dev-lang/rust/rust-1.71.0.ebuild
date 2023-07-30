@@ -42,7 +42,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/(-)?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD BSD-1 BSD-2 BSD-4 UoI-NCSA"
 
-IUSE="clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind +lto miri nightly parallel-compiler profiler rustfmt rust-analyzer rust-src system-bootstrap system-llvm test wasm wasi +sanitizers ${ALL_LLVM_TARGETS[*]}"
+IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind +lto miri nightly parallel-compiler profiler rustfmt rust-analyzer rust-src system-bootstrap system-llvm test wasm wasi +sanitizers ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -106,9 +106,6 @@ DEPEND="
 	net-misc/curl:=[http2,ssl]
 	sys-libs/zlib:=
 	dev-libs/openssl:0=
-	!system-bootstrap? (
-		elibc_musl? ( <sys-libs/musl-1.2.4 )
-	)
 	system-llvm? (
 		${LLVM_DEPEND}
 		llvm-libunwind? ( sys-libs/llvm-libunwind:= )
@@ -168,6 +165,8 @@ RESTRICT="test"
 VERIFY_SIG_OPENPGP_KEY_PATH=${BROOT}/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
+	"${FILESDIR}"/1.71.0-fix-bashcomp-installation.patch
+	"${FILESDIR}"/1.71.0-lint-docs-libpath.patch
 	"${FILESDIR}"/1.70.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
 	"${FILESDIR}"/1.69.0-musl-1.2.4.patch
@@ -176,18 +175,25 @@ PATCHES=(
 
 S="${WORKDIR}/${MY_P}-src"
 
-rehash_crate() {
-	local cargo='.cargo-checksum.json'
+eapply_crate() {
+	pushd "${1:?}" > /dev/null || die
 
+	local patch="${2:?}"
+	eapply "${patch}"
+
+	local cargo='.cargo-checksum.json'
 	local _ f
-	grep -- '+++' "${1:?}" | while read -r _ f; do
+	grep -- '^[+][+][+] ' "${patch}" | while read -r _ f; do
 		local file="${f#*/}"
-		local orig_sum="$(grep -Po "(?<=\"${file}\":\")[0-9a-fA-F]+(?=\")" "${cargo}")" || die
+		local orig_sum="$(grep -Eo "\"${file}\":\"[0-9a-fA-F]+\"" "${cargo}" |
+			cut -d':' -f2 | tr -d '"')" || die
 		if [ -n "${orig_sum}" ]; then
 			local sum="$(sha256sum "${file}")" || die
 			sed -i "s|${orig_sum}|${sum%% *}|" "${cargo}" || die
 		fi
 	done
+
+	popd > /dev/null || die
 }
 
 toml_usex() {
@@ -303,19 +309,36 @@ esetup_unwind_hack() {
 }
 
 src_prepare() {
-	local crate
-	for crate in getrandom libc-0.2.138 libc-0.2.139 libc; do
-		local patch="${FILESDIR}/1.69.0-musl-1.2.4-${crate}.patch"
-		pushd "${S}"/vendor/${crate} > /dev/null || die
-		eapply "${patch}"
-		rehash_crate "${patch}"
-		popd > /dev/null || die
-	done
+	eapply_crate vendor/getrandom-0.2.8 "${FILESDIR}"/1.69.0-musl-1.2.4-getrandom.patch
+	eapply_crate vendor/libc-0.2.138 "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
+	eapply_crate vendor/libc-0.2.139 "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
+	eapply_crate vendor/libc-0.2.140 "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
+	eapply_crate vendor/libc-0.2.143 "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
+	eapply_crate vendor/libc "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
 
 	if ! use system-bootstrap; then
 		has_version sys-devel/gcc || has_version sys-libs/llvm-libgcc || esetup_unwind_hack
 		local rust_stage0_root="${WORKDIR}"/rust-stage0
 		local rust_stage0="rust-${RUST_STAGE0_VERSION}-$(rust_abi)"
+
+		if use elibc_musl; then
+			local libstd
+			for libstd in "${WORKDIR}/${rust_stage0}/rust-std-$(rust_abi)/lib/rustlib/$(rust_abi)"/lib/libstd-*.rlib; do
+				"$(tc-getOBJCOPY)" \
+					--redefine-sym=stat64=stat \
+					--redefine-sym=fstat64=fstat \
+					--redefine-sym=lstat64=lstat \
+					--redefine-sym=open64=open \
+					--redefine-sym=readdir64=readdir \
+					--redefine-sym=fstatat64=fstatat \
+					--redefine-sym=lseek64=lseek \
+					--redefine-sym=ftruncate64=ftruncate \
+					"${libstd}" \
+					"${libstd}.out" || die
+
+				mv "${libstd}.out" "${libstd}" || die
+			done
+		fi
 
 		"${WORKDIR}/${rust_stage0}"/install.sh --disable-ldconfig \
 			--without=rust-docs-json-preview,rust-docs --destdir="${rust_stage0_root}" --prefix=/ || die
