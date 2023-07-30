@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{9..11} )
+PYTHON_COMPAT=( python3_{10..11} )
 PYTHON_REQ_USE="threads(+),xml(+)"
 inherit python-single-r1 flag-o-matic waf-utils multilib-minimal linux-info systemd pam tmpfiles
 
@@ -144,9 +144,9 @@ BDEPEND="${PYTHON_DEPS}
 "
 
 PATCHES=(
-	"${FILESDIR}/${PN}-4.4.0-pam.patch"
-	"${FILESDIR}/${PN}-4.16.1-netdb-defines.patch"
-	"${FILESDIR}/ldb-2.5.2-skip-wav-tevent-check.patch"
+	"${FILESDIR}"/${PN}-4.18.4-pam.patch
+	"${FILESDIR}"/${PN}-4.18.4-bug-15418-windows-update-secure-channel.patch
+	"${FILESDIR}"/ldb-2.5.2-skip-wav-tevent-check.patch
 )
 
 CONFDIR="${FILESDIR}/4.4"
