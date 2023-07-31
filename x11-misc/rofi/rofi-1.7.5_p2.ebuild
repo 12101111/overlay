@@ -8,7 +8,7 @@ inherit meson git-r3 toolchain-funcs xdg-utils
 DESCRIPTION="A window switcher, run dialog and dmenu replacement"
 HOMEPAGE="https://github.com/lbonn/rofi"
 EGIT_REPO_URI="https://github.com/lbonn/rofi"
-EGIT_TAG="1.7.5+wayland1"
+EGIT_COMMIT="1.7.5+wayland2"
 
 LICENSE="MIT"
 SLOT="0"
