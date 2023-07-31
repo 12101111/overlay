@@ -1,8 +1,8 @@
 diff --git a/goldendict.pro b/goldendict.pro
-index 9ed90bd7..cc024afc 100644
+index 9d74b1ad..26f2b387 100644
 --- a/goldendict.pro
 +++ b/goldendict.pro
-@@ -111,7 +111,8 @@ CONFIG += exceptions \
+@@ -106,7 +106,8 @@ CONFIG += exceptions \
      stl  \
      c++17 \
      lrelease \
@@ -12,7 +12,7 @@ index 9ed90bd7..cc024afc 100644
  
  mac {
      CONFIG += app_bundle
-@@ -641,5 +642,3 @@ PRE_TARGETDEPS += $$TS_OUT
+@@ -644,5 +645,3 @@ PRE_TARGETDEPS += $$TS_OUT
  #QTBUG-105984
  # avoid qt6.4.0-6.4.2 .  the qtmultimedia module is buggy in all these versions
  

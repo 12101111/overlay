@@ -3,22 +3,23 @@
 
 EAPI=8
 
-inherit desktop git-r3 qmake-utils flag-o-matic
+inherit desktop git-r3 qmake-utils flag-o-matic xdg-utils
 
 DESCRIPTION="Feature-rich dictionary lookup program (qtwebengine fork)"
 HOMEPAGE="https://github.com/xiaoyifang/goldendict-ng"
 EGIT_REPO_URI="https://github.com/xiaoyifang/goldendict-ng.git"
 EGIT_BRANCH="staged"
-EGIT_TAG="v23.05.03-alpha.230528.cba9a295"
+EGIT_COMMIT="v23.07.25-alpha.230729.0585f5da"
 EGIT_SUBMODULES=()
 
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
-IUSE="debug ffmpeg opencc multimedia wayland xapian"
+IUSE="debug ffmpeg opencc multimedia wayland xapian zim"
 
 RDEPEND="
 	app-arch/bzip2
+	app-arch/xz-utils
 	virtual/libiconv
 	>=app-text/hunspell-1.2:=
 	dev-libs/eb
@@ -47,6 +48,7 @@ RDEPEND="
 	opencc? ( app-i18n/opencc )
 	multimedia? ( dev-qt/qtmultimedia[gstreamer] )
 	xapian? ( dev-libs/xapian )
+	zim? ( media-libs/libzim[xapian] )
 "
 DEPEND="${RDEPEND}"
 BDEPEND="
@@ -61,7 +63,7 @@ PATCHES=(
 src_prepare() {
 	default
 
-	use wayland && eapply "${FILESDIR}/0002-remove-X11.patch"
+	use wayland && eapply "${FILESDIR}/remove-X11.patch"
 
 	# fix flags
 	echo "QMAKE_CXXFLAGS_RELEASE = ${CFLAGS}" >> goldendict.pro
@@ -74,6 +76,7 @@ src_configure() {
 	use ffmpeg || myconf+=( "CONFIG+=no_ffmpeg_player" )
 	use multimedia || myconf+=( "CONFIG+=no_qtmultimedia_player" )
 	use xapian && myconf+=( "CONFIG+=use_xapian" )
+	use zim && myconf+=( "CONFIG+=zim_support" )
 
 	# stack overfow & std::bad_alloc on musl
 	use elibc_musl && append-ldflags -Wl,-z,stack-size=2097152
@@ -83,9 +86,17 @@ src_configure() {
 
 src_install() {
 	dobin ${PN}
-	domenu redist/org.xiaoyifang.GoldenDict_NG.desktop
+	domenu redist/io.github.xiaoyifang.goldendict_ng.desktop
 	doicon redist/icons/${PN}.png
 
 	insinto /usr/share/${PN}/locale
 	doins .qm/*.qm
+}
+
+pkg_postinst() {
+	xdg_icon_cache_update
+}
+
+pkg_postrm() {
+	xdg_icon_cache_update
 }
