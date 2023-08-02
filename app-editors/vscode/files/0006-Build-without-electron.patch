@@ -1,6 +1,6 @@
-From 9172464e51ba7023ce87b38f80c57bcc0d3de911 Mon Sep 17 00:00:00 2001
+From 9f7d295dd4a759fc5569c7b10333196f5b448fed Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 4 Mar 2023 02:05:57 +0800
+Date: Mon, 31 Jul 2023 18:26:28 +0800
 Subject: [PATCH 06/12] Build without electron
 
 ---
@@ -8,10 +8,10 @@ Subject: [PATCH 06/12] Build without electron
  1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 938943d7809..0837287c8d1 100644
+index 9505e8fe5ca..72c0c6aa361 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -185,6 +185,13 @@ function computeChecksum(filename) {
+@@ -193,6 +193,13 @@ function computeChecksum(filename) {
  	return hash;
  }
  
@@ -25,23 +25,23 @@ index 938943d7809..0837287c8d1 100644
  function packageTask(platform, arch, sourceFolderName, destinationFolderName, opts) {
  	opts = opts || {};
  
-@@ -192,7 +199,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -200,7 +207,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  	platform = platform || process.platform;
  
  	return () => {
--		const electron = require('gulp-atom-electron');
+-		const electron = require('@vscode/gulp-electron');
  		const json = require('gulp-json-editor');
  
  		const out = sourceFolderName;
-@@ -336,7 +342,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -341,7 +347,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  			.pipe(util.skipDirectories())
  			.pipe(util.fixWin32DirectoryPermissions())
  			.pipe(filter(['**', '!**/.github/**'], { dot: true })) // https://github.com/microsoft/vscode/issues/116523
--			.pipe(electron({ ...config, platform, arch: arch === 'armhf' ? 'arm' : arch, ffmpegChromium: true }))
+-			.pipe(electron({ ...config, platform, arch: arch === 'armhf' ? 'arm' : arch, ffmpegChromium: false }))
 +			.pipe(moveApp())
- 			.pipe(filter(['**', '!LICENSE', '!LICENSES.chromium.html', '!version'], { dot: true }));
+ 			.pipe(filter(['**', '!LICENSE', '!version'], { dot: true }));
  
  		if (platform === 'linux') {
 -- 
-2.40.0
+2.41.0
 
