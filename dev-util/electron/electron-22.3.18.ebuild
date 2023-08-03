@@ -2,9 +2,9 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PYTHON_COMPAT=( python3_{9..11} )
+PYTHON_COMPAT=( python3_{10..11} )
 PYTHON_REQ_USE="xml(+)"
-LLVM_MAX_SLOT=15
+LLVM_MAX_SLOT=16
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
@@ -40,7 +40,7 @@ https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz
 https://registry.yarnpkg.com/@electron/docs-parser/-/docs-parser-1.0.0.tgz
 https://registry.yarnpkg.com/@electron/fiddle-core/-/fiddle-core-1.0.4.tgz
 https://registry.yarnpkg.com/@electron/get/-/get-2.0.2.tgz
-https://registry.yarnpkg.com/@electron/github-app-auth/-/github-app-auth-1.5.0.tgz
+https://registry.yarnpkg.com/@electron/github-app-auth/-/github-app-auth-2.1.0.tgz
 https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-8.10.0.tgz
 https://registry.yarnpkg.com/@jridgewell/gen-mapping/-/gen-mapping-0.3.2.tgz
 https://registry.yarnpkg.com/@jridgewell/resolve-uri/-/resolve-uri-3.1.0.tgz
@@ -53,42 +53,33 @@ https://registry.yarnpkg.com/@kwsites/promise-deferred/-/promise-deferred-1.1.1.
 https://registry.yarnpkg.com/@nodelib/fs.scandir/-/fs.scandir-2.1.3.tgz
 https://registry.yarnpkg.com/@nodelib/fs.stat/-/fs.stat-2.0.3.tgz
 https://registry.yarnpkg.com/@nodelib/fs.walk/-/fs.walk-1.2.4.tgz
-https://registry.yarnpkg.com/@octokit/auth-app/-/auth-app-3.6.1.tgz
-https://registry.yarnpkg.com/@octokit/auth-oauth-app/-/auth-oauth-app-4.3.4.tgz
-https://registry.yarnpkg.com/@octokit/auth-oauth-device/-/auth-oauth-device-3.1.4.tgz
+https://registry.yarnpkg.com/@octokit/auth-app/-/auth-app-4.0.13.tgz
+https://registry.yarnpkg.com/@octokit/auth-oauth-app/-/auth-oauth-app-5.0.5.tgz
 https://registry.yarnpkg.com/@octokit/auth-oauth-device/-/auth-oauth-device-4.0.3.tgz
-https://registry.yarnpkg.com/@octokit/auth-oauth-user/-/auth-oauth-user-1.3.0.tgz
 https://registry.yarnpkg.com/@octokit/auth-oauth-user/-/auth-oauth-user-2.0.4.tgz
-https://registry.yarnpkg.com/@octokit/auth-token/-/auth-token-2.5.0.tgz
 https://registry.yarnpkg.com/@octokit/auth-token/-/auth-token-3.0.3.tgz
-https://registry.yarnpkg.com/@octokit/core/-/core-3.6.0.tgz
 https://registry.yarnpkg.com/@octokit/core/-/core-4.2.0.tgz
-https://registry.yarnpkg.com/@octokit/endpoint/-/endpoint-6.0.5.tgz
+https://registry.yarnpkg.com/@octokit/core/-/core-4.2.1.tgz
 https://registry.yarnpkg.com/@octokit/endpoint/-/endpoint-7.0.3.tgz
-https://registry.yarnpkg.com/@octokit/graphql/-/graphql-4.8.0.tgz
 https://registry.yarnpkg.com/@octokit/graphql/-/graphql-5.0.5.tgz
-https://registry.yarnpkg.com/@octokit/oauth-authorization-url/-/oauth-authorization-url-4.3.3.tgz
 https://registry.yarnpkg.com/@octokit/oauth-authorization-url/-/oauth-authorization-url-5.0.0.tgz
-https://registry.yarnpkg.com/@octokit/oauth-methods/-/oauth-methods-1.2.6.tgz
 https://registry.yarnpkg.com/@octokit/oauth-methods/-/oauth-methods-2.0.4.tgz
-https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-12.11.0.tgz
 https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-14.0.0.tgz
 https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-16.0.0.tgz
-https://registry.yarnpkg.com/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-2.21.3.tgz
+https://registry.yarnpkg.com/@octokit/openapi-types/-/openapi-types-17.2.0.tgz
 https://registry.yarnpkg.com/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-6.0.0.tgz
+https://registry.yarnpkg.com/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-6.1.2.tgz
 https://registry.yarnpkg.com/@octokit/plugin-request-log/-/plugin-request-log-1.0.4.tgz
-https://registry.yarnpkg.com/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-5.16.2.tgz
 https://registry.yarnpkg.com/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-7.0.1.tgz
-https://registry.yarnpkg.com/@octokit/request-error/-/request-error-2.1.0.tgz
+https://registry.yarnpkg.com/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-7.1.3.tgz
 https://registry.yarnpkg.com/@octokit/request-error/-/request-error-3.0.2.tgz
-https://registry.yarnpkg.com/@octokit/request/-/request-5.6.3.tgz
-https://registry.yarnpkg.com/@octokit/request/-/request-6.2.2.tgz
-https://registry.yarnpkg.com/@octokit/rest/-/rest-18.12.0.tgz
+https://registry.yarnpkg.com/@octokit/request/-/request-6.2.5.tgz
+https://registry.yarnpkg.com/@octokit/rest/-/rest-19.0.11.tgz
 https://registry.yarnpkg.com/@octokit/rest/-/rest-19.0.7.tgz
-https://registry.yarnpkg.com/@octokit/types/-/types-5.2.0.tgz
-https://registry.yarnpkg.com/@octokit/types/-/types-6.41.0.tgz
+https://registry.yarnpkg.com/@octokit/tsconfig/-/tsconfig-1.0.2.tgz
 https://registry.yarnpkg.com/@octokit/types/-/types-8.0.0.tgz
 https://registry.yarnpkg.com/@octokit/types/-/types-9.0.0.tgz
+https://registry.yarnpkg.com/@octokit/types/-/types-9.2.3.tgz
 https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.0.4.tgz
 https://registry.yarnpkg.com/@primer/octicons/-/octicons-10.0.0.tgz
 https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz
@@ -127,11 +118,10 @@ https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.11.tgz
 https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.3.tgz
 https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.4.tgz
 https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz
-https://registry.yarnpkg.com/@types/jsonwebtoken/-/jsonwebtoken-8.5.0.tgz
+https://registry.yarnpkg.com/@types/jsonwebtoken/-/jsonwebtoken-9.0.2.tgz
 https://registry.yarnpkg.com/@types/keyv/-/keyv-3.1.4.tgz
 https://registry.yarnpkg.com/@types/klaw/-/klaw-3.0.1.tgz
 https://registry.yarnpkg.com/@types/linkify-it/-/linkify-it-2.1.0.tgz
-https://registry.yarnpkg.com/@types/lru-cache/-/lru-cache-5.1.0.tgz
 https://registry.yarnpkg.com/@types/markdown-it/-/markdown-it-10.0.3.tgz
 https://registry.yarnpkg.com/@types/mdast/-/mdast-3.0.7.tgz
 https://registry.yarnpkg.com/@types/mdurl/-/mdurl-1.0.2.tgz
@@ -144,7 +134,6 @@ https://registry.yarnpkg.com/@types/ms/-/ms-0.7.31.tgz
 https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.6.1.tgz
 https://registry.yarnpkg.com/@types/node/-/node-11.13.22.tgz
 https://registry.yarnpkg.com/@types/node/-/node-12.6.1.tgz
-https://registry.yarnpkg.com/@types/node/-/node-14.0.27.tgz
 https://registry.yarnpkg.com/@types/node/-/node-16.11.26.tgz
 https://registry.yarnpkg.com/@types/node/-/node-16.4.13.tgz
 https://registry.yarnpkg.com/@types/parse-json/-/parse-json-4.0.0.tgz
@@ -530,7 +519,6 @@ https://registry.yarnpkg.com/is-number/-/is-number-7.0.0.tgz
 https://registry.yarnpkg.com/is-obj/-/is-obj-1.0.1.tgz
 https://registry.yarnpkg.com/is-plain-obj/-/is-plain-obj-4.0.0.tgz
 https://registry.yarnpkg.com/is-plain-object/-/is-plain-object-2.0.4.tgz
-https://registry.yarnpkg.com/is-plain-object/-/is-plain-object-4.1.1.tgz
 https://registry.yarnpkg.com/is-plain-object/-/is-plain-object-5.0.0.tgz
 https://registry.yarnpkg.com/is-regex/-/is-regex-1.0.4.tgz
 https://registry.yarnpkg.com/is-regex/-/is-regex-1.1.0.tgz
@@ -560,7 +548,7 @@ https://registry.yarnpkg.com/json5/-/json5-2.2.0.tgz
 https://registry.yarnpkg.com/jsonc-parser/-/jsonc-parser-2.3.1.tgz
 https://registry.yarnpkg.com/jsonfile/-/jsonfile-4.0.0.tgz
 https://registry.yarnpkg.com/jsonfile/-/jsonfile-6.0.1.tgz
-https://registry.yarnpkg.com/jsonwebtoken/-/jsonwebtoken-8.5.1.tgz
+https://registry.yarnpkg.com/jsonwebtoken/-/jsonwebtoken-9.0.0.tgz
 https://registry.yarnpkg.com/jsx-ast-utils/-/jsx-ast-utils-2.4.1.tgz
 https://registry.yarnpkg.com/jwa/-/jwa-1.4.1.tgz
 https://registry.yarnpkg.com/jws/-/jws-3.2.2.tgz
@@ -589,13 +577,6 @@ https://registry.yarnpkg.com/locate-path/-/locate-path-5.0.0.tgz
 https://registry.yarnpkg.com/lodash.camelcase/-/lodash.camelcase-4.3.0.tgz
 https://registry.yarnpkg.com/lodash.differencewith/-/lodash.differencewith-4.5.0.tgz
 https://registry.yarnpkg.com/lodash.flatten/-/lodash.flatten-4.4.0.tgz
-https://registry.yarnpkg.com/lodash.includes/-/lodash.includes-4.3.0.tgz
-https://registry.yarnpkg.com/lodash.isboolean/-/lodash.isboolean-3.0.3.tgz
-https://registry.yarnpkg.com/lodash.isinteger/-/lodash.isinteger-4.0.4.tgz
-https://registry.yarnpkg.com/lodash.isnumber/-/lodash.isnumber-3.0.3.tgz
-https://registry.yarnpkg.com/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz
-https://registry.yarnpkg.com/lodash.isstring/-/lodash.isstring-4.0.1.tgz
-https://registry.yarnpkg.com/lodash.once/-/lodash.once-4.1.1.tgz
 https://registry.yarnpkg.com/lodash.range/-/lodash.range-3.2.0.tgz
 https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz
 https://registry.yarnpkg.com/log-symbols/-/log-symbols-2.2.0.tgz
@@ -607,6 +588,7 @@ https://registry.yarnpkg.com/loose-envify/-/loose-envify-1.4.0.tgz
 https://registry.yarnpkg.com/lowercase-keys/-/lowercase-keys-1.0.1.tgz
 https://registry.yarnpkg.com/lowercase-keys/-/lowercase-keys-2.0.0.tgz
 https://registry.yarnpkg.com/lru-cache/-/lru-cache-6.0.0.tgz
+https://registry.yarnpkg.com/lru-cache/-/lru-cache-9.1.2.tgz
 https://registry.yarnpkg.com/make-error/-/make-error-1.3.5.tgz
 https://registry.yarnpkg.com/markdown-it/-/markdown-it-10.0.0.tgz
 https://registry.yarnpkg.com/markdown-it/-/markdown-it-11.0.0.tgz
@@ -860,6 +842,7 @@ https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz
 https://registry.yarnpkg.com/semver/-/semver-7.3.2.tgz
 https://registry.yarnpkg.com/semver/-/semver-7.3.5.tgz
 https://registry.yarnpkg.com/semver/-/semver-7.3.8.tgz
+https://registry.yarnpkg.com/semver/-/semver-7.5.1.tgz
 https://registry.yarnpkg.com/send/-/send-0.17.1.tgz
 https://registry.yarnpkg.com/serialize-error/-/serialize-error-7.0.1.tgz
 https://registry.yarnpkg.com/serialize-javascript/-/serialize-javascript-6.0.0.tgz
@@ -970,7 +953,7 @@ https://registry.yarnpkg.com/unist-util-stringify-position/-/unist-util-stringif
 https://registry.yarnpkg.com/unist-util-stringify-position/-/unist-util-stringify-position-3.0.0.tgz
 https://registry.yarnpkg.com/unist-util-visit-parents/-/unist-util-visit-parents-3.1.1.tgz
 https://registry.yarnpkg.com/unist-util-visit/-/unist-util-visit-2.0.3.tgz
-https://registry.yarnpkg.com/universal-github-app-jwt/-/universal-github-app-jwt-1.1.0.tgz
+https://registry.yarnpkg.com/universal-github-app-jwt/-/universal-github-app-jwt-1.1.1.tgz
 https://registry.yarnpkg.com/universal-user-agent/-/universal-user-agent-6.0.0.tgz
 https://registry.yarnpkg.com/universalify/-/universalify-0.1.2.tgz
 https://registry.yarnpkg.com/universalify/-/universalify-1.0.0.tgz

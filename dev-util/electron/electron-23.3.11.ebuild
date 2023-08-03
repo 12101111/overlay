@@ -4,7 +4,7 @@
 EAPI=8
 PYTHON_COMPAT=( python3_{9..11} )
 PYTHON_REQ_USE="xml(+)"
-LLVM_MAX_SLOT=15
+LLVM_MAX_SLOT=16
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
@@ -84,7 +84,7 @@ https://registry.yarnpkg.com/@octokit/plugin-rest-endpoint-methods/-/plugin-rest
 https://registry.yarnpkg.com/@octokit/request-error/-/request-error-2.1.0.tgz
 https://registry.yarnpkg.com/@octokit/request-error/-/request-error-3.0.2.tgz
 https://registry.yarnpkg.com/@octokit/request/-/request-5.6.3.tgz
-https://registry.yarnpkg.com/@octokit/request/-/request-6.2.2.tgz
+https://registry.yarnpkg.com/@octokit/request/-/request-6.2.5.tgz
 https://registry.yarnpkg.com/@octokit/rest/-/rest-18.12.0.tgz
 https://registry.yarnpkg.com/@octokit/rest/-/rest-19.0.7.tgz
 https://registry.yarnpkg.com/@octokit/types/-/types-5.2.0.tgz
