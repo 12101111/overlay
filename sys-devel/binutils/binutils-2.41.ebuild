@@ -9,7 +9,7 @@ DESCRIPTION="Tools necessary to build programs"
 HOMEPAGE="https://sourceware.org/binutils/"
 
 LICENSE="GPL-3+"
-IUSE="+ld +gas +binutils +gprof cet debuginfod doc gold gprofng multitarget +nls pgo +plugins static-libs test vanilla zstd"
+IUSE="+ld +gas +binutils +gprof cet debuginfod doc gold gprofng hardened multitarget +nls pgo +plugins static-libs test vanilla zstd"
 
 # Variables that can be set here  (ignored for live ebuilds)
 # PATCH_VER          - the patchset version
@@ -19,7 +19,7 @@ IUSE="+ld +gas +binutils +gprof cet debuginfod doc gold gprofng multitarget +nls
 # PATCH_DEV          - Use download URI https://dev.gentoo.org/~{PATCH_DEV}/distfiles/...
 #                      for the patchsets
 
-PATCH_VER=6
+PATCH_VER=1
 PATCH_DEV=dilfridge
 
 if [[ ${PV} == 9999* ]]; then
@@ -250,30 +250,20 @@ src_configure() {
 		--libdir="${EPREFIX}"${LIBPATH}
 		--libexecdir="${EPREFIX}"${LIBPATH}
 		--includedir="${EPREFIX}"${INCPATH}
+		# portage's econf() does not detect presence of --d-d-t
+		# because it greps only top-level ./configure. But not
+		# libiberty's or bfd's configure.
+		--disable-dependency-tracking
+		--disable-silent-rules
 		--enable-obsolete
 		--enable-shared
 		--enable-threads
-		# Newer versions (>=2.27) offer a configure flag now.
 		--enable-relro
-		# Newer versions (>=2.24) make this an explicit option, bug #497268
 		--enable-install-libiberty
-		# Available from 2.35 on
-		--enable-textrel-check=warning
-
-		# These hardening options are available from 2.39+ but
-		# they unconditionally enable the behaviour even on arches
-		# where e.g. execstacks can't be avoided.
-		# See https://sourceware.org/bugzilla/show_bug.cgi?id=29592.
-		#--enable-warn-execstack
-		#--enable-warn-rwx-segments
-		#--disable-default-execstack (or is it --enable-default-execstack=no? docs are confusing)
-
+		--enable-textrel-check=$(usex hardened error warning)
 		# Things to think about
 		#--enable-deterministic-archives
-
-		# Works better than vapier's patch, bug #808787
 		--enable-new-dtags
-
 		--disable-jansson
 		--disable-werror
 		--with-bugurl="$(toolchain-binutils_bugurl)"
@@ -283,11 +273,9 @@ src_configure() {
 
 		# Disable modules that are in a combined binutils/gdb tree, bug #490566
 		--disable-{gdb,libdecnumber,readline,sim}
-		# Strip out broken static link flags.
-		# https://gcc.gnu.org/PR56750
+		# Strip out broken static link flags: https://gcc.gnu.org/PR56750
 		--without-stage1-ldflags
-		# Change SONAME to avoid conflict across
-		# {native,cross}/binutils, binutils-libs. bug #666100
+		# Change SONAME to avoid conflict across {native,cross}/binutils, binutils-libs. bug #666100
 		--with-extra-soversion-suffix=gentoo-${CATEGORY}-${PN}-$(usex multitarget mt st)
 
 		$(use_with debuginfod)
@@ -313,6 +301,41 @@ src_configure() {
 		$(use_enable gprof)
 	)
 
+	case ${CTARGET} in
+		x86_64-*|aarch64*|arm64*|i[3456]*)
+			# These hardening options are available from 2.39+ but
+			# they unconditionally enable the behaviour even on arches
+			# where e.g. execstacks can't be avoided.
+			# See https://sourceware.org/bugzilla/show_bug.cgi?id=29592.
+			#
+			# TODO: Get the logic for this fixed upstream so it doesn't
+			# create impossible broken combinations on some arches, like mips.
+			#
+			# TODO: Get the logic for this fixed upstream so --disable-* works
+			# as expected.
+			myconf+=(
+				--enable-warn-execstack=yes
+				--enable-warn-rwx-segments=yes
+			)
+
+			if use hardened ; then
+				myconf+=(
+					--enable-default-execstack=no
+				)
+			fi
+			;;
+		*)
+			;;
+	esac
+
+	if use elibc_musl ; then
+		# Override our earlier setting for musl, as textrels don't
+		# work there at all. See bug #707660.
+		myconf+=(
+			--enable-textrel-check=error
+		)
+	fi
+
 	if ! is_cross ; then
 		myconf+=( $(use_enable pgo pgo-build lto) )
 
@@ -321,7 +344,7 @@ src_configure() {
 		fi
 	fi
 
-	ECONF_SOURCE="${S}" econf "${myconf[@]}" || die
+	ECONF_SOURCE="${S}" econf "${myconf[@]}"
 
 	# Prevent makeinfo from running if doc is unset.
 	if ! use doc ; then
@@ -335,11 +358,11 @@ src_compile() {
 	cd "${MY_BUILDDIR}" || die
 
 	# see Note [tooldir hack for ldscripts]
-	emake V=1 tooldir="${EPREFIX}${TOOLPATH}" all
+	emake tooldir="${EPREFIX}${TOOLPATH}" all
 
 	# only build info pages if the user wants them
 	if use doc ; then
-		emake V=1 info
+		emake info
 	fi
 
 	# we nuke the manpages when we're left with junk
@@ -353,7 +376,7 @@ src_test() {
 	# bug #637066
 	filter-flags -Wall -Wreturn-type
 
-	emake -k V=1 check
+	emake -k check
 }
 
 src_install() {
@@ -362,7 +385,7 @@ src_install() {
 	cd "${MY_BUILDDIR}" || die
 
 	# see Note [tooldir hack for ldscripts]
-	emake V=1 DESTDIR="${D}" tooldir="${EPREFIX}${LIBPATH}" install
+	emake DESTDIR="${D}" tooldir="${EPREFIX}${LIBPATH}" install
 	rm -rf "${ED}"/${LIBPATH}/bin || die
 	use static-libs || find "${ED}" -name '*.la' -delete
 
