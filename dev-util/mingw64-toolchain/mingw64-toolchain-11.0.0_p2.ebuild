@@ -9,24 +9,27 @@ inherit edo flag-o-matic multilib-build toolchain-funcs
 # Pick versions known to work for wine+dxvk, and avoid too frequent updates
 # due to slow rebuilds. Do _p1++ rather than revbump on changes (not using
 # Gentoo patchsets for simplicity, their changes are mostly unneeded here).
-BINUTILS_PV=2.40
-GCC_PV=13.1.0
+BINUTILS_PV=2.41
+GCC_PV=13.2.0
 MINGW_PV=$(ver_cut 1-3)
 
 DESCRIPTION="All-in-one mingw64 toolchain intended for building Wine without crossdev"
 HOMEPAGE="
 	https://www.mingw-w64.org/
 	https://gcc.gnu.org/
-	https://sourceware.org/binutils/"
+	https://sourceware.org/binutils/
+"
 SRC_URI="
 	mirror://sourceforge/mingw-w64/mingw-w64/mingw-w64-release/mingw-w64-v${MINGW_PV}.tar.bz2
-	mirror://gnu/binutils/binutils-${BINUTILS_PV}.tar.xz"
+	mirror://gnu/binutils/binutils-${BINUTILS_PV}.tar.xz
+"
 if [[ ${GCC_PV} == *-* ]]; then
 	SRC_URI+=" mirror://gcc/snapshots/${GCC_PV}/gcc-${GCC_PV}.tar.xz"
 else
 	SRC_URI+="
 		mirror://gcc/gcc-${GCC_PV}/gcc-${GCC_PV}.tar.xz
-		mirror://gnu/gcc/gcc-${GCC_PV}/gcc-${GCC_PV}.tar.xz"
+		mirror://gnu/gcc/gcc-${GCC_PV}/gcc-${GCC_PV}.tar.xz
+	"
 fi
 S="${WORKDIR}"
 
@@ -34,7 +37,8 @@ S="${WORKDIR}"
 LICENSE="
 	GPL-3+
 	LGPL-3+ || ( GPL-3+ libgcc libstdc++ gcc-runtime-library-exception-3.1 )
-	ZPL BSD BSD-2 ISC LGPL-2+ LGPL-2.1+ MIT public-domain"
+	ZPL BSD BSD-2 ISC LGPL-2+ LGPL-2.1+ MIT public-domain
+"
 SLOT="0"
 KEYWORDS="-* ~amd64 ~x86"
 IUSE="multilib custom-cflags debug"
@@ -44,7 +48,8 @@ RDEPEND="
 	dev-libs/mpc:=
 	dev-libs/mpfr:=
 	sys-libs/zlib:=
-	virtual/libiconv"
+	virtual/libiconv
+"
 DEPEND="${RDEPEND}"
 
 QA_CONFIG_IMPL_DECL_SKIP=(
@@ -52,7 +57,6 @@ QA_CONFIG_IMPL_DECL_SKIP=(
 )
 
 PATCHES=(
-	"${FILESDIR}"/binutils-2.40-import-lib.patch
 	"${FILESDIR}"/gcc-12.2.0-drop-cflags-sed.patch
 )
 
@@ -198,6 +202,13 @@ src_compile() {
 				CHOST=${CTARGET}
 				filter-flags '-fuse-ld=*'
 				filter-flags '-mfunction-return=thunk*' #878849
+
+				# -mavx with mingw-gcc has a history of obscure issues and
+				# disabling is seen as safer, e.g. `WINEARCH=win32 winecfg`
+				# crashes with -march=skylake >=wine-8.10, similar issues with
+				# znver4: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110273
+				append-flags -mno-avx
+
 				strip-unsupported-flags
 				mwt-build "${@:2}"
 			)
@@ -224,8 +235,9 @@ src_compile() {
 		pushd "${build_dir}" >/dev/null || die
 
 		edo "${conf[@]}"
-		emake
-		emake DESTDIR="${MWT_D}" install
+		emake V=1
+		# -j1 to match bug #906155, other packages may be fragile too
+		emake -j1 V=1 DESTDIR="${MWT_D}" install
 
 		declare -f mwt-${id} >/dev/null && edo mwt-${id}
 		declare -f mwt-${id}_${2} >/dev/null && edo mwt-${id}_${2}
