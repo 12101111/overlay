@@ -1,4 +1,4 @@
-From f64c9107cf82277ef242021a34fb6ff46bedd610 Mon Sep 17 00:00:00 2001
+From 55b8e6e8cff8c2959a6d2305b05a1e2384bfa315 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 20 Oct 2022 15:30:03 +0800
 Subject: [PATCH 04/12] Don't run yarn install for web/remote/test
@@ -26,10 +26,10 @@ index 875390550da..8bb694b63e4 100644
  
  if (fs.existsSync(`${__dirname}/../../.build/distro/npm`)) {
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index 3c848324d70..be095f2e029 100644
+index 1c8bafc8010..75974a1ab1f 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -108,6 +108,3 @@ for (let dir of dirs) {
+@@ -111,6 +111,3 @@ for (let dir of dirs) {
  
  	yarnInstall(dir, opts);
  }

@@ -1,4 +1,4 @@
-From 6c9908cf833f8b5206ba71290d14128d84a0de48 Mon Sep 17 00:00:00 2001
+From 4b61d65c193684eecc917d355a1b5c33329a64ee Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 20 Oct 2022 15:31:37 +0800
 Subject: [PATCH 08/12] disable crash reporter

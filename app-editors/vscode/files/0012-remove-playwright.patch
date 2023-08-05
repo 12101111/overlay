@@ -1,6 +1,6 @@
-From ce588c14cbb934b9c249e9637e9e17b99c03f5db Mon Sep 17 00:00:00 2001
+From 39b95ffc626be7f7d9550827b10a6ead93e47d8c Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Mon, 31 Jul 2023 18:29:50 +0800
+Date: Sat, 5 Aug 2023 15:56:56 +0800
 Subject: [PATCH 12/12] remove playwright
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 12/12] remove playwright
  2 files changed, 8 deletions(-)
 
 diff --git a/build/package.json b/build/package.json
-index df7b7799a24..db74efe896e 100644
+index b1b42569425..724fe1aaf22 100644
 --- a/build/package.json
 +++ b/build/package.json
 @@ -4,7 +4,6 @@
@@ -19,9 +19,9 @@ index df7b7799a24..db74efe896e 100644
 -    "@azure/identity": "^3.1.3",
      "@azure/storage-blob": "^12.13.0",
      "@electron/get": "^1.12.4",
-     "@iarna/toml": "^2.2.5",
+     "@types/ansi-colors": "^3.2.0",
 diff --git a/package.json b/package.json
-index 00d5e862b8b..a0168ba0fdd 100644
+index 94907a49525..15a11605f84 100644
 --- a/package.json
 +++ b/package.json
 @@ -10,8 +10,6 @@
@@ -42,14 +42,14 @@ index 00d5e862b8b..a0168ba0fdd 100644
      "compile-extensions-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-extensions-build",
      "minify-vscode": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js minify-vscode",
 @@ -107,7 +104,6 @@
+     "yazl": "^2.4.3"
    },
    "devDependencies": {
-     "7zip": "0.0.6",
 -    "@playwright/test": "^1.34.3",
      "@swc/cli": "0.1.62",
      "@swc/core": "1.3.62",
      "@types/cookie": "^0.3.3",
-@@ -136,9 +132,6 @@
+@@ -137,9 +133,6 @@
      "@typescript-eslint/parser": "^5.57.0",
      "@vscode/gulp-electron": "^1.36.0",
      "@vscode/l10n-dev": "0.0.21",
