@@ -22,6 +22,7 @@ KEYWORDS="~amd64"
 DEPEND="
     >=dev-libs/boost-1.81.0:=
     >=dev-libs/libfmt-9.1.0:=
+	<dev-libs/libfmt-10.0.0
     >=dev-libs/libzip-1.9.2:=
     >=media-libs/libpng-1.6.39:=
     >=dev-libs/pugixml-1.13
