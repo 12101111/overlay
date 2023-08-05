@@ -1,0 +1,71 @@
+diff --git a/Ghidra/Debug/Framework-Debugging/src/expCloneExec/c/expCloneExec.c b/Ghidra/Debug/Framework-Debugging/src/expCloneExec/c/expCloneExec.c
+index 23bd76a..1f920bd 100644
+--- a/Ghidra/Debug/Framework-Debugging/src/expCloneExec/c/expCloneExec.c
++++ b/Ghidra/Debug/Framework-Debugging/src/expCloneExec/c/expCloneExec.c
+@@ -15,6 +15,7 @@
+  */
+ #include <pthread.h>
+ #include <stdio.h>
++#include <unistd.h>
+ 
+ pthread_t thread;
+ 
+diff --git a/Ghidra/Debug/Framework-Debugging/src/expCloneExit/c/expCloneExit.c b/Ghidra/Debug/Framework-Debugging/src/expCloneExit/c/expCloneExit.c
+index 338e500..742ce4d 100644
+--- a/Ghidra/Debug/Framework-Debugging/src/expCloneExit/c/expCloneExit.c
++++ b/Ghidra/Debug/Framework-Debugging/src/expCloneExit/c/expCloneExit.c
+@@ -15,6 +15,7 @@
+  */
+ #include <pthread.h>
+ #include <stdio.h>
++#include <unistd.h>
+ 
+ pthread_t thread;
+ 
+diff --git a/Ghidra/Debug/Framework-Debugging/src/expFork/c/expFork.c b/Ghidra/Debug/Framework-Debugging/src/expFork/c/expFork.c
+index 9a72a46..edb3fa5 100644
+--- a/Ghidra/Debug/Framework-Debugging/src/expFork/c/expFork.c
++++ b/Ghidra/Debug/Framework-Debugging/src/expFork/c/expFork.c
+@@ -14,6 +14,7 @@
+  * limitations under the License.
+  */
+ #include <stdio.h>
++#include <unistd.h>
+ 
+ int func(int id) {
+     if (id) {
+diff --git a/Ghidra/Debug/Framework-Debugging/src/expSpin/c/expSpin.c b/Ghidra/Debug/Framework-Debugging/src/expSpin/c/expSpin.c
+index d7eea16..778c310 100644
+--- a/Ghidra/Debug/Framework-Debugging/src/expSpin/c/expSpin.c
++++ b/Ghidra/Debug/Framework-Debugging/src/expSpin/c/expSpin.c
+@@ -15,6 +15,8 @@
+  */
+ #ifdef WIN32
+ #include <Windows.h>
++#else
++#include <unistd.h>
+ #endif
+ 
+ #ifdef WIN32
+diff --git a/Ghidra/Debug/Framework-Debugging/src/expTypes/c/expTypes.c b/Ghidra/Debug/Framework-Debugging/src/expTypes/c/expTypes.c
+index 33ee6f3..2e871c1 100644
+--- a/Ghidra/Debug/Framework-Debugging/src/expTypes/c/expTypes.c
++++ b/Ghidra/Debug/Framework-Debugging/src/expTypes/c/expTypes.c
+@@ -38,7 +38,7 @@ typedef enum _myenum {
+ typedef void (*myfunc_p)(int arg0, long arg1);
+ typedef void (*myvargfunc_p)(int arg0, long arg1, ...);
+ 
+-typedef myundef;
++//typedef myundef;
+ 
+ int int_var;
+ void* void_p_var;
+@@ -79,7 +79,7 @@ myunion myunion_var;
+ myenum myenum_var;
+ myfunc_p myfunc_p_var;
+ myvargfunc_p myvargfunc_p_var;
+-myundef myundef_var;
++//myundef myundef_var;
+ mylist_p mylist_p_var;
+ 
+ int main(int argc, char** argv) {

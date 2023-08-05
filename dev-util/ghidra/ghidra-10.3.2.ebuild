@@ -2,18 +2,21 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
-inherit java-pkg-2 desktop
+inherit java-pkg-2 desktop llvm
 
-GRADLE_DEP_VER="20221104"
+LLVM_VALID_SLOTS=( 16 )
+LLVM_MAX_SLOT=16
+
+GRADLE_DEP_VER="20230512"
 
 DESCRIPTION="A software reverse engineering framework"
 HOMEPAGE="https://ghidra-sre.org/"
 SRC_URI="https://github.com/NationalSecurityAgency/${PN}/archive/Ghidra_${PV}_build.tar.gz
 	https://dev.pentoo.ch/~blshkv/distfiles/${PN}-dependencies-${GRADLE_DEP_VER}.tar.gz
-	https://github.com/pxb1988/dex2jar/releases/download/2.0/dex-tools-2.0.zip
+	https://github.com/pxb1988/dex2jar/releases/download/v2.1/dex2jar-2.1.zip
 	https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/android4me/AXMLPrinter2.jar
 	https://sourceforge.net/projects/catacombae/files/HFSExplorer/0.21/hfsexplorer-0_21-bin.zip
-	mirror://sourceforge/yajsw/yajsw/yajsw-stable-13.05.zip
+	mirror://sourceforge/yajsw/yajsw/yajsw-stable-13.09.zip
 	https://dev.pentoo.ch/~blshkv/distfiles/cdt-8.6.0.zip
 	mirror://sourceforge/project/pydev/pydev/PyDev%206.3.1/PyDev%206.3.1.zip -> PyDev-6.3.1.zip"
 # run: "pentoo/scripts/gradle_dependencies.py buildGhidra" from "${S}" directory to generate dependencies
@@ -24,15 +27,17 @@ SRC_URI="https://github.com/NationalSecurityAgency/${PN}/archive/Ghidra_${PV}_bu
 LICENSE="Apache-2.0"
 SLOT="0"
 KEYWORDS="amd64"
-IUSE=""
+IUSE="lldb"
 
 #FIXME:
+# * QA Notice: Files built without respecting CFLAGS have been detected
 # * QA Notice: Files built without respecting LDFLAGS have been detected
 # *  Please include the following list of files in your report:
 # * /usr/share/ghidra/GPL/DemanglerGnu/os/linux_x86_64/demangler_gnu_v2_24
 # * /usr/share/ghidra/GPL/DemanglerGnu/os/linux_x86_64/demangler_gnu_v2_33_1
 # * /usr/share/ghidra/Ghidra/Features/Decompiler/os/linux_x86_64/decompile
 # * /usr/share/ghidra/Ghidra/Features/Decompiler/os/linux_x86_64/sleigh
+# * /usr/share/ghidra/Ghidra/Features/FileFormats/data/sevenzipnativelibs/Linux-amd64/lib7-Zip-JBinding.so
 
 #java-pkg-2 sets java based on RDEPEND so the java slot in rdepend is used to build
 RDEPEND="virtual/jre:17"
@@ -40,6 +45,7 @@ DEPEND="${RDEPEND}
 	virtual/jdk:17
 	sys-devel/bison
 	dev-java/jflex
+	lldb? ( dev-util/lldb:0/16 )
 	app-arch/unzip"
 BDEPEND=">=dev-java/gradle-bin-7.3:*"
 
@@ -58,14 +64,19 @@ check_gradle_binary() {
 	fi
 }
 
+pkg_setup() {
+	use lldb && llvm_pkg_setup
+	java-pkg-2_pkg_setup
+}
+
 src_unpack() {
 	# https://github.com/NationalSecurityAgency/ghidra/blob/master/DevGuide.md
 	unpack ${A}
 	mkdir -p "${S}/.gradle/flatRepo" || die "(1) mkdir failed"
 	cd "${S}/.gradle"
 
-	unpack dex-tools-2.0.zip
-	cp dex2jar-2.0/lib/dex-*.jar ./flatRepo || die "(3) cp failed"
+	unpack dex2jar-2.1.zip
+	cp dex-tools-2.1/lib/dex-*.jar ./flatRepo || die "(3) cp failed"
 
 	cp "${DISTDIR}/AXMLPrinter2.jar" ./flatRepo  || die "(4) cp failed"
 
@@ -73,12 +84,12 @@ src_unpack() {
 	cp lib/*.jar ./flatRepo            || die "(5) cp failed"
 
 	mkdir -p "${WORKDIR}"/ghidra.bin/Ghidra/Features/GhidraServer/ || die "(6) mkdir failed"
-#	cp "${DISTDIR}"/yajsw-stable-12.12.zip "${WORKDIR}"/ghidra.bin/Ghidra/Features/GhidraServer/ || die "(7) cp failed"
-	cp "${DISTDIR}"/yajsw-stable-13.05.zip "${WORKDIR}"/ghidra.bin/Ghidra/Features/GhidraServer/ || die "(7) cp failed"
+	cp "${DISTDIR}"/yajsw-stable-13.09.zip "${WORKDIR}"/ghidra.bin/Ghidra/Features/GhidraServer/ || die "(7) cp failed"
 
-	mkdir -p "${WORKDIR}"/ghidra.bin/GhidraBuild/EclipsePlugins/GhidraDev/buildDependencies/ || die "(8) mkdir failed"
-	cp "${DISTDIR}"/PyDev-6.3.1.zip "${WORKDIR}/ghidra.bin/GhidraBuild/EclipsePlugins/GhidraDev/buildDependencies/PyDev 6.3.1.zip" || die "(9) cp failed"
-	cp "${DISTDIR}"/cdt-8.6.0.zip "${WORKDIR}"/ghidra.bin/GhidraBuild/EclipsePlugins/GhidraDev/buildDependencies/ || die "(10) cp failed"
+	PLUGIN_DEP_PATH="ghidra.bin/GhidraBuild/EclipsePlugins/GhidraDev/buildDependencies"
+	mkdir -p "${WORKDIR}/${PLUGIN_DEP_PATH}/" || die "(8) mkdir failed"
+	cp "${DISTDIR}"/PyDev-6.3.1.zip "${WORKDIR}/${PLUGIN_DEP_PATH}/PyDev 6.3.1.zip" || die "(9) cp failed"
+	cp "${DISTDIR}"/cdt-8.6.0.zip   "${WORKDIR}/${PLUGIN_DEP_PATH}/" || die "(10) cp failed"
 
 	cd "${S}"
 	mv ../dependencies .
@@ -95,7 +106,9 @@ src_prepare() {
 	ln -s ../.gradle/flatRepo ./dependencies/flatRepo
 
 	eapply "${FILESDIR}/allow-clang.patch"
-	eapply "${FILESDIR}/fix-c.patch"
+	eapply "${FILESDIR}/fix-include.patch"
+
+	use lldb && export LLVM_HOME="$(get_llvm_prefix ${LLVM_MAX_SLOT})"
 
 	eapply_user
 }
