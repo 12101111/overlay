@@ -1,0 +1,100 @@
+diff --git a/shell/browser/api/electron_api_utility_process.cc b/shell/browser/api/electron_api_utility_process.cc
+index f70cac01c6..645ef81c34 100644
+--- a/shell/browser/api/electron_api_utility_process.cc
++++ b/shell/browser/api/electron_api_utility_process.cc
+@@ -376,6 +376,11 @@ gin::Handle<UtilityProcessWrapper> UtilityProcessWrapper::Create(
+ #if BUILDFLAG(IS_MAC)
+     opts.Get("allowLoadingUnsignedLibraries", &use_plugin_helper);
+ #endif
++
++#if defined(V8_ENABLE_SANDBOX)
++    opts.Get("forceAllocationsToV8Sandbox",
++             &params->use_v8_configured_pool_for_main_partition);
++#endif
+   }
+   auto handle = gin::CreateHandle(
+       args->isolate(),
+diff --git a/shell/services/node/node_service.cc b/shell/services/node/node_service.cc
+index ffd2f6966f..f4d5df0c6f 100644
+--- a/shell/services/node/node_service.cc
++++ b/shell/services/node/node_service.cc
+@@ -4,11 +4,13 @@
+ 
+ #include "shell/services/node/node_service.h"
+ 
++#include <string>
+ #include <utility>
+ #include <vector>
+ 
+ #include "base/command_line.h"
+ #include "base/strings/utf_string_conversions.h"
++#include "content/public/common/content_switches.h"
+ #include "shell/browser/javascript_environment.h"
+ #include "shell/common/api/electron_bindings.h"
+ #include "shell/common/gin_converters/file_path_converter.h"
+@@ -17,6 +19,11 @@
+ #include "shell/common/node_includes.h"
+ #include "shell/services/node/parent_port.h"
+ 
++#if BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
++#include "base/allocator/partition_alloc_support.h"
++#include "base/allocator/partition_allocator/partition_address_space.h"
++#endif
++
+ namespace electron {
+ 
+ NodeService::NodeService(
+@@ -45,6 +52,41 @@ void NodeService::Initialize(node::mojom::NodeServiceParamsPtr params) {
+ 
+   js_env_ = std::make_unique<JavascriptEnvironment>(node_bindings_->uv_loop());
+ 
++#if BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
++  auto* cmd = base::CommandLine::ForCurrentProcess();
++  std::string process_type = cmd->GetSwitchValueASCII(switches::kProcessType);
++#if defined(V8_ENABLE_SANDBOX)
++  // Gin will initialize the partition alloc configurable pool
++  // according to the V8 Sandbox preallocated addressspace in
++  // gin::V8Initializer::Initialize. Given there can only be a single
++  // configurable pool per process, we will now reroute the main partition
++  // allocation into this new pool below. The pool size is currently limited to
++  // 16GiB which will now be shared by array buffer allocations as well as other
++  // heap allocations from the process. We can increase the pool size if need
++  // arises or create a secondary configurable pool.
++  CHECK_NE(v8::V8::GetSandboxAddressSpace(), nullptr);
++  CHECK(partition_alloc::IsConfigurablePoolAvailable());
++  if (params->use_v8_configured_pool_for_main_partition) {
++    base::allocator::PartitionAllocSupport::Get()
++        ->ReconfigureAfterFeatureListInit(
++            process_type, true /* configure_dangling_pointer_detector */,
++            true /* use_configured_pool */);
++    base::allocator::PartitionAllocSupport::Get()
++        ->ReconfigureAfterTaskRunnerInit(process_type);
++  } else {
++    base::allocator::PartitionAllocSupport::Get()
++        ->ReconfigureAfterFeatureListInit(process_type);
++    base::allocator::PartitionAllocSupport::Get()
++        ->ReconfigureAfterTaskRunnerInit(process_type);
++  }
++#else
++  base::allocator::PartitionAllocSupport::Get()
++      ->ReconfigureAfterFeatureListInit(process_type);
++  base::allocator::PartitionAllocSupport::Get()->ReconfigureAfterTaskRunnerInit(
++      process_type);
++#endif  // defined(V8_ENABLE_SANDBOX)
++#endif  // BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC)
++
+   v8::HandleScope scope(js_env_->isolate());
+ 
+   node_bindings_->Initialize();
+diff --git a/shell/services/node/public/mojom/node_service.mojom b/shell/services/node/public/mojom/node_service.mojom
+index 02dacc8a67..a8f9c5aae9 100644
+--- a/shell/services/node/public/mojom/node_service.mojom
++++ b/shell/services/node/public/mojom/node_service.mojom
+@@ -13,6 +13,7 @@ struct NodeServiceParams {
+   array<string> args;
+   array<string> exec_args;
+   blink.mojom.MessagePortDescriptor port;
++  bool use_v8_configured_pool_for_main_partition = false;
+ };
+ 
+ [ServiceSandbox=sandbox.mojom.Sandbox.kNoSandbox]

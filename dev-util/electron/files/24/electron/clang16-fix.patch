@@ -1,0 +1,14 @@
+diff --git a/shell/browser/web_view_guest_delegate.h b/shell/browser/web_view_guest_delegate.h
+index 9a2123fc79..4fc4967baf 100644
+--- a/shell/browser/web_view_guest_delegate.h
++++ b/shell/browser/web_view_guest_delegate.h
+@@ -37,8 +37,7 @@ class WebViewGuestDelegate : public content::BrowserPluginGuestDelegate,
+   content::WebContents* GetOwnerWebContents() final;
+   std::unique_ptr<content::WebContents> CreateNewGuestWindow(
+       const content::WebContents::CreateParams& create_params) final;
+-  base::WeakPtr<content::BrowserPluginGuestDelegate> GetGuestDelegateWeakPtr()
+-      final;
++  base::WeakPtr<content::BrowserPluginGuestDelegate> GetGuestDelegateWeakPtr();
+ 
+   // WebContentsZoomController::Observer:
+   void OnZoomLevelChanged(content::WebContents* web_contents,
