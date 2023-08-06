@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{9..11} )
+PYTHON_COMPAT=( python3_{10..11} )
 PYTHON_REQ_USE="xml(+)"
 LLVM_MAX_SLOT=16
 
@@ -19,8 +19,8 @@ inherit python-any-r1 qmake-utils readme.gentoo-r1 toolchain-funcs virtualx xdg-
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://chromium.org/"
 PATCHSET_URI_PPC64="https://quickbuild.io/~raptor-engineering-public"
-PATCHSET_NAME_PPC64="chromium_113.0.5672.63-2raptor0~deb11u1.debian"
-HEVC_PATCHSET_VERSION="112.0.5612.0"
+PATCHSET_NAME_PPC64="chromium_114.0.5735.106-1raptor0~deb11u1.debian"
+HEVC_PATCHSET_VERSION="114.0.5705.2"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://dev.gentoo.org/~sam/distfiles/www-client/chromium/chromium-112-gcc-13-patches.tar.xz
@@ -35,7 +35,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 LICENSE="BSD"
 SLOT="0/stable"
 KEYWORDS="~amd64 ~arm64 ~ppc64"
-IUSE="hevc system-allocator +X component-build cups cpu_flags_arm_neon debug gtk4 +hangouts headless kerberos libcxx lto +official pax-kernel pgo pic +proprietary-codecs pulseaudio qt5 screencast selinux +suid +system-av1 +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland widevine"
+IUSE="hevc +X component-build cups cpu_flags_arm_neon debug gtk4 +hangouts headless kerberos libcxx lto +official pax-kernel pgo pic +proprietary-codecs pulseaudio qt5 screencast selinux +suid +system-av1 +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland widevine"
 REQUIRED_USE="
 	component-build? ( !suid !libcxx )
 	screencast? ( wayland )
@@ -81,7 +81,7 @@ COMMON_SNAPSHOT_DEPEND="
 	!headless? (
 		dev-libs/glib:2
 		>=media-libs/alsa-lib-1.0.19:=
-		pulseaudio? ( media-sound/pulseaudio:= )
+		pulseaudio? ( media-libs/libpulse:= )
 		sys-apps/pciutils:=
 		kerberos? ( virtual/krb5 )
 		vaapi? ( >=media-libs/libva-2.7:=[X?,wayland?] )
@@ -264,7 +264,7 @@ llvm_check_deps() {
 }
 
 pre_build_checks() {
-	if use elibc_musl && ! use system-allocator; then
+	if use elibc_musl && has_version "<sys-libs/musl-1.2.4" ; then
 		local patched
 		if command -v llvm-objdump > /dev/null 2>&1; then
 			patched=$(llvm-objdump --disassemble-symbols=pthread_atfork ${EPREFIX}/usr/lib/libc.so 2>&1 | grep __libc_malloc)
@@ -274,17 +274,12 @@ pre_build_checks() {
 		if [[ -z "$patched" ]]; then
 			eerror "You need patch musl libc to use chromium's PartitionAlloc. You can choose:"
 			eerror "(1) Upgrade to sys-libs/musl-1.2.4"
-			eerror "(1) Disable USE=system-allocator"
 			eerror "(2) Install musl from this overlay: emerge sys-libs/musl::12101111-overlay"
 			eerror "(3) Patch musl yourself. Copy the patch file to /etc/portage/patches/sys-libs/musl/"
 			eerror "Patch file is at <This overlay>/sys-libs/musl/files/fix-pamalloc.patch"
 			eerror "Otherwise the build will deadlock and hang."
 			die "chromium's PartitionAlloc can't work with unpatched musl!"
 		fi
-	fi
-
-	if use system-allocator; then
-		ewarn "Use system allocator is not tested by upstream and may break in the future"
 	fi
 
 	# Check build requirements, bug #541816 and bug #471810 .
@@ -348,11 +343,6 @@ pkg_setup() {
 
 	chromium_suid_sandbox_check_kernel_config
 
-	# nvidia-drivers does not work correctly with Wayland due to unsupported EGLStreams
-	if use wayland && ! use headless && has_version "x11-drivers/nvidia-drivers"; then
-		ewarn "Proprietary nVidia driver does not work with Wayland. You can disable"
-		ewarn "Wayland by setting DISABLE_OZONE_PLATFORM=true in /etc/chromium/default."
-	fi
 }
 
 src_prepare() {
@@ -364,32 +354,54 @@ src_prepare() {
 		eapply "${FILESDIR}/remove-libatomic.patch"
 	fi
 	if use hevc; then
-		eapply "${FILESDIR}/remove-main-main10-profile-limit.patch"
+		#eapply "${FILESDIR}/remove-main-main10-profile-limit.patch"
 		pushd third_party/ffmpeg >/dev/null || die
 		node "${WORKDIR}/${HEVC_PATCHSET_NAME}/add-hevc-ffmpeg-decoder-parser.js"
 		popd >/dev/null || die
 	fi
 
-	rm "${WORKDIR}/chromium-112-gcc-13-patches/chromium-112-gcc-13-0002-perfetto.patch" || die
-	rm "${WORKDIR}/chromium-112-gcc-13-patches/chromium-112-gcc-13-0012-webrtc-base64.patch" || die
-	rm "${WORKDIR}/chromium-112-gcc-13-patches/chromium-112-gcc-13-0013-quiche.patch" || die
+	# disable global media controls, crashes with libstdc++
+	sed -i -e \
+		"/\"GlobalMediaControlsCastStartStop\",/{n;s/ENABLED/DISABLED/;}" \
+		"chrome/browser/media/router/media_router_feature.cc" || die
+	# Tis lazy, but tidy this up in 115.
+	pushd "${WORKDIR}/chromium-112-gcc-13-patches/" || die
+		rm chromium-112-gcc-13-0002-perfetto.patch || die
+		rm chromium-112-gcc-13-0004-swiftshader.patch || die
+		rm chromium-112-gcc-13-0007-misc.patch || die
+		rm chromium-112-gcc-13-0008-dawn.patch || die
+		rm chromium-112-gcc-13-0009-base.patch || die
+		rm chromium-112-gcc-13-0010-components.patch || die
+		rm chromium-112-gcc-13-0011-s2cellid.patch || die
+		rm chromium-112-gcc-13-0012-webrtc-base64.patch || die
+		rm chromium-112-gcc-13-0013-quiche.patch || die
+		rm chromium-112-gcc-13-0015-net.patch || die
+		rm chromium-112-gcc-13-0016-cc-targetproperty.patch || die
+		rm chromium-112-gcc-13-0017-gpu_feature_info.patch || die
+		rm chromium-112-gcc-13-0018-encounteredsurfacetracker.patch || die
+		rm chromium-112-gcc-13-0019-documentattachmentinfo.patch  || die
+		rm chromium-112-gcc-13-0020-pdfium.patch || die
+		rm chromium-112-gcc-13-0021-gcc-copy-list-init-net-HostCache.patch || die
+		rm chromium-112-gcc-13-0022-gcc-ambiguous-ViewTransitionElementId-type.patch || die
+		rm chromium-112-gcc-13-0023-gcc-incomplete-type-v8-subtype.patch || die
+	popd || die
 
 	local PATCHES=(
-		#"${WORKDIR}/patches"
+		"${FILESDIR}/chromium-cross-compile.patch"
+		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
 		"${FILESDIR}/chromium-98-gtk4-build.patch"
 		"${FILESDIR}/chromium-108-EnumTable-crash.patch"
-		"${FILESDIR}/chromium-109-system-zlib.patch"
 		"${FILESDIR}/chromium-109-system-openh264.patch"
+		"${FILESDIR}/chromium-109-system-zlib.patch"
 		"${FILESDIR}/chromium-111-InkDropHost-crash.patch"
-		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
-		"${FILESDIR}/chromium-cross-compile.patch"
-		"${FILESDIR}/chromium-113-compiler.patch"
 		"${WORKDIR}/chromium-112-gcc-13-patches"
-		"${FILESDIR}/chromium-113-swiftshader-cstdint.patch"
-		"${FILESDIR}/chromium-113-system-zlib.patch"
-		"${FILESDIR}/chromium-113-web_view_impl-cstring.patch"
-		"${FILESDIR}/chromium-113-std-monospace.patch"
 		"${FILESDIR}/chromium-113-gcc-13-0001-vulkanmemoryallocator.patch"
+		"${FILESDIR}/chromium-113-swiftshader-cstdint.patch"
+		"${FILESDIR}/chromium-114-compiler.patch"
+		"${FILESDIR}/chromium-114-gcc12.patch"
+		"${FILESDIR}/chromium-114-sigsegv-dom.patch"
+		"${FILESDIR}/chromium-114-iwyu-gcc-13.patch"
+		"${FILESDIR}/chromium-114-remove-evdev-dep.patch"
 	)
 
 	if use ppc64 ; then
@@ -617,7 +629,6 @@ src_prepare() {
 		third_party/utf
 		third_party/vulkan
 		third_party/wayland
-		third_party/web-animations-js
 		third_party/webdriver
 		third_party/webgpu-cts
 		third_party/webrtc
@@ -784,14 +795,8 @@ chromium_configure() {
 		myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:default\""
 	fi
 
-	# Create dummy pkg-config file for libsystemd, only dependency of installer
-	mkdir "${T}/libsystemd" || die
-	cat <<- EOF > "${T}/libsystemd/libsystemd.pc"
-		Name:
-		Description:
-		Version:
-	EOF
-	local -x PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+"${PKG_CONFIG_PATH}:"}${T}/libsystemd"
+	# Disable rust for now; it's only used for testing and we don't need the additional bdep
+	myconf_gn+=" enable_rust=false"
 
 	# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
 	myconf_gn+=" is_debug=false"
@@ -804,13 +809,6 @@ chromium_configure() {
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
-
-	if use system-allocator; then
-		myconf_gn+=" use_allocator=\"none\""
-		myconf_gn+=" use_allocator_shim=false"
-		myconf_gn+=" use_partition_alloc_as_malloc=false"
-		myconf_gn+=" enable_backup_ref_ptr_support=false"
-	fi
 
 	# Disable nacl, we can't build without pnacl (http://crbug.com/269560).
 	myconf_gn+=" enable_nacl=false"
