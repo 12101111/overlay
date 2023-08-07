@@ -1114,7 +1114,7 @@ NODE_S="${S}/third_party/electron_node"
 LICENSE="BSD"
 SLOT="${PV%%[.+]*}"
 KEYWORDS="~amd64 ~arm64"
-IUSE="custom-cflags hevc system-allocator +X component-build cups cpu_flags_arm_neon debug headless kerberos libcxx lto +official pax-kernel pgo pic +proprietary-codecs pulseaudio screencast selinux +suid +system-av1 +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland"
+IUSE="custom-cflags hevc +X component-build cups cpu_flags_arm_neon debug headless kerberos libcxx lto +official pax-kernel pgo pic +proprietary-codecs pulseaudio screencast selinux +suid +system-av1 +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland"
 REQUIRED_USE="
 	component-build? ( !suid !libcxx )
 	screencast? ( wayland )
@@ -1296,7 +1296,7 @@ llvm_check_deps() {
 }
 
 pre_build_checks() {
-	if use elibc_musl && ! use system-allocator; then
+	if use elibc_musl && has_version "<sys-libs/musl-1.2.4" ; then
 		local patched
 		if command -v llvm-objdump > /dev/null 2>&1; then
 			patched=$(llvm-objdump --disassemble-symbols=pthread_atfork ${EPREFIX}/usr/lib/libc.so 2>&1 | grep __libc_malloc)
@@ -1306,17 +1306,12 @@ pre_build_checks() {
 		if [[ -z "$patched" ]]; then
 			eerror "You need patch musl libc to use chromium's PartitionAlloc. You can choose:"
 			eerror "(1) Upgrade to sys-libs/musl-1.2.4"
-			eerror "(1) Disable USE=system-allocator"
 			eerror "(2) Install musl from this overlay: emerge sys-libs/musl::12101111-overlay"
 			eerror "(3) Patch musl yourself. Copy the patch file to /etc/portage/patches/sys-libs/musl/"
 			eerror "Patch file is at <This overlay>/sys-libs/musl/files/fix-pamalloc.patch"
 			eerror "Otherwise the build will deadlock and hang."
 			die "chromium's PartitionAlloc can't work with unpatched musl!"
 		fi
-	fi
-
-	if use system-allocator; then
-		ewarn "Use system allocator is not tested by upstream and may break in the future"
 	fi
 
 	# Check build requirements, bug #541816 and bug #471810 .
@@ -1877,13 +1872,6 @@ src_configure() {
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
 	myconf_gn+=" is_component_build=$(usex component-build true false)"
-
-	if use system-allocator; then
-		myconf_gn+=" use_allocator=\"none\""
-		myconf_gn+=" use_allocator_shim=false"
-		myconf_gn+=" use_partition_alloc_as_malloc=false"
-		myconf_gn+=" enable_backup_ref_ptr_support=false"
-	fi
 
 	# Disable nacl, we can't build without pnacl (http://crbug.com/269560).
 	myconf_gn+=" enable_nacl=false"
