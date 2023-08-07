@@ -4,7 +4,7 @@
 EAPI=8
 
 if [[ ${PV} != *9999* ]]; then
-	QT5_KDEPATCHSET_REV=1
+	QT5_KDEPATCHSET_REV=2
 	KEYWORDS="~amd64 ~arm ~arm64 ~hppa ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 fi
 
@@ -80,8 +80,8 @@ src_prepare() {
 
 	qt5-build_src_prepare
 
-	# workaround for 0113-Annotate-QMutex-...patch adding a header
-	perl bin/syncqt.pl -version ${PV} || die
+	# workaround for a79a370c (...0090-Annotate-QMutex-...patch) adding a header
+	qt5_syncqt_version
 }
 
 src_configure() {
