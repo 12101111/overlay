@@ -354,7 +354,7 @@ src_prepare() {
 		eapply "${FILESDIR}/remove-libatomic.patch"
 	fi
 	if use hevc; then
-		#eapply "${FILESDIR}/remove-main-main10-profile-limit.patch"
+		eapply "${FILESDIR}/remove-main-main10-profile-limit.patch"
 		pushd third_party/ffmpeg >/dev/null || die
 		node "${WORKDIR}/${HEVC_PATCHSET_NAME}/add-hevc-ffmpeg-decoder-parser.js"
 		popd >/dev/null || die
