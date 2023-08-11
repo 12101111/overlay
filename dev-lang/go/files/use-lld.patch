@@ -1,12 +1,16 @@
 diff --git a/src/cmd/link/internal/ld/lib.go b/src/cmd/link/internal/ld/lib.go
-index f1a37e9..ae23199 100644
+index 91e2d51..4170479 100644
 --- a/src/cmd/link/internal/ld/lib.go
 +++ b/src/cmd/link/internal/ld/lib.go
-@@ -1400,20 +1400,8 @@ func (ctxt *Link) hostlink() {
- 			// On ARM64, the GNU linker will fail instead of
- 			// generating COPY relocations.
- 			//
--			// In both cases, switch to gold.
+@@ -1598,24 +1598,8 @@ func (ctxt *Link) hostlink() {
+ 		}
+ 
+ 		if ctxt.Arch.InFamily(sys.ARM64) && buildcfg.GOOS == "linux" {
+-			// On ARM64, the GNU linker will fail with
+-			// -znocopyreloc if it thinks a COPY relocation is
+-			// required. Switch to gold.
+-			// https://sourceware.org/bugzilla/show_bug.cgi?id=19962
+-			// https://go.dev/issue/22040
 -			altLinker = "gold"
 -
 -			// If gold is not installed, gcc will silently switch
@@ -17,10 +21,10 @@ index f1a37e9..ae23199 100644
 -			cmd := exec.Command(name, args...)
 -			if out, err := cmd.CombinedOutput(); err == nil {
 -				if !bytes.Contains(out, []byte("GNU gold")) {
--					log.Fatalf("ARM external linker must be gold (issue #15696), but is not: %s", out)
+-					log.Fatalf("ARM64 external linker must be gold (issue #15696, 22040), but is not: %s", out)
 -				}
 -			}
-+			// In both cases, switch to lld.
++			// Switch to lld
 +			altLinker = "lld"
  		}
  	}
