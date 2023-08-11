@@ -243,7 +243,7 @@ src_test() {
 		test/parallel/test-strace-openat-openssl.js
 		test/sequential/test-util-debug.js
 	)
-	rm "${drop_tests[@]}" || die "disabling tests failed"
+	rm -f "${drop_tests[@]}" || die "disabling tests failed"
 
 	out/${BUILDTYPE}/cctest || die
 	"${EPYTHON}" tools/test.py --mode=${BUILDTYPE,,} --flaky-tests=dontcare -J message parallel sequential || die
