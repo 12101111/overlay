@@ -145,7 +145,6 @@ BDEPEND="${PYTHON_DEPS}
 
 PATCHES=(
 	"${FILESDIR}"/${PN}-4.18.4-pam.patch
-	"${FILESDIR}"/${PN}-4.18.4-bug-15418-windows-update-secure-channel.patch
 	"${FILESDIR}"/ldb-2.5.2-skip-wav-tevent-check.patch
 )
 
