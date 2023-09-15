@@ -3,6 +3,7 @@
 
 EAPI=8
 
+PATCHSET="${P}-patchset"
 PYTHON_COMPAT=( python3_{10..11} )
 PYTHON_REQ_USE="xml(+)"
 inherit check-reqs estack flag-o-matic multiprocessing python-any-r1 qt5-build toolchain-funcs
@@ -27,7 +28,7 @@ else
 fi
 
 # ppc64 patchset based on https://github.com/chromium-ppc64le releases
-SRC_URI+=" https://dev.gentoo.org/~asturm/distfiles/${PN}-5.15.8_p20230313-patchset.tar.xz
+SRC_URI+=" https://dev.gentoo.org/~asturm/distfiles/${PATCHSET}.tar.xz
 	ppc64? ( https://dev.gentoo.org/~gyakovlev/distfiles/${PN}-5.15.2-r1-chromium87-ppc64le.tar.xz )"
 
 IUSE="pdf alsa bindist designer geolocation +jumbo-build kerberos pulseaudio screencast +system-icu widgets"
@@ -104,9 +105,8 @@ BDEPEND="${PYTHON_DEPS}
 "
 
 PATCHES=(
-	"${WORKDIR}/${PN}-5.15.8_p20230313-patchset"
+	 "${WORKDIR}/${PATCHSET}"
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
-	"${FILESDIR}/clang16-fix.patch"
 )
 
 qtwebengine_check-reqs() {
@@ -170,8 +170,6 @@ src_prepare() {
 		eapply "${FILESDIR}/gn-musl-lfs64.patch"
 	fi
 	use arm64 && eapply "${FILESDIR}/revert-skia-arm64-change.patch"
-	# upstreamed, but not spinning new patchset just yet
-	rm "${WORKDIR}"/qtwebengine-5.15.8_p20230313-patchset/015-gcc13.patch || die
 
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
 		# This is made from git, and for some reason will fail w/o .git directories.
