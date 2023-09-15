@@ -20,10 +20,10 @@ else
 	SLOT="stable/${ABI_VER}"
 	MY_P="rustc-${PV}"
 	SRC="${MY_P}-src.tar.xz"
-	KEYWORDS="~amd64 ~arm ~arm64 ~mips ~ppc ~ppc64 ~riscv ~sparc ~x86"
+	KEYWORDS="~amd64 ~arm ~arm64 ~loong ~mips ~ppc ~ppc64 ~riscv ~sparc ~x86"
 fi
 
-RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).0"
+RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).1"
 
 DESCRIPTION="Systems programming language from Mozilla"
 HOMEPAGE="https://www.rust-lang.org/"
@@ -165,10 +165,8 @@ RESTRICT="test"
 VERIFY_SIG_OPENPGP_KEY_PATH=${BROOT}/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
-	"${FILESDIR}"/1.71.1-fix-bootstrap-version-comparison.patch
 	"${FILESDIR}"/1.70.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
-	"${FILESDIR}"/1.69.0-musl-1.2.4.patch
 	"${FILESDIR}"/musl-fix-linux_musl_base.patch
 )
 
@@ -308,12 +306,9 @@ esetup_unwind_hack() {
 }
 
 src_prepare() {
-	eapply_crate vendor/getrandom-0.2.8 "${FILESDIR}"/1.69.0-musl-1.2.4-getrandom.patch
 	eapply_crate vendor/libc-0.2.138 "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
-	eapply_crate vendor/libc-0.2.139 "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
 	eapply_crate vendor/libc-0.2.140 "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
-	eapply_crate vendor/libc-0.2.143 "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
-	eapply_crate vendor/libc "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
+	eapply_crate vendor/libc-0.2.141 "${FILESDIR}"/1.69.0-musl-1.2.4-libc.patch
 
 	if ! use system-bootstrap; then
 		has_version sys-devel/gcc || has_version sys-libs/llvm-libgcc || esetup_unwind_hack
