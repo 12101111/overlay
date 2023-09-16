@@ -26,7 +26,7 @@ else
 	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
 fi
 
-inherit bash-completion-r1 flag-o-matic linux-info meson-multilib pam python-any-r1 
+inherit bash-completion-r1 flag-o-matic linux-info meson-multilib pam python-any-r1
 inherit secureboot systemd toolchain-funcs udev usr-ldscript
 
 DESCRIPTION="System and service manager for Linux"
