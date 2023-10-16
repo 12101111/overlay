@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PATCHSET="${P}-patchset"
+PATCHSET="${PN}-5.15.10_p20230815-patchset"
 PYTHON_COMPAT=( python3_{10..11} )
 PYTHON_REQ_USE="xml(+)"
 inherit check-reqs estack flag-o-matic multiprocessing python-any-r1 qt5-build toolchain-funcs
@@ -170,6 +170,8 @@ src_prepare() {
 		eapply "${FILESDIR}/gn-musl-lfs64.patch"
 	fi
 	use arm64 && eapply "${FILESDIR}/revert-skia-arm64-change.patch"
+	# upstreamed, but not spinning new patchset just yet
+	rm "${WORKDIR}"/${PATCHSET}/018-gcc13-includes.patch || die
 
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
 		# This is made from git, and for some reason will fail w/o .git directories.
