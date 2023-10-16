@@ -3,7 +3,7 @@
 
 EAPI=8
 
-inherit cmake desktop kde.org xdg-utils
+inherit cmake kde.org xdg-utils
 
 DESCRIPTION="Fast heap memory profiler"
 HOMEPAGE="https://apps.kde.org/heaptrack/
@@ -39,9 +39,7 @@ DEPEND="
 RDEPEND="${DEPEND}
 	gui? ( >=kde-frameworks/kf-env-4 )
 "
-BDEPEND="
-	gui? ( kde-frameworks/extra-cmake-modules:5 )
-"
+BDEPEND="gui? ( kde-frameworks/extra-cmake-modules:5 )"
 
 src_prepare() {
 	cmake_src_prepare
