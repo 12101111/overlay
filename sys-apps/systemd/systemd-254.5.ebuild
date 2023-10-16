@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PYTHON_COMPAT=( python3_{10..11} )
+PYTHON_COMPAT=( python3_{10..12} )
 
 # Avoid QA warnings
 TMPFILES_OPTIONAL=1
@@ -26,7 +26,7 @@ else
 	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
 fi
 
-inherit bash-completion-r1 flag-o-matic linux-info meson-multilib pam python-any-r1
+inherit bash-completion-r1 flag-o-matic linux-info meson-multilib pam python-single-r1
 inherit secureboot systemd toolchain-funcs udev usr-ldscript
 
 DESCRIPTION="System and service manager for Linux"
@@ -35,12 +35,13 @@ HOMEPAGE="http://systemd.io/"
 LICENSE="GPL-2 LGPL-2.1 MIT public-domain"
 SLOT="0/2"
 IUSE="
-	acl apparmor audit cgroup-hybrid cryptsetup curl +dns-over-tls elfutils
-	fido2 +gcrypt gnuefi gnutls homed http idn importd iptables +kmod
+	acl apparmor audit boot cgroup-hybrid cryptsetup curl +dns-over-tls elfutils
+	fido2 +gcrypt gnutls homed http idn importd iptables +kmod
 	+lz4 lzma +openssl pam pcre pkcs11 policykit pwquality qrcode
 	+resolvconf +seccomp selinux split-usr +sysv-utils test tpm vanilla xkb +zstd
 "
 REQUIRED_USE="
+	${PYTHON_REQUIRED_USE}
 	dns-over-tls? ( || ( gnutls openssl ) )
 	fido2? ( cryptsetup openssl )
 	homed? ( cryptsetup pam openssl )
@@ -90,8 +91,9 @@ COMMON_DEPEND="
 # Newer linux-headers needed by ia64, bug #480218
 DEPEND="${COMMON_DEPEND}
 	>=sys-kernel/linux-headers-${MINKV}
-	gnuefi? ( >=sys-boot/gnu-efi-3.0.2 )
 "
+
+PEFILE_DEPEND='dev-python/pefile[${PYTHON_USEDEP}]'
 
 # baselayout-2.2 has /run
 RDEPEND="${COMMON_DEPEND}
@@ -122,6 +124,10 @@ RDEPEND="${COMMON_DEPEND}
 	>=acct-user/systemd-resolve-0-r1
 	>=acct-user/systemd-timesync-0-r1
 	>=sys-apps/baselayout-2.2
+	boot? (
+		${PYTHON_DEPS}
+		$(python_gen_cond_dep "${PEFILE_DEPEND}")
+	)
 	selinux? (
 		sec-policy/selinux-base-policy[systemd]
 		sec-policy/selinux-ntp
@@ -160,14 +166,16 @@ BDEPEND="
 	app-text/docbook-xml-dtd:4.5
 	app-text/docbook-xsl-stylesheets
 	dev-libs/libxslt:0
-	$(python_gen_any_dep 'dev-python/jinja[${PYTHON_USEDEP}]')
-	$(python_gen_any_dep 'dev-python/lxml[${PYTHON_USEDEP}]')
+	${PYTHON_DEPS}
+	$(python_gen_cond_dep "
+		dev-python/jinja[\${PYTHON_USEDEP}]
+		dev-python/lxml[\${PYTHON_USEDEP}]
+		boot? (
+			>=dev-python/pyelftools-0.30[\${PYTHON_USEDEP}]
+			test? ( ${PEFILE_DEPEND} )
+		)
+	")
 "
-
-python_check_deps() {
-	python_has_version "dev-python/jinja[${PYTHON_USEDEP}]" &&
-	python_has_version "dev-python/lxml[${PYTHON_USEDEP}]"
-}
 
 QA_FLAGS_IGNORED="usr/lib/systemd/boot/efi/.*"
 QA_EXECSTACK="usr/lib/systemd/boot/efi/*"
@@ -222,7 +230,7 @@ pkg_pretend() {
 }
 
 pkg_setup() {
-	use gnuefi && secureboot_pkg_setup
+	use boot && secureboot_pkg_setup
 }
 
 src_unpack() {
@@ -285,16 +293,14 @@ multilib_src_configure() {
 		$(meson_native_use_bool acl)
 		$(meson_native_use_bool apparmor)
 		$(meson_native_use_bool audit)
+		$(meson_native_use_bool boot bootloader)
 		$(meson_native_use_bool cryptsetup libcryptsetup)
 		$(meson_native_use_bool curl libcurl)
 		$(meson_native_use_bool dns-over-tls dns-over-tls)
 		$(meson_native_use_bool elfutils)
 		$(meson_native_use_bool fido2 libfido2)
 		$(meson_use gcrypt)
-		$(meson_native_use_bool gnuefi gnu-efi)
 		$(meson_native_use_bool gnutls)
-		-Defi-includedir="${ESYSROOT}/usr/include/efi"
-		-Defi-libdir="${ESYSROOT}/usr/$(get_libdir)"
 		$(meson_native_use_bool homed)
 		$(meson_native_use_bool http microhttpd)
 		$(meson_native_use_bool idn)
@@ -393,10 +399,6 @@ multilib_src_install_all() {
 		rm "${ED}"/usr/share/man/man8/{halt,poweroff,reboot,shutdown}.8 || die
 	fi
 
-	if ! use resolvconf && ! use sysv-utils && use split-usr; then
-		rmdir "${ED}${rootprefix}"/sbin || die
-	fi
-
 	# https://bugs.gentoo.org/761763
 	rm -r "${ED}"/usr/lib/sysusers.d || die
 
@@ -414,9 +416,6 @@ multilib_src_install_all() {
 	keepdir /var/lib/systemd
 	keepdir /var/log/journal
 
-	# Symlink /etc/sysctl.conf for easy migration.
-	dosym ../../../etc/sysctl.conf /usr/lib/sysctl.d/99-sysctl.conf
-
 	if use pam; then
 		newpamd "${FILESDIR}"/systemd-user.pam systemd-user
 	fi
@@ -429,7 +428,10 @@ multilib_src_install_all() {
 
 	gen_usr_ldscript -a systemd udev
 
-	use gnuefi && secureboot_auto_sign
+	if use boot; then
+		python_fix_shebang "${ED}"
+		secureboot_auto_sign
+	fi
 }
 
 migrate_locale() {
@@ -477,6 +479,11 @@ migrate_locale() {
 }
 
 pkg_preinst() {
+	if [[ -e ${EROOT}/etc/sysctl.conf ]]; then
+		# Symlink /etc/sysctl.conf for easy migration.
+		dosym ../../../etc/sysctl.conf /usr/lib/sysctl.d/99-sysctl.conf
+	fi
+
 	if ! use split-usr; then
 		local dir
 		for dir in bin sbin lib usr/sbin; do
@@ -490,6 +497,10 @@ pkg_preinst() {
 			eerror "installing ${CATEGORY}/${PN} with USE=\"-split-usr\" to avoid run-time breakage."
 			die "System layout with split directories still used"
 		fi
+	fi
+	if ! use boot && has_version "sys-apps/systemd[gnuefi(-)]"; then
+		ewarn "The 'gnuefi' USE flag has been renamed to 'boot'."
+		ewarn "Make sure to enable the 'boot' USE flag if you use systemd-boot."
 	fi
 }
 

@@ -1,0 +1,24 @@
+diff --git a/src/boot/efi/meson.build b/src/boot/efi/meson.build
+index 2773eaf..b2ffa45 100644
+--- a/src/boot/efi/meson.build
++++ b/src/boot/efi/meson.build
+@@ -130,6 +130,7 @@ efi_includes = [fundamental_include, include_directories('.')]
+ 
+ efi_c_args = [
+         '-DSD_BOOT=1',
++        '-D__DEFINED_wchar_t=1',
+         '-ffreestanding',
+         '-fno-strict-aliasing',
+         '-fshort-wchar',
+diff --git a/src/firstboot/firstboot.c b/src/firstboot/firstboot.c
+index 1956ab3..001f82f 100644
+--- a/src/firstboot/firstboot.c
++++ b/src/firstboot/firstboot.c
+@@ -3,6 +3,7 @@
+ #include <fcntl.h>
+ #include <getopt.h>
+ #include <linux/loop.h>
++#include <sys/file.h>
+ #include <unistd.h>
+ 
+ #include "sd-id128.h"
