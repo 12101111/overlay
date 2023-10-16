@@ -3,7 +3,7 @@
 
 EAPI=8
 
-inherit flag-o-matic systemd toolchain-funcs usr-ldscript
+inherit flag-o-matic systemd toolchain-funcs udev usr-ldscript
 
 DESCRIPTION="XFS filesystem utilities"
 HOMEPAGE="https://xfs.wiki.kernel.org/ https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git/"
@@ -73,6 +73,7 @@ src_configure() {
 		--enable-blkid
 		--with-crond-dir="${EPREFIX}/etc/cron.d"
 		--with-systemd-unit-dir="$(systemd_get_systemunitdir)"
+		--with-udev-rule-dir="$(get_udevdir)"
 		$(use_enable icu libicu)
 		$(use_enable nls gettext)
 		$(use_enable libedit editline)
