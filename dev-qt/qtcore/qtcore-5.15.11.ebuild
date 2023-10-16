@@ -4,7 +4,7 @@
 EAPI=8
 
 if [[ ${PV} != *9999* ]]; then
-	QT5_KDEPATCHSET_REV=3
+	QT5_KDEPATCHSET_REV=1
 	KEYWORDS="~amd64 ~arm ~arm64 ~hppa ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 fi
 
@@ -14,7 +14,7 @@ inherit linux-info flag-o-matic toolchain-funcs qt5-build
 DESCRIPTION="Cross-platform application development framework"
 SLOT=5/${QT5_PV}
 
-IUSE="icu old-kernel systemd"
+IUSE="icu old-kernel"
 
 DEPEND="
 	dev-libs/double-conversion:=
@@ -23,7 +23,6 @@ DEPEND="
 	sys-libs/zlib:=
 	icu? ( dev-libs/icu:= )
 	!icu? ( virtual/libiconv )
-	systemd? ( sys-apps/systemd:= )
 "
 RDEPEND="${DEPEND}"
 
@@ -81,7 +80,7 @@ src_prepare() {
 
 	qt5-build_src_prepare
 
-	# workaround for a79a370c (...0090-Annotate-QMutex-...patch) adding a header
+	# workaround for a79a370c (...Annotate-QMutex-...patch) adding a header
 	qt5_syncqt_version
 }
 
@@ -89,7 +88,6 @@ src_configure() {
 	local myconf=(
 		$(qt_use icu)
 		$(qt_use !icu iconv)
-		$(qt_use systemd journald)
 		-no-feature-relocatable
 	)
 	use old-kernel && myconf+=(
