@@ -1,0 +1,13 @@
+diff --git a/gpu/command_buffer/service/program_manager.cc b/gpu/command_buffer/service/program_manager.cc
+index 021530c..30e466c 100644
+--- a/gpu/command_buffer/service/program_manager.cc
++++ b/gpu/command_buffer/service/program_manager.cc
+@@ -620,7 +620,7 @@ std::string Program::ProcessLogInfo(const std::string& log) {
+       output += hashed_name;
+   }
+ 
+-  return output + input.as_string();
++  return output + std::string(input);
+ }
+ 
+ void Program::UpdateLogInfo() {

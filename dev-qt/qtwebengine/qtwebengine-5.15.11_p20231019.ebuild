@@ -31,11 +31,8 @@ fi
 SRC_URI+=" https://dev.gentoo.org/~asturm/distfiles/${PATCHSET}.tar.xz
 	ppc64? ( https://dev.gentoo.org/~gyakovlev/distfiles/${PN}-5.15.2-r1-chromium87-ppc64le.tar.xz )"
 
-IUSE="pdf alsa bindist designer geolocation +jumbo-build kerberos pulseaudio screencast +system-icu widgets"
-REQUIRED_USE="
-	designer? ( widgets )
-	pdf? ( !system-icu )
-"
+IUSE="alsa bindist designer geolocation +jumbo-build kerberos pulseaudio screencast +system-icu widgets"
+REQUIRED_USE="designer? ( widgets )"
 
 RDEPEND="
 	app-arch/snappy:=
@@ -128,9 +125,9 @@ qtwebengine_check-reqs() {
 	# Let's crudely assume ~2GB per compiler job for GCC.
 	local multiplier=20
 
-	# And call it ~1.0GB for Clang.
+	# And call it ~1.5GB for Clang.
 	if tc-is-clang ; then
-		multiplier=10
+		multiplier=15
 	fi
 
 	local CHECKREQS_DISK_BUILD="7G"
@@ -252,6 +249,7 @@ src_configure() {
 
 	local myqmakeargs=(
 		--
+		-no-build-qtpdf
 		-printing-and-pdf
 		-system-opus
 		-system-webp
@@ -263,7 +261,6 @@ src_configure() {
 		$(usex screencast -webengine-webrtc-pipewire '')
 		-qt-ffmpeg # bug 831487
 		$(qt_use system-icu webengine-icu)
-		$(usex pdf '' -no-build-qtpdf)
 	)
 	qt5-build_src_configure
 }
