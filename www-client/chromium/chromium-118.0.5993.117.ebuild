@@ -3,33 +3,31 @@
 
 EAPI=8
 
+# Can't do 12 yet: heavy use of imp, among other things (bug #915001, bug #915062)
 PYTHON_COMPAT=( python3_{10..11} )
 PYTHON_REQ_USE="xml(+)"
-LLVM_MAX_SLOT=16
+LLVM_MAX_SLOT=17
+VIRTUALX_REQUIRED="pgo"
+GN_MIN_VER="0.2114"
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
-
-VIRTUALX_REQUIRED="pgo"
 
 inherit check-reqs chromium-2 desktop flag-o-matic llvm ninja-utils pax-utils
 inherit python-any-r1 qmake-utils readme.gentoo-r1 toolchain-funcs virtualx xdg-utils
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PATCHSET="2"
-PATCHSET_NAME="chromium-$(ver_cut 1)-patchset-${PATCHSET}"
-PATCHSET_PPC64="116.0.5845.140-1raptor0~deb12u1"
-# ^ = https://quickbuild.io/~raptor-engineering-public/+archive/ubuntu/chromium
-HEVC_PATCHSET_VERSION="116.0.5829.0"
+PATCHSET_PPC64="118.0.5993.70-1raptor0~deb11u1"
+PATCH_V="${PV%%\.*}-2"
+HEVC_PATCHSET_VERSION="118.0.5956.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
-	https://github.com/stha09/chromium-patches/releases/download/${PATCHSET_NAME}/${PATCHSET_NAME}.tar.xz
+	https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
 	ppc64? (
 		https://quickbuild.io/~raptor-engineering-public/+archive/ubuntu/chromium/+files/chromium_${PATCHSET_PPC64}.debian.tar.xz
-		https://dev.gentoo.org/~sultan/distfiles/www-client/chromium/chromium-ppc64le-gentoo-patches-1.tar.xz
-		https://raw.githubusercontent.com/darkbasic/gentoo-files/master/chromium-116-0001-Add-PPC64-support-for-boringssl.patch.gz
+		https://deps.gentoo.zip/chromium-ppc64le-gentoo-patches-1.tar.xz
 	)
 	pgo? ( https://github.com/elkablo/chromium-profiler/releases/download/v0.2/chromium-profiler-0.2.tar )
 	hevc? ( https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding/archive/${HEVC_PATCHSET_VERSION}.tar.gz -> chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz )
@@ -38,9 +36,9 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 LICENSE="BSD"
 SLOT="0/stable"
 KEYWORDS="~amd64 ~arm64 ~ppc64"
-IUSE="hevc +X component-build cups cpu_flags_arm_neon debug gtk4 +hangouts headless kerberos libcxx lto +official pax-kernel pgo pic +proprietary-codecs pulseaudio qt5 qt6 screencast selinux +suid +system-av1 +system-ffmpeg +system-harfbuzz +system-icu +system-png vaapi wayland widevine"
+IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
+IUSE="hevc +X ${IUSE_SYSTEM_LIBS} cups debug gtk4 +hangouts headless kerberos libcxx lto +official pax-kernel pgo +proprietary-codecs pulseaudio qt5 qt6 screencast selinux vaapi wayland widevine"
 REQUIRED_USE="
-	component-build? ( !suid !libcxx )
 	screencast? ( wayland )
 	!headless? ( || ( X wayland ) )
 	pgo? ( X !wayland )
@@ -72,13 +70,10 @@ COMMON_SNAPSHOT_DEPEND="
 	system-harfbuzz? ( >=media-libs/harfbuzz-3:0=[icu(-)] )
 	media-libs/libjpeg-turbo:=
 	system-png? ( media-libs/libpng:=[-apng(-)] )
+	system-zstd? ( >=app-arch/zstd-1.5.5:= )
 	>=media-libs/libwebp-0.4.0:=
 	media-libs/mesa:=[gbm(+)]
 	>=media-libs/openh264-1.6.0:=
-	system-av1? (
-		>=media-libs/dav1d-1.0.0:=
-		>=media-libs/libaom-3.4.0:=
-	)
 	sys-libs/zlib:=
 	x11-libs/libdrm:=
 	!headless? (
@@ -105,14 +100,6 @@ COMMON_DEPEND="
 	${COMMON_SNAPSHOT_DEPEND}
 	app-arch/bzip2:=
 	dev-libs/expat:=
-	system-ffmpeg? (
-		>=media-video/ffmpeg-4.3:=
-		|| (
-			media-video/ffmpeg[-samba]
-			>=net-fs/samba-4.5.10-r1[-debug(-)]
-		)
-		>=media-libs/opus-1.3.1:=
-	)
 	net-misc/curl[ssl]
 	sys-apps/dbus:=
 	media-libs/flac:=
@@ -189,15 +176,15 @@ BDEPEND="
 		qt5? ( dev-qt/qtcore:5 )
 		qt6? ( dev-qt/qtbase:6 )
 	)
-	libcxx? ( >=sys-devel/clang-16 )
-	lto? ( $(depend_clang_llvm_versions 16) )
+	libcxx? ( >=sys-devel/clang-17 )
+	lto? ( $(depend_clang_llvm_versions 17) )
 	pgo? (
 		>=dev-python/selenium-3.141.0
 		>=dev-util/web_page_replay_go-20220314
-		$(depend_clang_llvm_versions 16)
+		$(depend_clang_llvm_versions 17)
 	)
 	dev-lang/perl
-	>=dev-util/gn-0.1807
+	>=dev-util/gn-${GN_MIN_VER}
 	>=dev-util/gperf-3.0.3
 	>=dev-util/ninja-1.7.2
 	dev-vcs/git
@@ -211,7 +198,7 @@ BDEPEND="
 : ${CHROMIUM_FORCE_CLANG=no}
 
 if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
-	BDEPEND+=" >=sys-devel/clang-16"
+	BDEPEND+=" >=sys-devel/clang-17"
 fi
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
@@ -288,24 +275,25 @@ pre_build_checks() {
 		fi
 	fi
 
-	# Check build requirements, bug #541816 and bug #471810 .
-	CHECKREQS_MEMORY="4G"
-	CHECKREQS_DISK_BUILD="14G"
-	tc-is-cross-compiler && CHECKREQS_DISK_BUILD="16G"
+	# Check build requirements: bugs #471810, #541816, #914220
+	# We're going to start doing maths here on the size of an unpacked source tarball,
+	# this should make updates easier as chromium continues to balloon in size.
+	local BASE_DISK=18
+	local EXTRA_DISK=1
+	local CHECKREQS_MEMORY="4G"
+	tc-is-cross-compiler && EXTRA_DISK=2
 	if use lto || use pgo; then
 		CHECKREQS_MEMORY="9G"
-		CHECKREQS_DISK_BUILD="15G"
-		tc-is-cross-compiler && CHECKREQS_DISK_BUILD="18G"
-		use pgo && CHECKREQS_DISK_BUILD="22G"
+		tc-is-cross-compiler && EXTRA_DISK=4
+		use pgo && EXTRA_DISK=8
 	fi
 	if is-flagq '-g?(gdb)?([1-9])'; then
-		if use custom-cflags || use component-build; then
-			CHECKREQS_DISK_BUILD="27G"
+		if use custom-cflags; then
+			EXTRA_DISK=13
 		fi
-		if ! use component-build; then
-			CHECKREQS_MEMORY="16G"
-		fi
+		CHECKREQS_MEMORY="16G"
 	fi
+	CHECKREQS_DISK_BUILD="$((BASE_DISK + EXTRA_DISK))G"
 	check-reqs_${EBUILD_PHASE_FUNC}
 }
 
@@ -341,9 +329,12 @@ pkg_setup() {
 			else
 				CPP="${CHOST}-clang++ -E"
 			fi
-			if ! ver_test "$(clang-major-version)" -ge 16; then
-				die "At least clang 16 is required"
+			if ver_test "$(clang-major-version)" -lt 17; then
+				die "At least clang 17 is required"
 			fi
+		fi
+		if ver_test $(gn --version || die) -lt ${GN_MIN_VER}; then
+				die "dev-util/gn >= ${GN_MIN_VER} is required to build this Chromium"
 		fi
 	fi
 
@@ -371,28 +362,23 @@ src_prepare() {
 		"chrome/browser/media/router/media_router_feature.cc" || die
 
 	local PATCHES=(
-		"${WORKDIR}/patches"
+		"${WORKDIR}/chromium-patches-${PATCH_V}"
 		"${FILESDIR}/chromium-cross-compile.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
-		"${FILESDIR}/chromium-qt6.patch"
-		"${FILESDIR}/chromium-98-gtk4-build.patch"
 		"${FILESDIR}/chromium-108-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-109-system-zlib.patch"
 		"${FILESDIR}/chromium-111-InkDropHost-crash.patch"
-		"${FILESDIR}/chromium-114-remove-evdev-dep.patch"
-		"${FILESDIR}/chromium-115-binutils-2.41.patch"
+		"${FILESDIR}/chromium-icu74.patch"
 	)
 
 	if use ppc64 ; then
 		local p
 		for p in $(grep -v "^#" "${WORKDIR}"/debian/patches/series | grep "^ppc64le" || die); do
-			# Revert to Raptor's bundled 0001-Add-PPC64-support-for-boringssl.patch starting from 117
-			if [[ ! ($p =~ "fix-breakpad-compile.patch" || $p =~ "Add-PPC64-support-for-boringssl.patch") ]]; then
+			if [[ ! $p =~ "fix-breakpad-compile.patch" ]]; then
 				eapply "${WORKDIR}/debian/patches/${p}"
 			fi
 		done
 		PATCHES+=( "${WORKDIR}/ppc64le" )
-		PATCHES+=( "${WORKDIR}/chromium-116-0001-Add-PPC64-support-for-boringssl.patch" )
 	fi
 
 	default
@@ -428,7 +414,6 @@ src_prepare() {
 		third_party/angle/src/common/third_party/xxhash
 		third_party/angle/src/third_party/ceval
 		third_party/angle/src/third_party/libXNVCtrl
-		third_party/angle/src/third_party/systeminfo
 		third_party/angle/src/third_party/volk
 		third_party/apple_apsl
 		third_party/axe-core
@@ -467,6 +452,7 @@ src_prepare() {
 		third_party/dawn
 		third_party/dawn/third_party/gn/webgpu-cts
 		third_party/dawn/third_party/khronos
+		third_party/dav1d
 		third_party/depot_tools
 		third_party/devscripts
 		third_party/devtools-frontend
@@ -484,6 +470,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/marked
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/mitt
+		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/rxjs
 		third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/test/unittests/front_end/third_party/i18n
@@ -495,6 +482,7 @@ src_prepare() {
 		third_party/farmhash
 		third_party/fdlibm
 		third_party/fft2d
+		third_party/ffmpeg
 		third_party/flatbuffers
 		third_party/fp16
 		third_party/freetype
@@ -518,6 +506,11 @@ src_prepare() {
 		third_party/khronos
 		third_party/leveldatabase
 		third_party/libaddressinput
+		third_party/libaom
+		third_party/libaom/source/libaom/third_party/fastfeat
+		third_party/libaom/source/libaom/third_party/SVT-AV1
+		third_party/libaom/source/libaom/third_party/vector
+		third_party/libaom/source/libaom/third_party/x86inc
 		third_party/libavif
 		third_party/libevent
 		third_party/libgav1
@@ -558,6 +551,7 @@ src_prepare() {
 		third_party/openscreen
 		third_party/openscreen/src/third_party/mozilla
 		third_party/openscreen/src/third_party/tinycbor/src/src
+		third_party/opus
 		third_party/ots
 		third_party/pdfium
 		third_party/pdfium/third_party/agg23
@@ -567,7 +561,6 @@ src_prepare() {
 		third_party/pdfium/third_party/lcms
 		third_party/pdfium/third_party/libopenjpeg
 		third_party/pdfium/third_party/libtiff
-		third_party/pdfium/third_party/skia_shared
 		third_party/perfetto
 		third_party/perfetto/protos/third_party/chromium
 		third_party/pffft
@@ -644,28 +637,29 @@ src_prepare() {
 		third_party/usb_ids
 		third_party/xdg-utils
 	)
-	if ! use system-ffmpeg; then
-		keeplibs+=( third_party/ffmpeg third_party/opus )
-	fi
-	if ! use system-icu; then
-		keeplibs+=( third_party/icu )
-	fi
-	if ! use system-png; then
-		keeplibs+=( third_party/libpng )
-	fi
-	if ! use system-av1; then
-		keeplibs+=(
-			third_party/dav1d
-			third_party/libaom
-			third_party/libaom/source/libaom/third_party/fastfeat
-			third_party/libaom/source/libaom/third_party/SVT-AV1
-			third_party/libaom/source/libaom/third_party/vector
-			third_party/libaom/source/libaom/third_party/x86inc
-		)
-	fi
+
+	# USE=system-*
 	if ! use system-harfbuzz; then
 		keeplibs+=( third_party/harfbuzz-ng )
 	fi
+
+	if ! use system-icu; then
+		keeplibs+=( third_party/icu )
+	fi
+
+	if ! use system-png; then
+		keeplibs+=( third_party/libpng )
+	fi
+
+	if ! use system-zstd; then
+		keeplibs+=( third_party/zstd )
+	fi
+
+	if use libcxx; then
+		keeplibs+=( third_party/libc++ )
+	fi
+
+	# Arch-specific
 	if use arm64 || use ppc64 ; then
 		keeplibs+=( third_party/swiftshader/third_party/llvm-10.0 )
 	fi
@@ -685,7 +679,8 @@ src_prepare() {
 		cp libavcodec/ppc/h264qpel.c libavcodec/ppc/h264qpel_ppc.c || die
 		popd >/dev/null || die
 	fi
-	ebegin "Remove bundled libraries"
+
+	ebegin "Unbundling third-party libraries ..."
 	# Remove most bundled libraries. Some are still needed.
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 	eend 0
@@ -737,14 +732,14 @@ chromium_configure() {
 		myconf_gn+=" is_clang=false"
 	fi
 
-	# Force lld for lto or pgo builds only, otherwise disable, bug 641556
+	# Force lld for lto builds only, otherwise disable, bug 641556
 	if use lto || use pgo; then
 		myconf_gn+=" use_lld=true"
 	else
 		myconf_gn+=" use_lld=false"
 	fi
 
-	if use lto || use pgo; then
+	if use lto; then
 		AR=llvm-ar
 		NM=llvm-nm
 		if tc-is-cross-compiler; then
@@ -789,7 +784,7 @@ chromium_configure() {
 
 	# Component build isn't generally intended for use by end users. It's mostly useful
 	# for development and debugging.
-	myconf_gn+=" is_component_build=$(usex component-build true false)"
+	myconf_gn+=" is_component_build=false"
 
 	# Disable nacl, we can't build without pnacl (http://crbug.com/269560).
 	myconf_gn+=" enable_nacl=false"
@@ -815,17 +810,14 @@ chromium_configure() {
 		openh264
 		zlib
 	)
-	if use system-ffmpeg; then
-		gn_system_libraries+=( ffmpeg opus )
-	fi
 	if use system-icu; then
 		gn_system_libraries+=( icu )
 	fi
 	if use system-png; then
 		gn_system_libraries+=( libpng )
 	fi
-	if use system-av1; then
-		gn_system_libraries+=( dav1d libaom )
+	if use system-zstd; then
+		gn_system_libraries+=( zstd )
 	fi
 	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
 
@@ -895,12 +887,10 @@ chromium_configure() {
 
 		# Debug info section overflows without component build
 		# Prevent linker from running out of address space, bug #471810 .
-		if ! use component-build || use x86; then
-			filter-flags "-g*"
-		fi
+		filter-flags "-g*"
 
 		# Prevent libvpx/xnnpack build failures. Bug 530248, 544702, 546984, 853646.
-		if [[ ${myarch} == amd64 || ${myarch} == x86 ]]; then
+		if [[ ${myarch} == amd64 ]]; then
 			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-xop -mno-sse4a
 		fi
 
@@ -915,19 +905,9 @@ chromium_configure() {
 	if [[ $myarch = amd64 ]] ; then
 		myconf_gn+=" target_cpu=\"x64\""
 		ffmpeg_target_arch=x64
-	elif [[ $myarch = x86 ]] ; then
-		myconf_gn+=" target_cpu=\"x86\""
-		ffmpeg_target_arch=ia32
-
-		# This is normally defined by compiler_cpu_abi in
-		# build/config/compiler/BUILD.gn, but we patch that part out.
-		append-flags -msse2 -mfpmath=sse -mmmx
 	elif [[ $myarch = arm64 ]] ; then
 		myconf_gn+=" target_cpu=\"arm64\""
 		ffmpeg_target_arch=arm64
-	elif [[ $myarch = arm ]] ; then
-		myconf_gn+=" target_cpu=\"arm\""
-		ffmpeg_target_arch=$(usex cpu_flags_arm_neon arm-neon arm)
 	elif [[ $myarch = ppc64 ]] ; then
 		myconf_gn+=" target_cpu=\"ppc64\""
 		ffmpeg_target_arch=ppc64
@@ -960,23 +940,6 @@ chromium_configure() {
 
 	# https://bugs.gentoo.org/654216
 	addpredict /dev/dri/ #nowarn
-
-	#if ! use system-ffmpeg; then
-	if false; then
-		local build_ffmpeg_args=""
-		if use pic && [[ "${ffmpeg_target_arch}" == "ia32" ]]; then
-			build_ffmpeg_args+=" --disable-asm"
-		fi
-
-		# Re-configure bundled ffmpeg. See bug #491378 for example reasons.
-		einfo "Configuring bundled ffmpeg..."
-		pushd third_party/ffmpeg > /dev/null || die
-		chromium/scripts/build_ffmpeg.py linux ${ffmpeg_target_arch} \
-			--branding ${ffmpeg_branding} -- ${build_ffmpeg_args} || die
-		chromium/scripts/copy_config.sh || die
-		chromium/scripts/generate_gn.py || die
-		popd > /dev/null || die
-	fi
 
 	# Disable unknown warning message from clang.
 	if tc-is-clang; then
@@ -1062,7 +1025,7 @@ chromium_configure() {
 			myconf_gn+=" pgo_data_path=\"${2}\""
 		fi
 	else
-		# Disable PGO, because profile data is only compatible with >=clang-11
+		# Disable PGO
 		myconf_gn+=" chrome_pgo_phase=0"
 	fi
 
@@ -1077,7 +1040,7 @@ chromium_configure() {
 		myconf_gn+=" devtools_skip_typecheck=false"
 	fi
 
-	einfo "Configuring Chromium..."
+	einfo "Configuring Chromium ..."
 	set -- gn gen --args="${myconf_gn} ${EXTRA_GN}" out/Release
 	echo "$@"
 	"$@" || die
@@ -1113,8 +1076,7 @@ chromium_compile() {
 
 	# Even though ninja autodetects number of CPUs, we respect
 	# user's options, for debugging with -j 1 or any other reason.
-	eninja -C out/Release chrome chromedriver
-	use suid && eninja -C out/Release chrome_sandbox
+	eninja -C out/Release chrome chromedriver chrome_sandbox
 
 	pax-mark m out/Release/chrome
 }
@@ -1200,10 +1162,8 @@ src_install() {
 	exeinto "${CHROMIUM_HOME}"
 	doexe out/Release/chrome
 
-	if use suid; then
-		newexe out/Release/chrome_sandbox chrome-sandbox
-		fperms 4755 "${CHROMIUM_HOME}/chrome-sandbox"
-	fi
+	newexe out/Release/chrome_sandbox chrome-sandbox
+	fperms 4755 "${CHROMIUM_HOME}/chrome-sandbox"
 
 	doexe out/Release/chromedriver
 	doexe out/Release/chrome_crashpad_handler
