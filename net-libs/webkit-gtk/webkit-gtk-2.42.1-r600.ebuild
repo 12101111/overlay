@@ -157,6 +157,9 @@ src_prepare() {
 	fi
 	cmake_src_prepare
 	gnome2_src_prepare
+
+	# Fix USE=-jumbo-build compilation on arm64
+	eapply "${FILESDIR}"/2.42.1-arm64-non-jumbo-fix.patch
 }
 
 src_configure() {
