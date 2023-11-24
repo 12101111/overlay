@@ -1,0 +1,32 @@
+diff --git a/Makefile.in b/Makefile.in
+index f394e1e..9c33a95 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -205,24 +205,14 @@ $(builddir)/include/configuration.hpp : $(srcdir)/include/configuration.hpp.in
+ $(builddir)/include/%.hpp: $(srcdir)/include/%.hpp
+ 	cp $< $@
+ 
+-CXXVER := $(shell $(CXX) --version | { read -r l; echo "$$l"; })
+-ifneq "$(findstring clang,$(CXXVER))" ""
+-	# clang doesn't use PCHs automatically
+-	PCH_ARG := -include-pch $(builddir)/include/libvoreutils.hpp.gch -Wno-gcc-compat
+-else
+-	PCH_ARG :=
+-endif
+-
+-common_headers := $(builddir)/include/configuration.hpp $(builddir)/include/libvoreutils.hpp.gch $(builddir)/include/util.hpp
++common_headers := $(builddir)/include/configuration.hpp $(builddir)/include/libvoreutils.hpp $(builddir)/include/util.hpp
+ CFLAGS += -Wall -Wextra -fno-exceptions -Wno-psabi
+-$(builddir)/include/libvoreutils.hpp.gch : $(builddir)/include/libvoreutils.hpp
+-	$(CXX) $(CFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include            $< -o $@
+ 
+ $(builddir)/bin/systemd-crontab-generator: $(srcdir)/bin/systemd-crontab-generator.cpp $(common_headers) $(builddir)/include/part2timer.hpp $(builddir)/include/crond2timer.hpp
+-	$(CXX) $(CFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $(PCH_ARG) $< -o $@ $(LDFLAGS) @libcrypto@ -lrpmatch
++	$(CXX) $(CFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $< -o $@ $(LDFLAGS) @libcrypto@ -lrpmatch
+ 
+ $(builddir)/bin/crontab: $(srcdir)/bin/crontab.cpp $(common_headers)
+-	$(CXX) $(CFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $(PCH_ARG) $< -o $@ $(LDFLAGS) -lrpmatch
++	$(CXX) $(CFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $< -o $@ $(LDFLAGS) -lrpmatch
+ 
+ $(builddir)/bin/%: $(srcdir)/bin/%.sh
+ 	$(call in2out,$<,$@)

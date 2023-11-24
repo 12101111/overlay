@@ -54,6 +54,7 @@ src_prepare() {
 	fi
 
 	use elibc_musl && eapply "${FILESDIR}/musl.patch"
+	eapply "${FILESDIR}/clang.patch"
 
 	eapply_user
 }
