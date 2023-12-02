@@ -1,0 +1,159 @@
+diff --git a/patches/chromium/avoid_allocating_recordid_objects_in_elementtiming_and_lcp.patch b/patches/chromium/avoid_allocating_recordid_objects_in_elementtiming_and_lcp.patch
+index 0817225657..b778e6b73d 100644
+--- a/patches/chromium/avoid_allocating_recordid_objects_in_elementtiming_and_lcp.patch
++++ b/patches/chromium/avoid_allocating_recordid_objects_in_elementtiming_and_lcp.patch
+@@ -641,15 +641,3 @@ index 0000000000000000000000000000000000000000..32952101e8463e31617d1b5f67c36abf
+ +
+ +}  // namespace blink
+ +#endif
+-diff --git a/third_party/blink/tools/blinkpy/presubmit/audit_non_blink_usage.py b/third_party/blink/tools/blinkpy/presubmit/audit_non_blink_usage.py
+-index 569a2e9dcc37aaad1368d2daa742775ce12ecdd9..7197616a7be18333d51c61a256f1d712a52b8256 100755
+---- a/third_party/blink/tools/blinkpy/presubmit/audit_non_blink_usage.py
+-+++ b/third_party/blink/tools/blinkpy/presubmit/audit_non_blink_usage.py
+-@@ -68,6 +68,7 @@ _CONFIG = [
+-             'base::DefaultTickClock',
+-             'base::ElapsedTimer',
+-             'base::EnumSet',
+-+            'base::HashInts',
+-             'base::JobDelegate',
+-             'base::JobHandle',
+-             'base::PostJob',
+diff --git a/patches/v8/cherry-pick-cf1d4d3c0b6e.patch b/patches/v8/cherry-pick-cf1d4d3c0b6e.patch
+index f811ca1b60..68b7a0fbe5 100644
+--- a/patches/v8/cherry-pick-cf1d4d3c0b6e.patch
++++ b/patches/v8/cherry-pick-cf1d4d3c0b6e.patch
+@@ -39,61 +39,3 @@ index 139ed00b4b3f9766a392b84db1ee9f32af57c146..6b656c4a53abacb884a3f23f871229d6
+      loop_backbranch.Bind(builder());
+    }
+  }
+-diff --git a/test/unittests/interpreter/bytecode-generator-unittest.cc b/test/unittests/interpreter/bytecode-generator-unittest.cc
+-index 55315b2db8076161d02b97f4534fc2c56002a13f..14e4b28c0e963b178ecb0bc71b19d9e8fe267ef1 100644
+---- a/test/unittests/interpreter/bytecode-generator-unittest.cc
+-+++ b/test/unittests/interpreter/bytecode-generator-unittest.cc
+-@@ -3237,6 +3237,10 @@ TEST_F(BytecodeGeneratorTest, ElideRedundantHoleChecks) {
+-     "do { x; } while (y);\n"
+-     "x; y;\n",
+- 
+-+    // do-while with break
+-+    "do { x; break; } while (y);\n"
+-+    "x; y;\n",
+-+
+-     // C-style for
+-     "for (x; y; z) { w; }\n"
+-     "x; y; z; w;\n",
+-diff --git a/test/unittests/interpreter/bytecode_expectations/ElideRedundantHoleChecks.golden b/test/unittests/interpreter/bytecode_expectations/ElideRedundantHoleChecks.golden
+-index 2aeaf6f4aeb9bc8e03f44aa33a8f5dc3723ae61a..8d71dbb36878ddd068a9ca238d06a00bfe7d1a44 100644
+---- a/test/unittests/interpreter/bytecode_expectations/ElideRedundantHoleChecks.golden
+-+++ b/test/unittests/interpreter/bytecode_expectations/ElideRedundantHoleChecks.golden
+-@@ -176,6 +176,38 @@ constant pool: [
+- handlers: [
+- ]
+- 
+-+---
+-+snippet: "
+-+  {
+-+    f = function f(a) {
+-+  do { x; break; } while (y);
+-+  x; y;
+-+    }
+-+    let w, x, y, z;
+-+    f();
+-+  }
+-+"
+-+frame size: 0
+-+parameter count: 2
+-+bytecode array length: 16
+-+bytecodes: [
+-+  /*   29 S> */ B(LdaImmutableCurrentContextSlot), U8(2),
+-+                B(ThrowReferenceErrorIfHole), U8(0),
+-+  /*   32 S> */ B(Jump), U8(2),
+-+  /*   52 S> */ B(LdaImmutableCurrentContextSlot), U8(2),
+-+                B(ThrowReferenceErrorIfHole), U8(0),
+-+  /*   55 S> */ B(LdaImmutableCurrentContextSlot), U8(3),
+-+                B(ThrowReferenceErrorIfHole), U8(1),
+-+                B(LdaUndefined),
+-+  /*   60 S> */ B(Return),
+-+]
+-+constant pool: [
+-+  ONE_BYTE_INTERNALIZED_STRING_TYPE ["x"],
+-+  ONE_BYTE_INTERNALIZED_STRING_TYPE ["y"],
+-+]
+-+handlers: [
+-+]
+-+
+- ---
+- snippet: "
+-   {
+diff --git a/patches/chromium/cherry-pick-80106e31c7ea.patch b/patches/chromium/cherry-pick-80106e31c7ea.patch
+index f5bc5b9cc6..e7f73cb3c4 100644
+--- a/patches/chromium/cherry-pick-80106e31c7ea.patch
++++ b/patches/chromium/cherry-pick-80106e31c7ea.patch
+@@ -361,68 +361,3 @@ index bffe45ca2fe4acbe8edfdbe19d889dd62c68cd10..25de0c1e96fb57f822de9dad6c6641c2
+    auto* resolver = MakeGarbageCollected<ScriptPromiseResolver>(
+        script_state, exception_state.GetContext());
+    ScriptPromise promise = resolver->Promise();
+-diff --git a/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js b/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js
+-index b1b0c133ce160a314ea392514ac5b38e4cac136d..804af2afb9db3a0d5fafbeb26aed64f89badb1b3 100644
+---- a/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js
+-+++ b/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js
+-@@ -1247,3 +1247,60 @@ usb_test((t) => {
+-         .then(() => promise_rejects_dom(t, 'NotFoundError', device.reset()));
+-   });
+- }, 'resetDevice rejects when called on a disconnected device');
+-+
+-+usb_test(async (t) => {
+-+  const PACKET_COUNT = 4;
+-+  const PACKET_LENGTH = 8;
+-+  const {device, fakeDevice} = await getFakeDevice();
+-+  await device.open();
+-+  await device.selectConfiguration(2);
+-+  await device.claimInterface(0);
+-+  await device.selectAlternateInterface(0, 1);
+-+  const buffer = new Uint8Array(PACKET_COUNT * PACKET_LENGTH);
+-+  const packetLengths = new Array(PACKET_COUNT).fill(PACKET_LENGTH);
+-+  packetLengths[0] = PACKET_LENGTH - 1;
+-+  await promise_rejects_dom(
+-+      t, 'DataError', device.isochronousTransferOut(1, buffer, packetLengths));
+-+}, 'isochronousTransferOut rejects when buffer size exceeds packet lengths');
+-+
+-+usb_test(async (t) => {
+-+  const PACKET_COUNT = 4;
+-+  const PACKET_LENGTH = 8;
+-+  const {device, fakeDevice} = await getFakeDevice();
+-+  await device.open();
+-+  await device.selectConfiguration(2);
+-+  await device.claimInterface(0);
+-+  await device.selectAlternateInterface(0, 1);
+-+  const buffer = new Uint8Array(PACKET_COUNT * PACKET_LENGTH);
+-+  const packetLengths = new Array(PACKET_COUNT).fill(PACKET_LENGTH);
+-+  packetLengths[0] = PACKET_LENGTH + 1;
+-+  await promise_rejects_dom(
+-+      t, 'DataError', device.isochronousTransferOut(1, buffer, packetLengths));
+-+}, 'isochronousTransferOut rejects when packet lengths exceed buffer size');
+-+
+-+usb_test(async (t) => {
+-+  const PACKET_COUNT = 2;
+-+  const PACKET_LENGTH = 8;
+-+  const {device, fakeDevice} = await getFakeDevice();
+-+  await device.open();
+-+  await device.selectConfiguration(2);
+-+  await device.claimInterface(0);
+-+  await device.selectAlternateInterface(0, 1);
+-+  const packetLengths = [0xffffffff, 1];
+-+  await promise_rejects_dom(
+-+      t, 'DataError', device.isochronousTransferIn(1, packetLengths));
+-+}, 'isochronousTransferIn rejects when packet lengths exceed maximum size');
+-+
+-+usb_test(async (t) => {
+-+  const PACKET_COUNT = 2;
+-+  const PACKET_LENGTH = 8;
+-+  const {device, fakeDevice} = await getFakeDevice();
+-+  await device.open();
+-+  await device.selectConfiguration(2);
+-+  await device.claimInterface(0);
+-+  await device.selectAlternateInterface(0, 1);
+-+  const buffer = new Uint8Array(PACKET_LENGTH * PACKET_COUNT);
+-+  const packetLengths = [0xffffffff, 1];
+-+  await promise_rejects_dom(
+-+      t, 'DataError', device.isochronousTransferOut(1, buffer, packetLengths));
+-+}, 'isochronousTransferOut rejects when packet lengths exceed maximum size');

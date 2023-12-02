@@ -4,7 +4,7 @@
 EAPI=8
 PYTHON_COMPAT=( python3_{9..11} )
 PYTHON_REQ_USE="xml(+)"
-LLVM_MAX_SLOT=16
+LLVM_MAX_SLOT=17
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
@@ -1857,7 +1857,7 @@ src_configure() {
 	cat <<- EOF > "${T}/libsystemd/libsystemd.pc"
 		Name:
 		Description:
-		Version:
+		Version: 254
 	EOF
 	local -x PKG_CONFIG_PATH="${PKG_CONFIG_PATH:+"${PKG_CONFIG_PATH}:"}${T}/libsystemd"
 
