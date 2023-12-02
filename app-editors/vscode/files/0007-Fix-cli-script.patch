@@ -1,4 +1,4 @@
-From b87227ec58c173afc022b34f6f078a39f37633d1 Mon Sep 17 00:00:00 2001
+From 23786cac3b7ad255abcc69d431713a2630ceb609 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 10 Jun 2022 20:39:33 +0800
 Subject: [PATCH 07/12] Fix cli script
@@ -19,5 +19,5 @@ index 5fe68cb4f3e..12d6b2bb123 100755
 +ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --app="${VSCODE_PATH}/resources/app" --ms-enable-electron-run-as-node "$@"
  exit $?
 -- 
-2.41.0
+2.43.0
 

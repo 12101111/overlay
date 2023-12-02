@@ -1,6 +1,6 @@
-From d349001d8c07ba40a559711dce90cbad2ce2e232 Mon Sep 17 00:00:00 2001
+From 3cb8f89d9c49b1974e536d4dae2cb52d5a5bc48b Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 19 Feb 2023 00:52:55 +0800
+Date: Fri, 24 Nov 2023 22:44:05 +0800
 Subject: [PATCH 11/12] fix missing package
 
 ---
@@ -9,33 +9,33 @@ Subject: [PATCH 11/12] fix missing package
  2 files changed, 6 insertions(+)
 
 diff --git a/extensions/npm/package.json b/extensions/npm/package.json
-index d87e2f1d016..5f6f7921ee2 100644
+index 624e2c91a13..6ee3056e177 100644
 --- a/extensions/npm/package.json
 +++ b/extensions/npm/package.json
-@@ -25,6 +25,7 @@
-     "jsonc-parser": "^2.2.1",
-     "minimatch": "^3.0.4",
+@@ -26,6 +26,7 @@
+     "jsonc-parser": "^3.2.0",
+     "minimatch": "^5.1.6",
      "request-light": "^0.7.0",
-+    "vscode-uri": "^3.0.3",
-     "which": "^2.0.2",
-     "which-pm": "^2.0.0"
++    "vscode-uri": "^3.0.8",
+     "which": "^4.0.0",
+     "which-pm": "^2.1.1"
    },
 diff --git a/extensions/npm/yarn.lock b/extensions/npm/yarn.lock
-index cb1d0710210..432e0799f00 100644
+index 12f7036d0f6..7dad0575479 100644
 --- a/extensions/npm/yarn.lock
 +++ b/extensions/npm/yarn.lock
-@@ -192,6 +192,11 @@ to-regex-range@^5.0.1:
+@@ -181,6 +181,11 @@ to-regex-range@^5.0.1:
    dependencies:
      is-number "^7.0.0"
  
-+vscode-uri@^3.0.3:
-+  version "3.0.7"
-+  resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.0.7.tgz#6d19fef387ee6b46c479e5fb00870e15e58c1eb8"
-+  integrity sha512-eOpPHogvorZRobNqJGhapa0JdwaxpjVvyBp0QIUMRMSf8ZAlqOdEquKuRmw9Qwu0qXtJIWqFtMkmvJjUZmMjVA==
++vscode-uri@^3.0.8:
++  version "3.0.8"
++  resolved "https://registry.yarnpkg.com/vscode-uri/-/vscode-uri-3.0.8.tgz#1770938d3e72588659a172d0fd4642780083ff9f"
++  integrity sha512-AyFQ0EVmsOZOlAnxoFOGOq1SQDWAB7C6aqMGS23svWAllfOaxbuFvcT8D1i8z3Gyn8fraVeZNNmN6e9bxxXkKw==
 +
- which-pm@^2.0.0:
-   version "2.0.0"
-   resolved "https://registry.yarnpkg.com/which-pm/-/which-pm-2.0.0.tgz#8245609ecfe64bf751d0eef2f376d83bf1ddb7ae"
+ which-pm@^2.1.1:
+   version "2.1.1"
+   resolved "https://registry.yarnpkg.com/which-pm/-/which-pm-2.1.1.tgz#0be2b70c67e94a32e87b9768a94a7f0954f2dcfa"
 -- 
-2.41.0
+2.43.0
 

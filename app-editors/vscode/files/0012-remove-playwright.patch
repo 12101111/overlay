@@ -1,15 +1,15 @@
-From 39b95ffc626be7f7d9550827b10a6ead93e47d8c Mon Sep 17 00:00:00 2001
+From 905c289f68dc7f25ee375366259885d5b9090fdf Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 5 Aug 2023 15:56:56 +0800
+Date: Fri, 24 Nov 2023 22:45:38 +0800
 Subject: [PATCH 12/12] remove playwright
 
 ---
  build/package.json | 1 -
- package.json       | 7 -------
- 2 files changed, 8 deletions(-)
+ package.json       | 9 ---------
+ 2 files changed, 10 deletions(-)
 
 diff --git a/build/package.json b/build/package.json
-index b1b42569425..724fe1aaf22 100644
+index ca6b448b393..cae49aa592b 100644
 --- a/build/package.json
 +++ b/build/package.json
 @@ -4,7 +4,6 @@
@@ -21,7 +21,7 @@ index b1b42569425..724fe1aaf22 100644
      "@electron/get": "^1.12.4",
      "@types/ansi-colors": "^3.2.0",
 diff --git a/package.json b/package.json
-index 94907a49525..15a11605f84 100644
+index 6b568883960..3b871229cc5 100644
 --- a/package.json
 +++ b/package.json
 @@ -10,8 +10,6 @@
@@ -31,9 +31,9 @@ index 94907a49525..15a11605f84 100644
 -    "test-browser": "npx playwright install && node test/unit/browser/index.js",
 -    "test-browser-no-install": "node test/unit/browser/index.js",
      "test-node": "mocha test/unit/node/index.js --delay --ui=tdd --timeout=5000 --exit",
+     "test-extension": "vscode-test",
      "preinstall": "node build/npm/preinstall.js",
-     "postinstall": "node build/npm/postinstall.js",
-@@ -51,7 +49,6 @@
+@@ -52,7 +50,6 @@
      "watch-cli": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js watch-cli",
      "eslint": "node build/eslint",
      "stylelint": "node build/stylelint",
@@ -41,24 +41,26 @@ index 94907a49525..15a11605f84 100644
      "compile-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-build",
      "compile-extensions-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-extensions-build",
      "minify-vscode": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js minify-vscode",
-@@ -107,7 +104,6 @@
+@@ -108,7 +105,6 @@
      "yazl": "^2.4.3"
    },
    "devDependencies": {
--    "@playwright/test": "^1.34.3",
-     "@swc/cli": "0.1.62",
+-    "@playwright/test": "^1.37.1",
      "@swc/core": "1.3.62",
      "@types/cookie": "^0.3.3",
-@@ -137,9 +133,6 @@
+     "@types/cssnano": "^4.0.0",
+@@ -136,11 +132,6 @@
      "@typescript-eslint/parser": "^5.57.0",
      "@vscode/gulp-electron": "^1.36.0",
      "@vscode/l10n-dev": "0.0.21",
--    "@vscode/telemetry-extractor": "^1.9.9",
--    "@vscode/test-web": "^0.0.41",
+-    "@vscode/telemetry-extractor": "^1.9.10",
+-    "@vscode/test-cli": "^0.0.3",
+-    "@vscode/test-electron": "^2.3.5",
+-    "@vscode/test-web": "^0.0.42",
 -    "@vscode/vscode-perf": "^0.0.14",
      "ansi-colors": "^3.2.3",
      "asar": "^3.0.3",
      "chromium-pickle-js": "^0.2.0",
 -- 
-2.41.0
+2.43.0
 

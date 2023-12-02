@@ -1,48 +1,20 @@
-From 4b61d65c193684eecc917d355a1b5c33329a64ee Mon Sep 17 00:00:00 2001
+From 70ecdf91938b72e9923f57500b16e34e598cd9bc Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Thu, 20 Oct 2022 15:31:37 +0800
+Date: Fri, 24 Nov 2023 22:40:19 +0800
 Subject: [PATCH 08/12] disable crash reporter
 
 ---
- src/main.js | 93 +----------------------------------------------------
- 1 file changed, 1 insertion(+), 92 deletions(-)
+ src/main.js | 49 +------------------------------------------------
+ 1 file changed, 1 insertion(+), 48 deletions(-)
 
 diff --git a/src/main.js b/src/main.js
-index 55200575103..61c1f4a8ba4 100644
+index 7087474bcee..31a3fdaa09a 100644
 --- a/src/main.js
 +++ b/src/main.js
-@@ -363,98 +363,7 @@ function getArgvConfigPath() {
- }
+@@ -401,54 +401,7 @@ function configureCrashReporter() {
  
- function configureCrashReporter() {
--
--	let crashReporterDirectory = args['crash-reporter-directory'];
--	let submitURL = '';
--	if (crashReporterDirectory) {
--		crashReporterDirectory = path.normalize(crashReporterDirectory);
--
--		if (!path.isAbsolute(crashReporterDirectory)) {
--			console.error(`The path '${crashReporterDirectory}' specified for --crash-reporter-directory must be absolute.`);
--			app.exit(1);
--		}
--
--		if (!fs.existsSync(crashReporterDirectory)) {
--			try {
--				fs.mkdirSync(crashReporterDirectory, { recursive: true });
--			} catch (error) {
--				console.error(`The path '${crashReporterDirectory}' specified for --crash-reporter-directory does not seem to exist or cannot be created.`);
--				app.exit(1);
--			}
--		}
--
--		// Crashes are stored in the crashDumps directory by default, so we
--		// need to change that directory to the provided one
--		console.log(`Found --crash-reporter-directory argument. Setting crashDumps directory to be '${crashReporterDirectory}'`);
--		app.setPath('crashDumps', crashReporterDirectory);
--	}
--
--	// Otherwise we configure the crash reporter from product.json
--	else {
+ 	// Otherwise we configure the crash reporter from product.json
+ 	else {
 -		const appCenter = product.appCenter;
 -		if (appCenter) {
 -			const isWindows = (process.platform === 'win32');
@@ -53,9 +25,6 @@ index 55200575103..61c1f4a8ba4 100644
 -			if (uuidPattern.test(crashReporterId)) {
 -				if (isWindows) {
 -					switch (process.arch) {
--						case 'ia32':
--							submitURL = appCenter['win32-ia32'];
--							break;
 -						case 'x64':
 -							submitURL = appCenter['win32-x64'];
 -							break;
@@ -94,23 +63,10 @@ index 55200575103..61c1f4a8ba4 100644
 -				}
 -			}
 -		}
--	}
--
--	// Start crash reporter for all processes
--	const productName = (product.crashReporter ? product.crashReporter.productName : undefined) || product.nameShort;
--	const companyName = (product.crashReporter ? product.crashReporter.companyName : undefined) || 'Microsoft';
--	const uploadToServer = Boolean(!process.env['VSCODE_DEV'] && submitURL && !crashReporterDirectory);
--	crashReporter.start({
--		companyName,
--		productName: process.env['VSCODE_DEV'] ? `${productName} Dev` : productName,
--		submitURL,
--		uploadToServer,
--		compress: true
--	});
-+	console.log("CrashReporter is disabled");
- }
++		console.error("crashReporter is disabled")
+ 	}
  
- /**
+ 	// Start crash reporter for all processes
 -- 
-2.41.0
+2.43.0
 

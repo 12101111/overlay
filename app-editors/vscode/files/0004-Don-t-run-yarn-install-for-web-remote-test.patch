@@ -1,4 +1,4 @@
-From 55b8e6e8cff8c2959a6d2305b05a1e2384bfa315 Mon Sep 17 00:00:00 2001
+From 7fc13649d4e74e11832b7993a5de49796fb74114 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 20 Oct 2022 15:30:03 +0800
 Subject: [PATCH 04/12] Don't run yarn install for web/remote/test
@@ -9,10 +9,10 @@ Subject: [PATCH 04/12] Don't run yarn install for web/remote/test
  2 files changed, 9 deletions(-)
 
 diff --git a/build/npm/dirs.js b/build/npm/dirs.js
-index 875390550da..8bb694b63e4 100644
+index faf3a6577a5..4db331b2272 100644
 --- a/build/npm/dirs.js
 +++ b/build/npm/dirs.js
-@@ -45,12 +45,6 @@ const dirs = [
+@@ -46,12 +46,6 @@ const dirs = [
  	'extensions/vscode-api-tests',
  	'extensions/vscode-colorize-tests',
  	'extensions/vscode-test-resolver',
@@ -37,5 +37,5 @@ index 1c8bafc8010..75974a1ab1f 100644
 -cp.execSync('git config pull.rebase merges');
 -cp.execSync('git config blame.ignoreRevsFile .git-blame-ignore');
 -- 
-2.41.0
+2.43.0
 
