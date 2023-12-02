@@ -40,7 +40,7 @@ RDEPEND="
 DEPEND="${RDEPEND}"
 BDEPEND=">=kde-frameworks/kcmutils-${KFMIN}:5"
 PDEPEND="
-	>=kde-frameworks/breeze-icons-${KFMIN}:5
+	>=kde-frameworks/breeze-icons-${KFMIN}:*
 	kde? ( >=kde-plasma/kde-cli-tools-${PVCUT}:5 )
 "
 
