@@ -1,0 +1,3 @@
+# OpenCl is needed for asahi GPU driver
+# https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/25498
+-opencl
