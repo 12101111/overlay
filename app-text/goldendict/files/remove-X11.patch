@@ -1,5 +1,5 @@
 diff --git a/goldendict.pro b/goldendict.pro
-index 9d74b1ad..4650466d 100644
+index 5ce531a1..4f7895c7 100644
 --- a/goldendict.pro
 +++ b/goldendict.pro
 @@ -185,10 +185,6 @@ win32 {
@@ -179,20 +179,20 @@ index c201b85b..d13cd00c 100644
  #endif
  }
 diff --git a/src/main.cc b/src/main.cc
-index 4768c34b..5647af0b 100644
+index 9fda4c60..f3a8b35a 100644
 --- a/src/main.cc
 +++ b/src/main.cc
-@@ -291,7 +291,7 @@ void processCommandLine( QCoreApplication * app, GDOptions * result )
+@@ -307,7 +307,7 @@ void processCommandLine( QCoreApplication * app, GDOptions * result )
  
  int main( int argc, char ** argv )
  {
--#ifdef Q_OS_UNIX
-+#if defined(Q_OS_UNIX) && defined(HAVE_X11)
+-#if defined( Q_OS_UNIX ) && !defined( Q_OS_MACOS )
++#if defined( Q_OS_UNIX ) && !defined( Q_OS_MACOS ) && defined(HAVE_X11)
    // GoldenDict use lots of X11 functions and it currently cannot work
    // natively on Wayland. This workaround will force GoldenDict to use
    // XWayland.
 diff --git a/src/ui/scanpopup.cc b/src/ui/scanpopup.cc
-index 11e9d789..757f013f 100644
+index 026fc2b1..04b73ff8 100644
 --- a/src/ui/scanpopup.cc
 +++ b/src/ui/scanpopup.cc
 @@ -40,7 +40,7 @@ static const Qt::WindowFlags pinnedWindowFlags =
@@ -204,7 +204,7 @@ index 11e9d789..757f013f 100644
  #endif
    ;
  
-@@ -563,7 +563,7 @@ void ScanPopup::engagePopup( bool forcePopup, bool giveFocus )
+@@ -557,7 +557,7 @@ void ScanPopup::engagePopup( bool forcePopup, bool giveFocus )
  #endif
  
    if ( ui.pinButton->isChecked() )
@@ -213,7 +213,7 @@ index 11e9d789..757f013f 100644
  
    /// Too large strings make window expand which is probably not what user
    /// wants
-@@ -933,7 +933,7 @@ void ScanPopup::pinButtonClicked( bool checked )
+@@ -919,7 +919,7 @@ void ScanPopup::pinButtonClicked( bool checked )
      setAttribute( Qt::WA_MacAlwaysShowToolWindow );
  #endif
  

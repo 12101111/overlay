@@ -9,7 +9,7 @@ DESCRIPTION="Feature-rich dictionary lookup program (qtwebengine fork)"
 HOMEPAGE="https://github.com/xiaoyifang/goldendict-ng"
 EGIT_REPO_URI="https://github.com/xiaoyifang/goldendict-ng.git"
 EGIT_BRANCH="staged"
-EGIT_COMMIT="v23.07.25-alpha.230729.0585f5da"
+EGIT_COMMIT="v23.11.09-alpha.46e8af5f"
 EGIT_SUBMODULES=()
 
 LICENSE="GPL-3"
