@@ -8,12 +8,10 @@ inherit toolchain-funcs
 DESCRIPTION="U-Boot for Apple Silicon Macs"
 HOMEPAGE="http://asahilinux.org"
 
-COMMIT="asahi-v2023.01-3"
+COMMIT="asahi-v$(ver_cut 1-3)-$(ver_cut 5)"
 
 SRC_URI="
 	https://github.com/AsahiLinux/u-boot/archive/${COMMIT}.tar.gz -> ${P}.tar.gz
-	https://dev.alpinelinux.org/~mps/m1/apritzel-firt5-video.patch
-	https://dev.alpinelinux.org/~mps/m1/mps-u-boot-ter12x24.patch
 "
 
 LICENSE="MIT GPL-2"
@@ -22,15 +20,22 @@ KEYWORDS="~arm64"
 
 DEPEND=""
 RDEPEND="${DEPEND}"
+# copy from kernel-2.eclass
 BDEPEND="
+	app-arch/cpio
+	dev-lang/perl
 	sys-devel/bc
+	sys-devel/bc
+	sys-devel/bison
+	sys-devel/flex
+	sys-devel/make
+	>=sys-libs/ncurses-5.2
+	virtual/libelf
+	virtual/pkgconfig
+	sys-apps/dtc
 	virtual/imagemagick-tools
 "
 S="${WORKDIR}/u-boot-${COMMIT}"
-PATCHES=(
-	"${DISTDIR}/apritzel-firt5-video.patch"
-	"${DISTDIR}/mps-u-boot-ter12x24.patch"
-)
 
 _emake() {
 	emake V=1 \
@@ -52,7 +57,7 @@ src_configure() {
 	default
 	_emake apple_m1_defconfig
 	sed -i "s/CONFIG_VIDEO_FONT_8X16=y/# CONFIG_VIDEO_FONT_8X16 is not set/" .config || die
-	sed -i "s/# CONFIG_VIDEO_FONT_TER16X32 is not set/CONFIG_VIDEO_FONT_TER16X32=y/" .config || die
+	sed -i "s/# CONFIG_VIDEO_FONT_16X32 is not set/CONFIG_VIDEO_FONT_16X32=y/" .config || die
 }
 
 src_compile() {
