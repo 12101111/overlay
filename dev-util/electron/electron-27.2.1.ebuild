@@ -16,7 +16,7 @@ inherit python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils yarn
 
 # Keep this in sync with DEPS:chromium_version
 # find least version of available snapshot in https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-117.0.5938.141-lite.tar.x%40
-CHROMIUM_VERSION="118.0.5993.128"
+CHROMIUM_VERSION="118.0.5993.164"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="18.17.1"
 
@@ -45,7 +45,7 @@ https://registry.yarnpkg.com/@electron/docs-parser/-/docs-parser-1.1.1.tgz
 https://registry.yarnpkg.com/@electron/fiddle-core/-/fiddle-core-1.0.4.tgz
 https://registry.yarnpkg.com/@electron/get/-/get-2.0.2.tgz
 https://registry.yarnpkg.com/@electron/github-app-auth/-/github-app-auth-2.0.0.tgz
-https://registry.yarnpkg.com/@electron/lint-roller/-/lint-roller-1.8.0.tgz
+https://registry.yarnpkg.com/@electron/lint-roller/-/lint-roller-1.10.0.tgz
 https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-8.14.6.tgz
 https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.4.0.tgz
 https://registry.yarnpkg.com/@eslint-community/regexpp/-/regexpp-4.5.1.tgz
@@ -1570,7 +1570,6 @@ src_prepare() {
 		third_party/omnibox_proto
 		third_party/one_euro_filter
 		third_party/openscreen
-		third_party/openscreen/src/third_party/mozilla
 		third_party/openscreen/src/third_party/tinycbor/src/src
 		third_party/opus
 		third_party/ots
