@@ -8,8 +8,8 @@ index cf604d5..6a15cd3 100644
  // std::string constexpr first.
 -constexpr inline std::string kLegacyHierarchyCountryCodeString{"XX"};
 -constexpr AddressCountryCode kLegacyHierarchyCountryCode =
-+inline std::string kLegacyHierarchyCountryCodeString{"XX"};
-+AddressCountryCode kLegacyHierarchyCountryCode =
++static inline std::string kLegacyHierarchyCountryCodeString{"XX"};
++static inline AddressCountryCode kLegacyHierarchyCountryCode =
      AddressCountryCode(kLegacyHierarchyCountryCodeString);
  
  // Creates an instance of the address hierarchy model corresponding to the
