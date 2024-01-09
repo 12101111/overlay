@@ -1,8 +1,8 @@
-diff --git a/base/allocator/partition_allocator/shim/allocator_shim_default_dispatch_to_partition_alloc.cc b/base/allocator/partition_allocator/shim/allocator_shim_default_dispatch_to_partition_alloc.cc
-index a6bfe89..4b8dea3 100644
---- a/base/allocator/partition_allocator/shim/allocator_shim_default_dispatch_to_partition_alloc.cc
-+++ b/base/allocator/partition_allocator/shim/allocator_shim_default_dispatch_to_partition_alloc.cc
-@@ -798,7 +798,7 @@ SHIM_ALWAYS_EXPORT int mallopt(int cmd, int value) __THROW {
+diff --git a/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc.cc b/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc.cc
+index d724fd2..d6a919f 100644
+--- a/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc.cc
++++ b/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc.cc
+@@ -743,7 +743,7 @@ SHIM_ALWAYS_EXPORT int mallopt(int cmd, int value) __THROW {
  
  #endif  // !BUILDFLAG(IS_APPLE) && !BUILDFLAG(IS_ANDROID)
  
@@ -12,10 +12,10 @@ index a6bfe89..4b8dea3 100644
    partition_alloc::SimplePartitionStatsDumper allocator_dumper;
    Allocator()->DumpStats("malloc", true, &allocator_dumper);
 diff --git a/base/process/process_metrics_posix.cc b/base/process/process_metrics_posix.cc
-index 873a328..53ffca1 100644
+index 9a25ea7..6706749 100644
 --- a/base/process/process_metrics_posix.cc
 +++ b/base/process/process_metrics_posix.cc
-@@ -116,12 +116,14 @@ size_t GetMallocUsageMallinfo() {
+@@ -115,12 +115,14 @@ size_t GetMallocUsageMallinfo() {
  #define MALLINFO2_FOUND_IN_LIBC
    struct mallinfo2 minfo = mallinfo2();
  #endif
@@ -32,10 +32,10 @@ index 873a328..53ffca1 100644
  
  }  // namespace
 diff --git a/base/trace_event/malloc_dump_provider.cc b/base/trace_event/malloc_dump_provider.cc
-index 768441b..1d090fd 100644
+index b573535..819fd82 100644
 --- a/base/trace_event/malloc_dump_provider.cc
 +++ b/base/trace_event/malloc_dump_provider.cc
-@@ -187,7 +187,7 @@ void ReportAppleAllocStats(size_t* total_virtual_size,
+@@ -188,7 +188,7 @@ void ReportAppleAllocStats(size_t* total_virtual_size,
  
  #if (BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC) && BUILDFLAG(IS_ANDROID)) || \
      (!BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC) && !BUILDFLAG(IS_WIN) &&    \
@@ -44,7 +44,7 @@ index 768441b..1d090fd 100644
  void ReportMallinfoStats(ProcessMemoryDump* pmd,
                           size_t* total_virtual_size,
                           size_t* resident_size,
-@@ -356,7 +356,7 @@ bool MallocDumpProvider::OnMemoryDump(const MemoryDumpArgs& args,
+@@ -357,7 +357,7 @@ bool MallocDumpProvider::OnMemoryDump(const MemoryDumpArgs& args,
    ReportWinHeapStats(args.level_of_detail, nullptr, &total_virtual_size,
                       &resident_size, &allocated_objects_size,
                       &allocated_objects_count);
