@@ -55,6 +55,7 @@ PATCHES=(
 	"${FILESDIR}"/Add-rpmalloc-for-musl.patch
 	"${FILESDIR}"/use-optimized-memcpy-memset.patch
 	"${FILESDIR}"/fix-strdupa.patch
+	"${FILESDIR}"/add_eh_frame_to_restore_rt.patch
 )
 
 just_headers() {
