@@ -1,4 +1,4 @@
-From 6b830f0ea4d425ca12c1a1ad3cd3a0d4e6938454 Mon Sep 17 00:00:00 2001
+From 5d138e084381f825d143098b4769c817d0707734 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 11 Sep 2022 00:04:59 +0800
 Subject: [PATCH 09/12] Don't warn electron args

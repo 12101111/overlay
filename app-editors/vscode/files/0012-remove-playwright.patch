@@ -1,6 +1,6 @@
-From 905c289f68dc7f25ee375366259885d5b9090fdf Mon Sep 17 00:00:00 2001
+From 9dd683475aa622b5a4cd2905a83e5b2343be6d9f Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 24 Nov 2023 22:45:38 +0800
+Date: Sat, 30 Dec 2023 22:13:17 +0800
 Subject: [PATCH 12/12] remove playwright
 
 ---
@@ -9,19 +9,19 @@ Subject: [PATCH 12/12] remove playwright
  2 files changed, 10 deletions(-)
 
 diff --git a/build/package.json b/build/package.json
-index ca6b448b393..cae49aa592b 100644
+index a06baecbdeb..0994bdf537c 100644
 --- a/build/package.json
 +++ b/build/package.json
 @@ -4,7 +4,6 @@
    "license": "MIT",
    "devDependencies": {
-     "@azure/cosmos": "^3.17.3",
--    "@azure/identity": "^3.1.3",
-     "@azure/storage-blob": "^12.13.0",
+     "@azure/cosmos": "^3",
+-    "@azure/identity": "^3.4.1",
+     "@azure/storage-blob": "^12.17.0",
      "@electron/get": "^1.12.4",
      "@types/ansi-colors": "^3.2.0",
 diff --git a/package.json b/package.json
-index 6b568883960..3b871229cc5 100644
+index 2f4cf305f6a..0cf1c8319be 100644
 --- a/package.json
 +++ b/package.json
 @@ -10,8 +10,6 @@
@@ -41,7 +41,7 @@ index 6b568883960..3b871229cc5 100644
      "compile-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-build",
      "compile-extensions-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-extensions-build",
      "minify-vscode": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js minify-vscode",
-@@ -108,7 +105,6 @@
+@@ -107,7 +104,6 @@
      "yazl": "^2.4.3"
    },
    "devDependencies": {
@@ -49,14 +49,15 @@ index 6b568883960..3b871229cc5 100644
      "@swc/core": "1.3.62",
      "@types/cookie": "^0.3.3",
      "@types/cssnano": "^4.0.0",
-@@ -136,11 +132,6 @@
+@@ -135,12 +131,7 @@
      "@typescript-eslint/parser": "^5.57.0",
      "@vscode/gulp-electron": "^1.36.0",
      "@vscode/l10n-dev": "0.0.21",
--    "@vscode/telemetry-extractor": "^1.9.10",
+-    "@vscode/telemetry-extractor": "^1.10.2",
 -    "@vscode/test-cli": "^0.0.3",
--    "@vscode/test-electron": "^2.3.5",
+-    "@vscode/test-electron": "^2.3.8",
 -    "@vscode/test-web": "^0.0.42",
+     "@vscode/v8-heap-parser": "^0.1.0",
 -    "@vscode/vscode-perf": "^0.0.14",
      "ansi-colors": "^3.2.3",
      "asar": "^3.0.3",
