@@ -1,0 +1,13 @@
+diff --git a/src/Common/CMakeLists.txt b/src/Common/CMakeLists.txt
+index 4d69795..b66a588 100644
+--- a/src/Common/CMakeLists.txt
++++ b/src/Common/CMakeLists.txt
+@@ -55,7 +55,7 @@ endif()
+ 
+ # All the targets wanting to use the precompiled.h header
+ # have to link to CemuCommon
+-target_precompile_headers(CemuCommon PUBLIC precompiled.h)
+ target_include_directories(CemuCommon PUBLIC "../")
++target_compile_options(CemuCommon PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-include Common/precompiled.h>)
+ 
+ target_link_libraries(CemuCommon PRIVATE

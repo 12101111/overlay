@@ -48,6 +48,11 @@ BDEPEND="
     dev-lang/nasm
 "
 
+PATCHES=(
+	"${FILESDIR}"/disable-pch.patch
+	"${FILESDIR}"/fix-glslang.patch
+)
+
 src_prepare() {
     use elibc_musl && eapply "${FILESDIR}/musl.patch"
 

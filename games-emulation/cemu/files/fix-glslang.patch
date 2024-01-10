@@ -1,0 +1,34 @@
+diff --git a/src/Cafe/HW/Latte/Renderer/Vulkan/VKRPipelineInfo.cpp b/src/Cafe/HW/Latte/Renderer/Vulkan/VKRPipelineInfo.cpp
+index e9936c4..f4ade59 100644
+--- a/src/Cafe/HW/Latte/Renderer/Vulkan/VKRPipelineInfo.cpp
++++ b/src/Cafe/HW/Latte/Renderer/Vulkan/VKRPipelineInfo.cpp
+@@ -3,7 +3,7 @@
+ #include "Cafe/HW/Latte/Renderer/Vulkan/LatteTextureVk.h"
+ #include "Cafe/HW/Latte/Renderer/Vulkan/RendererShaderVk.h"
+ 
+-#include <glslang/Include/Types.h>
++//#include <glslang/Include/Types.h>
+ #include "Cafe/HW/Latte/LegacyShaderDecompiler/LatteDecompiler.h"
+ #include "Cafe/HW/Latte/Core/LattePerformanceMonitor.h"
+ 
+@@ -91,4 +91,4 @@ PipelineInfo::~PipelineInfo()
+ 
+ 	// remove from cache
+ 	VulkanRenderer::GetInstance()->unregisterGraphicsPipeline(this);
+-}
+\ No newline at end of file
++}
+diff --git a/src/Cafe/HW/Latte/Renderer/Vulkan/VulkanRenderer.cpp b/src/Cafe/HW/Latte/Renderer/Vulkan/VulkanRenderer.cpp
+index 052ca21..c6babaf 100644
+--- a/src/Cafe/HW/Latte/Renderer/Vulkan/VulkanRenderer.cpp
++++ b/src/Cafe/HW/Latte/Renderer/Vulkan/VulkanRenderer.cpp
+@@ -26,7 +26,8 @@
+ 
+ #include "Cafe/HW/Latte/Core/LatteTiming.h" // vsync control
+ 
+-#include <glslang/Include/Types.h>
++//#include <glslang/Include/Types.h>
++#include <glslang/Public/ShaderLang.h>
+ 
+ #include <wx/msgdlg.h>
+ 
