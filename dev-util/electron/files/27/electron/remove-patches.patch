@@ -1,96 +1,3 @@
-diff --git a/patches/chromium/avoid_allocating_recordid_objects_in_elementtiming_and_lcp.patch b/patches/chromium/avoid_allocating_recordid_objects_in_elementtiming_and_lcp.patch
-index 130cdd7042..7d3025956b 100644
---- a/patches/chromium/avoid_allocating_recordid_objects_in_elementtiming_and_lcp.patch
-+++ b/patches/chromium/avoid_allocating_recordid_objects_in_elementtiming_and_lcp.patch
-@@ -641,15 +641,3 @@ index 0000000000000000000000000000000000000000..32952101e8463e31617d1b5f67c36abf
- +
- +}  // namespace blink
- +#endif
--diff --git a/third_party/blink/tools/blinkpy/presubmit/audit_non_blink_usage.py b/third_party/blink/tools/blinkpy/presubmit/audit_non_blink_usage.py
--index 408a2916a00bb2a871f3a680215de54e7be2077c..caa3d8277acbecbeb25b3449719866e061a82761 100755
----- a/third_party/blink/tools/blinkpy/presubmit/audit_non_blink_usage.py
--+++ b/third_party/blink/tools/blinkpy/presubmit/audit_non_blink_usage.py
--@@ -67,6 +67,7 @@ _CONFIG = [
--             'base::DefaultTickClock',
--             'base::ElapsedTimer',
--             'base::EnumSet',
--+            'base::HashInts',
--             'base::JobDelegate',
--             'base::JobHandle',
--             'base::PostJob',
-diff --git a/patches/chromium/cherry-pick-80106e31c7ea.patch b/patches/chromium/cherry-pick-80106e31c7ea.patch
-index 3f8ae7d1b2..af8859a1a5 100644
---- a/patches/chromium/cherry-pick-80106e31c7ea.patch
-+++ b/patches/chromium/cherry-pick-80106e31c7ea.patch
-@@ -361,68 +361,3 @@ index 3d562fa22bd84dc438abfe9fa883eff6f5846b1b..c64c7fb1b15f7f523b37671abca2ab50
-    auto* resolver = MakeGarbageCollected<ScriptPromiseResolver>(
-        script_state, exception_state.GetContext());
-    ScriptPromise promise = resolver->Promise();
--diff --git a/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js b/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js
--index b1b0c133ce160a314ea392514ac5b38e4cac136d..804af2afb9db3a0d5fafbeb26aed64f89badb1b3 100644
----- a/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js
--+++ b/third_party/blink/web_tests/external/wpt/webusb/usbDevice.https.any.js
--@@ -1247,3 +1247,60 @@ usb_test((t) => {
--         .then(() => promise_rejects_dom(t, 'NotFoundError', device.reset()));
--   });
-- }, 'resetDevice rejects when called on a disconnected device');
--+
--+usb_test(async (t) => {
--+  const PACKET_COUNT = 4;
--+  const PACKET_LENGTH = 8;
--+  const {device, fakeDevice} = await getFakeDevice();
--+  await device.open();
--+  await device.selectConfiguration(2);
--+  await device.claimInterface(0);
--+  await device.selectAlternateInterface(0, 1);
--+  const buffer = new Uint8Array(PACKET_COUNT * PACKET_LENGTH);
--+  const packetLengths = new Array(PACKET_COUNT).fill(PACKET_LENGTH);
--+  packetLengths[0] = PACKET_LENGTH - 1;
--+  await promise_rejects_dom(
--+      t, 'DataError', device.isochronousTransferOut(1, buffer, packetLengths));
--+}, 'isochronousTransferOut rejects when buffer size exceeds packet lengths');
--+
--+usb_test(async (t) => {
--+  const PACKET_COUNT = 4;
--+  const PACKET_LENGTH = 8;
--+  const {device, fakeDevice} = await getFakeDevice();
--+  await device.open();
--+  await device.selectConfiguration(2);
--+  await device.claimInterface(0);
--+  await device.selectAlternateInterface(0, 1);
--+  const buffer = new Uint8Array(PACKET_COUNT * PACKET_LENGTH);
--+  const packetLengths = new Array(PACKET_COUNT).fill(PACKET_LENGTH);
--+  packetLengths[0] = PACKET_LENGTH + 1;
--+  await promise_rejects_dom(
--+      t, 'DataError', device.isochronousTransferOut(1, buffer, packetLengths));
--+}, 'isochronousTransferOut rejects when packet lengths exceed buffer size');
--+
--+usb_test(async (t) => {
--+  const PACKET_COUNT = 2;
--+  const PACKET_LENGTH = 8;
--+  const {device, fakeDevice} = await getFakeDevice();
--+  await device.open();
--+  await device.selectConfiguration(2);
--+  await device.claimInterface(0);
--+  await device.selectAlternateInterface(0, 1);
--+  const packetLengths = [0xffffffff, 1];
--+  await promise_rejects_dom(
--+      t, 'DataError', device.isochronousTransferIn(1, packetLengths));
--+}, 'isochronousTransferIn rejects when packet lengths exceed maximum size');
--+
--+usb_test(async (t) => {
--+  const PACKET_COUNT = 2;
--+  const PACKET_LENGTH = 8;
--+  const {device, fakeDevice} = await getFakeDevice();
--+  await device.open();
--+  await device.selectConfiguration(2);
--+  await device.claimInterface(0);
--+  await device.selectAlternateInterface(0, 1);
--+  const buffer = new Uint8Array(PACKET_LENGTH * PACKET_COUNT);
--+  const packetLengths = [0xffffffff, 1];
--+  await promise_rejects_dom(
--+      t, 'DataError', device.isochronousTransferOut(1, buffer, packetLengths));
--+}, 'isochronousTransferOut rejects when packet lengths exceed maximum size');
 diff --git a/patches/chromium/cherry-pick-5b2fddadaa12.patch b/patches/chromium/cherry-pick-5b2fddadaa12.patch
 index 3974cd3916..acddb07fb9 100644
 --- a/patches/chromium/cherry-pick-5b2fddadaa12.patch
@@ -110,18 +17,18 @@ index 3974cd3916..acddb07fb9 100644
 - CONSOLE WARNING: AudioWorkletNode("noise-generator").amplitude.linearRampToValueAtTime value 5 outside nominal range [0, 1]; value will be clamped.
 - This is a testharness.js-based test.
 diff --git a/patches/v8/cherry-pick-389ea9be7d68.patch b/patches/v8/cherry-pick-389ea9be7d68.patch
-index a3d97adcfb..ed2acbdee4 100644
+index 386ebfff02..f01d5687aa 100644
 --- a/patches/v8/cherry-pick-389ea9be7d68.patch
 +++ b/patches/v8/cherry-pick-389ea9be7d68.patch
-@@ -204,138 +204,3 @@ index 18ce25614edaae28f2dac7721bde4b4a83a45af6..f0483acadb8d1c9f3ea1bfbe258dc1a5
+@@ -204,130 +204,3 @@ index 770f8efa8f9c0f477cfe9d067f270ed6d7f12d74..4cecde3525115bebf7a271b17229d7f0
     bool success = false;
     PropertyKey lookup_key(isolate, key, &success);
     if (!success) return Nothing<bool>();
 -diff --git a/test/cctest/test-field-type-tracking.cc b/test/cctest/test-field-type-tracking.cc
--index 34e3db375bfd34f5f2f31090e766593d2102a26c..9ed4871db490761415c38468855e740239c3c201 100644
+-index 0554b5f00cbab830d1b9b8df98af1f0c4e448231..90022d811c34a83088c3943cb57a03b58b9b3366 100644
 ---- a/test/cctest/test-field-type-tracking.cc
 -+++ b/test/cctest/test-field-type-tracking.cc
--@@ -3027,126 +3027,10 @@ TEST(RepresentationPredicatesAreInSync) {
+-@@ -3030,122 +3030,6 @@ TEST(RepresentationPredicatesAreInSync) {
 -   }
 - }
 - 
@@ -210,13 +117,13 @@ index a3d97adcfb..ed2acbdee4 100644
 --    tmp = Map::TransitionToDataProperty(isolate, new_parent_map, name_x, value,
 --                                        attributes, PropertyConstness::kConst,
 --                                        StoreOrigin::kNamed);
---    CHECK(!tmp->map(isolate).is_dictionary_map());
+--    CHECK(!tmp->map(isolate)->is_dictionary_map());
 --    transitions.push_back(tmp);
 --
 --    tmp = Map::TransitionToDataProperty(isolate, new_parent_map, name_y, value,
 --                                        attributes, PropertyConstness::kConst,
 --                                        StoreOrigin::kNamed);
---    CHECK(!tmp->map(isolate).is_dictionary_map());
+--    CHECK(!tmp->map(isolate)->is_dictionary_map());
 --    transitions.push_back(tmp);
 --  }
 --
@@ -241,14 +148,6 @@ index a3d97adcfb..ed2acbdee4 100644
 --  }
 --}
 --
---#define CHECK_SAME(object, rep, expected)           \
---  CHECK_EQ(object->FitsRepresentation(rep, true),   \
---           object->FitsRepresentation(rep, false)); \
---  CHECK_EQ(object->FitsRepresentation(rep, true), expected)
--+#define CHECK_SAME(object, rep, expected)                    \
--+  CHECK_EQ(Object::FitsRepresentation(*object, rep, true),   \
--+           Object::FitsRepresentation(*object, rep, false)); \
--+  CHECK_EQ(Object::FitsRepresentation(*object, rep, true), expected)
-- 
-- TEST(CheckFitsRepresentationPredicate) {
--   CcTest::InitializeVM();
+- #define CHECK_SAME(object, rep, expected)                    \
+-   CHECK_EQ(Object::FitsRepresentation(*object, rep, true),   \
+-            Object::FitsRepresentation(*object, rep, false)); \
