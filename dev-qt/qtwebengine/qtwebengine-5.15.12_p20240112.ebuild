@@ -100,18 +100,16 @@ DEPEND="${RDEPEND}
 "
 BDEPEND="${PYTHON_DEPS}
 	dev-util/gperf
-	dev-util/ninja
+	app-alternatives/ninja
 	dev-util/re2c
 	net-libs/nodejs[ssl]
 	sys-devel/bison
 	sys-devel/flex
-	ppc64? ( >=dev-util/gn-0.1807 )
+	ppc64? ( >=dev-build/gn-0.1807 )
 "
 
 PATCHES=(
 	"${WORKDIR}/${PATCHSET}"
-	# add extras as needed here, may merge in set if carries across versions
-	"${FILESDIR}/${PN}-6.5.3-icu74.patch" # bug 917635
 	"${FILESDIR}/${PN}-5.15.0-gn-accept-flags.patch"
 )
 
@@ -178,10 +176,6 @@ src_prepare() {
 	use arm64 && eapply "${FILESDIR}/revert-skia-arm64-change.patch"
 	# upstreamed, but not spinning new patchset just yet
 	rm "${WORKDIR}"/${PATCHSET}/018-gcc13-includes.patch || die
-
-	if has_version '>=dev-libs/libxml2-2.12.0'; then
-		PATCHES+=( "${FILESDIR}/${P}-libxml2-2.12.patch" ) # bug 917601
-	fi
 
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
 		# This is made from git, and for some reason will fail w/o .git directories.
