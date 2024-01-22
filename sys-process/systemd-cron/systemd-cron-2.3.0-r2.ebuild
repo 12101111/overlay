@@ -1,4 +1,4 @@
-# Copyright 1999-2023 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -12,6 +12,8 @@ LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64 ~arm ~arm64 ~hppa ~ia64 ~ppc ~ppc64 ~riscv ~sparc ~x86"
 IUSE="cron-boot etc-crontab-systemd minutely +runparts setgid yearly"
+# We can't run the unshare tests within sandbox/with low privs, and the
+# 'test-nounshare' target just does static analysis (shellcheck etc).
 RESTRICT="test"
 
 BDEPEND="
@@ -19,16 +21,24 @@ BDEPEND="
 	elibc_musl? ( sys-libs/rpmatch-standalone )
 "
 
-RDEPEND=">=sys-apps/systemd-253
-	dev-libs/openssl
-	runparts? ( sys-apps/debianutils )
+RDEPEND="
 	!sys-process/cronie[anacron]
-	!etc-crontab-systemd? ( !sys-process/dcron )
-	sys-process/cronbase
 	acct-user/_cron-failure
-	acct-group/_cron-failure"
+	acct-group/_cron-failure
+	dev-libs/openssl:=
+	sys-process/cronbase
+	>=sys-apps/systemd-253
+	!etc-crontab-systemd? ( !sys-process/dcron )
+	runparts? ( sys-apps/debianutils )
+"
+DEPEND="
+	dev-libs/openssl:=
+	sys-process/cronbase
+"
 
-DEPEND="sys-process/cronbase"
+PATCHES=(
+	"${FILESDIR}"/${PN}-2.3.0-pch.patch
+)
 
 pkg_pretend() {
 	if use runparts && ! [ -x /usr/bin/run-parts ] ; then
@@ -53,9 +63,8 @@ src_prepare() {
 	fi
 
 	use elibc_musl && eapply "${FILESDIR}/musl.patch"
-	eapply "${FILESDIR}/clang.patch"
 
-	eapply_user
+	default
 }
 
 my_use_enable() {
@@ -81,11 +90,15 @@ src_configure() {
 		$(my_use_enable yearly quarterly) \
 		$(my_use_enable yearly semi_annually) || die
 
-		export CRONTAB=crontab-systemd
+	export CRONTAB=crontab-systemd
+}
+
+src_compile() {
+	emake PCH=
 }
 
 src_install() {
-	default
+	emake PCH= DESTDIR="${D}" install
 	rm -f "${ED}"/usr/lib/sysusers.d/systemd-cron.conf
 }
 
