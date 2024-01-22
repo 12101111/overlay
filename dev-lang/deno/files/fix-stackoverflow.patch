@@ -1,18 +1,35 @@
-diff --git a/runtime/build.rs b/runtime/build.rs
-index d47bee941..82b2af2fc 100644
---- a/runtime/build.rs
-+++ b/runtime/build.rs
-@@ -364,5 +364,12 @@ fn main() {
-     not(feature = "docsrs"),
-     not(feature = "dont_create_runtime_snapshot")
-   ))]
--  startup_snapshot::create_runtime_snapshot(runtime_snapshot_path)
-+  {
-+    let thread = std::thread::Builder::new().stack_size(8 * 1024 * 1024);
-+    thread
-+      .spawn(move || startup_snapshot::create_runtime_snapshot(runtime_snapshot_path))
-+      .unwrap()
-+      .join()
-+      .unwrap();
-+  }
- }
+diff --git a/cli/build.rs b/cli/build.rs
+index d3f428c..07e353d 100644
+--- a/cli/build.rs
++++ b/cli/build.rs
+@@ -448,14 +448,22 @@ fn main() {
+   let c = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
+   let o = PathBuf::from(env::var_os("OUT_DIR").unwrap());
+ 
+-  let compiler_snapshot_path = o.join("COMPILER_SNAPSHOT.bin");
+-  ts::create_compiler_snapshot(compiler_snapshot_path, &c);
+-
+-  #[cfg(not(feature = "__runtime_js_sources"))]
+-  {
+-    let cli_snapshot_path = o.join("CLI_SNAPSHOT.bin");
+-    create_cli_snapshot(cli_snapshot_path);
+-  }
++  let thread = std::thread::Builder::new().stack_size(8 * 1024 * 1024);
++  thread
++    .spawn(move || {
++      let compiler_snapshot_path = o.join("COMPILER_SNAPSHOT.bin");
++      ts::create_compiler_snapshot(compiler_snapshot_path, &c);
++
++      #[cfg(not(feature = "__runtime_js_sources"))]
++      {
++        let cli_snapshot_path = o.join("CLI_SNAPSHOT.bin");
++        create_cli_snapshot(cli_snapshot_path);
++      }
++    })
++    .unwrap()
++    .join()
++    .unwrap();
++  println!("cargo:rustc-link-arg=-Wl,-z,stack-size=0x800000");
+ 
+   #[cfg(target_os = "windows")]
+   {
