@@ -42,7 +42,6 @@ RDEPEND="
 	dev-libs/libsigc++:2
 	>=dev-libs/libfmt-7.0.0:=
 	>=dev-libs/spdlog-1.8.5:=
-	dev-libs/date:=
 	dev-libs/wayland
 	gui-libs/wlroots:=
 	x11-libs/gtk+:3[wayland]
