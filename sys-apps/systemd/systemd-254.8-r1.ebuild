@@ -1,4 +1,4 @@
-# Copyright 2011-2023 Gentoo Authors
+# Copyright 2011-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -36,7 +36,7 @@ LICENSE="GPL-2 LGPL-2.1 MIT public-domain"
 SLOT="0/2"
 IUSE="
 	acl apparmor audit boot cgroup-hybrid cryptsetup curl +dns-over-tls elfutils
-	fido2 +gcrypt gnutls homed http idn importd iptables kernel-install +kmod
+	fido2 +gcrypt gnutls homed http idn importd iptables +kernel-install +kmod
 	+lz4 lzma +openssl pam pcre pkcs11 policykit pwquality qrcode
 	+resolvconf +seccomp selinux split-usr +sysv-utils test tpm ukify vanilla xkb +zstd
 "
@@ -155,7 +155,7 @@ PDEPEND=">=sys-apps/dbus-1.9.8[systemd]
 BDEPEND="
 	app-arch/xz-utils:0
 	dev-util/gperf
-	>=dev-util/meson-0.46
+	>=dev-build/meson-0.46
 	>=sys-apps/coreutils-8.16
 	sys-devel/gettext
 	virtual/pkgconfig
@@ -241,6 +241,7 @@ src_unpack() {
 src_prepare() {
 	local PATCHES=(
 		"${FILESDIR}/systemd-253-initrd-generators.patch"
+		"${FILESDIR}/254-PrivateDevices-userdbd.patch"
 	)
 
 	if ! use vanilla; then
@@ -429,6 +430,11 @@ multilib_src_install_all() {
 	fi
 
 	gen_usr_ldscript -a systemd udev
+
+	if use kernel-install; then
+		# Dummy config, remove to make room for sys-kernel/installkernel
+		rm "${ED}/usr/lib/kernel/install.conf" || die
+	fi
 
 	use ukify && python_fix_shebang "${ED}"
 	use boot && secureboot_auto_sign
