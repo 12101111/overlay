@@ -5,7 +5,7 @@ EAPI=8
 
 inherit cmake flag-o-matic llvm llvm.org toolchain-funcs
 
-DESCRIPTION="Compiler runtime library for GCC (LLVM compitable version)"
+DESCRIPTION="Compiler runtime library for GCC (LLVM compatible version)"
 HOMEPAGE="https://llvm.org/"
 
 LICENSE="Apache-2.0-with-LLVM-exceptions || ( UoI-NCSA MIT )"
@@ -21,7 +21,7 @@ DEPEND="
 	!!sys-devel/gcc
 "
 BDEPEND="
-	>=dev-util/cmake-3.16
+	>=dev-build/cmake-3.16
 "
 
 LLVM_COMPONENTS=( compiler-rt cmake llvm/cmake llvm-libgcc )
