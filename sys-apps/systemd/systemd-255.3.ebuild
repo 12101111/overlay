@@ -23,11 +23,14 @@ else
 	MY_P=${MY_PN}-${MY_PV}
 	S=${WORKDIR}/${MY_P}
 	SRC_URI="https://github.com/systemd/${MY_PN}/archive/v${MY_PV}/${MY_P}.tar.gz"
-	KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
+
+	if [[ ${PV} != *rc* ]] ; then
+		KEYWORDS="~alpha ~amd64 ~arm ~arm64 ~hppa ~ia64 ~loong ~m68k ~mips ~ppc ~ppc64 ~riscv ~s390 ~sparc ~x86"
+	fi
 fi
 
-inherit bash-completion-r1 flag-o-matic linux-info meson-multilib pam python-single-r1
-inherit secureboot systemd toolchain-funcs udev usr-ldscript
+inherit bash-completion-r1 flag-o-matic linux-info meson-multilib optfeature pam python-single-r1
+inherit secureboot systemd toolchain-funcs udev
 
 DESCRIPTION="System and service manager for Linux"
 HOMEPAGE="http://systemd.io/"
@@ -55,14 +58,14 @@ RESTRICT="!test? ( test )"
 MINKV="4.15"
 
 COMMON_DEPEND="
-	>=sys-apps/util-linux-2.30:0=[${MULTILIB_USEDEP}]
+	>=sys-apps/util-linux-2.32:0=[${MULTILIB_USEDEP}]
 	sys-libs/libcap:0=[${MULTILIB_USEDEP}]
 	virtual/libcrypt:=[${MULTILIB_USEDEP}]
 	acl? ( sys-apps/acl:0= )
-	apparmor? ( sys-libs/libapparmor:0= )
+	apparmor? ( >=sys-libs/libapparmor-2.13:0= )
 	audit? ( >=sys-process/audit-2:0= )
 	cryptsetup? ( >=sys-fs/cryptsetup-2.0.1:0= )
-	curl? ( net-misc/curl:0= )
+	curl? ( >=net-misc/curl-7.32.0:0= )
 	elfutils? ( >=dev-libs/elfutils-0.158:0= )
 	fido2? ( dev-libs/libfido2:0= )
 	gcrypt? ( >=dev-libs/libgcrypt-1.4.5:0=[${MULTILIB_USEDEP}] )
@@ -79,12 +82,12 @@ COMMON_DEPEND="
 	iptables? ( net-firewall/iptables:0= )
 	openssl? ( >=dev-libs/openssl-1.1.0:0= )
 	pam? ( sys-libs/pam:=[${MULTILIB_USEDEP}] )
-	pkcs11? ( app-crypt/p11-kit:0= )
+	pkcs11? ( >=app-crypt/p11-kit-0.23.3:0= )
 	pcre? ( dev-libs/libpcre2 )
-	pwquality? ( dev-libs/libpwquality:0= )
-	qrcode? ( media-gfx/qrencode:0= )
+	pwquality? ( >=dev-libs/libpwquality-1.4.1:0= )
+	qrcode? ( >=media-gfx/qrencode-3:0= )
 	seccomp? ( >=sys-libs/libseccomp-2.3.3:0= )
-	selinux? ( sys-libs/libselinux:0= )
+	selinux? ( >=sys-libs/libselinux-2.1.9:0= )
 	tpm? ( app-crypt/tpm2-tss:0= )
 	xkb? ( >=x11-libs/libxkbcommon-0.4.1:0= )
 	zstd? ( >=app-arch/zstd-1.4.0:0=[${MULTILIB_USEDEP}] )
@@ -181,6 +184,11 @@ QA_FLAGS_IGNORED="usr/lib/systemd/boot/efi/.*"
 QA_EXECSTACK="usr/lib/systemd/boot/efi/*"
 
 pkg_pretend() {
+	if use split-usr; then
+		eerror "Please complete the migration to merged-usr."
+		eerror "https://wiki.gentoo.org/wiki/Merge-usr"
+		die "systemd no longer supports split-usr"
+	fi
 	if [[ ${MERGE_TYPE} != buildonly ]]; then
 		if use test && has pid-sandbox ${FEATURES}; then
 			ewarn "Tests are known to fail with PID sandboxing enabled."
@@ -240,8 +248,6 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
-		"${FILESDIR}/systemd-253-initrd-generators.patch"
-		"${FILESDIR}/254-PrivateDevices-userdbd.patch"
 	)
 
 	if ! use vanilla; then
@@ -255,9 +261,6 @@ src_prepare() {
 		append-cflags -D__UAPI_DEF_ETHHDR=0
 		eapply "${FILESDIR}/musl"
 	fi
-
-	# Fails with split-usr.
-	sed -i -e '2i exit 77' test/test-rpm-macros.sh || die
 
 	default
 }
@@ -274,14 +277,13 @@ src_configure() {
 multilib_src_configure() {
 	local myconf=(
 		--localstatedir="${EPREFIX}/var"
+		# default is developer, bug 918671
+		-Dmode=release
 		-Dsupport-url="https://gentoo.org/support/"
 		-Dpamlibdir="$(getpam_mod_dir)"
 		# avoid bash-completion dep
 		-Dbashcompletiondir="$(get_bashcompdir)"
-		$(meson_use split-usr)
-		$(meson_use split-usr split-bin)
-		-Drootprefix="$(usex split-usr "${EPREFIX:-/}" "${EPREFIX}/usr")"
-		-Drootlibdir="${EPREFIX}/usr/$(get_libdir)"
+		-Dsplit-bin=false
 		# Disable compatibility with sysvinit
 		-Dsysvinit-path=
 		-Dsysvrcnd-path=
@@ -352,6 +354,7 @@ multilib_src_configure() {
 		$(meson_native_true timesyncd)
 		$(meson_native_true tmpfiles)
 		$(meson_native_true vconsole)
+		$(meson_native_enabled vmspawn)
 	)
 
 	if use elibc_musl; then
@@ -380,9 +383,6 @@ multilib_src_test() {
 }
 
 multilib_src_install_all() {
-	local rootprefix=$(usex split-usr '' /usr)
-	local sbin=$(usex split-usr sbin bin)
-
 	# meson doesn't know about docdir
 	mv "${ED}"/usr/share/doc/{systemd,${PF}} || die
 
@@ -393,11 +393,11 @@ multilib_src_install_all() {
 	doins "${FILESDIR}"/legacy.conf
 
 	if ! use resolvconf; then
-		rm -f "${ED}${rootprefix}/${sbin}"/resolvconf || die
+		rm -f "${ED}"/usr/bin/resolvconf || die
 	fi
 
 	if ! use sysv-utils; then
-		rm "${ED}${rootprefix}/${sbin}"/{halt,init,poweroff,reboot,shutdown} || die
+		rm "${ED}"/usr/bin/{halt,init,poweroff,reboot,shutdown} || die
 		rm "${ED}"/usr/share/man/man1/init.1 || die
 		rm "${ED}"/usr/share/man/man8/{halt,poweroff,reboot,shutdown}.8 || die
 	fi
@@ -413,7 +413,7 @@ multilib_src_install_all() {
 
 	keepdir /etc/udev/hwdb.d
 
-	keepdir "${rootprefix}"/lib/systemd/{system-sleep,system-shutdown}
+	keepdir /usr/lib/systemd/{system-sleep,system-shutdown}
 	keepdir /usr/lib/{binfmt.d,modules-load.d}
 	keepdir /usr/lib/systemd/user-generators
 	keepdir /var/lib/systemd
@@ -422,14 +422,6 @@ multilib_src_install_all() {
 	if use pam; then
 		newpamd "${FILESDIR}"/systemd-user.pam systemd-user
 	fi
-
-	if use split-usr; then
-		# Avoid breaking boot/reboot
-		dosym ../../../lib/systemd/systemd /usr/lib/systemd/systemd
-		dosym ../../../lib/systemd/systemd-shutdown /usr/lib/systemd/systemd-shutdown
-	fi
-
-	gen_usr_ldscript -a systemd udev
 
 	if use kernel-install; then
 		# Dummy config, remove to make room for sys-kernel/installkernel
@@ -490,20 +482,6 @@ pkg_preinst() {
 		dosym ../../../etc/sysctl.conf /usr/lib/sysctl.d/99-sysctl.conf
 	fi
 
-	if ! use split-usr; then
-		local dir
-		for dir in bin sbin lib usr/sbin; do
-			if [[ ! -L ${EROOT}/${dir} ]]; then
-				eerror "'${EROOT}/${dir}' is not a symbolic link."
-				FAIL=1
-			fi
-		done
-		if [[ ${FAIL} ]]; then
-			eerror "Migration to system layout with merged directories must be performed before"
-			eerror "installing ${CATEGORY}/${PN} with USE=\"-split-usr\" to avoid run-time breakage."
-			die "System layout with split directories still used"
-		fi
-	fi
 	if ! use boot && has_version "sys-apps/systemd[gnuefi(-)]"; then
 		ewarn "The 'gnuefi' USE flag has been renamed to 'boot'."
 		ewarn "Make sure to enable the 'boot' USE flag if you use systemd-boot."
@@ -535,11 +513,26 @@ pkg_postinst() {
 		rm "${EROOT}/var/lib/systemd/timesync"
 	fi
 
+	if [[ -z ${ROOT} && -d /run/systemd/system ]]; then
+		ebegin "Reexecuting system manager (systemd)"
+		systemctl daemon-reexec
+		eend $? || FAIL=1
+	fi
+
 	if [[ ${FAIL} ]]; then
 		eerror "One of the postinst commands failed. Please check the postinst output"
 		eerror "for errors. You may need to clean up your system and/or try installing"
 		eerror "systemd again."
 		eerror
+	fi
+
+	if use boot; then
+		optfeature "automatically installing the kernels in systemd-boot's native layout and updating the bootloader configuration" \
+			"sys-kernel/installkernel[systemd-boot]"
+	fi
+	if use ukify; then
+		optfeature "automatically generating an unified kernel image on each kernel installation" \
+			"sys-kernel/installkernel[ukify]"
 	fi
 }
 
