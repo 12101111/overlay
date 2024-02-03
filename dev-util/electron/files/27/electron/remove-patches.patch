@@ -151,3 +151,39 @@ index 386ebfff02..f01d5687aa 100644
 - #define CHECK_SAME(object, rep, expected)                    \
 -   CHECK_EQ(Object::FitsRepresentation(*object, rep, true),   \
 -            Object::FitsRepresentation(*object, rep, false)); \
+diff --git a/patches/chromium/cherry-pick-cc07a95bc309.patch b/patches/chromium/cherry-pick-cc07a95bc309.patch
+index bb75549c84..415244b8ba 100644
+--- a/patches/chromium/cherry-pick-cc07a95bc309.patch
++++ b/patches/chromium/cherry-pick-cc07a95bc309.patch
+@@ -135,31 +135,3 @@ index fa1de8f37b9be681f7ac447bc3e3859e8909216d..4730383dafa957c2e84c009387d15d6f
+        automatic_pull_handlers_need_updating_ = false;
+      }
+    }
+-diff --git a/third_party/blink/web_tests/external/wpt/webaudio/the-audio-api/the-audioworklet-interface/audioworkletprocessor-process-frozen-array.https.html b/third_party/blink/web_tests/external/wpt/webaudio/the-audio-api/the-audioworklet-interface/audioworkletprocessor-process-frozen-array.https.html
+-index 33627204a6f538eba77bd8346952404814e4affa..ce0cfa40b691d859d372c9e6da7ff54fe64bbbe1 100644
+---- a/third_party/blink/web_tests/external/wpt/webaudio/the-audio-api/the-audioworklet-interface/audioworkletprocessor-process-frozen-array.https.html
+-+++ b/third_party/blink/web_tests/external/wpt/webaudio/the-audio-api/the-audioworklet-interface/audioworkletprocessor-process-frozen-array.https.html
+-@@ -43,7 +43,10 @@
+-           if (actual.done)
+-             task.done();
+-         };
+--        sourceNode.connect(workletNode);
+-+        // To have valid ArrayBuffers for both input and output, we need
+-+        // both connections.
+-+        // See: https://github.com/WebAudio/web-audio-api/issues/2566
+-+        sourceNode.connect(workletNode).connect(context.destination);
+-         sourceNode.start();
+-       });
+- 
+-diff --git a/third_party/blink/web_tests/external/wpt/webaudio/the-audio-api/the-audioworklet-interface/process-parameters.https-expected.txt b/third_party/blink/web_tests/external/wpt/webaudio/the-audio-api/the-audioworklet-interface/process-parameters.https-expected.txt
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..fbac76d9b865bfdec552bf280e4a19ae1743ef4a
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/webaudio/the-audio-api/the-audioworklet-interface/process-parameters.https-expected.txt
+-@@ -0,0 +1,6 @@
+-+This is a testharness.js-based test.
+-+[PASS] 3 inputs; 0 outputs
+-+[FAIL] 0 inputs; 3 outputs
+-+  assert_equals: outputs[0].length expected 1 but got 0
+-+Harness: the test ran to completion.
+-+
