@@ -12,7 +12,7 @@ LLVM_VALID_SLOTS=( 17 )
 LLVM_MAX_SLOT=17
 GN_MIN_VER=0.2122
 
-V8_VER=0.82.0
+V8_VER=0.83.1
 STACKER_VER=0.1.15
 
 CRATES="
@@ -30,11 +30,11 @@ CRATES="
 	alloc-stdlib-0.2.2
 	allocator-api2-0.2.16
 	android_system_properties-0.1.5
-	anstream-0.3.2
+	anstream-0.6.7
 	anstyle-1.0.4
 	anstyle-parse-0.2.3
 	anstyle-query-1.0.1
-	anstyle-wincon-1.0.2
+	anstyle-wincon-3.0.2
 	anyhow-1.0.79
 	arrayvec-0.7.4
 	ash-0.37.3+1.3.251
@@ -68,23 +68,29 @@ CRATES="
 	brotli-3.4.0
 	brotli-decompressor-2.5.1
 	bumpalo-3.14.0
+	bytemuck-1.14.0
 	byteorder-1.5.0
 	bytes-1.5.0
 	cache_control-0.2.0
 	cbc-0.1.2
 	cc-1.0.83
+	cesu8-1.1.0
 	cfg-if-1.0.0
 	chrono-0.4.31
 	cipher-0.4.4
-	clap-4.3.3
-	clap_builder-4.3.3
-	clap_complete-4.3.1
-	clap_complete_fig-4.3.1
-	clap_lex-0.5.1
+	clap-4.4.17
+	clap_builder-4.4.17
+	clap_complete-4.4.7
+	clap_complete_fig-4.4.2
+	clap_lex-0.6.0
 	clipboard-win-5.0.0
 	cmake-0.1.50
 	codespan-reporting-0.11.1
+	color-print-0.3.5
+	color-print-proc-macro-0.3.5
+	color_quant-1.1.0
 	colorchoice-1.0.0
+	combine-4.6.6
 	comrak-0.20.0
 	console_static_text-0.8.1
 	const-oid-0.9.5
@@ -115,21 +121,22 @@ CRATES="
 	data-encoding-2.5.0
 	data-url-0.3.0
 	debugid-0.8.0
-	deno_ast-1.0.1
+	deno_ast-0.32.1
 	deno_cache_dir-0.6.1
-	deno_config-0.6.5
-	deno_core-0.245.0
-	deno_doc-0.89.1
-	deno_emit-0.33.0
-	deno_graph-0.63.3
-	deno_lint-0.53.0
-	deno_lockfile-0.17.2
+	deno_config-0.9.1
+	deno_core-0.256.0
+	deno_core_icudata-0.0.73
+	deno_doc-0.100.0
+	deno_emit-0.35.0
+	deno_graph-0.64.1
+	deno_lint-0.55.0
+	deno_lockfile-0.18.0
 	deno_media_type-0.1.2
 	deno_native_certs-0.2.0
-	deno_npm-0.15.3
-	deno_ops-0.121.0
-	deno_semver-0.5.1
-	deno_task_shell-0.14.0
+	deno_npm-0.16.0
+	deno_ops-0.132.0
+	deno_semver-0.5.4
+	deno_task_shell-0.14.3
 	deno_unsync-0.1.1
 	deno_unsync-0.3.2
 	deno_whoami-0.1.0
@@ -155,7 +162,7 @@ CRATES="
 	dprint-plugin-json-0.19.1
 	dprint-plugin-jupyter-0.1.2
 	dprint-plugin-markdown-0.16.3
-	dprint-plugin-typescript-0.88.8
+	dprint-plugin-typescript-0.88.10
 	dprint-swc-ext-0.13.0
 	dsa-0.6.2
 	dyn-clone-1.0.16
@@ -176,13 +183,14 @@ CRATES="
 	errno-dragonfly-0.1.2
 	error-code-3.0.0
 	escape8259-0.5.2
-	eszip-0.57.0
+	eszip-0.60.0
 	fallible-iterator-0.2.0
 	fallible-streaming-iterator-0.1.9
 	fancy-regex-0.10.0
 	fastrand-2.0.1
 	fastwebsockets-0.6.0
 	fd-lock-4.0.1
+	fdeflate-0.3.3
 	ff-0.13.0
 	fiat-crypto-0.2.5
 	filetime-0.2.23
@@ -198,7 +206,7 @@ CRATES="
 	from_variant-0.1.7
 	fs3-0.5.0
 	fsevent-sys-4.1.0
-	fslock-0.1.8
+	fslock-0.2.1
 	futures-0.3.29
 	futures-channel-0.3.29
 	futures-core-0.3.29
@@ -258,7 +266,8 @@ CRATES="
 	idna-0.3.0
 	idna-0.4.0
 	if_chain-1.0.2
-	import_map-0.18.1
+	image-0.24.7
+	import_map-0.18.2
 	indexmap-2.1.0
 	inotify-0.9.6
 	inotify-sys-0.1.5
@@ -270,6 +279,8 @@ CRATES="
 	is-terminal-0.4.9
 	itertools-0.10.5
 	itoa-1.0.9
+	jni-0.21.1
+	jni-sys-0.3.0
 	jobserver-0.1.27
 	js-sys-0.3.66
 	jsonc-parser-0.23.0
@@ -317,11 +328,12 @@ CRATES="
 	minimal-lexical-0.2.1
 	miniz_oxide-0.7.1
 	mio-0.8.10
-	monch-0.4.3
+	monch-0.5.0
 	multimap-0.8.3
 	naga-0.14.2
 	napi-build-1.2.1
 	napi-sys-2.2.2
+	ndk-context-0.1.1
 	netif-0.1.6
 	new_debug_unreachable-1.0.4
 	nextest-workspace-hack-0.1.0
@@ -336,6 +348,7 @@ CRATES="
 	num-bigint-dig-0.8.4
 	num-integer-0.1.45
 	num-iter-0.1.43
+	num-rational-0.4.1
 	num-traits-0.2.17
 	num_cpus-1.16.0
 	objc-0.2.7
@@ -384,6 +397,7 @@ CRATES="
 	pkg-config-0.3.27
 	platforms-3.2.0
 	pmutil-0.6.1
+	png-0.17.10
 	polyval-0.6.1
 	powerfmt-0.2.0
 	ppv-lite86-0.2.17
@@ -470,13 +484,14 @@ CRATES="
 	serde_json-1.0.111
 	serde_repr-0.1.16
 	serde_urlencoded-0.7.1
-	serde_v8-0.154.0
+	serde_v8-0.165.0
 	sha-1-0.10.0
 	sha1-0.10.6
 	sha2-0.10.8
 	shell-escape-0.1.5
 	signal-hook-registry-1.4.1
 	signature-2.2.0
+	simd-adler32-0.3.7
 	simd-json-0.13.4
 	simdutf8-0.1.4
 	siphasher-0.3.11
@@ -502,7 +517,7 @@ CRATES="
 	strum_macros-0.25.3
 	subtle-2.5.0
 	swc_atoms-0.6.5
-	swc_bundler-0.223.15
+	swc_bundler-0.223.20
 	swc_common-0.33.12
 	swc_config-0.1.9
 	swc_config_macro-0.1.3
@@ -515,10 +530,10 @@ CRATES="
 	swc_ecma_transforms_base-0.135.11
 	swc_ecma_transforms_classes-0.124.11
 	swc_ecma_transforms_macros-0.5.4
-	swc_ecma_transforms_optimization-0.196.14
-	swc_ecma_transforms_proposal-0.169.14
-	swc_ecma_transforms_react-0.181.15
-	swc_ecma_transforms_typescript-0.186.14
+	swc_ecma_transforms_optimization-0.196.17
+	swc_ecma_transforms_proposal-0.169.16
+	swc_ecma_transforms_react-0.181.18
+	swc_ecma_transforms_typescript-0.186.17
 	swc_ecma_utils-0.125.4
 	swc_ecma_visit-0.96.17
 	swc_eq_ignore_macros-0.1.3
@@ -590,7 +605,7 @@ CRATES="
 	utf8-width-0.1.7
 	utf8parse-0.2.1
 	uuid-1.6.1
-	v8-0.82.0
+	v8-0.83.1
 	value-trait-0.8.0
 	vcpkg-0.2.15
 	version_check-0.9.4
@@ -608,11 +623,13 @@ CRATES="
 	wasm-bindgen-shared-0.2.89
 	wasm-streams-0.3.0
 	web-sys-0.3.66
+	webbrowser-0.8.12
 	webpki-roots-0.25.3
 	wgpu-core-0.18.1
 	wgpu-hal-0.18.1
 	wgpu-types-0.18.0
 	which-4.4.2
+	which-5.0.0
 	whoami-1.4.1
 	widestring-1.0.2
 	winapi-0.3.9
@@ -621,22 +638,31 @@ CRATES="
 	winapi-x86_64-pc-windows-gnu-0.4.0
 	windows-0.51.1
 	windows-core-0.51.1
+	windows-sys-0.45.0
 	windows-sys-0.48.0
 	windows-sys-0.52.0
+	windows-targets-0.42.2
 	windows-targets-0.48.5
 	windows-targets-0.52.0
+	windows_aarch64_gnullvm-0.42.2
 	windows_aarch64_gnullvm-0.48.5
 	windows_aarch64_gnullvm-0.52.0
+	windows_aarch64_msvc-0.42.2
 	windows_aarch64_msvc-0.48.5
 	windows_aarch64_msvc-0.52.0
+	windows_i686_gnu-0.42.2
 	windows_i686_gnu-0.48.5
 	windows_i686_gnu-0.52.0
+	windows_i686_msvc-0.42.2
 	windows_i686_msvc-0.48.5
 	windows_i686_msvc-0.52.0
+	windows_x86_64_gnu-0.42.2
 	windows_x86_64_gnu-0.48.5
 	windows_x86_64_gnu-0.52.0
+	windows_x86_64_gnullvm-0.42.2
 	windows_x86_64_gnullvm-0.48.5
 	windows_x86_64_gnullvm-0.52.0
+	windows_x86_64_msvc-0.42.2
 	windows_x86_64_msvc-0.48.5
 	windows_x86_64_msvc-0.52.0
 	winreg-0.50.0
@@ -704,7 +730,7 @@ src_unpack() {
 }
 
 src_prepare() {
-	cp -r "${ECARGO_VENDOR}/v8-${V8_VER}" "${WORKDIR}/v8"
+	cp -r "${ECARGO_VENDOR}/v8-${V8_VER}" "${WORKDIR}/v8" || die
 	pushd "${WORKDIR}/v8" > /dev/null || die
 	if tc-is-clang && ( has_version "sys-devel/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
 		eapply "${FILESDIR}/remove-libatomic.patch"
@@ -736,7 +762,7 @@ src_prepare() {
 	if use elibc_musl; then
 		eapply "${FILESDIR}/fix-stackoverflow.patch"
 	fi
-	eapply "${FILESDIR}/use-system-libraries.patch"
+	#eapply "${FILESDIR}/use-system-libraries.patch"
 	popd > /dev/null || die
 
 	default

@@ -1,18 +1,18 @@
 diff --git a/Cargo.toml b/Cargo.toml
-index 1eeaa93..bc679a8 100644
+index 481580d..74784e9 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -161,7 +161,7 @@ tokio-util = "0.7.4"
- tower-lsp = { version = "=0.20.0", features = ["proposed"] }
+@@ -167,7 +167,7 @@ tower-lsp = { version = "=0.20.0", features = ["proposed"] }
  url = { version = "2.3.1", features = ["serde", "expose_internals"] }
  uuid = { version = "1.3.0", features = ["v4"] }
+ webpki-roots = "0.25.2"
 -zstd = "=0.12.4"
-+zstd = { version = "=0.12.4", features = ["pkg-config"] }
- elliptic-curve = { version = "0.13.4", features = ["alloc", "arithmetic", "ecdh", "std", "pem"] }
- p224 = { version = "0.13.0", features = ["ecdh"] }
- p256 = { version = "0.13.2", features = ["ecdh"] }
++zstd = { version = "=0.12.4", features = ["pkg-config" ]}
+ 
+ # crypto
+ hkdf = "0.12.3"
 diff --git a/ext/ffi/Cargo.toml b/ext/ffi/Cargo.toml
-index 37e93ab..517c6c3 100644
+index 1e4c6c9..52be41f 100644
 --- a/ext/ffi/Cargo.toml
 +++ b/ext/ffi/Cargo.toml
 @@ -18,7 +18,7 @@ deno_core.workspace = true
