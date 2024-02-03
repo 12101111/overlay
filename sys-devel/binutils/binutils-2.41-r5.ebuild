@@ -19,7 +19,7 @@ IUSE="+ld +gas +binutils +gprof cet debuginfod doc gold gprofng hardened multita
 # PATCH_DEV          - Use download URI https://dev.gentoo.org/~{PATCH_DEV}/distfiles/...
 #                      for the patchsets
 
-PATCH_VER=4
+PATCH_VER=5
 PATCH_DEV=dilfridge
 
 if [[ ${PV} == 9999* ]]; then
@@ -66,7 +66,7 @@ BDEPEND="
 	)
 	nls? ( sys-devel/gettext )
 	zstd? ( virtual/pkgconfig )
-	sys-devel/flex
+	app-alternatives/lex
 	app-alternatives/yacc
 "
 
@@ -473,6 +473,8 @@ src_install() {
 
 	# Remove shared info pages
 	rm -f "${ED}"/${DATAPATH}/info/{dir,configure.info,standards.info}
+
+	docompress "${DATAPATH}"/{info,man}
 
 	# Trim all empty dirs
 	find "${ED}" -depth -type d -exec rmdir {} + 2>/dev/null
