@@ -1,7 +1,7 @@
-# Copyright 1999-2023 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 inherit java-pkg-2 desktop llvm
 
 LLVM_VALID_SLOTS=( 17 )
@@ -12,6 +12,9 @@ RELEASE_VERSION=${PV}
 
 DESCRIPTION="A software reverse engineering framework"
 HOMEPAGE="https://ghidra-sre.org/"
+
+FIDB_FILES="vs2012_x64.fidb  vs2015_x64.fidb  vs2017_x64.fidb  vs2019_x64.fidb  vsOlder_x64.fidb \
+		vs2012_x86.fidb  vs2015_x86.fidb  vs2017_x86.fidb  vs2019_x86.fidb  vsOlder_x86.fidb"
 
 # ./gradle/support/fetchDependencies.gradle
 SRC_URI="https://github.com/NationalSecurityAgency/${PN}/archive/Ghidra_${PV}_build.tar.gz
@@ -24,18 +27,11 @@ SRC_URI="https://github.com/NationalSecurityAgency/${PN}/archive/Ghidra_${PV}_bu
 	https://archive.eclipse.org/tools/cdt/releases/8.6/cdt-8.6.0.zip
 	mirror://sourceforge/project/pydev/pydev/PyDev%206.3.1/PyDev%206.3.1.zip -> PyDev-6.3.1.zip
 	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/lib/java-sarif-2.1-modified.jar
-
-	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/vs2012_x64.fidb
-	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/vs2012_x86.fidb
-	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/vs2015_x64.fidb
-	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/vs2015_x86.fidb
-	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/vs2017_x64.fidb
-	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/vs2017_x86.fidb
-	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/vs2019_x64.fidb
-	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/vs2019_x86.fidb
-	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/vsOlder_x64.fidb
-	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/vsOlder_x86.fidb
 "
+for FIDB in ${FIDB_FILES}; do
+	SRC_URI+="https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/${FIDB}"
+done
+
 # run: "pentoo/scripts/gradle_dependencies.py buildGhidra" from "${S}" directory to generate dependencies
 #	https://www.eclipse.org/downloads/download.php?r=1&protocol=https&file=/tools/cdt/releases/8.6/cdt-8.6.0.zip
 
@@ -62,7 +58,7 @@ DEPEND="${RDEPEND}
 	virtual/jdk:17
 	sys-devel/bison
 	dev-java/jflex
-	lldb? ( dev-debug/lldb:0/17 )
+	lldb? ( dev-debug/lldb:0/16 )
 	app-arch/unzip"
 BDEPEND=">=dev-java/gradle-bin-7.3:*"
 
@@ -118,7 +114,7 @@ src_unpack() {
 	mv ../dependencies .
 
 	mkdir ./dependencies/fidb || die "failed to create fidb dir"
-	cp "${DISTDIR}"/*.fidb ./dependencies/fidb/
+	cp "${DISTDIR}/${FIDB_FILES}" ./dependencies/fidb/
 }
 
 src_prepare() {
@@ -146,6 +142,10 @@ src_compile() {
 	GRADLE="gradle --gradle-user-home .gradle --console rich --no-daemon"
 	GRADLE="${GRADLE} --offline --parallel --max-workers $(nproc)"
 	unset TERM
+	#pushd Ghidra/Debug/Debugger-swig-lldb >> /dev/null
+	#${GRADLE} generateSwig
+	#cp -r build/generated/src/main src || die
+	#popd >> /dev/null
 	${GRADLE} prepDev -x check -x test || die
 	${GRADLE} buildGhidra -x check -x test --parallel || die
 
@@ -165,7 +165,7 @@ src_install() {
 
 	#fixme: add doc flag
 	rm -r  "${ED}"/usr/share/ghidra/docs/ || die "rm failed"
-	dosym "${EPREFIX}"/usr/share/ghidra/ghidraRun /usr/bin/ghidra
+	dosym -r /usr/share/ghidra/ghidraRun /usr/bin/ghidra
 
 	# icon
 	doicon GhidraDocs/GhidraClass/Beginner/Images/GhidraLogo64.png
