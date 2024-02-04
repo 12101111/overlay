@@ -1,7 +1,7 @@
-From 39d7b7471761a3ac1ea0400cf6745968b7edd6bb Mon Sep 17 00:00:00 2001
+From b1f755b19b898a19817dca85ff6be3f139018b6f Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Wed, 13 Apr 2022 21:02:01 +0800
-Subject: [PATCH 1/2] Add rpmalloc for musl
+Subject: [PATCH 1/3] Add rpmalloc for musl
 
 ---
  Makefile                       |    2 +-
@@ -12,10 +12,10 @@ Subject: [PATCH 1/2] Add rpmalloc for musl
  src/internal/pthread_impl.h    |    1 +
  src/malloc/lite_malloc.c       |    5 +
  src/malloc/rpmalloc/glue.h     |   46 +
- src/malloc/rpmalloc/rpmalloc.c | 3422 ++++++++++++++++++++++++++++++++
- src/malloc/rpmalloc/rpmalloc.h |  362 ++++
- src/thread/pthread_create.c    |    6 +
- 11 files changed, 3862 insertions(+), 1 deletion(-)
+ src/malloc/rpmalloc/rpmalloc.c | 3555 ++++++++++++++++++++++++++++++++
+ src/malloc/rpmalloc/rpmalloc.h |  369 ++++
+ src/thread/pthread_create.c    |    7 +
+ 11 files changed, 4003 insertions(+), 1 deletion(-)
  create mode 100644 src/malloc/rpmalloc/glue.h
  create mode 100644 src/malloc/rpmalloc/rpmalloc.c
  create mode 100644 src/malloc/rpmalloc/rpmalloc.h
@@ -45,7 +45,7 @@ index a30eb112..50f3e8ef 100644
  
  musl, pronounced like the word "mussel", is an MIT-licensed
 diff --git a/configure b/configure
-index ca5cbc0b..24f4122d 100755
+index 0b966ede..4d763f37 100755
 --- a/configure
 +++ b/configure
 @@ -347,6 +347,7 @@ esac
@@ -57,18 +57,18 @@ index ca5cbc0b..24f4122d 100755
  || tryflag CFLAGS_C99FSE -fno-builtin
  tryflag CFLAGS_C99FSE -fexcess-precision=standard \
 diff --git a/ldso/dynlink.c b/ldso/dynlink.c
-index 5b9c8be4..20627170 100644
+index 324aa859..f69d6e05 100644
 --- a/ldso/dynlink.c
 +++ b/ldso/dynlink.c
-@@ -150,6 +150,7 @@ static struct fdpic_dummy_loadmap app_dummy_loadmap;
- struct debug *_dl_debug_addr = &debug;
+@@ -160,6 +160,7 @@ struct debug *_dl_debug_addr = &debug;
+ extern weak hidden char __ehdr_start[];
  
  extern hidden int __malloc_replaced;
 +extern hidden int __malloc_process_init();
  
  hidden void (*const __init_array_start)(void)=0, (*const __fini_array_start)(void)=0;
  
-@@ -1550,6 +1551,11 @@ static void do_init_fini(struct dso **queue)
+@@ -1618,6 +1619,11 @@ static void do_init_fini(struct dso **queue)
  
  void __libc_start_init(void)
  {
@@ -80,7 +80,7 @@ index 5b9c8be4..20627170 100644
  	do_init_fini(main_ctor_queue);
  	if (!__malloc_replaced && main_ctor_queue != builtin_ctor_queue)
  		free(main_ctor_queue);
-@@ -1886,6 +1892,12 @@ void __dls3(size_t *sp, size_t *auxv)
+@@ -1958,6 +1964,12 @@ void __dls3(size_t *sp, size_t *auxv)
  	reclaim_gaps(&app);
  	reclaim_gaps(&ldso);
  
@@ -194,10 +194,10 @@ index 00000000..96b70a0d
 +}
 diff --git a/src/malloc/rpmalloc/rpmalloc.c b/src/malloc/rpmalloc/rpmalloc.c
 new file mode 100644
-index 00000000..05e563c6
+index 00000000..cc8e9859
 --- /dev/null
 +++ b/src/malloc/rpmalloc/rpmalloc.c
-@@ -0,0 +1,3422 @@
+@@ -0,0 +1,3555 @@
 +/* rpmalloc.c  -  Memory allocator  -  Public Domain  -  2016-2020 Mattias Jansson
 + *
 + * This library provides a cross-platform lock free thread caching malloc implementation in C11.
@@ -223,9 +223,56 @@ index 00000000..05e563c6
 +#if __has_warning("-Wreserved-identifier")
 +#pragma clang diagnostic ignored "-Wreserved-identifier"
 +#endif
++#if __has_warning("-Wstatic-in-inline")
++#pragma clang diagnostic ignored "-Wstatic-in-inline"
++#endif
 +#elif defined(__GNUC__)
 +#pragma GCC diagnostic ignored "-Wunused-macros"
 +#pragma GCC diagnostic ignored "-Wunused-function"
++#endif
++
++#if !defined(__has_builtin)
++#define __has_builtin(b) 0
++#endif
++
++#if defined(__GNUC__) || defined(__clang__)
++
++#if __has_builtin(__builtin_memcpy_inline)
++#define _rpmalloc_memcpy_const(x, y, s) __builtin_memcpy_inline(x, y, s)
++#else
++#define _rpmalloc_memcpy_const(x, y, s)											\
++	do {														\
++		_Static_assert(__builtin_choose_expr(__builtin_constant_p(s), 1, 0), "len must be a constant integer");	\
++		memcpy(x, y, s);											\
++	} while (0)
++#endif
++
++#if __has_builtin(__builtin_memset_inline)
++#define _rpmalloc_memset_const(x, y, s) __builtin_memset_inline(x, y, s)
++#else
++#define _rpmalloc_memset_const(x, y, s)											\
++	do {														\
++		_Static_assert(__builtin_choose_expr(__builtin_constant_p(s), 1, 0), "len must be a constant integer");	\
++		memset(x, y, s);											\
++	} while (0)
++#endif
++#else
++#define _rpmalloc_memcpy_const(x, y, s) memcpy(x, y, s)
++#define _rpmalloc_memset_const(x, y, s) memset(x, y, s)
++#endif
++
++#if __has_builtin(__builtin_assume)
++#define rpmalloc_assume(cond) __builtin_assume(cond)
++#elif defined(__GNUC__)
++#define rpmalloc_assume(cond) 												\
++	do {														\
++		if (!__builtin_expect(cond, 0))										\
++			__builtin_unreachable();									\
++	} while (0)
++#elif defined(_MSC_VER)
++#define rpmalloc_assume(cond) __assume(cond)
++#else
++#define rpmalloc_assume(cond) 0
 +#endif
 +
 +#ifndef HEAP_ARRAY_SIZE
@@ -333,6 +380,13 @@ index 00000000..05e563c6
 +#  include <stdio.h>
 +#  include <stdlib.h>
 +#  include <time.h>
++#  if defined(__linux__) || defined(__ANDROID__)
++#    include <sys/prctl.h>
++#    if !defined(PR_SET_VMA)
++#      define PR_SET_VMA 0x53564d41
++#      define PR_SET_VMA_ANON_NAME 0
++#    endif
++#  endif
 +#  if defined(__APPLE__)
 +#    include <TargetConditionals.h>
 +#    if !TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR
@@ -457,7 +511,7 @@ index 00000000..05e563c6
 +
 +#define EXPECTED(x) __builtin_expect((x), 1)
 +#define UNEXPECTED(x) __builtin_expect((x), 0)
-+    
++
 +#endif
 +
 +////////////
@@ -956,6 +1010,22 @@ index 00000000..05e563c6
 +///
 +//////
 +
++static void
++_rpmalloc_set_name(void* address, size_t size) {
++#if defined(__linux__) || defined(__ANDROID__)
++	const char *name = _memory_huge_pages ? _memory_config.huge_page_name : _memory_config.page_name;
++	if (address == MAP_FAILED || !name)
++		return;
++	// If the kernel does not support CONFIG_ANON_VMA_NAME or if the call fails
++	// (e.g. invalid name) it is a no-op basically.
++	(void)prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, (uintptr_t)address, size, (uintptr_t)name);
++#else
++	(void)sizeof(size);
++	(void)sizeof(address);
++#endif
++}
++
++
 +//! Map more virtual memory
 +//  size is number of bytes to map
 +//  offset receives the offset in bytes from start of mapped region
@@ -1028,6 +1098,7 @@ index 00000000..05e563c6
 +		}
 +	}
 +#    endif
++	_rpmalloc_set_name(ptr, size + padding);
 +#  elif defined(MAP_ALIGNED)
 +	const size_t align = (sizeof(size_t) * 8) - (size_t)(__builtin_clzl(size - 1));
 +	void* ptr = mmap(0, size + padding, PROT_READ | PROT_WRITE, (_memory_huge_pages ? MAP_ALIGNED(align) : 0) | flags, -1, 0);
@@ -1411,7 +1482,7 @@ index 00000000..05e563c6
 +
 +	//Setup free list. Only initialize one system page worth of free blocks in list
 +	void* block;
-+	span->free_list_limit = free_list_partial_init(&heap_size_class->free_list, &block, 
++	span->free_list_limit = free_list_partial_init(&heap_size_class->free_list, &block,
 +		span, pointer_offset(span, SPAN_HEADER_SIZE), size_class->block_count, size_class->block_size);
 +	//Link span as partial if there remains blocks to be initialized as free list, or full if fully initialized
 +	if (span->free_list_limit < span->block_count) {
@@ -1515,7 +1586,7 @@ index 00000000..05e563c6
 +
 +static void
 +_rpmalloc_global_cache_insert_spans(span_t** span, size_t span_count, size_t count) {
-+	const size_t cache_limit = (span_count == 1) ? 
++	const size_t cache_limit = (span_count == 1) ?
 +		GLOBAL_CACHE_MULTIPLIER * MAX_THREAD_SPAN_CACHE :
 +		GLOBAL_CACHE_MULTIPLIER * (MAX_THREAD_SPAN_LARGE_CACHE - (span_count >> 1));
 +
@@ -1540,7 +1611,7 @@ index 00000000..05e563c6
 +	// Enable unlimited cache if huge pages, or we will leak since it is unlikely that an entire huge page
 +	// will be unmapped, and we're unable to partially decommit a huge page
 +	while ((_memory_page_size > _memory_span_size) && (insert_count < count)) {
-+#endif		
++#endif
 +		span_t* current_span = span[insert_count++];
 +		current_span->next = cache->overflow;
 +		cache->overflow = current_span;
@@ -1619,7 +1690,7 @@ index 00000000..05e563c6
 +
 +#if ENABLE_ASSERTS
 +	for (size_t ispan = 0; ispan < extract_count; ++ispan) {
-+		assert(span[ispan]->span_count == span_count);
++		rpmalloc_assert(span[ispan]->span_count == span_count, "Global cache span count mismatch");
 +	}
 +#endif
 +
@@ -1942,7 +2013,7 @@ index 00000000..05e563c6
 +
 +static void
 +_rpmalloc_heap_initialize(heap_t* heap) {
-+	memset(heap, 0, sizeof(heap_t));
++	_rpmalloc_memset_const(heap, 0, sizeof(heap_t));
 +	//Get a new heap ID
 +	heap->id = 1 + atomic_incr32(&_memory_heap_id);
 +
@@ -2063,7 +2134,8 @@ index 00000000..05e563c6
 +	if (!heap)
 +		heap = _rpmalloc_heap_allocate_new();
 +	atomic_store32_release(&_memory_global_lock, 0);
-+	_rpmalloc_heap_cache_adopt_deferred(heap, 0);
++	if (heap)
++		_rpmalloc_heap_cache_adopt_deferred(heap, 0);
 +	return heap;
 +}
 +
@@ -2200,6 +2272,7 @@ index 00000000..05e563c6
 +static void*
 +_rpmalloc_allocate_from_heap_fallback(heap_t* heap, heap_size_class_t* heap_size_class, uint32_t class_idx) {
 +	span_t* span = heap_size_class->partial_span;
++	rpmalloc_assume(heap != 0);
 +	if (EXPECTED(span != 0)) {
 +		rpmalloc_assert(span->block_count == _memory_size_class[span->size_class].block_count, "Span block count corrupted");
 +		rpmalloc_assert(!_rpmalloc_span_is_fully_utilized(span), "Internal failure");
@@ -2210,7 +2283,7 @@ index 00000000..05e563c6
 +			heap_size_class->free_list = span->free_list;
 +			span->free_list = 0;
 +		} else {
-+			//If the span did not fully initialize free list, link up another page worth of blocks			
++			//If the span did not fully initialize free list, link up another page worth of blocks
 +			void* block_start = pointer_offset(span, SPAN_HEADER_SIZE + ((size_t)span->free_list_limit * span->block_size));
 +			span->free_list_limit += free_list_partial_init(&heap_size_class->free_list, &block,
 +				(void*)((uintptr_t)block_start & ~(_memory_page_size - 1)), block_start,
@@ -2361,7 +2434,7 @@ index 00000000..05e563c6
 +	}
 +#endif
 +
-+	if ((alignment <= SPAN_HEADER_SIZE) && (size < _memory_medium_size_limit)) {
++	if ((alignment <= SPAN_HEADER_SIZE) && ((size + SPAN_HEADER_SIZE) < _memory_medium_size_limit)) {
 +		// If alignment is less or equal to span header size (which is power of two),
 +		// and size aligned to span header size multiples is less than size + alignment,
 +		// then use natural alignment of blocks to provide alignment
@@ -2488,6 +2561,16 @@ index 00000000..05e563c6
 +	--span->used_count;
 +	span->free_list = block;
 +	if (UNEXPECTED(span->used_count == span->list_size)) {
++		// If there are no used blocks it is guaranteed that no other external thread is accessing the span
++		if (span->used_count) {
++			// Make sure we have synchronized the deferred list and list size by using acquire semantics
++			// and guarantee that no external thread is accessing span concurrently
++			void* free_list;
++			do {
++				free_list = atomic_exchange_ptr_acquire(&span->free_list_deferred, INVALID_POINTER);
++			} while (free_list == INVALID_POINTER);
++			atomic_store_ptr_release(&span->free_list_deferred, free_list);
++		}
 +		_rpmalloc_span_double_link_list_remove(&heap->size_class[span->size_class].partial_span, span);
 +		_rpmalloc_span_release_to_cache(heap, span);
 +	}
@@ -2516,8 +2599,9 @@ index 00000000..05e563c6
 +	} while (free_list == INVALID_POINTER);
 +	*((void**)block) = free_list;
 +	uint32_t free_count = ++span->list_size;
++	int all_deferred_free = (free_count == span->block_count);
 +	atomic_store_ptr_release(&span->free_list_deferred, block);
-+	if (free_count == span->block_count) {
++	if (all_deferred_free) {
 +		// Span was completely freed by this block. Due to the INVALID_POINTER spin lock
 +		// no other thread can reach this state simultaneously on this span.
 +		// Safe to move to owner heap deferred cache
@@ -2791,7 +2875,7 @@ index 00000000..05e563c6
 +			--prevclass;
 +			//A class can be merged if number of pages and number of blocks are equal
 +			if (_memory_size_class[prevclass].block_count == _memory_size_class[iclass].block_count)
-+				memcpy(_memory_size_class + prevclass, _memory_size_class + iclass, sizeof(_memory_size_class[iclass]));
++				_rpmalloc_memcpy_const(_memory_size_class + prevclass, _memory_size_class + iclass, sizeof(_memory_size_class[iclass]));
 +			else
 +				break;
 +		}
@@ -2819,7 +2903,7 @@ index 00000000..05e563c6
 +	if (config)
 +		memcpy(&_memory_config, config, sizeof(rpmalloc_config_t));
 +	else
-+		memset(&_memory_config, 0, sizeof(rpmalloc_config_t));
++		_rpmalloc_memset_const(&_memory_config, 0, sizeof(rpmalloc_config_t));
 +
 +	if (!_memory_config.memory_map || !_memory_config.memory_unmap) {
 +		_memory_config.memory_map = _rpmalloc_mmap_os;
@@ -2869,8 +2953,22 @@ index 00000000..05e563c6
 +			size_t sz = sizeof(rc);
 +
 +			if (sysctlbyname("vm.pmap.pg_ps_enabled", &rc, &sz, NULL, 0) == 0 && rc == 1) {
++				static size_t defsize = 2 * 1024 * 1024;
++				int nsize = 0;
++				size_t sizes[4] = {0};
 +				_memory_huge_pages = 1;
-+				_memory_page_size = 2 * 1024 * 1024;
++				_memory_page_size = defsize;
++				if ((nsize = getpagesizes(sizes, 4)) >= 2) {
++					nsize --;
++					for (size_t csize = sizes[nsize]; nsize >= 0 && csize; --nsize, csize = sizes[nsize]) {
++						//! Unlikely, but as a precaution..
++						rpmalloc_assert(!(csize & (csize -1)) && !(csize % 1024), "Invalid page size");
++						if (defsize < csize) {
++							_memory_page_size = csize;
++							break;
++						}
++					}
++				}
 +				_memory_map_granularity = _memory_page_size;
 +			}
 +#elif defined(__APPLE__) || defined(__NetBSD__)
@@ -2988,8 +3086,10 @@ index 00000000..05e563c6
 +		_memory_medium_size_limit = MEDIUM_SIZE_LIMIT;
 +	for (iclass = 0; iclass < MEDIUM_CLASS_COUNT; ++iclass) {
 +		size_t size = SMALL_SIZE_LIMIT + ((iclass + 1) * MEDIUM_GRANULARITY);
-+		if (size > _memory_medium_size_limit)
++		if (size > _memory_medium_size_limit) {
++			_memory_medium_size_limit = SMALL_SIZE_LIMIT + (iclass * MEDIUM_GRANULARITY);
 +			break;
++		}
 +		_memory_size_class[SMALL_CLASS_COUNT + iclass].block_size = (uint32_t)size;
 +		_rpmalloc_adjust_size_class(SMALL_CLASS_COUNT + iclass);
 +	}
@@ -3029,7 +3129,7 @@ index 00000000..05e563c6
 +		_memory_global_reserve_count = 0;
 +		_memory_global_reserve = 0;
 +	}
-+	atomic_store32_release(&_memory_global_lock, 0);	
++	atomic_store32_release(&_memory_global_lock, 0);
 +
 +	//Free all thread caches and fully free spans
 +	for (size_t list_idx = 0; list_idx < HEAP_ARRAY_SIZE; ++list_idx) {
@@ -3243,7 +3343,7 @@ index 00000000..05e563c6
 +			if (span->free_list_limit < block_count)
 +				block_count = span->free_list_limit;
 +			free_count += (block_count - span->used_count);
-+			stats->sizecache = free_count * size_class->block_size;
++			stats->sizecache += free_count * size_class->block_size;
 +			span = span->next;
 +		}
 +	}
@@ -3255,14 +3355,14 @@ index 00000000..05e563c6
 +			span_cache = &heap->span_cache;
 +		else
 +			span_cache = (span_cache_t*)(heap->span_large_cache + (iclass - 1));
-+		stats->spancache = span_cache->count * (iclass + 1) * _memory_span_size;
++		stats->spancache += span_cache->count * (iclass + 1) * _memory_span_size;
 +	}
 +#endif
 +
 +	span_t* deferred = (span_t*)atomic_load_ptr(&heap->span_free_deferred);
 +	while (deferred) {
 +		if (deferred->size_class != SIZE_CLASS_HUGE)
-+			stats->spancache = (size_t)deferred->span_count * _memory_span_size;
++			stats->spancache += (size_t)deferred->span_count * _memory_span_size;
 +		deferred = (span_t*)deferred->free_list;
 +	}
 +
@@ -3306,8 +3406,21 @@ index 00000000..05e563c6
 +	stats->huge_alloc_peak = (size_t)_huge_pages_peak * _memory_page_size;
 +#endif
 +#if ENABLE_GLOBAL_CACHE
-+	for (size_t iclass = 0; iclass < LARGE_CLASS_COUNT; ++iclass)
-+		stats->cached += _memory_span_cache[iclass].count * (iclass + 1) * _memory_span_size;
++	for (size_t iclass = 0; iclass < LARGE_CLASS_COUNT; ++iclass) {
++		global_cache_t* cache = &_memory_span_cache[iclass];
++		while (!atomic_cas32_acquire(&cache->lock, 1, 0))
++			_rpmalloc_spin();
++		uint32_t count = cache->count;
++#if ENABLE_UNLIMITED_CACHE
++		span_t* current_span = cache->overflow;
++		while (current_span) {
++			++count;
++			current_span = current_span->next;
++		}
++#endif
++		atomic_store32_release(&cache->lock, 0);
++		stats->cached += count * (iclass + 1) * _memory_span_size;
++	}
 +#endif
 +}
 +
@@ -3395,6 +3508,7 @@ index 00000000..05e563c6
 +	fprintf(file, "HugeCurrentMiB HugePeakMiB\n");
 +	fprintf(file, "%14zu %11zu\n", huge_current / (size_t)(1024 * 1024), huge_peak / (size_t)(1024 * 1024));
 +
++#if ENABLE_GLOBAL_CACHE
 +	fprintf(file, "GlobalCacheMiB\n");
 +	for (size_t iclass = 0; iclass < LARGE_CLASS_COUNT; ++iclass) {
 +		global_cache_t* cache = _memory_span_cache + iclass;
@@ -3409,6 +3523,7 @@ index 00000000..05e563c6
 +		if (global_cache || global_overflow_cache || cache->insert_count || cache->extract_count)
 +			fprintf(file, "%4zu: %8zuMiB (%8zuMiB overflow) %14zu insert %14zu extract\n", iclass + 1, global_cache / (size_t)(1024 * 1024), global_overflow_cache / (size_t)(1024 * 1024), cache->insert_count, cache->extract_count);
 +	}
++#endif
 +
 +	size_t mapped = (size_t)atomic_load32(&_mapped_pages) * _memory_page_size;
 +	size_t mapped_os = (size_t)atomic_load32(&_mapped_pages_os) * _memory_page_size;
@@ -3446,6 +3561,7 @@ index 00000000..05e563c6
 +	// heap is cleared with rpmalloc_heap_free_all(). Also heaps guaranteed to be
 +	// pristine from the dedicated orphan list can be used.
 +	heap_t* heap = _rpmalloc_heap_allocate(1);
++	rpmalloc_assume(heap != NULL);
 +	heap->owner_thread = 0;
 +	_rpmalloc_stat_inc(&_memory_active_heaps);
 +	return heap;
@@ -3529,7 +3645,7 @@ index 00000000..05e563c6
 +		return 0;
 +	}
 +#endif
-+	return _rpmalloc_aligned_reallocate(heap, ptr, alignment, size, 0, flags);	
++	return _rpmalloc_aligned_reallocate(heap, ptr, alignment, size, 0, flags);
 +}
 +
 +extern inline void
@@ -3559,6 +3675,11 @@ index 00000000..05e563c6
 +			_rpmalloc_heap_cache_insert(heap, span);
 +			span = next_span;
 +		}
++
++		span = heap->size_class[iclass].cache;
++		if (span)
++			_rpmalloc_heap_cache_insert(heap, span);
++		heap->size_class[iclass].cache = 0;
 +	}
 +	memset(heap->size_class, 0, sizeof(heap->size_class));
 +	memset(heap->full_span, 0, sizeof(heap->full_span));
@@ -3617,15 +3738,27 @@ index 00000000..05e563c6
 +	}
 +}
 +
++extern inline rpmalloc_heap_t*
++rpmalloc_get_heap_for_ptr(void* ptr)
++{
++	//Grab the span, and then the heap from the span
++	span_t* span = (span_t*)((uintptr_t)ptr & _memory_span_mask);
++	if (span)
++	{
++		return span->heap;
++	}
++	return 0;
++}
++
 +#endif
 +
 +#include "glue.h"
 diff --git a/src/malloc/rpmalloc/rpmalloc.h b/src/malloc/rpmalloc/rpmalloc.h
 new file mode 100644
-index 00000000..de00e30f
+index 00000000..2af6697d
 --- /dev/null
 +++ b/src/malloc/rpmalloc/rpmalloc.h
-@@ -0,0 +1,362 @@
+@@ -0,0 +1,369 @@
 +/* rpmalloc.h  -  Memory allocator  -  Public Domain  -  2016 Mattias Jansson
 + *
 + * This library provides a cross-platform lock free thread caching malloc implementation in C11.
@@ -3814,7 +3947,10 @@ index 00000000..de00e30f
 +	//  For Windows, see https://docs.microsoft.com/en-us/windows/desktop/memory/large-page-support
 +	//  For Linux, see https://www.kernel.org/doc/Documentation/vm/hugetlbpage.txt
 +	int enable_huge_pages;
-+	int unused;
++	//! Respectively allocated pages and huge allocated pages names for systems
++	//  supporting it to be able to distinguish among anonymous regions.
++	const char *page_name;
++	const char *huge_page_name;
 +} rpmalloc_config_t;
 +
 +//! Initialize allocator with default configuration
@@ -3983,13 +4119,17 @@ index 00000000..de00e30f
 +RPMALLOC_EXPORT void
 +rpmalloc_heap_thread_set_current(rpmalloc_heap_t* heap);
 +
++//! Returns which heap the given pointer is allocated on
++RPMALLOC_EXPORT rpmalloc_heap_t*
++rpmalloc_get_heap_for_ptr(void* ptr);
++
 +#endif
 +
 +#ifdef __cplusplus
 +}
 +#endif
 diff --git a/src/thread/pthread_create.c b/src/thread/pthread_create.c
-index 6f187ee8..4a917914 100644
+index 087f6206..3d882d15 100644
 --- a/src/thread/pthread_create.c
 +++ b/src/thread/pthread_create.c
 @@ -7,6 +7,9 @@
@@ -4011,7 +4151,7 @@ index 6f187ee8..4a917914 100644
  	__block_app_sigs(&set);
  
  	/* This atomic potentially competes with a concurrent pthread_detach
-@@ -200,6 +205,7 @@ static int start(void *p)
+@@ -204,6 +209,7 @@ static int start(void *p)
  		}
  	}
  	__syscall(SYS_rt_sigprocmask, SIG_SETMASK, &args->sig_mask, 0, _NSIG/8);
@@ -4019,6 +4159,14 @@ index 6f187ee8..4a917914 100644
  	__pthread_exit(args->start_func(args->start_arg));
  	return 0;
  }
+@@ -212,6 +218,7 @@ static int start_c11(void *p)
+ {
+ 	struct start_args *args = p;
+ 	int (*start)(void*) = (int(*)(void*)) args->start_func;
++	__malloc_thread_init();
+ 	__pthread_exit((void *)(uintptr_t)start(args->start_arg));
+ 	return 0;
+ }
 -- 
-2.35.2
+2.43.0
 

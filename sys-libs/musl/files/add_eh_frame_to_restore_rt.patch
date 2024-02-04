@@ -1,3 +1,15 @@
+From 16be753ddd06a17cf743bc2b5c2810c92eeb2065 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sun, 4 Feb 2024 22:41:16 +0800
+Subject: [PATCH 3/3] Add .eh_frame to _restore_rt symbol
+
+---
+ src/signal/x86_64/restore.S | 178 ++++++++++++++++++++++++++++++++++++
+ src/signal/x86_64/restore.s |   8 --
+ 2 files changed, 178 insertions(+), 8 deletions(-)
+ create mode 100644 src/signal/x86_64/restore.S
+ delete mode 100644 src/signal/x86_64/restore.s
+
 diff --git a/src/signal/x86_64/restore.S b/src/signal/x86_64/restore.S
 new file mode 100644
 index 00000000..d23a5b7f
@@ -196,3 +208,6 @@ index 27d6cf31..00000000
 -	mov $15, %rax
 -	syscall
 -.size __restore_rt,.-__restore_rt
+-- 
+2.43.0
+
