@@ -3,9 +3,9 @@
 
 EAPI=7
 
-CHROMIUM_LANGS="am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
+CHROMIUM_LANGS="am ar af bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
-	sv sw ta te th tr uk vi zh-CN zh-TW"
+	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
 inherit chromium-2
 
