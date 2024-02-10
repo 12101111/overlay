@@ -1,9 +1,9 @@
-# Copyright 1999-2023 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-inherit flag-o-matic systemd toolchain-funcs udev usr-ldscript
+inherit flag-o-matic systemd udev usr-ldscript toolchain-funcs
 
 DESCRIPTION="XFS filesystem utilities"
 HOMEPAGE="https://xfs.wiki.kernel.org/ https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git/"
@@ -27,7 +27,9 @@ RDEPEND+=" selinux? ( sec-policy/selinux-xfs )"
 
 PATCHES=(
 	"${FILESDIR}"/${PN}-5.3.0-libdir.patch
-	"${FILESDIR}"/${PN}-5.18.0-docdir.patch
+	"${FILESDIR}"/0001-Remove-use-of-LFS64-interfaces.patch
+	"${FILESDIR}"/0002-io-Adapt-to-64-bit-time_t.patch
+	"${FILESDIR}"/0003-build-Request-64-bit-time_t-where-possible.patch
 )
 
 src_prepare() {
@@ -40,8 +42,6 @@ src_prepare() {
 
 	# Don't install compressed docs
 	sed 's@\(CHANGES\)\.gz[[:space:]]@\1 @' -i doc/Makefile || die
-
-	use elibc_musl && eapply "${FILESDIR}/musl-lfs64-fix.patch"
 }
 
 src_configure() {
@@ -83,7 +83,7 @@ src_configure() {
 		myconf+=( --enable-lib64=no )
 	fi
 
-	if is-flagq -flto ; then
+	if tc-is-lto ; then
 		myconf+=( --enable-lto )
 	else
 		myconf+=( --disable-lto )
