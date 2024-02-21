@@ -1,10 +1,10 @@
-# Copyright 1999-2023 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 PYTHON_REQ_USE="xml(+)"
 PYTHON_COMPAT=( python3_{10..12} )
-USE_RUBY="ruby30 ruby31 ruby32"
+USE_RUBY="ruby30 ruby31 ruby32 ruby33"
 
 inherit check-reqs flag-o-matic gnome2 optfeature python-any-r1 ruby-single toolchain-funcs cmake
 
@@ -14,7 +14,7 @@ HOMEPAGE="https://www.webkitgtk.org"
 SRC_URI="https://www.webkitgtk.org/releases/${MY_P}.tar.xz"
 
 LICENSE="LGPL-2+ BSD"
-SLOT="4.1/0" # soname version of libwebkit2gtk-4.1
+SLOT="4/37" # soname version of libwebkit2gtk-4.0
 KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 
 IUSE="aqua avif examples gamepad keyring +gstreamer +introspection pdf +jpeg2k jpegxl +jumbo-build lcms seccomp spell systemd wayland X"
@@ -30,7 +30,6 @@ RESTRICT="test"
 # >=gst-plugins-opus-1.14.4-r1 for opusparse (required by MSE)
 # TODO: gst-plugins-base[X] is only needed when build configuration ends up
 #       with GLX set, but that's a bit automagic too to fix
-# Softblocking webkit-gtk-2.38:4 as we going to use webkit-2.38:4.1's WebKitDriver binary
 RDEPEND="
 	>=x11-libs/cairo-1.16.0[X?]
 	>=media-libs/fontconfig-2.13.0:1.0
@@ -41,7 +40,7 @@ RDEPEND="
 	>=dev-libs/icu-61.2:=
 	media-libs/libjpeg-turbo:0=
 	>=media-libs/libepoxy-1.4.0
-	>=net-libs/libsoup-3.0.8:3.0[introspection?]
+	>=net-libs/libsoup-2.54:2.4[introspection?]
 	>=dev-libs/libxml2-2.8.0:2
 	>=media-libs/libpng-1.4:0=
 	dev-db/sqlite:3
@@ -74,7 +73,7 @@ RDEPEND="
 
 	dev-libs/hyphen
 	jpeg2k? ( >=media-libs/openjpeg-2.2.0:2= )
-	jpegxl? ( >=media-libs/libjxl-0.7.0 )
+	jpegxl? ( >=media-libs/libjxl-0.7.0:= )
 	avif? ( >=media-libs/libavif-0.9.0:= )
 	lcms? ( media-libs/lcms:2 )
 
@@ -95,7 +94,6 @@ RDEPEND="
 
 	systemd? ( sys-apps/systemd:= )
 	gamepad? ( >=dev-libs/libmanette-0.2.4 )
-	!<net-libs/webkit-gtk-2.38:4
 "
 DEPEND="${RDEPEND}"
 # Need real bison, not yacc
@@ -116,6 +114,8 @@ BDEPEND="
 	virtual/perl-Data-Dumper
 	virtual/perl-Carp
 	virtual/perl-JSON-PP
+
+	wayland? ( dev-util/wayland-scanner )
 "
 
 S="${WORKDIR}/${MY_P}"
@@ -159,11 +159,16 @@ src_prepare() {
 
 	# Fix USE=-jumbo-build compilation on arm64
 	eapply "${FILESDIR}"/2.42.1-arm64-non-jumbo-fix.patch
+	# Fix assert failure on some machines, bug #920704
+	eapply "${FILESDIR}"/2.42.4-wasm-assert-fix.patch
 }
 
 src_configure() {
 	# Respect CC, otherwise fails on prefix #395875
 	tc-export CC
+
+	# ODR violations (bug #915230, https://bugs.webkit.org/show_bug.cgi?id=233007)
+	filter-lto
 
 	# It does not compile on alpha without this in LDFLAGS
 	# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=648761
@@ -223,7 +228,7 @@ src_configure() {
 		-DENABLE_VIDEO=$(usex gstreamer)
 		-DUSE_GSTREAMER_WEBRTC=$(usex gstreamer)
 		-DUSE_GSTREAMER_TRANSCODER=$(usex gstreamer)
-		-DENABLE_WEBDRIVER=ON
+		-DENABLE_WEBDRIVER=OFF # Disable WebDriver for webkit2gtk-4.0 and use the webkit2gtk-4.1
 		-DENABLE_WEBGL=ON
 		-DENABLE_WEB_AUDIO=$(usex gstreamer)
 		-DUSE_AVIF=$(usex avif)
@@ -242,7 +247,7 @@ src_configure() {
 		-DUSE_LIBSECRET=$(usex keyring)
 		-DUSE_OPENGL_OR_ES=ON
 		-DUSE_OPENJPEG=$(usex jpeg2k)
-		-DUSE_SOUP2=OFF
+		-DUSE_SOUP2=ON
 		-DUSE_WOFF2=ON
 	)
 
@@ -254,14 +259,6 @@ src_configure() {
 	append-cppflags -DNDEBUG
 
 	WK_USE_CCACHE=NO cmake_src_configure
-}
-
-src_install() {
-	cmake_src_install
-
-	insinto /usr/share/gtk-doc/html
-	# This will install API docs specific to webkit2gtk-4.1
-	doins -r "${S}"/Documentation/{jsc-glib,webkit2gtk,webkit2gtk-web-extension}-${SLOT%/*}
 }
 
 pkg_postinst() {
