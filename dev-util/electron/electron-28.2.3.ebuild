@@ -1422,7 +1422,7 @@ src_prepare() {
 
 	# Apply Chromium patches from Electron.
 	local patchespath repopath
-	(jq -r 'to_entries | .[] | .key + " " + .value' "${S}/electron/patches/config.json" || die) \
+	(jq -r '.[] | .patch_dir + " " + .repo' "${S}/electron/patches/config.json" || die) \
 	| while read -r patchespath repopath; do
 		if [[ -d "${WORKDIR}/${repopath}" ]]; then
 			einfo "Apply Electron's patches to ${repopath}"
