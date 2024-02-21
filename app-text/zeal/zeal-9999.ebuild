@@ -1,4 +1,4 @@
-# Copyright 1999-2022 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -33,7 +33,7 @@ DEPEND="
 RDEPEND="${DEPEND}
 	x11-themes/hicolor-icon-theme
 "
-BDEPEND="kde-frameworks/extra-cmake-modules:5"
+BDEPEND="kde-frameworks/extra-cmake-modules:0"
 
 PATCHES=(
 	"${FILESDIR}/0002-settings-disable-checking-for-updates-by-default.patch"
