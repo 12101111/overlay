@@ -7,7 +7,7 @@ export CBUILD=${CBUILD:-${CHOST}}
 export CTARGET=${CTARGET:-${CHOST}}
 
 # See "Bootstrap" in release notes
-GO_BOOTSTRAP_MIN=1.17.13
+GO_BOOTSTRAP_MIN=1.20.14
 MY_PV=${PV/_/}
 
 inherit toolchain-funcs
@@ -23,7 +23,7 @@ case ${PV}  in
 	case ${PV} in
 	*_beta*|*_rc*) ;;
 	*)
-		KEYWORDS="-* amd64 arm ~arm64 ~loong ~mips ~ppc64 ~riscv ~s390 x86 ~amd64-linux ~x86-linux ~x64-macos ~x64-solaris"
+		KEYWORDS="-* ~amd64 ~arm ~arm64 ~loong ~mips ~ppc64 ~riscv ~s390 ~x86 ~amd64-linux ~x86-linux ~x64-macos ~x64-solaris"
 		;;
 	esac
 esac
@@ -167,6 +167,9 @@ src_test() {
 
 	PATH="${GOBIN}:${PATH}" \
 	./run.bash -no-rebuild -k || die "tests failed"
+	cd ..
+	rm -fr pkg/*_race || die
+	rm -fr pkg/obj/go-build || die
 }
 
 src_install() {
