@@ -13,7 +13,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="f5442d1f9fcdc7ce89a34c6e52a11ba44e47b423"
+COMMIT="903b1e9d8990623e3d7da1df3d33db3e42d80eda"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.15.9/lib/postinstall.js#L21
@@ -3561,9 +3561,9 @@ src_prepare() {
 
 	# fix https://github.com/npm/cli/pull/6941
 	local npm_path="/usr/$(get_libdir)/node_modules/npm/"
-	local node-gyp_path="${npm_path}bin/node-gyp-bin"
+	local node_gyp_path="${npm_path}bin/node-gyp-bin"
 	if [ -f ${node-gyp_path} ]; then
-		export PATH="${node-gyp_path}:${PATH}"
+		export PATH="${node_gyp_path}:${PATH}"
 	else
 		create_fake_bin "node ${npm_path}node_modules/node-gyp/bin/node-gyp.js" node-gyp
 		export PATH="${S}:${PATH}"
