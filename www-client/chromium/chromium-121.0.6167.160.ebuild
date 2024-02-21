@@ -58,7 +58,7 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PATCHSET_PPC64="121.0.6167.85-1raptor0~deb12u1"
+PATCHSET_PPC64="121.0.6167.160-1raptor0~deb12u1"
 PATCH_V="${PV%%\.*}-2"
 HEVC_PATCHSET_VERSION="120.0.6076.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
@@ -82,7 +82,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 
 LICENSE="BSD"
 SLOT="0/stable"
-KEYWORDS="amd64 ~arm64 ~ppc64"
+KEYWORDS="~amd64 ~arm64 ~ppc64"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="hevc +X ${IUSE_SYSTEM_LIBS} cups debug gtk4 +hangouts headless kerberos libcxx lto +official pax-kernel pgo +proprietary-codecs pulseaudio"
 IUSE+=" qt5 qt6 screencast selinux +system-toolchain vaapi wayland widevine"
