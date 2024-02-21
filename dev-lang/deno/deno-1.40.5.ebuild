@@ -12,7 +12,7 @@ LLVM_VALID_SLOTS=( 17 )
 LLVM_MAX_SLOT=17
 GN_MIN_VER=0.2122
 
-V8_VER=0.83.1
+V8_VER=0.83.2
 STACKER_VER=0.1.15
 
 CRATES="
@@ -74,7 +74,6 @@ CRATES="
 	cache_control-0.2.0
 	cbc-0.1.2
 	cc-1.0.83
-	cesu8-1.1.0
 	cfg-if-1.0.0
 	chrono-0.4.31
 	cipher-0.4.4
@@ -90,7 +89,6 @@ CRATES="
 	color-print-proc-macro-0.3.5
 	color_quant-1.1.0
 	colorchoice-1.0.0
-	combine-4.6.6
 	comrak-0.20.0
 	console_static_text-0.8.1
 	const-oid-0.9.5
@@ -121,22 +119,23 @@ CRATES="
 	data-encoding-2.5.0
 	data-url-0.3.0
 	debugid-0.8.0
-	deno_ast-0.32.1
+	deno_ast-0.33.2
 	deno_cache_dir-0.6.1
-	deno_config-0.9.1
-	deno_core-0.256.0
+	deno_config-0.9.2
+	deno_core-0.262.0
 	deno_core_icudata-0.0.73
-	deno_doc-0.100.0
-	deno_emit-0.35.0
-	deno_graph-0.64.1
-	deno_lint-0.55.0
-	deno_lockfile-0.18.0
+	deno_doc-0.103.0
+	deno_emit-0.36.0
+	deno_graph-0.65.3
+	deno_lint-0.56.0
+	deno_lockfile-0.18.2
 	deno_media_type-0.1.2
 	deno_native_certs-0.2.0
 	deno_npm-0.16.0
-	deno_ops-0.132.0
+	deno_ops-0.138.0
 	deno_semver-0.5.4
 	deno_task_shell-0.14.3
+	deno_terminal-0.1.1
 	deno_unsync-0.1.1
 	deno_unsync-0.3.2
 	deno_whoami-0.1.0
@@ -162,8 +161,8 @@ CRATES="
 	dprint-plugin-json-0.19.1
 	dprint-plugin-jupyter-0.1.2
 	dprint-plugin-markdown-0.16.3
-	dprint-plugin-typescript-0.88.10
-	dprint-swc-ext-0.13.0
+	dprint-plugin-typescript-0.89.0
+	dprint-swc-ext-0.14.1
 	dsa-0.6.2
 	dyn-clone-1.0.16
 	dynasm-1.2.3
@@ -183,7 +182,7 @@ CRATES="
 	errno-dragonfly-0.1.2
 	error-code-3.0.0
 	escape8259-0.5.2
-	eszip-0.60.0
+	eszip-0.62.0
 	fallible-iterator-0.2.0
 	fallible-streaming-iterator-0.1.9
 	fancy-regex-0.10.0
@@ -267,7 +266,7 @@ CRATES="
 	idna-0.4.0
 	if_chain-1.0.2
 	image-0.24.7
-	import_map-0.18.2
+	import_map-0.18.3
 	indexmap-2.1.0
 	inotify-0.9.6
 	inotify-sys-0.1.5
@@ -275,12 +274,12 @@ CRATES="
 	instant-0.1.12
 	ipconfig-0.3.2
 	ipnet-2.9.0
+	is-docker-0.2.0
 	is-macro-0.3.1
 	is-terminal-0.4.9
+	is-wsl-0.4.0
 	itertools-0.10.5
 	itoa-1.0.9
-	jni-0.21.1
-	jni-sys-0.3.0
 	jobserver-0.1.27
 	js-sys-0.3.66
 	jsonc-parser-0.23.0
@@ -333,7 +332,6 @@ CRATES="
 	naga-0.14.2
 	napi-build-1.2.1
 	napi-sys-2.2.2
-	ndk-context-0.1.1
 	netif-0.1.6
 	new_debug_unreachable-1.0.4
 	nextest-workspace-hack-0.1.0
@@ -359,6 +357,7 @@ CRATES="
 	onig-6.4.0
 	onig_sys-69.8.1
 	opaque-debug-0.3.0
+	open-5.0.1
 	openssl-probe-0.1.5
 	ordered-float-2.10.1
 	os_pipe-1.1.4
@@ -378,7 +377,7 @@ CRATES="
 	pathdiff-0.2.1
 	pbkdf2-0.12.2
 	pem-rfc7468-0.7.0
-	percent-encoding-2.3.0
+	percent-encoding-2.3.1
 	pest-2.7.5
 	pest_derive-2.7.5
 	pest_generator-2.7.5
@@ -484,7 +483,7 @@ CRATES="
 	serde_json-1.0.111
 	serde_repr-0.1.16
 	serde_urlencoded-0.7.1
-	serde_v8-0.165.0
+	serde_v8-0.171.0
 	sha-1-0.10.0
 	sha1-0.10.6
 	sha2-0.10.8
@@ -517,28 +516,28 @@ CRATES="
 	strum_macros-0.25.3
 	subtle-2.5.0
 	swc_atoms-0.6.5
-	swc_bundler-0.223.20
-	swc_common-0.33.12
-	swc_config-0.1.9
+	swc_bundler-0.225.3
+	swc_cached-0.3.19
+	swc_common-0.33.17
+	swc_config-0.1.11
 	swc_config_macro-0.1.3
-	swc_ecma_ast-0.110.17
-	swc_ecma_codegen-0.146.54
+	swc_ecma_ast-0.112.2
+	swc_ecma_codegen-0.148.3
 	swc_ecma_codegen_macros-0.7.4
-	swc_ecma_dep_graph-0.113.22
-	swc_ecma_loader-0.45.13
-	swc_ecma_parser-0.141.37
-	swc_ecma_transforms_base-0.135.11
-	swc_ecma_transforms_classes-0.124.11
+	swc_ecma_loader-0.45.19
+	swc_ecma_parser-0.143.3
+	swc_ecma_transforms_base-0.137.3
+	swc_ecma_transforms_classes-0.126.3
 	swc_ecma_transforms_macros-0.5.4
-	swc_ecma_transforms_optimization-0.196.17
-	swc_ecma_transforms_proposal-0.169.16
-	swc_ecma_transforms_react-0.181.18
-	swc_ecma_transforms_typescript-0.186.17
-	swc_ecma_utils-0.125.4
-	swc_ecma_visit-0.96.17
+	swc_ecma_transforms_optimization-0.198.3
+	swc_ecma_transforms_proposal-0.171.3
+	swc_ecma_transforms_react-0.183.3
+	swc_ecma_transforms_typescript-0.188.3
+	swc_ecma_utils-0.127.3
+	swc_ecma_visit-0.98.2
 	swc_eq_ignore_macros-0.1.3
-	swc_fast_graph-0.21.13
-	swc_graph_analyzer-0.22.15
+	swc_fast_graph-0.21.17
+	swc_graph_analyzer-0.22.19
 	swc_macros_common-0.3.9
 	swc_visit-0.5.8
 	swc_visit_macros-0.5.9
@@ -605,7 +604,7 @@ CRATES="
 	utf8-width-0.1.7
 	utf8parse-0.2.1
 	uuid-1.6.1
-	v8-0.83.1
+	v8-0.83.2
 	value-trait-0.8.0
 	vcpkg-0.2.15
 	version_check-0.9.4
@@ -623,7 +622,6 @@ CRATES="
 	wasm-bindgen-shared-0.2.89
 	wasm-streams-0.3.0
 	web-sys-0.3.66
-	webbrowser-0.8.12
 	webpki-roots-0.25.3
 	wgpu-core-0.18.1
 	wgpu-hal-0.18.1
@@ -632,37 +630,31 @@ CRATES="
 	which-5.0.0
 	whoami-1.4.1
 	widestring-1.0.2
+	win32job-2.0.0
 	winapi-0.3.9
 	winapi-i686-pc-windows-gnu-0.4.0
 	winapi-util-0.1.6
 	winapi-x86_64-pc-windows-gnu-0.4.0
 	windows-0.51.1
+	windows-0.52.0
 	windows-core-0.51.1
-	windows-sys-0.45.0
+	windows-core-0.52.0
 	windows-sys-0.48.0
 	windows-sys-0.52.0
-	windows-targets-0.42.2
 	windows-targets-0.48.5
 	windows-targets-0.52.0
-	windows_aarch64_gnullvm-0.42.2
 	windows_aarch64_gnullvm-0.48.5
 	windows_aarch64_gnullvm-0.52.0
-	windows_aarch64_msvc-0.42.2
 	windows_aarch64_msvc-0.48.5
 	windows_aarch64_msvc-0.52.0
-	windows_i686_gnu-0.42.2
 	windows_i686_gnu-0.48.5
 	windows_i686_gnu-0.52.0
-	windows_i686_msvc-0.42.2
 	windows_i686_msvc-0.48.5
 	windows_i686_msvc-0.52.0
-	windows_x86_64_gnu-0.42.2
 	windows_x86_64_gnu-0.48.5
 	windows_x86_64_gnu-0.52.0
-	windows_x86_64_gnullvm-0.42.2
 	windows_x86_64_gnullvm-0.48.5
 	windows_x86_64_gnullvm-0.52.0
-	windows_x86_64_msvc-0.42.2
 	windows_x86_64_msvc-0.48.5
 	windows_x86_64_msvc-0.52.0
 	winreg-0.50.0
@@ -711,7 +703,7 @@ DEPEND="
 "
 
 S="${WORKDIR}/deno"
-DOCS=( "README.md" "LICENSE.md" "Releases.md" )
+DOCS=("README.md" "LICENSE.md" "Releases.md")
 
 CHECKREQS_DISK_BUILD=8G
 
@@ -731,8 +723,8 @@ src_unpack() {
 
 src_prepare() {
 	cp -r "${ECARGO_VENDOR}/v8-${V8_VER}" "${WORKDIR}/v8" || die
-	pushd "${WORKDIR}/v8" > /dev/null || die
-	if tc-is-clang && ( has_version "sys-devel/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
+	pushd "${WORKDIR}/v8" >/dev/null || die
+	if tc-is-clang && (has_version "sys-devel/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt); then
 		eapply "${FILESDIR}/remove-libatomic.patch"
 	fi
 	if use elibc_musl; then
@@ -746,15 +738,15 @@ src_prepare() {
 			export CXXSTDLIB=stdc++
 		fi
 	fi
-	popd > /dev/null || die
+	popd >/dev/null || die
 
 	cp -r "${ECARGO_VENDOR}/stacker-${STACKER_VER}" "${WORKDIR}/stacker"
-	pushd "${WORKDIR}/stacker" > /dev/null || die
+	pushd "${WORKDIR}/stacker" >/dev/null || die
 	eapply "${FILESDIR}/stacker.patch"
-	popd > /dev/null || die
+	popd >/dev/null || die
 
-	pushd "${S}" > /dev/null || die
-	cat <<- _EOF_ >> Cargo.toml
+	pushd "${S}" >/dev/null || die
+	cat <<-_EOF_ >>Cargo.toml
 		[patch.crates-io]
 		v8 = { path = '../v8' }
 		stacker = { path = '../stacker' }
@@ -762,8 +754,8 @@ src_prepare() {
 	if use elibc_musl; then
 		eapply "${FILESDIR}/fix-stackoverflow.patch"
 	fi
-	#eapply "${FILESDIR}/use-system-libraries.patch"
-	popd > /dev/null || die
+	eapply "${FILESDIR}/use-system-libraries.patch"
+	popd >/dev/null || die
 
 	default
 }
@@ -807,16 +799,16 @@ src_install() {
 	einstalldocs
 	use static-libs && dolib.a "${S}"/target/release/gn_out/obj/librusty_v8.a
 	if use bash-completion; then
-		"${S}"/target/release/deno completions bash > deno
+		"${S}"/target/release/deno completions bash >deno
 		dobashcomp deno
 	fi
 	if use zsh-completion; then
-		"${S}"/target/release/deno completions zsh > _deno
+		"${S}"/target/release/deno completions zsh >_deno
 		insinto /usr/share/zsh/site-functions
 		doins _deno
 	fi
 	if use fish-completion; then
-		"${S}"/target/release/deno completions fish > deno.fish
+		"${S}"/target/release/deno completions fish >deno.fish
 		insinto /usr/share/fish/vendor_completions.d
 		doins deno.fish
 	fi
