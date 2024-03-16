@@ -111,6 +111,8 @@ src_prepare() {
 
 	# remove compass
 	rm -r src/mongo/installer/compass || die
+
+	rm -r src/mongo/db/modules/enterprise || die
 }
 
 src_configure() {
