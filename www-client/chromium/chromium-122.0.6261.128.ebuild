@@ -28,13 +28,13 @@ PYTHON_REQ_USE="xml(+)"
 # These variables let us easily bound supported major dependency versions in one place.
 GCC_MIN_VER=12
 GN_MIN_VER=0.2143
-LLVM_MAX_SLOT=17
+LLVM_MAX_SLOT=18
 LLVM_MIN_SLOT=16
 RUST_MIN_VER=1.72.0
 # grep 'CLANG_REVISION = ' ${S}/tools/clang/scripts/update.py -A1 | cut -c 18-
-GOOGLE_CLANG_VER="llvmorg-18-init-12938-geb1d5065-1"
+GOOGLE_CLANG_VER="llvmorg-18-init-16072-gc4146121e940-5"
 # grep 'RUST_REVISION = ' ${S}/tools/rust/update_rust.py -A1 | cut -c 17-
-GOOGLE_RUST_VER="df0295f07175acc7325ce3ca4152eb05752af1f2-1"
+GOOGLE_RUST_VER="df0295f07175acc7325ce3ca4152eb05752af1f2-5"
 
 # https://bugs.chromium.org/p/v8/issues/detail?id=14449 - V8 used in 120 can't build with GCC
 : ${CHROMIUM_FORCE_CLANG=yes}
@@ -58,9 +58,9 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PATCHSET_PPC64="121.0.6167.160-1raptor0~deb12u1"
+PATCHSET_PPC64="122.0.6261.111-1raptor0~deb12u1"
 PATCH_V="${PV%%\.*}-2"
-HEVC_PATCHSET_VERSION="120.0.6076.0"
+HEVC_PATCHSET_VERSION="122.0.6213.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	system-toolchain? (
@@ -68,9 +68,9 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 	)
 	!system-toolchain? (
 		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/clang-${GOOGLE_CLANG_VER}.tar.xz
-			-> ${P}-clang.tar.xz
+			-> chromium-${PV%%\.*}-clang.tar.xz
 		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/rust-toolchain-${GOOGLE_RUST_VER}-${GOOGLE_CLANG_VER%??}.tar.xz
-			-> ${P}-rust.tar.xz
+			-> chromium-${PV%%\.*}-rust.tar.xz
 	)
 	ppc64? (
 		https://quickbuild.io/~raptor-engineering-public/+archive/ubuntu/chromium/+files/chromium_${PATCHSET_PPC64}.debian.tar.xz
@@ -253,7 +253,6 @@ BDEPEND="
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
-	dev-lang/rust[profiler]
 "
 
 if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
@@ -311,7 +310,7 @@ needs_clang() {
 needs_lld() {
 	# #641556: Force lld for lto and pgo builds, otherwise disable
 	# #918897: Temporary hack w/ use arm64
-	[[ ${CHROMIUM_FORCE_LLD} == yes ]] || tc-ld-is-lld || use lto || use pgo || use arm64
+	[[ ${CHROMIUM_FORCE_LLD} == yes ]] || use lto || use pgo || use arm64
 }
 
 llvm_check_deps() {
@@ -423,10 +422,11 @@ src_prepare() {
 		eapply "${FILESDIR}/remove-libatomic.patch"
 	fi
 	if use hevc; then
-		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/remove-main-main10-profile-limit.patch"
 		pushd third_party/ffmpeg >/dev/null || die
 		node "${WORKDIR}/${HEVC_PATCHSET_NAME}/add-hevc-ffmpeg-decoder-parser.js"
 		popd >/dev/null || die
+		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-ffmpeg-decoding.patch"
+		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-encoding-by-default.patch"
 	fi
 
 	# disable global media controls, crashes with libstdc++
@@ -441,7 +441,6 @@ src_prepare() {
 		"${FILESDIR}/chromium-109-system-zlib.patch"
 		"${FILESDIR}/chromium-111-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-117-system-zstd.patch"
-		"${FILESDIR}/chromium-119-minizip-cast.patch"
 	)
 
 	if use system-toolchain; then
@@ -470,6 +469,7 @@ src_prepare() {
 			fi
 		done
 		PATCHES+=( "${WORKDIR}/ppc64le" )
+		PATCHES+=( "${WORKDIR}/debian/patches/fixes/rust-clanglib.patch" )
 	fi
 
 	if has_version ">=dev-libs/icu-74.1" && use system-icu ; then
@@ -770,7 +770,10 @@ src_prepare() {
 		pushd third_party/libvpx >/dev/null || die
 		mkdir -p source/config/linux/ppc64 || die
 		# requires git and clang, bug #832803
-		sed -i -e "s|^update_readme||g; s|clang-format|${EPREFIX}/bin/true|g" \
+		# Revert https://chromium.googlesource.com/chromium/src/+/b463d0f40b08b4e896e7f458d89ae58ce2a27165%5E%21/third_party/libvpx/generate_gni.sh
+		# and https://chromium.googlesource.com/chromium/src/+/71ebcbce867dd31da5f8b405a28fcb0de0657d91%5E%21/third_party/libvpx/generate_gni.sh
+		# since we're not in a git repo
+		sed -i -e "s|^update_readme||g; s|clang-format|${EPREFIX}/bin/true|g; /^git -C/d; /git cl/d; /cd \$BASE_DIR\/\$LIBVPX_SRC_DIR/ign format --in-place \$BASE_DIR\/BUILD.gn\ngn format --in-place \$BASE_DIR\/libvpx_srcs.gni" \
 			generate_gni.sh || die
 		./generate_gni.sh || die
 		popd >/dev/null || die
@@ -1098,7 +1101,7 @@ chromium_configure() {
 	fi
 
 	# Don't need nocompile checks and GN crashes with our config
-	myconf_gn+=" enable_nocompile_tests=false enable_nocompile_tests_new=false"
+	myconf_gn+=" enable_nocompile_tests=false"
 
 	# Enable ozone wayland and/or headless support
 	myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
@@ -1224,6 +1227,22 @@ chromium_compile() {
 	eninja -C out/Release chrome chromedriver chrome_sandbox
 
 	pax-mark m out/Release/chrome
+
+	if ! use system-toolchain; then
+		QA_FLAGS_IGNORED="
+			usr/lib64/chromium-browser/chrome
+			usr/lib64/chromium-browser/chrome-sandbox
+			usr/lib64/chromium-browser/chromedriver
+			usr/lib64/chromium-browser/chrome_crashpad_handler
+			usr/lib64/chromium-browser/libEGL.so
+			usr/lib64/chromium-browser/libGLESv2.so
+			usr/lib64/chromium-browser/libVkICD_mock_icd.so
+			usr/lib64/chromium-browser/libVkLayer_khronos_validation.so
+			usr/lib64/chromium-browser/libqt5_shim.so
+			usr/lib64/chromium-browser/libvk_swiftshader.so
+			usr/lib64/chromium-browser/libvulkan.so.1
+		"
+	fi
 }
 
 # This function is called from virtx, and must always return so that Xvfb
