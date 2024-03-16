@@ -1,24 +1,46 @@
-# Copyright 2009-2023 Gentoo Authors
+# Copyright 2009-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
+
+# Can't do 12 yet: heavy use of imp, among other things (bug #915001, bug #915062)
 PYTHON_COMPAT=( python3_{10..11} )
 PYTHON_REQ_USE="xml(+)"
-LLVM_MAX_SLOT=17
-GN_MIN_VER="0.2114"
+
+# These variables let us easily bound supported compiler versions in one place.
+# The bundled Clang is updated by Google every ~two weeks, so we can't
+# just assume that anything other than the latest version in ::gentoo
+# will work (and even that will probably break occasionally)
+LLVM_MAX_SLOT=18
+LLVM_MIN_SLOT=16
+MIN_GCC_VER=12
+GN_MIN_VER=0.2122
+
+# This variable is set to yes when building with GCC is broken.
+# https://bugs.chromium.org/p/v8/issues/detail?id=14449 - V8 used in 120 can't build with GCC
+: ${CHROMIUM_FORCE_CLANG=yes}
+# This variable is set to yes when we need to force libcxx. Since we'll always force clang, too, we can avoid depends.
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=101227 - Chromium 120:
+#    webrtc -  no matching member function for call to 'emplace'
+: ${CHROMIUM_FORCE_LIBCXX=no}
+# This variable is set to yes when building with bfd is broken.
+# See bug #918897 for arm64 where bfd can't handle the size.
+: ${CHROMIUM_FORCE_LLD=no}
+
+VIRTUALX_REQUIRED="pgo"
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
 inherit check-reqs chromium-2 desktop flag-o-matic llvm ninja-utils pax-utils
-inherit python-any-r1 readme.gentoo-r1 toolchain-funcs xdg-utils yarn
+inherit python-any-r1 readme.gentoo-r1 toolchain-funcs virtualx xdg-utils yarn
 
 # Keep this in sync with DEPS:chromium_version
 # find least version of available snapshot in https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-117.0.5938.141-lite.tar.x%40
-CHROMIUM_VERSION="118.0.5993.164"
+CHROMIUM_VERSION="120.0.6099.272"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="18.17.1"
+NODE_VERSION="18.18.2"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
@@ -313,9 +335,7 @@ https://registry.yarnpkg.com/core-util-is/-/core-util-is-1.0.2.tgz
 https://registry.yarnpkg.com/cosmiconfig/-/cosmiconfig-6.0.0.tgz
 https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.3.tgz
 https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz
-https://registry.yarnpkg.com/debug/-/debug-3.2.6.tgz
 https://registry.yarnpkg.com/debug/-/debug-3.2.7.tgz
-https://registry.yarnpkg.com/debug/-/debug-4.1.1.tgz
 https://registry.yarnpkg.com/debug/-/debug-4.3.2.tgz
 https://registry.yarnpkg.com/debug/-/debug-4.3.4.tgz
 https://registry.yarnpkg.com/decode-named-character-reference/-/decode-named-character-reference-1.0.2.tgz
@@ -446,7 +466,7 @@ https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.2.tgz
 https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz
 https://registry.yarnpkg.com/function.prototype.name/-/function.prototype.name-1.1.5.tgz
 https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz
-https://registry.yarnpkg.com/get-func-name/-/get-func-name-2.0.0.tgz
+https://registry.yarnpkg.com/get-func-name/-/get-func-name-2.0.2.tgz
 https://registry.yarnpkg.com/get-intrinsic/-/get-intrinsic-1.2.1.tgz
 https://registry.yarnpkg.com/get-own-enumerable-property-symbols/-/get-own-enumerable-property-symbols-3.0.0.tgz
 https://registry.yarnpkg.com/get-stdin/-/get-stdin-8.0.0.tgz
@@ -851,8 +871,8 @@ https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz
 https://registry.yarnpkg.com/schema-utils/-/schema-utils-2.7.0.tgz
 https://registry.yarnpkg.com/schema-utils/-/schema-utils-3.1.1.tgz
 https://registry.yarnpkg.com/semver-compare/-/semver-compare-1.0.0.tgz
-https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz
-https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz
+https://registry.yarnpkg.com/semver/-/semver-5.7.2.tgz
+https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz
 https://registry.yarnpkg.com/semver/-/semver-7.5.2.tgz
 https://registry.yarnpkg.com/send/-/send-0.18.0.tgz
 https://registry.yarnpkg.com/serialize-error/-/serialize-error-7.0.1.tgz
@@ -1028,10 +1048,10 @@ https://registry.yarnpkg.com/zwitch/-/zwitch-2.0.2.tgz
 
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 NODE_P="node-${NODE_VERSION}"
-PATCH_V="118-2"
+PATCH_V="120"
 PATCHSET_NAME="chromium-patches-${PATCH_V}"
-PATCHSET_PPC64="118.0.5993.70-1raptor0~deb11u1"
-HEVC_PATCHSET_VERSION="118.0.5956.0"
+PATCHSET_PPC64="120.0.6099.199-1raptor0~deb12u1"
+HEVC_PATCHSET_VERSION="120.0.6076.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 
 SRC_URI="
@@ -1044,7 +1064,7 @@ SRC_URI="
 		https://deps.gentoo.zip/chromium-ppc64le-gentoo-patches-1.tar.xz
 	)
 	hevc? ( https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding/archive/${HEVC_PATCHSET_VERSION}.tar.gz -> chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz )
-	https://codeload.github.com/nodejs/nan/tar.gz/16fa32231e2ccd89d2804b3f765319128b20c4ac
+	https://codeload.github.com/nodejs/nan/tar.gz/e14bdcd1f72d62bca1d541b66da43130384ec213
 	$(yarn_uris ${YARNPKGS})
 "
 
@@ -1154,21 +1174,28 @@ DEPEND="${COMMON_DEPEND}
 depend_clang_llvm_version() {
 	echo "sys-devel/clang:$1"
 	echo "sys-devel/llvm:$1"
-	echo "=sys-devel/lld-$1*"
+	echo "sys-devel/lld:$1"
 }
 
+# When passed multiple arguments we assume that
+# we want a range of versions, inclusive.
 depend_clang_llvm_versions() {
 	local _v
-	if [[ $# -gt 1 ]]; then
+	if [[ $# -eq 1 ]]; then
+		depend_clang_llvm_version "$1"
+	elif [[ $# -eq 2 ]]; then
+		if [[ $1 -eq $2 ]]; then
+			depend_clang_llvm_version "$1"
+		fi
 		echo "|| ("
-		for _v in "$@"; do
+		for ((i=$1; i<=$2; i++)); do
 			echo "("
-			depend_clang_llvm_version "${_v}"
+			depend_clang_llvm_version "${i}"
 			echo ")"
 		done
 		echo ")"
-	elif [[ $# -eq 1 ]]; then
-		depend_clang_llvm_version "$1"
+	else
+		die "depend_clang_llvm_versions() requires 1 or 2 arguments"
 	fi
 }
 
@@ -1179,31 +1206,45 @@ BDEPEND="
 		dev-python/setuptools[${PYTHON_USEDEP}]
 	')
 	>=app-arch/gzip-1.7
-	libcxx? ( >=sys-devel/clang-17 )
-	lto? ( $(depend_clang_llvm_versions 17) )
-	pgo? ( $(depend_clang_llvm_versions 17) )
+	libcxx? ( >=sys-devel/clang-${LLVM_MIN_SLOT} )
+	lto? ( $(depend_clang_llvm_versions ${LLVM_MIN_SLOT} ${LLVM_MAX_SLOT}) )
+	pgo? ( $(depend_clang_llvm_versions ${LLVM_MIN_SLOT} ${LLVM_MAX_SLOT}) )
 	dev-lang/perl
 	>=dev-build/gn-${GN_MIN_VER}
+	dev-lang/perl
 	>=dev-util/gperf-3.0.3
-	>=dev-build/ninja-1.7.2
+	app-alternatives/ninja
 	dev-vcs/git
 	>=net-libs/nodejs-7.6.0[inspector]
 	>=sys-devel/bison-2.4.3
-	sys-devel/flex
+	app-alternatives/lex
 	virtual/pkgconfig
 	app-misc/jq
 "
 
-# These are intended for ebuild maintainer use to force clang if GCC is broken.
-: ${CHROMIUM_FORCE_CLANG=no}
-
 if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
-	BDEPEND+=" >=sys-devel/clang-17"
+	BDEPEND+=" >=sys-devel/clang-${LLVM_MIN_SLOT}"
+fi
+
+if [[ ${CHROMIUM_FORCE_LLD} == yes ]]; then
+	BDEPEND+=" >=sys-devel/lld-${LLVM_MIN_SLOT}"
+else
+	# XXX: Hack for arm64 for bug #918897
+	BDEPEND+=" arm64? ( >=sys-devel/lld-${LLVM_MIN_SLOT} )"
 fi
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
 	EBUILD_DEATH_HOOKS+=" chromium_pkg_die";
 fi
+
+python_check_deps() {
+	python_has_version "dev-python/setuptools[${PYTHON_USEDEP}]"
+}
+
+needs_lld() {
+	# XXX: Temporary hack w/ use arm64 for bug #918897
+	[[ ${CHROMIUM_FORCE_LLD} == yes ]] || use arm64
+}
 
 needs_clang() {
 	[[ ${CHROMIUM_FORCE_CLANG} == yes ]] || use libcxx || use lto || use pgo
@@ -1215,8 +1256,8 @@ llvm_check_deps() {
 		return 1
 	fi
 
-	if ( use lto || use pgo ) && ! has_version -b "=sys-devel/lld-${LLVM_SLOT}*" ; then
-		einfo "=sys-devel/lld-${LLVM_SLOT}* is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
+	if ( use lto || use pgo ) && ! has_version -b "sys-devel/lld:${LLVM_SLOT}" ; then
+		einfo "sys-devel/lld:${LLVM_SLOT} is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
 		return 1
 	fi
 
@@ -1285,8 +1326,8 @@ pkg_setup() {
 
 	if [[ ${MERGE_TYPE} != binary ]]; then
 		local -x CPP="$(tc-getCXX) -E"
-		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge 12; then
-			die "At least gcc 12 is required"
+		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge ${MIN_GCC_VER}; then
+			die "At least gcc ${MIN_GCC_VER} is required"
 		fi
 		if use pgo && tc-is-cross-compiler; then
 			die "The pgo USE flag cannot be used when cross-compiling"
@@ -1297,10 +1338,11 @@ pkg_setup() {
 			else
 				CPP="${CHOST}-clang++ -E"
 			fi
-			if ver_test "$(clang-major-version)" -lt 17; then
-				die "At least clang 17 is required"
+			if ver_test "$(clang-major-version)" -lt ${LLVM_MIN_SLOT}; then
+				die "At least Clang ${LLVM_MIN_SLOT} is required"
 			fi
 		fi
+		# Users should never hit this, it's purely a development convenience
 		if ver_test $(gn --version || die) -lt ${GN_MIN_VER}; then
 				die "dev-build/gn >= ${GN_MIN_VER} is required to build this Chromium"
 		fi
@@ -1345,11 +1387,6 @@ src_prepare() {
 	mv "${WORKDIR}/${NODE_P}/" "${NODE_S}/" || die
 	mv "${WORKDIR}/${P}" "${S}/electron" || die
 
-	# disable global media controls, crashes with libstdc++
-	sed -i -e \
-		"/\"GlobalMediaControlsCastStartStop\",/{n;s/ENABLED/DISABLED/;}" \
-		"chrome/browser/media/router/media_router_feature.cc" || die
-
 	eapply "${WORKDIR}/${PATCHSET_NAME}"
 	eapply "${FILESDIR}/${SLOT}/chromium/"
 	if has_version ">=dev-libs/libxml2-2.12.4"; then
@@ -1366,6 +1403,11 @@ src_prepare() {
 		popd >/dev/null || die
 	fi
 
+	# disable global media controls, crashes with libstdc++
+	sed -i -e \
+		"/\"GlobalMediaControlsCastStartStop\"/,+4{s/ENABLED/DISABLED/;}" \
+		"chrome/browser/media/router/media_router_feature.cc" || die
+
 	pushd "${S}/electron" >/dev/null || die
 	echo "yarn-offline-mirror \"${DISTDIR}\"" >> "${S}/electron/.yarnrc"
 
@@ -1375,7 +1417,7 @@ src_prepare() {
 
 	# Apply Chromium patches from Electron.
 	local patchespath repopath
-	(jq -r 'to_entries | .[] | .key + " " + .value' "${S}/electron/patches/config.json" || die) \
+	(jq -r '.[] | .patch_dir + " " + .repo' "${S}/electron/patches/config.json" || die) \
 	| while read -r patchespath repopath; do
 		if [[ -d "${WORKDIR}/${repopath}" ]]; then
 			einfo "Apply Electron's patches to ${repopath}"
@@ -1411,7 +1453,6 @@ src_prepare() {
 
 	# adjust python interpreter version
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
-	sed -i -e "s|vpython3|${EPYTHON}|g" testing/xvfb.py || die
 
 	local keeplibs=(
 		third_party/electron_node
@@ -1439,6 +1480,7 @@ src_prepare() {
 		third_party/angle/src/third_party/ceval
 		third_party/angle/src/third_party/libXNVCtrl
 		third_party/angle/src/third_party/volk
+		third_party/anonymous_tokens
 		third_party/apple_apsl
 		third_party/axe-core
 		third_party/blink
@@ -1473,10 +1515,10 @@ src_prepare() {
 		third_party/crc32c
 		third_party/cros_system_api
 		third_party/d3
+		third_party/dav1d
 		third_party/dawn
 		third_party/dawn/third_party/gn/webgpu-cts
 		third_party/dawn/third_party/khronos
-		third_party/dav1d
 		third_party/depot_tools
 		third_party/devscripts
 		third_party/devtools-frontend
@@ -1485,6 +1527,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/axe-core
 		third_party/devtools-frontend/src/front_end/third_party/chromium
 		third_party/devtools-frontend/src/front_end/third_party/codemirror
+		third_party/devtools-frontend/src/front_end/third_party/csp_evaluator
 		third_party/devtools-frontend/src/front_end/third_party/diff
 		third_party/devtools-frontend/src/front_end/third_party/i18n
 		third_party/devtools-frontend/src/front_end/third_party/intl-messageformat
@@ -1505,8 +1548,8 @@ src_prepare() {
 		third_party/emoji-segmenter
 		third_party/farmhash
 		third_party/fdlibm
-		third_party/fft2d
 		third_party/ffmpeg
+		third_party/fft2d
 		third_party/flatbuffers
 		third_party/fp16
 		third_party/freetype
@@ -1573,6 +1616,7 @@ src_prepare() {
 		third_party/omnibox_proto
 		third_party/one_euro_filter
 		third_party/openscreen
+		third_party/openscreen/src/third_party/
 		third_party/openscreen/src/third_party/tinycbor/src/src
 		third_party/opus
 		third_party/ots
@@ -1622,6 +1666,7 @@ src_prepare() {
 		third_party/tflite
 		third_party/tflite/src/third_party/eigen3
 		third_party/tflite/src/third_party/fft2d
+		third_party/tflite/src/third_party/xla/third_party/tsl
 		third_party/ruy
 		third_party/six
 		third_party/ukey2
@@ -1678,7 +1723,7 @@ src_prepare() {
 		keeplibs+=( third_party/zstd )
 	fi
 
-	if use libcxx; then
+	if use libcxx || [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
 		keeplibs+=( third_party/libc++ )
 	fi
 
@@ -1755,14 +1800,17 @@ src_configure() {
 		myconf_gn+=" is_clang=false"
 	fi
 
-	# Force lld for lto or pgo builds only, otherwise disable, bug 641556
-	if use lto || use pgo; then
+	# https://bugs.gentoo.org/918897#c32
+	append-ldflags $(test-flags-CCLD -Wl,--undefined-version)
+
+	# Force lld for lto and pgo builds, otherwise disable, bug 641556
+	if needs_lld || tc-ld-is-lld || use lto || use pgo; then
 		myconf_gn+=" use_lld=true"
 	else
 		myconf_gn+=" use_lld=false"
 	fi
 
-	if use lto || use pgo; then
+	if use lto; then
 		AR=llvm-ar
 		NM=llvm-nm
 		if tc-is-cross-compiler; then
@@ -1842,6 +1890,7 @@ src_configure() {
 	if use system-zstd; then
 		gn_system_libraries+=( zstd )
 	fi
+
 	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
 
 	# See dependency logic in third_party/BUILD.gn
@@ -1873,7 +1922,12 @@ src_configure() {
 	# Do not use bundled clang.
 	# Trying to use gold results in linker crash.
 	myconf_gn+=" use_gold=false use_sysroot=false"
-	myconf_gn+=" use_custom_libcxx=$(usex libcxx true false)"
+
+	if use libcxx || [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
+		myconf_gn+=" use_custom_libcxx=true"
+	else
+		myconf_gn+=" use_custom_libcxx=false"
+	fi
 
 	if use pgo; then
 		myconf_gn+=" chrome_pgo_phase=2"
@@ -1920,7 +1974,16 @@ src_configure() {
 
 		if tc-is-gcc; then
 			# https://bugs.gentoo.org/904455
-			append-cxxflags "$(test-flags-CXX -fno-tree-vectorize)"
+			local -x CPP="$(tc-getCXX) -E"
+			local gcc_version="$(gcc-version)"
+			local need_gcc_fix=false
+			# Drop this complexity as gcc versions age out of ::gentoo
+			if ver_test "${gcc_version}" -lt 12.3; then
+				need_gcc_fix=true
+			elif ver_test "${gcc_version}" -ge 13 && ver_test "${gcc_version}" -lt 13.2; then
+				need_gcc_fix=true
+			fi
+			[[ ${need_gcc_fix} = true ]] && append-cxxflags "$(test-flags-CXX -fno-tree-vectorize)"
 			# https://bugs.gentoo.org/912381
 			filter-lto
 		fi
@@ -1978,6 +2041,9 @@ src_configure() {
 	if use system-icu || use headless; then
 		myconf_gn+=" icu_use_data_file=false"
 	fi
+
+	# Don't need nocompile checks and GN crashes with our config
+	myconf_gn+=" enable_nocompile_tests=false enable_nocompile_tests_new=false"
 
 	# Enable ozone wayland and/or headless support
 	myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
@@ -2088,7 +2154,7 @@ src_compile() {
 	# Don't inherit PYTHONPATH from environment, bug #789021, #812689
 	local -x PYTHONPATH=
 
-	eninja -C out/Release third_party/electron_node:headers
+	eninja -C out/Release electron:node_headers
 
 	if use pax-kernel; then
 		local x
