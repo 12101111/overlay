@@ -50,7 +50,6 @@ BDEPEND="
 
 PATCHES=(
 	"${FILESDIR}"/disable-pch.patch
-	"${FILESDIR}"/fix-glslang.patch
 )
 
 src_prepare() {
