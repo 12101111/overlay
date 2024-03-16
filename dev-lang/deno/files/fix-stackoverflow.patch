@@ -1,8 +1,8 @@
 diff --git a/cli/build.rs b/cli/build.rs
-index d3f428c..07e353d 100644
+index 0a599b03b..df60f3ecd 100644
 --- a/cli/build.rs
 +++ b/cli/build.rs
-@@ -448,14 +448,22 @@ fn main() {
+@@ -456,14 +456,22 @@ fn main() {
    let c = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
    let o = PathBuf::from(env::var_os("OUT_DIR").unwrap());
  

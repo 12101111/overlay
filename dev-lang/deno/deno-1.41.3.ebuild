@@ -8,11 +8,11 @@ PYTHON_COMPAT=( python3_{10..11} )
 PYTHON_REQ_USE="xml(+)"
 
 # Same LLVM version of Rust
-LLVM_VALID_SLOTS=( 17 )
-LLVM_MAX_SLOT=17
+LLVM_VALID_SLOTS=( 17 18 )
+LLVM_MAX_SLOT=18
 GN_MIN_VER=0.2122
 
-V8_VER=0.83.2
+V8_VER=0.85.0
 STACKER_VER=0.1.15
 
 CRATES="
@@ -24,11 +24,12 @@ CRATES="
 	aes-0.8.3
 	aes-gcm-0.10.3
 	aes-kw-0.2.1
-	ahash-0.8.6
+	ahash-0.8.11
 	aho-corasick-1.1.2
 	alloc-no-stdlib-2.0.4
 	alloc-stdlib-0.2.2
 	allocator-api2-0.2.16
+	ammonia-3.3.0
 	android_system_properties-0.1.5
 	anstream-0.6.7
 	anstyle-1.0.4
@@ -67,6 +68,7 @@ CRATES="
 	block-padding-0.3.3
 	brotli-3.4.0
 	brotli-decompressor-2.5.1
+	bstr-1.8.0
 	bumpalo-3.14.0
 	bytemuck-1.14.0
 	byteorder-1.5.0
@@ -119,20 +121,20 @@ CRATES="
 	data-encoding-2.5.0
 	data-url-0.3.0
 	debugid-0.8.0
-	deno_ast-0.33.2
-	deno_cache_dir-0.6.1
-	deno_config-0.9.2
-	deno_core-0.262.0
+	deno_ast-0.34.2
+	deno_cache_dir-0.7.1
+	deno_config-0.14.1
+	deno_core-0.270.0
 	deno_core_icudata-0.0.73
-	deno_doc-0.103.0
-	deno_emit-0.36.0
-	deno_graph-0.65.3
-	deno_lint-0.56.0
-	deno_lockfile-0.18.2
+	deno_doc-0.113.1
+	deno_emit-0.38.2
+	deno_graph-0.69.9
+	deno_lint-0.57.1
+	deno_lockfile-0.19.0
 	deno_media_type-0.1.2
 	deno_native_certs-0.2.0
-	deno_npm-0.16.0
-	deno_ops-0.138.0
+	deno_npm-0.17.0
+	deno_ops-0.146.0
 	deno_semver-0.5.4
 	deno_task_shell-0.14.3
 	deno_terminal-0.1.1
@@ -157,12 +159,13 @@ CRATES="
 	dlopen2-0.6.1
 	dlopen2_derive-0.4.0
 	dotenvy-0.15.7
-	dprint-core-0.63.3
-	dprint-plugin-json-0.19.1
-	dprint-plugin-jupyter-0.1.2
-	dprint-plugin-markdown-0.16.3
-	dprint-plugin-typescript-0.89.0
-	dprint-swc-ext-0.14.1
+	dprint-core-0.66.1
+	dprint-core-macros-0.1.0
+	dprint-plugin-json-0.19.2
+	dprint-plugin-jupyter-0.1.3
+	dprint-plugin-markdown-0.16.4
+	dprint-plugin-typescript-0.89.3
+	dprint-swc-ext-0.15.1
 	dsa-0.6.2
 	dyn-clone-1.0.16
 	dynasm-1.2.3
@@ -182,10 +185,11 @@ CRATES="
 	errno-dragonfly-0.1.2
 	error-code-3.0.0
 	escape8259-0.5.2
-	eszip-0.62.0
+	eszip-0.64.2
 	fallible-iterator-0.2.0
 	fallible-streaming-iterator-0.1.9
 	fancy-regex-0.10.0
+	faster-hex-0.9.0
 	fastrand-2.0.1
 	fastwebsockets-0.6.0
 	fd-lock-4.0.1
@@ -206,6 +210,7 @@ CRATES="
 	fs3-0.5.0
 	fsevent-sys-4.1.0
 	fslock-0.2.1
+	futf-0.1.5
 	futures-0.3.29
 	futures-channel-0.3.29
 	futures-core-0.3.29
@@ -223,6 +228,7 @@ CRATES="
 	gl_generator-0.14.0
 	glibc_version-0.1.2
 	glob-0.3.1
+	globset-0.4.14
 	glow-0.13.0
 	glutin_wgl_sys-0.5.0
 	gpu-alloc-0.6.0
@@ -231,8 +237,8 @@ CRATES="
 	gpu-descriptor-0.2.4
 	gpu-descriptor-types-0.1.2
 	group-0.13.0
-	h2-0.3.22
-	h2-0.4.0
+	h2-0.3.24
+	h2-0.4.2
 	halfbrown-0.2.4
 	handlebars-5.0.0
 	hashbrown-0.13.2
@@ -248,6 +254,7 @@ CRATES="
 	hostname-0.3.1
 	hstr-0.2.6
 	html-escape-0.2.13
+	html5ever-0.26.0
 	http-0.2.11
 	http-1.0.0
 	http-body-0.4.5
@@ -265,8 +272,9 @@ CRATES="
 	idna-0.3.0
 	idna-0.4.0
 	if_chain-1.0.2
+	ignore-0.4.20
 	image-0.24.7
-	import_map-0.18.3
+	import_map-0.19.0
 	indexmap-2.1.0
 	inotify-0.9.6
 	inotify-sys-0.1.5
@@ -312,7 +320,10 @@ CRATES="
 	log-0.4.20
 	lru-cache-0.1.2
 	lsp-types-0.94.1
+	mac-0.1.1
 	malloc_buf-0.0.6
+	maplit-1.0.2
+	markup5ever-0.11.0
 	match_cfg-0.1.0
 	matches-0.1.10
 	md-5-0.10.6
@@ -326,7 +337,7 @@ CRATES="
 	mime-0.3.17
 	minimal-lexical-0.2.1
 	miniz_oxide-0.7.1
-	mio-0.8.10
+	mio-0.8.11
 	monch-0.5.0
 	multimap-0.8.3
 	naga-0.14.2
@@ -354,13 +365,11 @@ CRATES="
 	object-0.32.1
 	oid-registry-0.6.1
 	once_cell-1.19.0
-	onig-6.4.0
-	onig_sys-69.8.1
 	opaque-debug-0.3.0
 	open-5.0.1
 	openssl-probe-0.1.5
 	ordered-float-2.10.1
-	os_pipe-1.1.4
+	os_pipe-1.1.5
 	outref-0.5.1
 	p224-0.13.2
 	p256-0.13.2
@@ -383,9 +392,13 @@ CRATES="
 	pest_generator-2.7.5
 	pest_meta-2.7.5
 	petgraph-0.6.4
+	phf-0.10.1
 	phf-0.11.2
+	phf_codegen-0.10.0
+	phf_generator-0.10.0
 	phf_generator-0.11.2
 	phf_macros-0.11.2
+	phf_shared-0.10.0
 	phf_shared-0.11.2
 	pin-project-1.1.3
 	pin-project-internal-1.1.3
@@ -400,6 +413,7 @@ CRATES="
 	polyval-0.6.1
 	powerfmt-0.2.0
 	ppv-lite86-0.2.17
+	precomputed-hash-0.1.1
 	presser-0.3.1
 	pretty_assertions-1.4.0
 	prettyplease-0.1.25
@@ -435,7 +449,6 @@ CRATES="
 	ref-cast-impl-1.0.20
 	regex-1.10.2
 	regex-automata-0.4.3
-	regex-syntax-0.7.5
 	regex-syntax-0.8.2
 	relative-path-1.9.0
 	reqwest-0.11.20
@@ -483,11 +496,12 @@ CRATES="
 	serde_json-1.0.111
 	serde_repr-0.1.16
 	serde_urlencoded-0.7.1
-	serde_v8-0.171.0
+	serde_v8-0.179.0
 	sha-1-0.10.0
 	sha1-0.10.6
 	sha2-0.10.8
 	shell-escape-0.1.5
+	signal-hook-0.3.17
 	signal-hook-registry-1.4.1
 	signature-2.2.0
 	simd-adler32-0.3.7
@@ -509,6 +523,8 @@ CRATES="
 	spki-0.7.3
 	stacker-0.1.15
 	static_assertions-1.1.0
+	string_cache-0.8.7
+	string_cache_codegen-0.5.2
 	string_enum-0.4.2
 	strip-ansi-escapes-0.2.0
 	strsim-0.10.0
@@ -516,48 +532,49 @@ CRATES="
 	strum_macros-0.25.3
 	subtle-2.5.0
 	swc_atoms-0.6.5
-	swc_bundler-0.225.3
+	swc_bundler-0.225.9
 	swc_cached-0.3.19
-	swc_common-0.33.17
+	swc_common-0.33.18
 	swc_config-0.1.11
 	swc_config_macro-0.1.3
-	swc_ecma_ast-0.112.2
-	swc_ecma_codegen-0.148.3
+	swc_ecma_ast-0.112.4
+	swc_ecma_codegen-0.148.7
 	swc_ecma_codegen_macros-0.7.4
-	swc_ecma_loader-0.45.19
-	swc_ecma_parser-0.143.3
-	swc_ecma_transforms_base-0.137.3
-	swc_ecma_transforms_classes-0.126.3
+	swc_ecma_loader-0.45.20
+	swc_ecma_parser-0.143.5
+	swc_ecma_transforms_base-0.137.10
+	swc_ecma_transforms_classes-0.126.10
 	swc_ecma_transforms_macros-0.5.4
-	swc_ecma_transforms_optimization-0.198.3
-	swc_ecma_transforms_proposal-0.171.3
-	swc_ecma_transforms_react-0.183.3
-	swc_ecma_transforms_typescript-0.188.3
-	swc_ecma_utils-0.127.3
-	swc_ecma_visit-0.98.2
+	swc_ecma_transforms_optimization-0.198.10
+	swc_ecma_transforms_proposal-0.171.10
+	swc_ecma_transforms_react-0.183.10
+	swc_ecma_transforms_typescript-0.188.10
+	swc_ecma_utils-0.127.7
+	swc_ecma_visit-0.98.4
 	swc_eq_ignore_macros-0.1.3
-	swc_fast_graph-0.21.17
-	swc_graph_analyzer-0.22.19
+	swc_fast_graph-0.21.18
+	swc_graph_analyzer-0.22.20
 	swc_macros_common-0.3.9
-	swc_visit-0.5.8
-	swc_visit_macros-0.5.9
+	swc_visit-0.5.9
+	swc_visit_macros-0.5.10
 	syn-1.0.109
 	syn-2.0.48
 	synstructure-0.12.6
-	syntect-5.1.0
 	tar-0.4.40
 	tempfile-3.8.1
+	tendril-0.4.3
 	termcolor-1.4.0
 	text-size-1.1.0
 	text_lines-0.6.0
 	thiserror-1.0.50
 	thiserror-impl-1.0.50
+	thread_local-1.1.8
 	time-0.3.30
 	time-core-0.1.2
 	time-macros-0.2.15
 	tinyvec-1.6.0
 	tinyvec_macros-0.1.1
-	tokio-1.34.0
+	tokio-1.36.0
 	tokio-macros-2.2.0
 	tokio-metrics-0.3.1
 	tokio-rustls-0.24.1
@@ -604,7 +621,7 @@ CRATES="
 	utf8-width-0.1.7
 	utf8parse-0.2.1
 	uuid-1.6.1
-	v8-0.83.2
+	v8-0.85.0
 	value-trait-0.8.0
 	vcpkg-0.2.15
 	version_check-0.9.4
@@ -614,6 +631,7 @@ CRATES="
 	walkdir-2.3.2
 	want-0.3.1
 	wasi-0.11.0+wasi-snapshot-preview1
+	wasite-0.1.0
 	wasm-bindgen-0.2.89
 	wasm-bindgen-backend-0.2.89
 	wasm-bindgen-futures-0.4.39
@@ -628,7 +646,7 @@ CRATES="
 	wgpu-types-0.18.0
 	which-4.4.2
 	which-5.0.0
-	whoami-1.4.1
+	whoami-1.5.0
 	widestring-1.0.2
 	win32job-2.0.0
 	winapi-0.3.9
@@ -730,7 +748,7 @@ src_prepare() {
 	if use elibc_musl; then
 		eapply "${FILESDIR}/execinfo.patch"
 	fi
-	eapply "${FILESDIR}/build_from_source-${PV}.patch"
+	eapply "${FILESDIR}/build_from_source-1.41.2.patch"
 	if [[ -z "${CXXSTDLIB}" ]]; then
 		if [[ $(tc-get-cxx-stdlib) == libc++ ]]; then
 			export CXXSTDLIB=c++
