@@ -1,4 +1,4 @@
-# Copyright 1999-2023 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -6,10 +6,8 @@ EAPI=7
 inherit check-reqs eapi8-dosym flag-o-matic java-pkg-2 java-vm-2 multiprocessing toolchain-funcs
 
 # variable name format: <UPPERCASE_KEYWORD>_XPAK
-ARM64_XPAK="17.0.2_p8" # musl bootstrap install
-PPC64_XPAK="17.0.1_p12" # big-endian bootstrap tarball
-RISCV_XPAK="17.0.3_p7"
-X86_XPAK="17.0.1_p12"
+PPC64_XPAK="21.0.0_p35" # big-endian bootstrap tarball
+X86_XPAK="21.0.0_p35"
 
 # Usage: bootstrap_uri <keyword> <version> [extracond]
 # Example: $(bootstrap_uri ppc64 17.0.1_p12 big-endian)
@@ -41,24 +39,20 @@ SRC_URI="
 	https://github.com/${PN}/jdk${SLOT}u/archive/refs/tags/jdk-${MY_PV}.tar.gz
 		-> ${P}.tar.gz
 	!system-bootstrap? (
-		$(bootstrap_uri arm64 ${ARM64_XPAK} elibc_musl)
 		$(bootstrap_uri ppc64 ${PPC64_XPAK} big-endian)
 		$(bootstrap_uri x86 ${X86_XPAK})
-		$(bootstrap_uri riscv ${RISCV_XPAK})
 	)
-	riscv? ( https://dev.gentoo.org/~gyakovlev/distfiles/dev-java/openjdk/java17-riscv64.patch )
 "
-# riscv patch origin:
-# https://raw.githubusercontent.com/felixonmars/archriscv-packages/master/java17-openjdk/java17-riscv64.patch
 
 LICENSE="GPL-2-with-classpath-exception"
-KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~riscv ~x86"
+KEYWORDS="~amd64 ~arm64 ~ppc64 ~x86"
 
-IUSE="alsa big-endian cups debug doc examples headless-awt javafx +jbootstrap lto selinux source system-bootstrap systemtap"
+IUSE="alsa big-endian cups debug doc examples headless-awt javafx +jbootstrap lto selinux source +system-bootstrap systemtap"
 
 REQUIRED_USE="
 	javafx? ( alsa !headless-awt )
 	!system-bootstrap? ( jbootstrap )
+	!system-bootstrap? ( || ( ppc64 x86 ) )
 "
 
 COMMON_DEPEND="
@@ -69,7 +63,7 @@ COMMON_DEPEND="
 	media-libs/lcms:2=
 	sys-libs/zlib
 	media-libs/libjpeg-turbo:0=
-	systemtap? ( dev-util/systemtap )
+	systemtap? ( dev-debug/systemtap )
 "
 
 # Many libs are required to build, but not to run, make is possible to remove
@@ -163,8 +157,6 @@ pkg_setup() {
 }
 
 src_prepare() {
-	use riscv && eapply "${DISTDIR}"/java17-riscv64.patch
-	use elibc_musl && eapply "${FILESDIR}"/patches/${SLOT}/musl-1.2.4.patch
 	default
 	chmod +x configure || die
 }
@@ -186,8 +178,8 @@ src_configure() {
 	# Work around stack alignment issue, bug #647954. in case we ever have x86
 	use x86 && append-flags -mincoming-stack-boundary=2
 
-	# Work around -fno-common ( GCC10 default ), bug #713180
-	append-flags -fcommon
+	# bug 906987; append-cppflags doesnt work
+	use elibc_musl && append-flags -D_LARGEFILE64_SOURCE
 
 	# Strip some flags users may set, but should not. #818502
 	filter-flags -fexceptions
@@ -272,7 +264,7 @@ src_compile() {
 		$(usex doc docs '')
 		$(usex jbootstrap bootcycle-images product-images)
 	)
-	emake "${myemakeargs[@]}" -j1 #nowarn
+	emake "${myemakeargs[@]}" -j1
 }
 
 src_install() {
