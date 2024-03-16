@@ -1,6 +1,6 @@
-From f5b77f45c95f7c64a9ea99ae332c46d4734c9496 Mon Sep 17 00:00:00 2001
+From 626eb9eb342feaa70501940638e020f73e8837e6 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 3 Feb 2024 12:12:04 +0800
+Date: Sat, 2 Mar 2024 14:02:37 +0800
 Subject: [PATCH 11/11] remove playwright
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 11/11] remove playwright
  2 files changed, 10 deletions(-)
 
 diff --git a/build/package.json b/build/package.json
-index 52b1f47a5eb..283107595c2 100644
+index b4ea8d06993..3fe5e4ae5ae 100644
 --- a/build/package.json
 +++ b/build/package.json
 @@ -4,7 +4,6 @@
@@ -21,7 +21,7 @@ index 52b1f47a5eb..283107595c2 100644
      "@electron/get": "^2.0.0",
      "@types/ansi-colors": "^3.2.0",
 diff --git a/package.json b/package.json
-index 7720eab38e3..81256ee5924 100644
+index f734771d907..b231b5dae1a 100644
 --- a/package.json
 +++ b/package.json
 @@ -10,8 +10,6 @@
@@ -48,13 +48,13 @@ index 7720eab38e3..81256ee5924 100644
 -    "@playwright/test": "^1.40.1",
      "@swc/core": "1.3.62",
      "@types/cookie": "^0.3.3",
-     "@types/cssnano": "^4.0.0",
-@@ -135,12 +131,7 @@
+     "@types/debug": "^4.1.5",
+@@ -134,12 +130,7 @@
      "@typescript-eslint/parser": "^5.57.0",
      "@vscode/gulp-electron": "^1.36.0",
      "@vscode/l10n-dev": "0.0.30",
 -    "@vscode/telemetry-extractor": "^1.10.2",
--    "@vscode/test-cli": "^0.0.3",
+-    "@vscode/test-cli": "^0.0.6",
 -    "@vscode/test-electron": "^2.3.8",
 -    "@vscode/test-web": "^0.0.50",
      "@vscode/v8-heap-parser": "^0.1.0",
@@ -63,5 +63,5 @@ index 7720eab38e3..81256ee5924 100644
      "asar": "^3.0.3",
      "chromium-pickle-js": "^0.2.0",
 -- 
-2.43.0
+2.44.0
 

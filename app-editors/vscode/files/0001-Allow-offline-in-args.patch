@@ -1,4 +1,4 @@
-From b0b64424a783528af10a679be780ca581ca2cd4c Mon Sep 17 00:00:00 2001
+From 6d930b559b985477833c1b174b066d589ceb47ba Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Mon, 31 Jul 2023 18:22:31 +0800
 Subject: [PATCH 01/11] Allow --offline in args
@@ -8,7 +8,7 @@ Subject: [PATCH 01/11] Allow --offline in args
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index cce0f460378..0087a2c3f05 100644
+index 72dd74f8986..c9a5b74e2a9 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
 @@ -41,7 +41,8 @@ function yarnInstall(dir, opts) {
@@ -22,5 +22,5 @@ index cce0f460378..0087a2c3f05 100644
  	if (opts.ignoreEngines) {
  		args.push('--ignore-engines');
 -- 
-2.43.0
+2.44.0
 

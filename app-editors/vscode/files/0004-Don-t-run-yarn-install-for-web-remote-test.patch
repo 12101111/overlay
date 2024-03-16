@@ -1,4 +1,4 @@
-From bcfe5eb7d64d46bf5109dd0c4707a64276b525fa Mon Sep 17 00:00:00 2001
+From 9cb8010b0de5e9a5b38bf25a09c4f61c7d69de9f Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 30 Dec 2023 22:11:08 +0800
 Subject: [PATCH 04/11] Don't run yarn install for web/remote/test
@@ -26,10 +26,10 @@ index faf3a6577a5..4db331b2272 100644
  
  if (fs.existsSync(`${__dirname}/../../.build/distro/npm`)) {
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index 0087a2c3f05..8dfc1d7a65f 100644
+index c9a5b74e2a9..22fe1ccc29d 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -116,6 +116,3 @@ for (let dir of dirs) {
+@@ -131,6 +131,3 @@ for (let dir of dirs) {
  
  	yarnInstall(dir, opts);
  }
@@ -37,5 +37,5 @@ index 0087a2c3f05..8dfc1d7a65f 100644
 -cp.execSync('git config pull.rebase merges');
 -cp.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
 -- 
-2.43.0
+2.44.0
 

@@ -1,4 +1,4 @@
-From 61742d1907c8600044b6dc9526f6cbb363a06e53 Mon Sep 17 00:00:00 2001
+From d97964a3a039e50bda27669a445a9279ed051b82 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 3 Feb 2024 11:39:29 +0800
 Subject: [PATCH 09/11] Don't warn electron args
@@ -23,7 +23,7 @@ index cc157af7ab3..4fe085a4622 100644
  	'enable-coi'?: boolean;
  
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index a5d96361f08..43d26fcb5a4 100644
+index 0d3a9795ffb..d83a8ec376b 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
 @@ -204,6 +204,9 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
@@ -37,5 +37,5 @@ index a5d96361f08..43d26fcb5a4 100644
  	_: { type: 'string[]' } // main arguments
  };
 -- 
-2.43.0
+2.44.0
 
