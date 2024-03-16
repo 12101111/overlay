@@ -20,8 +20,6 @@ DEPEND="
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
-PATCHES=( "${FILESDIR}"/ignore-macro.patch )
-
 src_compile() {
 	export CC=clang
 	emake SYSROOT="${S}/sysroot"
