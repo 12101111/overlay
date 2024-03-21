@@ -4,7 +4,7 @@
 EAPI=8
 
 MULTILIB_COMPAT=( abi_x86_{32,64} )
-inherit autotools flag-o-matic multilib multilib-build
+inherit autotools flag-o-matic multilib multilib-build optfeature
 inherit prefix toolchain-funcs wrapper
 
 WINE_GECKO=2.47.4
@@ -162,6 +162,7 @@ PATCHES=(
 	"${FILESDIR}"/${PN}-7.0-noexecstack.patch
 	"${FILESDIR}"/${PN}-7.20-unwind.patch
 	"${FILESDIR}"/${PN}-8.13-rpath.patch
+	"${FILESDIR}"/${P}-wayland-egl.patch
 )
 
 pkg_pretend() {
@@ -245,7 +246,7 @@ src_configure() {
 
 		$(use_enable gecko mshtml)
 		$(use_enable mono mscoree)
-		--disable-tests
+		#--disable-tests
 
 		$(use_with X x)
 		$(use_with alsa)
@@ -297,8 +298,6 @@ src_configure() {
 
 	if use mingw; then
 		use crossdev-mingw || PATH=${BROOT}/usr/lib/mingw64-toolchain/bin:${PATH}
-
-		filter-flags -fno-plt # build failure
 
 		# CROSSCC was formerly recognized by wine, thus been using similar
 		# variables (subject to change, esp. if ever make a mingw.eclass).
@@ -423,6 +422,9 @@ pkg_postinst() {
 		ewarn "USE=abi_x86_32 (ABI_X86=32), hardware acceleration with 32bit"
 		ewarn "applications under ${PN} will likely not be usable."
 	fi
+
+	optfeature "/dev/hidraw* access used for *some* controllers (e.g. DualShock4)" \
+		games-util/game-device-udev-rules
 
 	eselect wine update --if-unset || die
 }
