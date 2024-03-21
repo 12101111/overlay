@@ -3,8 +3,7 @@
 
 EAPI=8
 
-# Can't do 12 yet: heavy use of imp, among other things (bug #915001, bug #915062)
-PYTHON_COMPAT=( python3_{10..11} )
+PYTHON_COMPAT=( python3_{11..12} )
 PYTHON_REQ_USE="xml(+)"
 
 # PACKAGING NOTES:
@@ -27,14 +26,15 @@ PYTHON_REQ_USE="xml(+)"
 
 # These variables let us easily bound supported major dependency versions in one place.
 GCC_MIN_VER=12
-GN_MIN_VER=0.2143
-LLVM_MAX_SLOT=18
-LLVM_MIN_SLOT=16
+GN_MIN_VER=0.2154
+# Since Google use prerelease llvm we can let any adventurous users try to build with prerelease
+# ebuilds; try to keep this up to date with the latest version in the tree.
+LLVM_MAX_SLOT=19
+LLVM_MIN_SLOT=17
 RUST_MIN_VER=1.72.0
-# grep 'CLANG_REVISION = ' ${S}/tools/clang/scripts/update.py -A1 | cut -c 18-
-GOOGLE_CLANG_VER="llvmorg-18-init-16072-gc4146121e940-5"
-# grep 'RUST_REVISION = ' ${S}/tools/rust/update_rust.py -A1 | cut -c 17-
-GOOGLE_RUST_VER="df0295f07175acc7325ce3ca4152eb05752af1f2-5"
+# chromium-tools/get-chromium-toolchain-strings.sh
+GOOGLE_CLANG_VER=llvmorg-19-init-2319-g7c4c2746-1
+GOOGLE_RUST_VER=340bb19fea20fd5f9357bbfac542fad84fc7ea2b-3
 
 # https://bugs.chromium.org/p/v8/issues/detail?id=14449 - V8 used in 120 can't build with GCC
 : ${CHROMIUM_FORCE_CLANG=yes}
@@ -58,9 +58,9 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PATCHSET_PPC64="122.0.6261.111-1raptor0~deb12u1"
-PATCH_V="${PV%%\.*}-2"
-HEVC_PATCHSET_VERSION="122.0.6213.0"
+PATCHSET_PPC64="122.0.6261.57-1raptor0~deb12u1"
+PATCH_V="${PV%%\.*}"
+HEVC_PATCHSET_VERSION="123.0.6268.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	system-toolchain? (
@@ -82,7 +82,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 
 LICENSE="BSD"
 SLOT="0/stable"
-KEYWORDS="~amd64 ~arm64 ~ppc64"
+KEYWORDS="~amd64 ~arm64"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="hevc +X ${IUSE_SYSTEM_LIBS} cups debug gtk4 +hangouts headless kerberos libcxx lto +official pax-kernel pgo +proprietary-codecs pulseaudio"
 IUSE+=" qt5 qt6 screencast selinux +system-toolchain vaapi wayland widevine"
@@ -222,7 +222,6 @@ depend_clang_llvm_versions() {
 	fi
 }
 
-# #923010 - add `profiler` USE to rust-bin
 BDEPEND="
 	${COMMON_SNAPSHOT_DEPEND}
 	${PYTHON_DEPS}
@@ -242,7 +241,7 @@ BDEPEND="
 			>=dev-util/web_page_replay_go-20220314
 			$(depend_clang_llvm_versions ${LLVM_MIN_SLOT} ${LLVM_MAX_SLOT})
 		)
-		>=dev-lang/rust-${RUST_MIN_VER}[profiler]
+		>=virtual/rust-${RUST_MIN_VER}[profiler(-)]
 	)
 	>=dev-build/gn-${GN_MIN_VER}
 	dev-lang/perl
@@ -369,7 +368,10 @@ pre_build_checks() {
 }
 
 pkg_pretend() {
-	pre_build_checks
+	if [[ ${MERGE_TYPE} != binary ]]; then
+		# The pre_build_checks are all about compilation resources, no need to run it for a binpkg
+		pre_build_checks
+	fi
 
 	if use headless; then
 		local headless_unused_flags=("cups" "kerberos" "pulseaudio" "qt5" "qt6" "vaapi" "wayland")
@@ -380,33 +382,38 @@ pkg_pretend() {
 }
 
 pkg_setup() {
-	if use system-toolchain && needs_clang; then
-		llvm_pkg_setup
-	fi
+	if [[ ${MERGE_TYPE} != binary ]]; then
+		# The pre_build_checks are all about compilation resources, no need to run it for a binpkg
+		pre_build_checks
 
-	pre_build_checks
-
-	if [[ ${MERGE_TYPE} != binary ]] && use system-toolchain; then
-		local -x CPP="$(tc-getCXX) -E"
-		if tc-is-gcc && ! ver_test "$(gcc-version)" -ge ${GCC_MIN_VER}; then
-			die "At least gcc ${GCC_MIN_VER} is required"
-		fi
-		if use pgo && tc-is-cross-compiler; then
-			die "The pgo USE flag cannot be used when cross-compiling"
-		fi
-		if needs_clang && ! tc-is-clang; then
-			if tc-is-cross-compiler; then
-				CPP="${CBUILD}-clang++ -E"
-			else
-				CPP="${CHOST}-clang++ -E"
+		if use system-toolchain; then
+			local -x CPP="$(tc-getCXX) -E"
+			if tc-is-gcc && ! ver_test "$(gcc-version)" -ge ${GCC_MIN_VER}; then
+				die "At least gcc ${GCC_MIN_VER} is required"
 			fi
-			if ver_test "$(clang-major-version)" -lt ${LLVM_MIN_SLOT}; then
-				die "At least Clang ${LLVM_MIN_SLOT} is required"
+			if use pgo && tc-is-cross-compiler; then
+				die "The pgo USE flag cannot be used when cross-compiling"
+			fi
+			if needs_clang && ! tc-is-clang; then
+				if tc-is-cross-compiler; then
+					CPP="${CBUILD}-clang++ -E"
+				else
+					CPP="${CHOST}-clang++ -E"
+				fi
+			fi
+			if needs_clang || tc-is-clang; then
+				if ver_test "$(clang-major-version)" -lt ${LLVM_MIN_SLOT}; then
+					die "At least Clang ${LLVM_MIN_SLOT} is required"
+				fi
+				# Ideally we never see this, but it should help prevent bugs like 927154
+				if ver_test "$(clang-major-version)" -gt ${LLVM_MAX_SLOT}; then
+					die "Clang $(clang-major-version) is too new; ${LLVM_MAX_SLOT} is the highest supported version"
+				fi
 			fi
 		fi
 		# Users should never hit this, it's purely a development convenience
 		if ver_test $(gn --version || die) -lt ${GN_MIN_VER}; then
-				die "dev-util/gn >= ${GN_MIN_VER} is required to build this Chromium"
+			die "dev-build/gn >= ${GN_MIN_VER} is required to build this Chromium"
 		fi
 	fi
 
@@ -437,7 +444,6 @@ src_prepare() {
 	local PATCHES=(
 		"${FILESDIR}/chromium-cross-compile.patch"
 		"${FILESDIR}/chromium-use-oauth2-client-switches-as-default.patch"
-		"${FILESDIR}/chromium-108-EnumTable-crash.patch"
 		"${FILESDIR}/chromium-109-system-zlib.patch"
 		"${FILESDIR}/chromium-111-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-117-system-zstd.patch"
@@ -470,10 +476,6 @@ src_prepare() {
 		done
 		PATCHES+=( "${WORKDIR}/ppc64le" )
 		PATCHES+=( "${WORKDIR}/debian/patches/fixes/rust-clanglib.patch" )
-	fi
-
-	if has_version ">=dev-libs/icu-74.1" && use system-icu ; then
-		PATCHES+=( "${FILESDIR}/chromium-119.0.6045.159-icu-74.patch" )
 	fi
 
 	default
