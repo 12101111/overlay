@@ -711,8 +711,6 @@ BDEPEND="
 	dev-libs/glib:2
 	>=dev-build/gn-${GN_MIN_VER}
 	app-alternatives/ninja
-	sys-devel/clang:17
-	>=dev-lang/rust-1.71.0[wasi,wasm]
 "
 DEPEND="
 	>=dev-libs/libffi-3.4.4
