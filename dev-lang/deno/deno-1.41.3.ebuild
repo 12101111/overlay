@@ -695,7 +695,7 @@ CRATES="
 inherit bash-completion-r1 cargo check-reqs llvm python-any-r1 toolchain-funcs
 
 DESCRIPTION="A secure JavaScript and TypeScript runtime"
-HOMEPAGE="https://github.com/denoland/deno"
+HOMEPAGE="https://deno.land"
 SRC_URI="
 	https://github.com/denoland/deno/releases/download/v${PV}/deno_src.tar.gz -> ${P}.tar.gz
 	$(cargo_crate_uris ${CRATES})
@@ -708,13 +708,13 @@ RESTRICT="mirror"
 IUSE="static-libs bash-completion zsh-completion fish-completion"
 
 BDEPEND="
-	dev-libs/glib:2
 	>=dev-build/gn-${GN_MIN_VER}
 	app-alternatives/ninja
 "
 DEPEND="
 	>=dev-libs/libffi-3.4.4
 	>=sys-libs/zlib-1.3
+	>=app-arch/zstd-1.5.5
 	elibc_musl? ( debug? ( sys-libs/libexecinfo ) )
 "
 
