@@ -3,29 +3,23 @@
 
 EAPI=8
 
-inherit cmake xdg-utils git-r3
+inherit cmake xdg-utils
 
 DESCRIPTION="Offline documentation browser inspired by Dash"
 HOMEPAGE="https://zealdocs.org/"
-EGIT_REPO_URI="https://github.com/zealdocs/${PN}.git"
+SRC_URI="https://github.com/zealdocs/${PN}/archive/v${PV}.tar.gz"
 
 LICENSE="GPL-3"
 SLOT="0"
-KEYWORDS="~amd64 ~x86"
+KEYWORDS="~arm64 ~amd64 ~x86"
 IUSE=""
 
 DEPEND="
 	app-arch/libarchive:=
 	dev-db/sqlite:3
-	dev-qt/qtconcurrent:5
-	dev-qt/qtcore:5
-	dev-qt/qtgui:5
-	dev-qt/qtnetwork:5
-	dev-qt/qtsql:5[sqlite]
-	dev-qt/qtwebchannel:5
-	dev-qt/qtwebengine:5[widgets]
-	dev-qt/qtwidgets:5
-	dev-qt/qtx11extras:5
+	dev-qt/qtbase:6[concurrent,gui,network,sql,widgets]
+	dev-qt/qtwebchannel:6
+	dev-qt/qtwebengine:6[widgets]
 	x11-libs/libX11
 	x11-libs/libxcb:=
 	>=x11-libs/xcb-util-keysyms-0.3.9
@@ -37,7 +31,21 @@ BDEPEND="kde-frameworks/extra-cmake-modules:0"
 
 PATCHES=(
 	"${FILESDIR}/0002-settings-disable-checking-for-updates-by-default.patch"
+	"${FILESDIR}/fix-qasconst.patch"
 )
+
+src_prepare() {
+	# use qt6
+	sed -i -e 's/Qt5//g' CMakeLists.txt
+	cmake_src_prepare
+}
+
+src_configure() {
+	local mycmakeargs=(
+		-DZEAL_RELEASE_BUILD=ON
+	)
+	cmake_src_configure
+}
 
 pkg_postinst() {
 	xdg_icon_cache_update
