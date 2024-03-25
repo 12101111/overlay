@@ -15,12 +15,22 @@ if [[ ${PV} = *beta* ]]; then
 	MY_P="rustc-beta"
 	SLOT="beta/${ABI_VER}"
 	SRC="${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${PV}-src.tar.xz"
+	IS_DEV=""
+elif [[ ${PV} = *rc* ]]; then
+	rcver=${PV//*rc}
+	ABI_VER=${PV//_rc*}
+	RC_SNAPSHOT="${rcver:0:4}-${rcver:4:2}-${rcver:6:2}"
+	MY_P="rustc-${ABI_VER}"
+	SLOT="rc/${ABI_VER}"
+	SRC="${RC_SNAPSHOT}/${MY_P}-src.tar.xz"
+	IS_DEV="dev-"
 else
 	ABI_VER="$(ver_cut 1-2)"
 	SLOT="stable/${ABI_VER}"
 	MY_P="rustc-${PV}"
 	SRC="${MY_P}-src.tar.xz"
 	KEYWORDS="~amd64 ~arm ~arm64 ~loong ~mips ~ppc ~ppc64 ~riscv ~sparc ~x86"
+	IS_DEV=""
 fi
 
 RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).0"
@@ -29,8 +39,8 @@ DESCRIPTION="Systems programming language from Mozilla"
 HOMEPAGE="https://www.rust-lang.org/"
 
 SRC_URI="
-	https://static.rust-lang.org/dist/${SRC}
-	verify-sig? ( https://static.rust-lang.org/dist/${SRC}.asc )
+	https://${IS_DEV}static.rust-lang.org/dist/${SRC}
+	verify-sig? ( https://${IS_DEV}static.rust-lang.org/dist/${SRC}.asc )
 	!system-bootstrap? ( $(rust_all_arch_uris rust-${RUST_STAGE0_VERSION}) )
 "
 
@@ -51,7 +61,7 @@ IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind +lto mi
 
 # How to use it:
 # List all the working slots in LLVM_VALID_SLOTS, newest first.
-LLVM_VALID_SLOTS=( 17 )
+LLVM_VALID_SLOTS=( 18 )
 LLVM_MAX_SLOT="${LLVM_VALID_SLOTS[0]}"
 
 # splitting usedeps needed to avoid CI/pkgcheck's UncheckableDep limitation
@@ -171,7 +181,6 @@ PATCHES=(
 	#"${FILESDIR}"/1.72.0-bump-libc-deps-to-0.2.146.patch  # pending refresh
 	"${FILESDIR}"/1.70.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
-	"${FILESDIR}"/1.75.0-handle-vendored-sources.patch  # remove for >=1.77.0
 	"${FILESDIR}"/1.76.0-loong-code-model.patch  # remove for >=1.78.0
 )
 
@@ -475,7 +484,8 @@ src_configure() {
 		deny-warnings = $(usex wasm $(usex doc false true) true)
 		backtrace-on-ice = true
 		jemalloc = false
-		lto = "$(usex lto fat off)"
+		# See https://github.com/rust-lang/rust/issues/121124
+		lto = "$(usex lto thin off)"
 		debug-logging = true
 		[dist]
 		src-tarball = false
