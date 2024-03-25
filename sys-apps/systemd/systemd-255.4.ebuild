@@ -248,6 +248,7 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
+		"${FILESDIR}"/255-install-format-overflow.patch
 	)
 
 	if ! use vanilla; then
@@ -260,6 +261,9 @@ src_prepare() {
 	if use elibc_musl; then
 		append-cflags -D__UAPI_DEF_ETHHDR=0
 		eapply "${FILESDIR}/musl"
+	fi
+	if tc-is-clang; then
+		eapply "${FILESDIR}/clang-18-fix.patch"
 	fi
 
 	default
