@@ -42,9 +42,9 @@ PATCHES=(
 
 pkg_pretend() {
 	if use runparts && ! [ -x /usr/bin/run-parts ] ; then
-			eerror "Please complete the migration to merged-usr."
-			eerror "https://wiki.gentoo.org/wiki/Merge-usr"
-			die "systemd-cron no longer supports split-usr"
+		eerror "Please complete the migration to merged-usr."
+		eerror "https://wiki.gentoo.org/wiki/Merge-usr"
+		die "systemd-cron no longer supports split-usr"
 	fi
 }
 
@@ -98,7 +98,7 @@ src_compile() {
 }
 
 src_install() {
-	emake PCH= DESTDIR="${D}" install
+	emake DESTDIR="${D}" PCH= install
 	rm -f "${ED}"/usr/lib/sysusers.d/systemd-cron.conf
 }
 
