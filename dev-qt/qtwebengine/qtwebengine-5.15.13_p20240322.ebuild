@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PATCHSET="${PN}-5.15.10_p20230815-patchset"
+PATCHSET="${PN}-5.15.13_p20240322-patchset"
 PYTHON_COMPAT=( python3_{10..11} )
 PYTHON_REQ_USE="xml(+)"
 inherit check-reqs estack flag-o-matic multiprocessing python-any-r1 qt5-build toolchain-funcs
@@ -12,7 +12,7 @@ DESCRIPTION="Library for rendering dynamic web content in Qt5 C++ and QML applic
 HOMEPAGE="https://www.qt.io/"
 
 if [[ ${QT5_BUILD_TYPE} == release ]]; then
-	KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~x86"
+	KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
 		SRC_URI="https://dev.gentoo.org/~asturm/distfiles/${P}.tar.xz"
 		S="${WORKDIR}/${P}"
@@ -27,13 +27,7 @@ else
 	inherit git-r3
 fi
 
-# ppc64 patchset based on https://github.com/chromium-ppc64le releases
-# ppc64 ffmpeg patchset backported from chromium 98 on https://ppa.quickbuild.io/raptor-engineering-public/chromium/ubuntu/pool/main/c/chromium/
-SRC_URI+=" https://dev.gentoo.org/~asturm/distfiles/${PATCHSET}.tar.xz
-	ppc64? (
-		https://dev.gentoo.org/~gyakovlev/distfiles/${PN}-5.15.2-r1-chromium87-ppc64le.tar.xz
-		https://dev.gentoo.org/~asturm/distfiles/${PN}-5.15-ffmpeg-ppc64le.tar.xz
-	)"
+SRC_URI+=" https://dev.gentoo.org/~asturm/distfiles/${PATCHSET}.tar.xz"
 
 IUSE="pdf alsa bindist designer geolocation +jumbo-build kerberos pulseaudio screencast +system-icu widgets"
 REQUIRED_USE="
@@ -99,13 +93,12 @@ DEPEND="${RDEPEND}
 	media-libs/libglvnd
 "
 BDEPEND="${PYTHON_DEPS}
-	dev-util/gperf
 	app-alternatives/ninja
+	dev-util/gperf
 	dev-util/re2c
 	net-libs/nodejs[ssl]
 	sys-devel/bison
 	sys-devel/flex
-	ppc64? ( >=dev-build/gn-0.1807 )
 "
 
 PATCHES=(
@@ -174,8 +167,6 @@ src_prepare() {
 		eapply "${FILESDIR}/gn-musl-lfs64.patch"
 	fi
 	use arm64 && eapply "${FILESDIR}/revert-skia-arm64-change.patch"
-	# upstreamed, but not spinning new patchset just yet
-	rm "${WORKDIR}"/${PATCHSET}/018-gcc13-includes.patch || die
 
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
 		# This is made from git, and for some reason will fail w/o .git directories.
@@ -223,32 +214,7 @@ src_prepare() {
 
 	qt_use_disable_mod widgets widgets src/src.pro
 
-	if use ppc64; then
-		einfo "Patching for ppc64le and generating build files"
-		eapply "${FILESDIR}/qtwebengine-5.15.2-enable-ppc64.patch"
-		pushd src/3rdparty/chromium > /dev/null || die
-		eapply -p0 "${WORKDIR}/${PN}-ppc64le"
-		eapply -p1 "${WORKDIR}/${PN}-ffmpeg-ppc64le"
-		popd > /dev/null || die
-	fi
-
 	qt5-build_src_prepare
-
-	# we need to generate ppc64 stuff because upstream does not ship it yet
-	if use ppc64; then
-		einfo "Generating ppc64le build files"
-		pushd src/3rdparty/chromium/third_party/libvpx > /dev/null || die
-		mkdir -vp source/config/linux/ppc64 || die
-		mkdir -p source/libvpx/test || die
-		touch source/libvpx/test/test.mk || die
-		# clang-format is used to re-format sources
-		# but we'd rather make it a no-op than introduce a clang dependency
-		# https://bugs.gentoo.org/849458
-		clang-format() { : ; }
-		export -f clang-format || die
-		./generate_gni.sh || die
-		popd >/dev/null || die
-	fi
 }
 
 src_configure() {
