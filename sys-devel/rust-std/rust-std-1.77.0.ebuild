@@ -1,9 +1,9 @@
-# Copyright 2020-2023 Gentoo Authors
+# Copyright 2020-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{9..12} )
+PYTHON_COMPAT=( python3_{10..12} )
 
 inherit crossdev flag-o-matic multiprocessing python-any-r1 rust-toolchain toolchain-funcs
 
@@ -34,8 +34,6 @@ RDEPEND="${DEPEND}"
 
 # need full compiler to run tests
 RESTRICT="test"
-
-PATCHES=( "${FILESDIR}"/1.75.0-fix-bootstrap.patch )
 
 QA_FLAGS_IGNORED="usr/lib/rust/${PV}/rustlib/.*/lib/lib.*.so"
 
