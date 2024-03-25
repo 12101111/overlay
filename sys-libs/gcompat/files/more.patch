@@ -99,31 +99,6 @@ index 0000000..6cd3894
 +{
 +	return syscall(SYS_statx, dirfd, pathname, flags, mask, statxbuf);
 +}
-diff --git a/libgcompat/misc.c b/libgcompat/misc.c
-index 0677550..684b400 100644
---- a/libgcompat/misc.c
-+++ b/libgcompat/misc.c
-@@ -1,6 +1,7 @@
- #include <stdlib.h>        /* abort, at_quick_exit */
- #include <sys/stat.h>      /* dev_t */
- #include <sys/sysmacros.h> /* major, makedev, minor */
-+#include <string.h> /* memset */
- 
- /**
-  * Terminate a function in case of buffer overflow.
-@@ -33,3 +34,12 @@ unsigned int gnu_dev_minor(dev_t dev)
- }
- 
- void *__libc_stack_end = NULL;
-+
-+void __explicit_bzero_chk(void *dst, size_t len, size_t dstlen)
-+{
-+	if (dstlen < len){
-+		__chk_fail();
-+	}
-+	memset(dst, 0, len);
-+	__asm__ __volatile__ ("" ::: "memory");
-+}
 diff --git a/libgcompat/scandirat.c b/libgcompat/scandirat.c
 new file mode 100644
 index 0000000..70b0061
