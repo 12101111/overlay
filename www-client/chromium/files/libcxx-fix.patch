@@ -1,0 +1,39 @@
+From 8be4d17beb71c29118c3337268f3e7b3930a657f Mon Sep 17 00:00:00 2001
+From: Jose Dapena Paz <jdapena@igalia.com>
+Date: Tue, 26 Mar 2024 10:06:31 +0000
+Subject: [PATCH] IWYU: use regular atomic include instead of hardcoding libc++
+ path
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Bug: 41455655
+Change-Id: I2f2076d533b9732d1f7ff8aea5dc027547f62347
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/5373879
+Commit-Queue: José Dapena Paz <jdapena@igalia.com>
+Reviewed-by: Marja Hölttä <marja@chromium.org>
+Cr-Commit-Position: refs/heads/main@{#1278213}
+---
+ third_party/blink/renderer/bindings/core/v8/script_streamer.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/third_party/blink/renderer/bindings/core/v8/script_streamer.cc b/third_party/blink/renderer/bindings/core/v8/script_streamer.cc
+index f00f7cef4cc26..90f1ce6db12f3 100644
+--- a/third_party/blink/renderer/bindings/core/v8/script_streamer.cc
++++ b/third_party/blink/renderer/bindings/core/v8/script_streamer.cc
+@@ -4,6 +4,7 @@
+ 
+ #include "third_party/blink/renderer/bindings/core/v8/script_streamer.h"
+ 
++#include <atomic>
+ #include <memory>
+ #include <utility>
+ 
+@@ -60,7 +61,6 @@
+ #include "third_party/blink/renderer/platform/wtf/shared_buffer.h"
+ #include "third_party/blink/renderer/platform/wtf/text/string_builder.h"
+ #include "third_party/blink/renderer/platform/wtf/text/text_encoding_registry.h"
+-#include "third_party/libc++/src/include/__atomic/atomic.h"
+ 
+ namespace blink {
+ namespace {
