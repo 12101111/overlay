@@ -25,7 +25,7 @@ RDEPEND="
 	!sys-process/cronie[anacron]
 	acct-user/_cron-failure
 	acct-group/_cron-failure
-	dev-libs/openssl:=
+	app-crypt/libmd:=
 	sys-process/cronbase
 	>=sys-apps/systemd-253
 	!etc-crontab-systemd? ( !sys-process/dcron )
@@ -35,10 +35,6 @@ DEPEND="
 	dev-libs/openssl:=
 	sys-process/cronbase
 "
-
-PATCHES=(
-	"${FILESDIR}"/${PN}-2.3.0-pch.patch
-)
 
 pkg_pretend() {
 	if use runparts && ! [ -x /usr/bin/run-parts ] ; then
