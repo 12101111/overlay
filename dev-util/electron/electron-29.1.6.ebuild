@@ -57,7 +57,7 @@ inherit python-any-r1 readme.gentoo-r1 toolchain-funcs virtualx xdg-utils yarn r
 
 # Keep this in sync with DEPS:chromium_version
 # find least version of available snapshot in https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-117.0.5938.141-lite.tar.x%40
-CHROMIUM_VERSION="122.0.6261.130"
+CHROMIUM_VERSION="122.0.6261.137"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="20.9.0"
 
