@@ -1,0 +1,38 @@
+diff --git a/patches/chromium/m122_webcodecs_disable_async_videoframe_readback_to_mitigate_a.patch b/patches/chromium/m122_webcodecs_disable_async_videoframe_readback_to_mitigate_a.patch
+index 0eba5c01d1..c7aff31c4c 100644
+--- a/patches/chromium/m122_webcodecs_disable_async_videoframe_readback_to_mitigate_a.patch
++++ b/patches/chromium/m122_webcodecs_disable_async_videoframe_readback_to_mitigate_a.patch
+@@ -20,33 +20,6 @@ Auto-Submit: Dale Curtis <dalecurtis@chromium.org>
+ Cr-Commit-Position: refs/branch-heads/6261@{#1124}
+ Cr-Branched-From: 9755d9d81e4a8cb5b4f76b23b761457479dbb06b-refs/heads/main@{#1250580}
+ 
+-diff --git a/content/test/data/gpu/webcodecs/copyTo.html b/content/test/data/gpu/webcodecs/copyTo.html
+-index ec2455c9c18900ad911ce98f326139cbdeabd84f..9453c8d361a572b500e86b1249896bc4114ebe27 100644
+---- a/content/test/data/gpu/webcodecs/copyTo.html
+-+++ b/content/test/data/gpu/webcodecs/copyTo.html
+-@@ -118,6 +118,16 @@ Take frames coming from various sources and read them using copyTo().
+-     let frame = await source.getNextFrame();
+-     let size = frame.allocationSize();
+- 
+-+    // Readback a whole frame to a regular buffer detach it
+-+    {
+-+      let buf = new ArrayBuffer(size);
+-+      TEST.assert(readWholeBuffer(buf) == 0, "Buffer should be zero");
+-+      let copy_promise = frame.copyTo(buf);
+-+      buf.transfer(1);
+-+      let layout = await copy_promise;
+-+      TEST.assert(layout, "layout is empty / ArrayBuffer");
+-+    }
+-+
+-     // Readback a whole frame to a regular buffer and send it to a worker
+-     {
+-       let {worker, worker_promise } = makeWorker();
+-@@ -158,4 +168,5 @@ Take frames coming from various sources and read them using copyTo().
+-     TEST.log('Test completed');
+-   }
+-   addManualTestButton([{'source_type': 'offscreen'}]);
+-+  addManualTestButton([{'source_type': 'arraybuffer'}]);
+- </script>
+ diff --git a/third_party/blink/renderer/modules/webcodecs/video_frame.cc b/third_party/blink/renderer/modules/webcodecs/video_frame.cc
+ index e5860706c0d9098980ee1e901f1eac048be1a011..af4b7082bebb96b8e6d766c950cf34d5747d10d3 100644
+ --- a/third_party/blink/renderer/modules/webcodecs/video_frame.cc

@@ -187,3 +187,43 @@ index bb75549c84..415244b8ba 100644
 -+  assert_equals: outputs[0].length expected 1 but got 0
 -+Harness: the test ran to completion.
 -+
+diff --git a/patches/chromium/m122_webcodecs_disable_async_videoframe_readback_to_mitigate_a.patch b/patches/chromium/m122_webcodecs_disable_async_videoframe_readback_to_mitigate_a.patch
+index f948610387..4f72e07801 100644
+--- a/patches/chromium/m122_webcodecs_disable_async_videoframe_readback_to_mitigate_a.patch
++++ b/patches/chromium/m122_webcodecs_disable_async_videoframe_readback_to_mitigate_a.patch
+@@ -20,35 +20,6 @@ Auto-Submit: Dale Curtis <dalecurtis@chromium.org>
+ Cr-Commit-Position: refs/branch-heads/6261@{#1124}
+ Cr-Branched-From: 9755d9d81e4a8cb5b4f76b23b761457479dbb06b-refs/heads/main@{#1250580}
+ 
+-diff --git a/content/test/data/gpu/webcodecs/copyTo.html b/content/test/data/gpu/webcodecs/copyTo.html
+-index 628b891ecc5eb675d426c83a5ad235839ed7d6c1..0931feefa628af2060cd927666879a3e72ba2959 100644
+---- a/content/test/data/gpu/webcodecs/copyTo.html
+-+++ b/content/test/data/gpu/webcodecs/copyTo.html
+-@@ -118,6 +118,16 @@ Take frames coming from various sources and read them using copyTo().
+-     let frame = await source.getNextFrame();
+-     let size = frame.allocationSize();
+- 
+-+    // Readback a whole frame to a regular buffer detach it
+-+    {
+-+      let buf = new ArrayBuffer(size);
+-+      TEST.assert(readWholeBuffer(buf) == 0, "Buffer should be zero");
+-+      let copy_promise = frame.copyTo(buf);
+-+      buf.transfer(1);
+-+      let layout = await copy_promise;
+-+      TEST.assert(layout, "layout is empty / ArrayBuffer");
+-+    }
+-+
+-     // Readback a whole frame to a regular buffer and send it to a worker
+-     {
+-       let {worker, worker_promise } = makeWorker();
+-@@ -158,4 +168,5 @@ Take frames coming from various sources and read them using copyTo().
+-     TEST.log('Test completed');
+-   }
+-   addManualTestButton([{'source_type': 'offscreen'}]);
+--</script>
+-\ No newline at end of file
+-+  addManualTestButton([{'source_type': 'arraybuffer'}]);
+-+</script>
+ diff --git a/third_party/blink/renderer/modules/webcodecs/video_frame.cc b/third_party/blink/renderer/modules/webcodecs/video_frame.cc
+ index 365b18025d5a88af4910bdc4e544210c355c4105..eb7a2c50118f6515b2984c7f0a9fadabd9a5f16e 100644
+ --- a/third_party/blink/renderer/modules/webcodecs/video_frame.cc
