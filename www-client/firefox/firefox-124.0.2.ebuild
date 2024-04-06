@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-124-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-124-patches-03.tar.xz"
 
 LLVM_COMPAT=( 16 17 18 )
 
@@ -73,7 +73,6 @@ IUSE+=" geckodriver +gmp-autoupdate"
 #   firefox-120.0/intl/components/src/TimeZone.cpp:345:3: error: use of undeclared identifier 'MOZ_TRY'
 REQUIRED_USE="|| ( X wayland )
 	debug? ( !system-av1 )
-	!jumbo-build? ( !system-icu )
 	pgo? ( lto )
 	wifi? ( dbus )"
 
@@ -1053,7 +1052,10 @@ src_configure() {
 	fi
 
 	# elf-hack
+	# Filter "-z,pack-relative-relocs" and let the build system handle it instead. 
 	if use amd64 || use x86 ; then
+		filter-flags "-z,pack-relative-relocs"
+
 		if tc-ld-is-mold ; then
 			# relr-elf-hack is currently broken with mold, bgo#916259
 			mozconfig_add_options_ac 'disable elf-hack with mold linker' --disable-elf-hack
