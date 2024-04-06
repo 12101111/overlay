@@ -1,0 +1,35 @@
+diff --git a/src/3rdparty/chromium/base/BUILD.gn b/src/3rdparty/chromium/base/BUILD.gn
+index 6b87aad..f53a70d 100644
+--- a/src/3rdparty/chromium/base/BUILD.gn
++++ b/src/3rdparty/chromium/base/BUILD.gn
+@@ -1114,14 +1114,6 @@ jumbo_component("base") {
+     public_deps += [ ":nodebug_assertion" ]
+   }
+ 
+-  # Needed for <atomic> if using newer C++ library than sysroot, except if
+-  # building inside the cros_sdk environment - use host_toolchain as a
+-  # more robust check for this.
+-  if (!use_sysroot && (is_android || is_chromeos || (is_linux && !is_castos)) &&
+-      host_toolchain != "//build/toolchain/cros:host") {
+-    libs += [ "atomic" ]
+-  }
+-
+   if (use_allocator_shim) {
+     if (is_apple) {
+       sources += [ "allocator/early_zone_registration_apple.h" ]
+diff --git a/src/3rdparty/chromium/build/config/linux/BUILD.gn b/src/3rdparty/chromium/build/config/linux/BUILD.gn
+index 131bb71..e08b1d6 100644
+--- a/src/3rdparty/chromium/build/config/linux/BUILD.gn
++++ b/src/3rdparty/chromium/build/config/linux/BUILD.gn
+@@ -39,11 +39,6 @@ config("runtime_library") {
+   if (is_chromeos) {
+     defines = [ "OS_CHROMEOS" ]
+   }
+-
+-  if ((!is_chromeos || default_toolchain != "//build/toolchain/cros:target") &&
+-      (!use_custom_libcxx || current_cpu == "mipsel")) {
+-    libs = [ "atomic" ]
+-  }
+ }
+ 
+ config("libcap") {

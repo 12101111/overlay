@@ -112,6 +112,7 @@ PATCHES+=(
 	# add extras as needed here, may merge in set if carries across versions
 	"${FILESDIR}"/${PN}-6.7.0-clang18.patch
 	"${FILESDIR}"/${PN}-6.7.0-x11-header.patch
+	"${FILESDIR}"/remove-libatomic.patch
 )
 
 python_check_deps() {
