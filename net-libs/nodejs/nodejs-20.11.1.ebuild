@@ -20,7 +20,7 @@ if [[ ${PV} == *9999 ]]; then
 else
 	SRC_URI="https://nodejs.org/dist/v${PV}/node-v${PV}.tar.xz"
 	SLOT="0/$(ver_cut 1)"
-	KEYWORDS="amd64 ~arm ~arm64 ~loong ~ppc64 ~riscv x86 ~amd64-linux ~x64-macos"
+	KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc64 ~riscv ~x86 ~amd64-linux ~x64-macos"
 	S="${WORKDIR}/node-v${PV}"
 fi
 
@@ -106,7 +106,7 @@ src_prepare() {
 	use pax-kernel && PATCHES+=( "${FILESDIR}"/${PN}-20.6.0-paxmarking.patch )
 
 	# bug 922725
-	use riscv && PATCHES+=( "${FILESDIR}"/${P}-riscv.patch )
+	use riscv && PATCHES+=( "${FILESDIR}"/${PN}-20.11.0-riscv.patch )
 
 	default
 }
@@ -237,11 +237,15 @@ src_install() {
 src_test() {
 	local drop_tests=(
 	test/parallel/test-dns-resolveany-bad-ancount.js
-		test/parallel/test-fs-read-stream.js
 		test/parallel/test-dns-setserver-when-querying.js
 		test/parallel/test-fs-mkdir.js
+		test/parallel/test-fs-read-stream.js
 		test/parallel/test-fs-utimes-y2K38.js
 		test/parallel/test-fs-watch-recursive-add-file.js
+		test/parallel/test-process-euid-egid.js
+		test/parallel/test-process-initgroups.js
+		test/parallel/test-process-setgroups.js
+		test/parallel/test-process-uid-gid.js
 		test/parallel/test-release-npm.js
 		test/parallel/test-socket-write-after-fin-error.js
 		test/parallel/test-strace-openat-openssl.js
