@@ -7,7 +7,7 @@ inherit java-pkg-2 desktop llvm
 LLVM_VALID_SLOTS=( 17 )
 LLVM_MAX_SLOT=17
 
-GRADLE_DEP_VER="20231223"
+GRADLE_DEP_VER="20240407"
 RELEASE_VERSION=${PV}
 
 DESCRIPTION="A software reverse engineering framework"
@@ -29,7 +29,7 @@ SRC_URI="https://github.com/NationalSecurityAgency/${PN}/archive/Ghidra_${PV}_bu
 	https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/lib/java-sarif-2.1-modified.jar
 "
 for FIDB in ${FIDB_FILES}; do
-	SRC_URI+="https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/${FIDB}"
+	SRC_URI+=" https://github.com/NationalSecurityAgency/ghidra-data/raw/Ghidra_${RELEASE_VERSION}/FunctionID/${FIDB}"
 done
 
 # run: "pentoo/scripts/gradle_dependencies.py buildGhidra" from "${S}" directory to generate dependencies
