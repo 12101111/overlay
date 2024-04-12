@@ -13,7 +13,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="863d2581ecda6849923a2118d93a088b0745d9d6"
+COMMIT="e170252f762678dec6ca2cc69aba1570769a5d39"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.15.9/lib/postinstall.js#L21
@@ -3214,6 +3214,7 @@ https://registry.yarnpkg.com/typescript/-/typescript-2.6.2.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-2.8.1.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-4.8.4.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-5.4.3.tgz
+https://registry.yarnpkg.com/typescript/-/typescript-5.4.5.tgz
 https://registry.yarnpkg.com/typescript/-/typescript-5.5.0-dev.20240318.tgz
 https://registry.yarnpkg.com/typical/-/typical-4.0.0.tgz
 https://registry.yarnpkg.com/uc.micro/-/uc.micro-1.0.6.tgz
