@@ -87,7 +87,7 @@ https://registry.yarnpkg.com/@electron/docs-parser/-/docs-parser-1.2.0.tgz
 https://registry.yarnpkg.com/@electron/fiddle-core/-/fiddle-core-1.0.4.tgz
 https://registry.yarnpkg.com/@electron/get/-/get-2.0.2.tgz
 https://registry.yarnpkg.com/@electron/github-app-auth/-/github-app-auth-2.0.0.tgz
-https://registry.yarnpkg.com/@electron/lint-roller/-/lint-roller-1.10.0.tgz
+https://registry.yarnpkg.com/@electron/lint-roller/-/lint-roller-1.12.1.tgz
 https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-8.15.2.tgz
 https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.4.0.tgz
 https://registry.yarnpkg.com/@eslint-community/regexpp/-/regexpp-4.5.1.tgz
