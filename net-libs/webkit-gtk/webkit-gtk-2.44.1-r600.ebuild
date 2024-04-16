@@ -4,7 +4,7 @@
 EAPI=8
 PYTHON_REQ_USE="xml(+)"
 PYTHON_COMPAT=( python3_{10..12} )
-USE_RUBY="ruby30 ruby31 ruby32 ruby33"
+USE_RUBY="ruby31 ruby32 ruby33"
 
 inherit check-reqs flag-o-matic gnome2 optfeature python-any-r1 ruby-single toolchain-funcs cmake
 
@@ -17,7 +17,7 @@ LICENSE="LGPL-2+ BSD"
 SLOT="6/0" # soname version of libwebkit2gtk-6.0
 KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 
-IUSE="aqua avif examples gamepad keyring +gstreamer +introspection pdf +jpeg2k jpegxl +jumbo-build lcms seccomp spell systemd wayland X"
+IUSE="aqua avif examples gamepad keyring +gstreamer +introspection pdf jpegxl +jumbo-build lcms seccomp spell systemd wayland X"
 REQUIRED_USE="|| ( aqua wayland X )"
 
 # Tests do not run when built from tarballs
@@ -25,37 +25,41 @@ REQUIRED_USE="|| ( aqua wayland X )"
 RESTRICT="test"
 
 # Dependencies found at Source/cmake/OptionsGTK.cmake
-# Missing WebRTC support, but ENABLE_MEDIA_STREAM/ENABLE_WEB_RTC is
-# experimental upstream (PRIVATE OFF) and shouldn't be used yet in 2.30
+# Missing WebRTC support, but ENABLE_WEB_RTC is experimental upstream
+# media-libs/mesa dep is for libgbm
 # >=gst-plugins-opus-1.14.4-r1 for opusparse (required by MSE)
 # TODO: gst-plugins-base[X] is only needed when build configuration ends up
-# with GLX set, but that's a bit automagic too to fix
-# Softblocking webkit-gtk-2.38:4 as we going to use webkit-2.38:4.1's WebKitDriver binary
+#       with GLX set, but that's a bit automagic too to fix
+# Softblocking <webkit-gtk-2.38:4 and <webkit-gtk-2.44:4.1 as since 2.44 this SLOT ships the WebKitWebDriver binary;
+# WebKitWebDriver is an automation tool for web developers, which lets one control the browser via WebDriver API - only one SLOT can ship it
+# TODO: There is build-time conditional depend on gtk-4.13.4 for using more efficient DmaBuf buffer type instead of EglImage, and gtk-4.13.7 for a11y support - ensure it at some point with a min dep
+# TODO: at-spi2-core (atspi-2.pc) is checked at build time, but not linked to in the gtk4 SLOT - is it an upstream check bug and only gtk-4.14 a11y support is used?
 RDEPEND="
 	>=x11-libs/cairo-1.16.0[X?]
 	>=media-libs/fontconfig-2.13.0:1.0
 	>=media-libs/freetype-2.9.0:2
 	>=dev-libs/libgcrypt-1.7.0:0=
-	>=x11-libs/gtk+-3.22.0:3[aqua?,introspection?,wayland?,X?]
-	>=gui-libs/gtk-4.4.0:4[introspection?]
+	dev-libs/libtasn1:=
+	>=gui-libs/gtk-4.6.0:4[aqua?,introspection?,wayland?,X?]
 	>=media-libs/harfbuzz-1.4.2:=[icu(+)]
 	>=dev-libs/icu-61.2:=
 	media-libs/libjpeg-turbo:0=
-	>=media-libs/libepoxy-1.4.0
+	>=media-libs/libepoxy-1.5.4[egl(+)]
 	>=net-libs/libsoup-3.0.8:3.0[introspection?]
 	>=dev-libs/libxml2-2.8.0:2
 	>=media-libs/libpng-1.4:0=
 	dev-db/sqlite:3
 	sys-libs/zlib:0
-	>=app-accessibility/at-spi2-core-2.46.0:2
 	media-libs/libwebp:=
+	>=app-accessibility/at-spi2-core-2.46.0:2
 
 	>=dev-libs/glib-2.70.0:2
 	>=dev-libs/libxslt-1.1.7
 	media-libs/woff2
 	keyring? ( app-crypt/libsecret )
 	introspection? ( >=dev-libs/gobject-introspection-1.59.1:= )
-	dev-libs/libtasn1:=
+	x11-libs/libdrm
+	media-libs/mesa
 	spell? ( >=app-text/enchant-0.22:2 )
 	gstreamer? (
 		>=media-libs/gstreamer-1.20:1.0
@@ -65,27 +69,17 @@ RDEPEND="
 		>=media-libs/gst-plugins-bad-1.20:1.0
 	)
 
-	X? (
-		x11-libs/libX11
-		x11-libs/libXcomposite
-		x11-libs/libXdamage
-		x11-libs/libXrender
-		x11-libs/libXt
-	)
+	X? ( x11-libs/libX11 )
 
 	dev-libs/hyphen
-	jpeg2k? ( >=media-libs/openjpeg-2.2.0:2= )
 	jpegxl? ( >=media-libs/libjxl-0.7.0:= )
 	avif? ( >=media-libs/libavif-0.9.0:= )
 	lcms? ( media-libs/lcms:2 )
 
-	media-libs/mesa
 	media-libs/libglvnd
 	wayland? (
-		>=dev-libs/wayland-1.15
-		>=dev-libs/wayland-protocols-1.15
-		>=gui-libs/libwpe-1.5.0:1.0
-		>=gui-libs/wpebackend-fdo-1.7.0:1.0
+		>=dev-libs/wayland-1.20
+		>=dev-libs/wayland-protocols-1.24
 	)
 
 	seccomp? (
@@ -97,6 +91,7 @@ RDEPEND="
 	systemd? ( sys-apps/systemd:= )
 	gamepad? ( >=dev-libs/libmanette-0.2.4 )
 	!<net-libs/webkit-gtk-2.38:4
+	!<net-libs/webkit-gtk-2.44:4.1
 "
 DEPEND="${RDEPEND}"
 # Need real bison, not yacc
@@ -152,7 +147,6 @@ pkg_setup() {
 
 src_prepare() {
 	eapply "${FILESDIR}"/webkit-gtk-2.30.3-musl-locale.patch
-	eapply "${FILESDIR}"/libcxx.patch
 	if use elibc_musl ; then
 		eapply "${FILESDIR}"/${PN}-2.32.1-musl.patch
 		eapply "${FILESDIR}"/${PN}-2.28.1-lower-stack-usage.patch
@@ -160,13 +154,12 @@ src_prepare() {
 	cmake_src_prepare
 	gnome2_src_prepare
 
+	# Upstream 2.44 branch commits up to aff53249f2d491d, includes a linking and GCC 12 fix
+	eapply "${FILESDIR}"/${PV}-branch-patchset.patch
 	# Fix USE=-jumbo-build compilation on arm64
-	eapply "${FILESDIR}"/2.42.1-arm64-non-jumbo-fix.patch
 	eapply "${FILESDIR}"/2.42.3-arm64-non-jumbo-fix-925621.patch
-	# Fix assert failure on some machines, bug #920704
-	eapply "${FILESDIR}"/2.42.4-wasm-assert-fix.patch
-	# Fix compilation on x86, bug #924873
-	eapply "${FILESDIR}"/2.42.5-x86-build-fix.patch
+	# Fix USE=-jumbo-build on all arches
+	eapply "${FILESDIR}"/${PV}-non-unified-build-fixes.patch
 }
 
 src_configure() {
@@ -234,7 +227,8 @@ src_configure() {
 		-DENABLE_VIDEO=$(usex gstreamer)
 		-DUSE_GSTREAMER_WEBRTC=$(usex gstreamer)
 		-DUSE_GSTREAMER_TRANSCODER=$(usex gstreamer)
-		-DENABLE_WEBDRIVER=OFF # Disable WebDriver for webkit2gtk-5.0 and use the webkit2gtk-4.1
+		-DENABLE_WEB_CODECS=$(usex gstreamer) # https://bugs.webkit.org/show_bug.cgi?id=269147
+		-DENABLE_WEBDRIVER=ON
 		-DENABLE_WEBGL=ON
 		-DENABLE_WEB_AUDIO=$(usex gstreamer)
 		-DUSE_AVIF=$(usex avif)
@@ -249,10 +243,10 @@ src_configure() {
 		-DUSE_GTK4=ON # webkit2gtk-6.0
 		-DUSE_JPEGXL=$(usex jpegxl)
 		-DUSE_LCMS=$(usex lcms)
+		-DUSE_LIBBACKTRACE=OFF
+		-DUSE_LIBDRM=ON
 		-DUSE_LIBHYPHEN=ON
 		-DUSE_LIBSECRET=$(usex keyring)
-		-DUSE_OPENGL_OR_ES=ON
-		-DUSE_OPENJPEG=$(usex jpeg2k)
 		-DUSE_SOUP2=OFF
 		-DUSE_WOFF2=ON
 	)
@@ -267,9 +261,18 @@ src_configure() {
 	WK_USE_CCACHE=NO cmake_src_configure
 }
 
+src_install() {
+	cmake_src_install
+
+	insinto /usr/share/gtk-doc/html
+	# This will install API docs specific to webkit2gtk-6.0
+	doins -r "${S}"/Documentation/{jsc-glib,webkitgtk,webkitgtk-web-process-extension}-6.0
+}
+
 pkg_postinst() {
 	optfeature "geolocation service (used at runtime if available)" "app-misc/geoclue"
 	optfeature "Common Multimedia codecs" "media-plugins/gst-plugins-meta"
-	optfeature "(MPEG-)DASH support" "media-plugins/gst-plugins-dash"
-	optfeature "HTTP-Live-Streaming support" "media-plugins/gst-plugins-hls"
+	optfeature "VAAPI encoding support" "media-libs/gst-plugins-bad[vaapi]"
+	optfeature "MPEG-DASH support" "media-plugins/gst-plugins-dash"
+	optfeature "HTTP live streaming (HLS) support" "media-plugins/gst-plugins-hls"
 }
