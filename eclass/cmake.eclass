@@ -486,6 +486,9 @@ cmake_src_configure() {
 		if is_crosspkg && [[ ${CTARGET} == *mingw* ]] ; then
 			kernel=Winnt
 		fi
+		if is_crosspkg && [[ ${CTARGET} == *wasi** ]] ; then
+			kernel=WASI
+		fi
 		case "${kernel}" in
 			Cygwin) sysname="CYGWIN_NT-5.1" ;;
 			HPUX) sysname="HP-UX" ;;
@@ -494,6 +497,13 @@ cmake_src_configure() {
 				sysname="Windows"
 				cat >> "${toolchain_file}" <<- _EOF_ || die
 					set(CMAKE_RC_COMPILER $(tc-getRC))
+				_EOF_
+				;;
+			WASI)
+				sysname="WASI"
+				cat >> "${toolchain_file}" <<- _EOF_ || die
+					set(WASI 1)
+					set(CMAKE_SYSTEM_VERSION 1)
 				_EOF_
 				;;
 			*) sysname="${KERNEL}" ;;
