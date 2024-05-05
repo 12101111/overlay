@@ -1,64 +1,66 @@
 diff --git a/Makefile.in b/Makefile.in
-index bee3bfe..35cfbe2 100644
+index 3137ed8..0f3364a 100644
 --- a/Makefile.in
 +++ b/Makefile.in
-@@ -220,10 +220,10 @@ $(builddir)/include/libvoreutils.hpp.gch : $(builddir)/include/libvoreutils.hpp
- 	$(CXX) $(CFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include            $< -o $@
+@@ -222,10 +222,10 @@ $(builddir)/include/libvoreutils.hpp.gch : $(builddir)/include/libvoreutils.hpp
+ 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include            $< -o $@
  
  $(builddir)/bin/systemd-crontab-generator: $(srcdir)/bin/systemd-crontab-generator.cpp $(common_headers) $(builddir)/include/part2timer.hpp $(builddir)/include/crond2timer.hpp
--	$(CXX) $(CFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $(PCH_ARG) $< -o $@ $(LDFLAGS) @libmd@
-+	$(CXX) $(CFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $(PCH_ARG) $< -o $@ $(LDFLAGS) @libmd@ -lrpmatch
+-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $(PCH_ARG) $< -o $@ $(LDFLAGS) @libmd@
++	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $(PCH_ARG) $< -o $@ $(LDFLAGS) @libmd@ -lrpmatch
  
  $(builddir)/bin/crontab: $(srcdir)/bin/crontab.cpp $(common_headers)
--	$(CXX) $(CFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $(PCH_ARG) $< -o $@ $(LDFLAGS)
-+	$(CXX) $(CFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $(PCH_ARG) $< -o $@ $(LDFLAGS) -lrpmatch
+-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $(PCH_ARG) $< -o $@ $(LDFLAGS)
++	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -std=c++20 -I $(builddir)/include $(PCH_ARG) $< -o $@ $(LDFLAGS) -lrpmatch
  
  $(builddir)/bin/%: $(srcdir)/bin/%.sh
  	$(call in2out,$<,$@)
 diff --git a/src/bin/crontab.cpp b/src/bin/crontab.cpp
-index 7e8fd48..c2443ed 100644
+index 7e8fd48..82a15fd 100644
 --- a/src/bin/crontab.cpp
 +++ b/src/bin/crontab.cpp
-@@ -2,6 +2,10 @@
- #include "libvoreutils.hpp"
- #include "util.hpp"
+@@ -4,6 +4,11 @@
  #include <getopt.h>
-+extern "C" {
-+  extern int rpmatch (const char *response);
-+}
-+#include <locale.h>
  #include <sys/wait.h>
  
++extern "C" {
++  extern int rpmatch (const char* response);
++}
++#include <locale.h>
++
  
-@@ -164,6 +168,9 @@ static auto try_chmod(const char * cron_file = nullptr, const char * user = null
- 				(void)chmod(cron_file, 00600);  // rw-------
+ #define CRONTAB_DIR STATEDIR
+ static const char * self;
+@@ -149,6 +154,10 @@ static auto version() -> int {
+ 	return 0;
  }
  
 +#ifndef REG_STARTEND
 +#define REG_STARTEND 0
 +#endif
- // Divide the crontab into three colour-coded sexions:
- //   blue    for comments        (metadata for the user)
- //   green   for time specs      (metadata for cron)
++
+ // try to fix things up if running as root
+ static auto try_chmod(const char * cron_file = nullptr, const char * user = nullptr) -> void {
+ 	struct stat sb;
 diff --git a/src/bin/systemd-crontab-generator.cpp b/src/bin/systemd-crontab-generator.cpp
-index f44e7b9..cedc109 100644
+index df7c812..1ee1e47 100644
 --- a/src/bin/systemd-crontab-generator.cpp
 +++ b/src/bin/systemd-crontab-generator.cpp
-@@ -2,6 +2,7 @@
- #include "util.hpp"
+@@ -3,6 +3,7 @@
  #include <md5.h>
  #include <random>
+ #include <sys/fsuid.h>
 +#include <clocale>
  static const constexpr auto key_or_plain = [](auto && lhs, auto && rhs) {
  	static const constexpr auto key =
  	    vore::overload{[](const std::string_view & s) { return s; }, [](const std::pair<std::string_view, std::string_view> & kv) { return kv.first; }};
-@@ -917,6 +918,9 @@ struct Job {
+@@ -1031,6 +1032,9 @@ static auto environment_write(const std::map<std::string_view, std::string_view>
  	}
- };
+ }
  
 +#ifndef REG_STARTEND
 +#define REG_STARTEND 0
 +#endif
  
- template <class F>
- static auto for_each_file(const char * dirname, F && cbk) -> void {
+ template <class F, class G = void (*)(Job &&)>
+ static auto parse_crontab(std::string_view filename, withuser_t withuser, bool anacrontab, cron_mail_success_t default_cron_mail_success,
