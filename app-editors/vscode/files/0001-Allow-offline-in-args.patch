@@ -1,7 +1,7 @@
-From 9cc43ec9eced95f3cb0e4551d409794812632e3e Mon Sep 17 00:00:00 2001
+From 8273035504a1d1e97ca1194a2330559e1471fd1b Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Mon, 31 Jul 2023 18:22:31 +0800
-Subject: [PATCH 01/11] Allow --offline in args
+Subject: [PATCH 01/12] Allow --offline in args
 
 ---
  build/npm/postinstall.js | 3 ++-
@@ -22,5 +22,5 @@ index 72dd74f8986..c9a5b74e2a9 100644
  	if (opts.ignoreEngines) {
  		args.push('--ignore-engines');
 -- 
-2.44.0
+2.45.0
 

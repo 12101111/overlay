@@ -1,7 +1,7 @@
-From 5130f90808ea0b6f14dac753cead220efab7d376 Mon Sep 17 00:00:00 2001
+From 7ff30ae561d40a35667b85a0fbae1f1b550e8bbb Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 7 Apr 2024 00:21:31 +0800
-Subject: [PATCH 09/11] Don't warn electron args
+Subject: [PATCH 09/12] Don't warn electron args
 
 ---
  src/vs/platform/environment/common/argv.ts | 2 ++
@@ -9,10 +9,10 @@ Subject: [PATCH 09/11] Don't warn electron args
  2 files changed, 4 insertions(+)
 
 diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
-index 18d4fcd795a..912adc8d6f9 100644
+index f8d2ed05f8c..7bfa312cb4f 100644
 --- a/src/vs/platform/environment/common/argv.ts
 +++ b/src/vs/platform/environment/common/argv.ts
-@@ -118,6 +118,8 @@ export interface NativeParsedArgs {
+@@ -117,6 +117,8 @@ export interface NativeParsedArgs {
  	'profile-temp'?: boolean;
  	'disable-chromium-sandbox'?: boolean;
  	sandbox?: boolean;
@@ -22,10 +22,10 @@ index 18d4fcd795a..912adc8d6f9 100644
  	'enable-coi'?: boolean;
  
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 327c18c18ad..8f7ab8a929c 100644
+index 91b5d5aeaba..24c181bb74b 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
-@@ -205,6 +205,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
+@@ -204,6 +204,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
  	'disable-dev-shm-usage': { type: 'boolean' },
  	'profile-temp': { type: 'boolean' },
  	'ozone-platform': { type: 'string' },
@@ -35,5 +35,5 @@ index 327c18c18ad..8f7ab8a929c 100644
  	_: { type: 'string[]' } // main arguments
  };
 -- 
-2.44.0
+2.45.0
 

@@ -1,18 +1,18 @@
-From c72de098a0162284857d66683a69c02a5b9457a7 Mon Sep 17 00:00:00 2001
+From effc9e0430298daf4f9be3a49dd45a521d581352 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 30 Dec 2023 22:11:08 +0800
-Subject: [PATCH 04/11] Don't run yarn install for web/remote/test
+Date: Mon, 6 May 2024 00:32:14 +0800
+Subject: [PATCH 04/12] Don't run yarn install for web/remote/test
 
 ---
- build/npm/dirs.js        | 6 ------
+ build/npm/dirs.js        | 7 -------
  build/npm/postinstall.js | 3 ---
- 2 files changed, 9 deletions(-)
+ 2 files changed, 10 deletions(-)
 
 diff --git a/build/npm/dirs.js b/build/npm/dirs.js
-index faf3a6577a5..4db331b2272 100644
+index 372d546cd78..4db331b2272 100644
 --- a/build/npm/dirs.js
 +++ b/build/npm/dirs.js
-@@ -46,12 +46,6 @@ const dirs = [
+@@ -46,13 +46,6 @@ const dirs = [
  	'extensions/vscode-api-tests',
  	'extensions/vscode-colorize-tests',
  	'extensions/vscode-test-resolver',
@@ -22,6 +22,7 @@ index faf3a6577a5..4db331b2272 100644
 -	'test/integration/browser',
 -	'test/monaco',
 -	'test/smoke',
+-	'.vscode/extensions/vscode-selfhost-test-provider',
  ];
  
  if (fs.existsSync(`${__dirname}/../../.build/distro/npm`)) {
@@ -37,5 +38,5 @@ index c9a5b74e2a9..22fe1ccc29d 100644
 -cp.execSync('git config pull.rebase merges');
 -cp.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
 -- 
-2.44.0
+2.45.0
 

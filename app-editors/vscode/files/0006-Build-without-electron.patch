@@ -1,7 +1,7 @@
-From 97464cb3f1a446f27a3191eecdd4fee0c15ae2e8 Mon Sep 17 00:00:00 2001
+From 619d3df1131ae909f86f7593dccb4ef57588c3c0 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Mon, 31 Jul 2023 18:26:28 +0800
-Subject: [PATCH 06/11] Build without electron
+Subject: [PATCH 06/12] Build without electron
 
 ---
  build/gulpfile.vscode.js | 10 ++++++++--
@@ -43,5 +43,5 @@ index e1507e0424f..e73303f70e4 100644
  
  		if (platform === 'linux') {
 -- 
-2.44.0
+2.45.0
 

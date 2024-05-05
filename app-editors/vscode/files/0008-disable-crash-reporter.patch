@@ -1,7 +1,7 @@
-From cfbcd43f8898b47c8920bc56454d243642744117 Mon Sep 17 00:00:00 2001
+From a1404eadb6f3ca1d3e4023f1bfab1c0ea4275de7 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 24 Nov 2023 22:40:19 +0800
-Subject: [PATCH 08/11] disable crash reporter
+Subject: [PATCH 08/12] disable crash reporter
 
 ---
  src/main.js | 49 +------------------------------------------------
@@ -68,5 +68,5 @@ index 90de17b278b..955d4abd123 100644
  
  	// Start crash reporter for all processes
 -- 
-2.44.0
+2.45.0
 
