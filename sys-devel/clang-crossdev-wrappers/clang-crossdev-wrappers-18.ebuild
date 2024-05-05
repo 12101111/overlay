@@ -32,7 +32,7 @@ src_install() {
 
 	newbin - "${CTARGET}-as" <<-EOF
 	#!/bin/sh
-	exec ${exe}-${SLOT} --no-default-config --config="/etc/clang/cross/${CTARGET}.cfg" -c \${@}
+	exec clang-${SLOT} --no-default-config --config="/etc/clang/cross/${CTARGET}.cfg" -c \${@}
 	EOF
 
 	local tools=(
