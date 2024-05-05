@@ -108,6 +108,9 @@ multilib_src_configure() {
 	local use_compiler_rt=OFF
 	[[ $(tc-get-c-rtlib) == compiler-rt ]] && use_compiler_rt=ON
 
+	local is_musllibc_like=$(usex elibc_musl)
+	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON
+
 	# bootstrap: cmake is unhappy if compiler can't link to stdlib
 	local nolib_flags=( -nodefaultlibs -lc )
 	if ! test_compiler; then
@@ -133,7 +136,7 @@ multilib_src_configure() {
 		-DLIBCXX_CXX_ABI_INCLUDE_PATHS=${cxxabi_incs}
 		# we're using our own mechanism for generating linker scripts
 		-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=OFF
-		-DLIBCXX_HAS_MUSL_LIBC=$(usex elibc_musl)
+		-DLIBCXX_HAS_MUSL_LIBC=${is_musllibc_like}
 		-DLIBCXX_INCLUDE_BENCHMARKS=OFF
 		-DLIBCXX_INCLUDE_TESTS=$(usex test)
 		-DLIBCXX_USE_COMPILER_RT=${use_compiler_rt}
@@ -144,12 +147,35 @@ multilib_src_configure() {
 	if tc-is-cross-compiler ; then
 		mycmakeargs+=(
 			-DCMAKE_CXX_COMPILER_WORKS=1
-			-DLIBCXXABI_USE_COMPILER_RT=ON
 		)
 		if [[ ${CHOST} == *-mingw* ]]; then
 			mycmakeargs+=(
+				-DLIBCXXABI_USE_COMPILER_RT=ON
 				-DLIBCXXABI_ENABLE_SHARED=OFF
 				-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=TRUE
+			)
+		fi
+	fi
+	if [[ "${CTARGET}" == *wasi* ]]; then
+		mycmakeargs+=(
+			-DCMAKE_POSITION_INDEPENDENT_CODE=ON
+			-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+			-DLIBCXX_ENABLE_EXCEPTIONS=OFF
+			-DLIBCXX_ENABLE_FILESYSTEM=ON
+			-DLIBCXX_HAS_EXTERNAL_THREAD_API=OFF
+			-DLIBCXX_HAS_WIN32_THREAD_API=OFF
+			-DLIBCXX_ENABLE_TIME_ZONE_DATABASE=OFF
+			-DUNIX=ON
+		)
+		if [[ "${CTARGET}" == *wasi*-threads ]]; then
+			mycmakeargs+=(
+				-DLIBCXX_ENABLE_THREADS=ON
+				-DLIBCXX_HAS_PTHREAD_API=ON
+			)
+		else
+			mycmakeargs+=(
+				-DLIBCXX_ENABLE_THREADS=OFF
+				-DLIBCXX_HAS_PTHREAD_API=OFF
 			)
 		fi
 	fi
@@ -165,7 +191,7 @@ multilib_src_configure() {
 
 multilib_src_compile() {
 	cmake_src_compile
-	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]]; then
+	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]]; then
 		gen_shared_ldscript
 		use static-libs && gen_static_ldscript
 	fi
@@ -180,7 +206,7 @@ multilib_src_install() {
 	cmake_src_install
 	# since we've replaced libc++.{a,so} with ldscripts, now we have to
 	# install the extra symlinks
-	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] ; then
+	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] ; then
 		dolib.so lib/libc++_shared.so
 		use static-libs && dolib.a lib/libc++_static.a
 	fi
