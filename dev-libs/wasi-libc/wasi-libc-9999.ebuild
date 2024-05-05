@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit git-r3
+inherit crossdev git-r3
 
 DESCRIPTION="libc for WebAssembly programs built on top of WASI system calls"
 HOMEPAGE="https://wasi.dev/"
@@ -14,18 +14,41 @@ SLOT="0"
 KEYWORDS="~amd64 ~arm64 ~x86"
 
 DEPEND="
-	sys-devel/clang
-	sys-devel/lld
+	>=sys-devel/clang-18.1.4
+	>=sys-devel/lld-18.1.4
+	>=dev-util/wasm-component-ld-0.3
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
+pkg_pretend() {
+	target_is_not_host || die "${PN} should only be used for cross"
+}
+
 src_compile() {
-	export CC=clang
-	emake SYSROOT="${S}/sysroot"
+	snapshot=p1
+	if [[ ${CTARGET} == *p1* ]]; then
+		snapshot=p1
+	elif [[ ${CTARGET} == *p2* ]]; then
+		snapshot=p2
+	fi
+	emake CC=clang \
+		AR=llvm-ar \
+		NM=llvm-nm \
+		RANLIB=llvm-ranlib \
+		SYSROOT="${S}/sysroot" \
+		WASI_SNAPSHOT=$snapshot \
+		TARGET_TRIPLE=${CTARGET} \
+		BUILTINS_LIB="$(clang --print-resource-dir)/lib/${CTARGET}/libclang_rt.builtins.a" \
+		default libc_so
 }
 
 src_install() {
-	mkdir -p "${ED}/opt/"
-	cp -r "${S}/sysroot" "${ED}/opt/wasm32-wasi"
+	mkdir -p "${ED}/usr/${CTARGET}/usr"
+	dosym usr/lib /usr/${CTARGET}/lib
+	dosym usr/include /usr/${CTARGET}/include
+	cp -r "${S}/sysroot/include/${CTARGET}" "${ED}/usr/${CTARGET}/usr/include"
+	cp -r "${S}/sysroot/lib/${CTARGET}" "${ED}/usr/${CTARGET}/usr/lib"
+	dosym . /usr/${CTARGET}/usr/include/${CTARGET}
+	dosym . /usr/${CTARGET}/usr/lib/${CTARGET}
 }
