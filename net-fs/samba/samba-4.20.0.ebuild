@@ -55,9 +55,9 @@ MULTILIB_WRAPPED_HEADERS=(
 	/usr/include/samba-4.0/ctdb_version.h
 )
 
-TALLOC_VERSION="2.4.1"
-TDB_VERSION="1.4.9"
-TEVENT_VERSION="0.15.0"
+TALLOC_VERSION="2.4.2"
+TDB_VERSION="1.4.10"
+TEVENT_VERSION="0.16.1"
 
 COMMON_DEPEND="
 	>=app-arch/libarchive-3.1.2:=[${MULTILIB_USEDEP}]
@@ -69,8 +69,8 @@ COMMON_DEPEND="
 	dev-perl/Parse-Yapp
 	>=net-libs/gnutls-3.4.7:=[${MULTILIB_USEDEP}]
 	>=sys-fs/e2fsprogs-1.46.4-r51[${MULTILIB_USEDEP}]
-	>=sys-libs/ldb-2.8.0:=[ldap(+)?,${MULTILIB_USEDEP}]
-	<sys-libs/ldb-2.9.0:=[ldap(+)?,${MULTILIB_USEDEP}]
+	>=sys-libs/ldb-2.9.0:=[ldap(+)?,${MULTILIB_USEDEP}]
+	<sys-libs/ldb-2.10.0:=[ldap(+)?,${MULTILIB_USEDEP}]
 	sys-libs/libcap[${MULTILIB_USEDEP}]
 	sys-libs/liburing:=[${MULTILIB_USEDEP}]
 	sys-libs/ncurses:=
