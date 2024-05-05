@@ -4,6 +4,7 @@
 EAPI=8
 
 CRATES="
+	ahash-0.8.11
 	anstream-0.6.13
 	anstyle-1.0.6
 	anstyle-parse-0.2.3
@@ -11,6 +12,7 @@ CRATES="
 	anstyle-wincon-3.0.2
 	anyhow-1.0.80
 	bitflags-2.4.2
+	bumpalo-3.16.0
 	cfg-if-1.0.0
 	clap-4.5.4
 	clap_builder-4.5.2
@@ -30,6 +32,8 @@ CRATES="
 	libc-0.2.153
 	linux-raw-sys-0.4.13
 	log-0.4.20
+	memchr-2.7.2
+	once_cell-1.19.0
 	proc-macro2-1.0.78
 	quote-1.0.35
 	rustix-0.38.31
@@ -44,11 +48,15 @@ CRATES="
 	syn-2.0.50
 	tempfile-3.10.0
 	unicode-ident-1.0.12
+	unicode-width-0.1.12
 	unicode-xid-0.2.4
 	utf8parse-0.2.1
-	wasm-encoder-0.202.0
-	wasm-metadata-0.202.0
-	wasmparser-0.202.0
+	version_check-0.9.4
+	wasm-encoder-0.206.0
+	wasm-metadata-0.206.0
+	wasmparser-0.206.0
+	wast-206.0.0
+	wat-1.206.0
 	windows-sys-0.52.0
 	windows-targets-0.52.3
 	windows_aarch64_gnullvm-0.52.3
@@ -58,8 +66,10 @@ CRATES="
 	windows_x86_64_gnu-0.52.3
 	windows_x86_64_gnullvm-0.52.3
 	windows_x86_64_msvc-0.52.3
-	wit-component-0.202.0
-	wit-parser-0.202.0
+	wit-component-0.206.0
+	wit-parser-0.206.0
+	zerocopy-0.7.32
+	zerocopy-derive-0.7.32
 "
 
 inherit cargo
