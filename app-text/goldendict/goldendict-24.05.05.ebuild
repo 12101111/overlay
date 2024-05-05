@@ -6,7 +6,7 @@ PLOCALES="ar_SA ay_BO be_BY bg_BG crowdin cs_CZ de_CH de_DE el_GR eo_UY es_AR es
 
 inherit desktop qmake-utils flag-o-matic xdg-utils plocale
 
-MY_PV="24.02.16-alpha.4f905c75"
+MY_PV="24.05.05-LiXia.ecd1138c"
 
 DESCRIPTION="Feature-rich dictionary lookup program (qtwebengine fork)"
 HOMEPAGE="https://xiaoyifang.github.io/goldendict-ng/"
@@ -15,7 +15,7 @@ SRC_URI="https://github.com/xiaoyifang/goldendict-ng/archive/v${MY_PV}.tar.gz"
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
-IUSE="debug ffmpeg opencc multimedia wayland xapian zim"
+IUSE="debug ffmpeg opencc multimedia wayland zim"
 
 RDEPEND="
 	app-arch/bzip2
@@ -24,6 +24,7 @@ RDEPEND="
 	>=app-text/hunspell-1.2:=
 	dev-libs/eb
 	dev-libs/lzo
+	dev-libs/xapian:=
 	dev-qt/qtbase:6[X,concurrent,gui,network,sql,widgets,xml]
 	dev-qt/qtmultimedia:6
 	dev-qt/qtspeech:6
@@ -42,7 +43,6 @@ RDEPEND="
 	)
 	opencc? ( app-i18n/opencc )
 	multimedia? ( dev-qt/qtmultimedia[gstreamer] )
-	xapian? ( dev-libs/xapian )
 	zim? ( media-libs/libzim[xapian] )
 "
 DEPEND="${RDEPEND}"
@@ -79,11 +79,10 @@ src_prepare() {
 }
 
 src_configure() {
-	local myconf=( CONFIG+=use_iconv CONFIG+=release )
+	local myconf=( CONFIG+=use_iconv CONFIG+=release CONFIG+=use_xapian )
 	use opencc && myconf+=( CONFIG+=chinese_conversion_support )
 	use ffmpeg || myconf+=( CONFIG+=no_ffmpeg_player )
 	use multimedia || myconf+=( CONFIG+=no_qtmultimedia_player )
-	use xapian && myconf+=( CONFIG+=use_xapian )
 	use zim && myconf+=( CONFIG+=zim_support )
 
 	# stack overfow & std::bad_alloc on musl
