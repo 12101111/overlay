@@ -15,7 +15,7 @@ LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4"
 SLOT="stable/$(ver_cut 1-2)"
 # please do not keyword
 #KEYWORDS="" #nowarn
-IUSE="debug llvm-libunwind"
+IUSE="debug llvm-libunwind profiler"
 
 BDEPEND="
 	${PYTHON_DEPS}
@@ -37,6 +37,8 @@ RESTRICT="test"
 
 QA_FLAGS_IGNORED="usr/lib/rust/${PV}/rustlib/.*/lib/lib.*.so"
 
+PATCHES=( "${FILESDIR}/update-wasi-sysroot.patch" )
+
 S="${WORKDIR}/${P/-std/c}-src"
 
 toml_usex() {
@@ -53,6 +55,19 @@ pkg_setup() {
 
 src_prepare() {
 	default
+}
+
+_rust_abi() {
+	local abi=$(rust_abi $@)
+	local llvm
+	if [[ ${CATEGORY} == cross_llvm-* ]]; then
+		llvm="llvm"
+	fi
+	case $abi in
+		x86_64-w64-mingw32) echo "x86_64-pc-windows-gnu$llvm";;
+		i686-w64-mingw32) echo "i686-pc-windows-gnu$llvm";;
+		*) echo $abi;;
+	esac
 }
 
 src_configure() {
@@ -74,7 +89,7 @@ src_configure() {
 	done
 
 	cat <<- EOF > "${S}"/config.toml
-		change-id = 116881
+		change-id = 119373
 		[llvm]
 		download-ci-llvm = false
 		[build]
@@ -111,6 +126,7 @@ src_configure() {
 		dist-src = false
 		remap-debuginfo = true
 		jemalloc = false
+		deny-warnings = false
 		[dist]
 		src-tarball = false
 		[target.${rtarget}]
@@ -121,11 +137,17 @@ src_configure() {
 		ranlib = "${CTARGET}-ranlib"
 		$(usev elibc_musl 'crt-static = false')
 		llvm-libunwind = "$(usex llvm-libunwind system no)"
+		profiler = $(toml_usex profiler)
 	EOF
 
 	if [[ "${CTARGET}" == *-musl* ]]; then
 		cat <<- _EOF_ >> "${S}"/config.toml
 			musl-root = "${EPREFIX}/usr/${CTARGET}/usr"
+		_EOF_
+	fi
+	if [[ "${CTARGET}" == *-wasi* ]]; then
+		cat <<- _EOF_ >> "${S}"/config.toml
+			wasi-root = "${EPREFIX}/usr/${CTARGET}/usr"
 		_EOF_
 	fi
 
