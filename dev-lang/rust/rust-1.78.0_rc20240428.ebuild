@@ -22,7 +22,7 @@ elif [[ ${PV} = *rc* ]]; then
 	RC_SNAPSHOT="${rcver:0:4}-${rcver:4:2}-${rcver:6:2}"
 	MY_P="rustc-${ABI_VER}"
 	SLOT="rc/${ABI_VER}"
-	SRC="${RC_SNAPSHOT}/${MY_P}-src.tar.xz"
+	SRC="${RC_SNAPSHOT}/${MY_P}-src.tar.xz -> rustc-${PV}-src.tar.xz"
 	IS_DEV="dev-"
 else
 	ABI_VER="$(ver_cut 1-2)"
@@ -33,7 +33,7 @@ else
 	IS_DEV=""
 fi
 
-RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).0"
+RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).1"
 
 DESCRIPTION="Systems programming language from Mozilla"
 HOMEPAGE="https://www.rust-lang.org/"
@@ -53,7 +53,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/(-)?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD BSD-1 BSD-2 BSD-4"
 
-IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind +lto miri nightly parallel-compiler profiler rustfmt rust-analyzer rust-src system-bootstrap system-llvm test wasm sanitizers ${ALL_LLVM_TARGETS[*]}"
+IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind +lto miri nightly parallel-compiler profiler rustfmt rust-analyzer rust-src system-bootstrap system-llvm test wasm wasi sanitizers ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -61,7 +61,7 @@ IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind +lto mi
 
 # How to use it:
 # List all the working slots in LLVM_VALID_SLOTS, newest first.
-LLVM_VALID_SLOTS=( 17 )
+LLVM_VALID_SLOTS=( 18 )
 LLVM_MAX_SLOT="${LLVM_VALID_SLOTS[0]}"
 
 # splitting usedeps needed to avoid CI/pkgcheck's UncheckableDep limitation
@@ -126,6 +126,7 @@ DEPEND="
 			elibc_musl? ( sys-libs/libunwind:= )
 		)
 	)
+	wasi? ( dev-libs/wasi-libc )
 "
 
 RDEPEND="${DEPEND}
@@ -139,6 +140,7 @@ REQUIRED_USE="|| ( ${ALL_LLVM_TARGETS[*]} )
 	rust-analyzer? ( rust-src )
 	test? ( ${ALL_LLVM_TARGETS[*]} )
 	wasm? ( llvm_targets_WebAssembly )
+	wasi? ( llvm_targets_WebAssembly wasm )
 	x86? ( cpu_flags_x86_sse2 )
 "
 
@@ -176,10 +178,8 @@ VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 PATCHES=(
 	"${FILESDIR}"/1.75.0-musl-dynamic-linking.patch
 	"${FILESDIR}"/1.74.1-cross-compile-libz.patch
-	#"${FILESDIR}"/1.72.0-bump-libc-deps-to-0.2.146.patch  # pending refresh
-	"${FILESDIR}"/1.70.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
-	"${FILESDIR}"/1.76.0-loong-code-model.patch  # remove for >=1.78.0
+	"${FILESDIR}"/1.78.0-ignore-broken-and-non-applicable-tests.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
@@ -348,6 +348,9 @@ src_configure() {
 			# https://bugs.gentoo.org/715348
 			sed -i '/linker:/ s/rust-lld/wasm-ld/' compiler/rustc_target/src/spec/base/wasm.rs || die
 		fi
+	fi
+	if use wasi; then
+		rust_targets+=",\"wasm32-wasip1\""
 	fi
 	rust_targets="${rust_targets#,}"
 
@@ -522,6 +525,16 @@ src_configure() {
 			[target.wasm32-unknown-unknown]
 			linker = "$(usex system-llvm lld rust-lld)"
 			# wasm target does not have profiler_builtins https://bugs.gentoo.org/848483
+			profiler = false
+			sanitizers = false
+		_EOF_
+	fi
+	if use wasi; then
+		export CFLAGS_wasm32_wasip1="-O3 -fPIC -pipe"
+		cat <<- _EOF_ >> "${S}"/config.toml
+			[target.wasm32-wasip1]
+			linker = "$(usex system-llvm lld rust-lld)"
+			wasi-root = "/opt/wasm32-wasi"
 			profiler = false
 			sanitizers = false
 		_EOF_

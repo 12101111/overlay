@@ -1,0 +1,19 @@
+diff --git a/src/bootstrap/src/core/builder.rs b/src/bootstrap/src/core/builder.rs
+index 0ad6c959309..6c4b26ec219 100644
+--- a/src/bootstrap/src/core/builder.rs
++++ b/src/bootstrap/src/core/builder.rs
+@@ -2221,13 +2221,8 @@ pub fn ensure<S: Step>(&'a self, step: S) -> S::Output {
+         out
+     }
+ 
+-    /// Return paths of all submodules managed by git.
+-    /// If the current checkout is not managed by git, returns an empty slice.
++    /// Return paths of all submodules.
+     pub fn get_all_submodules(&self) -> &[String] {
+-        if !self.rust_info().is_managed_git_subrepository() {
+-            return &[];
+-        }
+-
+         static SUBMODULES_PATHS: OnceLock<Vec<String>> = OnceLock::new();
+ 
+         let init_submodules_paths = |src: &PathBuf| {

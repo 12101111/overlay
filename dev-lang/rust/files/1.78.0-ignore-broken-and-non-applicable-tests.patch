@@ -1,0 +1,22 @@
+From 1879d1d1a284bf51c752e47db284ce22701ed5d0 Mon Sep 17 00:00:00 2001
+From: Samuel Holland <samuel@sholland.org>
+Date: Sun, 16 Sep 2018 16:38:48 +0000
+Subject: [PATCH 12/15] Ignore broken and non-applicable tests
+
+env-funky-keys: can't handle LD_PRELOAD (e.g. sandbox)
+---
+ test/ui/env-funky-keys.rs                                   | 1 +
+ 6 files changed, 10 insertions(+)
+
+diff --git a/tests/ui/env-funky-keys.rs b/tests/ui/env-funky-keys.rs
+index 314ccaea015..7f5b9efaa10 100644
+--- a/tests/ui/env-funky-keys.rs
++++ b/tests/ui/env-funky-keys.rs
+@@ -1,6 +1,7 @@
+ //@ run-pass
+ // Ignore this test on Android, because it segfaults there.
+ 
++//@ ignore-test
+ //@ ignore-android
+ //@ ignore-windows
+ //@ ignore-wasm32 no execve

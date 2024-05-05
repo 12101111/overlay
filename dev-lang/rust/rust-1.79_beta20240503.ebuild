@@ -61,7 +61,7 @@ IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind +lto mi
 
 # How to use it:
 # List all the working slots in LLVM_VALID_SLOTS, newest first.
-LLVM_VALID_SLOTS=( 17 )
+LLVM_VALID_SLOTS=( 18 )
 LLVM_MAX_SLOT="${LLVM_VALID_SLOTS[0]}"
 
 # splitting usedeps needed to avoid CI/pkgcheck's UncheckableDep limitation
@@ -176,10 +176,9 @@ VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 PATCHES=(
 	"${FILESDIR}"/1.75.0-musl-dynamic-linking.patch
 	"${FILESDIR}"/1.74.1-cross-compile-libz.patch
-	#"${FILESDIR}"/1.72.0-bump-libc-deps-to-0.2.146.patch  # pending refresh
-	"${FILESDIR}"/1.70.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
-	"${FILESDIR}"/1.76.0-loong-code-model.patch  # remove for >=1.78.0
+	"${FILESDIR}"/1.78.0-ignore-broken-and-non-applicable-tests.patch
+	"${FILESDIR}"/1.79.0-bootstrap-fix.patch
 )
 
 S="${WORKDIR}/${MY_P}-src"
@@ -377,7 +376,7 @@ src_configure() {
 
 	local cm_btype="$(usex debug DEBUG RELEASE)"
 	cat <<- _EOF_ > "${S}"/config.toml
-		change-id=119373
+		change-id=123711
 		[llvm]
 		download-ci-llvm = false
 		optimize = $(toml_usex !debug)
@@ -438,6 +437,7 @@ src_configure() {
 		verbose = 2
 		sanitizers = $(toml_usex sanitizers)
 		profiler = $(toml_usex profiler)
+		optimized-compiler-builtins = true
 		cargo-native-static = false
 		[install]
 		prefix = "${EPREFIX}/usr/lib/${PN}/${PV}"
