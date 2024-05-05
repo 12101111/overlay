@@ -3,9 +3,9 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-124-patches-03.tar.xz"
+FIREFOX_PATCHSET="firefox-125-patches-02.tar.xz"
 
-LLVM_COMPAT=( 16 17 18 )
+LLVM_COMPAT=( 17 18 )
 
 PYTHON_COMPAT=( python3_{10..12} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
@@ -95,13 +95,8 @@ BDEPEND="${PYTHON_DEPS}
 	>=dev-util/cbindgen-0.26.0
 	net-libs/nodejs
 	virtual/pkgconfig
-	!clang? ( >=virtual/rust-1.70 )
-	!elibc_glibc? (
-		|| (
-			dev-lang/rust
-			<dev-lang/rust-bin-1.73
-		)
-	)
+	!clang? ( >=virtual/rust-1.74 )
+	!elibc_glibc? ( dev-lang/rust )
 	amd64? ( >=dev-lang/nasm-2.14 )
 	x86? ( >=dev-lang/nasm-2.14 )
 	pgo? (
@@ -120,7 +115,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.98
+	>=dev-libs/nss-3.99
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -611,10 +606,6 @@ src_prepare() {
 		rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch || die
 	fi
 
-	if ! use ppc64; then
-		rm -v "${WORKDIR}"/firefox-patches/*ppc64*.patch || die
-	fi
-
 	# Workaround for bgo#917599
 	if has_version ">=dev-libs/icu-74.1" && use system-icu ; then
 		eapply "${WORKDIR}"/firefox-patches/*-bmo-1862601-system-icu-74.patch
@@ -1062,8 +1053,9 @@ src_configure() {
 		else
 			mozconfig_add_options_ac 'relr elf-hack' --enable-elf-hack=relr
 		fi
-	elif use ppc64 ; then
-		# '--disable-elf-hack' is not recognized on ppc64, bgo#917049
+	elif use ppc64 || use riscv ; then
+		# '--disable-elf-hack' is not recognized on ppc64/riscv,
+		# see bgo #917049, #930046
 		:;
 	else
 		mozconfig_add_options_ac 'disable elf-hack on non-supported arches' --disable-elf-hack
@@ -1191,6 +1183,7 @@ src_compile() {
 		else
 			virtx_cmd=virtx
 		fi
+		export MOZ_FAKE_NO_SANDBOX=1
 	fi
 
 	if ! use X; then
@@ -1420,5 +1413,11 @@ pkg_postinst() {
 		elog "glibc not found! You won't be able to play DRM content."
 		elog "See Gentoo bug #910309 or upstream bug #1843683."
 		elog
+	fi
+
+	if use geckodriver ; then
+		ewarn "You have enabled the 'geckodriver' USE flag. Geckodriver is now"
+		ewarn "packaged separately as net-misc/geckodriver and the use flag will be"
+		ewarn "dropped from main Firefox package by Firefox 128.0 release."
 	fi
 }
