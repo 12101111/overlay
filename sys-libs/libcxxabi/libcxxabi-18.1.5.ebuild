@@ -51,7 +51,7 @@ src_prepare() {
 	pushd .. > /dev/null
 	eapply "${FILESDIR}/thread_local.patch"
 	popd > /dev/null
-	cmake_src_prepare	
+	cmake_src_prepare
 }
 
 multilib_src_configure() {
@@ -69,6 +69,9 @@ multilib_src_configure() {
 	# link to compiler-rt
 	local use_compiler_rt=OFF
 	[[ $(tc-get-c-rtlib) == compiler-rt ]] && use_compiler_rt=ON
+
+	local is_musllibc_like=$(usex elibc_musl)
+	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON
 
 	local libdir=$(get_libdir)
 	local mycmakeargs=(
@@ -93,7 +96,7 @@ multilib_src_configure() {
 		-DLIBCXX_ENABLE_STATIC=OFF
 		-DLIBCXX_CXX_ABI=libcxxabi
 		-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=OFF
-		-DLIBCXX_HAS_MUSL_LIBC=$(usex elibc_musl)
+		-DLIBCXX_HAS_MUSL_LIBC=${is_musllibc_like}
 		-DLIBCXX_HAS_GCC_S_LIB=OFF
 		-DLIBCXX_INCLUDE_BENCHMARKS=OFF
 		-DLIBCXX_INCLUDE_TESTS=OFF
@@ -102,6 +105,35 @@ multilib_src_configure() {
 		mycmakeargs+=(
 			-DCMAKE_CXX_COMPILER_WORKS=1
 		)
+	fi
+	if [[ "${CTARGET}" == *wasi* ]]; then
+		mycmakeargs+=(
+			-DCMAKE_POSITION_INDEPENDENT_CODE=ON
+			-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON
+			-DLIBCXX_ENABLE_EXCEPTIONS=OFF
+			-DLIBCXX_ENABLE_FILESYSTEM=ON
+			-DLIBCXXABI_ENABLE_EXCEPTIONS=OFF
+			-DLIBCXXABI_SILENT_TERMINATE=ON
+			-DLIBCXX_HAS_EXTERNAL_THREAD_API=OFF
+			-DLIBCXX_HAS_WIN32_THREAD_API=OFF
+			-DLIBCXXABI_HAS_EXTERNAL_THREAD_API=OFF
+			-DLIBCXXABI_HAS_WIN32_THREAD_API=OFF
+			-DUNIX=ON
+		)
+		if [[ "${CTARGET}" == *wasi*-threads ]]; then
+			mycmakeargs+=(
+				-DLIBCXX_ENABLE_THREADS=ON
+				-DLIBCXX_HAS_PTHREAD_API=ON
+				-DLIBCXXABI_ENABLE_THREADS=ON
+			)
+		else
+			mycmakeargs+=(
+				-DLIBCXX_ENABLE_THREADS=OFF
+				-DLIBCXX_HAS_PTHREAD_API=OFF
+				-DLIBCXXABI_ENABLE_THREADS=OFF
+				-DLIBCXXABI_HAS_PTHREAD_API=OFF
+			)
+		fi
 	fi
 	if use test; then
 		mycmakeargs+=(
