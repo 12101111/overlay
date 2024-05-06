@@ -27,18 +27,18 @@ RDEPEND="
 	dev-libs/elfutils
 	sys-devel/gettext
 	kde-frameworks/extra-cmake-modules
-	kde-frameworks/threadweaver
-	kde-frameworks/ki18n
-	kde-frameworks/kconfigwidgets
-	kde-frameworks/kcoreaddons
-	kde-frameworks/kitemviews
-	kde-frameworks/kitemmodels
-	kde-frameworks/kio
-	kde-frameworks/solid
-	kde-frameworks/kwindowsystem
-	kde-frameworks/knotifications
-	kde-frameworks/kiconthemes
-	kde-frameworks/kparts
+	kde-frameworks/threadweaver:5
+	kde-frameworks/ki18n:5
+	kde-frameworks/kconfigwidgets:5
+	kde-frameworks/kcoreaddons:5
+	kde-frameworks/kitemviews:5
+	kde-frameworks/kitemmodels:5
+	kde-frameworks/kio:5
+	kde-frameworks/solid:5
+	kde-frameworks/kwindowsystem:5
+	kde-frameworks/knotifications:5
+	kde-frameworks/kiconthemes:5
+	kde-frameworks/kparts:5
 	dev-util/perf
 	rust? ( dev-libs/rustc-demangle )
 "

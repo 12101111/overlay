@@ -18,6 +18,7 @@ IUSE="rust"
 REQUIRE_USE=""
 
 RDEPEND="
+	app-arch/zstd
 	dev-qt/qtcore:5
 	dev-qt/qtgui:5
 	dev-qt/qtwidgets:5
@@ -27,30 +28,36 @@ RDEPEND="
 	dev-libs/elfutils[debuginfod]
 	sys-devel/gettext
 	kde-frameworks/extra-cmake-modules
-	kde-frameworks/threadweaver
-	kde-frameworks/ki18n
-	kde-frameworks/kconfigwidgets
-	kde-frameworks/kcoreaddons
-	kde-frameworks/kitemviews
-	kde-frameworks/kitemmodels
-	kde-frameworks/kio
-	kde-frameworks/solid
-	kde-frameworks/kwindowsystem
-	kde-frameworks/knotifications
-	kde-frameworks/kiconthemes
-	kde-frameworks/kparts
+	kde-frameworks/threadweaver:5
+	kde-frameworks/ki18n:5
+	kde-frameworks/kconfigwidgets:5
+	kde-frameworks/kcoreaddons:5
+	kde-frameworks/kitemviews:5
+	kde-frameworks/kitemmodels:5
+	kde-frameworks/kio:5
+	kde-frameworks/solid:5
+	kde-frameworks/kwindowsystem:5
+	kde-frameworks/knotifications:5
+	kde-frameworks/kiconthemes:5
+	kde-frameworks/kparts:5
+	kde-frameworks/syntax-highlighting:5
 	dev-util/perf
 	dev-libs/qcustomplot
-	media-gfx/kgraphviewer
+	media-gfx/kgraphviewer:5
 	>=dev-qt/kddockwidgets-1.6.0
 	rust? ( dev-libs/rustc-demangle )
 "
 
 DEPEND="${RDEPEND}"
 
+PATCHES=( "${FILESDIR}/include.patch" )
+
 S="${WORKDIR}/${PN}-v${PV}"
 
 src_configure() {
+	local mycmakeargs=(
+		-DQT6_BUILD=OFF
+	)
 	cmake_src_configure
 }
 
