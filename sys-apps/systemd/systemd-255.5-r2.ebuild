@@ -245,6 +245,8 @@ src_prepare() {
 	local PATCHES=(
 		"${FILESDIR}/systemd-test-process-util.patch"
 		"${FILESDIR}/255-dnssec.patch"
+		"${FILESDIR}/255-dnssec-2.patch"
+		"${FILESDIR}/255-dnssec-3.patch"
 	)
 
 	if ! use vanilla; then
