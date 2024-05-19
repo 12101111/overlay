@@ -1250,6 +1250,7 @@ BDEPEND="
 	>=dev-util/gperf-3.0.3
 	dev-vcs/git
 	>=net-libs/nodejs-7.6.0[inspector]
+	sys-apps/yarn
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
