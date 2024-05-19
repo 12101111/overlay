@@ -12,7 +12,7 @@ DESCRIPTION="Library for rendering dynamic web content in Qt5 C++ and QML applic
 HOMEPAGE="https://www.qt.io/"
 
 if [[ ${QT5_BUILD_TYPE} == release ]]; then
-	KEYWORDS="~amd64 ~arm ~arm64 ~x86"
+	KEYWORDS="~amd64 ~arm64 ~x86"
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
 		SRC_URI="https://dev.gentoo.org/~asturm/distfiles/${P}.tar.xz"
 		S="${WORKDIR}/${P}"
@@ -167,6 +167,8 @@ src_prepare() {
 		eapply "${FILESDIR}/gn-musl-lfs64.patch"
 	fi
 	use arm64 && eapply "${FILESDIR}/revert-skia-arm64-change.patch"
+	rm "${WORKDIR}/${PATCHSET}"/010-build-without-python-2.patch \
+		"${WORKDIR}/${PATCHSET}"/011-chromium-drop-catapult.patch || die
 
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
 		# This is made from git, and for some reason will fail w/o .git directories.
@@ -228,6 +230,7 @@ src_configure() {
 	local myqmakeargs=(
 		--
 		-printing-and-pdf
+		--webengine-python-version=python3
 		-system-opus
 		-system-webp
 		$(qt_use alsa)
