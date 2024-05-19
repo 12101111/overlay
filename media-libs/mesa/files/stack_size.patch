@@ -1,0 +1,37 @@
+diff --git a/src/c11/impl/threads_posix.c b/src/c11/impl/threads_posix.c
+index 2540e3e0c49..1fcccdc9cef 100644
+--- a/src/c11/impl/threads_posix.c
++++ b/src/c11/impl/threads_posix.c
+@@ -26,6 +26,7 @@
+  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  * DEALINGS IN THE SOFTWARE.
+  */
++#include <pthread.h>
+ #include <stdlib.h>
+ #include <assert.h>
+ #include <limits.h>
+@@ -35,6 +36,7 @@
+ #include <stdint.h> /* for intptr_t */
+ 
+ #include "c11/threads.h"
++#include <sys/types.h>
+ 
+ /*
+ Configuration macro:
+@@ -275,10 +277,15 @@ thrd_create(thrd_t *thr, thrd_start_t func, void *arg)
+     if (!pack) return thrd_nomem;
+     pack->func = func;
+     pack->arg = arg;
+-    if (pthread_create(thr, NULL, impl_thrd_routine, pack) != 0) {
++    pthread_attr_t attr = { 0 };
++    pthread_attr_init(&attr);
++    pthread_attr_setstacksize(&attr, 0x800000);
++    if (pthread_create(thr, &attr, impl_thrd_routine, pack) != 0) {
+         free(pack);
++        pthread_attr_destroy(&attr);
+         return thrd_error;
+     }
++    pthread_attr_destroy(&attr);
+     return thrd_success;
+ }
+ 
