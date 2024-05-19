@@ -56,7 +56,7 @@ SRC_URI="${MOZ_SRC_BASE_URI}/source/${MOZ_P}.source.tar.xz -> ${MOZ_P_DISTFILES}
 DESCRIPTION="Firefox Web Browser"
 HOMEPAGE="https://www.mozilla.com/firefox"
 
-KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv ~x86"
+KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv ~x86 ~loong"
 
 SLOT="rapid"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
@@ -619,6 +619,8 @@ src_prepare() {
 
 	eapply "${WORKDIR}/firefox-patches"
 
+	use loong && eapply "${FILESDIR}/firefox-125-loong"
+
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
 
@@ -838,7 +840,7 @@ src_configure() {
 	# amd64, arm, arm64 & x86.
 	# Might want to flip the logic around if Firefox is to support more arches.
 	# bug 833001, bug 903411#c8
-	if use ppc64 || use riscv; then
+	if use loong || use ppc64 || use riscv; then
 		mozconfig_add_options_ac '' --disable-sandbox
 	elif use valgrind; then
 		mozconfig_add_options_ac 'valgrind requirement' --disable-sandbox
@@ -1055,8 +1057,8 @@ src_configure() {
 		else
 			mozconfig_add_options_ac 'relr elf-hack' --enable-elf-hack=relr
 		fi
-	elif use ppc64 || use riscv ; then
-		# '--disable-elf-hack' is not recognized on ppc64/riscv,
+	elif use loong || use ppc64 || use riscv ; then
+		# '--disable-elf-hack' is not recognized on loong/ppc64/riscv,
 		# see bgo #917049, #930046
 		:;
 	else
