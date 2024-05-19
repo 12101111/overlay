@@ -1,4 +1,5 @@
->=dev-util/electron-17.0
+dev-util/electron
 app-text/goldendict
 www-client/chromium
 app-editors/vscode
+dev-db/mongodb
