@@ -1,9 +1,9 @@
 # Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
-inherit eapi8-dosym check-reqs flag-o-matic java-pkg-2 java-vm-2 multiprocessing toolchain-funcs
+inherit check-reqs flag-o-matic java-pkg-2 java-vm-2 multiprocessing toolchain-funcs
 
 # don't change versioning scheme
 # to find correct _p number, look at
@@ -14,7 +14,6 @@ inherit eapi8-dosym check-reqs flag-o-matic java-pkg-2 java-vm-2 multiprocessing
 # we need -ga tag to fetch tarball and unpack it, but exact number everywhere else to
 # set build version properly
 MY_PV="${PV%_p*}-ga"
-SLOT="${MY_PV%%[.+]*}"
 
 # variable name format: <UPPERCASE_KEYWORD>_XPAK
 PPC64_XPAK="11.0.13_p8" # big-endian bootstrap tarball
@@ -38,7 +37,7 @@ bootstrap_uri() {
 DESCRIPTION="Open source implementation of the Java programming language"
 HOMEPAGE="https://openjdk.org"
 SRC_URI="
-	https://github.com/${PN}/jdk${SLOT}u/archive/refs/tags/jdk-${MY_PV}.tar.gz
+	https://github.com/${PN}/jdk11u/archive/jdk-${MY_PV}.tar.gz
 		-> ${P}.tar.gz
 	!system-bootstrap? (
 		$(bootstrap_uri ppc64 ${PPC64_XPAK} big-endian)
@@ -47,8 +46,10 @@ SRC_URI="
 	)
 	riscv? ( https://dev.gentoo.org/~arthurzam/distfiles/dev-java/openjdk/openjdk-11.0.18-riscv.patch.xz )
 "
+S="${WORKDIR}/jdk${SLOT}u-jdk-${MY_PV}"
 
 LICENSE="GPL-2-with-classpath-exception"
+SLOT="${MY_PV%%[.+]*}"
 KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~riscv ~x86"
 
 IUSE="alsa big-endian cups debug doc examples headless-awt javafx +jbootstrap lto selinux source system-bootstrap systemtap"
@@ -109,8 +110,6 @@ DEPEND="
 		)
 	)
 "
-
-S="${WORKDIR}/jdk${SLOT}u-jdk-${MY_PV}"
 
 # The space required to build varies wildly depending on USE flags,
 # ranging from 2GB to 16GB. This function is certainly not exact but
@@ -294,7 +293,7 @@ src_install() {
 	dodir "${dest}"
 	cp -pPR * "${ddest}" || die
 
-	dosym8 -r /etc/ssl/certs/java/cacerts "${dest}"/lib/security/cacerts
+	dosym -r /etc/ssl/certs/java/cacerts "${dest}"/lib/security/cacerts
 
 	# must be done before running itself
 	java-vm_set-pax-markings "${ddest}"
