@@ -1,0 +1,26 @@
+diff --git a/compiler-rt/lib/builtins/crtbegin.c b/compiler-rt/lib/builtins/crtbegin.c
+index a0860ca12ea0..6b436d8e7c22 100644
+--- a/compiler-rt/lib/builtins/crtbegin.c
++++ b/compiler-rt/lib/builtins/crtbegin.c
+@@ -56,6 +56,10 @@ __asm__(".pushsection .init,\"ax\",@progbits\n\t"
+ __asm__(".pushsection .init,\"ax\",%progbits\n\t"
+         "call __do_init\n\t"
+         ".popsection");
++#elif defined(__loongarch__)
++__asm__(".pushsection .init,\"ax\",@progbits\n\t"
++        "call36 __do_init\n\t"
++        ".popsection");
+ #elif defined(__arm__) || defined(__aarch64__)
+ __asm__(".pushsection .init,\"ax\",%progbits\n\t"
+         "bl __do_init\n\t"
+@@ -126,6 +130,10 @@ __asm__(".pushsection .fini,\"ax\",@progbits\n\t"
+ __asm__(".pushsection .fini,\"ax\",@progbits\n\t"
+         "call __do_fini\n\t"
+         ".popsection");
++#elif defined(__loongarch__)
++__asm__(".pushsection .fini,\"ax\",@progbits\n\t"
++        "call36 __do_fini\n\t"
++        ".popsection");
+ #elif defined(__sparc__)
+ __asm__(".pushsection .fini,\"ax\",@progbits\n\t"
+         "call __do_fini\n\t"
