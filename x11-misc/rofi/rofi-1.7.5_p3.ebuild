@@ -3,12 +3,13 @@
 
 EAPI=8
 
-inherit meson git-r3 toolchain-funcs xdg-utils
+inherit meson xdg
 
 DESCRIPTION="A window switcher, run dialog and dmenu replacement"
 HOMEPAGE="https://github.com/lbonn/rofi"
-EGIT_REPO_URI="https://github.com/lbonn/rofi"
-EGIT_COMMIT="1.7.5+wayland3"
+MY_PV="${PV%_p*}+wayland${PV#*_p}"
+SRC_URI="https://github.com/lbonn/rofi/releases/download/${PV%_p*}%2Bwayland${PV#*_p}/rofi-${MY_PV}.tar.xz"
+S="${WORKDIR}/rofi-${MY_PV}"
 
 LICENSE="MIT"
 SLOT="0"
@@ -20,7 +21,7 @@ BDEPEND="
 	sys-devel/bison
 	>=sys-devel/flex-2.5.39
 	virtual/pkgconfig
-	dev-libs/wayland-protocols
+	>=dev-libs/wayland-protocols-1.17
 "
 RDEPEND="
 	dev-libs/glib:2
@@ -43,8 +44,6 @@ DEPEND="
 "
 
 src_configure() {
-	tc-export CC
-
 	local emesonargs=(
 		$(meson_use drun)
 		$(meson_use windowmode window)
