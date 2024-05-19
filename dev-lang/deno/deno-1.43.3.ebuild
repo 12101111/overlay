@@ -12,7 +12,7 @@ LLVM_VALID_SLOTS=( 17 18 )
 LLVM_MAX_SLOT=18
 GN_MIN_VER=0.2122
 
-V8_VER=0.91.0
+V8_VER=0.91.1
 STACKER_VER=0.1.15
 
 CRATES="
@@ -81,6 +81,7 @@ CRATES="
 	cbc-0.1.2
 	cc-1.0.92
 	cfg-if-1.0.0
+	cfg_aliases-0.1.1
 	chrono-0.4.37
 	cipher-0.4.4
 	clap-4.4.17
@@ -117,7 +118,7 @@ CRATES="
 	ctr-0.9.2
 	curve25519-dalek-4.1.2
 	curve25519-dalek-derive-0.1.1
-	d3d12-0.7.0
+	d3d12-0.20.0
 	darling-0.14.4
 	darling_core-0.14.4
 	darling_macro-0.14.4
@@ -128,19 +129,19 @@ CRATES="
 	deno_ast-0.38.1
 	deno_cache_dir-0.7.1
 	deno_config-0.16.3
-	deno_core-0.278.0
+	deno_core-0.280.0
 	deno_core_icudata-0.0.73
 	deno_doc-0.129.0
 	deno_emit-0.40.2
-	deno_graph-0.74.3
+	deno_graph-0.74.5
 	deno_lint-0.58.4
 	deno_lockfile-0.19.0
 	deno_media_type-0.1.4
 	deno_native_certs-0.2.0
 	deno_npm-0.18.0
-	deno_ops-0.154.0
+	deno_ops-0.156.0
 	deno_semver-0.5.4
-	deno_task_shell-0.16.0
+	deno_task_shell-0.16.1
 	deno_terminal-0.1.1
 	deno_unsync-0.3.2
 	deno_whoami-0.1.0
@@ -161,13 +162,14 @@ CRATES="
 	dissimilar-1.0.4
 	dlopen2-0.6.1
 	dlopen2_derive-0.4.0
+	document-features-0.2.8
 	dotenvy-0.15.7
-	dprint-core-0.66.1
+	dprint-core-0.66.2
 	dprint-core-macros-0.1.0
 	dprint-plugin-json-0.19.2
 	dprint-plugin-jupyter-0.1.3
 	dprint-plugin-markdown-0.17.0
-	dprint-plugin-typescript-0.90.4
+	dprint-plugin-typescript-0.90.5
 	dprint-swc-ext-0.16.0
 	dsa-0.6.3
 	dyn-clone-1.0.17
@@ -199,7 +201,7 @@ CRATES="
 	fdeflate-0.3.4
 	ff-0.13.0
 	fiat-crypto-0.2.7
-	file_test_runner-0.4.1
+	file_test_runner-0.5.0
 	filetime-0.2.23
 	fixedbitset-0.4.2
 	flaky_test-0.1.0
@@ -239,9 +241,9 @@ CRATES="
 	glutin_wgl_sys-0.5.0
 	gpu-alloc-0.6.0
 	gpu-alloc-types-0.3.0
-	gpu-allocator-0.23.0
-	gpu-descriptor-0.2.4
-	gpu-descriptor-types-0.1.2
+	gpu-allocator-0.25.0
+	gpu-descriptor-0.3.0
+	gpu-descriptor-types-0.2.0
 	group-0.13.0
 	gzip-header-1.0.0
 	h2-0.3.26
@@ -295,6 +297,7 @@ CRATES="
 	is-wsl-0.4.0
 	itertools-0.10.5
 	itoa-1.0.11
+	jni-sys-0.3.0
 	jobserver-0.1.29
 	js-sys-0.3.69
 	jsonc-parser-0.23.0
@@ -323,6 +326,7 @@ CRATES="
 	libz-sys-1.1.16
 	linked-hash-map-0.5.6
 	linux-raw-sys-0.4.13
+	litrs-0.4.1
 	lock_api-0.4.11
 	log-0.4.21
 	lru-cache-0.1.2
@@ -340,16 +344,17 @@ CRATES="
 	memmem-0.1.1
 	memoffset-0.7.1
 	memoffset-0.9.1
-	metal-0.27.0
+	metal-0.28.0
 	mime-0.3.17
 	minimal-lexical-0.2.1
 	miniz_oxide-0.7.2
 	mio-0.8.11
 	monch-0.5.0
 	multimap-0.8.3
-	naga-0.14.2
+	naga-0.20.0
 	napi-build-1.2.1
 	napi-sys-2.2.2
+	ndk-sys-0.5.0+25.2.9519653
 	netif-0.1.6
 	new_debug_unreachable-1.0.6
 	nibble_vec-0.1.0
@@ -367,7 +372,6 @@ CRATES="
 	num-traits-0.2.18
 	num_cpus-1.16.0
 	objc-0.2.7
-	objc_exception-0.1.2
 	object-0.32.2
 	oid-registry-0.6.1
 	once_cell-1.19.0
@@ -449,7 +453,7 @@ CRATES="
 	rand_chacha-0.3.1
 	rand_core-0.6.4
 	range-alloc-0.1.3
-	raw-window-handle-0.5.2
+	raw-window-handle-0.6.1
 	rayon-1.10.0
 	rayon-core-1.12.1
 	redox_syscall-0.2.16
@@ -477,7 +481,7 @@ CRATES="
 	rustls-0.21.11
 	rustls-native-certs-0.6.3
 	rustls-pemfile-1.0.4
-	rustls-tokio-stream-0.2.17
+	rustls-tokio-stream-0.2.24
 	rustls-webpki-0.101.7
 	rustversion-1.0.15
 	rustyline-13.0.0
@@ -498,14 +502,14 @@ CRATES="
 	semver-0.9.0
 	semver-1.0.14
 	semver-parser-0.7.0
-	serde-1.0.197
+	serde-1.0.200
 	serde-value-0.7.0
 	serde_bytes-0.11.14
-	serde_derive-1.0.197
+	serde_derive-1.0.200
 	serde_json-1.0.115
 	serde_repr-0.1.16
 	serde_urlencoded-0.7.1
-	serde_v8-0.187.0
+	serde_v8-0.189.0
 	sha-1-0.10.0
 	sha1-0.10.6
 	sha2-0.10.8
@@ -523,11 +527,11 @@ CRATES="
 	slug-0.1.5
 	smallvec-1.13.2
 	smartstring-1.0.1
-	socket2-0.5.6
+	socket2-0.5.5
 	sourcemap-8.0.1
 	spin-0.5.2
 	spin-0.9.8
-	spirv-0.2.0+1.5.4
+	spirv-0.3.0+sdk-1.3.268.0
 	spki-0.7.3
 	stable_deref_trait-1.2.0
 	stacker-0.1.15
@@ -577,8 +581,8 @@ CRATES="
 	termcolor-1.4.1
 	text-size-1.1.0
 	text_lines-0.6.0
-	thiserror-1.0.58
-	thiserror-impl-1.0.58
+	thiserror-1.0.59
+	thiserror-impl-1.0.59
 	thread_local-1.1.8
 	time-0.3.36
 	time-core-0.1.2
@@ -634,7 +638,7 @@ CRATES="
 	utf8-width-0.1.7
 	utf8parse-0.2.1
 	uuid-1.8.0
-	v8-0.91.0
+	v8-0.91.1
 	value-trait-0.8.1
 	vcpkg-0.2.15
 	version_check-0.9.4
@@ -654,9 +658,9 @@ CRATES="
 	wasm-streams-0.3.0
 	web-sys-0.3.69
 	webpki-roots-0.25.4
-	wgpu-core-0.18.1
-	wgpu-hal-0.18.1
-	wgpu-types-0.18.0
+	wgpu-core-0.20.0
+	wgpu-hal-0.20.0
+	wgpu-types-0.20.0
 	which-4.4.2
 	which-5.0.0
 	whoami-1.5.1
@@ -666,9 +670,7 @@ CRATES="
 	winapi-i686-pc-windows-gnu-0.4.0
 	winapi-util-0.1.6
 	winapi-x86_64-pc-windows-gnu-0.4.0
-	windows-0.51.1
 	windows-0.52.0
-	windows-core-0.51.1
 	windows-core-0.52.0
 	windows-sys-0.48.0
 	windows-sys-0.52.0
