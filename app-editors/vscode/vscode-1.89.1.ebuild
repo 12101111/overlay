@@ -8,7 +8,7 @@ inherit xdg-utils savedconfig yarn
 DESCRIPTION="Visual Studio Code - Open Source"
 HOMEPAGE="https://code.visualstudio.com/"
 
-KEYWORDS="~amd64 ~arm64"
+KEYWORDS="~amd64 ~arm64 ~loong"
 LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
@@ -2078,6 +2078,7 @@ DEPEND="
 	>=app-crypt/libsecret-0.20.5:=
 	>=x11-libs/libX11-1.7.0:=
 	>=x11-libs/libxkbfile-1.1.0:=
+	virtual/krb5
 	system-ripgrep? ( sys-apps/ripgrep )
 	|| (
 		dev-util/electron:${ELECTRON_SLOT}
@@ -2100,6 +2101,7 @@ PATCHES=(
 	"${FILESDIR}/0010-Fix-cli-path.patch"
 	"${FILESDIR}/0011-remove-playwright.patch"
 	"${FILESDIR}/0012-chore-bump-l10n-dev-0.0.35-211938.patch"
+	"${FILESDIR}/0013-Add-support-for-riscv64-loong64.patch"
 )
 
 src_unpack() {
@@ -2232,11 +2234,13 @@ get_electron_nodedir() {
 }
 
 get_arch() {
-	case ${ABI} in
-	amd64) echo "x64" ;;
-	arm) echo "arm" ;;
-	arm64) echo "arm64" ;;
-	*) ;;
+	case "${ARCH}:${ABI}" in
+	  *:amd64) echo "x64" ;;
+	  *:arm) echo "arm" ;;
+	  *:arm64) echo "arm64" ;;
+	  loong:lp64*) echo "loong64" ;;
+	  riscv:lp64*) echo "riscv64" ;;
+	  *) die "${ARCH} ${ABI} not supported";;
 	esac
 }
 
@@ -2244,17 +2248,11 @@ get_rg_tar_name() {
 	local myarch=""
 	case ${ABI} in
 	amd64) myarch="x86_64-unknown-linux-musl" ;;
-	x86) myarch="i686-unknown-linux-musl" ;;
 	arm) myarch="arm-unknown-linux-gnueabihf" ;;
+	arm64) myarch="aarch64-unknown-linux-musl";;
 	ppc64) myarch="powerpc64le-unknown-linux-gnu" ;;
-	arm64)
-		if use elibc_musl; then
-			myarch="aarch64-unknown-linux-musl"
-		else
-			myarch="aarch64-unknown-linux-gnu"
-		fi
-		;;
-	*) ;;
+	# note loongarch use this file name
+	*) myarch="i686-unknown-linux-musl" ;;
 	esac
 	echo "ripgrep-v${RG_VERSION[$1]}-${myarch}.tar.gz"
 }
