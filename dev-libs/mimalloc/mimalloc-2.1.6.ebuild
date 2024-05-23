@@ -25,7 +25,6 @@ src_configure() {
 		-DMI_BUILD_OBJECT=ON
 		-DMI_BUILD_STATIC=ON
 		-DMI_TRACK_VALGRIND=$(usex valgrind)
-
 		-DMI_LIBC_MUSL=$(usex elibc_musl)
 	)
 
