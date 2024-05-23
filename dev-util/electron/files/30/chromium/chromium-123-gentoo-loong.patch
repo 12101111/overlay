@@ -1,0 +1,26 @@
+--- a/components/variations/service/variations_field_trial_creator_base.cc
++++ b/components/variations/service/variations_field_trial_creator_base.cc
+@@ -324,11 +324,13 @@ bool VariationsFieldTrialCreatorBase::Se
+           limited_entropy_synthetic_trial_));
+ 
+   bool used_seed = false;
++#if !defined(__loongarch_lp64)
+   if (!used_testing_config) {
+     used_seed =
+         CreateTrialsFromSeed(*entropy_providers, feature_list.get(),
+                              safe_seed_manager, synthetic_trial_registry);
+   }
++#endif
+ 
+   platform_field_trials->SetUpClientSideFieldTrials(
+       used_seed, *entropy_providers, feature_list.get());
+--- a/ui/qt/BUILD.gn	2024-03-13 07:38:22.115810400 +0800
++++ b/ui/qt/BUILD.gn	2024-04-04 01:10:56.135260816 +0800
+@@ -60,6 +60,7 @@ template("qt_shim") {
+   pkg_config("qt" + invoker.qt_version + "_config") {
+     packages = [
+       "Qt" + invoker.qt_version + "Core",
++      "Qt" + invoker.qt_version + "Gui",
+       "Qt" + invoker.qt_version + "Widgets",
+     ]
+   }

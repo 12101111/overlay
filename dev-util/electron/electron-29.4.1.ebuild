@@ -1072,6 +1072,8 @@ NODE_P="node-${NODE_VERSION}"
 PATCH_V="122-2"
 PATCHSET_NAME="chromium-patches-${PATCH_V}"
 PATCHSET_PPC64="122.0.6261.111-1raptor0~deb12u1"
+PATCHSET_LOONG="651c6a0455330c975f758d51885ceafb00683848"
+PATCHSET_LOONG_PV="122.0.6261.57"
 HEVC_PATCHSET_VERSION="122.0.6213.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 
@@ -1093,6 +1095,9 @@ SRC_URI="
 		https://quickbuild.io/~raptor-engineering-public/+archive/ubuntu/chromium/+files/chromium_${PATCHSET_PPC64}.debian.tar.xz
 		https://deps.gentoo.zip/chromium-ppc64le-gentoo-patches-1.tar.xz
 	)
+	loong? (
+		https://github.com/AOSC-Dev/chromium-loongarch64/archive/${PATCHSET_LOONG}.zip -> chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.zip
+	)
 	hevc? ( https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding/archive/${HEVC_PATCHSET_VERSION}.tar.gz -> chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz )
 	https://codeload.github.com/nodejs/nan/tar.gz/e14bdcd1f72d62bca1d541b66da43130384ec213
 	$(yarn_uris ${YARNPKGS})
@@ -1103,7 +1108,7 @@ NODE_S="${S}/third_party/electron_node"
 
 LICENSE="BSD"
 SLOT="${PV%%[.+]*}"
-KEYWORDS="~amd64 ~arm64"
+KEYWORDS="~amd64 ~arm64 ~loong"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="hevc +X custom-cflags ${IUSE_SYSTEM_LIBS} cups debug headless kerberos libcxx lto +official pax-kernel pgo +proprietary-codecs pulseaudio screencast selinux +system-toolchain vaapi wayland"
 REQUIRED_USE="
@@ -1411,6 +1416,7 @@ src_unpack() {
 	unpack "electron-${NODE_P}.tar.gz"
 	unpack "${PATCHSET_NAME}.tar.bz2"
 	use ppc64 && unpack "chromium_${PATCHSET_PPC64}.debian.tar.xz"
+	use loong && unpack "chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.zip"
 	use hevc && unpack "chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz"
 }
 
@@ -1460,7 +1466,7 @@ src_prepare() {
 			"${WORKDIR}"/rust-toolchain/INSTALLED_VERSION || die "Failed to set rust version"
 	fi
 
-	pushd "${S}/electron" >/dev/null || die
+	cd "${S}/electron" || die
 	echo "yarn-offline-mirror \"${DISTDIR}\"" >> "${S}/electron/.yarnrc"
 
 	# Apply Gentoo patches for Electron itself.
@@ -1482,12 +1488,18 @@ src_prepare() {
 		fi
 	done
 
-	# ignore dugite, which download a git binary!
-	yarn install --ignore-optional --frozen-lockfile --offline \
-		--ignore-scripts --no-progress --verbose || die
+	cd "${S}" || die
 
-	popd >/dev/null || die
-
+	if use loong ; then
+		local p
+		eapply "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-fix-clang-builtins-path.diff
+		if ! tc-is-clang || ver_test "$(clang-major-version)" -gt 17; then
+			rm "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".4000-loongarch64-clang-no-lsx.diff
+		fi
+		for p in "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-loongarch64*; do
+			eapply "${p}"
+		done
+	fi
 	if use ppc64 ; then
 		local p
 		for p in $(grep -v "^#" "${WORKDIR}"/debian/patches/series | grep "^ppc64le" || die); do
@@ -1498,6 +1510,13 @@ src_prepare() {
 		PATCHES+=( "${WORKDIR}/ppc64le" )
 		PATCHES+=( "${WORKDIR}/debian/patches/fixes/rust-clanglib.patch" )
 	fi
+
+	cd "${S}/electron" || die
+	# ignore dugite, which download a git binary!
+	yarn install --ignore-optional --frozen-lockfile --offline \
+		--ignore-scripts --no-progress --verbose || die
+
+	cd "${S}" || die
 
 	default
 
@@ -1788,6 +1807,10 @@ src_prepare() {
 	if use arm64 || use ppc64 ; then
 		keeplibs+=( third_party/swiftshader/third_party/llvm-10.0 )
 	fi
+	if use loong ; then
+		keeplibs+=( third_party/swiftshader/third_party/llvm-16.0 )
+	fi
+
 	# we need to generate ppc64 stuff because upstream does not ship it yet
 	# it has to be done before unbundling.
 	if use ppc64; then
@@ -1923,7 +1946,7 @@ src_configure() {
 		fi
 		myconf_gn+=" rust_sysroot_absolute=\"${EPREFIX}/usr/lib/rust/${rustc_ver}/\""
 		myconf_gn+=" rustc_version=\"${rustc_ver}\""
-		myconf_gn+=" rust_abi_target=\"$(rust_abi)\""
+		use elibc_musl && myconf_gn+=" rust_abi_target=\"$(rust_abi)\""
 	fi
 
 	# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
@@ -2064,6 +2087,12 @@ src_configure() {
 			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-xop -mno-sse4a
 		fi
 
+		# The linked text section of Chromium won't fit within limits of the
+		# default normal code model.
+		if [[ ${myarch} == loong ]]; then
+			append-flags -mcmodel=medium
+		fi
+
 		if tc-is-gcc; then
 			# https://bugs.gentoo.org/904455
 			local -x CPP="$(tc-getCXX) -E"
@@ -2078,6 +2107,9 @@ src_configure() {
 	elif [[ $myarch = arm64 ]] ; then
 		myconf_gn+=" target_cpu=\"arm64\""
 		ffmpeg_target_arch=arm64
+	elif [[ $myarch = loong ]] ; then
+		myconf_gn+=" target_cpu=\"loong64\""
+		ffmpeg_target_arch=loong64
 	elif [[ $myarch = ppc64 ]] ; then
 		myconf_gn+=" target_cpu=\"ppc64\""
 		ffmpeg_target_arch=ppc64
@@ -2178,6 +2210,10 @@ src_configure() {
 			third_party/crc32c/src/src/crc32c_arm64.cc || die
 	fi
 
+	if use loong && use lto; then
+		myconf_gn+=" toolchain_supports_rust_thin_lto=false"
+	fi
+
 	# This configutation can generate config.gypi
 	einfo "Configuring bundled nodejs..."
 	pushd "${NODE_S}" > /dev/null || die
@@ -2197,13 +2233,15 @@ src_configure() {
 	use system-icu && nodeconf+=( --with-intl=system-icu ) || nodeconf+=( --with-intl=none )
 
 	local nodearch=""
-	case ${ABI} in
-		amd64) nodearch="x64";;
-		arm) nodearch="arm";;
-		arm64) nodearch="arm64";;
-		ppc64) nodearch="ppc64";;
-		x32) nodearch="x32";;
-		x86) nodearch="ia32";;
+	case "${ARCH}:${ABI}" in
+		*:amd64) nodearch="x64";;
+		*:arm) nodearch="arm";;
+		*:arm64) nodearch="arm64";;
+		loong:lp64*) nodearch="loong64";;
+		riscv:lp64*) nodearch="riscv64";;
+		*:ppc64) nodearch="ppc64";;
+		*:x32) nodearch="x32";;
+		*:x86) nodearch="ia32";;
 		*) nodearch="${ABI}";;
 	esac
 

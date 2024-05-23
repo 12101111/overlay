@@ -1,0 +1,77 @@
+From c8c0bce009f7404766d51b8f1bd9092c026c3ae9 Mon Sep 17 00:00:00 2001
+From: Max Ihlenfeldt <max@igalia.com>
+Date: Wed, 24 Jan 2024 15:34:42 +0000
+Subject: [PATCH] Make toolchain_supports_rust_thin_lto configurable
+
+This makes toolchain_supports_rust_thin_lto a configurable GN arg, and
+also always passes `-Cembed-bitcode=no` to rustc if it is true.
+
+This is useful when using an external Rust toolchain with a different
+LLVM version than clang: without this change, you have to completely
+turn off ThinLTO via use_thin_lto=false to avoid linker errors; with it
+it suffices to set toolchain_supports_rust_thin_lto=false.
+
+Bug: None
+Change-Id: I4ead17197c9a23e5c2c0f92d69106287197589b0
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/5233602
+Commit-Queue: Max Ihlenfeldt <max@igalia.com>
+Reviewed-by: Hans Wennborg <hans@chromium.org>
+Cr-Commit-Position: refs/heads/main@{#1251409}
+---
+ build/config/compiler/BUILD.gn |  2 +-
+ build/config/rust.gni          | 22 +++++++++++-----------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index 89b4755ac8b39..016362ef53fef 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -1032,7 +1032,7 @@ config("compiler") {
+   if (rust_abi_target != "") {
+     rustflags += [ "--target=$rust_abi_target" ]
+   }
+-  if (!use_thin_lto) {
++  if (!use_thin_lto || !toolchain_supports_rust_thin_lto) {
+     # Don't include bitcode if it won't be used.
+     rustflags += [ "-Cembed-bitcode=no" ]
+   }
+diff --git a/build/config/rust.gni b/build/config/rust.gni
+index e98d9139f65a9..9b0ee754ba5e2 100644
+--- a/build/config/rust.gni
++++ b/build/config/rust.gni
+@@ -66,6 +66,17 @@ declare_args() {
+   # you can specify whether it supports nacl here.
+   rust_toolchain_supports_nacl = false
+ 
++  # Whether artifacts produced by the Rust compiler can participate in ThinLTO.
++  #
++  # One important consideration is whether the linker uses the same LLVM
++  # version as `rustc` (i.e. if it can understand the LLVM-IR from the
++  # compilation artifacts produced by `rustc`).  In LaCrOS and ash builds this
++  # may not be true - see b/299483903.
++  #
++  # TODO(https://crbug.com/1482525): Re-enable ThinLTO for Rust on LaCrOS
++  # TODO(b/300937673): Re-enable ThinLTO for Rust on ash-chrome
++  toolchain_supports_rust_thin_lto = !is_chromeos
++
+   # Any extra std rlibs in your Rust toolchain, relative to the standard
+   # Rust toolchain. Typically used with 'rust_sysroot_absolute'
+   added_rust_stdlib_libs = []
+@@ -156,17 +167,6 @@ if (enable_rust) {
+ # for gtests from the `//testing/test:test` template.
+ can_build_rust_unit_tests = toolchain_has_rust && !is_android
+ 
+-# Whether artifacts produced by the Rust compiler can participate in ThinLTO.
+-#
+-# One important consideration is whether the linker uses the same LLVM
+-# version as `rustc` (i.e. if it can understand the LLVM-IR from the
+-# compilation artifacts produced by `rustc`).  In LaCrOS and ash builds this may
+-# not be true - see b/299483903.
+-#
+-# TODO(https://crbug.com/1482525): Re-enable ThinLTO for Rust on LaCrOS
+-# TODO(b/300937673): Re-enable ThinLTO for Rust on ash-chrome
+-toolchain_supports_rust_thin_lto = !is_chromeos
+-
+ # We want to store rust_sysroot as a source-relative variable for ninja
+ # portability. In practice if an external toolchain was specified, it might
+ # be an absolute path, but we'll do our best.
