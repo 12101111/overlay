@@ -50,6 +50,7 @@ fi
 
 PATCHES=(
 	"${FILESDIR}"/${P}-elfutils-0.190-relr.patch
+	"${FILESDIR}"/${PN}-1.2.4-arm64-crti-alignment.patch
 	"${FILESDIR}"/musl-1.2.2-gethostid.patch
 	"${FILESDIR}"/Make-scheduler-functions-Linux-compatible.patch
 	"${FILESDIR}"/Add-rpmalloc-for-musl.patch
@@ -63,7 +64,7 @@ just_headers() {
 }
 
 pkg_setup() {
-	if [ ${CTARGET} == ${CHOST} ] ; then
+	if [[ ${CTARGET} == ${CHOST} ]] ; then
 		case ${CHOST} in
 		*-musl*) ;;
 		*) die "Use sys-devel/crossdev to build a musl toolchain" ;;
