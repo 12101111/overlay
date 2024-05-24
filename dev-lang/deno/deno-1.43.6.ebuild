@@ -42,7 +42,7 @@ CRATES="
 	asn1-rs-0.5.2
 	asn1-rs-derive-0.4.0
 	asn1-rs-impl-0.1.0
-	ast_node-0.9.6
+	ast_node-0.9.8
 	async-compression-0.4.8
 	async-stream-0.3.5
 	async-stream-impl-0.3.5
@@ -54,6 +54,7 @@ CRATES="
 	base16ct-0.2.0
 	base32-0.4.0
 	base64-0.21.7
+	base64-0.22.1
 	base64-simd-0.7.0
 	base64-simd-0.8.0
 	base64ct-1.6.0
@@ -126,24 +127,24 @@ CRATES="
 	data-encoding-2.5.0
 	data-url-0.3.0
 	debugid-0.8.0
-	deno_ast-0.38.1
+	deno_ast-0.38.2
 	deno_cache_dir-0.7.1
 	deno_config-0.16.3
 	deno_core-0.280.0
 	deno_core_icudata-0.0.73
-	deno_doc-0.129.0
-	deno_emit-0.40.2
-	deno_graph-0.74.5
+	deno_doc-0.135.0
+	deno_emit-0.40.3
+	deno_graph-0.75.2
 	deno_lint-0.58.4
 	deno_lockfile-0.19.0
 	deno_media_type-0.1.4
 	deno_native_certs-0.2.0
-	deno_npm-0.18.0
+	deno_npm-0.20.2
 	deno_ops-0.156.0
 	deno_semver-0.5.4
 	deno_task_shell-0.16.1
 	deno_terminal-0.1.1
-	deno_unsync-0.3.2
+	deno_unsync-0.3.4
 	deno_whoami-0.1.0
 	denokv_proto-0.5.0
 	denokv_remote-0.5.0
@@ -158,6 +159,8 @@ CRATES="
 	deunicode-1.4.3
 	diff-0.1.13
 	digest-0.10.7
+	dirs-5.0.1
+	dirs-sys-0.4.1
 	displaydoc-0.2.4
 	dissimilar-1.0.4
 	dlopen2-0.6.1
@@ -190,7 +193,7 @@ CRATES="
 	errno-dragonfly-0.1.2
 	error-code-3.2.0
 	escape8259-0.5.2
-	eszip-0.68.2
+	eszip-0.69.0
 	fallible-iterator-0.2.0
 	fallible-streaming-iterator-0.1.9
 	fancy-regex-0.10.0
@@ -201,7 +204,7 @@ CRATES="
 	fdeflate-0.3.4
 	ff-0.13.0
 	fiat-crypto-0.2.7
-	file_test_runner-0.5.0
+	file_test_runner-0.7.0
 	filetime-0.2.23
 	fixedbitset-0.4.2
 	flaky_test-0.1.0
@@ -213,7 +216,7 @@ CRATES="
 	foreign-types-shared-0.3.1
 	form_urlencoded-1.2.1
 	fqdn-0.3.4
-	from_variant-0.1.7
+	from_variant-0.1.8
 	fs3-0.5.0
 	fsevent-sys-4.1.0
 	fslock-0.2.1
@@ -228,7 +231,6 @@ CRATES="
 	futures-sink-0.3.30
 	futures-task-0.3.30
 	futures-util-0.3.30
-	fwdansi-1.1.0
 	generic-array-0.14.7
 	getrandom-0.2.14
 	ghash-0.5.1
@@ -241,7 +243,6 @@ CRATES="
 	glutin_wgl_sys-0.5.0
 	gpu-alloc-0.6.0
 	gpu-alloc-types-0.3.0
-	gpu-allocator-0.25.0
 	gpu-descriptor-0.3.0
 	gpu-descriptor-types-0.2.0
 	group-0.13.0
@@ -322,6 +323,7 @@ CRATES="
 	libloading-0.7.4
 	libloading-0.8.3
 	libm-0.2.8
+	libredox-0.1.3
 	libsqlite3-sys-0.26.0
 	libz-sys-1.1.16
 	linked-hash-map-0.5.6
@@ -380,6 +382,7 @@ CRATES="
 	opaque-debug-0.3.1
 	open-5.1.2
 	openssl-probe-0.1.5
+	option-ext-0.2.0
 	ordered-float-2.10.1
 	os_pipe-1.1.5
 	outref-0.1.0
@@ -426,7 +429,6 @@ CRATES="
 	powerfmt-0.2.0
 	ppv-lite86-0.2.17
 	precomputed-hash-0.1.1
-	presser-0.3.1
 	pretty_assertions-1.4.0
 	prettyplease-0.1.25
 	primeorder-0.13.6
@@ -458,6 +460,7 @@ CRATES="
 	rayon-core-1.12.1
 	redox_syscall-0.2.16
 	redox_syscall-0.4.1
+	redox_users-0.4.5
 	ref-cast-1.0.22
 	ref-cast-impl-1.0.22
 	regex-1.10.4
@@ -471,6 +474,7 @@ CRATES="
 	ripemd-0.1.3
 	ron-0.8.1
 	rsa-0.9.6
+	runtimelib-0.9.0
 	rusqlite-0.29.0
 	rustc-demangle-0.1.23
 	rustc-hash-1.1.0
@@ -512,8 +516,10 @@ CRATES="
 	serde_v8-0.189.0
 	sha-1-0.10.0
 	sha1-0.10.6
+	sha1_smol-1.0.0
 	sha2-0.10.8
 	shell-escape-0.1.5
+	shellexpand-3.1.0
 	signal-hook-0.3.17
 	signal-hook-registry-1.4.1
 	signature-2.2.0
@@ -538,38 +544,38 @@ CRATES="
 	static_assertions-1.1.0
 	string_cache-0.8.7
 	string_cache_codegen-0.5.2
-	string_enum-0.4.2
+	string_enum-0.4.4
 	strip-ansi-escapes-0.2.0
 	strsim-0.10.0
 	strum-0.25.0
 	strum_macros-0.25.3
 	subtle-2.5.0
 	swc_atoms-0.6.7
-	swc_bundler-0.226.0
+	swc_bundler-0.227.0
 	swc_cached-0.3.20
-	swc_common-0.33.25
-	swc_config-0.1.12
-	swc_config_macro-0.1.3
-	swc_ecma_ast-0.113.0
-	swc_ecma_codegen-0.149.0
-	swc_ecma_codegen_macros-0.7.5
-	swc_ecma_loader-0.45.27
-	swc_ecma_parser-0.144.0
-	swc_ecma_transforms_base-0.138.0
-	swc_ecma_transforms_classes-0.127.0
-	swc_ecma_transforms_macros-0.5.4
-	swc_ecma_transforms_optimization-0.199.0
-	swc_ecma_transforms_proposal-0.172.0
-	swc_ecma_transforms_react-0.184.0
-	swc_ecma_transforms_typescript-0.189.0
-	swc_ecma_utils-0.128.0
-	swc_ecma_visit-0.99.0
+	swc_common-0.33.26
+	swc_config-0.1.13
+	swc_config_macro-0.1.4
+	swc_ecma_ast-0.113.4
+	swc_ecma_codegen-0.149.1
+	swc_ecma_codegen_macros-0.7.6
+	swc_ecma_loader-0.45.28
+	swc_ecma_parser-0.144.1
+	swc_ecma_transforms_base-0.138.2
+	swc_ecma_transforms_classes-0.127.1
+	swc_ecma_transforms_macros-0.5.5
+	swc_ecma_transforms_optimization-0.199.1
+	swc_ecma_transforms_proposal-0.172.3
+	swc_ecma_transforms_react-0.184.1
+	swc_ecma_transforms_typescript-0.189.1
+	swc_ecma_utils-0.128.1
+	swc_ecma_visit-0.99.1
 	swc_eq_ignore_macros-0.1.3
-	swc_fast_graph-0.21.21
-	swc_graph_analyzer-0.22.22
-	swc_macros_common-0.3.10
-	swc_visit-0.5.13
-	swc_visit_macros-0.5.11
+	swc_fast_graph-0.21.22
+	swc_graph_analyzer-0.22.23
+	swc_macros_common-0.3.11
+	swc_visit-0.5.14
+	swc_visit_macros-0.5.12
 	syn-1.0.109
 	syn-2.0.58
 	synstructure-0.12.6
@@ -623,7 +629,7 @@ CRATES="
 	unicase-2.7.0
 	unicode-bidi-0.3.15
 	unicode-id-0.3.4
-	unicode-id-start-1.1.2
+	unicode-id-start-1.0.4
 	unicode-ident-1.0.12
 	unicode-normalization-0.1.23
 	unicode-segmentation-1.11.0
