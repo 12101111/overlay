@@ -15,7 +15,7 @@ HOMEPAGE="https://invent.kde.org/plasma/breeze"
 
 LICENSE="GPL-2" # TODO: CHECK
 SLOT="6"
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm64 ~loong"
 IUSE="qt5 kde"
 
 # kde-frameworks/kwindowsystem[X]: Unconditional use of KX11Extras
