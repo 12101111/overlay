@@ -37,6 +37,7 @@ RDEPEND=">=app-arch/brotli-1.0.9:=
 	>=dev-libs/libuv-1.46.0:=
 	>=net-dns/c-ares-1.18.1:=
 	>=net-libs/nghttp2-1.41.0:=
+	>=net-libs/ngtcp2-1.1.0:=
 	sys-libs/zlib
 	corepack? ( !sys-apps/yarn )
 	system-icu? ( >=dev-libs/icu-71:= )
@@ -123,6 +124,7 @@ src_configure() {
 		--shared-cares
 		--shared-libuv
 		--shared-nghttp2
+		--shared-ngtcp2
 		--shared-zlib
 	)
 	use debug && myconf+=( --debug )
