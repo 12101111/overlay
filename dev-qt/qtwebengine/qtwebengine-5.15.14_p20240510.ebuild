@@ -3,8 +3,8 @@
 
 EAPI=8
 
-PATCHSET="${PN}-5.15.13_p20240322-patchset"
-PYTHON_COMPAT=( python3_{10..11} )
+PATCHSET="${PN}-5.15.14_p20240510-patchset"
+PYTHON_COMPAT=( python3_{10..12} )
 PYTHON_REQ_USE="xml(+)"
 inherit check-reqs estack flag-o-matic multiprocessing python-any-r1 qt5-build toolchain-funcs
 
@@ -14,8 +14,8 @@ HOMEPAGE="https://www.qt.io/"
 if [[ ${QT5_BUILD_TYPE} == release ]]; then
 	KEYWORDS="~amd64 ~arm64 ~x86"
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
-		SRC_URI="https://dev.gentoo.org/~asturm/distfiles/${P}.tar.xz"
-		S="${WORKDIR}/${P}"
+		SRC_URI="https://dev.gentoo.org/~asturm/distfiles/${PN}-5.15.13_p20240510.tar.xz"
+		S="${WORKDIR}/${PN}-5.15.13_p20240510"
 		QT5_BUILD_DIR="${S}_build"
 	fi
 else
@@ -94,6 +94,7 @@ DEPEND="${RDEPEND}
 "
 BDEPEND="${PYTHON_DEPS}
 	app-alternatives/ninja
+	$(python_gen_any_dep 'dev-python/html5lib[${PYTHON_USEDEP}]')
 	dev-util/gperf
 	dev-util/re2c
 	net-libs/nodejs[ssl]
@@ -167,8 +168,6 @@ src_prepare() {
 		eapply "${FILESDIR}/gn-musl-lfs64.patch"
 	fi
 	use arm64 && eapply "${FILESDIR}/revert-skia-arm64-change.patch"
-	rm "${WORKDIR}/${PATCHSET}"/010-build-without-python-2.patch \
-		"${WORKDIR}/${PATCHSET}"/011-chromium-drop-catapult.patch || die
 
 	if [[ ${PV} == ${QT5_PV}_p* ]]; then
 		# This is made from git, and for some reason will fail w/o .git directories.
@@ -190,6 +189,9 @@ src_prepare() {
 		xargs sed -i -e 's|INCLUDEPATH += |&$${QTWEBENGINE_ROOT}_build/include $${QTWEBENGINE_ROOT}/include |' || die
 
 	if use system-icu; then
+		if has_version ">=dev-libs/icu-75.1"; then
+			eapply "${FILESDIR}/${PN}-5.15.14_p20240510-icu-75.patch" # too invasive to apply unconditionally
+		fi
 		# Sanity check to ensure that bundled copy of ICU is not used.
 		# Whole src/3rdparty/chromium/third_party/icu directory cannot be deleted because
 		# src/3rdparty/chromium/third_party/icu/BUILD.gn is used by build system.
