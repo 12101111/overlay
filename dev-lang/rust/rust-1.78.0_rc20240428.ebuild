@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{10..12} )
+PYTHON_COMPAT=( python3_{10..13} )
 
 inherit bash-completion-r1 check-reqs estack flag-o-matic llvm multiprocessing \
 	multilib multilib-build python-any-r1 rust-toolchain toolchain-funcs verify-sig
@@ -53,7 +53,7 @@ LLVM_TARGET_USEDEPS=${ALL_LLVM_TARGETS[@]/%/(-)?}
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD BSD-1 BSD-2 BSD-4"
 
-IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind +lto miri nightly parallel-compiler profiler rustfmt rust-analyzer rust-src system-bootstrap system-llvm test wasm wasi sanitizers ${ALL_LLVM_TARGETS[*]}"
+IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind +lto miri nightly parallel-compiler profiler rustfmt rust-analyzer rust-src system-bootstrap system-llvm test wasm sanitizers ${ALL_LLVM_TARGETS[*]}"
 
 # Please keep the LLVM dependency block separate. Since LLVM is slotted,
 # we need to *really* make sure we're not pulling more than one slot
@@ -126,7 +126,6 @@ DEPEND="
 			elibc_musl? ( sys-libs/libunwind:= )
 		)
 	)
-	wasi? ( dev-libs/wasi-libc )
 "
 
 RDEPEND="${DEPEND}
@@ -140,7 +139,6 @@ REQUIRED_USE="|| ( ${ALL_LLVM_TARGETS[*]} )
 	rust-analyzer? ( rust-src )
 	test? ( ${ALL_LLVM_TARGETS[*]} )
 	wasm? ( llvm_targets_WebAssembly )
-	wasi? ( llvm_targets_WebAssembly wasm )
 	x86? ( cpu_flags_x86_sse2 )
 "
 
@@ -170,19 +168,19 @@ QA_PRESTRIPPED="
 # so we can safely silence the warning for this QA check.
 QA_EXECSTACK="usr/lib/${PN}/${PV}/lib/rustlib/*/lib*.rlib:lib.rmeta"
 
+S="${WORKDIR}/${MY_P}-src"
+
 # causes double bootstrap
 RESTRICT="test"
 
 VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
-	"${FILESDIR}"/1.75.0-musl-dynamic-linking.patch
+	"${FILESDIR}"/1.78.0-musl-dynamic-linking.patch
 	"${FILESDIR}"/1.74.1-cross-compile-libz.patch
-	"${FILESDIR}"/1.67.0-doc-wasm.patch
 	"${FILESDIR}"/1.78.0-ignore-broken-and-non-applicable-tests.patch
+	"${FILESDIR}"/1.67.0-doc-wasm.patch
 )
-
-S="${WORKDIR}/${MY_P}-src"
 
 clear_vendor_checksums() {
 	sed -i 's/\("files":{\)[^}]*/\1/' "vendor/${1}/.cargo-checksum.json" || die
@@ -348,9 +346,6 @@ src_configure() {
 			# https://bugs.gentoo.org/715348
 			sed -i '/linker:/ s/rust-lld/wasm-ld/' compiler/rustc_target/src/spec/base/wasm.rs || die
 		fi
-	fi
-	if use wasi; then
-		rust_targets+=",\"wasm32-wasip1\""
 	fi
 	rust_targets="${rust_targets#,}"
 
@@ -520,21 +515,12 @@ src_configure() {
 		fi
 	done
 	if use wasm; then
-		export CFLAGS_wasm32_unknown_unknown="-O3 -fPIC -pipe"
+		wasm_target="wasm32-unknown-unknown"
+		export CFLAGS_${wasm_target//-/_}="$(filter-flags '-mcpu*' '-march*' '-mtune*'; echo "$CFLAGS")"
 		cat <<- _EOF_ >> "${S}"/config.toml
 			[target.wasm32-unknown-unknown]
 			linker = "$(usex system-llvm lld rust-lld)"
 			# wasm target does not have profiler_builtins https://bugs.gentoo.org/848483
-			profiler = false
-			sanitizers = false
-		_EOF_
-	fi
-	if use wasi; then
-		export CFLAGS_wasm32_wasip1="-O3 -fPIC -pipe"
-		cat <<- _EOF_ >> "${S}"/config.toml
-			[target.wasm32-wasip1]
-			linker = "$(usex system-llvm lld rust-lld)"
-			wasi-root = "/opt/wasm32-wasi"
 			profiler = false
 			sanitizers = false
 		_EOF_
@@ -788,6 +774,7 @@ src_install() {
 	doins "${T}/provider-${P}"
 
 	if use dist; then
+		"${EPYTHON}" ./x.py dist -vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
 		insinto "/usr/lib/${PN}/${PV}/dist"
 		doins -r "${S}/build/dist/."
 	fi

@@ -4,12 +4,6 @@ Date: Tue, 2 Aug 2022 18:32:53 -0500
 Subject: [PATCH] Enable dynamic linking by default for musl
 
 Signed-off-by: Jory Pratt <anarchy@gentoo.org>
----
- compiler/rustc_target/src/spec/linux_musl_base.rs | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/compiler/rustc_target/src/spec/base/linux_musl.rs b/compiler/rustc_target/src/spec/base/linux_musl.rs
-index 5117cadbee0..a629109800c 100644
 --- a/compiler/rustc_target/src/spec/base/linux_musl.rs
 +++ b/compiler/rustc_target/src/spec/base/linux_musl.rs
 @@ -10,7 +10,7 @@ pub fn opts() -> TargetOptions {

@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{10..12} )
+PYTHON_COMPAT=( python3_{10..13} )
 
 inherit bash-completion-r1 check-reqs estack flag-o-matic llvm multiprocessing \
 	multilib multilib-build python-any-r1 rust-toolchain toolchain-funcs verify-sig
@@ -22,7 +22,7 @@ elif [[ ${PV} = *rc* ]]; then
 	RC_SNAPSHOT="${rcver:0:4}-${rcver:4:2}-${rcver:6:2}"
 	MY_P="rustc-${ABI_VER}"
 	SLOT="rc/${ABI_VER}"
-	SRC="${RC_SNAPSHOT}/${MY_P}-src.tar.xz"
+	SRC="${RC_SNAPSHOT}/${MY_P}-src.tar.xz -> rustc-${PV}-src.tar.xz"
 	IS_DEV="dev-"
 else
 	ABI_VER="$(ver_cut 1-2)"
@@ -168,19 +168,19 @@ QA_PRESTRIPPED="
 # so we can safely silence the warning for this QA check.
 QA_EXECSTACK="usr/lib/${PN}/${PV}/lib/rustlib/*/lib*.rlib:lib.rmeta"
 
+S="${WORKDIR}/${MY_P}-src"
+
 # causes double bootstrap
 RESTRICT="test"
 
 VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
-	"${FILESDIR}"/1.75.0-musl-dynamic-linking.patch
+	"${FILESDIR}"/1.78.0-musl-dynamic-linking.patch
 	"${FILESDIR}"/1.74.1-cross-compile-libz.patch
-	"${FILESDIR}"/1.67.0-doc-wasm.patch
 	"${FILESDIR}"/1.78.0-ignore-broken-and-non-applicable-tests.patch
+	"${FILESDIR}"/1.67.0-doc-wasm.patch
 )
-
-S="${WORKDIR}/${MY_P}-src"
 
 clear_vendor_checksums() {
 	sed -i 's/\("files":{\)[^}]*/\1/' "vendor/${1}/.cargo-checksum.json" || die
@@ -515,7 +515,8 @@ src_configure() {
 		fi
 	done
 	if use wasm; then
-		export CFLAGS_wasm32_unknown_unknown="-O3 -fPIC -pipe"
+		wasm_target="wasm32-unknown-unknown"
+		export CFLAGS_${wasm_target//-/_}="$(filter-flags '-mcpu*' '-march*' '-mtune*'; echo "$CFLAGS")"
 		cat <<- _EOF_ >> "${S}"/config.toml
 			[target.wasm32-unknown-unknown]
 			linker = "$(usex system-llvm lld rust-lld)"
@@ -773,6 +774,7 @@ src_install() {
 	doins "${T}/provider-${P}"
 
 	if use dist; then
+		"${EPYTHON}" ./x.py dist -vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
 		insinto "/usr/lib/${PN}/${PV}/dist"
 		doins -r "${S}/build/dist/."
 	fi
