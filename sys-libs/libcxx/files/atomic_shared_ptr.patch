@@ -1,0 +1,782 @@
+diff --git a/libcxx/docs/FeatureTestMacroTable.rst b/libcxx/docs/FeatureTestMacroTable.rst
+index d0d057e6bbaf..c09325a73ec5 100644
+--- a/libcxx/docs/FeatureTestMacroTable.rst
++++ b/libcxx/docs/FeatureTestMacroTable.rst
+@@ -180,7 +180,7 @@ Status
+     --------------------------------------------------- -----------------
+     ``__cpp_lib_atomic_ref``                            *unimplemented*
+     --------------------------------------------------- -----------------
+-    ``__cpp_lib_atomic_shared_ptr``                     *unimplemented*
++    ``__cpp_lib_atomic_shared_ptr``                     ``201711L``
+     --------------------------------------------------- -----------------
+     ``__cpp_lib_atomic_value_initialization``           ``201911L``
+     --------------------------------------------------- -----------------
+diff --git a/libcxx/docs/Status/Cxx20Papers.csv b/libcxx/docs/Status/Cxx20Papers.csv
+index d73088687975..eae002a35d33 100644
+--- a/libcxx/docs/Status/Cxx20Papers.csv
++++ b/libcxx/docs/Status/Cxx20Papers.csv
+@@ -12,7 +12,7 @@
+ "`P0600R1 <https://wg21.link/P0600R1>`__","LWG","nodiscard in the Library","Albuquerque","|Complete|","16.0"
+ "`P0616R0 <https://wg21.link/P0616R0>`__","LWG","de-pessimize legacy <numeric> algorithms with std::move","Albuquerque","|Complete|","12.0"
+ "`P0653R2 <https://wg21.link/P0653R2>`__","LWG","Utility to convert a pointer to a raw pointer","Albuquerque","|Complete|","6.0"
+-"`P0718R2 <https://wg21.link/P0718R2>`__","LWG","Atomic shared_ptr","Albuquerque","",""
++"`P0718R2 <https://wg21.link/P0718R2>`__","LWG","Atomic shared_ptr","Albuquerque","|Complete|","18.0"
+ "`P0767R1 <https://wg21.link/P0767R1>`__","CWG","Deprecate POD","Albuquerque","|Complete|","7.0"
+ "`P0768R1 <https://wg21.link/P0768R1>`__","CWG","Library Support for the Spaceship (Comparison) Operator","Albuquerque","|Complete|",""
+ "`P0777R1 <https://wg21.link/P0777R1>`__","LWG","Treating Unnecessary ``decay``\ ","Albuquerque","|Complete|","7.0"
+diff --git a/libcxx/docs/Status/Cxx23Issues.csv b/libcxx/docs/Status/Cxx23Issues.csv
+index 70480b338205..85ab25960971 100644
+--- a/libcxx/docs/Status/Cxx23Issues.csv
++++ b/libcxx/docs/Status/Cxx23Issues.csv
+@@ -157,7 +157,7 @@
+ "`3654 <https://wg21.link/LWG3654>`__","``basic_format_context::arg(size_t)`` should be ``noexcept`` ","February 2022","|Complete|","15.0","|format|"
+ "`3657 <https://wg21.link/LWG3657>`__","``std::hash<std::filesystem::path>`` is not enabled","February 2022","|Complete|","17.0"
+ "`3660 <https://wg21.link/LWG3660>`__","``iterator_traits<common_iterator>::pointer`` should conform to §[iterator.traits]","February 2022","|Complete|","14.0","|ranges|"
+-"`3661 <https://wg21.link/LWG3661>`__","``constinit atomic<shared_ptr<T>> a(nullptr);`` should work","February 2022","",""
++"`3661 <https://wg21.link/LWG3661>`__","``constinit atomic<shared_ptr<T>> a(nullptr);`` should work","February 2022","|Complete|","18.0"
+ "","","","","",""
+ "`3564 <https://wg21.link/LWG3564>`__","``transform_view::iterator<true>::value_type`` and ``iterator_category`` should use ``const F&``","July 2022","","","|ranges|"
+ "`3617 <https://wg21.link/LWG3617>`__","``function``/``packaged_task`` deduction guides and deducing ``this``","July 2022","",""
+diff --git a/libcxx/docs/Status/Cxx2cIssues.csv b/libcxx/docs/Status/Cxx2cIssues.csv
+index b69b09483254..4ddbc842fbce 100644
+--- a/libcxx/docs/Status/Cxx2cIssues.csv
++++ b/libcxx/docs/Status/Cxx2cIssues.csv
+@@ -3,7 +3,7 @@
+ "`3884 <https://wg21.link/LWG3884>`__","``flat_foo`` is missing allocator-extended copy/move constructors","Varna June 2023","","","|flat_containers|"
+ "`3885 <https://wg21.link/LWG3885>`__","``op`` should be in [zombie.names]","Varna June 2023","|Nothing To Do|","",""
+ "`3887 <https://wg21.link/LWG3887>`__","Version macro for ``allocate_at_least``","Varna June 2023","","",""
+-"`3893 <https://wg21.link/LWG3893>`__","LWG 3661 broke ``atomic<shared_ptr<T>> a; a = nullptr;``","Varna June 2023","","",""
++"`3893 <https://wg21.link/LWG3893>`__","LWG 3661 broke ``atomic<shared_ptr<T>> a; a = nullptr;``","Varna June 2023","|Complete|","18.0",""
+ "`3894 <https://wg21.link/LWG3894>`__","``generator::promise_type::yield_value(ranges::elements_of<Rng, Alloc>)`` should not be ``noexcept``","Varna June 2023","","",""
+ "`3903 <https://wg21.link/LWG3903>`__","span destructor is redundantly noexcept","Varna June 2023","|Complete|","7.0",""
+ "`3904 <https://wg21.link/LWG3904>`__","``lazy_split_view::outer-iterator``'s const-converting constructor isn't setting ``trailing_empty_``","Varna June 2023","","","|ranges|"
+diff --git a/libcxx/include/CMakeLists.txt b/libcxx/include/CMakeLists.txt
+index ed721d467e94..1a60804542d6 100644
+--- a/libcxx/include/CMakeLists.txt
++++ b/libcxx/include/CMakeLists.txt
+@@ -526,6 +526,7 @@ set(files
+   __memory/allocator_destructor.h
+   __memory/allocator_traits.h
+   __memory/assume_aligned.h
++  __memory/atomic_shared_ptr.h
+   __memory/auto_ptr.h
+   __memory/builtin_new_allocator.h
+   __memory/compressed_pair.h
+diff --git a/libcxx/include/__atomic/atomic.h b/libcxx/include/__atomic/atomic.h
+index 3dfb6937d032..da12b36568fb 100644
+--- a/libcxx/include/__atomic/atomic.h
++++ b/libcxx/include/__atomic/atomic.h
+@@ -249,6 +249,16 @@ public:
+   _LIBCPP_HIDE_FROM_ABI _Tp operator-=(_Tp __op) noexcept { return fetch_sub(__op) - __op; }
+ };
+ 
++template <class _Tp>
++class shared_ptr;
++template <class _Tp>
++class weak_ptr;
++
++template <class _Tp>
++struct atomic<shared_ptr<_Tp>>;
++template <class _Tp>
++struct atomic<weak_ptr<_Tp>>;
++
+ #endif // _LIBCPP_STD_VER >= 20
+ 
+ // atomic_is_lock_free
+diff --git a/libcxx/include/__memory/atomic_shared_ptr.h b/libcxx/include/__memory/atomic_shared_ptr.h
+new file mode 100644
+index 000000000000..f3fa2260ac91
+--- /dev/null
++++ b/libcxx/include/__memory/atomic_shared_ptr.h
+@@ -0,0 +1,233 @@
++// -*- C++ -*-
++//===----------------------------------------------------------------------===//
++//
++// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
++// See https://llvm.org/LICENSE.txt for license information.
++// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
++//
++//===----------------------------------------------------------------------===//
++
++#ifndef _LIBCPP___MEMORY_ATOMIC_SHARED_PTR_H
++#define _LIBCPP___MEMORY_ATOMIC_SHARED_PTR_H
++
++#include <__memory/addressof.h>
++#include <__memory/shared_ptr.h>
++#include <cstddef>
++#if !defined(_LIBCPP_HAS_NO_ATOMIC_HEADER)
++#  include <__atomic/memory_order.h>
++#endif
++
++#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
++#  pragma GCC system_header
++#endif
++
++_LIBCPP_BEGIN_NAMESPACE_STD
++
++#if !defined(_LIBCPP_HAS_NO_THREADS)
++
++class _LIBCPP_EXPORTED_FROM_ABI __sp_mut {
++  void* __lx_;
++
++public:
++  void lock() _NOEXCEPT;
++  void unlock() _NOEXCEPT;
++
++private:
++  _LIBCPP_CONSTEXPR __sp_mut(void*) _NOEXCEPT;
++  __sp_mut(const __sp_mut&);
++  __sp_mut& operator=(const __sp_mut&);
++
++  friend _LIBCPP_EXPORTED_FROM_ABI __sp_mut& __get_sp_mut(const void*);
++};
++
++_LIBCPP_EXPORTED_FROM_ABI __sp_mut& __get_sp_mut(const void*);
++
++template <class _Tp>
++_LIBCPP_HIDE_FROM_ABI _Tp __sp_atomic_load(const _Tp* __p) {
++  __sp_mut& __m = std::__get_sp_mut(__p);
++  __m.lock();
++  _Tp __q = *__p;
++  __m.unlock();
++  return __q;
++}
++
++template <class _Tp>
++_LIBCPP_HIDE_FROM_ABI void __sp_atomic_store(_Tp* __p, _Tp& __r) {
++  __sp_mut& __m = std::__get_sp_mut(__p);
++  __m.lock();
++  __p->swap(__r);
++  __m.unlock();
++}
++
++template <class _Tp>
++_LIBCPP_HIDE_FROM_ABI bool __sp_atomic_compare_exchange_strong(_Tp* __p, _Tp* __v, _Tp& __w) {
++  _Tp __temp;
++  __sp_mut& __m = std::__get_sp_mut(__p);
++  __m.lock();
++  if (__p->__owner_equivalent(*__v)) {
++    std::swap(__temp, *__p);
++    *__p = __w;
++    __m.unlock();
++    return true;
++  }
++  std::swap(__temp, *__v);
++  *__v = *__p;
++  __m.unlock();
++  return false;
++}
++
++template <class _Tp>
++_LIBCPP_HIDE_FROM_ABI _Tp __sp_atomic_exchange(_Tp* __p, _Tp& __r) {
++  __sp_mut& __m = std::__get_sp_mut(__p);
++  __m.lock();
++  __p->swap(__r);
++  __m.unlock();
++  return __r;
++}
++
++#  if _LIBCPP_STD_VER >= 20
++template <class _Tp>
++struct atomic;
++
++template <class _Tp>
++struct __sp_atomic_base {
++  using value_type = _Tp;
++
++  static constexpr bool is_always_lock_free = false;
++  _LIBCPP_HIDE_FROM_ABI bool is_lock_free() const noexcept { return false; }
++
++  _LIBCPP_HIDE_FROM_ABI constexpr __sp_atomic_base() noexcept = default;
++  _LIBCPP_HIDE_FROM_ABI __sp_atomic_base(_Tp&& __d) noexcept : __p(std::move(__d)) {}
++  _LIBCPP_HIDE_FROM_ABI __sp_atomic_base(const __sp_atomic_base&) = delete;
++  _LIBCPP_HIDE_FROM_ABI void operator=(const __sp_atomic_base&)   = delete;
++
++  _LIBCPP_HIDE_FROM_ABI _Tp load(memory_order = memory_order_seq_cst) const noexcept {
++    return std::__sp_atomic_load(std::addressof(__p));
++  }
++  _LIBCPP_HIDE_FROM_ABI operator _Tp() const noexcept { return load(); }
++  _LIBCPP_HIDE_FROM_ABI void store(_Tp __d, memory_order = memory_order_seq_cst) noexcept {
++    std::__sp_atomic_store(std::addressof(__p), __d);
++  }
++  _LIBCPP_HIDE_FROM_ABI void operator=(_Tp __d) noexcept { std::__sp_atomic_store(std::addressof(__p), __d); }
++  _LIBCPP_HIDE_FROM_ABI void operator=(nullptr_t) noexcept { store(nullptr); }
++
++  _LIBCPP_HIDE_FROM_ABI _Tp exchange(_Tp __d, memory_order = memory_order_seq_cst) noexcept {
++    return std::__sp_atomic_exchange(std::addressof(__p), __d);
++  }
++  _LIBCPP_HIDE_FROM_ABI bool compare_exchange_weak(_Tp& __e, _Tp __d, memory_order, memory_order) noexcept {
++    return std::__sp_atomic_compare_exchange_strong(std::addressof(__p), std::addressof(__e), __d);
++  }
++  _LIBCPP_HIDE_FROM_ABI bool compare_exchange_strong(_Tp& __e, _Tp __d, memory_order, memory_order) noexcept {
++    return std::__sp_atomic_compare_exchange_strong(std::addressof(__p), std::addressof(__e), __d);
++  }
++  _LIBCPP_HIDE_FROM_ABI bool compare_exchange_weak(_Tp& __e, _Tp __d, memory_order = memory_order_seq_cst) noexcept {
++    return std::__sp_atomic_compare_exchange_strong(std::addressof(__p), std::addressof(__e), __d);
++  }
++  _LIBCPP_HIDE_FROM_ABI bool compare_exchange_strong(_Tp& __e, _Tp __d, memory_order = memory_order_seq_cst) noexcept {
++    return std::__sp_atomic_compare_exchange_strong(std::addressof(__p), std::addressof(__e), __d);
++  }
++
++  // P1644R0 not implemented
++  // void wait(_Tp old, memory_order order = memory_order::seq_cst) const noexcept;
++  // void notify_one() noexcept;
++  // void notify_all() noexcept;
++
++private:
++  _Tp __p;
++};
++
++template <class _Tp>
++struct atomic<shared_ptr<_Tp>> : __sp_atomic_base<shared_ptr<_Tp>> {
++  _LIBCPP_HIDE_FROM_ABI constexpr atomic() noexcept = default;
++  _LIBCPP_HIDE_FROM_ABI constexpr atomic(nullptr_t) noexcept : atomic() {}
++  _LIBCPP_HIDE_FROM_ABI atomic(shared_ptr<_Tp> desired) noexcept
++      : __sp_atomic_base<shared_ptr<_Tp>>(std::move(desired)) {}
++  _LIBCPP_HIDE_FROM_ABI atomic(const atomic&) = delete;
++
++  _LIBCPP_HIDE_FROM_ABI void operator=(const atomic&) = delete;
++  using __sp_atomic_base<shared_ptr<_Tp>>::operator=;
++};
++
++template <class _Tp>
++struct atomic<weak_ptr<_Tp>> : __sp_atomic_base<weak_ptr<_Tp>> {
++  _LIBCPP_HIDE_FROM_ABI constexpr atomic() noexcept = default;
++  _LIBCPP_HIDE_FROM_ABI constexpr atomic(nullptr_t) noexcept : atomic() {}
++  _LIBCPP_HIDE_FROM_ABI atomic(weak_ptr<_Tp> desired) noexcept : __sp_atomic_base<weak_ptr<_Tp>>(std::move(desired)) {}
++  _LIBCPP_HIDE_FROM_ABI atomic(const atomic&) = delete;
++
++  _LIBCPP_HIDE_FROM_ABI void operator=(const atomic&) = delete;
++  using __sp_atomic_base<weak_ptr<_Tp>>::operator=;
++};
++#  endif // _LIBCPP_STD_VER >= 20
++
++// [depr.util.smartptr.shared.atomic]
++
++template <class _Tp>
++inline _LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI bool atomic_is_lock_free(const shared_ptr<_Tp>*) {
++  return false;
++}
++
++template <class _Tp>
++_LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI shared_ptr<_Tp>
++atomic_load(const shared_ptr<_Tp>* __p) {
++  return std::__sp_atomic_load(__p);
++}
++
++template <class _Tp>
++inline _LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI shared_ptr<_Tp>
++atomic_load_explicit(const shared_ptr<_Tp>* __p, memory_order) {
++  return std::atomic_load(__p);
++}
++
++template <class _Tp>
++_LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI void atomic_store(shared_ptr<_Tp>* __p, shared_ptr<_Tp> __r) {
++  std::__sp_atomic_store(__p, __r);
++}
++
++template <class _Tp>
++inline _LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI void
++atomic_store_explicit(shared_ptr<_Tp>* __p, shared_ptr<_Tp> __r, memory_order) {
++  std::atomic_store(__p, __r);
++}
++
++template <class _Tp>
++_LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI shared_ptr<_Tp>
++atomic_exchange(shared_ptr<_Tp>* __p, shared_ptr<_Tp> __r) {
++  return std::__sp_atomic_exchange(__p, __r);
++}
++
++template <class _Tp>
++inline _LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI shared_ptr<_Tp>
++atomic_exchange_explicit(shared_ptr<_Tp>* __p, shared_ptr<_Tp> __r, memory_order) {
++  return std::atomic_exchange(__p, std::move(__r));
++}
++
++template <class _Tp>
++_LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI bool
++atomic_compare_exchange_strong(shared_ptr<_Tp>* __p, shared_ptr<_Tp>* __v, shared_ptr<_Tp> __w) {
++  return std::__sp_atomic_compare_exchange_strong(__p, __v, __w);
++}
++
++template <class _Tp>
++inline _LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI bool
++atomic_compare_exchange_weak(shared_ptr<_Tp>* __p, shared_ptr<_Tp>* __v, shared_ptr<_Tp> __w) {
++  return std::atomic_compare_exchange_strong(__p, __v, std::move(__w));
++}
++
++template <class _Tp>
++inline _LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI bool atomic_compare_exchange_strong_explicit(
++    shared_ptr<_Tp>* __p, shared_ptr<_Tp>* __v, shared_ptr<_Tp> __w, memory_order, memory_order) {
++  return std::atomic_compare_exchange_strong(__p, __v, std::move(__w));
++}
++
++template <class _Tp>
++inline _LIBCPP_DEPRECATED_IN_CXX20 _LIBCPP_HIDE_FROM_ABI bool atomic_compare_exchange_weak_explicit(
++    shared_ptr<_Tp>* __p, shared_ptr<_Tp>* __v, shared_ptr<_Tp> __w, memory_order, memory_order) {
++  return std::atomic_compare_exchange_weak(__p, __v, std::move(__w));
++}
++
++#endif // !defined(_LIBCPP_HAS_NO_THREADS)
++
++_LIBCPP_END_NAMESPACE_STD
++
++#endif // LLVM_ATOMIC_ATOMIC_SHARED_PTR_H
+diff --git a/libcxx/include/__memory/shared_ptr.h b/libcxx/include/__memory/shared_ptr.h
+index e6de615d76fa..39928624b8a6 100644
+--- a/libcxx/include/__memory/shared_ptr.h
++++ b/libcxx/include/__memory/shared_ptr.h
+@@ -1559,110 +1559,6 @@ template <class _CharT, class _Traits, class _Yp>
+ inline _LIBCPP_HIDE_FROM_ABI basic_ostream<_CharT, _Traits>&
+ operator<<(basic_ostream<_CharT, _Traits>& __os, shared_ptr<_Yp> const& __p);
+ 
+-#if !defined(_LIBCPP_HAS_NO_THREADS)
+-
+-class _LIBCPP_EXPORTED_FROM_ABI __sp_mut {
+-  void* __lx_;
+-
+-public:
+-  void lock() _NOEXCEPT;
+-  void unlock() _NOEXCEPT;
+-
+-private:
+-  _LIBCPP_CONSTEXPR __sp_mut(void*) _NOEXCEPT;
+-  __sp_mut(const __sp_mut&);
+-  __sp_mut& operator=(const __sp_mut&);
+-
+-  friend _LIBCPP_EXPORTED_FROM_ABI __sp_mut& __get_sp_mut(const void*);
+-};
+-
+-_LIBCPP_EXPORTED_FROM_ABI __sp_mut& __get_sp_mut(const void*);
+-
+-template <class _Tp>
+-inline _LIBCPP_HIDE_FROM_ABI bool atomic_is_lock_free(const shared_ptr<_Tp>*) {
+-  return false;
+-}
+-
+-template <class _Tp>
+-_LIBCPP_HIDE_FROM_ABI shared_ptr<_Tp> atomic_load(const shared_ptr<_Tp>* __p) {
+-  __sp_mut& __m = std::__get_sp_mut(__p);
+-  __m.lock();
+-  shared_ptr<_Tp> __q = *__p;
+-  __m.unlock();
+-  return __q;
+-}
+-
+-template <class _Tp>
+-inline _LIBCPP_HIDE_FROM_ABI shared_ptr<_Tp> atomic_load_explicit(const shared_ptr<_Tp>* __p, memory_order) {
+-  return std::atomic_load(__p);
+-}
+-
+-template <class _Tp>
+-_LIBCPP_HIDE_FROM_ABI void atomic_store(shared_ptr<_Tp>* __p, shared_ptr<_Tp> __r) {
+-  __sp_mut& __m = std::__get_sp_mut(__p);
+-  __m.lock();
+-  __p->swap(__r);
+-  __m.unlock();
+-}
+-
+-template <class _Tp>
+-inline _LIBCPP_HIDE_FROM_ABI void atomic_store_explicit(shared_ptr<_Tp>* __p, shared_ptr<_Tp> __r, memory_order) {
+-  std::atomic_store(__p, __r);
+-}
+-
+-template <class _Tp>
+-_LIBCPP_HIDE_FROM_ABI shared_ptr<_Tp> atomic_exchange(shared_ptr<_Tp>* __p, shared_ptr<_Tp> __r) {
+-  __sp_mut& __m = std::__get_sp_mut(__p);
+-  __m.lock();
+-  __p->swap(__r);
+-  __m.unlock();
+-  return __r;
+-}
+-
+-template <class _Tp>
+-inline _LIBCPP_HIDE_FROM_ABI shared_ptr<_Tp>
+-atomic_exchange_explicit(shared_ptr<_Tp>* __p, shared_ptr<_Tp> __r, memory_order) {
+-  return std::atomic_exchange(__p, __r);
+-}
+-
+-template <class _Tp>
+-_LIBCPP_HIDE_FROM_ABI bool
+-atomic_compare_exchange_strong(shared_ptr<_Tp>* __p, shared_ptr<_Tp>* __v, shared_ptr<_Tp> __w) {
+-  shared_ptr<_Tp> __temp;
+-  __sp_mut& __m = std::__get_sp_mut(__p);
+-  __m.lock();
+-  if (__p->__owner_equivalent(*__v)) {
+-    std::swap(__temp, *__p);
+-    *__p = __w;
+-    __m.unlock();
+-    return true;
+-  }
+-  std::swap(__temp, *__v);
+-  *__v = *__p;
+-  __m.unlock();
+-  return false;
+-}
+-
+-template <class _Tp>
+-inline _LIBCPP_HIDE_FROM_ABI bool
+-atomic_compare_exchange_weak(shared_ptr<_Tp>* __p, shared_ptr<_Tp>* __v, shared_ptr<_Tp> __w) {
+-  return std::atomic_compare_exchange_strong(__p, __v, __w);
+-}
+-
+-template <class _Tp>
+-inline _LIBCPP_HIDE_FROM_ABI bool atomic_compare_exchange_strong_explicit(
+-    shared_ptr<_Tp>* __p, shared_ptr<_Tp>* __v, shared_ptr<_Tp> __w, memory_order, memory_order) {
+-  return std::atomic_compare_exchange_strong(__p, __v, __w);
+-}
+-
+-template <class _Tp>
+-inline _LIBCPP_HIDE_FROM_ABI bool atomic_compare_exchange_weak_explicit(
+-    shared_ptr<_Tp>* __p, shared_ptr<_Tp>* __v, shared_ptr<_Tp> __w, memory_order, memory_order) {
+-  return std::atomic_compare_exchange_weak(__p, __v, __w);
+-}
+-
+-#endif // !defined(_LIBCPP_HAS_NO_THREADS)
+-
+ _LIBCPP_END_NAMESPACE_STD
+ 
+ _LIBCPP_POP_MACROS
+diff --git a/libcxx/include/memory b/libcxx/include/memory
+index 19c11ee94987..9a2a7dff62ef 100644
+--- a/libcxx/include/memory
++++ b/libcxx/include/memory
+@@ -831,29 +831,29 @@ public:
+ };
+ 
+ template<class T>
+-    bool atomic_is_lock_free(const shared_ptr<T>* p);
++    bool atomic_is_lock_free(const shared_ptr<T>* p);                                      // Deprecated in C++20
+ template<class T>
+-    shared_ptr<T> atomic_load(const shared_ptr<T>* p);
++    shared_ptr<T> atomic_load(const shared_ptr<T>* p);                                     // Deprecated in C++20
+ template<class T>
+-    shared_ptr<T> atomic_load_explicit(const shared_ptr<T>* p, memory_order mo);
++    shared_ptr<T> atomic_load_explicit(const shared_ptr<T>* p, memory_order mo);           // Deprecated in C++20
+ template<class T>
+-    void atomic_store(shared_ptr<T>* p, shared_ptr<T> r);
++    void atomic_store(shared_ptr<T>* p, shared_ptr<T> r);                                  // Deprecated in C++20
+ template<class T>
+-    void atomic_store_explicit(shared_ptr<T>* p, shared_ptr<T> r, memory_order mo);
++    void atomic_store_explicit(shared_ptr<T>* p, shared_ptr<T> r, memory_order mo);        // Deprecated in C++20
+ template<class T>
+-    shared_ptr<T> atomic_exchange(shared_ptr<T>* p, shared_ptr<T> r);
++    shared_ptr<T> atomic_exchange(shared_ptr<T>* p, shared_ptr<T> r);                      // Deprecated in C++20
+ template<class T>
+     shared_ptr<T>
+-    atomic_exchange_explicit(shared_ptr<T>* p, shared_ptr<T> r, memory_order mo);
++    atomic_exchange_explicit(shared_ptr<T>* p, shared_ptr<T> r, memory_order mo);          // Deprecated in C++20
+ template<class T>
+     bool
+-    atomic_compare_exchange_weak(shared_ptr<T>* p, shared_ptr<T>* v, shared_ptr<T> w);
++    atomic_compare_exchange_weak(shared_ptr<T>* p, shared_ptr<T>* v, shared_ptr<T> w);     // Deprecated in C++20
+ template<class T>
+     bool
+-    atomic_compare_exchange_strong( shared_ptr<T>* p, shared_ptr<T>* v, shared_ptr<T> w);
++    atomic_compare_exchange_strong( shared_ptr<T>* p, shared_ptr<T>* v, shared_ptr<T> w);  // Deprecated in C++20
+ template<class T>
+     bool
+-    atomic_compare_exchange_weak_explicit(shared_ptr<T>* p, shared_ptr<T>* v,
++    atomic_compare_exchange_weak_explicit(shared_ptr<T>* p, shared_ptr<T>* v,              // Deprecated in C++20
+                                           shared_ptr<T> w, memory_order success,
+                                           memory_order failure);
+ template<class T>
+@@ -912,6 +912,78 @@ void* align(size_t alignment, size_t size, void*& ptr, size_t& space);
+ template<size_t N, class T>
+ [[nodiscard]] constexpr T* assume_aligned(T* ptr); // since C++20
+ 
++// [util.smartptr.atomic], atomic smart pointers
++template<class T> struct atomic;  // since C++20
++template<class T>  // since C++20
++struct atomic<shared_ptr<T>>
++{
++   using value_type = shared_ptr<T>;
++
++    static constexpr bool is_always_lock_free = implementation-defined;
++    bool is_lock_free() const noexcept;
++
++    constexpr atomic() noexcept;
++    constexpr atomic(nullptr_t) noexcept : atomic() { }
++    atomic(shared_ptr<T> desired) noexcept;
++    atomic(const atomic&) = delete;
++    void operator=(const atomic&) = delete;
++
++    shared_ptr<T> load(memory_order order = memory_order::seq_cst) const noexcept;
++    operator shared_ptr<T>() const noexcept;
++    void store(shared_ptr<T> desired, memory_order order = memory_order::seq_cst) noexcept;
++    void operator=(shared_ptr<T> desired) noexcept;
++    void operator=(nullptr_t) noexcept;
++
++    shared_ptr<T> exchange(shared_ptr<T> desired,
++                           memory_order order = memory_order::seq_cst) noexcept;
++    bool compare_exchange_weak(shared_ptr<T>& expected, shared_ptr<T> desired,
++                               memory_order success, memory_order failure) noexcept;
++    bool compare_exchange_strong(shared_ptr<T>& expected, shared_ptr<T> desired,
++                                 memory_order success, memory_order failure) noexcept;
++    bool compare_exchange_weak(shared_ptr<T>& expected, shared_ptr<T> desired,
++                               memory_order order = memory_order::seq_cst) noexcept;
++    bool compare_exchange_strong(shared_ptr<T>& expected, shared_ptr<T> desired,
++                                 memory_order order = memory_order::seq_cst) noexcept;
++
++    void wait(shared_ptr<T> old, memory_order order = memory_order::seq_cst) const noexcept;
++    void notify_one() noexcept;
++    void notify_all() noexcept;
++};
++template<class T>  // since C++20
++struct atomic<weak_ptr<T>>
++{
++
++    using value_type = weak_ptr<T>;
++
++    static constexpr bool is_always_lock_free = implementation-defined;
++    bool is_lock_free() const noexcept;
++
++    constexpr atomic() noexcept;
++    atomic(weak_ptr<T> desired) noexcept;
++    atomic(const atomic&) = delete;
++    void operator=(const atomic&) = delete;
++
++    weak_ptr<T> load(memory_order order = memory_order::seq_cst) const noexcept;
++    operator weak_ptr<T>() const noexcept;
++    void store(weak_ptr<T> desired, memory_order order = memory_order::seq_cst) noexcept;
++    void operator=(weak_ptr<T> desired) noexcept;
++
++    weak_ptr<T> exchange(weak_ptr<T> desired,
++                         memory_order order = memory_order::seq_cst) noexcept;
++    bool compare_exchange_weak(weak_ptr<T>& expected, weak_ptr<T> desired,
++                               memory_order success, memory_order failure) noexcept;
++    bool compare_exchange_strong(weak_ptr<T>& expected, weak_ptr<T> desired,
++                                 memory_order success, memory_order failure) noexcept;
++    bool compare_exchange_weak(weak_ptr<T>& expected, weak_ptr<T> desired,
++                               memory_order order = memory_order::seq_cst) noexcept;
++    bool compare_exchange_strong(weak_ptr<T>& expected, weak_ptr<T> desired,
++                                 memory_order order = memory_order::seq_cst) noexcept;
++
++    void wait(weak_ptr<T> old, memory_order order = memory_order::seq_cst) const noexcept;
++    void notify_one() noexcept;
++    void notify_all() noexcept;
++};
++
+ }  // std
+ 
+ */
+@@ -928,6 +1000,7 @@ template<size_t N, class T>
+ #include <__memory/allocator_arg_t.h>
+ #include <__memory/allocator_traits.h>
+ #include <__memory/assume_aligned.h>
++#include <__memory/atomic_shared_ptr.h>
+ #include <__memory/auto_ptr.h>
+ #include <__memory/compressed_pair.h>
+ #include <__memory/concepts.h>
+diff --git a/libcxx/include/module.modulemap.in b/libcxx/include/module.modulemap.in
+index 194a74a1e07b..0f43732135c3 100644
+--- a/libcxx/include/module.modulemap.in
++++ b/libcxx/include/module.modulemap.in
+@@ -1508,6 +1508,7 @@ module std_private_memory_allocator_arg_t                 [system] { header "__m
+ module std_private_memory_allocator_destructor            [system] { header "__memory/allocator_destructor.h" }
+ module std_private_memory_allocator_traits                [system] { header "__memory/allocator_traits.h" }
+ module std_private_memory_assume_aligned                  [system] { header "__memory/assume_aligned.h" }
++module std_private_memory_atomic_shared_ptr               [system] { header "__memory/atomic_shared_ptr.h" }
+ module std_private_memory_auto_ptr                        [system] { header "__memory/auto_ptr.h" }
+ module std_private_memory_builtin_new_allocator           [system] {
+   header "__memory/builtin_new_allocator.h"
+diff --git a/libcxx/include/version b/libcxx/include/version
+index d356976d6454..b16ea0475b9a 100644
+--- a/libcxx/include/version
++++ b/libcxx/include/version
+@@ -352,7 +352,7 @@ __cpp_lib_within_lifetime                               202306L <type_traits>
+ // # define __cpp_lib_atomic_float                         201711L
+ # define __cpp_lib_atomic_lock_free_type_aliases        201907L
+ // # define __cpp_lib_atomic_ref                           201806L
+-// # define __cpp_lib_atomic_shared_ptr                    201711L
++# define __cpp_lib_atomic_shared_ptr                    201711L
+ # define __cpp_lib_atomic_value_initialization          201911L
+ # if _LIBCPP_AVAILABILITY_HAS_SYNC
+ #   define __cpp_lib_atomic_wait                        201907L
+diff --git a/libcxx/modules/std/memory.inc b/libcxx/modules/std/memory.inc
+index ef89845457fb..57ce35779721 100644
+--- a/libcxx/modules/std/memory.inc
++++ b/libcxx/modules/std/memory.inc
+@@ -192,6 +192,9 @@ export namespace std {
+   //  using std::inout_ptr;
+ 
+ #ifndef _LIBCPP_HAS_NO_THREADS
++  // [util.smartptr.atomic]
++  using std::atomic;
++
+   // [depr.util.smartptr.shared.atomic]
+   using std::atomic_is_lock_free;
+ 
+diff --git a/libcxx/test/std/atomics/types.pass.cpp b/libcxx/test/std/atomics/types.pass.cpp
+index cebf66ee7f1a..4fb62d9d13ca 100644
+--- a/libcxx/test/std/atomics/types.pass.cpp
++++ b/libcxx/test/std/atomics/types.pass.cpp
+@@ -181,9 +181,8 @@ int main(int, char**)
+     test<std::atomic_unsigned_lock_free::value_type>();
+     static_assert(std::is_unsigned_v<std::atomic_unsigned_lock_free::value_type>);
+     static_assert(std::is_integral_v<std::atomic_unsigned_lock_free::value_type>);
+-/*
+     test<std::shared_ptr<int>>();
+-*/
++    test<std::weak_ptr<int>>();
+ #endif
+ 
+     return 0;
+diff --git a/libcxx/test/std/language.support/support.limits/support.limits.general/atomic.version.compile.pass.cpp b/libcxx/test/std/language.support/support.limits/support.limits.general/atomic.version.compile.pass.cpp
+index 86315c23a496..346d31304cd3 100644
+--- a/libcxx/test/std/language.support/support.limits/support.limits.general/atomic.version.compile.pass.cpp
++++ b/libcxx/test/std/language.support/support.limits/support.limits.general/atomic.version.compile.pass.cpp
+@@ -196,17 +196,11 @@
+ #   endif
+ # endif
+ 
+-# if !defined(_LIBCPP_VERSION)
+-#   ifndef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should be defined in c++20"
+-#   endif
+-#   if __cpp_lib_atomic_shared_ptr != 201711L
+-#     error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++20"
+-#   endif
+-# else // _LIBCPP_VERSION
+-#   ifdef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should not be defined because it is unimplemented in libc++!"
+-#   endif
++# ifndef __cpp_lib_atomic_shared_ptr
++#   error "__cpp_lib_atomic_shared_ptr should be defined in c++20"
++# endif
++# if __cpp_lib_atomic_shared_ptr != 201711L
++#   error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++20"
+ # endif
+ 
+ # ifndef __cpp_lib_atomic_value_initialization
+@@ -291,17 +285,11 @@
+ #   endif
+ # endif
+ 
+-# if !defined(_LIBCPP_VERSION)
+-#   ifndef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should be defined in c++23"
+-#   endif
+-#   if __cpp_lib_atomic_shared_ptr != 201711L
+-#     error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++23"
+-#   endif
+-# else // _LIBCPP_VERSION
+-#   ifdef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should not be defined because it is unimplemented in libc++!"
+-#   endif
++# ifndef __cpp_lib_atomic_shared_ptr
++#   error "__cpp_lib_atomic_shared_ptr should be defined in c++23"
++# endif
++# if __cpp_lib_atomic_shared_ptr != 201711L
++#   error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++23"
+ # endif
+ 
+ # ifndef __cpp_lib_atomic_value_initialization
+@@ -386,17 +374,11 @@
+ #   endif
+ # endif
+ 
+-# if !defined(_LIBCPP_VERSION)
+-#   ifndef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should be defined in c++26"
+-#   endif
+-#   if __cpp_lib_atomic_shared_ptr != 201711L
+-#     error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++26"
+-#   endif
+-# else // _LIBCPP_VERSION
+-#   ifdef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should not be defined because it is unimplemented in libc++!"
+-#   endif
++# ifndef __cpp_lib_atomic_shared_ptr
++#   error "__cpp_lib_atomic_shared_ptr should be defined in c++26"
++# endif
++# if __cpp_lib_atomic_shared_ptr != 201711L
++#   error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++26"
+ # endif
+ 
+ # ifndef __cpp_lib_atomic_value_initialization
+diff --git a/libcxx/test/std/language.support/support.limits/support.limits.general/version.version.compile.pass.cpp b/libcxx/test/std/language.support/support.limits/support.limits.general/version.version.compile.pass.cpp
+index 41eb7f560213..cd1f82b3407c 100644
+--- a/libcxx/test/std/language.support/support.limits/support.limits.general/version.version.compile.pass.cpp
++++ b/libcxx/test/std/language.support/support.limits/support.limits.general/version.version.compile.pass.cpp
+@@ -3056,17 +3056,11 @@
+ #   endif
+ # endif
+ 
+-# if !defined(_LIBCPP_VERSION)
+-#   ifndef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should be defined in c++20"
+-#   endif
+-#   if __cpp_lib_atomic_shared_ptr != 201711L
+-#     error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++20"
+-#   endif
+-# else // _LIBCPP_VERSION
+-#   ifdef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should not be defined because it is unimplemented in libc++!"
+-#   endif
++# ifndef __cpp_lib_atomic_shared_ptr
++#   error "__cpp_lib_atomic_shared_ptr should be defined in c++20"
++# endif
++# if __cpp_lib_atomic_shared_ptr != 201711L
++#   error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++20"
+ # endif
+ 
+ # ifndef __cpp_lib_atomic_value_initialization
+@@ -4419,17 +4413,11 @@
+ #   endif
+ # endif
+ 
+-# if !defined(_LIBCPP_VERSION)
+-#   ifndef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should be defined in c++23"
+-#   endif
+-#   if __cpp_lib_atomic_shared_ptr != 201711L
+-#     error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++23"
+-#   endif
+-# else // _LIBCPP_VERSION
+-#   ifdef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should not be defined because it is unimplemented in libc++!"
+-#   endif
++# ifndef __cpp_lib_atomic_shared_ptr
++#   error "__cpp_lib_atomic_shared_ptr should be defined in c++23"
++# endif
++# if __cpp_lib_atomic_shared_ptr != 201711L
++#   error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++23"
+ # endif
+ 
+ # ifndef __cpp_lib_atomic_value_initialization
+@@ -6007,17 +5995,11 @@
+ #   endif
+ # endif
+ 
+-# if !defined(_LIBCPP_VERSION)
+-#   ifndef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should be defined in c++26"
+-#   endif
+-#   if __cpp_lib_atomic_shared_ptr != 201711L
+-#     error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++26"
+-#   endif
+-# else // _LIBCPP_VERSION
+-#   ifdef __cpp_lib_atomic_shared_ptr
+-#     error "__cpp_lib_atomic_shared_ptr should not be defined because it is unimplemented in libc++!"
+-#   endif
++# ifndef __cpp_lib_atomic_shared_ptr
++#   error "__cpp_lib_atomic_shared_ptr should be defined in c++26"
++# endif
++# if __cpp_lib_atomic_shared_ptr != 201711L
++#   error "__cpp_lib_atomic_shared_ptr should have the value 201711L in c++26"
+ # endif
+ 
+ # ifndef __cpp_lib_atomic_value_initialization
+diff --git a/libcxx/utils/generate_feature_test_macro_components.py b/libcxx/utils/generate_feature_test_macro_components.py
+index 9825d4c8ec1d..3178f3c94982 100755
+--- a/libcxx/utils/generate_feature_test_macro_components.py
++++ b/libcxx/utils/generate_feature_test_macro_components.py
+@@ -181,7 +181,6 @@ feature_test_macros = [
+             "name": "__cpp_lib_atomic_shared_ptr",
+             "values": {"c++20": 201711},
+             "headers": ["atomic"],
+-            "unimplemented": True,
+         },
+         {
+             "name": "__cpp_lib_atomic_value_initialization",

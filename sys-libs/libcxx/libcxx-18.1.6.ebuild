@@ -67,6 +67,7 @@ src_prepare() {
 
 	pushd .. > /dev/null
 	eapply "${FILESDIR}/thread_local.patch"
+	eapply "${FILESDIR}/atomic_shared_ptr.patch"
 	popd > /dev/null
 
 	cmake_src_prepare
