@@ -1,8 +1,172 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 5c1d7c6e3..c05ddd9cb 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -438,6 +438,26 @@ dependencies = [
+  "serde",
+ ]
+ 
++[[package]]
++name = "bindgen"
++version = "0.64.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "c4243e6031260db77ede97ad86c27e501d646a27ab57b59a574f725d98ab1fb4"
++dependencies = [
++ "bitflags 1.3.2",
++ "cexpr",
++ "clang-sys",
++ "lazy_static",
++ "lazycell",
++ "peeking_take_while",
++ "proc-macro2",
++ "quote",
++ "regex",
++ "rustc-hash",
++ "shlex",
++ "syn 1.0.109",
++]
++
+ [[package]]
+ name = "bit-set"
+ version = "0.5.3"
+@@ -608,6 +628,15 @@ dependencies = [
+  "libc",
+ ]
+ 
++[[package]]
++name = "cexpr"
++version = "0.6.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "6fac387a98bb7c37292057cffc56d62ecb629900026402633ae9160df93a8766"
++dependencies = [
++ "nom 7.1.3",
++]
++
+ [[package]]
+ name = "cfg-if"
+ version = "1.0.0"
+@@ -640,6 +669,17 @@ dependencies = [
+  "inout",
+ ]
+ 
++[[package]]
++name = "clang-sys"
++version = "1.7.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "67523a3b4be3ce1989d607a828d036249522dd9c1c8de7f4dd2dae43a37369d1"
++dependencies = [
++ "glob",
++ "libc",
++ "libloading 0.8.3",
++]
++
+ [[package]]
+ name = "clap"
+ version = "4.4.17"
+@@ -1313,7 +1353,6 @@ dependencies = [
+  "bit-vec",
+  "bytes",
+  "cooked-waker",
+- "deno_core_icudata",
+  "deno_ops",
+  "deno_unsync",
+  "futures",
+@@ -1332,12 +1371,6 @@ dependencies = [
+  "v8",
+ ]
+ 
+-[[package]]
+-name = "deno_core_icudata"
+-version = "0.0.73"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "a13951ea98c0a4c372f162d669193b4c9d991512de9f2381dd161027f34b26b1"
+-
+ [[package]]
+ name = "deno_cron"
+ version = "0.35.0"
+@@ -3621,9 +3654,9 @@ checksum = "8eaf4bc02d17cbdd7ff4c7438cafcdf7fb9a4613313ad11b4f8fefe7d3fa0130"
+ 
+ [[package]]
+ name = "jobserver"
+-version = "0.1.29"
++version = "0.1.31"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "f08474e32172238f2827bd160c67871cdb2801430f65c3979184dc362e3ca118"
++checksum = "d2b099aaa34a9751c5bf0878add70444e1ed2dd73f347be99003d4577277de6e"
+ dependencies = [
+  "libc",
+ ]
+@@ -3739,6 +3772,12 @@ dependencies = [
+  "spin 0.5.2",
+ ]
+ 
++[[package]]
++name = "lazycell"
++version = "1.3.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
++
+ [[package]]
+ name = "lexical-core"
+ version = "0.8.5"
+@@ -3870,7 +3909,7 @@ version = "0.26.0"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "afc22eff61b133b115c6e8c74e818c628d6d5e7a502afea6f64dee076dd94326"
+ dependencies = [
+- "cc",
++ "bindgen",
+  "pkg-config",
+  "vcpkg",
+ ]
+@@ -4598,6 +4637,12 @@ dependencies = [
+  "hmac",
+ ]
+ 
++[[package]]
++name = "peeking_take_while"
++version = "0.1.2"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "19b17cddbe7ec3f8bc800887bab5e717348c95ea2ca0b1bf0837fb964dc67099"
++
+ [[package]]
+ name = "pem-rfc7468"
+ version = "0.7.0"
+@@ -5820,6 +5865,12 @@ dependencies = [
+  "dirs",
+ ]
+ 
++[[package]]
++name = "shlex"
++version = "1.3.0"
++source = "registry+https://github.com/rust-lang/crates.io-index"
++checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
++
+ [[package]]
+ name = "signal-hook"
+ version = "0.3.17"
 diff --git a/Cargo.toml b/Cargo.toml
-index 0527e2355..beca91453 100644
+index cfb00598c..f53ed5afb 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -179,7 +179,7 @@ url = { version = "< 2.5.0", features = ["serde", "expose_internals"] }
+@@ -44,7 +44,7 @@ repository = "https://github.com/denoland/deno"
+ 
+ [workspace.dependencies]
+ deno_ast = { version = "=0.39.0", features = ["transpiling"] }
+-deno_core = { version = "0.284.0" }
++deno_core = { version = "0.284.0", default-features = false }
+ 
+ deno_bench_util = { version = "0.149.0", path = "./bench_util" }
+ deno_lockfile = "0.20.0"
+@@ -147,7 +147,7 @@ rand = "=0.8.5"
+ regex = "^1.7.0"
+ reqwest = { version = "=0.11.20", default-features = false, features = ["rustls-tls", "stream", "gzip", "brotli", "socks", "json"] } # pinned because of https://github.com/seanmonstar/reqwest/pull/1955
+ ring = "^0.17.0"
+-rusqlite = { version = "=0.29.0", features = ["unlock_notify", "bundled"] }
++rusqlite = { version = "=0.29.0", features = ["unlock_notify", "buildtime_bindgen"] }
+ # pinned because it was causing issues on cargo publish
+ rustls = "=0.21.11"
+ rustls-pemfile = "1.0.0"
+@@ -180,7 +180,7 @@ url = { version = "< 2.5.0", features = ["serde", "expose_internals"] }
  uuid = { version = "1.3.0", features = ["v4"] }
  webpki-roots = "0.25.2"
  zeromq = { version = "=0.3.4", default-features = false, features = ["tcp-transport", "tokio-runtime"] }
@@ -12,7 +176,7 @@ index 0527e2355..beca91453 100644
  # crypto
  hkdf = "0.12.3"
 diff --git a/ext/ffi/Cargo.toml b/ext/ffi/Cargo.toml
-index cef95bf49..0a603aae0 100644
+index fb0d4ae2a..ba203647c 100644
 --- a/ext/ffi/Cargo.toml
 +++ b/ext/ffi/Cargo.toml
 @@ -18,7 +18,7 @@ deno_core.workspace = true

@@ -1,16 +1,16 @@
 diff --git a/build.rs b/build.rs
-index 3ac4392..c4667f6 100644
+index 48221b6..7c1c2ac 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -77,6 +77,7 @@ fn main() {
-     return build_v8();
+@@ -100,6 +100,7 @@ fn main() {
+     return build_v8(is_asan);
    }
  
 +  panic!("Won't download library");
    // utilize a lockfile to prevent linking of
    // only partially downloaded static library.
    let root = env::current_dir().unwrap();
-@@ -102,16 +103,8 @@ fn build_v8() {
+@@ -125,16 +126,8 @@ fn build_v8(is_asan: bool) {
    // cargo publish doesn't like pyc files.
    env::set_var("PYTHONDONTWRITEBYTECODE", "1");
  
@@ -27,8 +27,8 @@ index 3ac4392..c4667f6 100644
 +    panic!("gn and ninja must be installed");
      download_ninja_gn_binaries();
    }
- 
-@@ -133,7 +126,8 @@ fn build_v8() {
+   // `#[cfg(...)]` attributes don't work as expected from build.rs -- they refer to the configuration
+@@ -162,7 +155,8 @@ fn build_v8(is_asan: bool) {
      gn_args.push("host_cpu=\"arm64\"".to_string())
    }
  
@@ -38,7 +38,7 @@ index 3ac4392..c4667f6 100644
      gn_args.push("is_clang=false".into());
      // -gline-tables-only is Clang-only
      gn_args.push("line_tables_only=false".into());
-@@ -151,7 +145,8 @@ fn build_v8() {
+@@ -180,7 +174,8 @@ fn build_v8(is_asan: bool) {
      }
    }
  
@@ -48,47 +48,37 @@ index 3ac4392..c4667f6 100644
      cc_wrapper(&mut gn_args, Path::new(&p));
    } else if let Ok(p) = which("sccache") {
      cc_wrapper(&mut gn_args, &p);
-@@ -171,7 +166,7 @@ fn build_v8() {
+@@ -200,21 +195,21 @@ fn build_v8(is_asan: bool) {
+   // cross-compilation setup
+   if target_arch == "aarch64" {
+     gn_args.push(r#"target_cpu="arm64""#.to_string());
+-    gn_args.push("use_sysroot=true".to_string());
+-    maybe_install_sysroot("arm64");
+-    maybe_install_sysroot("amd64");
++    //gn_args.push("use_sysroot=true".to_string());
++    //maybe_install_sysroot("arm64");
++    //maybe_install_sysroot("amd64");
+   }
+-  if target_arch == "arm" {
++  if false && target_arch == "arm" {
+     gn_args.push(r#"target_cpu="arm""#.to_string());
+     gn_args.push(r#"v8_target_cpu="arm""#.to_string());
+-    gn_args.push("use_sysroot=true".to_string());
+-    maybe_install_sysroot("i386");
+-    maybe_install_sysroot("arm");
++    //gn_args.push("use_sysroot=true".to_string());
++    //maybe_install_sysroot("i386");
++    //maybe_install_sysroot("arm");
+   }
  
    let target_triple = env::var("TARGET").unwrap();
    // check if the target triple describes a non-native environment
--  if target_triple != env::var("HOST").unwrap() {
-+  if false && target_triple != env::var("HOST").unwrap() {
-     // cross-compilation setup
-     if target_triple == "aarch64-unknown-linux-gnu"
-       || target_triple == "aarch64-linux-android"
-@@ -479,28 +474,9 @@ fn print_link_flags() {
-         .any(|ba| ba == "use_custom_libcxx=false")
-     });
- 
--  if should_dyn_link_libcxx {
--    // Based on https://github.com/alexcrichton/cc-rs/blob/fba7feded71ee4f63cfe885673ead6d7b4f2f454/src/lib.rs#L2462
--    if let Ok(stdlib) = env::var("CXXSTDLIB") {
--      if !stdlib.is_empty() {
--        println!("cargo:rustc-link-lib=dylib={}", stdlib);
--      }
--    } else {
--      let target = env::var("TARGET").unwrap();
--      if target.contains("msvc") {
--        // nothing to link to
--      } else if target.contains("apple")
--        || target.contains("freebsd")
--        || target.contains("openbsd")
--      {
--        println!("cargo:rustc-link-lib=dylib=c++");
--      } else if target.contains("android") {
--        println!("cargo:rustc-link-lib=dylib=c++_shared");
--      } else {
--        println!("cargo:rustc-link-lib=dylib=stdc++");
--      }
-+    if let Ok(val) = std::env::var("CXXSTDLIB") {
-+      println!("cargo:rustc-link-lib={}", val);
-     }
--  }
- 
-   if cfg!(target_os = "windows") {
-     println!("cargo:rustc-link-lib=dylib=winmm");
-@@ -688,6 +664,7 @@ type NinjaEnv = Vec<(String, String)>;
+-  if target_triple != env::var("HOST").unwrap() && target_os == "android" {
++  if false && target_triple != env::var("HOST").unwrap() && target_os == "android" {
+     let arch = if target_arch == "x86_64" {
+       "x64"
+     } else if target_arch == "aarch64" {
+@@ -836,6 +831,7 @@ type NinjaEnv = Vec<(String, String)>;
  fn ninja(gn_out_dir: &Path, maybe_env: Option<NinjaEnv>) -> Command {
    let cmd_string = env::var("NINJA").unwrap_or_else(|_| "ninja".to_owned());
    let mut cmd = Command::new(cmd_string);
@@ -96,7 +86,7 @@ index 3ac4392..c4667f6 100644
    cmd.arg("-C");
    cmd.arg(gn_out_dir);
    if let Ok(jobs) = env::var("NUM_JOBS") {
-@@ -727,6 +704,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
+@@ -875,6 +871,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
        .arg(format!("--script-executable={}", python()))
        .arg("gen")
        .arg(&gn_out_dir)

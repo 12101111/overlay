@@ -3,16 +3,15 @@
 
 EAPI=8
 
-# Can't do 12 yet: heavy use of imp, among other things (bug #915001, bug #915062)
-PYTHON_COMPAT=( python3_{10..11} )
+PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
 
 # Same LLVM version of Rust
-LLVM_VALID_SLOTS=( 17 18 )
-LLVM_MAX_SLOT=18
-GN_MIN_VER=0.2122
+LLVM_VALID_SLOTS=( 17 18 19 )
+LLVM_MAX_SLOT=19
+GN_MIN_VER=0.2165
 
-V8_VER=0.91.1
+V8_VER=0.92.0
 STACKER_VER=0.1.15
 
 CRATES="
@@ -61,6 +60,7 @@ CRATES="
 	bencher-0.1.5
 	better_scoped_tls-0.1.1
 	bincode-1.3.3
+	bindgen-0.64.0
 	bit-set-0.5.3
 	bit-vec-0.6.3
 	bitflags-1.3.2
@@ -81,10 +81,12 @@ CRATES="
 	cache_control-0.2.0
 	cbc-0.1.2
 	cc-1.0.92
+	cexpr-0.6.0
 	cfg-if-1.0.0
 	cfg_aliases-0.1.1
 	chrono-0.4.37
 	cipher-0.4.4
+	clang-sys-1.7.0
 	clap-4.4.17
 	clap_builder-4.4.17
 	clap_complete-4.4.7
@@ -127,28 +129,27 @@ CRATES="
 	data-encoding-2.5.0
 	data-url-0.3.0
 	debugid-0.8.0
-	deno_ast-0.38.2
-	deno_cache_dir-0.7.1
-	deno_config-0.16.3
-	deno_core-0.280.0
-	deno_core_icudata-0.0.73
-	deno_doc-0.135.0
-	deno_emit-0.40.3
-	deno_graph-0.75.2
-	deno_lint-0.58.4
-	deno_lockfile-0.19.0
+	deno_ast-0.39.0
+	deno_cache_dir-0.10.0
+	deno_config-0.16.4
+	deno_core-0.284.0
+	deno_doc-0.139.0
+	deno_emit-0.42.0
+	deno_graph-0.78.0
+	deno_lint-0.60.0
+	deno_lockfile-0.20.0
 	deno_media_type-0.1.4
 	deno_native_certs-0.2.0
-	deno_npm-0.20.2
-	deno_ops-0.156.0
+	deno_npm-0.21.2
+	deno_ops-0.160.0
 	deno_semver-0.5.4
 	deno_task_shell-0.16.1
 	deno_terminal-0.1.1
 	deno_unsync-0.3.4
 	deno_whoami-0.1.0
-	denokv_proto-0.5.0
-	denokv_remote-0.5.0
-	denokv_sqlite-0.5.0
+	denokv_proto-0.7.0
+	denokv_remote-0.7.0
+	denokv_sqlite-0.7.0
 	der-0.7.9
 	der-parser-8.2.0
 	deranged-0.3.11
@@ -169,11 +170,12 @@ CRATES="
 	dotenvy-0.15.7
 	dprint-core-0.66.2
 	dprint-core-macros-0.1.0
-	dprint-plugin-json-0.19.2
+	dprint-plugin-json-0.19.3
 	dprint-plugin-jupyter-0.1.3
-	dprint-plugin-markdown-0.17.0
-	dprint-plugin-typescript-0.90.5
+	dprint-plugin-markdown-0.17.1
+	dprint-plugin-typescript-0.91.1
 	dprint-swc-ext-0.16.0
+	drain-0.1.2
 	dsa-0.6.3
 	dyn-clone-1.0.17
 	dynasm-1.2.3
@@ -185,7 +187,7 @@ CRATES="
 	encoding_rs-0.8.33
 	endian-type-0.1.2
 	entities-1.0.1
-	enum-as-inner-0.5.1
+	enum-as-inner-0.6.0
 	env_logger-0.10.0
 	equivalent-1.0.1
 	errno-0.2.8
@@ -193,7 +195,7 @@ CRATES="
 	errno-dragonfly-0.1.2
 	error-code-3.2.0
 	escape8259-0.5.2
-	eszip-0.69.0
+	eszip-0.71.0
 	fallible-iterator-0.2.0
 	fallible-streaming-iterator-0.1.9
 	fancy-regex-0.10.0
@@ -204,7 +206,7 @@ CRATES="
 	fdeflate-0.3.4
 	ff-0.13.0
 	fiat-crypto-0.2.7
-	file_test_runner-0.7.0
+	file_test_runner-0.7.2
 	filetime-0.2.23
 	fixedbitset-0.4.2
 	flaky_test-0.1.0
@@ -278,7 +280,6 @@ CRATES="
 	hyper-rustls-0.24.2
 	hyper-util-0.1.2
 	ident_case-1.0.1
-	idna-0.2.3
 	idna-0.3.0
 	idna-0.4.0
 	if_chain-1.0.2
@@ -299,7 +300,7 @@ CRATES="
 	itertools-0.10.5
 	itoa-1.0.11
 	jni-sys-0.3.0
-	jobserver-0.1.29
+	jobserver-0.1.31
 	js-sys-0.3.69
 	jsonc-parser-0.23.0
 	junction-0.2.0
@@ -311,6 +312,7 @@ CRATES="
 	lazy-regex-3.1.0
 	lazy-regex-proc_macros-3.1.0
 	lazy_static-1.4.0
+	lazycell-1.3.0
 	lexical-core-0.8.5
 	lexical-parse-float-0.8.5
 	lexical-parse-integer-0.8.6
@@ -338,7 +340,6 @@ CRATES="
 	maplit-1.0.2
 	markup5ever-0.11.0
 	match_cfg-0.1.0
-	matches-0.1.10
 	md-5-0.10.6
 	md4-0.10.2
 	memchr-2.7.2
@@ -401,6 +402,7 @@ CRATES="
 	path-dedot-3.1.1
 	pathdiff-0.2.1
 	pbkdf2-0.12.2
+	peeking_take_while-0.1.2
 	pem-rfc7468-0.7.0
 	percent-encoding-2.3.1
 	pest-2.7.9
@@ -474,7 +476,7 @@ CRATES="
 	ripemd-0.1.3
 	ron-0.8.1
 	rsa-0.9.6
-	runtimelib-0.9.0
+	runtimelib-0.11.0
 	rusqlite-0.29.0
 	rustc-demangle-0.1.23
 	rustc-hash-1.1.0
@@ -512,14 +514,16 @@ CRATES="
 	serde_derive-1.0.200
 	serde_json-1.0.115
 	serde_repr-0.1.16
+	serde_spanned-0.6.6
 	serde_urlencoded-0.7.1
-	serde_v8-0.189.0
+	serde_v8-0.193.0
 	sha-1-0.10.0
 	sha1-0.10.6
 	sha1_smol-1.0.0
 	sha2-0.10.8
 	shell-escape-0.1.5
 	shellexpand-3.1.0
+	shlex-1.3.0
 	signal-hook-0.3.17
 	signal-hook-registry-1.4.1
 	signature-2.2.0
@@ -603,6 +607,9 @@ CRATES="
 	tokio-stream-0.1.15
 	tokio-util-0.7.10
 	toml-0.5.11
+	toml-0.7.8
+	toml_datetime-0.6.6
+	toml_edit-0.19.15
 	tower-0.4.13
 	tower-layer-0.3.2
 	tower-lsp-0.20.0
@@ -612,10 +619,10 @@ CRATES="
 	tracing-attributes-0.1.27
 	tracing-core-0.1.32
 	triomphe-0.1.11
-	trust-dns-client-0.22.0
-	trust-dns-proto-0.22.0
-	trust-dns-resolver-0.22.0
-	trust-dns-server-0.22.1
+	trust-dns-client-0.23.2
+	trust-dns-proto-0.23.2
+	trust-dns-resolver-0.23.2
+	trust-dns-server-0.23.2
 	try-lock-0.2.5
 	twox-hash-1.6.3
 	typed-arena-2.0.1
@@ -644,7 +651,8 @@ CRATES="
 	utf8-width-0.1.7
 	utf8parse-0.2.1
 	uuid-1.8.0
-	v8-0.91.1
+	v8-0.92.0
+	v8_valueserializer-0.1.1
 	value-trait-0.8.1
 	vcpkg-0.2.15
 	version_check-0.9.4
@@ -696,8 +704,10 @@ CRATES="
 	windows_x86_64_gnullvm-0.52.4
 	windows_x86_64_msvc-0.48.5
 	windows_x86_64_msvc-0.52.4
+	winnow-0.5.40
 	winreg-0.50.0
 	winres-0.1.12
+	wtf8-0.1.0
 	wyz-0.5.1
 	x25519-dalek-2.0.1
 	x509-parser-0.15.1
@@ -720,6 +730,7 @@ DESCRIPTION="A secure JavaScript and TypeScript runtime"
 HOMEPAGE="https://deno.land"
 SRC_URI="
 	https://github.com/denoland/deno/releases/download/v${PV}/deno_src.tar.gz -> ${P}.tar.gz
+	https://raw.githubusercontent.com/chromium/chromium/126.0.6478.46/tools/generate_shim_headers/generate_shim_headers.py -> deno_126_generate_shim_headers.py
 	$(cargo_crate_uris ${CRATES})
 "
 
@@ -727,16 +738,28 @@ LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
 RESTRICT="mirror"
-IUSE="static-libs bash-completion zsh-completion fish-completion"
+IUSE="denort static-libs bash-completion zsh-completion fish-completion"
 
 BDEPEND="
 	>=dev-build/gn-${GN_MIN_VER}
 	app-alternatives/ninja
+	|| (
+		sys-devel/clang:17
+		sys-devel/clang:18
+		sys-devel/clang:19
+	)
+	|| (
+		sys-devel/lld:17
+		sys-devel/lld:18
+		sys-devel/lld:19
+	)
 "
 DEPEND="
 	>=dev-libs/libffi-3.4.4
 	>=sys-libs/zlib-1.3
 	>=app-arch/zstd-1.5.5
+	dev-db/sqlite:3
+	>=dev-libs/icu-74.2:=
 	elibc_musl? ( debug? ( sys-libs/libexecinfo ) )
 "
 
@@ -767,8 +790,10 @@ src_prepare() {
 	fi
 	if use elibc_musl; then
 		eapply "${FILESDIR}/execinfo.patch"
+		eapply "${FILESDIR}/musl-v8-monotonic-pthread-cont_timedwait.patch"
 	fi
-	eapply "${FILESDIR}/build_from_source-1.41.2.patch"
+	eapply "${FILESDIR}/build_from_source-1.44.1.patch"
+	eapply "${FILESDIR}/v8-use-system-libraries.patch"
 	if [[ -z "${CXXSTDLIB}" ]]; then
 		if [[ $(tc-get-cxx-stdlib) == libc++ ]]; then
 			export CXXSTDLIB=c++
@@ -776,6 +801,8 @@ src_prepare() {
 			export CXXSTDLIB=stdc++
 		fi
 	fi
+	install -Dm755 ${DISTDIR}/deno_126_generate_shim_headers.py tools/generate_shim_headers/generate_shim_headers.py
+	build/linux/unbundle/replace_gn_files.py --system-libraries icu || die
 	popd >/dev/null || die
 
 	cp -r "${ECARGO_VENDOR}/stacker-${STACKER_VER}" "${WORKDIR}/stacker"
@@ -783,17 +810,11 @@ src_prepare() {
 	eapply "${FILESDIR}/stacker.patch"
 	popd >/dev/null || die
 
-	cp -r "${ECARGO_VENDOR}/jobserver-0.1.29" "${WORKDIR}/jobserver"
-	pushd "${WORKDIR}/jobserver" >/dev/null || die
-	eapply "${FILESDIR}/jobserver-musl.patch"
-	popd >/dev/null || die
-
 	pushd "${S}" >/dev/null || die
 	cat <<-_EOF_ >>Cargo.toml
 		[patch.crates-io]
 		v8 = { path = '../v8' }
 		stacker = { path = '../stacker' }
-		jobserver = { path = '../jobserver' }
 	_EOF_
 	if use elibc_musl; then
 		eapply "${FILESDIR}/fix-stackoverflow.patch"
@@ -819,6 +840,7 @@ src_configure() {
 	myconf_gn+=" v8_snapshot_toolchain=\"//build/toolchain/linux/unbundle:default\""
 	myconf_gn+=" clang_base_path=\"$(get_llvm_prefix "${LLVM_MAX_SLOT}")\""
 	myconf_gn+=" fatal_linker_warnings=false treat_warnings_as_errors=false"
+	myconf_gn+=" system_zlib=true"
 	export GN_ARGS="${myconf_gn}"
 	cargo_src_configure --no-default-features
 }
@@ -828,17 +850,27 @@ src_compile() {
 	export CARGO_BUILD_JOBS="$(makeopts_jobs)"
 
 	cargo_src_compile --bin deno -vv
+	use denort && cargo_src_compile --bin denort -vv
 }
 
 src_test() {
-	cargo_src_test --workspace
+	cargo_src_compile --bin test_server -vv
+	local server
+	if use debug; then
+		server=target/debug/test_server
+	else
+		server=target/release/test_server
+	fi
+	$server & cargo_src_test --workspace
 }
 
 src_install() {
 	if use debug; then
 		dobin "${S}"/target/debug/deno
+		use denort && dobin "${S}"/target/debug/denort
 	else
 		dobin "${S}"/target/release/deno
+		use denort && dobin "${S}"/target/release/denort
 	fi
 	einstalldocs
 	use static-libs && dolib.a "${S}"/target/release/gn_out/obj/librusty_v8.a
