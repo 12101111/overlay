@@ -1,4 +1,4 @@
-From a1404eadb6f3ca1d3e4023f1bfab1c0ea4275de7 Mon Sep 17 00:00:00 2001
+From fbd50246cc6366b543d0ad054d43ecf06d2c912f Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 24 Nov 2023 22:40:19 +0800
 Subject: [PATCH 08/12] disable crash reporter
@@ -8,10 +8,10 @@ Subject: [PATCH 08/12] disable crash reporter
  1 file changed, 1 insertion(+), 48 deletions(-)
 
 diff --git a/src/main.js b/src/main.js
-index 90de17b278b..955d4abd123 100644
+index 9fe5654081d..87f4301734d 100644
 --- a/src/main.js
 +++ b/src/main.js
-@@ -402,54 +402,7 @@ function configureCrashReporter() {
+@@ -405,54 +405,7 @@ function configureCrashReporter() {
  
  	// Otherwise we configure the crash reporter from product.json
  	else {
@@ -68,5 +68,5 @@ index 90de17b278b..955d4abd123 100644
  
  	// Start crash reporter for all processes
 -- 
-2.45.0
+2.45.2
 
