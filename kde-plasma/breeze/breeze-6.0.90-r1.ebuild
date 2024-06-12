@@ -12,6 +12,8 @@ inherit ecm plasma.kde.org
 
 DESCRIPTION="Breeze visual style for the Plasma desktop"
 HOMEPAGE="https://invent.kde.org/plasma/breeze"
+SRC_URI="https://dev.gentoo.org/~asturm/distfiles/${P}-ecde160f.tar.gz"
+S="${WORKDIR}/${PN}-ecde160f7e311cfe00a37aa4af6c3b274b285c6f"
 
 LICENSE="GPL-2" # TODO: CHECK
 SLOT="6"
