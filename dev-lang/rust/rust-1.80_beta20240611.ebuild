@@ -33,7 +33,7 @@ else
 	IS_DEV=""
 fi
 
-RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).1"
+RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 2)).0"
 
 DESCRIPTION="Systems programming language from Mozilla"
 HOMEPAGE="https://www.rust-lang.org/"
@@ -178,7 +178,7 @@ VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 PATCHES=(
 	"${FILESDIR}"/1.78.0-musl-dynamic-linking.patch
 	"${FILESDIR}"/1.74.1-cross-compile-libz.patch
-	"${FILESDIR}"/1.78.0-ignore-broken-and-non-applicable-tests.patch
+	#"${FILESDIR}"/1.78.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
 )
 
@@ -375,7 +375,7 @@ src_configure() {
 
 	local cm_btype="$(usex debug DEBUG RELEASE)"
 	cat <<- _EOF_ > "${S}"/config.toml
-		change-id=119373
+		change-id=123711
 		[llvm]
 		download-ci-llvm = false
 		optimize = $(toml_usex !debug)
@@ -436,6 +436,7 @@ src_configure() {
 		verbose = 2
 		sanitizers = $(toml_usex sanitizers)
 		profiler = $(toml_usex profiler)
+		optimized-compiler-builtins = true
 		cargo-native-static = false
 		[install]
 		prefix = "${EPREFIX}/usr/lib/${PN}/${PV}"
