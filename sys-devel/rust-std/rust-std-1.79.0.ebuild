@@ -89,7 +89,7 @@ src_configure() {
 	done
 
 	cat <<- EOF > "${S}"/config.toml
-		change-id = 119373
+		change-id = 123711
 		[llvm]
 		download-ci-llvm = false
 		[build]
@@ -138,6 +138,7 @@ src_configure() {
 		$(usev elibc_musl 'crt-static = false')
 		llvm-libunwind = "$(usex llvm-libunwind system no)"
 		profiler = $(toml_usex profiler)
+		optimized-compiler-builtins = true
 	EOF
 
 	if [[ "${CTARGET}" == *-musl* ]]; then
