@@ -37,8 +37,6 @@ RESTRICT="test"
 
 QA_FLAGS_IGNORED="usr/lib/rust/${PV}/rustlib/.*/lib/lib.*.so"
 
-PATCHES=( "${FILESDIR}/update-wasi-sysroot.patch" )
-
 S="${WORKDIR}/${P/-std/c}-src"
 
 toml_usex() {
@@ -105,6 +103,7 @@ src_configure() {
 		extended = true
 		verbose = 2
 		cargo-native-static = false
+		optimized-compiler-builtins = true
 		[install]
 		prefix = "${EPREFIX}/usr/lib/${PN}/${PV}"
 		sysconfdir = "etc"
@@ -138,7 +137,6 @@ src_configure() {
 		$(usev elibc_musl 'crt-static = false')
 		llvm-libunwind = "$(usex llvm-libunwind system no)"
 		profiler = $(toml_usex profiler)
-		optimized-compiler-builtins = true
 	EOF
 
 	if [[ "${CTARGET}" == *-musl* ]]; then
