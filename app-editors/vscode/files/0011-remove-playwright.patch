@@ -1,4 +1,4 @@
-From 4aae250c8d289677b998567aafcb24ec5a91b9a7 Mon Sep 17 00:00:00 2001
+From 566666330727122bdde883d8d7c34f742375e6be Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 9 Jun 2024 00:21:41 +0800
 Subject: [PATCH 11/12] remove playwright
@@ -21,7 +21,7 @@ index 2b89bbc1c99..0bc215911f7 100644
      "@electron/get": "^2.0.0",
      "@types/ansi-colors": "^3.2.0",
 diff --git a/package.json b/package.json
-index fc7e1dd92ad..4cd20732e72 100644
+index 804d8a602c0..89b9fb08fba 100644
 --- a/package.json
 +++ b/package.json
 @@ -10,8 +10,6 @@

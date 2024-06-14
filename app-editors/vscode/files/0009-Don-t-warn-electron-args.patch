@@ -1,4 +1,4 @@
-From 0e9c90978c837d1ca31bdccb770d503c7f5defeb Mon Sep 17 00:00:00 2001
+From f56147b430ab9f56d293b1e6c362db8ff71bab90 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 9 Jun 2024 00:20:42 +0800
 Subject: [PATCH 09/12] Don't warn electron args
@@ -9,7 +9,7 @@ Subject: [PATCH 09/12] Don't warn electron args
  2 files changed, 4 insertions(+)
 
 diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
-index 818021ff0c1..6dcf20b1088 100644
+index d8508f30cd5..48e021834af 100644
 --- a/src/vs/platform/environment/common/argv.ts
 +++ b/src/vs/platform/environment/common/argv.ts
 @@ -117,6 +117,8 @@ export interface NativeParsedArgs {
@@ -22,13 +22,13 @@ index 818021ff0c1..6dcf20b1088 100644
  	'enable-coi'?: boolean;
  
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 26b7d9c6937..dcbe089225a 100644
+index 0984c8da3bf..5714c0c7227 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
-@@ -209,6 +209,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
- 	'trace-startup-format': { type: 'string' },
- 	'trace-startup-file': { type: 'string' },
+@@ -211,6 +211,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
  	'trace-startup-duration': { type: 'string' },
+ 	'use-gl': { type: 'string' },
+ 	'use-angle': { type: 'string' },
 +	'app': { type: 'string' },
 +	'enable-features': { type: 'string' },
  

@@ -1,4 +1,4 @@
-From 4a25935d977ba42418cf9245578b8148550f91f9 Mon Sep 17 00:00:00 2001
+From af89a764ac28ec202bc44724abd1bcaee2294e2f Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Mon, 31 Jul 2023 18:26:28 +0800
 Subject: [PATCH 06/12] Build without electron
