@@ -1,5 +1,5 @@
 diff --git a/Cargo.lock b/Cargo.lock
-index 5c1d7c6e3..c05ddd9cb 100644
+index 85703fb51..923c9fe22 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -438,6 +438,26 @@ dependencies = [
@@ -83,8 +83,8 @@ index 5c1d7c6e3..c05ddd9cb 100644
 -
  [[package]]
  name = "deno_cron"
- version = "0.35.0"
-@@ -3621,9 +3654,9 @@ checksum = "8eaf4bc02d17cbdd7ff4c7438cafcdf7fb9a4613313ad11b4f8fefe7d3fa0130"
+ version = "0.36.0"
+@@ -3629,9 +3662,9 @@ checksum = "8eaf4bc02d17cbdd7ff4c7438cafcdf7fb9a4613313ad11b4f8fefe7d3fa0130"
  
  [[package]]
  name = "jobserver"
@@ -96,7 +96,7 @@ index 5c1d7c6e3..c05ddd9cb 100644
  dependencies = [
   "libc",
  ]
-@@ -3739,6 +3772,12 @@ dependencies = [
+@@ -3747,6 +3780,12 @@ dependencies = [
   "spin 0.5.2",
  ]
  
@@ -109,7 +109,7 @@ index 5c1d7c6e3..c05ddd9cb 100644
  [[package]]
  name = "lexical-core"
  version = "0.8.5"
-@@ -3870,7 +3909,7 @@ version = "0.26.0"
+@@ -3878,7 +3917,7 @@ version = "0.26.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "afc22eff61b133b115c6e8c74e818c628d6d5e7a502afea6f64dee076dd94326"
  dependencies = [
@@ -118,7 +118,7 @@ index 5c1d7c6e3..c05ddd9cb 100644
   "pkg-config",
   "vcpkg",
  ]
-@@ -4598,6 +4637,12 @@ dependencies = [
+@@ -4606,6 +4645,12 @@ dependencies = [
   "hmac",
  ]
  
@@ -131,7 +131,7 @@ index 5c1d7c6e3..c05ddd9cb 100644
  [[package]]
  name = "pem-rfc7468"
  version = "0.7.0"
-@@ -5820,6 +5865,12 @@ dependencies = [
+@@ -5828,6 +5873,12 @@ dependencies = [
   "dirs",
  ]
  
@@ -145,17 +145,17 @@ index 5c1d7c6e3..c05ddd9cb 100644
  name = "signal-hook"
  version = "0.3.17"
 diff --git a/Cargo.toml b/Cargo.toml
-index cfb00598c..f53ed5afb 100644
+index 37b90516d..1917f310a 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -44,7 +44,7 @@ repository = "https://github.com/denoland/deno"
  
  [workspace.dependencies]
- deno_ast = { version = "=0.39.0", features = ["transpiling"] }
--deno_core = { version = "0.284.0" }
-+deno_core = { version = "0.284.0", default-features = false }
+ deno_ast = { version = "=0.39.1", features = ["transpiling"] }
+-deno_core = { version = "0.288.0" }
++deno_core = { version = "0.288.0", default-features = false }
  
- deno_bench_util = { version = "0.149.0", path = "./bench_util" }
+ deno_bench_util = { version = "0.150.0", path = "./bench_util" }
  deno_lockfile = "0.20.0"
 @@ -147,7 +147,7 @@ rand = "=0.8.5"
  regex = "^1.7.0"
@@ -176,10 +176,10 @@ index cfb00598c..f53ed5afb 100644
  # crypto
  hkdf = "0.12.3"
 diff --git a/ext/ffi/Cargo.toml b/ext/ffi/Cargo.toml
-index fb0d4ae2a..ba203647c 100644
+index 2118e34b1..528c06522 100644
 --- a/ext/ffi/Cargo.toml
 +++ b/ext/ffi/Cargo.toml
-@@ -18,7 +18,7 @@ deno_core.workspace = true
+@@ -19,7 +19,7 @@ deno_permissions.workspace = true
  dlopen2.workspace = true
  dynasmrt = "1.2.3"
  libffi = "=3.2.0"

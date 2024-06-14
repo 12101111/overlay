@@ -11,7 +11,7 @@ LLVM_VALID_SLOTS=( 17 18 19 )
 LLVM_MAX_SLOT=19
 GN_MIN_VER=0.2165
 
-V8_VER=0.92.0
+V8_VER=0.93.1
 STACKER_VER=0.1.15
 
 CRATES="
@@ -129,19 +129,19 @@ CRATES="
 	data-encoding-2.5.0
 	data-url-0.3.0
 	debugid-0.8.0
-	deno_ast-0.39.0
+	deno_ast-0.39.1
 	deno_cache_dir-0.10.0
 	deno_config-0.16.4
-	deno_core-0.284.0
+	deno_core-0.288.0
 	deno_doc-0.139.0
 	deno_emit-0.42.0
-	deno_graph-0.78.0
+	deno_graph-0.78.1
 	deno_lint-0.60.0
 	deno_lockfile-0.20.0
 	deno_media_type-0.1.4
 	deno_native_certs-0.2.0
-	deno_npm-0.21.2
-	deno_ops-0.160.0
+	deno_npm-0.21.4
+	deno_ops-0.164.0
 	deno_semver-0.5.4
 	deno_task_shell-0.16.1
 	deno_terminal-0.1.1
@@ -516,7 +516,7 @@ CRATES="
 	serde_repr-0.1.16
 	serde_spanned-0.6.6
 	serde_urlencoded-0.7.1
-	serde_v8-0.193.0
+	serde_v8-0.197.0
 	sha-1-0.10.0
 	sha1-0.10.6
 	sha1_smol-1.0.0
@@ -651,7 +651,7 @@ CRATES="
 	utf8-width-0.1.7
 	utf8parse-0.2.1
 	uuid-1.8.0
-	v8-0.92.0
+	v8-0.93.1
 	v8_valueserializer-0.1.1
 	value-trait-0.8.1
 	vcpkg-0.2.15
@@ -676,7 +676,7 @@ CRATES="
 	wgpu-hal-0.20.0
 	wgpu-types-0.20.0
 	which-4.4.2
-	which-5.0.0
+	which-6.0.1
 	whoami-1.5.1
 	widestring-1.1.0
 	win32job-2.0.0
@@ -707,6 +707,7 @@ CRATES="
 	winnow-0.5.40
 	winreg-0.50.0
 	winres-0.1.12
+	winsafe-0.0.19
 	wtf8-0.1.0
 	wyz-0.5.1
 	x25519-dalek-2.0.1
