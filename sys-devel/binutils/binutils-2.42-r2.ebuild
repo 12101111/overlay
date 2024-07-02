@@ -19,7 +19,7 @@ IUSE="+ld +gas +binutils +gprof cet debuginfod doc gold gprofng hardened multita
 # PATCH_DEV          - Use download URI https://dev.gentoo.org/~{PATCH_DEV}/distfiles/...
 #                      for the patchsets
 
-PATCH_VER=3
+PATCH_VER=6
 PATCH_DEV=dilfridge
 
 if [[ ${PV} == 9999* ]]; then
@@ -60,6 +60,10 @@ RDEPEND="
 DEPEND="${RDEPEND}"
 BDEPEND="
 	doc? ( sys-apps/texinfo )
+	pgo? (
+		dev-util/dejagnu
+		app-alternatives/bc
+	)
 	test? (
 		dev-util/dejagnu
 		app-alternatives/bc
@@ -130,17 +134,6 @@ src_prepare() {
 		-e 's:@bfdlibdir@:@libdir@:g' \
 		-e 's:@bfdincludedir@:@includedir@:g' \
 		{bfd,opcodes}/Makefile.in || die
-
-	# Fix locale issues if possible, bug #122216
-	if [[ -e ${FILESDIR}/binutils-configure-LANG.patch ]] ; then
-		einfo "Fixing misc issues in configure files"
-		for f in $(find "${S}" -name configure -exec grep -l 'autoconf version 2.13' {} +) ; do
-			ebegin "  Updating ${f/${S}\/}"
-			patch "${f}" "${FILESDIR}"/binutils-configure-LANG.patch >& "${T}"/configure-patch.log \
-				|| eerror "Please file a bug about this"
-			eend $?
-		done
-	fi
 
 	# Apply things from PATCHES and user dirs
 	default
