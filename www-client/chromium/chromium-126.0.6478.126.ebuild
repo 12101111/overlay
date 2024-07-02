@@ -69,7 +69,9 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PATCHSET_PPC64="124.0.6367.207-1raptor0~deb12u1"
+PATCHSET_PPC64="126.0.6478.114-1raptor0~deb12u1"
+PATCHSET_LOONG="chromium-126.0.6578.114-1"
+PATCHSET_LOONG_PV="126.0.6578.114"
 PATCH_V="${PV%%\.*}"
 HEVC_PATCHSET_VERSION="126.0.6433.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
@@ -83,6 +85,9 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/rust-toolchain-${GOOGLE_RUST_VER}-${GOOGLE_CLANG_VER%??}.tar.xz
 			-> chromium-${PV%%\.*}-rust.tar.xz
 	)
+	loong? (
+		https://github.com/AOSC-Dev/chromium-loongarch64/archive/refs/tags/${PATCHSET_LOONG}.tar.gz -> chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.tar.gz
+	)
 	ppc64? (
 		https://quickbuild.io/~raptor-engineering-public/+archive/ubuntu/chromium/+files/chromium_${PATCHSET_PPC64}.debian.tar.xz
 		https://deps.gentoo.zip/chromium-ppc64le-gentoo-patches-1.tar.xz
@@ -92,8 +97,8 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 "
 
 LICENSE="BSD"
-SLOT="0/beta"
-KEYWORDS="~amd64 ~arm64"
+SLOT="0/stable"
+KEYWORDS="~amd64 ~arm64 ~loong ~ppc64"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="hevc +X ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos libcxx +lto +official pax-kernel pgo +proprietary-codecs pulseaudio"
 IUSE+=" qt5 qt6 +screencast selinux +system-toolchain +vaapi +wayland +widevine"
@@ -493,6 +498,31 @@ src_prepare() {
 			"${WORKDIR}"/rust-toolchain/INSTALLED_VERSION || die "Failed to set rust version"
 	fi
 
+	if use loong ; then
+		local p
+		local other_patches_to_apply=(
+			# Fedora-chromium-121-nullptr_t-without-namespace-std
+			# Debian-upstream-std-to-address
+			# Debian-fixes-internalalloc
+			# Debian-fixes-optional2
+			Debian-fixes-blink
+			Debian-fixes-blink-frags
+			fix-clang-builtins-path
+			fix-missing-header
+			fix-static-assertion
+		)
+		for p in "${other_patches_to_apply[@]}"; do
+			eapply "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-"${p}".diff
+		done
+		if ! tc-is-clang || ver_test "$(clang-major-version)" -gt 17; then
+			rm "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".4000-loongarch64-clang-no-lsx.diff
+		fi
+		for p in "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-loongarch64*; do
+			eapply "${p}"
+		done
+		PATCHES+=( "${FILESDIR}/chromium-123-gentoo-loong.patch" )
+	fi
+
 	if use ppc64 ; then
 		local p
 		for p in $(grep -v "^#" "${WORKDIR}"/debian/patches/series | grep "^ppc64le" || die); do
@@ -793,6 +823,9 @@ src_prepare() {
 	if use arm64 || use ppc64 ; then
 		keeplibs+=( third_party/swiftshader/third_party/llvm-10.0 )
 	fi
+	if use loong ; then
+		keeplibs+=( third_party/swiftshader/third_party/llvm-16.0 )
+	fi
 	# we need to generate ppc64 stuff because upstream does not ship it yet
 	# it has to be done before unbundling.
 	if use ppc64; then
@@ -938,7 +971,7 @@ chromium_configure() {
 				myconf_gn+=" rust_sysroot_absolute=\"${EPREFIX}/usr/lib/rust/${rustc_ver}/\""
 		fi
 		myconf_gn+=" rustc_version=\"${rustc_ver}\""
-		myconf_gn+=" rust_abi_target=\"$(rust_abi)\""
+		use elibc_musl && myconf_gn+=" rust_abi_target=\"$(rust_abi)\""
 	fi
 
 	# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
@@ -1088,6 +1121,12 @@ chromium_configure() {
 			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-xop -mno-sse4a
 		fi
 
+		# The linked text section of Chromium won't fit within limits of the
+		# default normal code model.
+		if [[ ${myarch} == loong ]]; then
+			append-flags -mcmodel=medium
+		fi
+
 		if tc-is-gcc; then
 			# https://bugs.gentoo.org/904455
 			local -x CPP="$(tc-getCXX) -E"
@@ -1102,6 +1141,9 @@ chromium_configure() {
 	elif [[ $myarch = arm64 ]] ; then
 		myconf_gn+=" target_cpu=\"arm64\""
 		ffmpeg_target_arch=arm64
+	elif [[ $myarch = loong ]] ; then
+		myconf_gn+=" target_cpu=\"loong64\""
+		ffmpeg_target_arch=loong64
 	elif [[ $myarch = ppc64 ]] ; then
 		myconf_gn+=" target_cpu=\"ppc64\""
 		ffmpeg_target_arch=ppc64
@@ -1235,6 +1277,10 @@ chromium_configure() {
 	# skipping typecheck is only supported on amd64, bug #876157
 	if true; then
 		myconf_gn+=" devtools_skip_typecheck=false"
+	fi
+
+	if use loong && use lto; then
+		myconf_gn+=" toolchain_supports_rust_thin_lto=false"
 	fi
 
 	einfo "Configuring Chromium ..."
