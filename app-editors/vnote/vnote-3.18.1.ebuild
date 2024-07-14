@@ -3,7 +3,7 @@
 
 EAPI=7
 
-inherit qmake-utils xdg git-r3
+inherit cmake xdg git-r3
 
 DESCRIPTION="Qt-based, free and open source note-taking application, focusing on Markdown"
 HOMEPAGE="https://vnotex.github.io/vnote"
@@ -16,27 +16,25 @@ LICENSE="MIT"
 SLOT="3"
 
 DEPEND="
-	>=dev-qt/qtcore-5.15.1:5=
-	>=dev-qt/qtwebengine-5.15.1:5=
-	>=dev-qt/qtsvg-5.15.1:5=
+	dev-qt/qtbase:6[X,cups,gui,network,sql,widgets]
+	dev-qt/qtdeclarative:6
+	dev-qt/qtwebchannel:6
+	dev-qt/qtwebengine:6
+	dev-qt/qtsvg:6
 "
 RDEPEND="${DEPEND}"
 
-pkg_setup() {
-	export INSTALL_ROOT="${ED}"
-}
-
 src_prepare() {
 	sed -i -e "s|vnote|vnote3|g" src/data/core/vnote.desktop || die
-	default
+	cmake_src_prepare
 }
 
 src_configure() {
-	eqmake5 vnote.pro
+	cmake_src_configure
 }
 
 src_install() {
-	emake install
+	cmake_src_install
 	mv "${ED}/usr/bin/vnote" "${ED}/usr/bin/vnote3"
 	mv "${ED}/usr/share/applications/vnote.desktop" "${ED}/usr/share/applications/vnote3.desktop"
 	for i in $(ls "${ED}/usr/share/icons/hicolor/");do
