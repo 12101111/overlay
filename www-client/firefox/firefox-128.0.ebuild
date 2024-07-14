@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-127-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-128-patches-03.tar.xz"
 
 LLVM_COMPAT=( 17 18 )
 
@@ -67,7 +67,7 @@ IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent +
 IUSE+=" +telemetry valgrind wayland wifi +X"
 
 # Firefox-only IUSE
-IUSE+=" geckodriver +gmp-autoupdate"
+IUSE+=" +gmp-autoupdate"
 
 REQUIRED_USE="|| ( X wayland )
 	debug? ( !system-av1 )
@@ -116,7 +116,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.100
+	>=dev-libs/nss-3.101
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -126,7 +126,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	sys-libs/zlib
 	virtual/freedesktop-icon-theme
 	x11-libs/cairo
-	x11-libs/gdk-pixbuf
+	x11-libs/gdk-pixbuf:2
 	x11-libs/pango
 	x11-libs/pixman
 	dbus? (
@@ -151,7 +151,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 		>=media-libs/harfbuzz-2.8.1:0=
 	)
 	system-icu? ( >=dev-libs/icu-73.1:= )
-	system-jpeg? ( >=media-libs/libjpeg-turbo-1.2.1 )
+	system-jpeg? ( >=media-libs/libjpeg-turbo-1.2.1:= )
 	system-libevent? ( >=dev-libs/libevent-2.1.12:0=[threads(+)] )
 	system-libvpx? ( >=media-libs/libvpx-1.8.2:0=[postproc] )
 	system-png? ( >=media-libs/libpng-1.6.35:0=[apng] )
@@ -160,7 +160,6 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	wayland? (
 		>=media-libs/libepoxy-1.5.10-r1
 		x11-libs/gtk+:3[wayland]
-		x11-libs/libxkbcommon[wayland]
 	)
 	wifi? (
 		kernel_linux? (
@@ -177,9 +176,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 		x11-libs/libXdamage
 		x11-libs/libXext
 		x11-libs/libXfixes
-		x11-libs/libxkbcommon[X]
 		x11-libs/libXrandr
-		x11-libs/libXtst
 		x11-libs/libxcb:=
 	)"
 RDEPEND="${COMMON_DEPEND}
@@ -270,6 +267,7 @@ MOZ_LANGS+=( oc )
 MOZ_LANGS+=( sc )
 MOZ_LANGS+=( sco )
 MOZ_LANGS+=( si )
+MOZ_LANGS+=( skr )
 MOZ_LANGS+=( son )
 MOZ_LANGS+=( szl )
 MOZ_LANGS+=( ta )
@@ -797,6 +795,7 @@ src_configure() {
 		--disable-cargo-incremental \
 		--disable-crashreporter \
 		--disable-disk-remnant-avoidance \
+		--disable-geckodriver \
 		--disable-gpsd \
 		--disable-install-strip \
 		--disable-legacy-profile-creation \
@@ -905,8 +904,6 @@ src_configure() {
 
 	use eme-free && mozconfig_add_options_ac '+eme-free' --disable-eme
 
-	mozconfig_use_enable geckodriver
-
 	if use hardened ; then
 		mozconfig_add_options_ac "+hardened" --enable-hardening
 		append-ldflags "-Wl,-z,relro -Wl,-z,now"
@@ -989,6 +986,7 @@ src_configure() {
 	mozconfig_use_enable debug
 	if use debug ; then
 		mozconfig_add_options_ac '+debug' --disable-optimize
+		mozconfig_add_options_ac '+debug' --enable-jemalloc
 		mozconfig_add_options_ac '+debug' --enable-real-time-tracing
 	else
 		mozconfig_add_options_ac 'Gentoo defaults' --disable-real-time-tracing
@@ -1281,16 +1279,6 @@ src_install() {
 		moz_install_xpi "${MOZILLA_FIVE_HOME}/distribution/extensions" "${langpacks[@]}"
 	fi
 
-	# Install geckodriver
-	if use geckodriver ; then
-		einfo "Installing geckodriver into ${ED}${MOZILLA_FIVE_HOME} ..."
-		pax-mark m "${BUILD_DIR}"/dist/bin/geckodriver
-		exeinto "${MOZILLA_FIVE_HOME}"
-		doexe "${BUILD_DIR}"/dist/bin/geckodriver
-
-		dosym ${MOZILLA_FIVE_HOME}/geckodriver /usr/bin/geckodriver
-	fi
-
 	# Install icons
 	local icon_srcdir="${S}/browser/branding/official"
 	local icon_symbolic_file="${FILESDIR}/icon/firefox-symbolic.svg"
@@ -1414,11 +1402,5 @@ pkg_postinst() {
 		elog "glibc not found! You won't be able to play DRM content."
 		elog "See Gentoo bug #910309 or upstream bug #1843683."
 		elog
-	fi
-
-	if use geckodriver ; then
-		ewarn "You have enabled the 'geckodriver' USE flag. Geckodriver is now"
-		ewarn "packaged separately as net-misc/geckodriver and the use flag will be"
-		ewarn "dropped from main Firefox package by Firefox 128.0 release."
 	fi
 }
