@@ -108,6 +108,7 @@ PATCHES=( "${WORKDIR}"/patches/${PN} )
 
 PATCHES+=(
 	# add extras as needed here, may merge in set if carries across versions
+	"${FILESDIR}"/${PN}-6.7.2-QTBUG-113574.patch
 	"${FILESDIR}"/remove-libatomic.patch
 )
 
@@ -153,6 +154,7 @@ pkg_setup() {
 src_prepare() {
 	qt6-build_src_prepare
 
+	use elibc_musl && eapply "${FILESDIR}/musl/no-sandbox-settls.patch"
 	# for www-plugins/chrome-binary-plugins (widevine) search paths on prefix
 	hprefixify -w /Gentoo/ src/core/content_client_qt.cpp
 
@@ -221,8 +223,8 @@ src_configure() {
 
 	local mygnargs=(
 		# prefer no dlopen where possible
-		link_pulseaudio=true
-		rtc_link_pipewire=true
+		$(usev pulseaudio link_pulseaudio=true)
+		$(usev screencast rtc_link_pipewire=true)
 		# reduce default disk space usage
 		symbol_level=0
 	)
