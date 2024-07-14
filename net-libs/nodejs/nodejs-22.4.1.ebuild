@@ -42,7 +42,7 @@ RDEPEND=">=app-arch/brotli-1.0.9:=
 	>=net-libs/ngtcp2-1.3.0:=
 	sys-libs/zlib
 	corepack? ( !sys-apps/yarn )
-	system-icu? ( >=dev-libs/icu-71:= )
+	system-icu? ( >=dev-libs/icu-73:= )
 	system-ssl? ( >=dev-libs/openssl-1.1.1:0= )
 "
 BDEPEND="${PYTHON_DEPS}
@@ -106,7 +106,7 @@ src_prepare() {
 	use pax-kernel && PATCHES+=( "${FILESDIR}"/${PN}-20.6.0-paxmarking.patch )
 
 	# bug 931256
-	use riscv && PATCHES+=( "${FILESDIR}"/${P}-riscv.patch )
+	use riscv && PATCHES+=( "${FILESDIR}"/${PN}-22.2.0-riscv.patch )
 
 	default
 }

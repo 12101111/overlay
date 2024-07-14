@@ -20,7 +20,7 @@ if [[ ${PV} == *9999 ]]; then
 else
 	SRC_URI="https://nodejs.org/dist/v${PV}/node-v${PV}.tar.xz"
 	SLOT="0/$(ver_cut 1)"
-	KEYWORDS="~amd64 ~arm arm64 ~loong ppc64 ~riscv ~x86 ~amd64-linux ~x64-macos"
+	KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc64 ~riscv ~x86 ~amd64-linux ~x64-macos"
 	S="${WORKDIR}/node-v${PV}"
 fi
 
@@ -38,7 +38,7 @@ RDEPEND=">=app-arch/brotli-1.0.9:=
 	>=net-libs/nghttp2-1.41.0:=
 	sys-libs/zlib
 	corepack? ( !sys-apps/yarn )
-	system-icu? ( >=dev-libs/icu-67:= )
+	system-icu? ( >=dev-libs/icu-73:= )
 	system-ssl? ( >=dev-libs/openssl-1.1.1:0= )"
 BDEPEND="${PYTHON_DEPS}
 	sys-apps/coreutils
