@@ -31,7 +31,6 @@ BDEPEND="kde-frameworks/extra-cmake-modules:0"
 
 PATCHES=(
 	"${FILESDIR}/0002-settings-disable-checking-for-updates-by-default.patch"
-	"${FILESDIR}/fix-qasconst.patch"
 )
 
 src_prepare() {
