@@ -154,7 +154,11 @@ pkg_setup() {
 src_prepare() {
 	qt6-build_src_prepare
 
-	use elibc_musl && eapply "${FILESDIR}/musl/no-sandbox-settls.patch"
+	if use elibc_musl; then
+		pushd ${S}/src/3rdparty/chromium > /dev/null
+		eapply "${FILESDIR}/musl-no-sandbox-settls.patch"
+		popd > /dev/null
+	fi
 	# for www-plugins/chrome-binary-plugins (widevine) search paths on prefix
 	hprefixify -w /Gentoo/ src/core/content_client_qt.cpp
 
