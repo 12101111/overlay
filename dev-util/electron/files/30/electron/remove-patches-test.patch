@@ -1,0 +1,56 @@
+diff --git a/patches/v8/cherry-pick-ba6cab40612d.patch b/patches/v8/cherry-pick-ba6cab40612d.patch
+index 7264e5b471..691f313dd7 100644
+--- a/patches/v8/cherry-pick-ba6cab40612d.patch
++++ b/patches/v8/cherry-pick-ba6cab40612d.patch
+@@ -42,51 +42,3 @@ index 821b6b80495849129c2c499302ac393278f72e92..e1ca7bebdc8408e21715dd0fc9861a47
+    }
+    cache_state_.stack_state.pop_back();
+  }
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index f797279ecaf7645061418ee86839df50c4e881a2..1b4e980e90e158fd3a078650ef9b02244cc550fe 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -1708,6 +1708,7 @@
+-   'regress/wasm/regress-326156493': [SKIP],
+-   'regress/wasm/regress-326894018': [SKIP],
+-   'regress/wasm/regress-329032153': [SKIP],
+-+  'regress/wasm/regress-343748812': [SKIP],
+-   'regress/wasm/regress-crbug-1338980': [SKIP],
+-   'regress/wasm/regress-crbug-1355070': [SKIP],
+-   'regress/wasm/regress-crbug-1356718': [SKIP],
+-diff --git a/test/mjsunit/regress/wasm/regress-343748812.js b/test/mjsunit/regress/wasm/regress-343748812.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..8dc456c413665e97c5f8e48f95a65370cf051753
+---- /dev/null
+-+++ b/test/mjsunit/regress/wasm/regress-343748812.js
+-@@ -0,0 +1,30 @@
+-+// Copyright 2024 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+d8.file.execute('test/mjsunit/wasm/wasm-module-builder.js');
+-+
+-+const builder = new WasmModuleBuilder();
+-+let $sig0 = builder.addType(kSig_v_v);
+-+let $sig7 = builder.addType(
+-+    makeSig([], [ kWasmExternRef, kWasmS128, kWasmExternRef ]));
+-+let $func0 = builder.addImport('imports', 'func0', $sig0);
+-+builder.addFunction("main", $sig0).exportFunc()
+-+  .addLocals(kWasmExternRef, 3)
+-+  .addBody([
+-+    kExprTry, $sig7,
+-+      kExprCallFunction, $func0,
+-+      kExprUnreachable,
+-+    kExprCatchAll,
+-+      kExprRefNull, kExternRefCode,
+-+      ...wasmS128Const([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+-+      kExprRefNull, kExternRefCode,
+-+    kExprEnd,
+-+    kExprDrop,
+-+    kExprDrop,
+-+    kExprDrop,
+-+  ]);
+-+
+-+var instance = builder.instantiate({'imports': { 'func0': () => {} }});
+-+
+-+assertThrows(instance.exports.main, WebAssembly.RuntimeError, /unreachable/);
