@@ -1,4 +1,4 @@
-From c1d60a8ce1896ae793d8a7cd5eff04aa0089bf5c Mon Sep 17 00:00:00 2001
+From 3bd8fe9e7e3e2615c8b2d6ed2e14a72cccc95ce7 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Mon, 31 Jul 2023 18:24:16 +0800
 Subject: [PATCH 03/12] Don't download bundle marketplace extensions in gulp
@@ -8,7 +8,7 @@ Subject: [PATCH 03/12] Don't download bundle marketplace extensions in gulp
  1 file changed, 1 deletion(-)
 
 diff --git a/build/gulpfile.extensions.js b/build/gulpfile.extensions.js
-index 55904959778..1ed32fe71a4 100644
+index b85425bccfc..ecfb32f0539 100644
 --- a/build/gulpfile.extensions.js
 +++ b/build/gulpfile.extensions.js
 @@ -237,7 +237,6 @@ exports.compileExtensionMediaBuildTask = compileExtensionMediaBuildTask;

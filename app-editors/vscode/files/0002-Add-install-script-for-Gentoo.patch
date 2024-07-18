@@ -1,6 +1,6 @@
-From 8c4a9a636e013e0d55d9ff6d1de2852873e5349b Mon Sep 17 00:00:00 2001
+From cf258bbc9f6ed80404a5a2e5b3561e0a18fedb56 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 9 Oct 2020 09:37:48 +0800
+Date: Thu, 18 Jul 2024 02:46:03 +0800
 Subject: [PATCH 02/12] Add install script for Gentoo
 
 ---
@@ -8,11 +8,11 @@ Subject: [PATCH 02/12] Add install script for Gentoo
  1 file changed, 54 insertions(+)
 
 diff --git a/build/gulpfile.vscode.linux.js b/build/gulpfile.vscode.linux.js
-index 8c2b62f7b2a..be84fdbfd46 100644
+index 28ddfb04c3d..ae03e995302 100644
 --- a/build/gulpfile.vscode.linux.js
 +++ b/build/gulpfile.vscode.linux.js
-@@ -291,6 +291,57 @@ function buildSnapPackage(arch) {
- 	return shell.task(`cd ${snapBuildPath} && snapcraft`);
+@@ -295,6 +295,57 @@ function buildSnapPackage(arch) {
+ 	return () => exec('snapcraft', { cwd });
  }
  
 +function installGentooPackage(arch) {
@@ -69,7 +69,7 @@ index 8c2b62f7b2a..be84fdbfd46 100644
  const BUILD_TARGETS = [
  	{ arch: 'x64' },
  	{ arch: 'armhf' },
-@@ -314,4 +365,7 @@ BUILD_TARGETS.forEach(({ arch }) => {
+@@ -318,4 +369,7 @@ BUILD_TARGETS.forEach(({ arch }) => {
  	gulp.task(prepareSnapTask);
  	const buildSnapTask = task.define(`vscode-linux-${arch}-build-snap`, task.series(prepareSnapTask, buildSnapPackage(arch)));
  	gulp.task(buildSnapTask);

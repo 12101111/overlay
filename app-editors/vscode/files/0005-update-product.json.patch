@@ -1,4 +1,4 @@
-From 93c9ba849bf614b9cffa11717bfad55ee64e3bee Mon Sep 17 00:00:00 2001
+From 63f83e21ba16e567ee6a303cbec7ee2cafe3ebe5 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Oct 2020 09:52:23 +0800
 Subject: [PATCH 05/12] update product.json
@@ -8,7 +8,7 @@ Subject: [PATCH 05/12] update product.json
  1 file changed, 12 insertions(+)
 
 diff --git a/product.json b/product.json
-index d2d3bf7a361..25489f00bd5 100644
+index 27ae53fe16b..0e2077dac49 100644
 --- a/product.json
 +++ b/product.json
 @@ -1,4 +1,16 @@

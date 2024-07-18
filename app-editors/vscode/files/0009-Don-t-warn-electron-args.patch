@@ -1,34 +1,32 @@
-From f56147b430ab9f56d293b1e6c362db8ff71bab90 Mon Sep 17 00:00:00 2001
+From 837c340822eff3acfe133ab2f4511908aefe9a8d Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 9 Jun 2024 00:20:42 +0800
+Date: Thu, 18 Jul 2024 02:48:45 +0800
 Subject: [PATCH 09/12] Don't warn electron args
 
 ---
  src/vs/platform/environment/common/argv.ts | 2 ++
- src/vs/platform/environment/node/argv.ts   | 2 ++
- 2 files changed, 4 insertions(+)
+ src/vs/platform/environment/node/argv.ts   | 4 ++++
+ 2 files changed, 6 insertions(+)
 
 diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
-index d8508f30cd5..48e021834af 100644
+index 818021ff0c1..f1da13b6046 100644
 --- a/src/vs/platform/environment/common/argv.ts
 +++ b/src/vs/platform/environment/common/argv.ts
-@@ -117,6 +117,8 @@ export interface NativeParsedArgs {
- 	'profile-temp'?: boolean;
- 	'disable-chromium-sandbox'?: boolean;
- 	sandbox?: boolean;
+@@ -145,4 +145,6 @@ export interface NativeParsedArgs {
+ 	'trace-startup-format'?: string;
+ 	'trace-startup-file'?: string;
+ 	'trace-startup-duration'?: string;
 +	'app'?: string;
 +	'enable-features'?: string;
- 
- 	'enable-coi'?: boolean;
- 
+ }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 0984c8da3bf..5714c0c7227 100644
+index 16a942afe05..7d0f6bf0600 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
-@@ -211,6 +211,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
+@@ -209,6 +209,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
+ 	'trace-startup-format': { type: 'string' },
+ 	'trace-startup-file': { type: 'string' },
  	'trace-startup-duration': { type: 'string' },
- 	'use-gl': { type: 'string' },
- 	'use-angle': { type: 'string' },
 +	'app': { type: 'string' },
 +	'enable-features': { type: 'string' },
  

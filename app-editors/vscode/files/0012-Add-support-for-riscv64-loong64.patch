@@ -1,4 +1,4 @@
-From 1a4d22e065948f517170ddab88bf41a903ad7a33 Mon Sep 17 00:00:00 2001
+From bc103ed620266d224d2c429e50dac758ce16025c Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 19 May 2024 18:38:10 +0800
 Subject: [PATCH 12/12] Add support for riscv64, loong64
@@ -25,7 +25,7 @@ index 6f8144b0954..4de1759df81 100644
  
  BUILD_TARGETS.forEach(buildTarget => {
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 59e9956b5bf..3f8e84ae03d 100644
+index c8002f2ff41..ed816df5b87 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
 @@ -438,6 +438,8 @@ const BUILD_TARGETS = [
@@ -38,10 +38,10 @@ index 59e9956b5bf..3f8e84ae03d 100644
  BUILD_TARGETS.forEach(buildTarget => {
  	const dashed = (str) => (str ? `-${str}` : ``);
 diff --git a/build/gulpfile.vscode.linux.js b/build/gulpfile.vscode.linux.js
-index be84fdbfd46..75a77bc7f47 100644
+index ae03e995302..33fdb296868 100644
 --- a/build/gulpfile.vscode.linux.js
 +++ b/build/gulpfile.vscode.linux.js
-@@ -346,6 +346,8 @@ const BUILD_TARGETS = [
+@@ -350,6 +350,8 @@ const BUILD_TARGETS = [
  	{ arch: 'x64' },
  	{ arch: 'armhf' },
  	{ arch: 'arm64' },
@@ -51,7 +51,7 @@ index be84fdbfd46..75a77bc7f47 100644
  
  BUILD_TARGETS.forEach(({ arch }) => {
 diff --git a/src/vs/platform/extensionManagement/common/extensionManagement.ts b/src/vs/platform/extensionManagement/common/extensionManagement.ts
-index 183f2582871..39d5f988c31 100644
+index 68f21988fc4..da9ef3cda6f 100644
 --- a/src/vs/platform/extensionManagement/common/extensionManagement.ts
 +++ b/src/vs/platform/extensionManagement/common/extensionManagement.ts
 @@ -39,6 +39,8 @@ export function TargetPlatformToString(targetPlatform: TargetPlatform) {
@@ -86,7 +86,7 @@ index 183f2582871..39d5f988c31 100644
  
  		case 'alpine':
 diff --git a/src/vs/platform/extensions/common/extensions.ts b/src/vs/platform/extensions/common/extensions.ts
-index cfe5313b905..ca6931b1fb1 100644
+index 4dd080da3ae..9b3598632ba 100644
 --- a/src/vs/platform/extensions/common/extensions.ts
 +++ b/src/vs/platform/extensions/common/extensions.ts
 @@ -304,6 +304,8 @@ export const enum TargetPlatform {
