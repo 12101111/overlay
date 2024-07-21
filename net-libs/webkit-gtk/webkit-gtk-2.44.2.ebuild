@@ -14,7 +14,7 @@ HOMEPAGE="https://www.webkitgtk.org"
 SRC_URI="https://www.webkitgtk.org/releases/${MY_P}.tar.xz"
 
 LICENSE="LGPL-2+ BSD"
-SLOT="4.1/0" # soname version of libwebkit2gtk-4.1
+SLOT="4/37" # soname version of libwebkit2gtk-4.0
 KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 
 IUSE="aqua avif examples gamepad keyring +gstreamer +introspection pdf jpegxl +jumbo-build lcms seccomp spell systemd wayland X"
@@ -30,7 +30,6 @@ RESTRICT="test"
 # >=gst-plugins-opus-1.14.4-r1 for opusparse (required by MSE)
 # TODO: gst-plugins-base[X] is only needed when build configuration ends up
 #       with GLX set, but that's a bit automagic too to fix
-# Softblocking webkit-gtk-2.38:4 as at that time WebKitWebDriver migrated to SLOT=4.1; currently it is found in SLOT=6
 RDEPEND="
 	>=x11-libs/cairo-1.16.0[X?]
 	>=media-libs/fontconfig-2.13.0:1.0
@@ -42,7 +41,7 @@ RDEPEND="
 	>=dev-libs/icu-61.2:=
 	media-libs/libjpeg-turbo:0=
 	>=media-libs/libepoxy-1.5.4[egl(+)]
-	>=net-libs/libsoup-3.0.8:3.0[introspection?]
+	>=net-libs/libsoup-2.54:2.4[introspection?]
 	>=dev-libs/libxml2-2.8.0:2
 	>=media-libs/libpng-1.4:0=
 	dev-db/sqlite:3
@@ -87,7 +86,6 @@ RDEPEND="
 
 	systemd? ( sys-apps/systemd:= )
 	gamepad? ( >=dev-libs/libmanette-0.2.4 )
-	!<net-libs/webkit-gtk-2.38:4
 "
 DEPEND="${RDEPEND}"
 # Need real bison, not yacc
@@ -150,12 +148,12 @@ src_prepare() {
 	cmake_src_prepare
 	gnome2_src_prepare
 
-	# Upstream 2.44 branch commits up to aff53249f2d491d, includes a linking and GCC 12 fix
-	eapply "${FILESDIR}"/${PV}-branch-patchset.patch
 	# Fix USE=-jumbo-build compilation on arm64
 	eapply "${FILESDIR}"/2.42.3-arm64-non-jumbo-fix-925621.patch
 	# Fix USE=-jumbo-build on all arches
-	eapply "${FILESDIR}"/${PV}-non-unified-build-fixes.patch
+	eapply "${FILESDIR}"/2.44.1-non-unified-build-fixes.patch
+	# https://bugs.webkit.org/show_bug.cgi?id=274261
+	eapply "${FILESDIR}"/${PV}-excessive-cpu-usage.patch
 }
 
 src_configure() {
@@ -243,7 +241,7 @@ src_configure() {
 		-DUSE_LIBDRM=ON
 		-DUSE_LIBHYPHEN=ON
 		-DUSE_LIBSECRET=$(usex keyring)
-		-DUSE_SOUP2=OFF
+		-DUSE_SOUP2=ON
 		-DUSE_WOFF2=ON
 	)
 
