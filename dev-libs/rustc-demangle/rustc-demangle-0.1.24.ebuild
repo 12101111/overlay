@@ -4,13 +4,13 @@
 EAPI=8
 
 CRATES="
-	arbitrary-1.3.0
-	cc-1.0.79
+	arbitrary-1.3.2
+	cc-1.0.104
 	compiler_builtins-0.1.92
-	jobserver-0.1.26
-	libc-0.2.144
+	jobserver-0.1.31
+	libc-0.2.155
 	libfuzzer-sys-0.4.6
-	once_cell-1.17.2
+	once_cell-1.19.0
 	rustc-std-workspace-core-1.0.0
 "
 
