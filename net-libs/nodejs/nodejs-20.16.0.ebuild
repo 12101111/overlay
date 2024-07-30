@@ -7,7 +7,7 @@ CONFIG_CHECK="~ADVISE_SYSCALLS"
 PYTHON_COMPAT=( python3_{9..12} )
 PYTHON_REQ_USE="threads(+)"
 
-inherit bash-completion-r1 check-reqs flag-o-matic linux-info pax-utils python-any-r1 toolchain-funcs xdg-utils
+inherit bash-completion-r1 check-reqs flag-o-matic linux-info ninja-utils pax-utils python-any-r1 toolchain-funcs xdg-utils
 
 DESCRIPTION="A JavaScript runtime built on Chrome's V8 JavaScript engine"
 HOMEPAGE="https://nodejs.org/"
@@ -169,6 +169,7 @@ src_configure() {
 }
 
 src_compile() {
+	export NINJA_ARGS=" $(get_NINJAOPTS) "
 	emake -Onone
 }
 
@@ -232,13 +233,15 @@ src_install() {
 
 src_test() {
 	local drop_tests=(
-	test/parallel/test-dns-resolveany-bad-ancount.js
+		test/parallel/test-dns.js
+		test/parallel/test-dns-resolveany-bad-ancount.js
 		test/parallel/test-dns-setserver-when-querying.js
 		test/parallel/test-fs-mkdir.js
 		test/parallel/test-fs-read-stream.js
 		test/parallel/test-fs-utimes-y2K38.js
 		test/parallel/test-fs-watch-recursive-add-file.js
 		test/parallel/test-process-euid-egid.js
+		test/parallel/test-process-get-builtin.mjs
 		test/parallel/test-process-initgroups.js
 		test/parallel/test-process-setgroups.js
 		test/parallel/test-process-uid-gid.js
@@ -247,6 +250,8 @@ src_test() {
 		test/parallel/test-strace-openat-openssl.js
 		test/sequential/test-util-debug.js
 	)
+	use inspector || drop_tests+=( test/sequential/test-watch-mode.mjs )
+	[[ "$(nice)" -gt 10 ]] && drop_tests+=( "test/parallel/test-os.js" )
 	rm -f "${drop_tests[@]}" || die "disabling tests failed"
 
 	out/${BUILDTYPE}/cctest || die

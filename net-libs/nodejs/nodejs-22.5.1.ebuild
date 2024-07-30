@@ -4,10 +4,10 @@
 EAPI=8
 
 CONFIG_CHECK="~ADVISE_SYSCALLS"
-PYTHON_COMPAT=( python3_{9..12} )
+PYTHON_COMPAT=( python3_{10..12} )
 PYTHON_REQ_USE="threads(+)"
 
-inherit bash-completion-r1 check-reqs flag-o-matic linux-info pax-utils python-any-r1 toolchain-funcs xdg-utils
+inherit bash-completion-r1 check-reqs flag-o-matic linux-info ninja-utils pax-utils python-any-r1 xdg-utils
 
 DESCRIPTION="A JavaScript runtime built on Chrome's V8 JavaScript engine"
 HOMEPAGE="https://nodejs.org/"
@@ -116,6 +116,10 @@ src_configure() {
 
 	# LTO compiler flags are handled by configure.py itself
 	filter-lto
+	# GCC with -ftree-vectorize miscompiles node's exception handling code
+	# causing it to fail to catch exceptions sometimes
+	# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=116057
+	tc-is-gcc && append-cxxflags -fno-tree-vectorize
 	# nodejs unconditionally links to libatomic #869992
 	# specifically it requires __atomic_is_lock_free which
 	# is not yet implemented by sys-libs/compiler-rt (see
@@ -182,6 +186,7 @@ src_configure() {
 }
 
 src_compile() {
+	export NINJA_ARGS=" $(get_NINJAOPTS)"
 	emake -Onone
 }
 
@@ -262,6 +267,8 @@ src_test() {
 		test/parallel/test-strace-openat-openssl.js
 		test/sequential/test-util-debug.js
 	)
+	[[ "$(nice)" -gt 10 ]] && drop_tests+=( "test/parallel/test-os.js" )
+	use inspector || drop_tests+=( test/sequential/test-watch-mode.mjs )
 	rm -f "${drop_tests[@]}" || die "disabling tests failed"
 
 	out/${BUILDTYPE}/cctest || die
@@ -271,6 +278,6 @@ src_test() {
 pkg_postinst() {
 	if use npm; then
 		ewarn "remember to run: source /etc/profile if you plan to use nodejs"
-		ewarn "	in your current shell"
+		ewarn " in your current shell"
 	fi
 }
