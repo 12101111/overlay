@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-128-patches-03.tar.xz"
+FIREFOX_PATCHSET="firefox-128-patches-05.tar.xz"
 
 LLVM_COMPAT=( 17 18 )
 
@@ -72,6 +72,7 @@ IUSE+=" +gmp-autoupdate"
 REQUIRED_USE="|| ( X wayland )
 	debug? ( !system-av1 )
 	pgo? ( lto )
+	wayland? ( dbus )
 	wifi? ( dbus )"
 
 FF_ONLY_DEPEND="!www-client/firefox:0
