@@ -180,6 +180,7 @@ PATCHES=(
 	"${FILESDIR}"/1.74.1-cross-compile-libz.patch
 	"${FILESDIR}"/1.78.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
+	"${FILESDIR}"/1.79.0-revert-8c40426.patch
 )
 
 clear_vendor_checksums() {
@@ -512,6 +513,7 @@ src_configure() {
 		if use elibc_musl; then
 			cat <<- _EOF_ >> "${S}"/config.toml
 				crt-static = false
+				musl-root = "$($(tc-getCC) -print-sysroot)/usr"
 			_EOF_
 		fi
 	done
