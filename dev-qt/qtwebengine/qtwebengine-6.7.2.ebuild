@@ -10,11 +10,11 @@ inherit prefix python-any-r1 qt6-build toolchain-funcs
 
 DESCRIPTION="Library for rendering dynamic web content in Qt6 C++ and QML applications"
 SRC_URI+="
-	https://dev.gentoo.org/~ionen/distfiles/${PN}-6.7-patchset-9.tar.xz
+	https://dev.gentoo.org/~ionen/distfiles/${PN}-6.7-patchset-11.tar.xz
 "
 
 if [[ ${QT6_BUILD_TYPE} == release ]]; then
-	KEYWORDS="~amd64 ~arm64"
+	KEYWORDS="amd64 arm64"
 fi
 
 IUSE="
@@ -108,7 +108,6 @@ PATCHES=( "${WORKDIR}"/patches/${PN} )
 
 PATCHES+=(
 	# add extras as needed here, may merge in set if carries across versions
-	"${FILESDIR}"/${PN}-6.7.2-QTBUG-113574.patch
 	"${FILESDIR}"/remove-libatomic.patch
 )
 
@@ -154,11 +153,6 @@ pkg_setup() {
 src_prepare() {
 	qt6-build_src_prepare
 
-	if use elibc_musl; then
-		pushd ${S}/src/3rdparty/chromium > /dev/null
-		eapply "${FILESDIR}/musl-no-sandbox-settls.patch"
-		popd > /dev/null
-	fi
 	# for www-plugins/chrome-binary-plugins (widevine) search paths on prefix
 	hprefixify -w /Gentoo/ src/core/content_client_qt.cpp
 
