@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{10..12} pypy3 )
+PYTHON_COMPAT=( python3_{10..13} pypy3 )
 
 inherit cmake python-any-r1
 
@@ -17,7 +17,6 @@ SLOT="0"
 KEYWORDS="~amd64"
 IUSE=""
 DEPEND=""
-
 
 src_configure() {
 	local mycmakeargs=(
