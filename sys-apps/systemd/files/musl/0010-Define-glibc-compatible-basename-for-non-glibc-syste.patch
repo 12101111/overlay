@@ -1,7 +1,7 @@
-From bab07e779ff23d5593bb118efaaa31b60a6dce87 Mon Sep 17 00:00:00 2001
+From ea8e85d92f67a7af8577a4ce7c67c7aaee65d10c Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Sun, 27 May 2018 08:36:44 -0700
-Subject: [PATCH 08/22] Define glibc compatible basename() for non-glibc
+Subject: [PATCH 10/27] Define glibc compatible basename() for non-glibc
  systems
 
 Fixes builds with musl, even though systemd is adamant about
@@ -15,7 +15,7 @@ Signed-off-by: Khem Raj <raj.khem@gmail.com>
  1 file changed, 4 insertions(+)
 
 diff --git a/src/basic/string-util.h b/src/basic/string-util.h
-index b6d8be3083..0a29036c4c 100644
+index ff5efbcf55..d1a6bb0e76 100644
 --- a/src/basic/string-util.h
 +++ b/src/basic/string-util.h
 @@ -26,6 +26,10 @@
@@ -30,5 +30,5 @@ index b6d8be3083..0a29036c4c 100644
          if (!haystack || !needle)
                  return NULL;
 -- 
-2.34.1
+2.45.1
 
