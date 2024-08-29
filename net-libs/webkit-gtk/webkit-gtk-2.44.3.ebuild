@@ -152,8 +152,6 @@ src_prepare() {
 	eapply "${FILESDIR}"/2.42.3-arm64-non-jumbo-fix-925621.patch
 	# Fix USE=-jumbo-build on all arches
 	eapply "${FILESDIR}"/2.44.1-non-unified-build-fixes.patch
-	# https://bugs.webkit.org/show_bug.cgi?id=274261
-	eapply "${FILESDIR}"/${PV}-excessive-cpu-usage.patch
 }
 
 src_configure() {
