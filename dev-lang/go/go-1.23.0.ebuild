@@ -90,10 +90,6 @@ src_compile() {
 		die "Should not be here, please report a bug"
 	fi
 
-	export GOROOT_FINAL="${EPREFIX}"/usr/lib/go
-	export GOROOT="${PWD}"
-	export GOBIN="${GOROOT}/bin"
-
 	# Go's build script does not use BUILD/HOST/TARGET consistently. :(
 	export GOHOSTARCH=$(go-env_goarch ${CBUILD})
 	export GOHOSTOS=$(go-env_goos ${CBUILD})
