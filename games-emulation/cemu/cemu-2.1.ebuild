@@ -11,7 +11,7 @@ HOMEPAGE="https://cemu.info/"
 
 EGIT_REPO_URI="https://github.com/cemu-project/Cemu.git"
 EGIT_SUBMODULES=( '-*' 'dependencies/imgui' )
-EGIT_COMMIT="v$(ver_cut 1-2)-$(ver_cut 3)"
+EGIT_COMMIT="v${PV}"
 
 DOCS=( "README.md" "LICENSE.txt" )
 
