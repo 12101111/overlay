@@ -43,6 +43,7 @@ SRC_URI="
 	verify-sig? ( https://${IS_DEV}static.rust-lang.org/dist/${SRC}.asc )
 	!system-bootstrap? ( $(rust_all_arch_uris rust-${RUST_STAGE0_VERSION}) )
 "
+S="${WORKDIR}/${MY_P}-src"
 
 # keep in sync with llvm ebuild of the same version as bundled one.
 ALL_LLVM_TARGETS=( AArch64 AMDGPU ARC ARM AVR BPF CSKY DirectX Hexagon Lanai
@@ -168,8 +169,6 @@ QA_PRESTRIPPED="
 # so we can safely silence the warning for this QA check.
 QA_EXECSTACK="usr/lib/${PN}/${PV}/lib/rustlib/*/lib*.rlib:lib.rmeta"
 
-S="${WORKDIR}/${MY_P}-src"
-
 # causes double bootstrap
 RESTRICT="test"
 
@@ -178,7 +177,6 @@ VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 PATCHES=(
 	"${FILESDIR}"/1.78.0-musl-dynamic-linking.patch
 	"${FILESDIR}"/1.74.1-cross-compile-libz.patch
-	"${FILESDIR}"/1.78.0-ignore-broken-and-non-applicable-tests.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
 	"${FILESDIR}"/1.79.0-revert-8c40426.patch
 )
