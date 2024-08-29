@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-128-patches-05.tar.xz"
+FIREFOX_PATCHSET="firefox-129-patches-02.tar.xz"
 
 LLVM_COMPAT=( 17 18 )
 
@@ -30,6 +30,11 @@ fi
 if [[ -n ${MOZ_ESR} ]] ; then
 	# ESR releases have slightly different version numbers
 	MOZ_PV="${MOZ_PV}esr"
+	HOMEPAGE="https://www.mozilla.com/firefox https://www.mozilla.org/firefox/enterprise/"
+	SLOT="esr"
+else
+	HOMEPAGE="https://www.mozilla.com/firefox"
+	SLOT="rapid"
 fi
 
 MOZ_PN="${PN%-bin}"
@@ -51,18 +56,16 @@ PATCH_URIS=(
 )
 
 DESCRIPTION="Firefox Web Browser"
-HOMEPAGE="https://www.mozilla.com/firefox"
 SRC_URI="${MOZ_SRC_BASE_URI}/source/${MOZ_P}.source.tar.xz -> ${MOZ_P_DISTFILES}.source.tar.xz
 	${PATCH_URIS[@]}"
 S="${WORKDIR}/${PN}-${PV%_*}"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
-SLOT="rapid"
 KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv ~x86 ~loong"
 
-IUSE="+clang cpu_flags_arm_neon dbus debug eme-free hardened hwaccel"
-IUSE+=" jack +jumbo-build libproxy lto openh264 pgo pulseaudio sndio selinux"
-IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent +system-libvpx system-png +system-webp"
-IUSE+=" +telemetry valgrind wayland wifi +X"
+IUSE="+clang cpu_flags_arm_neon dbus debug eme-free hardened hwaccel jack +jumbo-build libproxy lto"
+IUSE+=" openh264 pgo pulseaudio sndio selinux +system-av1 +system-harfbuzz +system-icu"
+IUSE+=" +system-jpeg +system-libevent +system-libvpx system-png +system-webp +telemetry valgrind"
+IUSE+=" wayland wifi +X"
 
 # Firefox-only IUSE
 IUSE+=" +gmp-autoupdate"
@@ -74,7 +77,6 @@ REQUIRED_USE="|| ( X wayland )
 	wifi? ( dbus )"
 
 FF_ONLY_DEPEND="!www-client/firefox:0
-	!www-client/firefox:esr
 	selinux? ( sec-policy/selinux-mozilla )"
 BDEPEND="${PYTHON_DEPS}
 	$(llvm_gen_dep '
@@ -115,7 +117,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.101
+	>=dev-libs/nss-3.102
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -162,7 +164,10 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	)
 	wifi? (
 		kernel_linux? (
-			net-misc/networkmanager
+			|| (
+				net-misc/networkmanager
+				net-misc/connman[networkmanager]
+			)
 			sys-apps/dbus
 		)
 	)
@@ -191,6 +196,13 @@ DEPEND="${COMMON_DEPEND}
 		x11-libs/libICE
 		x11-libs/libSM
 	)"
+
+# ESR and rapid dependencies.
+if [[ -n ${MOZ_ESR} ]] ; then
+	RDEPEND+=" !www-client/firefox:rapid"
+else
+	RDEPEND+=" !www-client/firefox:esr"
+fi
 
 # Allow MOZ_GMP_PLUGIN_LIST to be set in an eclass or
 # overridden in the enviromnent (advanced hackers only)
@@ -408,40 +420,6 @@ mozconfig_use_with() {
 	mozconfig_add_options_ac "$(use ${1} && echo +${1} || echo -${1})" "${flag}"
 }
 
-# This is a straight copypaste from toolchain-funcs.eclass's 'tc-ld-is-lld', and is temporarily
-# placed here until toolchain-funcs.eclass gets an official support for mold linker.
-# Please see:
-# https://github.com/gentoo/gentoo/pull/28366 ||
-# https://github.com/gentoo/gentoo/pull/28355
-tc-ld-is-mold() {
-	local out
-
-	# Ensure ld output is in English.
-	local -x LC_ALL=C
-
-	# First check the linker directly.
-	out=$($(tc-getLD "$@") --version 2>&1)
-	if [[ ${out} == *"mold"* ]] ; then
-		return 0
-	fi
-
-	# Then see if they're selecting mold via compiler flags.
-	# Note: We're assuming they're using LDFLAGS to hold the
-	# options and not CFLAGS/CXXFLAGS.
-	local base="${T}/test-tc-linker"
-	cat <<-EOF > "${base}.c"
-	int main() { return 0; }
-	EOF
-	out=$($(tc-getCC "$@") ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -Wl,--version "${base}.c" -o "${base}" 2>&1)
-	rm -f "${base}"*
-	if [[ ${out} == *"mold"* ]] ; then
-		return 0
-	fi
-
-	# No mold here!
-	return 1
-}
-
 virtwl() {
 	debug-print-function ${FUNCNAME} "$@"
 
@@ -632,6 +610,8 @@ src_prepare() {
 			export RUST_TARGET="i686-unknown-linux-musl"
 		elif use arm64 ; then
 			export RUST_TARGET="aarch64-unknown-linux-musl"
+		elif use ppc64 ; then
+			export RUST_TARGET="powerpc64le-unknown-linux-musl"
 		else
 			die "Unknown musl chost, please post your rustc -vV along with emerge --info on Gentoo's bug #915651"
 		fi
@@ -679,7 +659,6 @@ src_prepare() {
 
 	# Clear checksums from cargo crates we've manually patched.
 	# moz_clear_vendor_checksums xyz
-	moz_clear_vendor_checksums proc-macro2
 
 	# Respect choice for "jumbo-build"
 	# Changing the value for FILES_PER_UNIFIED_FILE may not work, see #905431
@@ -833,7 +812,7 @@ src_configure() {
 	[[ -n ${MOZ_ESR} ]] && update_channel=esr
 	mozconfig_add_options_ac '' --update-channel=${update_channel}
 
-	if ! use x86 && [[ ${CHOST} != armv*h* ]] ; then
+	if ! use x86 ; then
 		mozconfig_add_options_ac '' --enable-rust-simd
 	fi
 
@@ -1023,29 +1002,6 @@ src_configure() {
 	# Optimization flag was handled via configure
 	filter-flags '-O*'
 
-	# Modifications to better support ARM, bug #553364
-	if use cpu_flags_arm_neon ; then
-		mozconfig_add_options_ac '+cpu_flags_arm_neon' --with-fpu=neon
-
-		if ! tc-is-clang ; then
-			# thumb options aren't supported when using clang, bug 666966
-			mozconfig_add_options_ac '+cpu_flags_arm_neon' \
-				--with-thumb=yes \
-				--with-thumb-interwork=no
-		fi
-	fi
-
-	if [[ ${CHOST} == armv*h* ]] ; then
-		mozconfig_add_options_ac 'CHOST=armv*h*' --with-float-abi=hard
-
-		if ! use system-libvpx ; then
-			sed -i \
-				-e "s|softfp|hard|" \
-				"${S}"/media/libvpx/moz.build \
-				|| die
-		fi
-	fi
-
 	# elf-hack
 	# Filter "-z,pack-relative-relocs" and let the build system handle it instead.
 	if use amd64 || use x86 ; then
@@ -1064,21 +1020,6 @@ src_configure() {
 	else
 		mozconfig_add_options_ac 'disable elf-hack on non-supported arches' --disable-elf-hack
 	fi
-
-	# Additional ARCH support
-	case "${ARCH}" in
-		arm)
-			# Reduce the memory requirements for linking
-			if use clang ; then
-				# Nothing to do
-				:;
-			elif use lto ; then
-				append-ldflags -Wl,--no-keep-memory
-			else
-				append-ldflags -Wl,--no-keep-memory -Wl,--reduce-memory-overheads
-			fi
-			;;
-	esac
 
 	if ! use elibc_glibc; then
 		mozconfig_add_options_ac '!elibc_glibc' --disable-jemalloc
@@ -1227,7 +1168,7 @@ src_install() {
 
 	# Set dictionary path to use system hunspell
 	cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to set spellchecker.dictionary_path pref"
-	pref("spellchecker.dictionary_path",       "${EPREFIX}/usr/share/myspell");
+	pref("spellchecker.dictionary_path", "${EPREFIX}/usr/share/myspell");
 	EOF
 
 	# Force hwaccel prefs if USE=hwaccel is enabled
@@ -1238,11 +1179,11 @@ src_install() {
 
 		if use wayland; then
 			cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to set hwaccel wayland prefs"
-			pref("gfx.x11-egl.force-enabled",          false);
+			pref("gfx.x11-egl.force-enabled", false);
 			EOF
 		else
 			cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to set hwaccel x11 prefs"
-			pref("gfx.x11-egl.force-enabled",          true);
+			pref("gfx.x11-egl.force-enabled", true);
 			EOF
 		fi
 
@@ -1262,7 +1203,7 @@ src_install() {
 		for plugin in "${MOZ_GMP_PLUGIN_LIST[@]}" ; do
 			einfo "Disabling auto-update for ${plugin} plugin ..."
 			cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to disable autoupdate for ${plugin} media plugin"
-			pref("media.${plugin}.autoupdate",   false);
+			pref("media.${plugin}.autoupdate", false);
 			EOF
 		done
 	fi
@@ -1271,6 +1212,16 @@ src_install() {
 	if use system-harfbuzz ; then
 		cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to set gfx.font_rendering.graphite.enabled pref"
 		sticky_pref("gfx.font_rendering.graphite.enabled", true);
+		EOF
+	fi
+
+	# Add telemetry config prefs, just in case something happens in future and telemetry build
+	# options stop working.
+	if ! use telemetry ; then
+		cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to set telemetry prefs"
+		sticky_pref("toolkit.telemetry.dap_enabled", false);
+		pref("toolkit.telemetry.dap_helper", "");
+		pref("toolkit.telemetry.dap_leader", "");
 		EOF
 	fi
 
@@ -1302,10 +1253,15 @@ src_install() {
 	# Install menu
 	local app_name="Mozilla ${MOZ_PN^}"
 	local desktop_file="${FILESDIR}/icon/${PN}-r3.desktop"
-	local desktop_filename="${PN}.desktop"
 	local exec_command="${PN}"
 	local icon="${PN}"
 	local use_wayland="false"
+
+	if [[ -n ${MOZ_ESR} ]] ; then
+		local desktop_filename="${PN}-esr.desktop"
+	else
+		local desktop_filename="${PN}.desktop"
+	fi
 
 	if use wayland ; then
 		use_wayland="true"
@@ -1323,6 +1279,17 @@ src_install() {
 	newmenu "${WORKDIR}/${PN}.desktop-template" "${desktop_filename}"
 
 	rm "${WORKDIR}/${PN}.desktop-template" || die
+
+	# Install search provider for Gnome
+	insinto /usr/share/gnome-shell/search-providers/
+	doins browser/components/shell/search-provider-files/org.mozilla.firefox.search-provider.ini
+
+	insinto /usr/share/dbus-1/services/
+	doins browser/components/shell/search-provider-files/org.mozilla.firefox.SearchProvider.service
+
+	sed -e "s/firefox.desktop/${desktop_filename}/g" \
+		-i "${ED}/usr/share/gnome-shell/search-providers/org.mozilla.firefox.search-provider.ini" \
+			die "Failed to sed search-provider file."
 
 	# Install wrapper script
 	[[ -f "${ED}/usr/bin/${PN}" ]] && rm "${ED}/usr/bin/${PN}"
