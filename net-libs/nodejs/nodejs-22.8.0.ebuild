@@ -24,7 +24,7 @@ else
 	S="${WORKDIR}/node-v${PV}"
 fi
 
-IUSE="corepack cpu_flags_x86_sse2 debug doc +icu inspector lto +npm pax-kernel +snapshot +ssl +system-icu +system-ssl test"
+IUSE="corepack cpu_flags_x86_sse2 debug doc +icu inspector lto npm pax-kernel +snapshot +ssl +system-icu +system-ssl test"
 REQUIRED_USE="inspector? ( icu ssl )
 	npm? ( ssl )
 	system-icu? ( icu )
@@ -39,11 +39,14 @@ RDEPEND=">=app-arch/brotli-1.0.9:=
 	>=dev-libs/simdjson-3.9.1:=
 	>=net-dns/c-ares-1.18.1:=
 	>=net-libs/nghttp2-1.61.0:=
-	>=net-libs/ngtcp2-1.3.0:=
 	sys-libs/zlib
 	corepack? ( !sys-apps/yarn )
 	system-icu? ( >=dev-libs/icu-73:= )
-	system-ssl? ( >=dev-libs/openssl-1.1.1:0= )
+	system-ssl? (
+		>=net-libs/ngtcp2-1.3.0:=
+		>=dev-libs/openssl-1.1.1:0=
+	)
+	!system-ssl? ( >=net-libs/ngtcp2-1.3.0:=[-gnutls] )
 "
 BDEPEND="${PYTHON_DEPS}
 	app-alternatives/ninja
