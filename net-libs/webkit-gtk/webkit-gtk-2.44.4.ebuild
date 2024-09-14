@@ -13,8 +13,10 @@ DESCRIPTION="Open source web browser engine"
 HOMEPAGE="https://www.webkitgtk.org"
 SRC_URI="https://www.webkitgtk.org/releases/${MY_P}.tar.xz"
 
+S="${WORKDIR}/${MY_P}"
+
 LICENSE="LGPL-2+ BSD"
-SLOT="4.1/0" # soname version of libwebkit2gtk-4.1
+SLOT="4/37" # soname version of libwebkit2gtk-4.0
 KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
 
 IUSE="aqua avif examples gamepad keyring +gstreamer +introspection pdf jpegxl +jumbo-build lcms seccomp spell systemd wayland X"
@@ -30,7 +32,6 @@ RESTRICT="test"
 # >=gst-plugins-opus-1.14.4-r1 for opusparse (required by MSE)
 # TODO: gst-plugins-base[X] is only needed when build configuration ends up
 #       with GLX set, but that's a bit automagic too to fix
-# Softblocking webkit-gtk-2.38:4 as at that time WebKitWebDriver migrated to SLOT=4.1; currently it is found in SLOT=6
 RDEPEND="
 	>=x11-libs/cairo-1.16.0[X?]
 	>=media-libs/fontconfig-2.13.0:1.0
@@ -42,7 +43,7 @@ RDEPEND="
 	>=dev-libs/icu-61.2:=
 	media-libs/libjpeg-turbo:0=
 	>=media-libs/libepoxy-1.5.4[egl(+)]
-	>=net-libs/libsoup-3.0.8:3.0[introspection?]
+	>=net-libs/libsoup-2.54:2.4[introspection?]
 	>=dev-libs/libxml2-2.8.0:2
 	>=media-libs/libpng-1.4:0=
 	dev-db/sqlite:3
@@ -87,7 +88,6 @@ RDEPEND="
 
 	systemd? ( sys-apps/systemd:= )
 	gamepad? ( >=dev-libs/libmanette-0.2.4 )
-	!<net-libs/webkit-gtk-2.38:4
 "
 DEPEND="${RDEPEND}"
 # Need real bison, not yacc
@@ -111,8 +111,6 @@ BDEPEND="
 
 	wayland? ( dev-util/wayland-scanner )
 "
-
-S="${WORKDIR}/${MY_P}"
 
 CHECKREQS_DISK_BUILD="18G" # and even this might not be enough, bug #417307
 
@@ -150,8 +148,6 @@ src_prepare() {
 	cmake_src_prepare
 	gnome2_src_prepare
 
-	# Fix USE=-jumbo-build compilation on arm64
-	eapply "${FILESDIR}"/2.42.3-arm64-non-jumbo-fix-925621.patch
 	# Fix USE=-jumbo-build on all arches
 	eapply "${FILESDIR}"/2.44.1-non-unified-build-fixes.patch
 }
@@ -167,9 +163,6 @@ src_configure() {
 	# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=648761
 	use alpha && append-ldflags "-Wl,--no-relax"
 
-	# ld segfaults on ia64 with LDFLAGS --as-needed, bug #555504
-	use ia64 && append-ldflags "-Wl,--no-as-needed"
-
 	# Sigbuses on SPARC with mcpu and co., bug #???
 	use sparc && filter-flags "-mvis"
 
@@ -177,10 +170,7 @@ src_configure() {
 	use ppc64 && append-flags "-mminimal-toc"
 
 	# Try to use less memory, bug #469942 (see Fedora .spec for reference)
-	# --no-keep-memory doesn't work on ia64, bug #502492
-	if ! use ia64; then
-		append-ldflags $(test-flags-CCLD "-Wl,--no-keep-memory")
-	fi
+	append-ldflags $(test-flags-CCLD "-Wl,--no-keep-memory")
 
 	# Ruby situation is a bit complicated. See bug 513888
 	local rubyimpl
@@ -241,13 +231,16 @@ src_configure() {
 		-DUSE_LIBDRM=ON
 		-DUSE_LIBHYPHEN=ON
 		-DUSE_LIBSECRET=$(usex keyring)
-		-DUSE_SOUP2=OFF
+		-DUSE_SOUP2=ON
 		-DUSE_WOFF2=ON
 	)
 
 	if use elibc_musl ; then
 		mycmakeargs+=( -DENABLE_SAMPLING_PROFILER=OFF )
 	fi
+
+	# Temporary workaround for bug 938162 (upstream bug 271371).
+	use riscv && mycmakeargs+=( -DENABLE_JIT=OFF )
 
 	# https://bugs.gentoo.org/761238
 	append-cppflags -DNDEBUG

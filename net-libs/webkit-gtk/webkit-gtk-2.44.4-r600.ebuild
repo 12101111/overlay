@@ -13,6 +13,8 @@ DESCRIPTION="Open source web browser engine"
 HOMEPAGE="https://www.webkitgtk.org"
 SRC_URI="https://www.webkitgtk.org/releases/${MY_P}.tar.xz"
 
+S="${WORKDIR}/${MY_P}"
+
 LICENSE="LGPL-2+ BSD"
 SLOT="6/0" # soname version of libwebkit2gtk-6.0
 KEYWORDS="~amd64 ~arm ~arm64 ~loong ~ppc ~ppc64 ~riscv ~sparc ~x86"
@@ -24,16 +26,23 @@ REQUIRED_USE="|| ( aqua wayland X )"
 # https://bugs.webkit.org/show_bug.cgi?id=215986
 RESTRICT="test"
 
-# Dependencies found at Source/cmake/OptionsGTK.cmake
-# Missing WebRTC support, but ENABLE_WEB_RTC is experimental upstream
-# media-libs/mesa dep is for libgbm
-# >=gst-plugins-opus-1.14.4-r1 for opusparse (required by MSE)
-# TODO: gst-plugins-base[X] is only needed when build configuration ends up
-#       with GLX set, but that's a bit automagic too to fix
-# Softblocking <webkit-gtk-2.38:4 and <webkit-gtk-2.44:4.1 as since 2.44 this SLOT ships the WebKitWebDriver binary;
-# WebKitWebDriver is an automation tool for web developers, which lets one control the browser via WebDriver API - only one SLOT can ship it
-# TODO: There is build-time conditional depend on gtk-4.13.4 for using more efficient DmaBuf buffer type instead of EglImage, and gtk-4.13.7 for a11y support - ensure it at some point with a min dep
-# TODO: at-spi2-core (atspi-2.pc) is checked at build time, but not linked to in the gtk4 SLOT - is it an upstream check bug and only gtk-4.14 a11y support is used?
+# Dependencies can be found in Source/cmake/OptionsGTK.cmake.
+#
+# * Missing WebRTC support, but ENABLE_WEB_RTC is experimental upstream.
+# * media-libs/mesa dep is for libgbm
+# * >=gst-plugins-opus-1.14.4-r1 for opusparse (required by MSE)
+# * TODO: gst-plugins-base[X] is only needed when build configuration ends up
+#         with GLX set, but that's a bit automagic too to fix
+# * Softblocking <webkit-gtk-2.38:4 and <webkit-gtk-2.44:4.1 as since
+# * 2.44 this SLOT ships the WebKitWebDriver binary; WebKitWebDriver is
+#   an automation tool for web developers, which lets one control the
+#   browser via WebDriver API - only one SLOT can ship it.
+# * TODO: There is build-time conditional depend on gtk-4.13.4 for using
+#   more efficient DmaBuf buffer type instead of EglImage, and
+#   gtk-4.13.7 for a11y support - ensure it at some point with a min dep
+# * at-spi2-core (atspi-2.pc) is checked at build time, but not linked
+#   to in the gtk4 SLOT - is it an upstream check bug and only gtk-4.14
+#   a11y support is used?
 RDEPEND="
 	>=x11-libs/cairo-1.16.0[X?]
 	>=media-libs/fontconfig-2.13.0:1.0
@@ -116,8 +125,6 @@ BDEPEND="
 	wayland? ( dev-util/wayland-scanner )
 "
 
-S="${WORKDIR}/${MY_P}"
-
 CHECKREQS_DISK_BUILD="18G" # and even this might not be enough, bug #417307
 
 # We cannot use PATCHES because src_prepare() calls cmake_src_prepare and
@@ -154,8 +161,6 @@ src_prepare() {
 	cmake_src_prepare
 	gnome2_src_prepare
 
-	# Fix USE=-jumbo-build compilation on arm64
-	eapply "${FILESDIR}"/2.42.3-arm64-non-jumbo-fix-925621.patch
 	# Fix USE=-jumbo-build on all arches
 	eapply "${FILESDIR}"/2.44.1-non-unified-build-fixes.patch
 }
@@ -171,9 +176,6 @@ src_configure() {
 	# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=648761
 	use alpha && append-ldflags "-Wl,--no-relax"
 
-	# ld segfaults on ia64 with LDFLAGS --as-needed, bug #555504
-	use ia64 && append-ldflags "-Wl,--no-as-needed"
-
 	# Sigbuses on SPARC with mcpu and co., bug #???
 	use sparc && filter-flags "-mvis"
 
@@ -181,10 +183,7 @@ src_configure() {
 	use ppc64 && append-flags "-mminimal-toc"
 
 	# Try to use less memory, bug #469942 (see Fedora .spec for reference)
-	# --no-keep-memory doesn't work on ia64, bug #502492
-	if ! use ia64; then
-		append-ldflags $(test-flags-CCLD "-Wl,--no-keep-memory")
-	fi
+	append-ldflags $(test-flags-CCLD "-Wl,--no-keep-memory")
 
 	# Ruby situation is a bit complicated. See bug 513888
 	local rubyimpl
@@ -252,6 +251,9 @@ src_configure() {
 	if use elibc_musl ; then
 		mycmakeargs+=( -DENABLE_SAMPLING_PROFILER=OFF )
 	fi
+
+	# Temporary workaround for bug 938162 (upstream bug 271371).
+	use riscv && mycmakeargs+=( -DENABLE_JIT=OFF )
 
 	# https://bugs.gentoo.org/761238
 	append-cppflags -DNDEBUG
