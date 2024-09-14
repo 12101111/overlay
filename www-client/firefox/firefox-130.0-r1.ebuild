@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-130-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-130-patches-03.tar.xz"
 
 LLVM_COMPAT=( 17 18 )
 
@@ -68,7 +68,7 @@ IUSE+=" +system-jpeg +system-libevent +system-libvpx system-png +system-webp +te
 IUSE+=" wayland wifi +X"
 
 # Firefox-only IUSE
-IUSE+=" +gmp-autoupdate"
+IUSE+=" +gmp-autoupdate gnome-shell"
 
 REQUIRED_USE="|| ( X wayland )
 	debug? ( !system-av1 )
@@ -620,14 +620,6 @@ src_prepare() {
 	sed -i -e "s/multiprocessing.cpu_count()/$(makeopts_jobs)/" \
 		"${S}"/build/moz.configure/lto-pgo.configure || die "Failed sedding multiprocessing.cpu_count"
 
-	# Make ICU respect MAKEOPTS
-	sed -i -e "s/multiprocessing.cpu_count()/$(makeopts_jobs)/" \
-		"${S}"/intl/icu_sources_data.py || die "Failed sedding multiprocessing.cpu_count"
-
-	# Respect MAKEOPTS all around (maybe some find+sed is better)
-	sed -i -e "s/multiprocessing.cpu_count()/$(makeopts_jobs)/" \
-		"${S}"/python/mozbuild/mozbuild/base.py || die "Failed sedding multiprocessing.cpu_count"
-
 	sed -i -e "s/multiprocessing.cpu_count()/$(makeopts_jobs)/" \
 		"${S}"/third_party/libwebrtc/build/toolchain/get_cpu_count.py || die "Failed sedding multiprocessing.cpu_count"
 
@@ -637,9 +629,6 @@ src_prepare() {
 
 	sed -i -e "s/multiprocessing.cpu_count()/$(makeopts_jobs)/" \
 		"${S}"/third_party/python/gyp/pylib/gyp/input.py || die "Failed sedding multiprocessing.cpu_count"
-
-	sed -i -e "s/multiprocessing.cpu_count()/$(makeopts_jobs)/" \
-		"${S}"/python/mozbuild/mozbuild/code_analysis/mach_commands.py || die "Failed sedding multiprocessing.cpu_count"
 
 	# sed-in toolchain prefix
 	sed -i \
@@ -1276,16 +1265,30 @@ src_install() {
 
 	rm "${WORKDIR}/${PN}.desktop-template" || die
 
-	# Install search provider for Gnome
-	insinto /usr/share/gnome-shell/search-providers/
-	doins browser/components/shell/search-provider-files/org.mozilla.firefox.search-provider.ini
+	if use gnome-shell ; then
+		# Install search provider for Gnome
+		insinto /usr/share/gnome-shell/search-providers/
+		doins browser/components/shell/search-provider-files/org.mozilla.firefox.search-provider.ini
 
-	insinto /usr/share/dbus-1/services/
-	doins browser/components/shell/search-provider-files/org.mozilla.firefox.SearchProvider.service
+		insinto /usr/share/dbus-1/services/
+		doins browser/components/shell/search-provider-files/org.mozilla.firefox.SearchProvider.service
 
-	sed -e "s/firefox.desktop/${desktop_filename}/g" \
-		-i "${ED}/usr/share/gnome-shell/search-providers/org.mozilla.firefox.search-provider.ini" ||
-			die "Failed to sed search-provider file."
+		# Toggle between rapid and esr desktop file names
+		sed -e "s/firefox.desktop/${desktop_filename}/g" \
+			-i "${ED}/usr/share/gnome-shell/search-providers/org.mozilla.firefox.search-provider.ini" ||
+				die "Failed to sed org.mozilla.firefox.search-provider.ini file."
+
+		# Make the dbus service aware of a previous session, bgo#939196
+		sed -e \
+			"s/Exec=\/usr\/bin\/firefox/Exec=\/usr\/$(get_libdir)\/firefox\/firefox --dbus-service \/usr\/bin\/firefox/g" \
+			-i "${ED}/usr/share/dbus-1/services/org.mozilla.firefox.SearchProvider.service" ||
+				die "Failed to sed org.mozilla.firefox.SearchProvider.service dbus file"
+
+		# Update prefs to enable Gnome search provider
+		cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to enable gnome-search-provider via prefs"
+		pref("browser.gnome-search-provider.enabled", true);
+		EOF
+	fi
 
 	# Install wrapper script
 	[[ -f "${ED}/usr/bin/${PN}" ]] && rm "${ED}/usr/bin/${PN}"
