@@ -1,12 +1,12 @@
-From 837c340822eff3acfe133ab2f4511908aefe9a8d Mon Sep 17 00:00:00 2001
+From eedc1be6c949b64d44fb1ba0e3f3ac9e7c8461de Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 18 Jul 2024 02:48:45 +0800
 Subject: [PATCH 09/12] Don't warn electron args
 
 ---
  src/vs/platform/environment/common/argv.ts | 2 ++
- src/vs/platform/environment/node/argv.ts   | 4 ++++
- 2 files changed, 6 insertions(+)
+ src/vs/platform/environment/node/argv.ts   | 2 ++
+ 2 files changed, 4 insertions(+)
 
 diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
 index 818021ff0c1..f1da13b6046 100644
@@ -20,7 +20,7 @@ index 818021ff0c1..f1da13b6046 100644
 +	'enable-features'?: string;
  }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 16a942afe05..7d0f6bf0600 100644
+index 16a942afe05..fdffd55d6ea 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
 @@ -209,6 +209,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
@@ -33,5 +33,5 @@ index 16a942afe05..7d0f6bf0600 100644
  	_: { type: 'string[]' } // main arguments
  };
 -- 
-2.45.2
+2.46.0
 

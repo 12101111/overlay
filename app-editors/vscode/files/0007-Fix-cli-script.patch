@@ -1,4 +1,4 @@
-From e07487415a8cb87c66d068607c749024245633d5 Mon Sep 17 00:00:00 2001
+From dd2087b4097fb1defbef230671efa0f68c80d5a4 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 3 Feb 2024 11:34:33 +0800
 Subject: [PATCH 07/12] Fix cli script
@@ -19,5 +19,5 @@ index 4f11f5b82e0..f1a6e512df5 100755
 +ELECTRON_RUN_AS_NODE=1 "$ELECTRON" "$CLI" --app="${VSCODE_PATH}/resources/app" "$@"
  exit $?
 -- 
-2.45.2
+2.46.0
 
