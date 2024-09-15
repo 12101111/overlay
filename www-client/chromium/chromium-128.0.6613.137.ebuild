@@ -51,7 +51,7 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PATCHSET_PPC64="128.0.6613.84-1raptor0~deb12u1"
+PATCHSET_PPC64="128.0.6613.119-1raptor0~deb12u1"
 PATCHSET_LOONG="chromium-128.0.6613.84-1"
 PATCHSET_LOONG_PV="128.0.6613.84"
 PATCH_V="${PV%%\.*}"
