@@ -71,7 +71,7 @@ inherit python-any-r1 readme.gentoo-r1 toolchain-funcs virtualx xdg-utils yarn r
 # https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-123.0.6295.0.tar.xz.hashe%40
 CHROMIUM_VERSION="124.0.6367.225"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="20.15.1"
+NODE_VERSION="20.16.0"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
