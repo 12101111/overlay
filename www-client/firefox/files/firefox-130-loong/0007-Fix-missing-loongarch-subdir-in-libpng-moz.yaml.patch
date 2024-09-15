@@ -1,0 +1,25 @@
+From 92f81a60628d6d3bfd6e8911631ce169931dd4c8 Mon Sep 17 00:00:00 2001
+From: WANG Xuerui <xen0n@gentoo.org>
+Date: Wed, 4 Sep 2024 16:45:05 +0800
+Subject: [PATCH 7/9] Fix missing loongarch subdir in libpng moz.yaml
+
+Signed-off-by: WANG Xuerui <xen0n@gentoo.org>
+---
+ media/libpng/moz.yaml | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/media/libpng/moz.yaml b/media/libpng/moz.yaml
+index 4d193089acd21..e3c63908cc354 100644
+--- a/media/libpng/moz.yaml
++++ b/media/libpng/moz.yaml
+@@ -37,6 +37,7 @@ vendoring:
+     - arm
+     - contrib/arm-neon/linux.c
+     - intel
++    - loongarch
+     - mips
+     - powerpc
+     - ANNOUNCE
+-- 
+2.45.2
+

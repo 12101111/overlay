@@ -593,7 +593,7 @@ src_prepare() {
 
 	eapply "${WORKDIR}/firefox-patches"
 
-	use loong && eapply "${FILESDIR}/firefox-125-loong"
+	use loong && eapply "${FILESDIR}/firefox-130-loong"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
