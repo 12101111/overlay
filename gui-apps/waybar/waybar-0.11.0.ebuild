@@ -19,7 +19,7 @@ fi
 
 LICENSE="MIT"
 SLOT="0"
-IUSE="evdev experimental jack +libinput +logind mpd mpris network pipewire pulseaudio sndio systemd test tray +udev upower wifi"
+IUSE="evdev experimental jack +libinput +logind mpd mpris network niri pipewire pulseaudio sndio systemd test tray +udev upower wifi"
 REQUIRED_USE="
 	mpris? ( logind )
 	upower? ( logind )
@@ -50,7 +50,7 @@ RDEPEND="
 	media-video/pipewire:=
 	x11-libs/gtk+:3[wayland]
 	x11-libs/libxkbcommon
-	evdev? ( dev-libs/libevdev )
+	evdev? ( dev-libs/libevdev:= )
 	jack? ( virtual/jack )
 	libinput? ( dev-libs/libinput:= )
 	logind? (
@@ -87,6 +87,7 @@ src_configure() {
 		$(meson_feature logind)
 		$(meson_feature mpd)
 		$(meson_feature mpris)
+		$(meson_use niri)
 		$(meson_feature network libnl)
 		$(meson_feature pulseaudio)
 		$(meson_feature pipewire wireplumber)
