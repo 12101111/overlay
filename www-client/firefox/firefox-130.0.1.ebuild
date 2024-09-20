@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-130-patches-03.tar.xz"
+FIREFOX_PATCHSET="firefox-130-patches-04.tar.xz"
 
 LLVM_COMPAT=( 17 18 )
 
@@ -72,6 +72,7 @@ IUSE+=" +gmp-autoupdate gnome-shell"
 
 REQUIRED_USE="|| ( X wayland )
 	debug? ( !system-av1 )
+	!jumbo-build? ( clang )
 	pgo? ( lto )
 	wayland? ( dbus )
 	wifi? ( dbus )"
