@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{10..12} )
+PYTHON_COMPAT=( python3_{10..13} )
 inherit cmake-multilib flag-o-matic llvm.org llvm-utils python-any-r1
 inherit toolchain-funcs
 
@@ -12,7 +12,7 @@ HOMEPAGE="https://libcxxabi.llvm.org/"
 
 LICENSE="Apache-2.0-with-LLVM-exceptions || ( UoI-NCSA MIT )"
 SLOT="0"
-KEYWORDS="amd64 arm arm64 ~loong ~riscv sparc x86 ~arm64-macos ~x64-macos"
+KEYWORDS="~amd64 ~arm ~arm64 ~loong ~riscv ~sparc ~x86 ~arm64-macos ~x64-macos"
 IUSE="+clang +static-libs test"
 REQUIRED_USE="test? ( clang )"
 RESTRICT="!test? ( test )"
@@ -45,13 +45,6 @@ llvm.org_set_globals
 python_check_deps() {
 	use test || return 0
 	python_has_version "dev-python/lit[${PYTHON_USEDEP}]"
-}
-
-src_prepare() {
-	pushd .. > /dev/null
-	eapply "${FILESDIR}/thread_local.patch"
-	popd > /dev/null
-	cmake_src_prepare
 }
 
 multilib_src_configure() {

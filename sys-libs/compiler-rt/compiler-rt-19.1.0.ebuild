@@ -12,7 +12,7 @@ HOMEPAGE="https://llvm.org/"
 
 LICENSE="Apache-2.0-with-LLVM-exceptions || ( UoI-NCSA MIT )"
 SLOT="${LLVM_MAJOR}"
-KEYWORDS="amd64 arm arm64 ~loong ~mips ppc64 ~riscv x86 ~amd64-linux ~arm64-macos ~ppc-macos ~x64-macos"
+KEYWORDS="~amd64 ~arm ~arm64 ~loong ~mips ~ppc64 ~riscv ~x86 ~amd64-linux ~arm64-macos ~ppc-macos ~x64-macos"
 IUSE="+abi_x86_32 abi_x86_64 +clang debug test"
 RESTRICT="!test? ( test ) !clang? ( test )"
 
@@ -31,6 +31,7 @@ BDEPEND="
 "
 
 LLVM_COMPONENTS=( compiler-rt cmake llvm/cmake )
+LLVM_TEST_COMPONENTS=( llvm/include/llvm/TargetParser )
 llvm.org_set_globals
 
 python_check_deps() {
@@ -101,6 +102,7 @@ src_configure() {
 		-DCOMPILER_RT_INSTALL_PATH="${EPREFIX}/usr/lib/clang/${LLVM_MAJOR}"
 
 		-DCOMPILER_RT_INCLUDE_TESTS=$(usex test)
+		-DCOMPILER_RT_BUILD_CTX_PROFILE=OFF
 		-DCOMPILER_RT_BUILD_LIBFUZZER=OFF
 		-DCOMPILER_RT_BUILD_MEMPROF=OFF
 		-DCOMPILER_RT_BUILD_ORC=OFF
@@ -174,14 +176,4 @@ src_test() {
 	local -x LIT_PRESERVES_TMP=1
 
 	cmake_build check-builtins
-}
-
-src_install() {
-	cmake_src_install
-	case "${CTARGET}" in
-		i686-w64-mingw32) dosym ${CTARGET} /usr/lib/clang/${LLVM_MAJOR}/lib/i686-w64-windows-gnu ;;
-		x86_64-w64-mingw32) dosym ${CTARGET} /usr/lib/clang/${LLVM_MAJOR}/lib/x86_64-w64-windows-gnu ;;
-		wasm32-wasip1) dosym ${CTARGET} /usr/lib/clang/${LLVM_MAJOR}/lib/wasm32-unknown-wasip1 ;;
-		wasm32-wasip2) dosym ${CTARGET} /usr/lib/clang/${LLVM_MAJOR}/lib/wasm32-unknown-wasip2 ;;
-	esac
 }
