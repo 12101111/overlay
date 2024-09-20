@@ -1,26 +1,27 @@
 diff --git a/cli/build.rs b/cli/build.rs
-index 0a599b03b..df60f3ecd 100644
+index ecfc19dc0..6e4c519a4 100644
 --- a/cli/build.rs
 +++ b/cli/build.rs
-@@ -456,14 +456,22 @@ fn main() {
+@@ -489,15 +489,22 @@ fn main() {
    let c = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
    let o = PathBuf::from(env::var_os("OUT_DIR").unwrap());
  
 -  let compiler_snapshot_path = o.join("COMPILER_SNAPSHOT.bin");
 -  ts::create_compiler_snapshot(compiler_snapshot_path, &c);
 -
--  #[cfg(not(feature = "__runtime_js_sources"))]
+-  #[cfg(not(feature = "hmr"))]
 -  {
 -    let cli_snapshot_path = o.join("CLI_SNAPSHOT.bin");
 -    create_cli_snapshot(cli_snapshot_path);
 -  }
+-
 +  let thread = std::thread::Builder::new().stack_size(8 * 1024 * 1024);
 +  thread
 +    .spawn(move || {
 +      let compiler_snapshot_path = o.join("COMPILER_SNAPSHOT.bin");
 +      ts::create_compiler_snapshot(compiler_snapshot_path, &c);
 +
-+      #[cfg(not(feature = "__runtime_js_sources"))]
++      #[cfg(not(feature = "hmr"))]
 +      {
 +        let cli_snapshot_path = o.join("CLI_SNAPSHOT.bin");
 +        create_cli_snapshot(cli_snapshot_path);
@@ -30,6 +31,6 @@ index 0a599b03b..df60f3ecd 100644
 +    .join()
 +    .unwrap();
 +  println!("cargo:rustc-link-arg=-Wl,-z,stack-size=0x800000");
- 
    #[cfg(target_os = "windows")]
    {
+     let mut res = winres::WindowsResource::new();

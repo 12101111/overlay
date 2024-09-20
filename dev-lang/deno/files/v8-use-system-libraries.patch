@@ -1,8 +1,8 @@
 diff --git a/build.rs b/build.rs
-index 48221b6..4d3e3ba 100644
+index 3f83726..f4cee0b 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -664,6 +664,14 @@ fn print_link_flags() {
+@@ -702,6 +702,14 @@ fn print_link_flags() {
        println!("cargo:rustc-link-lib=dylib=msvcprt");
      }
    }
@@ -18,10 +18,10 @@ index 48221b6..4d3e3ba 100644
  
  // Chromium depot_tools contains helpers
 diff --git a/src/binding.cc b/src/binding.cc
-index 9ca3abf..4501bac 100644
+index 4f19898..6770eea 100644
 --- a/src/binding.cc
 +++ b/src/binding.cc
-@@ -3597,8 +3597,8 @@ void v8__CompiledWasmModule__DELETE(v8::CompiledWasmModule* self) {
+@@ -3735,8 +3735,8 @@ void v8__CompiledWasmModule__DELETE(v8::CompiledWasmModule* self) {
  extern "C" {
  
  size_t icu_get_default_locale(char* output, size_t output_len) {
@@ -41,7 +41,7 @@ index 15c1be3..cce761b 100644
    fn icu_get_default_locale(output: *mut char, output_len: usize) -> usize;
    fn icu_set_default_locale(locale: *const char);
 -  fn udata_setCommonData_73(this: *const u8, error_code: *mut i32);
-+  fn udata_setCommonData_74(this: *const u8, error_code: *mut i32);
++  fn udata_setCommonData(this: *const u8, error_code: *mut i32);
  }
  
  /// This function bypasses the normal ICU data loading process and allows you to force ICU's system
@@ -50,7 +50,7 @@ index 15c1be3..cce761b 100644
    let mut error_code = 0i32;
    unsafe {
 -    udata_setCommonData_73(data.as_ptr(), &mut error_code);
-+    udata_setCommonData_74(data.as_ptr(), &mut error_code);
++    udata_setCommonData(data.as_ptr(), &mut error_code);
    }
    if error_code == 0 {
      Ok(())

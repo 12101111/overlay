@@ -1,34 +1,24 @@
 diff --git a/build.rs b/build.rs
-index 48221b6..7c1c2ac 100644
+index 3f83726..f3de45e 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -100,6 +100,7 @@ fn main() {
-     return build_v8(is_asan);
+@@ -116,6 +116,7 @@ fn main() {
+     return;
    }
  
 +  panic!("Won't download library");
-   // utilize a lockfile to prevent linking of
-   // only partially downloaded static library.
-   let root = env::current_dir().unwrap();
-@@ -125,16 +126,8 @@ fn build_v8(is_asan: bool) {
-   // cargo publish doesn't like pyc files.
-   env::set_var("PYTHONDONTWRITEBYTECODE", "1");
+   print_prebuilt_src_binding_path();
  
--  // git submodule update --init --recursive
--  let libcxx_src = PathBuf::from("buildtools/third_party/libc++/trunk/src");
--  if !libcxx_src.is_dir() {
--    eprintln!(
--      "missing source code. Run 'git submodule update --init --recursive'"
--    );
--    exit(1);
--  }
--
+   download_static_lib_binaries();
+@@ -174,6 +175,7 @@ fn build_v8(is_asan: bool) {
+   env::set_var("DEPOT_TOOLS_WIN_TOOLCHAIN", "0");
+ 
    if need_gn_ninja_download() {
 +    panic!("gn and ninja must be installed");
      download_ninja_gn_binaries();
    }
    // `#[cfg(...)]` attributes don't work as expected from build.rs -- they refer to the configuration
-@@ -162,7 +155,8 @@ fn build_v8(is_asan: bool) {
+@@ -201,7 +203,8 @@ fn build_v8(is_asan: bool) {
      gn_args.push("host_cpu=\"arm64\"".to_string())
    }
  
@@ -38,7 +28,7 @@ index 48221b6..7c1c2ac 100644
      gn_args.push("is_clang=false".into());
      // -gline-tables-only is Clang-only
      gn_args.push("line_tables_only=false".into());
-@@ -180,7 +174,8 @@ fn build_v8(is_asan: bool) {
+@@ -219,7 +222,8 @@ fn build_v8(is_asan: bool) {
      }
    }
  
@@ -48,7 +38,7 @@ index 48221b6..7c1c2ac 100644
      cc_wrapper(&mut gn_args, Path::new(&p));
    } else if let Ok(p) = which("sccache") {
      cc_wrapper(&mut gn_args, &p);
-@@ -200,21 +195,21 @@ fn build_v8(is_asan: bool) {
+@@ -239,21 +243,24 @@ fn build_v8(is_asan: bool) {
    // cross-compilation setup
    if target_arch == "aarch64" {
      gn_args.push(r#"target_cpu="arm64""#.to_string());
@@ -74,23 +64,26 @@ index 48221b6..7c1c2ac 100644
    let target_triple = env::var("TARGET").unwrap();
    // check if the target triple describes a non-native environment
 -  if target_triple != env::var("HOST").unwrap() && target_os == "android" {
-+  if false && target_triple != env::var("HOST").unwrap() && target_os == "android" {
++  if false
++    && target_triple != env::var("HOST").unwrap()
++    && target_os == "android"
++  {
      let arch = if target_arch == "x86_64" {
        "x64"
      } else if target_arch == "aarch64" {
-@@ -836,6 +831,7 @@ type NinjaEnv = Vec<(String, String)>;
+@@ -910,6 +917,7 @@ type NinjaEnv = Vec<(String, String)>;
  fn ninja(gn_out_dir: &Path, maybe_env: Option<NinjaEnv>) -> Command {
    let cmd_string = env::var("NINJA").unwrap_or_else(|_| "ninja".to_owned());
-   let mut cmd = Command::new(cmd_string);
+   let mut cmd = Command::new(&cmd_string);
 +  cmd.arg("-v");
    cmd.arg("-C");
    cmd.arg(gn_out_dir);
-   if let Ok(jobs) = env::var("NUM_JOBS") {
-@@ -875,6 +871,7 @@ pub fn maybe_gen(manifest_dir: &str, gn_args: GnArgs) -> PathBuf {
+   if !cmd_string.ends_with("autoninja") {
+@@ -951,6 +959,7 @@ pub fn maybe_gen(gn_args: GnArgs) -> PathBuf {
        .arg(format!("--script-executable={}", python()))
        .arg("gen")
        .arg(&gn_out_dir)
 +      .arg("-vv")
+       .arg("--ide=json")
        .arg("--args=".to_owned() + &args)
        .stdout(Stdio::inherit())
-       .stderr(Stdio::inherit())
