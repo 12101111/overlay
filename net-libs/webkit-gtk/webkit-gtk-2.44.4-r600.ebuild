@@ -158,6 +158,9 @@ src_prepare() {
 		eapply "${FILESDIR}"/${PN}-2.32.1-musl.patch
 		eapply "${FILESDIR}"/${PN}-2.28.1-lower-stack-usage.patch
 	fi
+	if tc-is-clang && has_version ">=sys-devel/clang-19.1.0"; then
+		eapply "${FILESDIR}"/webkit-gtk-clang19.patch
+	fi
 	cmake_src_prepare
 	gnome2_src_prepare
 
