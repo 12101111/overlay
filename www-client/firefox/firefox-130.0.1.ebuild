@@ -62,7 +62,7 @@ S="${WORKDIR}/${PN}-${PV%_*}"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
 KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv ~x86 ~loong"
 
-IUSE="+clang cpu_flags_arm_neon dbus debug eme-free hardened hwaccel jack +jumbo-build libproxy lto"
+IUSE="wasm-sandbox +clang cpu_flags_arm_neon dbus debug eme-free hardened hwaccel jack +jumbo-build libproxy lto"
 IUSE+=" openh264 pgo pulseaudio sndio selinux +system-av1 +system-harfbuzz +system-icu"
 IUSE+=" +system-jpeg +system-libevent +system-libvpx system-png +system-webp +telemetry valgrind"
 IUSE+=" wayland wifi +X"
@@ -75,7 +75,9 @@ REQUIRED_USE="|| ( X wayland )
 	!jumbo-build? ( clang )
 	pgo? ( lto )
 	wayland? ( dbus )
-	wifi? ( dbus )"
+	wifi? ( dbus )
+	wasm-sandbox? ( clang )
+"
 
 FF_ONLY_DEPEND="!www-client/firefox:0
 	selinux? ( sec-policy/selinux-mozilla )"
@@ -99,6 +101,7 @@ BDEPEND="${PYTHON_DEPS}
 	!elibc_glibc? ( dev-lang/rust )
 	amd64? ( >=dev-lang/nasm-2.14 )
 	x86? ( >=dev-lang/nasm-2.14 )
+	wasm-sandbox? ( cross_llvm-wasm32-wasip1/wasi-libc )
 	pgo? (
 		X? (
 			sys-devel/gettext
@@ -596,6 +599,8 @@ src_prepare() {
 
 	use loong && eapply "${FILESDIR}/firefox-130-loong"
 
+	use wasm-sandbox && eapply "${FILESDIR}/rlbox.patch"
+
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
 
@@ -783,7 +788,6 @@ src_configure() {
 		--prefix="${EPREFIX}/usr" \
 		--target="${CHOST}" \
 		--without-ccache \
-		--without-wasm-sandboxed-libraries \
 		--with-intl-api \
 		--with-libclang-path="$(llvm-config --libdir)" \
 		--with-system-nspr \
@@ -1014,6 +1018,12 @@ src_configure() {
 
 	if use valgrind; then
 		mozconfig_add_options_ac 'valgrind requirement' --disable-jemalloc
+	fi
+
+	if use wasm-sandbox; then
+		mozconfig_add_options_ac 'enable wasm sandbox' --with-wasi-sysroot="${EROOT}/usr/wasm32-wasi"
+	else
+		mozconfig_add_options_ac 'disable wasm sandbox' --without-wasm-sandboxed-libraries
 	fi
 
 	# System-av1 fix

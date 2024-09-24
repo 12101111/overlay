@@ -1,0 +1,12 @@
+diff --git a/security/rlbox/moz.build b/security/rlbox/moz.build
+index 7ad8d07..220af54 100644
+--- a/security/rlbox/moz.build
++++ b/security/rlbox/moz.build
+@@ -46,6 +46,7 @@ if CONFIG["MOZ_WASM_SANDBOXING_GRAPHITE"]:
+     ]
+     for k, v in graphite_defines:
+         WASM_DEFINES[k] = v
++    LOCAL_INCLUDES += ["/gfx/graphite2/include"]
+     LOCAL_INCLUDES += ["/gfx/graphite2/src"]
+ 
+ if CONFIG["MOZ_WASM_SANDBOXING_OGG"]:
