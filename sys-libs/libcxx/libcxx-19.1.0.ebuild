@@ -100,7 +100,7 @@ multilib_src_configure() {
 
 	# bootstrap: cmake is unhappy if compiler can't link to stdlib
 	local nolib_flags=( -nodefaultlibs -lc )
-	if ! test_compiler; then
+	if ! test_compiler && [[ "${CTARGET}" != *wasm* ]]; then
 		if test_compiler "${nolib_flags[@]}"; then
 			local -x LDFLAGS="${LDFLAGS} ${nolib_flags[*]}"
 			ewarn "${CXX} seems to lack runtime, trying with ${nolib_flags[*]}"
