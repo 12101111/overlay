@@ -39,7 +39,7 @@ src_compile() {
 		SYSROOT="${S}/sysroot" \
 		WASI_SNAPSHOT=$snapshot \
 		TARGET_TRIPLE=${CTARGET} \
-		BUILTINS_LIB="$(clang --print-resource-dir)/lib/${CTARGET}/libclang_rt.builtins.a" \
+		BUILTINS_LIB="$(${CTARGET}-clang --print-libgcc-file-name)" \
 		default libc_so
 }
 
