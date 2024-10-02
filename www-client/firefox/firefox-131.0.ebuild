@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-130-patches-04.tar.xz"
+FIREFOX_PATCHSET="firefox-131-patches-01.tar.xz"
 
 LLVM_COMPAT=( 17 18 19 )
 
@@ -62,9 +62,9 @@ S="${WORKDIR}/${PN}-${PV%_*}"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
 KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv ~x86 ~loong"
 
-IUSE="wasm-sandbox +clang cpu_flags_arm_neon dbus debug eme-free hardened hwaccel jack +jumbo-build libproxy lto"
-IUSE+=" openh264 pgo pulseaudio sndio selinux +system-av1 +system-harfbuzz +system-icu"
-IUSE+=" +system-jpeg +system-libevent +system-libvpx system-png +system-webp +telemetry valgrind"
+IUSE="wasm-sandbox +clang dbus debug eme-free hardened hwaccel jack +jumbo-build libproxy lto openh264 pgo"
+IUSE+=" pulseaudio sndio selinux +system-av1 +system-harfbuzz +system-icu +system-jpeg"
+IUSE+=" +system-libevent +system-libvpx system-png +system-webp +telemetry valgrind"
 IUSE+=" wayland wifi +X"
 
 # Firefox-only IUSE
@@ -121,7 +121,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.103
+	>=dev-libs/nss-3.104
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -768,7 +768,6 @@ src_configure() {
 		--disable-crashreporter \
 		--disable-disk-remnant-avoidance \
 		--disable-geckodriver \
-		--disable-gpsd \
 		--disable-install-strip \
 		--disable-legacy-profile-creation \
 		--disable-parental-controls \
