@@ -43,7 +43,7 @@ RDEPEND="
 	kde-frameworks/syntax-highlighting:5
 	dev-util/perf
 	dev-libs/qcustomplot
-	media-gfx/kgraphviewer:5
+	media-gfx/kgraphviewer
 	>=dev-qt/kddockwidgets-1.6.0
 	rust? ( dev-libs/rustc-demangle )
 "
