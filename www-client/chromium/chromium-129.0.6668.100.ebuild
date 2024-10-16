@@ -27,8 +27,8 @@ EAPI=8
 GN_MIN_VER=0.2165
 RUST_MIN_VER=1.78.0
 # chromium-tools/get-chromium-toolchain-strings.sh
-GOOGLE_CLANG_VER=llvmorg-19-init-14561-gecea8371-3000
-GOOGLE_RUST_VER=3cf924b934322fd7b514600a7dc84fc517515346-3
+GOOGLE_CLANG_VER=llvmorg-20-init-1009-g7088a5ed-10
+GOOGLE_RUST_VER=595316b4006932405a63862d8fe65f71a6356293-5
 
 : ${CHROMIUM_FORCE_GOOGLE_TOOLCHAIN=no}
 
@@ -55,7 +55,7 @@ PATCHSET_PPC64="128.0.6613.119-1raptor0~deb12u1"
 PATCHSET_LOONG="chromium-128.0.6613.84-1"
 PATCHSET_LOONG_PV="128.0.6613.84"
 PATCH_V="${PV%%\.*}"
-HEVC_PATCHSET_VERSION="128.0.6597.0"
+HEVC_PATCHSET_VERSION="129.0.6626.1"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	system-toolchain? (
@@ -446,14 +446,29 @@ pkg_setup() {
 
 			local rustc_ver=$(chromium_extract_rust_version)
 			if ver_test "${rustc_ver}" -lt "${RUST_MIN_VER}"; then
-					eerror "Rust >=${RUST_MIN_VER} is required"
-					eerror "Please run 'eselect rust' and select the correct rust version"
-					die "Selected rust version is too old"
+					eerror "Rust >=${RUST_MIN_VER} is required to build Chromium"
+					eerror "The currently selected version is ${rustc_ver}"
+					eerror "Please run \`eselect rust\` and select an appropriate Rust."
+					die "Selected Rust version is too old"
 			else
-					einfo "Using rust ${rustc_ver} to build"
+					einfo "Using Rust ${rustc_ver} to build"
 			fi
 
+			# Chromium requires the Rust profiler library while setting up its build environment.
+			# Since a standard Rust comes with the profiler, instead of patching it out (build/rust/std/BUILD.gn#L103)
+			# we'll just do a sanity check on the selected slot.
+			# The -bin always contains profiler support, so we only need to check for the non-bin version.
+			if [[ "$(eselect --brief rust show 2>/dev/null)" != *"bin"* ]]; then
+				local rust_lib_path="${EPREFIX}$(rustc --print target-libdir)"
+				local profiler_lib=$(find "${rust_lib_path}" -name "libprofiler_builtins-*.rlib" -print -quit)
+				if [[ -z "${profiler_lib}" ]]; then
+					eerror "Rust ${rustc_ver} is missing the profiler library."
+					eerror "ebuild dependency resolution should have ensured that a Rust with the profiler was installed."
+					die "Please \`eselect\` a Rust slot that has the profiler."
+				fi
+			fi
 		fi
+
 		# Users should never hit this, it's purely a development convenience
 		if ver_test $(gn --version || die) -lt ${GN_MIN_VER}; then
 			die "dev-build/gn >= ${GN_MIN_VER} is required to build this Chromium"
@@ -502,6 +517,10 @@ src_prepare() {
 		popd >/dev/null || die
 		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-ffmpeg-decoding.patch"
 		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-encoding-by-default.patch"
+		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-webrtc-send-receive-by-default.patch"
+		pushd third_party/ffmpeg >/dev/null || die
+		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-h26x-packet-buffer-by-default.patch"
+		popd >/dev/null || die
 	fi
 
 	# disable global media controls, crashes with libstdc++
@@ -515,22 +534,17 @@ src_prepare() {
 		"${FILESDIR}/chromium-111-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-126-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-127-bindgen-custom-toolchain.patch"
-		"${FILESDIR}/chromium-127-updater-systemd.patch"
 	)
-
-	# 127: test deps are broken for ui/lens with system ICU "//third_party/icu:icuuc_public"
-	sed -i '/source_set("unit_tests") {/,/}/d' \
-		chrome/browser/ui/lens/BUILD.gn || die "Failed to remove bad test target"
-	sed -i '/lens:unit_tests/d' chrome/test/BUILD.gn components/BUILD.gn \
-		|| die "Failed to remove dependencies on bad target"
 
 	if use system-toolchain; then
 		# The patchset is really only required if we're using the system-toolchain
 		PATCHES+=( "${WORKDIR}/chromium-patches-${PATCH_V}" )
-		# We can't use the bundled compiler builtins
-		sed -i -e \
-			"/if (is_clang && toolchain_has_rust) {/,+2d" \
-			build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
+		# We can't use the bundled compiler builtins with the system toolchain
+		# `grep` is a development convenience to ensure we fail early when google changes something.
+		local builtins_match="if (is_clang && !is_nacl && !is_cronet_build) {"
+		grep -q "${builtins_match}" build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
+		sed -i -e "/${builtins_match}/,+2d" build/config/compiler/BUILD.gn
+
 	else
 		mkdir -p third_party/llvm-build/Release+Asserts || die "Failed to bundle llvm"
 		ln -s "${WORKDIR}"/bin third_party/llvm-build/Release+Asserts/bin || die "Failed to symlink llvm bin"
@@ -716,7 +730,6 @@ src_prepare() {
 		third_party/libsecret
 		third_party/libsrtp
 		third_party/libsync
-		third_party/libudev
 		third_party/liburlpattern
 		third_party/libva_protected_content
 		third_party/libvpx
@@ -770,6 +783,7 @@ src_prepare() {
 		third_party/pyjson5
 		third_party/pyyaml
 		third_party/qcms
+		third_party/rapidhash
 		third_party/re2
 		third_party/rnnoise
 		third_party/rust
@@ -1262,6 +1276,8 @@ chromium_configure() {
 		sed -i 's/OFFICIAL_BUILD/GOOGLE_CHROME_BUILD/' \
 			tools/generate_shim_headers/generate_shim_headers.py || die
 		# Req's LTO; TODO: not compatible with -fno-split-lto-unit
+		# split-lto-unit can be enabled with RUSTC_BOOTSTRAP=1 (and an updated compiler patch),
+		# however I still got weird linking errors with CFI _and_ the split unit LTO OOMed after using 100G.
 		myconf_gn+=" is_cfi=false"
 		# Don't add symbols to build
 		myconf_gn+=" symbol_level=0"
