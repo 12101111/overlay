@@ -159,7 +159,6 @@ pkg_setup() {
 }
 
 src_prepare() {
-	use elibc_musl && eapply "${FILESDIR}"/patches/${SLOT}/musl-1.2.4.patch
 	default
 	chmod +x configure || die
 }
@@ -237,6 +236,11 @@ src_configure() {
 		else
 			die "${zip} not found or not readable"
 		fi
+	fi
+
+	# Workaround for bug #938302
+	if use systemtap && has_version "dev-debug/systemtap[-dtrace-symlink(+)]" ; then
+		myconf+=( DTRACE="${BROOT}"/usr/bin/stap-dtrace )
 	fi
 
 	if use !system-bootstrap ; then
