@@ -45,10 +45,10 @@ src_compile() {
 
 src_install() {
 	mkdir -p "${ED}/usr/${CTARGET}/usr"
-	dosym usr/lib /usr/${CTARGET}/lib
+	mkdir -p "${ED}/usr/${CTARGET}/lib"
 	dosym usr/include /usr/${CTARGET}/include
 	cp -r "${S}/sysroot/include/${CTARGET}" "${ED}/usr/${CTARGET}/usr/include"
 	cp -r "${S}/sysroot/lib/${CTARGET}" "${ED}/usr/${CTARGET}/usr/lib"
 	dosym . /usr/${CTARGET}/usr/include/${CTARGET}
-	dosym . /usr/${CTARGET}/usr/lib/${CTARGET}
+	dosym ../usr/lib /usr/${CTARGET}/lib/${CTARGET}
 }
