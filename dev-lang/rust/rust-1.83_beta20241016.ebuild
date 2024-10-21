@@ -33,7 +33,7 @@ else
 	IS_DEV=""
 fi
 
-RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 2)).0"
+RUST_STAGE0_VERSION="1.$(($(ver_cut 2) - 1)).0"
 
 DESCRIPTION="Systems programming language from Mozilla"
 HOMEPAGE="https://www.rust-lang.org/"
@@ -681,6 +681,8 @@ src_test() {
 
 src_install() {
 	DESTDIR="${D}" "${EPYTHON}" ./x.py install -vv --config="${S}"/config.toml -j$(makeopts_jobs) || die
+
+	docompress /usr/lib/${PN}/${PV}/share/man/
 
 	# bug #689562, #689160
 	rm -v "${ED}/usr/lib/${PN}/${PV}/etc/bash_completion.d/cargo" || die
