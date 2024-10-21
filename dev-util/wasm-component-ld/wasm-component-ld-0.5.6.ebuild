@@ -86,5 +86,5 @@ SRC_URI="
 
 LICENSE="|| ( MIT Apache-2.0 Apache-2.0-with-LLVM-exceptions )"
 SLOT="0"
-KEYWORDS="~amd64 ~arm64"
+KEYWORDS="~amd64 ~arm ~arm64"
 RESTRICT="mirror"
