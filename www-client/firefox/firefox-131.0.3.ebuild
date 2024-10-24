@@ -101,7 +101,7 @@ BDEPEND="${PYTHON_DEPS}
 	!elibc_glibc? ( dev-lang/rust )
 	amd64? ( >=dev-lang/nasm-2.14 )
 	x86? ( >=dev-lang/nasm-2.14 )
-	wasm-sandbox? ( cross_llvm-wasm32-wasip1/wasi-libc )
+	wasm-sandbox? ( cross_llvm-wasm32-wasi/wasi-libc )
 	pgo? (
 		X? (
 			sys-devel/gettext
