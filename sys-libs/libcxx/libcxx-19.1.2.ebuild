@@ -57,6 +57,11 @@ pkg_setup() {
 		eerror "and try again."
 		die
 	fi
+	if tc-is-cross-compiler; then
+		export CXXABI_ROOT="${EROOT}"
+	else
+		export CXXABI_ROOT="${EPREFIX}"
+	fi
 }
 
 test_compiler() {
@@ -74,9 +79,9 @@ src_configure() {
 		cxxabi=libcxxabi
 	elif use libcxxabi; then
 		cxxabi=system-libcxxabi
-		cxxabi_incs="${EPREFIX}/usr/include/c++/v1"
+		cxxabi_incs="${CXXABI_ROOT}/usr/include/c++/v1"
 	else
-		local gcc_inc="${EPREFIX}/usr/lib/gcc/${CHOST}/$(gcc-fullversion)/include/g++-v$(gcc-major-version)"
+		local gcc_inc="${CXXABI_ROOT}/usr/lib/gcc/${CHOST}/$(gcc-fullversion)/include/g++-v$(gcc-major-version)"
 		cxxabi=libsupc++
 		cxxabi_incs="${gcc_inc};${gcc_inc}/${CHOST}"
 	fi
