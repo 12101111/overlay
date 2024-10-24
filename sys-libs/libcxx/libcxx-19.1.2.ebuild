@@ -104,7 +104,7 @@ multilib_src_configure() {
 	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON
 
 	# bootstrap: cmake is unhappy if compiler can't link to stdlib
-	local nolib_flags=( -nodefaultlibs -lc )
+	local nolib_flags=( -nostdlib++ )
 	if ! test_compiler && [[ "${CTARGET}" != *wasm* ]]; then
 		if test_compiler "${nolib_flags[@]}"; then
 			local -x LDFLAGS="${LDFLAGS} ${nolib_flags[*]}"
