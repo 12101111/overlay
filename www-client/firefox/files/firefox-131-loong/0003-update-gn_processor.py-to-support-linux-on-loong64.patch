@@ -1,4 +1,4 @@
-From cf96c8fb08a17fafc72ca7c43b9c2fd77557e899 Mon Sep 17 00:00:00 2001
+From e00354368014140b73974ee2db2a9c7953a3ee55 Mon Sep 17 00:00:00 2001
 From: WANG Xuerui <xen0n@gentoo.org>
 Date: Tue, 3 Sep 2024 15:38:04 +0800
 Subject: [PATCH 3/9] update gn_processor.py to support linux on loong64
@@ -30,5 +30,5 @@ index 3a9b9e7f3baeb..fc771a4e63fd0 100644
                  vars = {
                      "host_cpu": "x64",
 -- 
-2.45.2
+2.46.2
 

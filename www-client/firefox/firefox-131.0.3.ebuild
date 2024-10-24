@@ -597,7 +597,7 @@ src_prepare() {
 
 	eapply "${WORKDIR}/firefox-patches"
 
-	use loong && eapply "${FILESDIR}/firefox-130-loong"
+	use loong && eapply "${FILESDIR}/firefox-131-loong"
 
 	use wasm-sandbox && eapply "${FILESDIR}/rlbox.patch"
 

@@ -1,4 +1,4 @@
-From fbb6318e4d84d04217aeb3008ceff0c2ec0c66e3 Mon Sep 17 00:00:00 2001
+From 6f48c53abbc354094043b1dd350107538bfed36e Mon Sep 17 00:00:00 2001
 From: WANG Xuerui <xen0n@gentoo.org>
 Date: Wed, 4 Sep 2024 16:51:22 +0800
 Subject: [PATCH 9/9] Enable LoongArch LSX optimization for libpng
@@ -46,5 +46,5 @@ index 1cbb828436de2..8ef91386ffe43 100644
  #  undef PNG_MIPS_MSA_OPT
  #  define PNG_ALIGNED_MEMORY_SUPPORTED
 -- 
-2.45.2
+2.46.2
 

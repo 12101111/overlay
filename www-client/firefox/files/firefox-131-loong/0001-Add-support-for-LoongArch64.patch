@@ -1,4 +1,4 @@
-From 19140a75d513f3f3d5c12d42a65d2c892e934e3f Mon Sep 17 00:00:00 2001
+From 3547d36c2ec7e4266c095092d1fddd27f6c2b56a Mon Sep 17 00:00:00 2001
 From: Jiangjin Wang <kaymw@aosc.io>
 Date: Sun, 22 Oct 2023 22:13:17 -0700
 Subject: [PATCH 1/9] Add support for LoongArch64
@@ -41,5 +41,5 @@ index 30f2907c720e1..e6645227a2949 100644
  
  #include <zlib.h>
 -- 
-2.45.2
+2.46.2
 

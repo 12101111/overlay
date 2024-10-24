@@ -1,7 +1,13 @@
-From f73d03fc14c3eb0846077c944c4b9ad479c9045d Mon Sep 17 00:00:00 2001
+From de119e52ff2f070e07943aa7a8b8e334c01b843f Mon Sep 17 00:00:00 2001
 From: WANG Xuerui <xen0n@gentoo.org>
 Date: Tue, 3 Sep 2024 15:46:09 +0800
 Subject: [PATCH 4/9] Re-generate libwebrtc moz.build files
+
+With the following invocation at project root:
+
+```sh
+./mach python python/mozbuild/mozbuild/gn_processor.py dom/media/webrtc/third_party_build/gn-configs/webrtc.json
+```
 
 Signed-off-by: WANG Xuerui <xen0n@gentoo.org>
 ---
@@ -78,6 +84,7 @@ Signed-off-by: WANG Xuerui <xen0n@gentoo.org>
  .../pending_task_safety_flag_gn/moz.build     |  4 +++
  .../api/task_queue/task_queue_gn/moz.build    |  4 +++
  .../moz.build                                 |  4 +++
+ .../transport/bandwidth_usage_gn/moz.build    |  4 +++
  .../transport/bitrate_settings_gn/moz.build   |  4 +++
  .../datagram_transport_interface_gn/moz.build |  4 +++
  .../field_trial_based_config_gn/moz.build     |  4 +++
@@ -278,8 +285,12 @@ Signed-off-by: WANG Xuerui <xen0n@gentoo.org>
  .../modules/module_fec_api_gn/moz.build       |  4 +++
  .../pacing/interval_budget_gn/moz.build       |  4 +++
  .../modules/pacing/pacing_gn/moz.build        |  4 +++
+ .../moz.build                                 |  4 +++
  .../remote_bitrate_estimator_gn/moz.build     |  4 +++
+ .../moz.build                                 |  4 +++
+ .../moz.build                                 |  4 +++
  .../modules/rtp_rtcp/leb128_gn/moz.build      |  4 +++
+ .../rtp_rtcp/ntp_time_util_gn/moz.build       |  4 +++
  .../rtp_rtcp/rtp_rtcp_format_gn/moz.build     |  4 +++
  .../modules/rtp_rtcp/rtp_rtcp_gn/moz.build    |  4 +++
  .../rtp_rtcp/rtp_video_header_gn/moz.build    |  4 +++
@@ -388,7 +399,7 @@ Signed-off-by: WANG Xuerui <xen0n@gentoo.org>
  .../rtc_base/socket_factory_gn/moz.build      |  4 +++
  .../libwebrtc/rtc_base/socket_gn/moz.build    |  4 +++
  .../rtc_base/socket_server_gn/moz.build       |  4 +++
- .../libwebrtc/rtc_base/ssl_gn/moz.build       |  4 +++
+ .../rtc_base/ssl_adapter_gn/moz.build         |  4 +++
  .../rtc_base/stringutils_gn/moz.build         |  4 +++
  .../rtc_base/swap_queue_gn/moz.build          |  4 +++
  .../synchronization/mutex_gn/moz.build        |  4 +++
@@ -470,7 +481,7 @@ Signed-off-by: WANG Xuerui <xen0n@gentoo.org>
  .../video_stream_encoder_impl_gn/moz.build    |  4 +++
  .../moz.build                                 |  4 +++
  third_party/libwebrtc/webrtc_gn/moz.build     |  4 +++
- 465 files changed, 1904 insertions(+)
+ 470 files changed, 1924 insertions(+)
 
 diff --git a/third_party/libwebrtc/api/adaptation/resource_adaptation_api_gn/moz.build b/third_party/libwebrtc/api/adaptation/resource_adaptation_api_gn/moz.build
 index 2dbd5881583e3..b63b665289b5a 100644
@@ -1103,10 +1114,10 @@ index a6ac64bf50c65..2a3e4ded29f84 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/api/frame_transformer_interface_gn/moz.build b/third_party/libwebrtc/api/frame_transformer_interface_gn/moz.build
-index 2ed19fd691d74..ad99d0d4c1649 100644
+index b79f531f5def5..efe8806017835 100644
 --- a/third_party/libwebrtc/api/frame_transformer_interface_gn/moz.build
 +++ b/third_party/libwebrtc/api/frame_transformer_interface_gn/moz.build
-@@ -142,6 +142,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -150,6 +150,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -1556,6 +1567,21 @@ diff --git a/third_party/libwebrtc/api/transport/bandwidth_estimation_settings_g
 index 0885f16a06553..5dd6c3a3c16e4 100644
 --- a/third_party/libwebrtc/api/transport/bandwidth_estimation_settings_gn/moz.build
 +++ b/third_party/libwebrtc/api/transport/bandwidth_estimation_settings_gn/moz.build
+@@ -131,6 +131,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+     DEFINES["WEBRTC_ARCH_ARM_V7"] = True
+     DEFINES["WEBRTC_HAS_NEON"] = True
+ 
++if CONFIG["TARGET_CPU"] == "loongarch64":
++
++    DEFINES["_GNU_SOURCE"] = True
++
+ if CONFIG["TARGET_CPU"] == "mips32":
+ 
+     DEFINES["MIPS32_LE"] = True
+diff --git a/third_party/libwebrtc/api/transport/bandwidth_usage_gn/moz.build b/third_party/libwebrtc/api/transport/bandwidth_usage_gn/moz.build
+index 2f22fa141fe65..bf3b4e7143618 100644
+--- a/third_party/libwebrtc/api/transport/bandwidth_usage_gn/moz.build
++++ b/third_party/libwebrtc/api/transport/bandwidth_usage_gn/moz.build
 @@ -131,6 +131,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
@@ -3513,10 +3539,10 @@ index 712a4c3571722..84ab4122315b4 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/audio_processing/aec_dump/aec_dump_gn/moz.build b/third_party/libwebrtc/modules/audio_processing/aec_dump/aec_dump_gn/moz.build
-index 9f186fec9c4bb..59469c1625caf 100644
+index 198f71db43714..4feed4a459910 100644
 --- a/third_party/libwebrtc/modules/audio_processing/aec_dump/aec_dump_gn/moz.build
 +++ b/third_party/libwebrtc/modules/audio_processing/aec_dump/aec_dump_gn/moz.build
-@@ -135,6 +135,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -142,6 +142,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -3528,10 +3554,10 @@ index 9f186fec9c4bb..59469c1625caf 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/audio_processing/aec_dump/null_aec_dump_factory_gn/moz.build b/third_party/libwebrtc/modules/audio_processing/aec_dump/null_aec_dump_factory_gn/moz.build
-index f02e31ce448d3..7a8ef95b8b564 100644
+index ad723168abdc4..e3aa1dd5a2a0d 100644
 --- a/third_party/libwebrtc/modules/audio_processing/aec_dump/null_aec_dump_factory_gn/moz.build
 +++ b/third_party/libwebrtc/modules/audio_processing/aec_dump/null_aec_dump_factory_gn/moz.build
-@@ -143,6 +143,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -150,6 +150,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -3543,10 +3569,10 @@ index f02e31ce448d3..7a8ef95b8b564 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/audio_processing/aec_dump_interface_gn/moz.build b/third_party/libwebrtc/modules/audio_processing/aec_dump_interface_gn/moz.build
-index db7c251ecd563..0c3d72a7dd5d0 100644
+index ef89571beecaa..bde87ed337927 100644
 --- a/third_party/libwebrtc/modules/audio_processing/aec_dump_interface_gn/moz.build
 +++ b/third_party/libwebrtc/modules/audio_processing/aec_dump_interface_gn/moz.build
-@@ -143,6 +143,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -150,6 +150,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -3727,10 +3753,10 @@ index ed716566a46d6..03ed3a3a293b0 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/audio_processing/agc2/gain_applier_gn/moz.build b/third_party/libwebrtc/modules/audio_processing/agc2/gain_applier_gn/moz.build
-index 3f2132cc91d8e..d589d866204ef 100644
+index 41cc418007708..b5d89e479085c 100644
 --- a/third_party/libwebrtc/modules/audio_processing/agc2/gain_applier_gn/moz.build
 +++ b/third_party/libwebrtc/modules/audio_processing/agc2/gain_applier_gn/moz.build
-@@ -143,6 +143,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -150,6 +150,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -4057,10 +4083,10 @@ index 894361b57458d..2bb4f4a1affcb 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/audio_processing/audio_frame_view_gn/moz.build b/third_party/libwebrtc/modules/audio_processing/audio_frame_view_gn/moz.build
-index 7a283f1e109a4..f718e0bebb47d 100644
+index 9f4a7293e302c..52f325e274e5b 100644
 --- a/third_party/libwebrtc/modules/audio_processing/audio_frame_view_gn/moz.build
 +++ b/third_party/libwebrtc/modules/audio_processing/audio_frame_view_gn/moz.build
-@@ -135,6 +135,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -142,6 +142,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -4282,10 +4308,10 @@ index 4794a478e8a07..9832d3f2206cd 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/congestion_controller/congestion_controller_gn/moz.build b/third_party/libwebrtc/modules/congestion_controller/congestion_controller_gn/moz.build
-index 59d06c939618e..52e2ba8782453 100644
+index 614d8e5ebc435..0cca1793474ac 100644
 --- a/third_party/libwebrtc/modules/congestion_controller/congestion_controller_gn/moz.build
 +++ b/third_party/libwebrtc/modules/congestion_controller/congestion_controller_gn/moz.build
-@@ -157,6 +157,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -156,6 +156,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -4312,10 +4338,10 @@ index 2a3d216e40c07..9ebbf45b41e0a 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/congestion_controller/goog_cc/delay_based_bwe_gn/moz.build b/third_party/libwebrtc/modules/congestion_controller/goog_cc/delay_based_bwe_gn/moz.build
-index b138b59fc6564..50f1b151b8a1f 100644
+index 4cb60b5d0dc76..59c695d21ff4f 100644
 --- a/third_party/libwebrtc/modules/congestion_controller/goog_cc/delay_based_bwe_gn/moz.build
 +++ b/third_party/libwebrtc/modules/congestion_controller/goog_cc/delay_based_bwe_gn/moz.build
-@@ -157,6 +157,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -156,6 +156,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -4327,10 +4353,10 @@ index b138b59fc6564..50f1b151b8a1f 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/congestion_controller/goog_cc/estimators_gn/moz.build b/third_party/libwebrtc/modules/congestion_controller/goog_cc/estimators_gn/moz.build
-index 47ee346c89e83..5ea300d6f1487 100644
+index ad88ce9e6090b..da6f910c12cfd 100644
 --- a/third_party/libwebrtc/modules/congestion_controller/goog_cc/estimators_gn/moz.build
 +++ b/third_party/libwebrtc/modules/congestion_controller/goog_cc/estimators_gn/moz.build
-@@ -160,6 +160,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -159,6 +159,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -4342,10 +4368,10 @@ index 47ee346c89e83..5ea300d6f1487 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/congestion_controller/goog_cc/goog_cc_gn/moz.build b/third_party/libwebrtc/modules/congestion_controller/goog_cc/goog_cc_gn/moz.build
-index fa641fccfe187..cc591aeee423c 100644
+index 6b0c2966167ec..c8422932dfdae 100644
 --- a/third_party/libwebrtc/modules/congestion_controller/goog_cc/goog_cc_gn/moz.build
 +++ b/third_party/libwebrtc/modules/congestion_controller/goog_cc/goog_cc_gn/moz.build
-@@ -156,6 +156,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -155,6 +155,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -4372,10 +4398,10 @@ index d229d732df781..9c497d39ff31c 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/congestion_controller/goog_cc/loss_based_bwe_v1_gn/moz.build b/third_party/libwebrtc/modules/congestion_controller/goog_cc/loss_based_bwe_v1_gn/moz.build
-index 8065861f7854c..e3130fd38e809 100644
+index bdf6228cc4e13..560dff5cd49f0 100644
 --- a/third_party/libwebrtc/modules/congestion_controller/goog_cc/loss_based_bwe_v1_gn/moz.build
 +++ b/third_party/libwebrtc/modules/congestion_controller/goog_cc/loss_based_bwe_v1_gn/moz.build
-@@ -151,6 +151,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -150,6 +150,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -4432,10 +4458,10 @@ index af00c01323020..445de1ab79391 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/congestion_controller/goog_cc/send_side_bwe_gn/moz.build b/third_party/libwebrtc/modules/congestion_controller/goog_cc/send_side_bwe_gn/moz.build
-index 52323451eb320..0337cbd03c3bb 100644
+index 0314d2e9f767b..b37ac1a79e61c 100644
 --- a/third_party/libwebrtc/modules/congestion_controller/goog_cc/send_side_bwe_gn/moz.build
 +++ b/third_party/libwebrtc/modules/congestion_controller/goog_cc/send_side_bwe_gn/moz.build
-@@ -155,6 +155,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -154,6 +154,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -4607,11 +4633,56 @@ index d7aa189ef37b1..bf250e4433187 100644
  if CONFIG["TARGET_CPU"] == "mips32":
  
      DEFINES["MIPS32_LE"] = True
+diff --git a/third_party/libwebrtc/modules/remote_bitrate_estimator/congestion_control_feedback_generator_gn/moz.build b/third_party/libwebrtc/modules/remote_bitrate_estimator/congestion_control_feedback_generator_gn/moz.build
+index fa0e8cc1c8f2e..3c46ab0e53954 100644
+--- a/third_party/libwebrtc/modules/remote_bitrate_estimator/congestion_control_feedback_generator_gn/moz.build
++++ b/third_party/libwebrtc/modules/remote_bitrate_estimator/congestion_control_feedback_generator_gn/moz.build
+@@ -154,6 +154,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+     DEFINES["WEBRTC_ARCH_ARM_V7"] = True
+     DEFINES["WEBRTC_HAS_NEON"] = True
+ 
++if CONFIG["TARGET_CPU"] == "loongarch64":
++
++    DEFINES["_GNU_SOURCE"] = True
++
+ if CONFIG["TARGET_CPU"] == "mips32":
+ 
+     DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/remote_bitrate_estimator/remote_bitrate_estimator_gn/moz.build b/third_party/libwebrtc/modules/remote_bitrate_estimator/remote_bitrate_estimator_gn/moz.build
-index eab6f3f9d0fca..02e5a63adbfba 100644
+index 121be23bf87bb..e1c4de4256d61 100644
 --- a/third_party/libwebrtc/modules/remote_bitrate_estimator/remote_bitrate_estimator_gn/moz.build
 +++ b/third_party/libwebrtc/modules/remote_bitrate_estimator/remote_bitrate_estimator_gn/moz.build
-@@ -166,6 +166,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -163,6 +163,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+     DEFINES["WEBRTC_ARCH_ARM_V7"] = True
+     DEFINES["WEBRTC_HAS_NEON"] = True
+ 
++if CONFIG["TARGET_CPU"] == "loongarch64":
++
++    DEFINES["_GNU_SOURCE"] = True
++
+ if CONFIG["TARGET_CPU"] == "mips32":
+ 
+     DEFINES["MIPS32_LE"] = True
+diff --git a/third_party/libwebrtc/modules/remote_bitrate_estimator/rtp_transport_feedback_generator_gn/moz.build b/third_party/libwebrtc/modules/remote_bitrate_estimator/rtp_transport_feedback_generator_gn/moz.build
+index 9e1e50f3e0e21..f4c69ab37ca53 100644
+--- a/third_party/libwebrtc/modules/remote_bitrate_estimator/rtp_transport_feedback_generator_gn/moz.build
++++ b/third_party/libwebrtc/modules/remote_bitrate_estimator/rtp_transport_feedback_generator_gn/moz.build
+@@ -146,6 +146,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+     DEFINES["WEBRTC_ARCH_ARM_V7"] = True
+     DEFINES["WEBRTC_HAS_NEON"] = True
+ 
++if CONFIG["TARGET_CPU"] == "loongarch64":
++
++    DEFINES["_GNU_SOURCE"] = True
++
+ if CONFIG["TARGET_CPU"] == "mips32":
+ 
+     DEFINES["MIPS32_LE"] = True
+diff --git a/third_party/libwebrtc/modules/remote_bitrate_estimator/transport_sequence_number_feedback_generator_gn/moz.build b/third_party/libwebrtc/modules/remote_bitrate_estimator/transport_sequence_number_feedback_generator_gn/moz.build
+index d9396081112fe..285c0ccef4c21 100644
+--- a/third_party/libwebrtc/modules/remote_bitrate_estimator/transport_sequence_number_feedback_generator_gn/moz.build
++++ b/third_party/libwebrtc/modules/remote_bitrate_estimator/transport_sequence_number_feedback_generator_gn/moz.build
+@@ -155,6 +155,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -4627,6 +4698,21 @@ index 6e1dfd18c099e..f1eb5b14cde17 100644
 --- a/third_party/libwebrtc/modules/rtp_rtcp/leb128_gn/moz.build
 +++ b/third_party/libwebrtc/modules/rtp_rtcp/leb128_gn/moz.build
 @@ -139,6 +139,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+     DEFINES["WEBRTC_ARCH_ARM_V7"] = True
+     DEFINES["WEBRTC_HAS_NEON"] = True
+ 
++if CONFIG["TARGET_CPU"] == "loongarch64":
++
++    DEFINES["_GNU_SOURCE"] = True
++
+ if CONFIG["TARGET_CPU"] == "mips32":
+ 
+     DEFINES["MIPS32_LE"] = True
+diff --git a/third_party/libwebrtc/modules/rtp_rtcp/ntp_time_util_gn/moz.build b/third_party/libwebrtc/modules/rtp_rtcp/ntp_time_util_gn/moz.build
+index d3c4652d07e26..8ed135c2a2f49 100644
+--- a/third_party/libwebrtc/modules/rtp_rtcp/ntp_time_util_gn/moz.build
++++ b/third_party/libwebrtc/modules/rtp_rtcp/ntp_time_util_gn/moz.build
+@@ -154,6 +154,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -4653,10 +4739,10 @@ index ef123804746ac..932c1ce369ee5 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/modules/rtp_rtcp/rtp_rtcp_gn/moz.build b/third_party/libwebrtc/modules/rtp_rtcp/rtp_rtcp_gn/moz.build
-index 31789273913d5..90e87e42cb182 100644
+index 18691e659af31..e1da5490fdfa7 100644
 --- a/third_party/libwebrtc/modules/rtp_rtcp/rtp_rtcp_gn/moz.build
 +++ b/third_party/libwebrtc/modules/rtp_rtcp/rtp_rtcp_gn/moz.build
-@@ -211,6 +211,10 @@ if CONFIG["TARGET_CPU"] == "arm":
+@@ -209,6 +209,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
  
@@ -5223,10 +5309,10 @@ index 6abd453136c93..dd71c3be6b357 100644
  
      DEFINES["MIPS32_LE"] = True
 diff --git a/third_party/libwebrtc/moz.build b/third_party/libwebrtc/moz.build
-index 58c3c3520bc36..806f8caa65a6b 100644
+index be3997a5c6c42..042ba845fdfc2 100644
 --- a/third_party/libwebrtc/moz.build
 +++ b/third_party/libwebrtc/moz.build
-@@ -692,6 +692,13 @@ if CONFIG["OS_TARGET"] == "WINNT" and CONFIG["TARGET_CPU"] == "x86_64":
+@@ -697,6 +697,13 @@ if CONFIG["OS_TARGET"] == "WINNT" and CONFIG["TARGET_CPU"] == "x86_64":
          "/third_party/libwebrtc/modules/desktop_capture/desktop_capture_differ_sse2_gn"
      ]
  
@@ -6260,10 +6346,10 @@ index d4654af6fc1f7..fbf7baddffa28 100644
  if CONFIG["TARGET_CPU"] == "mips32":
  
      DEFINES["MIPS32_LE"] = True
-diff --git a/third_party/libwebrtc/rtc_base/ssl_gn/moz.build b/third_party/libwebrtc/rtc_base/ssl_gn/moz.build
-index 599001039a487..d184a89973898 100644
---- a/third_party/libwebrtc/rtc_base/ssl_gn/moz.build
-+++ b/third_party/libwebrtc/rtc_base/ssl_gn/moz.build
+diff --git a/third_party/libwebrtc/rtc_base/ssl_adapter_gn/moz.build b/third_party/libwebrtc/rtc_base/ssl_adapter_gn/moz.build
+index 66251b8e86a19..73f5db2033e97 100644
+--- a/third_party/libwebrtc/rtc_base/ssl_adapter_gn/moz.build
++++ b/third_party/libwebrtc/rtc_base/ssl_adapter_gn/moz.build
 @@ -131,6 +131,10 @@ if CONFIG["TARGET_CPU"] == "arm":
      DEFINES["WEBRTC_ARCH_ARM_V7"] = True
      DEFINES["WEBRTC_HAS_NEON"] = True
@@ -7492,5 +7578,5 @@ index 0a5908916a503..4ba08802c685c 100644
  
      DEFINES["MIPS32_LE"] = True
 -- 
-2.45.2
+2.46.2
 

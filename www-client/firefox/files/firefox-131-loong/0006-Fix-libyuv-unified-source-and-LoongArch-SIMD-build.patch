@@ -1,4 +1,4 @@
-From 6788637c9e1523761d98500770906d38cd376d77 Mon Sep 17 00:00:00 2001
+From e96ba43f0b865ea9a909ef905bccdec1b19cbbe7 Mon Sep 17 00:00:00 2001
 From: WANG Xuerui <xen0n@gentoo.org>
 Date: Tue, 3 Sep 2024 15:47:26 +0800
 Subject: [PATCH 6/9] Fix libyuv unified-source and LoongArch SIMD build
@@ -82,7 +82,7 @@ index 6d49aa5e8b396..52fbde9c854ba 100644
  }  // extern "C"
  }  // namespace libyuv
 diff --git a/media/libyuv/libyuv/source/row_lsx.cc b/media/libyuv/libyuv/source/row_lsx.cc
-index 09f206cab93f2..f7683579730ff 100644
+index fa088c9e78a94..c32c718c78fe6 100644
 --- a/media/libyuv/libyuv/source/row_lsx.cc
 +++ b/media/libyuv/libyuv/source/row_lsx.cc
 @@ -2769,11 +2769,13 @@ void HalfFloatRow_LSX(const uint16_t* src,
@@ -107,7 +107,7 @@ index 09f206cab93f2..f7683579730ff 100644
  
  // ARGB expects first 3 values to contain RGB and 4th value is ignored.
  static void ARGBToYMatrixRow_LSX(const uint8_t* src_argb,
-@@ -2976,6 +2979,17 @@ void RAWToYRow_LSX(const uint8_t* src_raw, uint8_t* dst_y, int width) {
+@@ -2979,6 +2982,17 @@ void RAWToYRow_LSX(const uint8_t* src_raw, uint8_t* dst_y, int width) {
    RGBToYMatrixRow_LSX(src_raw, dst_y, width, &kRawI601Constants);
  }
  
@@ -126,5 +126,5 @@ index 09f206cab93f2..f7683579730ff 100644
  }  // extern "C"
  }  // namespace libyuv
 -- 
-2.45.2
+2.46.2
 
