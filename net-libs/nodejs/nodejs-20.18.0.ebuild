@@ -240,6 +240,8 @@ src_test() {
 		test/parallel/test-fs-read-stream.js
 		test/parallel/test-fs-utimes-y2K38.js
 		test/parallel/test-fs-watch-recursive-add-file.js
+		test/parallel/test-inspector-emit-protocol-event.js
+		test/parallel/test-inspector-network-domain.js
 		test/parallel/test-process-euid-egid.js
 		test/parallel/test-process-get-builtin.mjs
 		test/parallel/test-process-initgroups.js
@@ -248,6 +250,11 @@ src_test() {
 		test/parallel/test-release-npm.js
 		test/parallel/test-socket-write-after-fin-error.js
 		test/parallel/test-strace-openat-openssl.js
+		test/parallel/test-tls-cert-regression.js
+		test/parallel/test-tls-client-getephemeralkeyinfo.js
+		test/parallel/test-tls-getcipher.js
+		test/parallel/test-tls-set-ciphers.js
+		test/parallel/test-tls-junk-closes-server.js
 		test/sequential/test-util-debug.js
 	)
 	use inspector || drop_tests+=( test/sequential/test-watch-mode.mjs )
