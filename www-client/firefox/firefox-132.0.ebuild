@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-131-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-132-patches-01.tar.xz"
 
 LLVM_COMPAT=( 17 18 19 )
 
@@ -121,7 +121,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.104
+	>=dev-libs/nss-3.105
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -903,7 +903,10 @@ src_configure() {
 	fi
 
 	# LTO is handled via configure
+	# -Werror=lto-type-mismatch -Werror=odr are going to fail with GCC, 
+	# bmo#1516758, bgo#942288
 	filter-lto
+	filter-flags -Werror=lto-type-mismatch -Werror=odr
 
 	if use lto ; then
 		if use clang ; then
@@ -1027,10 +1030,6 @@ src_configure() {
 
 	# System-av1 fix
 	use system-av1 && append-ldflags "-Wl,--undefined-version"
-
-	# Allow elfhack to work in combination with unstripped binaries
-	# when they would normally be larger than 2GiB.
-	append-ldflags "-Wl,--compress-debug-sections=zlib"
 
 	# Make revdep-rebuild.sh happy; Also required for musl
 	append-ldflags -Wl,-rpath="${MOZILLA_FIVE_HOME}",--enable-new-dtags
@@ -1307,32 +1306,10 @@ src_install() {
 	# Update wrapper
 	sed -i \
 		-e "s:@PREFIX@:${EPREFIX}/usr:" \
-		-e "s:@MOZ_FIVE_HOME@:${MOZILLA_FIVE_HOME}:" \
-		-e "s:@APULSELIB_DIR@:${apulselib}:" \
 		-e "s:@DEFAULT_WAYLAND@:${use_wayland}:" \
 		"${ED}/usr/bin/${PN}" || die
 
 	readme.gentoo_create_doc
-}
-
-pkg_preinst() {
-	xdg_pkg_preinst
-
-	# If the apulse libs are available in MOZILLA_FIVE_HOME then apulse
-	# does not need to be forced into the LD_LIBRARY_PATH
-	if use pulseaudio && has_version ">=media-sound/apulse-0.1.12-r4" ; then
-		einfo "APULSE found; Generating library symlinks for sound support ..."
-		local lib
-		pushd "${ED}${MOZILLA_FIVE_HOME}" &>/dev/null || die
-		for lib in ../apulse/libpulse{.so{,.0},-simple.so{,.0}} ; do
-			# A quickpkg rolled by hand will grab symlinks as part of the package,
-			# so we need to avoid creating them if they already exist.
-			if [[ ! -L ${lib##*/} ]] ; then
-				ln -s "${lib}" ${lib##*/} || die
-			fi
-		done
-		popd &>/dev/null || die
-	fi
 }
 
 pkg_postinst() {
@@ -1345,13 +1322,6 @@ pkg_postinst() {
 		for plugin in "${MOZ_GMP_PLUGIN_LIST[@]}" ; do
 			elog "\t ${plugin}"
 		done
-		elog
-	fi
-
-	if use pulseaudio && has_version ">=media-sound/apulse-0.1.12-r4" ; then
-		elog "Apulse was detected at merge time on this system and so it will always be"
-		elog "used for sound.  If you wish to use pulseaudio instead please unmerge"
-		elog "media-sound/apulse."
 		elog
 	fi
 
