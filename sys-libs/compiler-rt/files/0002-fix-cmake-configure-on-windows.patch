@@ -1,0 +1,35 @@
+From 33e16cae671ca10d88e198192181220f8adff343 Mon Sep 17 00:00:00 2001
+From: Omair Javaid <omair.javaid@linaro.org>
+Date: Thu, 2 May 2024 18:27:23 +0500
+Subject: [PATCH] [compiler-rt] Fix CMake configure on Windows (#90843)
+
+CMake configure compiler-rt got broken as a result of following commit:
+d3925e65a7ab88eb0ba68d3ab79cd95db5629951
+
+This patch fixes the break by porting the above commit for clang-cl.
+
+This problem was not caught on Windows buildbots beacuase it appeared
+when compiler-rt was included via LLVM_ENABLE_PROJECTS while buildbots
+include compiler-rt project using LLVM_ENABLE_RUNTIMES flag.
+---
+ compiler-rt/cmake/Modules/CompilerRTUtils.cmake | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/compiler-rt/cmake/Modules/CompilerRTUtils.cmake b/compiler-rt/cmake/Modules/CompilerRTUtils.cmake
+index a6c6ef93500d53..8e331634b76bd0 100644
+--- a/compiler-rt/cmake/Modules/CompilerRTUtils.cmake
++++ b/compiler-rt/cmake/Modules/CompilerRTUtils.cmake
+@@ -369,7 +369,11 @@ macro(construct_compiler_rt_default_triple)
+   endif()
+ 
+   if ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
+-    execute_process(COMMAND ${CMAKE_C_COMPILER} --target=${COMPILER_RT_DEFAULT_TARGET_TRIPLE} -print-target-triple
++    set(option_prefix "")
++    if (CMAKE_C_SIMULATE_ID MATCHES "MSVC")
++      set(option_prefix "/clang:")
++    endif()
++    execute_process(COMMAND ${CMAKE_C_COMPILER} ${option_prefix}--target=${COMPILER_RT_DEFAULT_TARGET_TRIPLE} ${option_prefix}-print-target-triple
+                     OUTPUT_VARIABLE COMPILER_RT_DEFAULT_TARGET_TRIPLE
+                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+   endif()
+
