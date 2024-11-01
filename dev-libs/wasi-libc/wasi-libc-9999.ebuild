@@ -11,7 +11,7 @@ EGIT_REPO_URI="https://github.com/WebAssembly/wasi-libc.git"
 
 LICENSE="Apache-2.0-with-LLVM-exceptions Apache-2.0 MIT BSD-2 CC0-1.0"
 SLOT="0"
-KEYWORDS="~amd64 ~arm64 ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 
 DEPEND="
 	>=sys-devel/clang-18.1.4
