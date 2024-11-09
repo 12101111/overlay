@@ -33,6 +33,12 @@ BDEPEND="
 LLVM_COMPONENTS=( compiler-rt cmake llvm/cmake )
 llvm.org_set_globals
 
+PATCHES=(
+	"${FILESDIR}/"0001-normalize-compiler-rt-default-target-triple.patch
+	"${FILESDIR}/"0002-fix-cmake-configure-on-windows.patch
+	"${FILESDIR}/"0003-use-clang-to-infer-the-target-triple.patch
+)
+
 python_check_deps() {
 	use test || return 0
 	python_has_version ">=dev-python/lit-15[${PYTHON_USEDEP}]"
