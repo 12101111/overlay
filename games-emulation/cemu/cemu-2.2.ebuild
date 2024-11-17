@@ -22,7 +22,7 @@ KEYWORDS="~amd64"
 DEPEND="
     >=dev-libs/boost-1.81.0:=
     >=dev-libs/libfmt-9.1.0:=
-	<dev-libs/libfmt-10.0.0
+    <dev-libs/libfmt-10.0.0
     >=dev-libs/libzip-1.9.2:=
     >=media-libs/libpng-1.6.39:=
     >=dev-libs/pugixml-1.13
@@ -50,26 +50,31 @@ BDEPEND="
 
 PATCHES=(
 	"${FILESDIR}"/disable-pch.patch
+	"${FILESDIR}"/glslang.patch
 )
 
 src_prepare() {
     use elibc_musl && eapply "${FILESDIR}/musl.patch"
 
-	# unbundled fmt
-	sed -i '/FMT_HEADER_ONLY/d' src/Common/precompiled.h || die
+    # unbundled fmt
+    sed -i '/FMT_HEADER_ONLY/d' src/Common/precompiled.h || die
 
-	# Dir names will be changed to "Cemu" in this package with 2.1
-	# Needs notice in post_install() then
-	sed -i 's/GetAppName()/"cemu"/' src/gui/CemuApp.cpp || die
+    # Dir names will be changed to "Cemu" in this package with 2.1
+    # Needs notice in post_install() then
+    sed -i 's/GetAppName()/"cemu"/' src/gui/CemuApp.cpp || die
 
-	# gamelist column width improvement
-	sed -i '/InsertColumn/s/kListIconWidth/&+8/;/SetColumnWidth/s/last_col_width/&-1/' src/gui/components/wxGameList.cpp || die
+    # gamelist column width improvement
+    sed -i '/InsertColumn/s/kListIconWidth/&+8/;/SetColumnWidth/s/last_col_width/&-1/' src/gui/components/wxGameList.cpp || die
 
     # fix name of binary
     sed -i 's/Cemu_$<LOWER_CASE:$<CONFIG>>/cemu/' src/CMakeLists.txt || die
 
-	# disable lto
-	sed -i '/INTERPROCEDURAL_OPTIMIZATION/d' CMakeLists.txt || die
+    # disable lto
+    sed -i '/INTERPROCEDURAL_OPTIMIZATION/d' CMakeLists.txt || die
+
+    if tc-is-clang && ( has_version "sys-devel/clang-common[default-libcxx]" || is-flagq --stdlib=libc++ ); then
+        eapply "${FILESDIR}/libcxx-19.patch"
+    fi
 
     cmake_src_prepare
 }
@@ -77,7 +82,6 @@ src_prepare() {
 src_configure() {
 	local -a mycmakeargs=(
         -DENABLE_VCPKG=OFF
-        -DPORTABLE=OFF
         -DBUILD_SHARED_LIBS=OFF
     )
     cmake_src_configure
