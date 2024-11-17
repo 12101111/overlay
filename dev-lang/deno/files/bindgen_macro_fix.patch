@@ -1,0 +1,12 @@
+diff --git a/build.rs b/build.rs
+index 4aead47..6b50314 100644
+--- a/build.rs
++++ b/build.rs
+@@ -153,6 +153,7 @@ fn build_binding() {
+     .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
+     .clang_args(["-x", "c++", "-std=c++20", "-Iv8/include", "-I."])
+     .clang_args(args)
++    .clang_macro_fallback()
+     .generate_cstr(true)
+     .rustified_enum(".*UseCounterFeature")
+     .allowlist_item("v8__.*")

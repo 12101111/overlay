@@ -1,17 +1,8 @@
 diff --git a/Cargo.lock b/Cargo.lock
-index d6feca8fb..09879859b 100644
+index 2ae13eab0..280bdf699 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
-@@ -1063,7 +1063,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
- checksum = "b28bfe653d79bd16c77f659305b195b82bb5ce0c0eb2a4846b82ddbd77586813"
- dependencies = [
-  "bitflags 2.6.0",
-- "libloading 0.8.3",
-+ "libloading 0.7.4",
-  "winapi",
- ]
- 
-@@ -1413,7 +1413,6 @@ dependencies = [
+@@ -1428,7 +1428,6 @@ dependencies = [
   "bit-vec",
   "bytes",
   "cooked-waker",
@@ -19,7 +10,7 @@ index d6feca8fb..09879859b 100644
   "deno_ops",
   "deno_unsync",
   "futures",
-@@ -1433,12 +1432,6 @@ dependencies = [
+@@ -1448,12 +1447,6 @@ dependencies = [
   "v8",
  ]
  
@@ -31,48 +22,48 @@ index d6feca8fb..09879859b 100644
 -
  [[package]]
  name = "deno_cron"
- version = "0.48.0"
-@@ -4205,7 +4198,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
- checksum = "0c2a198fb6b0eada2a8df47933734e6d35d350665a33a3593d7164fa52c75c19"
- dependencies = [
-  "cfg-if",
-- "windows-targets 0.48.5",
-+ "windows-targets 0.52.4",
- ]
+ version = "0.56.0"
+@@ -4184,11 +4177,11 @@ dependencies = [
  
  [[package]]
-@@ -4230,7 +4223,7 @@ version = "0.30.1"
+ name = "libsqlite3-sys"
+-version = "0.30.0"
++version = "0.30.1"
  source = "registry+https://github.com/rust-lang/crates.io-index"
- checksum = "2e99fb7a497b1e3339bc746195567ed8d3e24945ecd636e3619d20b9de9e9149"
+-checksum = "6b694a822684ddb75df4d657029161431bcb4a85c1856952f845b76912bc6fec"
++checksum = "2e99fb7a497b1e3339bc746195567ed8d3e24945ecd636e3619d20b9de9e9149"
  dependencies = [
 - "cc",
-+ "bindgen",
++ "bindgen 0.69.4",
   "pkg-config",
   "vcpkg",
  ]
-@@ -8219,7 +8212,7 @@ dependencies = [
-  "js-sys",
-  "khronos-egl",
-  "libc",
-- "libloading 0.8.3",
-+ "libloading 0.7.4",
-  "log",
-  "metal",
-  "naga",
+@@ -5776,9 +5769,9 @@ dependencies = [
+ 
+ [[package]]
+ name = "rusqlite"
+-version = "0.32.0"
++version = "0.32.1"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "1cdbe9230a57259b37f7257d0aff38b8c9dbda3513edba2105e59b130189d82f"
++checksum = "7753b721174eb8ff87a9a0e799e2d7bc3749323e773db92e0984debb00019d6e"
+ dependencies = [
+  "bitflags 2.6.0",
+  "fallible-iterator",
 diff --git a/Cargo.toml b/Cargo.toml
-index f240bf44a..843c9700b 100644
+index 13140b65d..8b4201ad8 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -45,7 +45,7 @@ repository = "https://github.com/denoland/deno"
+@@ -46,7 +46,7 @@ repository = "https://github.com/denoland/deno"
  
  [workspace.dependencies]
- deno_ast = { version = "=0.41.2", features = ["transpiling"] }
--deno_core = { version = "0.307.0" }
-+deno_core = { version = "0.307.0", default-features = false }
+ deno_ast = { version = "=0.43.3", features = ["transpiling"] }
+-deno_core = { version = "0.318.0" }
++deno_core = { version = "0.318.0", default-features = false }
  
- deno_bench_util = { version = "0.162.0", path = "./bench_util" }
- deno_lockfile = "0.21.2"
-@@ -154,7 +154,7 @@ rand = "=0.8.5"
+ deno_bench_util = { version = "0.170.0", path = "./bench_util" }
+ deno_lockfile = "=0.23.1"
+@@ -163,7 +163,7 @@ rand = "=0.8.5"
  regex = "^1.7.0"
  reqwest = { version = "=0.12.5", default-features = false, features = ["rustls-tls", "stream", "gzip", "brotli", "socks", "json", "http2"] } # pinned because of https://github.com/seanmonstar/reqwest/pull/1955
  ring = "^0.17.0"
@@ -81,9 +72,9 @@ index f240bf44a..843c9700b 100644
  rustls = { version = "0.23.11", default-features = false, features = ["logging", "std", "tls12", "ring"] }
  rustls-pemfile = "2"
  rustls-tokio-stream = "=0.3.0"
-@@ -193,7 +193,7 @@ uuid = { version = "1.3.0", features = ["v4"] }
- webpki-roots = "0.26"
+@@ -205,7 +205,7 @@ webpki-roots = "0.26"
  which = "4.2.5"
+ yoke = { version = "0.7.4", features = ["derive"] }
  zeromq = { version = "=0.4.0", default-features = false, features = ["tcp-transport", "tokio-runtime"] }
 -zstd = "=0.12.4"
 +zstd = { version = "=0.12.4", features = ["pkg-config"] }
@@ -91,7 +82,7 @@ index f240bf44a..843c9700b 100644
  # crypto
  hkdf = "0.12.3"
 diff --git a/ext/ffi/Cargo.toml b/ext/ffi/Cargo.toml
-index 8c4ccdc9b..13b9f5575 100644
+index 27ecd1d54..7657566d1 100644
 --- a/ext/ffi/Cargo.toml
 +++ b/ext/ffi/Cargo.toml
 @@ -19,7 +19,7 @@ deno_permissions.workspace = true
@@ -101,5 +92,5 @@ index 8c4ccdc9b..13b9f5575 100644
 -libffi-sys = "=2.3.0"
 +libffi-sys = { version = "=2.3.0" , features = ["system"] }
  log.workspace = true
+ num-bigint.workspace = true
  serde.workspace = true
- serde-value = "0.7"
