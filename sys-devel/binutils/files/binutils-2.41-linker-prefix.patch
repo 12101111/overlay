@@ -1,10 +1,10 @@
 https://bugs.gentoo.org/892549
 https://github.com/gentoo/binutils-gdb/pull/5
 
-From 302271b0baa52204fab58bd0b74e3919c0789f87 Mon Sep 17 00:00:00 2001
+From 531bc1536dfc3070c1f7d03e98fa14bcb81fdcd0 Mon Sep 17 00:00:00 2001
 From: James Le Cuirot <chewi@gentoo.org>
 Date: Sat, 23 Dec 2023 13:48:10 +0000
-Subject: [PATCH] ld: Allow a Gentoo-specific prefix to override the prefix
+Subject: [PATCH 2/2] ld: Allow a Gentoo-specific prefix to override the prefix
  used by ld.bfd
 
 This prefix is only used to locate $prefix/etc/ld.so.conf, with $prefix
@@ -30,10 +30,10 @@ this variable appropriately.
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/ld/emultempl/elf.em b/ld/emultempl/elf.em
-index 863657e12f5..cf0204e9c76 100644
+index 3f67f8b09d9..78c8e909b6c 100644
 --- a/ld/emultempl/elf.em
 +++ b/ld/emultempl/elf.em
-@@ -142,7 +142,7 @@ gld${EMULATION_NAME}_before_plugin_all_symbols_read (void)
+@@ -138,7 +138,7 @@ gld${EMULATION_NAME}_before_plugin_all_symbols_read (void)
    ldelf_before_plugin_all_symbols_read ($IS_LIBPATH, $IS_NATIVE,
  				        $IS_LINUX_TARGET,
  					$IS_FREEBSD_TARGET,
@@ -42,7 +42,7 @@ index 863657e12f5..cf0204e9c76 100644
  }
  
  /* This is called after all the input files have been opened.  */
-@@ -151,7 +151,7 @@ static void
+@@ -147,7 +147,7 @@ static void
  gld${EMULATION_NAME}_after_open (void)
  {
    ldelf_after_open ($IS_LIBPATH, $IS_NATIVE,
@@ -51,3 +51,6 @@ index 863657e12f5..cf0204e9c76 100644
  }
  
  EOF
+-- 
+2.43.0
+

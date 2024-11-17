@@ -1,23 +1,18 @@
 https://bugs.gentoo.org/892549
-https://github.com/gentoo/binutils-gdb/pull/5
+https://github.com/gentoo/binutils-gdb/pull/4
 
-From 470487917306e169fc3ca983c2edf2370b211861 Mon Sep 17 00:00:00 2001
+From 1601840f9f2397edd56177871527a198a14277bd Mon Sep 17 00:00:00 2001
 From: James Le Cuirot <chewi@gentoo.org>
 Date: Sat, 11 Feb 2023 15:15:20 +0000
-Subject: [PATCH] ldelf.c: Always consider -L arguments when handling DT_NEEDED
+Subject: [PATCH 1/2] ldelf.c: Always consider -L arguments when handling
+ DT_NEEDED
 
 This is for consistency with other linkers, including gold. Without
 this, we typically rely on ld.so.conf to find libraries such as
 libstdc++.so.6, while other linkers do not use this file at all.
----
- ld/ldelf.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
-
-diff --git a/ld/ldelf.c b/ld/ldelf.c
-index 09691609fc0..11edff8c8ec 100644
 --- a/ld/ldelf.c
 +++ b/ld/ldelf.c
-@@ -1093,8 +1093,8 @@ ldelf_handle_dt_needed (struct elf_link_hash_table *htab,
+@@ -1090,8 +1090,8 @@ ldelf_handle_dt_needed (struct elf_link_hash_table *htab,
  	 linker will search.  That means that we want to use
  	 rpath_link, rpath, then the environment variable
  	 LD_LIBRARY_PATH (native only), then the DT_RPATH/DT_RUNPATH
@@ -28,13 +23,13 @@ index 09691609fc0..11edff8c8ec 100644
  
  	 We search twice.  The first time, we skip objects which may
  	 introduce version mismatches.  The second time, we force
-@@ -1168,11 +1168,7 @@ ldelf_handle_dt_needed (struct elf_link_hash_table *htab,
+@@ -1165,11 +1165,7 @@ ldelf_handle_dt_needed (struct elf_link_hash_table *htab,
  	  len = strlen (l->name);
  	  for (search = search_head; search != NULL; search = search->next)
  	    {
 -	      char *filename;
 -
--	      if (search->source != search_dir_linker_script)
+-	      if (search->cmdline)
 -		continue;
 -	      filename = (char *) xmalloc (strlen (search->name) + len + 2);
 +	      char *filename = (char *) xmalloc (strlen (search->name) + len + 2);
