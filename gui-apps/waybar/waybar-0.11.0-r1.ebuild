@@ -21,7 +21,6 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="evdev experimental jack +libinput +logind mpd mpris network niri pipewire pulseaudio sndio systemd test tray +udev upower wifi"
 REQUIRED_USE="
-	mpris? ( logind )
 	upower? ( logind )
 "
 
@@ -39,18 +38,16 @@ RDEPEND="
 	dev-cpp/gtkmm:3.0
 	dev-libs/glib:2
 	dev-libs/jsoncpp:=
-	dev-libs/libinput:=
 	dev-libs/libsigc++:2
 	>=dev-libs/libfmt-8.1.1:=
 	>=dev-libs/spdlog-1.10.0:=
 	dev-libs/date:=
 	dev-libs/wayland
 	gui-libs/gtk-layer-shell
-	gui-libs/wlroots:=
 	media-video/pipewire:=
 	x11-libs/gtk+:3[wayland]
 	x11-libs/libxkbcommon
-	evdev? ( dev-libs/libevdev:= )
+	evdev? ( dev-libs/libevdev )
 	jack? ( virtual/jack )
 	libinput? ( dev-libs/libinput:= )
 	logind? (
@@ -77,7 +74,9 @@ DEPEND="${RDEPEND}
 	test? ( dev-cpp/catch:0 )
 "
 
-PATCHES=( "${FILESDIR}/tray.patch" )
+PATCHES=(
+	"${FILESDIR}"/tray-icons-fix.patch
+)
 
 src_configure() {
 	local emesonargs=(
