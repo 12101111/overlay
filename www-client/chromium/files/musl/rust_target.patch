@@ -1,40 +1,41 @@
 diff --git a/build/config/rust.gni b/build/config/rust.gni
-index 814c455..ef1e6d2 100644
+index bf429be..b47fb97 100644
 --- a/build/config/rust.gni
 +++ b/build/config/rust.gni
-@@ -183,8 +183,11 @@ if (enable_rust) {
- # targets to Rust targets comprehensively despite not having official support
- # (see '*_toolchain_supports_platform above') to enable experimentation with
- # other toolchains.
+@@ -206,8 +206,12 @@ if (enable_rust) {
+ # each `rust_abi_target` by doing `cargo build --target $rust_abi_target` with
+ # a cargo project that dumps the `CARGO_CFG_TARGET_ABI` from its build.rs. See
+ # https://issues.chromium.org/u/1/issues/372512092#comment5 for an example.
 -rust_abi_target = ""
 -if (is_linux || is_chromeos) {
 +declare_args() {
 +  rust_abi_target = ""
++  cargo_target_abi = ""
 +}
 +
 +if (use_chromium_rust_toolchain && (is_linux || is_chromeos)) {
    if (current_cpu == "arm64") {
      rust_abi_target = "aarch64-unknown-linux-gnu"
-   } else if (current_cpu == "x86") {
-@@ -207,7 +210,7 @@ if (is_linux || is_chromeos) {
-     # Best guess for other future platforms.
+     cargo_target_abi = ""
+@@ -239,7 +243,7 @@ if (is_linux || is_chromeos) {
      rust_abi_target = current_cpu + "-unknown-linux-gnu"
+     cargo_target_abi = ""
    }
 -} else if (is_android) {
 +} else if (use_chromium_rust_toolchain && is_android) {
    import("//build/config/android/abi.gni")
-   rust_abi_target = android_abi_target
-   if (rust_abi_target == "arm-linux-androideabi") {
-@@ -215,7 +218,7 @@ if (is_linux || is_chromeos) {
-     # is an exception
-     rust_abi_target = "armv7-linux-androideabi"
+   if (android_abi_target == "i686-linux-android") {
+     rust_abi_target = android_abi_target
+@@ -269,7 +273,7 @@ if (is_linux || is_chromeos) {
+   } else {
+     assert(false, "Unknown Android ABI: " + android_abi_target)
    }
 -} else if (is_fuchsia) {
 +} else if (use_chromium_rust_toolchain && is_fuchsia) {
    if (current_cpu == "arm64") {
-     rust_abi_target = "aarch64-fuchsia"
-   } else if (current_cpu == "x64") {
-@@ -223,7 +226,7 @@ if (is_linux || is_chromeos) {
+     rust_abi_target = "aarch64-unknown-fuchsia"
+     cargo_target_abi = ""
+@@ -279,7 +283,7 @@ if (is_linux || is_chromeos) {
    } else {
      assert(false, "Architecture not supported")
    }
@@ -43,7 +44,7 @@ index 814c455..ef1e6d2 100644
    if (current_cpu == "arm64") {
      if (target_environment == "simulator") {
        rust_abi_target = "aarch64-apple-ios-sim"
-@@ -249,7 +252,7 @@ if (is_linux || is_chromeos) {
+@@ -307,7 +311,7 @@ if (is_linux || is_chromeos) {
    } else {
      assert(false, "Architecture not supported")
    }
@@ -51,8 +52,8 @@ index 814c455..ef1e6d2 100644
 +} else if (use_chromium_rust_toolchain && is_mac) {
    if (current_cpu == "arm64") {
      rust_abi_target = "aarch64-apple-darwin"
-   } else if (current_cpu == "x64") {
-@@ -257,7 +260,7 @@ if (is_linux || is_chromeos) {
+     cargo_target_abi = ""
+@@ -317,7 +321,7 @@ if (is_linux || is_chromeos) {
    } else {
      assert(false, "Architecture not supported")
    }
@@ -60,4 +61,4 @@ index 814c455..ef1e6d2 100644
 +} else if (use_chromium_rust_toolchain && is_win) {
    if (current_cpu == "arm64") {
      rust_abi_target = "aarch64-pc-windows-msvc"
-   } else if (current_cpu == "x64") {
+     cargo_target_abi = ""
