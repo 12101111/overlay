@@ -3,6 +3,7 @@
 
 EAPI=8
 
+LLVM_COMPAT=( 17 18 19 )
 PYTHON_COMPAT=( python3_{11..12} )
 PYTHON_REQ_USE="xml(+)"
 
@@ -42,6 +43,7 @@ GN_MIN_VER=0.2154
 LLVM_MAX_SLOT=19
 LLVM_MIN_SLOT=17
 RUST_MIN_VER=1.72.0
+RUST_NEEDS_LLVM="yes please"
 # chromium-tools/get-chromium-toolchain-strings.sh
 GOOGLE_CLANG_VER=llvmorg-19-init-2941-ga0b3dbaf-22
 GOOGLE_RUST_VER=7168c13579a550f2c47f7eea22f5e226a436cd00-1
@@ -63,8 +65,9 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
-inherit check-reqs chromium-2 desktop flag-o-matic llvm ninja-utils pax-utils
-inherit python-any-r1 readme.gentoo-r1 toolchain-funcs virtualx xdg-utils yarn rust-toolchain
+inherit check-reqs chromium-2 desktop flag-o-matic llvm-r1 multiprocessing ninja-utils pax-utils
+inherit python-any-r1 readme.gentoo-r1 rust toolchain-funcs virtualx xdg-utils
+inherit rust-toolchain
 
 # Keep this in sync with DEPS:chromium_version
 # find least version of available snapshot in
@@ -75,6 +78,25 @@ NODE_VERSION="20.16.0"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
+
+yarn_uris() {
+	local -r regex='^https\:\/\/registry.yarnpkg.com\/(.+)\/\-\/([^/]+).tgz$'
+	local -r namespace='^@([^@/]+)\/([^@/]+)$'
+	local uri
+	for uri in "$@"; do
+		local name filename
+		[[ $uri =~ $regex ]] || die "Could not parse url: ${uri}"
+			name="${BASH_REMATCH[1]}"
+			filename="${BASH_REMATCH[2]}"   
+		if [[ $name =~ $namespace ]]; then
+			local scope
+			scope="${BASH_REMATCH[1]}"
+			echo "${uri} -> @${scope}-${filename}.tgz"
+		else
+			echo "${uri} -> ${filename}.tgz"
+		fi
+	done
+}
 
 # grep resolved yarn.lock | sed 's/^[ ]*resolved \"\(.*\)\#.*\"$/\1/g' | sort | uniq | wl-copy
 YARNPKGS="
@@ -1234,28 +1256,6 @@ depend_clang_llvm_version() {
 	echo "=sys-devel/lld-$1*"
 }
 
-# When passed multiple arguments we assume that
-# we want a range of versions, inclusive.
-depend_clang_llvm_versions() {
-	local _v
-	if [[ $# -eq 1 ]]; then
-		depend_clang_llvm_version "$1"
-	elif [[ $# -eq 2 ]]; then
-		if [[ $1 -eq $2 ]]; then
-			depend_clang_llvm_version "$1"
-		fi
-		echo "|| ("
-		for ((i=$1; i<=$2; i++)); do
-			echo "("
-			depend_clang_llvm_version "${i}"
-			echo ")"
-		done
-		echo ")"
-	else
-		die "depend_clang_llvm_versions() requires 1 or 2 arguments"
-	fi
-}
-
 BDEPEND="
 	${COMMON_SNAPSHOT_DEPEND}
 	${PYTHON_DEPS}
@@ -1264,11 +1264,11 @@ BDEPEND="
 	')
 	>=app-arch/gzip-1.7
 	system-toolchain? (
-		libcxx? ( >=sys-devel/clang-${LLVM_MIN_SLOT} )
-		lto? ( $(depend_clang_llvm_versions ${LLVM_MIN_SLOT} ${LLVM_MAX_SLOT}) )
-		pgo? ( $(depend_clang_llvm_versions ${LLVM_MIN_SLOT} ${LLVM_MAX_SLOT} )
-		)
-		>=virtual/rust-${RUST_MIN_VER}[profiler(-)]
+		$(llvm_gen_dep '
+			sys-devel/clang:${LLVM_SLOT}
+			sys-devel/llvm:${LLVM_SLOT}
+			sys-devel/lld:${LLVM_SLOT}
+		')
 	)
 	>=dev-build/gn-${GN_MIN_VER}
 	dev-build/ninja
@@ -1282,17 +1282,6 @@ BDEPEND="
 	virtual/pkgconfig
 	app-misc/jq
 "
-
-if [[ ${CHROMIUM_FORCE_CLANG} == yes ]]; then
-	BDEPEND+="system-toolchain? ( >=sys-devel/clang-${LLVM_MIN_SLOT} ) "
-fi
-
-if [[ ${CHROMIUM_FORCE_LLD} == yes ]]; then
-	BDEPEND+="system-toolchain? ( >=sys-devel/lld-${LLVM_MIN_SLOT} ) "
-else
-	# #918897: Hack for arm64
-	BDEPEND+=" arm64? ( >=sys-devel/lld-${LLVM_MIN_SLOT} )"
-fi
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
 	EBUILD_DEATH_HOOKS+=" chromium_pkg_die";
@@ -1416,6 +1405,17 @@ pkg_setup() {
 				fi
 			fi
 		fi
+
+		llvm-r1_pkg_setup
+		rust_pkg_setup
+
+		einfo "Using LLVM/Clang slot ${LLVM_SLOT} to build"
+		einfo "Using Rust slot ${RUST_SLOT}, ${RUST_TYPE} to build"
+
+		# I hate doing this but upstream Rust have yet to come up with a better solution for
+		# us poor packagers. Required for Split LTO units, which are required for CFI.
+		export RUSTC_BOOTSTRAP=1
+
 		# Users should never hit this, it's purely a development convenience
 		if ver_test $(gn --version || die) -lt ${GN_MIN_VER}; then
 			die "dev-build/gn >= ${GN_MIN_VER} is required to build this Chromium"
