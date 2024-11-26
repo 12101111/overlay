@@ -1,0 +1,88 @@
+diff --git a/net/dns/dns_config_service_posix.cc b/net/dns/dns_config_service_posix.cc
+index 025078e..86f887c 100644
+--- a/net/dns/dns_config_service_posix.cc
++++ b/net/dns/dns_config_service_posix.cc
+@@ -34,6 +34,10 @@
+ #include "net/dns/dns_config_watcher_mac.h"
+ #endif
+ 
++#if defined(OS_LINUX) && !defined(__GLIBC__)
++#include "net/dns/resolv_compat.h"
++#endif
++
+ namespace net {
+ 
+ namespace internal {
+diff --git a/net/dns/dns_reloader.cc b/net/dns/dns_reloader.cc
+index 43cc164..d4d8542 100644
+--- a/net/dns/dns_reloader.cc
++++ b/net/dns/dns_reloader.cc
+@@ -18,6 +18,10 @@
+ #include "base/threading/thread_local.h"
+ #include "net/base/network_change_notifier.h"
+ 
++#if defined(OS_LINUX) && !defined(__GLIBC__)
++#include "net/dns/resolv_compat.h"
++#endif
++
+ namespace net {
+ 
+ namespace {
+diff --git a/net/dns/public/resolv_reader.cc b/net/dns/public/resolv_reader.cc
+index e05a121..1162180 100644
+--- a/net/dns/public/resolv_reader.cc
++++ b/net/dns/public/resolv_reader.cc
+@@ -19,6 +19,10 @@
+ #include "net/base/ip_endpoint.h"
+ #include "third_party/abseil-cpp/absl/types/optional.h"
+ 
++#if defined(OS_LINUX) && !defined(__GLIBC__)
++#include "net/dns/resolv_compat.h"
++#endif
++
+ namespace net {
+ 
+ std::unique_ptr<ScopedResState> ResolvReader::GetResState() {
+diff --git a/net/dns/public/scoped_res_state.cc b/net/dns/public/scoped_res_state.cc
+index 9706d18..b28d7a2 100644
+--- a/net/dns/public/scoped_res_state.cc
++++ b/net/dns/public/scoped_res_state.cc
+@@ -10,6 +10,10 @@
+ #include "base/check.h"
+ #include "build/build_config.h"
+ 
++#if defined(OS_LINUX) && !defined(__GLIBC__)
++#include "net/dns/resolv_compat.h"
++#endif
++
+ namespace net {
+ 
+ ScopedResState::ScopedResState() {
+diff --git a/net/dns/resolv_compat.h b/net/dns/resolv_compat.h
+new file mode 100644
+index 0000000..0f03b32
+--- /dev/null
++++ b/net/dns/resolv_compat.h
+@@ -0,0 +1,22 @@
++#if !defined(__GLIBC__)
++#include <string.h>
++
++static inline int res_ninit(res_state statp)
++{
++	int rc = res_init();
++	if (statp != &_res) {
++		memcpy(statp, &_res, sizeof(*statp));
++	}
++	return rc;
++}
++
++static inline int res_nclose(res_state statp)
++{
++	if (!statp)
++		return -1;
++	if (statp != &_res) {
++		memset(statp, 0, sizeof(*statp));
++	}
++	return 0;
++}
++#endif

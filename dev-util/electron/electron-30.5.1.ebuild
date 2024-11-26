@@ -1483,7 +1483,6 @@ src_prepare() {
 	if use system-toolchain; then
 		# The patchset is really only required if we're not using the system-toolchain
 		PATCHES+=( "${WORKDIR}/${PATCHSET_NAME}" )
-		use elibc_musl && eapply "${FILESDIR}/${SLOT}/rust_target.patch"
 		# We can't use the bundled compiler builtins
 		sed -i -e \
 			"/if (is_clang && toolchain_has_rust) {/,+2d" \
