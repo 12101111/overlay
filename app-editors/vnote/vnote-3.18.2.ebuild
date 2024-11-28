@@ -26,6 +26,10 @@ RDEPEND="${DEPEND}"
 
 src_prepare() {
 	sed -i -e "s|vnote|vnote3|g" src/data/core/vnote.desktop || die
+	sed -i -e "s|add_library(VSyntaxHighlighting|add_library(VSyntaxHighlighting STATIC|g" \
+		 libs/vtextedit/libs/syntax-highlighting/CMakeLists.txt || die
+	sed -i -e "s|add_library(qhotkey|add_library(qhotkey STATIC|g" \
+		libs/QHotkey/CMakeLists.txt || die
 	cmake_src_prepare
 }
 
