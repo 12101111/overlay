@@ -1197,7 +1197,11 @@ chromium_configure() {
 		# Allow building against system libraries in official builds
 		sed -i 's/OFFICIAL_BUILD/GOOGLE_CHROME_BUILD/' \
 			tools/generate_shim_headers/generate_shim_headers.py || die
-		myconf_gn+=" is_cfi=${use_lto}"
+		if use elibc_glibc && (use abi_x86_64 || use arm64); then
+			myconf_gn+=" is_cfi=true"
+		else
+			myconf_gn+=" is_cfi=false"
+		fi
 		# Don't add symbols to build
 		myconf_gn+=" symbol_level=0"
 	fi
