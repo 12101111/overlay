@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-132-patches-04.tar.xz"
+FIREFOX_PATCHSET="firefox-133-patches-01.tar.xz"
 
 LLVM_COMPAT=( 17 18 19 )
 
@@ -16,7 +16,7 @@ RUST_MIN_VER=1.77.1
 PYTHON_COMPAT=( python3_{10..12} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
 
-WANT_AUTOCONF="2.1"
+WANT_AUTOCONF="2.71"
 
 VIRTUALX_REQUIRED="manual"
 
@@ -68,13 +68,12 @@ S="${WORKDIR}/${PN}-${PV%_*}"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
 KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv ~x86 ~loong"
 
-IUSE="clang dbus debug eme-free hardened hwaccel jack +jumbo-build libproxy openh264 pgo"
-IUSE+=" pulseaudio sndio selinux +system-av1 +system-harfbuzz +system-icu +system-jpeg"
-IUSE+=" +system-jpeg +system-libevent +system-libvpx system-png +system-webp valgrind wayland"
-IUSE+=" wifi +X"
+IUSE="+clang dbus debug eme-free hardened hwaccel jack libproxy pgo pulseaudio sndio selinux"
+IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-jpeg +system-libevent"
+IUSE+=" +system-libvpx system-png +system-webp valgrind wayland wifi +X"
 
 # Firefox-only IUSE
-IUSE+=" +gmp-autoupdate gnome-shell +telemetry wasm"
+IUSE+=" +gmp-autoupdate gnome-shell +jumbo-build openh264 +telemetry wasm"
 
 REQUIRED_USE="|| ( X wayland )
 	debug? ( !system-av1 )
@@ -93,6 +92,7 @@ BDEPEND="${PYTHON_DEPS}
 			sys-devel/lld:${LLVM_SLOT}
 			pgo? ( sys-libs/compiler-rt-sanitizers:${LLVM_SLOT}[profile] )
 		)
+		wasm? ( sys-devel/lld:${LLVM_SLOT} )
 	')
 	app-alternatives/awk
 	app-arch/unzip
@@ -122,7 +122,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.105
+	>=dev-libs/nss-3.106
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -153,8 +153,8 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 		>=media-libs/libaom-1.0.0:=
 	)
 	system-harfbuzz? (
-		>=media-gfx/graphite2-1.3.13
 		>=media-libs/harfbuzz-2.8.1:0=
+		!wasm? ( >=media-gfx/graphite2-1.3.13 )
 	)
 	system-icu? ( >=dev-libs/icu-73.1:= )
 	system-jpeg? ( >=media-libs/libjpeg-turbo-1.2.1:= )
@@ -598,7 +598,7 @@ src_prepare() {
 
 	use loong && eapply "${FILESDIR}/firefox-131-loong"
 
-	use wasm && eapply "${FILESDIR}/rlbox.patch"
+	use wasm && eapply "${FILESDIR}/fix-libcxx.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
@@ -616,6 +616,12 @@ src_prepare() {
 			export RUST_TARGET="aarch64-unknown-linux-musl"
 		elif use ppc64 ; then
 			export RUST_TARGET="powerpc64le-unknown-linux-musl"
+		elif use riscv ; then
+			# We can pretty safely rule out any 32-bit riscvs, but 64-bit riscvs also have tons of
+			# different ABIs available. riscv64gc-unknown-linux-musl seems to be the best working
+			# guess right now though.
+			elog "riscv detected, forcing a riscv64 target for now."
+			export RUST_TARGET="riscv64gc-unknown-linux-musl"
 		else
 			die "Unknown musl chost, please post a new bug with your rustc -vV along with emerge --info"
 		fi
@@ -626,11 +632,7 @@ src_prepare() {
 		"${S}"/build/moz.configure/lto-pgo.configure || die "Failed sedding multiprocessing.cpu_count"
 
 	sed -i -e "s/multiprocessing.cpu_count()/$(makeopts_jobs)/" \
-		"${S}"/third_party/libwebrtc/build/toolchain/get_cpu_count.py || die "Failed sedding multiprocessing.cpu_count"
-
-	sed -i -e "s/multiprocessing.cpu_count()/$(makeopts_jobs)/" \
-		"${S}"/third_party/libwebrtc/build/toolchain/get_concurrent_links.py ||
-			die "Failed sedding multiprocessing.cpu_count"
+		"${S}"/third_party/chromium/build/toolchain/get_cpu_count.py || die "Failed sedding multiprocessing.cpu_count"
 
 	sed -i -e "s/multiprocessing.cpu_count()/$(makeopts_jobs)/" \
 		"${S}"/third_party/python/gyp/pylib/gyp/input.py || die "Failed sedding multiprocessing.cpu_count"
@@ -859,7 +861,6 @@ src_configure() {
 
 	mozconfig_use_with system-av1
 	mozconfig_use_with system-harfbuzz
-	mozconfig_use_with system-harfbuzz system-graphite2
 	mozconfig_use_with system-icu
 	mozconfig_use_with system-jpeg
 	mozconfig_use_with system-libevent
@@ -902,11 +903,12 @@ src_configure() {
 	fi
 
 	# wasm
-	# +system-graphite2 doesn't currently play nice with wasm.
+	# Since graphite2 is one of the sandboxed libraries, system-graphite2 obviously can't work with +wasm.
 	if use wasm ; then
 		mozconfig_add_options_ac '+wasm' --with-wasi-sysroot="${EROOT}/usr/wasm32-wasi"
 	else
 		mozconfig_add_options_ac 'no wasm-sandbox' --without-wasm-sandboxed-libraries
+		mozconfig_use_with system-harfbuzz system-graphite2
 	fi
 
 
