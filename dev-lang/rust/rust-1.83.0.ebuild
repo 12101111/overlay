@@ -17,6 +17,7 @@ if [[ ${PV} = *beta* ]]; then
 	BETA_SNAPSHOT="${betaver:0:4}-${betaver:4:2}-${betaver:6:2}"
 	MY_P="rustc-beta"
 	SRC="${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${PV}-src.tar.xz"
+	SIG="${BETA_SNAPSHOT}/rustc-beta-src.tar.xz.asc -> rustc-${PV}-src.tar.xz.asc"
 	IS_DEV=""
 elif [[ ${PV} = *rc* ]]; then
 	rcver=${PV//*rc}
@@ -24,10 +25,12 @@ elif [[ ${PV} = *rc* ]]; then
 	RC_SNAPSHOT="${rcver:0:4}-${rcver:4:2}-${rcver:6:2}"
 	MY_P="rustc-${ABI_VER}"
 	SRC="${RC_SNAPSHOT}/${MY_P}-src.tar.xz -> rustc-${PV}-src.tar.xz"
+	SIG="${RC_SNAPSHOT}/${MY_P}-src.tar.xz.asc -> rustc-${PV}-src.tar.xz.asc"
 	IS_DEV="dev-"
 else
 	MY_P="rustc-${PV}"
 	SRC="${MY_P}-src.tar.xz"
+	SIG="${SRC}.asc"
 	KEYWORDS="~amd64 ~arm ~arm64 ~loong ~mips ~ppc ~ppc64 ~riscv ~sparc ~x86"
 	IS_DEV=""
 fi
@@ -39,7 +42,7 @@ HOMEPAGE="https://www.rust-lang.org/"
 
 SRC_URI="
 	https://${IS_DEV}static.rust-lang.org/dist/${SRC}
-	verify-sig? ( https://${IS_DEV}static.rust-lang.org/dist/${SRC}.asc )
+	verify-sig? ( https://${IS_DEV}static.rust-lang.org/dist/${SIG} )
 "
 S="${WORKDIR}/${MY_P}-src"
 
@@ -143,7 +146,7 @@ VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
 	"${FILESDIR}"/1.78.0-musl-dynamic-linking.patch
-	"${FILESDIR}"/1.74.1-cross-compile-libz.patch
+	"${FILESDIR}"/1.83.0-cross-compile-libz.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
 	"${FILESDIR}"/1.79.0-revert-8c40426.patch
 )
@@ -209,11 +212,6 @@ pkg_setup() {
 
 	export LIBGIT2_NO_PKG_CONFIG=1 #749381
 	if tc-is-cross-compiler; then
-		export PKG_CONFIG_ALLOW_CROSS=1
-		export PKG_CONFIG_PATH="${ROOT}/usr/$(get_libdir)/pkgconfig"
-		export OPENSSL_INCLUDE_DIR="${ROOT}/usr/include"
-		export OPENSSL_LIB_DIR="${ROOT}/usr/$(get_libdir)"
-
 		use system-llvm && die "USE=system-llvm not allowed when cross-compiling"
 		local cross_llvm_target="$(llvm_tuple_to_target "${CBUILD}")"
 		use "llvm_targets_${cross_llvm_target}" || \
@@ -244,7 +242,14 @@ src_prepare() {
 }
 
 src_configure() {
-	# Also break recent chromium
+	if tc-is-cross-compiler; then
+		export PKG_CONFIG_ALLOW_CROSS=1
+		export PKG_CONFIG_PATH="${ESYSROOT}/usr/$(get_libdir)/pkgconfig"
+		export OPENSSL_INCLUDE_DIR="${ESYSROOT}/usr/include"
+		export OPENSSL_LIB_DIR="${ESYSROOT}/usr/$(get_libdir)"
+	fi
+
+	# Also break chromium
 	filter-lto # https://bugs.gentoo.org/862109 https://bugs.gentoo.org/866231
 
 	local rust_target="" rust_targets="" arch_cflags
@@ -629,7 +634,7 @@ src_install() {
 
 	# symlinks to switch components to active rust in eselect
 	dosym "${PV}/lib" "/usr/lib/${PN}/lib-${PV}"
-	dosym "${PV}/libexec" "/usr/lib/${PN}/libexec-${PV}"
+	use rust-analyzer && dosym "${PV}/libexec" "/usr/lib/${PN}/libexec-${PV}"
 	dosym "${PV}/share/man" "/usr/lib/${PN}/man-${PV}"
 	dosym "rust/${PV}/lib/rustlib" "/usr/lib/rustlib-${PV}"
 	dosym "../../lib/${PN}/${PV}/share/doc/rust" "/usr/share/doc/${P}"
@@ -652,7 +657,6 @@ src_install() {
 		/usr/bin/rust-lldb
 		/usr/lib/rustlib
 		/usr/lib/rust/lib
-		/usr/lib/rust/libexec
 		/usr/lib/rust/man
 		/usr/share/doc/rust
 	_EOF_
@@ -670,6 +674,7 @@ src_install() {
 		echo /usr/bin/cargo-fmt >> "${T}/provider-${P}"
 	fi
 	if use rust-analyzer; then
+		echo /usr/lib/rust/libexec >> "${T}/provider-${P}"
 		echo /usr/bin/rust-analyzer >> "${T}/provider-${P}"
 	fi
 
@@ -683,7 +688,44 @@ src_install() {
 	fi
 }
 
+pkg_preinst() {
+	# 943308 and friends; basically --keep-going can forget to unmerge old rust
+	# but the soft blocker allows us to install conflicting files.
+	# This results in duplicated .{rlib,so} files which confuses rustc and results in
+	# the need for manual intervention.
+	if has_version -b "dev-lang/rust:stable/$(ver_cut 1-2)"; then
+		# we need to find all .{rlib,so} files in the old rust lib directory
+		# and store them in an array for later use
+		readarray -d '' old_rust_libs < <(
+			find "${EROOT}/usr/lib/rust/${PV}/lib/rustlib" \
+			-type f \( -name '*.rlib' -o -name '*.so' \) -print0)
+		export old_rust_libs
+		if [[ ${#old_rust_libs[@]} -gt 0 ]]; then
+			einfo "Found old .rlib and .so files in the old rust lib directory"
+		else
+			die "Found no old .rlib and .so files but old rust version is installed. Bailing!"
+		fi
+	fi
+}
+
 pkg_postinst() {
+
+	if has_version -b "dev-lang/rust:stable/$(ver_cut 1-2)"; then
+		# Be _extra_ careful here as we're removing files from the live filesystem
+		local f
+		for f in "${old_rust_libs[@]}"; do
+			[[ -f ${f} ]] || die "old_rust_libs array contains non-existent file"
+			local base_name="${f%-*}"
+			local ext="${f##*.}"
+			local matching_files=("${base_name}"-*.${ext})
+			if [[ ${#matching_files[@]} -ne 2 ]]; then
+				die "Expected exactly two files matching ${base_name}-\*.rlib, but found ${#matching_files[@]}"
+			fi
+			einfo "Removing old .rlib file ${f}"
+			rm "${f}" || die
+		done
+	fi
+
 	eselect rust update
 
 	if has_version dev-debug/gdb || has_version dev-debug/lldb; then
