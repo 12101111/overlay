@@ -1,7 +1,7 @@
-# Copyright 1999-2020 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
-EAPI=7
+EAPI=8
 
 inherit pax-utils toolchain-funcs git-r3
 
@@ -11,8 +11,8 @@ EGIT_REPO_URI="https://github.com/openresty/luajit2.git"
 EGIT_BRANCH="v2.1-agentzh"
 
 LICENSE="MIT"
-# this should probably be pkgmoved to 2.0 for sake of consistency.
-SLOT="2"
+# this should probably be pkgmoved to 2.1 for sake of consistency.
+SLOT="2.1"
 KEYWORDS=""
 IUSE="lua52compat static-libs"
 
@@ -32,6 +32,7 @@ _emake() {
 		TARGET_LD="$(tc-getCC)" \
 		TARGET_CFLAGS="${CPPFLAGS} ${CFLAGS}" \
 		TARGET_LDFLAGS="${LDFLAGS}" \
+		TARGET_SHLDFLAGS="${LDFLAGS}" \
 		TARGET_AR="$(tc-getAR) rcus" \
 		BUILDMODE="$(usex static-libs mixed dynamic)" \
 		TARGET_STRIP="true" \
