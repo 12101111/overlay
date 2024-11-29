@@ -2216,7 +2216,7 @@ src_configure() {
 		myconf_gn+=" devtools_skip_typecheck=false"
 	fi
 
-	if use loong && use lto; then
+	if use loong && [ "$use_lto" = true ]; then
 		myconf_gn+=" toolchain_supports_rust_thin_lto=false"
 	fi
 

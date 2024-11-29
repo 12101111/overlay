@@ -2109,7 +2109,7 @@ src_configure() {
 			third_party/crc32c/src/src/crc32c_arm64.cc || die
 	fi
 
-	if use loong && use lto; then
+	if use loong && [ "$use_lto" = true ]; then
 		myconf_gn+=" toolchain_supports_rust_thin_lto=false"
 	fi
 
