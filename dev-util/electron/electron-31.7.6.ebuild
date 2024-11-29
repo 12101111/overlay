@@ -3,67 +3,19 @@
 
 EAPI=8
 
-LLVM_COMPAT=( 17 18 19 )
-PYTHON_COMPAT=( python3_{11..13} )
-PYTHON_REQ_USE="xml(+)"
-
-# PACKAGING NOTES
-
-# Google roll their bundled Clang every two weeks, and the bundled Rust
-# is rolled regularly and depends on that. While we do our best to build
-# with system Clang, we will eventually hit the point where we need to use
-# the bundled Clang due to the use of prerelease features. We've been lucky
-# enough so far that this hasn't been an issue.
-
-# We try and avoid forcing the use of the custom/bundled libcxx, but sometimes
-# it is unavoidable. Remember to force the use of Clang when this is forced.
-
-# GCC is _not_ supported upstream, though patches are welcome. We do our
-# best to enable builds with GCC but reserve the right to force Clang
-# builds if we can't keep up with upstream's changes. Please comment
-# when forcing Clang builds so we can track the need for it.
-
-# GN is bundled with Chromium, but we always use the system version. Remember to
-# check for upstream changes to GN and update ebuild (and version below) as required.
-
-# For binhost users, if USE=bindist is set, we configure Chromium in a way that it is able
-# to use proprietary codecs, and so that ffmpeg is an external component (libffmpeg.so),
-# then we remove ffmpeg from the image to ensure that the built package is distributable
-# (i.e. we don't owe royalties). A suitable libffmpeg.so is symlinked in its place;
-# as a result of this, ffmpeg[chromium] or ffmpeg-chromium must be installed on the system.
-
-# For non-binhost builds, we build the bundled ffmpeg and enable proprietary codecs because there's
-# no reason not to. Todo: Re-enable USE=system-ffmpeg.
-
-# These variables let us easily bound supported major dependency versions in one place.
-GCC_MIN_VER=12
 GN_MIN_VER=0.2165
-# Since Google use prerelease llvm we can let any adventurous users try to build with prerelease
-# ebuilds; try to keep this up to date with the latest version in the tree.
-LLVM_MAX_SLOT=19
-LLVM_MIN_SLOT=17
-RUST_MIN_VER=1.72.0
-RUST_NEEDS_LLVM="yes please"
-# chromium-tools/get-chromium-toolchain-strings.sh
-GOOGLE_CLANG_VER=llvmorg-19-init-9433-g76ea5feb-1
-GOOGLE_RUST_VER=31e6e8c6c5b6ce62656c922c7384d3376018c980-2
-
-# https://bugs.chromium.org/p/v8/issues/detail?id=14449 - V8 used in 120 can't build with GCC
-# Resolved upstream, requires testing and some backporting I'm sure
-: ${CHROMIUM_FORCE_CLANG=yes}
-# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=101227 - Chromium 120:
-#    webrtc -  no matching member function for call to 'emplace'
-: ${CHROMIUM_FORCE_LIBCXX=no}
-# 121's 'gcc_link_wrapper.py' currently fails if not using lld due to the addition of rust
-: ${CHROMIUM_FORCE_LLD=yes}
-
-: ${CHROMIUM_FORCE_GOOGLE_TOOLCHAIN=no}
 
 VIRTUALX_REQUIRED="pgo"
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
+
+LLVM_COMPAT=( 17 18 19 )
+PYTHON_COMPAT=( python3_{11..13} )
+PYTHON_REQ_USE="xml(+)"
+RUST_MIN_VER=1.72.0
+RUST_NEEDS_LLVM="yes please"
 
 inherit check-reqs chromium-2 desktop flag-o-matic llvm-r1 multiprocessing ninja-utils pax-utils
 inherit python-any-r1 readme.gentoo-r1 rust toolchain-funcs virtualx xdg-utils
@@ -1151,18 +1103,9 @@ HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSI
 
 SRC_URI="
 	https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
-	system-toolchain? (
-		https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
-	)
-	!system-toolchain? (
-		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/clang-${GOOGLE_CLANG_VER}.tar.xz
-			-> chromium-${PV%%\.*}-clang.tar.xz
-		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/rust-toolchain-${GOOGLE_RUST_VER}-${GOOGLE_CLANG_VER%??}.tar.xz
-			-> chromium-${PV%%\.*}-rust.tar.xz
-	)
+	https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/${PATCHSET_NAME}.tar.bz2
 	https://github.com/electron/electron/archive/v${PV}.tar.gz -> ${P}.tar.gz
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
-	https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/${PATCHSET_NAME}.tar.bz2
 	loong? (
 		https://github.com/AOSC-Dev/chromium-loongarch64/archive/refs/tags/${PATCHSET_LOONG}.tar.gz -> chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.tar.gz
 	)
@@ -1182,15 +1125,15 @@ LICENSE="BSD"
 SLOT="${PV%%[.+]*}"
 KEYWORDS="~amd64 ~arm64 ~loong"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
-IUSE="hevc +X custom-cflags ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium headless kerberos libcxx +lto +official pax-kernel pgo +proprietary-codecs pulseaudio"
-IUSE+=" +screencast selinux +system-toolchain +vaapi +wayland"
+IUSE="hevc +X custom-cflags ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium headless kerberos +official pax-kernel pgo +proprietary-codecs pulseaudio"
+IUSE+=" +screencast selinux +vaapi +wayland"
 RESTRICT="
 	!bindist? ( bindist )
 	hevc? ( bindist )
 "
+
 REQUIRED_USE="
 	screencast? ( wayland )
-	!system-toolchain? ( libcxx )
 	ffmpeg-chromium? ( bindist proprietary-codecs )
 	hevc? ( official vaapi proprietary-codecs )
 "
@@ -1288,12 +1231,6 @@ DEPEND="${COMMON_DEPEND}
 	!headless? ( x11-libs/gtk+:3[X,wayland?] )
 "
 
-depend_clang_llvm_version() {
-	echo "sys-devel/clang:$1"
-	echo "sys-devel/llvm:$1"
-	echo "=sys-devel/lld-$1*"
-}
-
 BDEPEND="
 	${COMMON_SNAPSHOT_DEPEND}
 	${PYTHON_DEPS}
@@ -1301,13 +1238,11 @@ BDEPEND="
 		dev-python/setuptools[${PYTHON_USEDEP}]
 	')
 	>=app-arch/gzip-1.7
-	system-toolchain? (
-		$(llvm_gen_dep '
-			sys-devel/clang:${LLVM_SLOT}
-			sys-devel/llvm:${LLVM_SLOT}
-			sys-devel/lld:${LLVM_SLOT}
-		')
-	)
+	$(llvm_gen_dep '
+		sys-devel/clang:${LLVM_SLOT}
+		sys-devel/llvm:${LLVM_SLOT}
+		sys-devel/lld:${LLVM_SLOT}
+	')
 	>=dev-build/gn-${GN_MIN_VER}
 	dev-build/ninja
 	dev-lang/perl
@@ -1327,30 +1262,6 @@ fi
 
 python_check_deps() {
 	python_has_version "dev-python/setuptools[${PYTHON_USEDEP}]"
-}
-
-needs_clang() {
-	[[ ${CHROMIUM_FORCE_CLANG} == yes ]] || use libcxx || use lto || use pgo
-}
-
-needs_lld() {
-	# #641556: Force lld for lto and pgo builds, otherwise disable
-	# #918897: Temporary hack w/ use arm64
-	[[ ${CHROMIUM_FORCE_LLD} == yes ]] || use lto || use pgo || use arm64
-}
-
-llvm_check_deps() {
-	if ! has_version -b "sys-devel/clang:${LLVM_SLOT}" ; then
-		einfo "sys-devel/clang:${LLVM_SLOT} is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
-		return 1
-	fi
-
-	if ( use lto || use pgo ) && ! has_version -b "=sys-devel/lld-${LLVM_SLOT}*" ; then
-		einfo "=sys-devel/lld-${LLVM_SLOT}* is missing! Cannot use LLVM slot ${LLVM_SLOT} ..." >&2
-		return 1
-	fi
-
-	einfo "Using LLVM slot ${LLVM_SLOT} to build" >&2
 }
 
 pre_build_checks() {
@@ -1379,7 +1290,7 @@ pre_build_checks() {
 	local EXTRA_DISK=1
 	local CHECKREQS_MEMORY="4G"
 	tc-is-cross-compiler && EXTRA_DISK=2
-	if use lto || use pgo; then
+	if tc-is-lto || use pgo; then
 		CHECKREQS_MEMORY="9G"
 		tc-is-cross-compiler && EXTRA_DISK=4
 		use pgo && EXTRA_DISK=8
@@ -1418,30 +1329,48 @@ pkg_setup() {
 		# The pre_build_checks are all about compilation resources, no need to run it for a binpkg
 		pre_build_checks
 
-		if use system-toolchain; then
-			local -x CPP="$(tc-getCXX) -E"
-			if tc-is-gcc && ! ver_test "$(gcc-version)" -ge ${GCC_MIN_VER}; then
-				die "At least gcc ${GCC_MIN_VER} is required"
-			fi
-			if use pgo && tc-is-cross-compiler; then
-				die "The pgo USE flag cannot be used when cross-compiling"
-			fi
-			if needs_clang && ! tc-is-clang; then
-				if tc-is-cross-compiler; then
-					CPP="${CBUILD}-clang++ -E"
-				else
-					CPP="${CHOST}-clang++ -E"
-				fi
-			fi
-			if needs_clang || tc-is-clang; then
-				if ver_test "$(clang-major-version)" -lt ${LLVM_MIN_SLOT}; then
-					die "At least Clang ${LLVM_MIN_SLOT} is required"
-				fi
-				# Ideally we never see this, but it should help prevent bugs like 927154
-				if ver_test "$(clang-major-version)" -gt ${LLVM_MAX_SLOT}; then
-					die "Clang $(clang-major-version) is too new; ${LLVM_MAX_SLOT} is the highest supported version"
-				fi
-			fi
+		# The linux:unbundle toolchain in GN grabs CC, CXX, CPP (etc) from the environment
+		# We'll set these to clang here then use llvm-utils functions to very explicitly set these
+		# to a sane value.
+		# This is effectively the 'force-clang' path if GCC support is re-added.
+		# TODO: check if the user has already selected a specific impl via make.conf and respect that.
+		use_lto="false"
+		if tc-is-lto; then
+			use_lto="true"
+			# We can rely on GN to do this for us; anecdotally without this builds
+			# take significantly longer with LTO enabled and it doesn't hurt anything.
+			filter-lto
+		fi
+
+		if [ "$use_lto" = "false" ] && use official; then
+			einfo "USE=official selected and LTO not detected."
+			einfo "It is _highly_ recommended that LTO be enabled for performance reasons"
+			einfo "and to be consistent with the upstream \"official\" build optimisations."
+		fi
+
+		if [ "$use_lto" = "false" ] && use test; then
+			die "Tests require CFI which requires LTO"
+		fi
+
+		export use_lto
+
+		# 936858
+		if tc-ld-is-mold; then
+			eerror "Your toolchain is using the mold linker."
+			eerror "This is not supported by Chromium."
+			die "Please switch to a different linker."
+		fi
+
+		# Forcing clang; user choice respected by llvm_slot_x USE
+		AR=llvm-ar
+		CPP="${CHOST}-clang++ -E"
+		NM=llvm-nm
+		CC=${CHOST}-clang
+		CXX=${CHOST}-clang++
+
+		if tc-is-cross-compiler; then
+			use pgo && die "The pgo USE flag cannot be used when cross-compiling"
+			CPP="${CBUILD}-clang++ -E"
 		fi
 
 		llvm-r1_pkg_setup
@@ -1519,23 +1448,11 @@ src_prepare() {
 		"/\"GlobalMediaControlsCastStartStop\"/,+4{s/ENABLED/DISABLED/;}" \
 		"chrome/browser/media/router/media_router_feature.cc" || die
 
-	if use system-toolchain; then
-		# The patchset is really only required if we're using the system-toolchain
-		PATCHES+=( "${WORKDIR}/chromium-patches-${PATCH_V}" )
-		# We can't use the bundled compiler builtins
-		sed -i -e \
-			"/if (is_clang && toolchain_has_rust) {/,+2d" \
-			build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
-	else
-		mkdir -p third_party/llvm-build/Release+Asserts || die "Failed to bundle llvm"
-		ln -s "${WORKDIR}"/bin third_party/llvm-build/Release+Asserts/bin || die "Failed to symlink llvm bin"
-		ln -s "${WORKDIR}"/lib third_party/llvm-build/Release+Asserts/lib || die "Failed to symlink llvm lib"
-		echo "${GOOGLE_CLANG_VER}" > third_party/llvm-build/Release+Asserts/cr_build_revision || \
-			die "Failed to set clang version"
-		ln -s "${WORKDIR}"/rust-toolchain third_party/rust-toolchain || die "Failed to bundle rust"
-		cp "${WORKDIR}"/rust-toolchain/VERSION \
-			"${WORKDIR}"/rust-toolchain/INSTALLED_VERSION || die "Failed to set rust version"
-	fi
+	PATCHES+=( "${WORKDIR}/${PATCHSET_NAME}" )
+	# We can't use the bundled compiler builtins
+	sed -i -e \
+		"/if (is_clang && toolchain_has_rust) {/,+2d" \
+		build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
 
 	cd "${S}/electron" || die
 	echo "yarn-offline-mirror \"${DISTDIR}\"" >> "${S}/electron/.yarnrc"
@@ -1592,12 +1509,14 @@ src_prepare() {
 
 	default
 
-	mkdir -p third_party/node/linux/node-linux-x64/bin || die
+	mkdir -p third_party/node/linux/node-linux-x64/bin/ || die
 	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
 
 	# adjust python interpreter version
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
 
+	# remove_bundled_libraries.py walks the source tree and looks for paths containing the substring 'third_party'
+	# whitelist matches use the right-most matching path component, so we need to whitelist from that point down.
 	local keeplibs=(
 		third_party/electron_node
 		base/third_party/cityhash
@@ -1722,6 +1641,7 @@ src_prepare() {
 		third_party/libaom/source/libaom/third_party/vector
 		third_party/libaom/source/libaom/third_party/x86inc
 		third_party/libavif
+		third_party/libc++
 		third_party/libevent
 		third_party/libgav1
 		third_party/libjingle
@@ -1868,14 +1788,6 @@ src_prepare() {
 		keeplibs+=( third_party/zstd )
 	fi
 
-	if use libcxx || [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
-		keeplibs+=( third_party/libc++ )
-	fi
-
-	if ! use system-toolchain || [[ ${CHROMIUM_FORCE_GOOGLE_TOOLCHAIN} == yes ]]; then
-			keeplibs+=( third_party/llvm )
-	fi
-
 	# Arch-specific
 	if use arm64 || use ppc64 ; then
 		keeplibs+=( third_party/swiftshader/third_party/llvm-10.0 )
@@ -1926,110 +1838,63 @@ src_prepare() {
 	ln -s "${EPREFIX}"/bin/true buildtools/third_party/eu-strip/bin/eu-strip || die
 }
 
-chromium_rust_version_check() {
-	[[ ${MERGE_TYPE} == binary ]] && return
-	local rustc_version=( $(eselect --brief rust show 2>/dev/null) )
-	rustc_version=${rustc_version[0]#rust-bin-}
-	rustc_version=${rustc_version#rust-}
-
-	[[ -z "${rustc_version}" ]] && die "Failed to determine rust version, check 'eselect rust' output"
-
-	echo $rustc_version
-}
-
 src_configure() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
 
 	local myconf_gn=""
 
-	if use system-toolchain && [[ ${CHROMIUM_FORCE_GOOGLE_TOOLCHAIN} == no ]]; then
-		if needs_clang && ! tc-is-clang; then
-			# Force clang since gcc is either broken or build is using libcxx.
-			if tc-is-cross-compiler; then
-				CC="${CBUILD}-clang -target ${CHOST} --sysroot ${ESYSROOT}"
-				CXX="${CBUILD}-clang++ -target ${CHOST} --sysroot ${ESYSROOT}"
-				BUILD_CC=${CBUILD}-clang
-				BUILD_CXX=${CBUILD}-clang++
-			else
-				CC=${CHOST}-clang
-				CXX=${CHOST}-clang++
-			fi
-			strip-unsupported-flags
-		fi
+	# We already forced the "correct" clang via pkg_setup
 
-		if tc-is-clang; then
-			myconf_gn+=" is_clang=true clang_use_chrome_plugins=false"
-			# Workaround for build failure with clang-18 and -march=native without
-			# avx512. Does not affect e.g. -march=skylake, only native (bug #931623).
-			use amd64 && is-flagq -march=native &&
-				[[ $(clang-major-version) -eq 18 ]] && [[ $(clang-minor-version) -lt 6 ]] &&
-				tc-cpp-is-true "!defined(__AVX512F__)" ${CXXFLAGS} &&
-				append-flags -mevex512
-		else
-			myconf_gn+=" is_clang=false"
-		fi
-
-		if needs_lld ; then
-			# https://bugs.gentoo.org/918897#c32
-			append-ldflags -Wl,--undefined-version
-			myconf_gn+=" use_lld=true"
-		else
-			# This doesn't prevent lld from being used, but rather prevents gn from forcing it
-			myconf_gn+=" use_lld=false"
-		fi
-
-		if use lto; then
-			AR=llvm-ar
-			NM=llvm-nm
-			if tc-is-cross-compiler; then
-				BUILD_AR=llvm-ar
-				BUILD_NM=llvm-nm
-			fi
-		fi
-
-		# Make sure the build system will use the right tools, bug #340795.
-		tc-export AR CC CXX NM
-
-		myconf_gn+=" custom_toolchain=\"//build/toolchain/linux/unbundle:default\""
-
-		if tc-is-cross-compiler; then
-			tc-export BUILD_{AR,CC,CXX,NM}
-			myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:host\""
-			myconf_gn+=" v8_snapshot_toolchain=\"//build/toolchain/linux/unbundle:host\""
-			myconf_gn+=" pkg_config=\"$(tc-getPKG_CONFIG)\""
-			myconf_gn+=" host_pkg_config=\"$(tc-getBUILD_PKG_CONFIG)\""
-
-			# setup cups-config, build system only uses --libs option
-			if use cups; then
-				mkdir "${T}/cups-config" || die
-				cp "${ESYSROOT}/usr/bin/${CHOST}-cups-config" "${T}/cups-config/cups-config" || die
-				export PATH="${PATH}:${T}/cups-config"
-			fi
-
-			# Don't inherit PKG_CONFIG_PATH from environment
-			local -x PKG_CONFIG_PATH=
-		else
-			myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:default\""
-		fi
-
-		local rustc_ver
-		rustc_ver=$(chromium_rust_version_check)
-		if ver_test "${rustc_ver}" -lt "${RUST_MIN_VER}"; then
-				eerror "Rust >=${RUST_MIN_VER} is required"
-				eerror "Please run 'eselect rust' and select the correct rust version"
-				die "Selected rust version is too old"
-		else
-				einfo "Using rust ${rustc_ver} to build"
-		fi
-		if [[ "$(eselect --brief rust show 2>/dev/null)" == *"bin"* ]]; then
-				myconf_gn+=" rust_sysroot_absolute=\"${EPREFIX}/opt/rust-bin-${rustc_ver}/\""
-		else
-				myconf_gn+=" rust_sysroot_absolute=\"${EPREFIX}/usr/lib/rust/${rustc_ver}/\""
-		fi
-		myconf_gn+=" rustc_version=\"${rustc_ver}\""
-		use elibc_musl && myconf_gn+=" rust_abi_target=\"$(rust_abi)\""
+	if tc-is-cross-compiler; then
+		CC="${CC} -target ${CHOST} --sysroot ${ESYSROOT}"
+		CXX="${CXX} -target ${CHOST} --sysroot ${ESYSROOT}"
+		BUILD_AR=${AR}
+		BUILD_CC=${CC}
+		BUILD_CXX=${CXX}
+		BUILD_NM=${NM}
 	fi
+
+	strip-unsupported-flags
+
+	myconf_gn+=" is_clang=true clang_use_chrome_plugins=false"
+	# https://bugs.gentoo.org/918897#c32
+	append-ldflags -Wl,--undefined-version
+	myconf_gn+=" use_lld=true"
+
+	# Make sure the build system will use the right tools, bug #340795.
+	tc-export AR CC CXX NM
+
+	myconf_gn+=" custom_toolchain=\"//build/toolchain/linux/unbundle:default\""
+
+	if tc-is-cross-compiler; then
+		tc-export BUILD_{AR,CC,CXX,NM}
+		myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:host\""
+		myconf_gn+=" v8_snapshot_toolchain=\"//build/toolchain/linux/unbundle:host\""
+		myconf_gn+=" pkg_config=\"$(tc-getPKG_CONFIG)\""
+		myconf_gn+=" host_pkg_config=\"$(tc-getBUILD_PKG_CONFIG)\""
+
+		# setup cups-config, build system only uses --libs option
+		if use cups; then
+			mkdir "${T}/cups-config" || die
+			cp "${ESYSROOT}/usr/bin/${CHOST}-cups-config" "${T}/cups-config/cups-config" || die
+			export PATH="${PATH}:${T}/cups-config"
+		fi
+
+		# Don't inherit PKG_CONFIG_PATH from environment
+		local -x PKG_CONFIG_PATH=
+	else
+		myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:default\""
+	fi
+
+	# We don't need to set 'clang_base_bath' for anything in our build
+	# and it defaults to the google toolchain location. Instead provide a location
+	# to where system clang lives sot that bindgen can find system headers (e.g. stddef.h)
+	myconf_gn+=" clang_base_path=\"${EPREFIX}/usr/lib/clang/${LLVM_SLOT}/\""
+
+	myconf_gn+=" rust_sysroot_absolute=\"$(get_rust_prefix)\""
+	myconf_gn+=" rustc_version=\"${RUST_SLOT}\""
+	use elibc_musl && myconf_gn+=" rust_abi_target=\"$(rust_abi)\""
 
 	# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
 	myconf_gn+=" is_debug=false"
@@ -2111,19 +1976,16 @@ src_configure() {
 	# Chromium builds provided by Linux distros) should disable the testing config
 	myconf_gn+=" disable_fieldtrial_testing_config=true"
 
-	if use system-toolchain; then
-		myconf_gn+=" use_gold=false"
-	fi
-
 	# The sysroot is the oldest debian image that chromium supports, we don't need it
 	myconf_gn+=" use_sysroot=false"
 
-	# This determines whether or not GN uses the bundled libcxx
-	# default: true
-	if use libcxx || [[ ${CHROMIUM_FORCE_LIBCXX} == yes ]]; then
-		myconf_gn+=" use_custom_libcxx=true"
-	else
+	# Use in-tree libc++ (buildtools/third_party/libc++ and buildtools/third_party/libc++abi)
+	# instead of the system C++ library for C++ standard library support.
+	# default: true, but let's be explicit (forced since 120 ; USE removed 127).
+	if tc-is-clang && ( has_version "sys-devel/clang-common[default-libcxx]" || is-flagq --stdlib=libc++ ); then
 		myconf_gn+=" use_custom_libcxx=false"
+	else
+		myconf_gn+=" use_custom_libcxx=true"
 	fi
 
 	if use pgo; then
@@ -2184,13 +2046,6 @@ src_configure() {
 		if [[ ${myarch} == loong ]]; then
 			append-flags -mcmodel=medium
 		fi
-
-		if tc-is-gcc; then
-			# https://bugs.gentoo.org/904455
-			local -x CPP="$(tc-getCXX) -E"
-			# https://bugs.gentoo.org/912381
-			filter-lto
-		fi
 	fi
 
 	if [[ $myarch = amd64 ]] ; then
@@ -2209,11 +2064,7 @@ src_configure() {
 		die "Failed to determine target arch, got '$myarch'."
 	fi
 
-	# Make sure that -Werror doesn't get added to CFLAGS by the build system.
-	# Depending on GCC version the warnings are different and we don't want
-	# the build to fail because of that.
 	myconf_gn+=" treat_warnings_as_errors=false"
-
 	# Disable fatal linker warnings, bug 506268.
 	myconf_gn+=" fatal_linker_warnings=false"
 
@@ -2235,13 +2086,12 @@ src_configure() {
 	# https://bugs.gentoo.org/654216
 	addpredict /dev/dri/ #nowarn
 
-	# Disable unknown warning message from clang.
-	if tc-is-clang; then
-		append-flags -Wno-unknown-warning-option
-		if tc-is-cross-compiler; then
+	# We don't use the same clang version as upstream, and with -Werror
+	# we need to make sure that we don't get superfluous warnings.
+	append-flags -Wno-unknown-warning-option
+	if tc-is-cross-compiler; then
 			export BUILD_CXXFLAGS+=" -Wno-unknown-warning-option"
 			export BUILD_CFLAGS+=" -Wno-unknown-warning-option"
-		fi
 	fi
 
 	# Explicitly disable ICU data file support for system-icu/headless builds.
@@ -2281,13 +2131,13 @@ src_configure() {
 
 	# Enable official builds
 	myconf_gn+=" is_official_build=$(usex official true false)"
-	myconf_gn+=" use_thin_lto=$(usex lto true false)"
-	myconf_gn+=" thin_lto_enable_optimizations=$(usex lto true false)"
+	myconf_gn+=" use_thin_lto=${use_lto}"
+	myconf_gn+=" thin_lto_enable_optimizations=${use_lto}"
 	if use official; then
 		# Allow building against system libraries in official builds
 		sed -i 's/OFFICIAL_BUILD/GOOGLE_CHROME_BUILD/' \
 			tools/generate_shim_headers/generate_shim_headers.py || die
-		# Disable CFI: unsupported for GCC, requires clang+lto+lld
+		# Req's LTO; TODO: not compatible with -fno-split-lto-unit
 		myconf_gn+=" is_cfi=false"
 		# Don't add symbols to build
 		myconf_gn+=" symbol_level=0"
