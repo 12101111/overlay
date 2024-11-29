@@ -1944,9 +1944,6 @@ src_configure() {
 	local myconf_gn=""
 
 	if use system-toolchain && [[ ${CHROMIUM_FORCE_GOOGLE_TOOLCHAIN} == no ]]; then
-		# Make sure the build system will use the right tools, bug #340795.
-		tc-export AR CC CXX NM
-
 		if needs_clang && ! tc-is-clang; then
 			# Force clang since gcc is either broken or build is using libcxx.
 			if tc-is-cross-compiler; then
@@ -1990,6 +1987,9 @@ src_configure() {
 				BUILD_NM=llvm-nm
 			fi
 		fi
+
+		# Make sure the build system will use the right tools, bug #340795.
+		tc-export AR CC CXX NM
 
 		myconf_gn+=" custom_toolchain=\"//build/toolchain/linux/unbundle:default\""
 
