@@ -44,7 +44,7 @@ RDEPEND="
 	dev-util/perf
 	dev-libs/qcustomplot
 	media-gfx/kgraphviewer
-	>=dev-qt/kddockwidgets-1.6.0
+	=dev-qt/kddockwidgets-1.6.0
 	rust? ( dev-libs/rustc-demangle )
 "
 
