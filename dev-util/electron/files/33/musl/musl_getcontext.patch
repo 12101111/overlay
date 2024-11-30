@@ -1,0 +1,13 @@
+diff --git a/third_party/breakpad/BUILD.gn b/third_party/breakpad/BUILD.gn
+index a0c3bf4..14b2fde 100644
+--- a/third_party/breakpad/BUILD.gn
++++ b/third_party/breakpad/BUILD.gn
+@@ -661,7 +661,7 @@ if (is_linux || is_chromeos || is_android) {
+       cflags = [ "-marm" ]
+     }
+ 
+-    libs = [ "dl" ]
++    libs = [ "dl", "ucontext" ]
+ 
+     include_dirs = [
+       ".",
