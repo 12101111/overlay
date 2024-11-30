@@ -1,4 +1,4 @@
-# Copyright 2022-2023 Gentoo Authors
+# Copyright 2022-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -12,11 +12,12 @@ S=${WORKDIR}
 
 LICENSE="public-domain"
 SLOT="${PV}"
-KEYWORDS="~amd64 ~arm64 ~x86"
+KEYWORDS=""
 PROPERTIES="live"
 
 RDEPEND="
 	sys-devel/clang:${SLOT}
+	sys-devel/lld:${SLOT}
 "
 
 src_install() {
