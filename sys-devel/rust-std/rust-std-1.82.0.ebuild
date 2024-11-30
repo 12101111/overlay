@@ -170,7 +170,7 @@ src_configure() {
 	fi
 	if [[ "${CTARGET}" == *-wasi* ]]; then
 		cat <<- _EOF_ >> "${S}"/config.toml
-			wasi-root = "${EPREFIX}/usr/${CTARGET}/usr"
+			wasi-root = "${EPREFIX}/usr/${CTARGET}/"
 		_EOF_
 	fi
 
