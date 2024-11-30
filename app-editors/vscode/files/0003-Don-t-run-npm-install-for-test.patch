@@ -1,42 +1,40 @@
-From 957bb3d0d2b80cce9119e97fe90c5ed02c5c3454 Mon Sep 17 00:00:00 2001
+From 84613c89d3611c834afe51c8035c83db26a8133e Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Mon, 6 May 2024 00:32:14 +0800
-Subject: [PATCH 04/12] Don't run yarn install for web/remote/test
+Date: Sat, 23 Nov 2024 22:27:26 +0800
+Subject: [PATCH 3/9] Don't run npm install for test
 
 ---
- build/npm/dirs.js        | 7 -------
- build/npm/postinstall.js | 3 ---
- 2 files changed, 10 deletions(-)
+ build/npm/dirs.js        | 6 ------
+ build/npm/postinstall.js | 2 --
+ 2 files changed, 8 deletions(-)
 
 diff --git a/build/npm/dirs.js b/build/npm/dirs.js
-index fbefd418b0a..890322b8ebb 100644
+index b9645e6e137..ce354e878c4 100644
 --- a/build/npm/dirs.js
 +++ b/build/npm/dirs.js
-@@ -45,13 +45,6 @@ const dirs = [
- 	'extensions/vscode-api-tests',
- 	'extensions/vscode-colorize-tests',
+@@ -47,12 +47,6 @@ const dirs = [
  	'extensions/vscode-test-resolver',
--	'remote',
--	'remote/web',
+ 	'remote',
+ 	'remote/web',
 -	'test/automation',
 -	'test/integration/browser',
 -	'test/monaco',
 -	'test/smoke',
+-	'.vscode/extensions/vscode-selfhost-import-aid',
 -	'.vscode/extensions/vscode-selfhost-test-provider',
  ];
  
  if (fs.existsSync(`${__dirname}/../../.build/distro/npm`)) {
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index db9f8c8a7c0..103c1b6c3bb 100644
+index 88e3c9eb1bb..3ab8c67b30d 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -123,6 +123,3 @@ for (let dir of dirs) {
- 
- 	yarnInstall(dir, opts);
+@@ -171,5 +171,3 @@ for (let dir of dirs) {
+ 	npmInstall(dir, opts);
  }
--
+ 
 -cp.execSync('git config pull.rebase merges');
 -cp.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
 -- 
-2.46.0
+2.47.0
 

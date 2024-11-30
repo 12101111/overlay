@@ -1,7 +1,7 @@
-From 653f4e2f17267b06ee991d3859dba63a5969a7e9 Mon Sep 17 00:00:00 2001
+From 6ea3aefb9d280c3d3e9e66d7bd379c07aa1a69a4 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 15 Sep 2024 21:27:46 +0800
-Subject: [PATCH 12/12] Add support for riscv64, loong64
+Subject: [PATCH 9/9] Add support for riscv64, loong64
 
 ---
  build/gulpfile.scan.js                                 |  2 ++
@@ -12,7 +12,7 @@ Subject: [PATCH 12/12] Add support for riscv64, loong64
  5 files changed, 18 insertions(+)
 
 diff --git a/build/gulpfile.scan.js b/build/gulpfile.scan.js
-index 127720a0245..16136d504cc 100644
+index cbcdddb74bc..22e421d2449 100644
 --- a/build/gulpfile.scan.js
 +++ b/build/gulpfile.scan.js
 @@ -24,6 +24,8 @@ const BUILD_TARGETS = [
@@ -25,10 +25,10 @@ index 127720a0245..16136d504cc 100644
  
  // The following files do not have PDBs downloaded for them during the download symbols process.
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index e7b4eda871d..e2027e1075c 100644
+index ad505d47517..0068ec51700 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -546,6 +546,8 @@ const BUILD_TARGETS = [
+@@ -488,6 +488,8 @@ const BUILD_TARGETS = [
  	{ platform: 'linux', arch: 'x64' },
  	{ platform: 'linux', arch: 'armhf' },
  	{ platform: 'linux', arch: 'arm64' },
@@ -38,10 +38,10 @@ index e7b4eda871d..e2027e1075c 100644
  BUILD_TARGETS.forEach(buildTarget => {
  	const dashed = (str) => (str ? `-${str}` : ``);
 diff --git a/build/gulpfile.vscode.linux.js b/build/gulpfile.vscode.linux.js
-index 6d704a93ea2..12608e4357f 100644
+index 9d78d8143b1..ac7cd91bd3b 100644
 --- a/build/gulpfile.vscode.linux.js
 +++ b/build/gulpfile.vscode.linux.js
-@@ -354,6 +354,8 @@ const BUILD_TARGETS = [
+@@ -356,6 +356,8 @@ const BUILD_TARGETS = [
  	{ arch: 'x64' },
  	{ arch: 'armhf' },
  	{ arch: 'arm64' },
@@ -51,7 +51,7 @@ index 6d704a93ea2..12608e4357f 100644
  
  BUILD_TARGETS.forEach(({ arch }) => {
 diff --git a/src/vs/platform/extensionManagement/common/extensionManagement.ts b/src/vs/platform/extensionManagement/common/extensionManagement.ts
-index 83ed0c519ca..164365a934b 100644
+index ea7b30d9422..f92e4baedf3 100644
 --- a/src/vs/platform/extensionManagement/common/extensionManagement.ts
 +++ b/src/vs/platform/extensionManagement/common/extensionManagement.ts
 @@ -39,6 +39,8 @@ export function TargetPlatformToString(targetPlatform: TargetPlatform) {
@@ -86,7 +86,7 @@ index 83ed0c519ca..164365a934b 100644
  
  		case 'alpine':
 diff --git a/src/vs/platform/extensions/common/extensions.ts b/src/vs/platform/extensions/common/extensions.ts
-index 822260bdc2f..24dd9cc47d9 100644
+index 5973d4dcf12..47651c5d34b 100644
 --- a/src/vs/platform/extensions/common/extensions.ts
 +++ b/src/vs/platform/extensions/common/extensions.ts
 @@ -292,6 +292,8 @@ export const enum TargetPlatform {
@@ -99,5 +99,5 @@ index 822260bdc2f..24dd9cc47d9 100644
  	ALPINE_X64 = 'alpine-x64',
  	ALPINE_ARM64 = 'alpine-arm64',
 -- 
-2.46.0
+2.47.0
 

@@ -1,0 +1,28 @@
+From ba636c42b4b632e4930563458c4ef0d16c1c9abe Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sat, 30 Nov 2024 23:28:25 +0800
+Subject: [PATCH 10/10] Accpet FLAGS from env
+
+---
+ build/npm/postinstall.js | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
+index 3ab8c67b30d..f453d7e5fd7 100644
+--- a/build/npm/postinstall.js
++++ b/build/npm/postinstall.js
+@@ -111,11 +111,6 @@ for (let dir of dirs) {
+ 				...process.env
+ 			},
+ 		}
+-		if (process.env['CC']) { opts.env['CC'] = 'gcc'; }
+-		if (process.env['CXX']) { opts.env['CXX'] = 'g++'; }
+-		if (process.env['CXXFLAGS']) { opts.env['CXXFLAGS'] = ''; }
+-		if (process.env['LDFLAGS']) { opts.env['LDFLAGS'] = ''; }
+-
+ 		setNpmrcConfig('build', opts.env);
+ 		npmInstall('build', opts);
+ 		continue;
+-- 
+2.47.1
+

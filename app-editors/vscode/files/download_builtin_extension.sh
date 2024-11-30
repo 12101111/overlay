@@ -3,8 +3,8 @@
 # jq -r '.builtInExtensions[] | .name +":"+ .version' product.json | sed -r 's/([^\.]*)\.([a-z0-9\-]*)\:([0-9\.]*)/["\2"]="\3"/g'
 declare -A BUILTINEXTS=(
 ["js-debug-companion"]="1.1.3"
-["js-debug"]="1.93.0"
-["vscode-js-profile-table"]="1.0.9"
+["js-debug"]="1.95.3"
+["vscode-js-profile-table"]="1.0.10"
 )
 
 DISTDIR=$(portageq envvar DISTDIR)
