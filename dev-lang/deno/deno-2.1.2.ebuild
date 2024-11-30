@@ -4,14 +4,14 @@
 EAPI=8
 
 GN_MIN_VER=0.2165
-LLVM_COMPAT=( 18 19 )
+LLVM_COMPAT=( 19 )
 RUST_NEEDS_LLVM=1
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
-RUST_MIN_VER=1.78.0
+RUST_MIN_VER=1.82.0
 
-# M129
-V8_VER=0.106.0
+# M30
+V8_VER=130.0.1
 STACKER_VER=0.1.15
 
 CRATES="
@@ -49,6 +49,9 @@ CRATES="
 	asynchronous-codec@0.7.0
 	auto_impl@1.2.0
 	autocfg@1.3.0
+	axum-core@0.4.5
+	axum@0.7.5
+	az@1.2.1
 	backtrace@0.3.73
 	base16ct@0.2.0
 	base32@0.5.1
@@ -60,7 +63,7 @@ CRATES="
 	bencher@0.1.5
 	better_scoped_tls@0.1.1
 	bincode@1.3.3
-	bindgen@0.69.4
+	bindgen@0.69.5
 	bindgen@0.70.1
 	bit-set@0.5.3
 	bit-vec@0.6.3
@@ -71,6 +74,7 @@ CRATES="
 	block-buffer@0.10.4
 	block-padding@0.3.3
 	block@0.1.6
+	boxed_error@0.2.2
 	brotli-decompressor@4.0.1
 	brotli@6.0.0
 	bstr@1.9.1
@@ -100,7 +104,7 @@ CRATES="
 	color-print@0.3.5
 	color_quant@1.1.0
 	colorchoice@1.0.0
-	comrak@0.28.0
+	comrak@0.29.0
 	console_static_text@0.8.1
 	const-oid@0.9.6
 	convert_case@0.4.0
@@ -136,16 +140,16 @@ CRATES="
 	deno-tower-lsp-macros@0.9.0
 	deno_ast@0.43.3
 	deno_cache_dir@0.13.2
-	deno_config@0.38.2
-	deno_core@0.318.0
-	deno_doc@0.156.0
-	deno_graph@0.84.1
+	deno_config@0.39.2
+	deno_core@0.323.0
+	deno_doc@0.161.1
+	deno_graph@0.86.2
 	deno_lint@0.68.0
 	deno_lockfile@0.23.1
 	deno_media_type@0.2.1
 	deno_native_certs@0.3.0
 	deno_npm@0.25.4
-	deno_ops@0.194.0
+	deno_ops@0.199.0
 	deno_package_json@0.1.2
 	deno_path_util@0.2.1
 	deno_semver@0.5.16
@@ -155,9 +159,9 @@ CRATES="
 	deno_tower_lsp@0.1.0
 	deno_unsync@0.4.1
 	deno_whoami@0.1.0
-	denokv_proto@0.8.2
-	denokv_remote@0.8.1
-	denokv_sqlite@0.8.2
+	denokv_proto@0.8.4
+	denokv_remote@0.8.4
+	denokv_sqlite@0.8.4
 	der-parser@8.2.0
 	der@0.7.9
 	der_derive@0.7.3
@@ -186,7 +190,6 @@ CRATES="
 	dprint-plugin-markdown@0.17.8
 	dprint-plugin-typescript@0.93.2
 	dprint-swc-ext@0.20.0
-	drain@0.1.2
 	dsa@0.6.3
 	dyn-clone@1.0.17
 	dynasm@1.2.3
@@ -222,7 +225,7 @@ CRATES="
 	ff@0.13.0
 	fiat-crypto@0.1.20
 	fiat-crypto@0.2.7
-	file_test_runner@0.7.2
+	file_test_runner@0.7.3
 	filetime@0.2.23
 	fixedbitset@0.4.2
 	flaky_test@0.2.2
@@ -270,13 +273,19 @@ CRATES="
 	h2@0.4.4
 	halfbrown@0.2.5
 	handlebars@6.1.0
+	hashbrown@0.12.3
 	hashbrown@0.14.5
 	hashlink@0.9.1
+	hdrhistogram@7.5.4
 	heck@0.4.1
 	heck@0.5.0
 	hermit-abi@0.3.9
 	hex@0.4.3
 	hexf-parse@0.2.1
+	hickory-client@0.24.1
+	hickory-proto@0.24.1
+	hickory-resolver@0.24.1
+	hickory-server@0.24.1
 	hkdf@0.12.4
 	hmac@0.12.1
 	home@0.5.9
@@ -292,16 +301,29 @@ CRATES="
 	httpdate@1.0.3
 	humantime@2.1.0
 	hyper-rustls@0.27.2
+	hyper-timeout@0.5.1
 	hyper-util@0.1.7
 	hyper@0.14.28
 	hyper@1.4.1
+	icu_collections@1.5.0
+	icu_locid@1.5.0
+	icu_locid_transform@1.5.0
+	icu_locid_transform_data@1.5.0
+	icu_normalizer@1.5.0
+	icu_normalizer_data@1.5.0
+	icu_properties@1.5.1
+	icu_properties_data@1.5.0
+	icu_provider@1.5.0
+	icu_provider_macros@1.5.0
 	ident_case@1.0.1
-	idna@0.3.0
 	idna@0.4.0
+	idna@1.0.3
+	idna_adapter@1.2.0
 	if_chain@1.0.2
 	ignore@0.4.20
 	image@0.24.9
 	import_map@0.20.1
+	indexmap@1.9.3
 	indexmap@2.3.0
 	inotify-sys@0.1.5
 	inotify@0.9.6
@@ -322,6 +344,7 @@ CRATES="
 	js-sys@0.3.69
 	jsonc-parser@0.26.2
 	junction@0.2.0
+	jupyter-serde@0.4.0
 	k256@0.13.3
 	keccak@0.1.5
 	khronos-egl@6.0.0
@@ -339,12 +362,13 @@ CRATES="
 	libloading@0.8.5
 	libm@0.2.8
 	libredox@0.1.3
-	libsqlite3-sys@0.30.1
+	libsqlite3-sys@0.30.0
 	libsui@0.5.0
 	libuv-sys-lite@1.48.2
 	libz-sys@1.1.20
 	linked-hash-map@0.5.6
 	linux-raw-sys@0.4.13
+	litemap@0.7.3
 	litrs@0.4.1
 	lock_api@0.4.11
 	log@0.4.21
@@ -352,8 +376,9 @@ CRATES="
 	lsp-types@0.97.0
 	malloc_buf@0.0.6
 	malva@0.11.0
-	markup_fmt@0.15.0
+	markup_fmt@0.16.0
 	match_cfg@0.1.0
+	matchit@0.7.3
 	md-5@0.10.6
 	md4@0.10.2
 	memchr@2.7.4
@@ -391,11 +416,15 @@ CRATES="
 	object@0.36.3
 	oid-registry@0.6.1
 	once_cell@1.19.0
-	onig@6.4.0
-	onig_sys@69.8.1
 	opaque-debug@0.3.1
 	open@5.1.2
 	openssl-probe@0.1.5
+	opentelemetry-http@0.27.0
+	opentelemetry-otlp@0.27.0
+	opentelemetry-proto@0.27.0
+	opentelemetry-semantic-conventions@0.27.0
+	opentelemetry@0.27.0
+	opentelemetry_sdk@0.27.0
 	option-ext@0.2.0
 	ordered-float@2.10.1
 	os_pipe@1.1.5
@@ -438,7 +467,6 @@ CRATES="
 	ppv-lite86@0.2.17
 	pretty_assertions@1.4.0
 	pretty_yaml@0.5.0
-	prettyplease@0.1.25
 	prettyplease@0.2.17
 	primeorder@0.13.6
 	proc-macro-error-attr@1.0.4
@@ -447,10 +475,10 @@ CRATES="
 	proc-macro-rules@0.4.0
 	proc-macro2@1.0.86
 	profiling@1.0.15
-	prost-build@0.11.9
-	prost-derive@0.11.9
-	prost-types@0.11.9
-	prost@0.11.9
+	prost-build@0.13.3
+	prost-derive@0.13.3
+	prost-types@0.13.3
+	prost@0.13.3
 	psm@0.1.21
 	ptr_meta@0.1.4
 	ptr_meta_derive@0.1.4
@@ -461,7 +489,7 @@ CRATES="
 	quinn-proto@0.11.8
 	quinn-udp@0.5.2
 	quinn@0.11.2
-	quote@1.0.36
+	quote@1.0.37
 	radium@0.7.0
 	radix_fmt@1.0.0
 	radix_trie@0.2.1
@@ -490,8 +518,8 @@ CRATES="
 	ron@0.8.1
 	rowan@0.15.15
 	rsa@0.9.6
-	runtimelib@0.14.0
-	rusqlite@0.32.1
+	runtimelib@0.19.0
+	rusqlite@0.32.0
 	rustc-demangle@0.1.24
 	rustc-hash@1.1.0
 	rustc-hash@2.0.0
@@ -524,14 +552,14 @@ CRATES="
 	semver@0.9.0
 	semver@1.0.14
 	serde-value@0.7.0
+	serde-wasm-bindgen@0.5.0
 	serde@1.0.205
 	serde_bytes@0.11.14
 	serde_derive@1.0.205
 	serde_json@1.0.122
 	serde_repr@0.1.16
-	serde_spanned@0.6.6
 	serde_urlencoded@0.7.1
-	serde_v8@0.227.0
+	serde_v8@0.232.0
 	serdect@0.2.0
 	sha1@0.10.6
 	sha1_smol@1.0.0
@@ -560,10 +588,12 @@ CRATES="
 	spin@0.9.8
 	spirv@0.3.0+sdk-1.3.268.0
 	spki@0.7.3
+	sqlformat@0.3.2
 	stable_deref_trait@1.2.0
 	stacker@0.1.15
 	static_assertions@1.1.0
 	string_enum@0.4.4
+	stringcase@0.3.0
 	strip-ansi-escapes@0.2.0
 	strsim@0.11.1
 	strum@0.25.0
@@ -597,11 +627,10 @@ CRATES="
 	swc_visit@0.6.2
 	swc_visit_macros@0.5.13
 	syn@1.0.109
-	syn@2.0.72
+	syn@2.0.87
 	sync_wrapper@1.0.1
 	synstructure@0.12.6
 	synstructure@0.13.1
-	syntect@5.2.0
 	tap@1.0.1
 	tar@0.4.40
 	tempfile@3.10.1
@@ -617,19 +646,19 @@ CRATES="
 	time-macros@0.2.18
 	time@0.3.36
 	tiny_pretty@0.2.0
+	tinystr@0.7.6
 	tinyvec@1.6.0
 	tinyvec_macros@0.1.1
+	tokio-eld@0.2.0
 	tokio-macros@2.2.0
 	tokio-metrics@0.3.1
 	tokio-rustls@0.26.0
 	tokio-socks@0.5.1
-	tokio-stream@0.1.15
+	tokio-stream@0.1.16
 	tokio-util@0.7.10
 	tokio@1.36.0
 	toml@0.5.11
-	toml@0.7.8
-	toml_datetime@0.6.6
-	toml_edit@0.19.15
+	tonic@0.12.3
 	tower-http@0.6.1
 	tower-layer@0.3.3
 	tower-service@0.3.2
@@ -638,10 +667,6 @@ CRATES="
 	tracing-core@0.1.32
 	tracing@0.1.40
 	triomphe@0.1.13
-	trust-dns-client@0.23.2
-	trust-dns-proto@0.23.2
-	trust-dns-resolver@0.23.2
-	trust-dns-server@0.23.2
 	try-lock@0.2.5
 	twox-hash@1.6.3
 	typed-arena@2.0.2
@@ -664,13 +689,15 @@ CRATES="
 	unicode_categories@0.1.1
 	universal-hash@0.5.1
 	untrusted@0.9.0
-	url@2.4.1
+	url@2.5.3
 	urlpattern@0.3.0
 	utf-8@0.7.6
+	utf16_iter@1.0.5
 	utf8-width@0.1.7
+	utf8_iter@1.0.4
 	utf8parse@0.2.1
 	uuid@1.8.0
-	v8@0.106.0
+	v8@130.0.1
 	v8_valueserializer@0.1.1
 	value-trait@0.10.0
 	vcpkg@0.2.15
@@ -689,6 +716,7 @@ CRATES="
 	wasm-bindgen-shared@0.2.92
 	wasm-bindgen@0.2.92
 	wasm-streams@0.4.0
+	wasm_dep_analyzer@0.1.0
 	web-sys@0.3.69
 	webpki-root-certs@0.26.6
 	webpki-roots@0.26.1
@@ -724,12 +752,13 @@ CRATES="
 	windows_x86_64_gnullvm@0.52.4
 	windows_x86_64_msvc@0.48.5
 	windows_x86_64_msvc@0.52.4
-	winnow@0.5.40
 	winnow@0.6.15
 	winreg@0.50.0
 	winreg@0.52.0
 	winres@0.1.12
 	winsafe@0.0.19
+	write16@1.0.0
+	writeable@0.5.5
 	wtf8@0.1.0
 	wyz@0.5.1
 	x25519-dalek@2.0.1
@@ -746,7 +775,9 @@ CRATES="
 	zerofrom@0.1.4
 	zeroize@1.7.0
 	zeroize_derive@1.4.2
-	zeromq@0.4.0
+	zeromq@0.4.1
+	zerovec-derive@0.10.3
+	zerovec@0.10.4
 	zip@2.1.6
 	zstd-safe@6.0.6
 	zstd-sys@2.0.10+zstd.1.5.6
@@ -777,14 +808,6 @@ IUSE="denort static-libs bash-completion zsh-completion fish-completion"
 BDEPEND="
 	>=dev-build/gn-${GN_MIN_VER}
 	app-alternatives/ninja
-	|| (
-		sys-devel/clang:18
-		sys-devel/clang:19
-	)
-	|| (
-		sys-devel/lld:18
-		sys-devel/lld:19
-	)
 "
 DEPEND="
 	>=dev-libs/libffi-3.4.4
@@ -828,8 +851,6 @@ src_prepare() {
 	fi
 	eapply "${FILESDIR}/build_from_source-1.46.2.patch"
 	eapply "${FILESDIR}/v8-use-system-libraries.patch"
-	eapply "${FILESDIR}/bindgen_macro_fix.patch"
-	eapply "${FILESDIR}/bindgen_macro_fix2.patch"
 	pushd build >/dev/null || die
 	eapply "${FILESDIR}/v8-compiler.patch"
 	popd >/dev/null || die
