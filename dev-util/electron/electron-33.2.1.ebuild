@@ -1507,7 +1507,6 @@ src_prepare() {
 	# 130: moved the PPC64 patches into the chromium-patches repo
 	local patch
 	for patch in "${WORKDIR}/chromium-patches-${PATCH_V}"/**/*.patch; do
-		elog "Applying patch: ${patch}"
 		if [[ ${patch} == *"ppc64le"* ]]; then
 			use ppc64 && eapply "${patch}"
 		else
