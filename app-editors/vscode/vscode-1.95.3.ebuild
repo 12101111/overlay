@@ -1,11 +1,11 @@
-# Copyright 1999-2021 Gentoo Authors
+# Copyright 1999-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
 PYTHON_COMPAT=( python3_{10..13} )
 
-inherit python-any-r1 rust savedconfig xdg
+inherit python-any-r1 savedconfig xdg
 
 DESCRIPTION="Visual Studio Code - Open Source"
 HOMEPAGE="https://code.visualstudio.com/"
@@ -13,7 +13,7 @@ HOMEPAGE="https://code.visualstudio.com/"
 KEYWORDS="~amd64 ~arm64 ~loong"
 LICENSE="MIT"
 SLOT="0"
-IUSE="cli system-ripgrep savedconfig builtin-extensions"
+IUSE="system-ripgrep savedconfig builtin-extensions"
 
 COMMIT="f1a4fb101478ce6ec82fe9627c43efbf9e98c813"
 
@@ -1919,11 +1919,11 @@ PATCHES=(
 	"${FILESDIR}/0008-Fix-cli-path.patch"
 	"${FILESDIR}/0009-Add-support-for-riscv64-loong64.patch"
 	"${FILESDIR}/0010-Accpet-FLAGS-from-env.patch"
+	"${FILESDIR}/0011-Fix-tunnel-path.patch"
 )
 
 pkg_setup() {
 	python-any-r1_pkg_setup
-	rust_pkg_setup
 }
 
 src_unpack() {
