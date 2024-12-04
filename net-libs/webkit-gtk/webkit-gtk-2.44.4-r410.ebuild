@@ -142,7 +142,6 @@ pkg_setup() {
 }
 
 src_prepare() {
-	eapply "${FILESDIR}"/webkit-gtk-2.30.3-musl-locale.patch
 	if use elibc_musl ; then
 		eapply "${FILESDIR}"/${PN}-2.32.1-musl.patch
 		eapply "${FILESDIR}"/${PN}-2.28.1-lower-stack-usage.patch
