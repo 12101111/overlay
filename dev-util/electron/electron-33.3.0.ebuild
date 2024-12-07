@@ -23,7 +23,7 @@ inherit rust-toolchain
 
 # Keep this in sync with DEPS:chromium_version
 # find least version of available snapshot in
-# https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-126.0.6437.0.tar.xz.hashe%40
+# https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-130.0.6699.2-testdata.tar.x%40
 CHROMIUM_VERSION="130.0.6723.130"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="20.18.1"
