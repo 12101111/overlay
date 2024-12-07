@@ -34,12 +34,10 @@ PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
 PATCH_V="${PV%%\.*}-1"
 PATCHSET_LOONG_PV="131.0.6778.85"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
-HEVC_PATCHSET_VERSION="133.0.6853.0"
-HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 		https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
 	test? (
-		https://chromium-tarballs.distfiles.gentoo.org/${P}-testdata.tar.xz -> ${P}-testdata-gentoo.tar.xz
+		https://chromium-tarballs.distfiles.gentoo.org/${P}-linux-testdata.tar.xz
 		https://chromium-fonts.storage.googleapis.com/${TEST_FONT} -> chromium-testfonts-${TEST_FONT:0:10}.tar.gz
 	)
 	loong? (
@@ -48,9 +46,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 	ppc64? (
 		https://gitlab.solidsilicon.io/public-development/open-source/chromium/openpower-patches/-/archive/${PPC64_HASH}/openpower-patches-${PPC64_HASH}.tar.bz2 -> chromium-openpower-${PPC64_HASH:0:10}.tar.bz2
 	)
-	pgo? ( https://github.com/elkablo/chromium-profiler/releases/download/v0.2/chromium-profiler-0.2.tar )
-	hevc? ( https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding/archive/${HEVC_PATCHSET_VERSION}.tar.gz -> chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz )
-"
+	pgo? ( https://github.com/elkablo/chromium-profiler/releases/download/v0.2/chromium-profiler-0.2.tar )"
 
 LICENSE="BSD"
 SLOT="0/stable"
@@ -61,7 +57,6 @@ IUSE+=" qt5 qt6 +screencast selinux test +vaapi +wayland +widevine"
 RESTRICT="
 	!bindist? ( bindist )
 	!test? ( test )
-	hevc? ( bindist )
 "
 
 REQUIRED_USE="
@@ -341,23 +336,20 @@ pkg_setup() {
 			die "Please switch to a different linker."
 		fi
 
-		# Forcing clang; user choice respected by llvm_slot_x USE
-		AR=llvm-ar
-		CPP="${CHOST}-clang++ -E"
-		NM=llvm-nm
-		CC=${CHOST}-clang
-		CXX=${CHOST}-clang++
-
-		if tc-is-cross-compiler; then
-			use pgo && die "The pgo USE flag cannot be used when cross-compiling"
-			CPP="${CBUILD}-clang++ -E"
-		fi
-
 		llvm-r1_pkg_setup
 		rust_pkg_setup
 
-		einfo "Using LLVM/Clang slot ${LLVM_SLOT} to build"
-		einfo "Using Rust slot ${RUST_SLOT}, ${RUST_TYPE} to build"
+		# Forcing clang; respect llvm_slot_x to enable selection of impl from LLVM_COMPAT
+		AR=llvm-ar
+		CPP="${CHOST}-clang++-${LLVM_SLOT} -E"
+		NM=llvm-nm
+		CC="${CHOST}-clang-${LLVM_SLOT}"
+		CXX="${CHOST}-clang++-${LLVM_SLOT}"
+
+		if tc-is-cross-compiler; then
+			use pgo && die "The pgo USE flag cannot be used when cross-compiling"
+			CPP="${CBUILD}-clang++-${LLVM_SLOT} -E"
+		fi
 
 		# I hate doing this but upstream Rust have yet to come up with a better solution for
 		# us poor packagers. Required for Split LTO units, which are required for CFI.
@@ -382,7 +374,7 @@ src_unpack() {
 		# A new testdata tarball is available for each release; but testfonts tend to remain stable
 		# for the duration of a release.
 		# This unpacks directly into/over ${WORKDIR}/${P} so we can just use `unpack`.
-		unpack ${P}-testdata-gentoo.tar.xz
+		unpack ${P}-linux-testdata.tar.xz
 		# This just contains a bunch of font files that need to be unpacked (or moved) to the correct location.
 		local testfonts_dir="${WORKDIR}/${P}/third_party/test_fonts"
 		local testfonts_tar="${DISTDIR}/chromium-testfonts-${TEST_FONT:0:10}.tar.gz"
@@ -390,10 +382,8 @@ src_unpack() {
 	fi
 
 	if use ppc64; then
-		unpack chromium_${PATCHSET_PPC64}.debian.tar.xz
-		unpack chromium-ppc64le-gentoo-patches-1.tar.xz
+		unpack chromium-openpower-${PPC64_HASH:0:10}.tar.bz2
 	fi
-	use hevc && unpack chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz
 }
 
 src_prepare() {
@@ -404,23 +394,11 @@ src_prepare() {
 	if tc-is-clang && ( has_version "sys-devel/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
 		eapply "${FILESDIR}/remove-libatomic.patch"
 	fi
-	#if use hevc; then
-		#pushd third_party/ffmpeg >/dev/null || die
-		#node "${WORKDIR}/${HEVC_PATCHSET_NAME}/add-hevc-ffmpeg-decoder-parser.js"
-		#eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/change-libavcodec-header.patch"
-		#popd >/dev/null || die
-		#eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-ffmpeg-decoding.patch"
-		#eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-webrtc-send-receive-by-default.patch"
-		#pushd third_party/webrtc
-		#eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-h26x-packet-buffer-by-default.patch"
-		#popd >/dev/null || die
-		#eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-media-recorder-support.patch"
-	#fi
 
 	# disable global media controls, crashes with libstdc++
 	sed -i -e \
 		"/\"GlobalMediaControlsCastStartStop\"/,+4{s/ENABLED/DISABLED/;}" \
-		"chrome/browser/media/router/media_router_feature.cc" || die
+		"chrome/browser/media/router/media_router_feature.cc"
 
 	local PATCHES=(
 		"${FILESDIR}/chromium-cross-compile.patch"
