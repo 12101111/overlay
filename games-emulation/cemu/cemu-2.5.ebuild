@@ -22,7 +22,6 @@ KEYWORDS="~amd64"
 DEPEND="
     >=dev-libs/boost-1.81.0:=
     >=dev-libs/libfmt-9.1.0:=
-    <dev-libs/libfmt-10.0.0
     >=dev-libs/libzip-1.9.2:=
     >=media-libs/libpng-1.6.39:=
     >=dev-libs/pugixml-1.13
@@ -50,7 +49,6 @@ BDEPEND="
 
 PATCHES=(
 	"${FILESDIR}"/disable-pch.patch
-	"${FILESDIR}"/glslang.patch
 )
 
 src_prepare() {
@@ -75,6 +73,8 @@ src_prepare() {
     if tc-is-clang && ( has_version "sys-devel/clang-common[default-libcxx]" || is-flagq --stdlib=libc++ ); then
         eapply "${FILESDIR}/libcxx-19.patch"
     fi
+
+    #sed -i 's/find_package(fmt 9/find_package(fmt 10.0.0...<11.0.0/' CMakeLists.txt
 
     cmake_src_prepare
 }
