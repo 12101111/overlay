@@ -21,6 +21,8 @@ DEPEND="
 RDEPEND="${DEPEND}"
 BDEPEND=""
 
+PATCHES=( "${FILESDIR}/fmt11.patch" )
+
 src_configure() {
 	local mycmakeargs=(
 		-DKDDockWidgets_QT6=ON
