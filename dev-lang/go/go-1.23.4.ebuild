@@ -36,8 +36,8 @@ SLOT="0/${PV}"
 IUSE="cpu_flags_x86_sse2"
 
 RDEPEND="
-arm? ( sys-devel/lld )
-arm64? ( sys-devel/lld )"
+arm? ( llvm-core/lld )
+arm64? ( llvm-core/lld )"
 BDEPEND="|| (
 		>=dev-lang/go-${GO_BOOTSTRAP_MIN}
 		>=dev-lang/go-bootstrap-${GO_BOOTSTRAP_MIN} )"
