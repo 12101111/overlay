@@ -69,7 +69,7 @@ DEPEND="${RDEPEND}
 	dev-java/jflex
 	app-arch/unzip
 	dev-python/pip"
-# lldb? ( dev-debug/lldb:0/16 )
+# lldb? ( llvm-core/lldb:0/16 )
 BDEPEND=">=dev-java/gradle-bin-${GRADLE_VER}:*"
 
 check_gradle_binary() {
