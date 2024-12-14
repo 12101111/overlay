@@ -1,7 +1,7 @@
-From 6ea3aefb9d280c3d3e9e66d7bd379c07aa1a69a4 Mon Sep 17 00:00:00 2001
+From f0098dc673a10c70120bc216c771346b82d4d1e0 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 15 Sep 2024 21:27:46 +0800
-Subject: [PATCH 9/9] Add support for riscv64, loong64
+Subject: [PATCH 09/11] Add support for riscv64, loong64
 
 ---
  build/gulpfile.scan.js                                 |  2 ++
@@ -25,10 +25,10 @@ index cbcdddb74bc..22e421d2449 100644
  
  // The following files do not have PDBs downloaded for them during the download symbols process.
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index ad505d47517..0068ec51700 100644
+index 2f8b9480f3b..8ae5383f441 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -488,6 +488,8 @@ const BUILD_TARGETS = [
+@@ -481,6 +481,8 @@ const BUILD_TARGETS = [
  	{ platform: 'linux', arch: 'x64' },
  	{ platform: 'linux', arch: 'armhf' },
  	{ platform: 'linux', arch: 'arm64' },
@@ -51,10 +51,10 @@ index 9d78d8143b1..ac7cd91bd3b 100644
  
  BUILD_TARGETS.forEach(({ arch }) => {
 diff --git a/src/vs/platform/extensionManagement/common/extensionManagement.ts b/src/vs/platform/extensionManagement/common/extensionManagement.ts
-index ea7b30d9422..f92e4baedf3 100644
+index 2d6713d409d..8052f8afdc9 100644
 --- a/src/vs/platform/extensionManagement/common/extensionManagement.ts
 +++ b/src/vs/platform/extensionManagement/common/extensionManagement.ts
-@@ -39,6 +39,8 @@ export function TargetPlatformToString(targetPlatform: TargetPlatform) {
+@@ -41,6 +41,8 @@ export function TargetPlatformToString(targetPlatform: TargetPlatform) {
  		case TargetPlatform.LINUX_X64: return 'Linux 64 bit';
  		case TargetPlatform.LINUX_ARM64: return 'Linux ARM 64';
  		case TargetPlatform.LINUX_ARMHF: return 'Linux ARM';
@@ -63,7 +63,7 @@ index ea7b30d9422..f92e4baedf3 100644
  
  		case TargetPlatform.ALPINE_X64: return 'Alpine Linux 64 bit';
  		case TargetPlatform.ALPINE_ARM64: return 'Alpine ARM 64';
-@@ -62,6 +64,8 @@ export function toTargetPlatform(targetPlatform: string): TargetPlatform {
+@@ -64,6 +66,8 @@ export function toTargetPlatform(targetPlatform: string): TargetPlatform {
  		case TargetPlatform.LINUX_X64: return TargetPlatform.LINUX_X64;
  		case TargetPlatform.LINUX_ARM64: return TargetPlatform.LINUX_ARM64;
  		case TargetPlatform.LINUX_ARMHF: return TargetPlatform.LINUX_ARMHF;
@@ -72,7 +72,7 @@ index ea7b30d9422..f92e4baedf3 100644
  
  		case TargetPlatform.ALPINE_X64: return TargetPlatform.ALPINE_X64;
  		case TargetPlatform.ALPINE_ARM64: return TargetPlatform.ALPINE_ARM64;
-@@ -97,6 +101,12 @@ export function getTargetPlatform(platform: Platform | 'alpine', arch: string |
+@@ -99,6 +103,12 @@ export function getTargetPlatform(platform: Platform | 'alpine', arch: string |
  			if (arch === 'arm') {
  				return TargetPlatform.LINUX_ARMHF;
  			}
@@ -86,7 +86,7 @@ index ea7b30d9422..f92e4baedf3 100644
  
  		case 'alpine':
 diff --git a/src/vs/platform/extensions/common/extensions.ts b/src/vs/platform/extensions/common/extensions.ts
-index 5973d4dcf12..47651c5d34b 100644
+index cee0043bad6..ff00bebc2dd 100644
 --- a/src/vs/platform/extensions/common/extensions.ts
 +++ b/src/vs/platform/extensions/common/extensions.ts
 @@ -292,6 +292,8 @@ export const enum TargetPlatform {
@@ -99,5 +99,5 @@ index 5973d4dcf12..47651c5d34b 100644
  	ALPINE_X64 = 'alpine-x64',
  	ALPINE_ARM64 = 'alpine-arm64',
 -- 
-2.47.0
+2.47.1
 

@@ -1,7 +1,7 @@
-From 84613c89d3611c834afe51c8035c83db26a8133e Mon Sep 17 00:00:00 2001
+From 950d194c968ed8f1cdd6b7d875de608bf7e1a6cb Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 23 Nov 2024 22:27:26 +0800
-Subject: [PATCH 3/9] Don't run npm install for test
+Subject: [PATCH 03/11] Don't run npm install for test
 
 ---
  build/npm/dirs.js        | 6 ------
@@ -9,10 +9,10 @@ Subject: [PATCH 3/9] Don't run npm install for test
  2 files changed, 8 deletions(-)
 
 diff --git a/build/npm/dirs.js b/build/npm/dirs.js
-index b9645e6e137..ce354e878c4 100644
+index 9f653c72479..ca8b6d2b9e5 100644
 --- a/build/npm/dirs.js
 +++ b/build/npm/dirs.js
-@@ -47,12 +47,6 @@ const dirs = [
+@@ -48,12 +48,6 @@ const dirs = [
  	'extensions/vscode-test-resolver',
  	'remote',
  	'remote/web',
@@ -36,5 +36,5 @@ index 88e3c9eb1bb..3ab8c67b30d 100644
 -cp.execSync('git config pull.rebase merges');
 -cp.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
 -- 
-2.47.0
+2.47.1
 
