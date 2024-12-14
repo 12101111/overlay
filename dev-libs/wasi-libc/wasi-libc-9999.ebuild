@@ -14,8 +14,8 @@ SLOT="0"
 KEYWORDS="~amd64 ~arm ~arm64 ~x86"
 
 DEPEND="
-	>=sys-devel/clang-18.1.4
-	>=sys-devel/lld-18.1.4
+	>=llvm-core/clang-18.1.4
+	>=llvm-core/lld-18.1.4
 	>=dev-util/wasm-component-ld-0.3
 "
 RDEPEND="${DEPEND}"
