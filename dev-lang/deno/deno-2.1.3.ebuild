@@ -850,7 +850,7 @@ src_unpack() {
 src_prepare() {
 	cp -r "${ECARGO_VENDOR}/v8-${V8_VER}" "${WORKDIR}/v8" || die
 	pushd "${WORKDIR}/v8" >/dev/null || die
-	if tc-is-clang && (has_version "sys-devel/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt); then
+	if tc-is-clang && (has_version "llvm-core/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt); then
 		eapply "${FILESDIR}/remove-libatomic.patch"
 	fi
 	if use elibc_musl; then
