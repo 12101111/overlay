@@ -1471,7 +1471,7 @@ src_unpack() {
 		unpack chromium_${PATCHSET_PPC64}.debian.tar.xz
 		unpack chromium-ppc64le-gentoo-patches-1.tar.xz
 	fi
-	use loong && unpack "chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.zip"
+	use loong && unpack "chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.tar.gz"
 	use hevc && unpack "chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz"
 }
 
@@ -1535,13 +1535,11 @@ src_prepare() {
 	if use loong ; then
 		local p
 		eapply "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-fix-clang-builtins-path.diff
-		if ! tc-is-clang || ver_test "$(clang-major-version)" -gt 17; then
-			rm "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".4000-loongarch64-clang-no-lsx.diff
-		fi
+		rm "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".4000-loongarch64-clang-no-lsx.diff
+		eapply "${FILESDIR}/${SLOT}/chromium-libpng-loong-lsx.patch"
 		for p in "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-loongarch64*; do
 			eapply "${p}"
 		done
-		eapply "${FILESDIR}/${SLOT}/chromium-123-gentoo-loong.patch"
 	fi
 	if use ppc64 ; then
 		local p
