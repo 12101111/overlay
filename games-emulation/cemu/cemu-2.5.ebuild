@@ -70,7 +70,7 @@ src_prepare() {
     # disable lto
     sed -i '/INTERPROCEDURAL_OPTIMIZATION/d' CMakeLists.txt || die
 
-    if tc-is-clang && ( has_version "sys-devel/clang-common[default-libcxx]" || is-flagq --stdlib=libc++ ); then
+    if tc-is-clang && ( has_version "llvm-core/clang-common[default-libcxx]" || is-flagq --stdlib=libc++ ); then
         eapply "${FILESDIR}/libcxx-19.patch"
     fi
 
