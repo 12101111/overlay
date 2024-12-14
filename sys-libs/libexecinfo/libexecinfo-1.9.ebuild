@@ -14,7 +14,7 @@ DEPEND="
 	sys-libs/musl
 	sys-libs/musl-legacy-compat
 	virtual/libelf
-	|| ( sys-libs/llvm-libunwind sys-libs/libunwind )
+	|| ( llvm-runtimes/libunwind sys-libs/libunwind )
 "
 RDEPEND="${DEPEND}"
 BDEPEND=""
