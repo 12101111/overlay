@@ -17,7 +17,7 @@ S="${WORKDIR}/${MY_P}"
 
 LICENSE="LGPL-2+ BSD"
 SLOT="6/0" # soname version of libwebkit2gtk-6.0
-KEYWORDS="~amd64"
+KEYWORDS="~amd64 ~arm64 ~ppc ~ppc64"
 
 IUSE="aqua avif examples gamepad keyring +gstreamer +introspection pdf jpegxl +jumbo-build lcms seccomp spell systemd wayland X"
 REQUIRED_USE="|| ( aqua wayland X )"
@@ -142,11 +142,6 @@ pkg_pretend() {
 		if ! test-flag-CXX -std=c++17 ; then
 			die "You need at least GCC 7.3.x or Clang >= 5 for C++17-specific compiler flags"
 		fi
-
-		if ! tc-is-clang ; then
-			ewarn "Upstream recommends that Clang be used to compile WebkitGTK:"
-			ewarn "  https://webkitgtk.org/2024/10/04/webkitgtk-2.46.html"
-		fi
 	fi
 }
 
@@ -168,6 +163,8 @@ src_prepare() {
 
 	# https://bugs.gentoo.org/943213
 	eapply "${FILESDIR}"/2.44.4-fix-icu76.1.patch
+	# https://bugs.gentoo.org/945827
+	eapply "${FILESDIR}"/2.46.4-no-egl.patch
 }
 
 src_configure() {
@@ -258,7 +255,9 @@ src_configure() {
 	fi
 
 	# Temporary workaround for bug 938162 (upstream bug 271371).
-	use riscv && mycmakeargs+=( -DENABLE_JIT=OFF )
+	# The idea to disable WebAssembly and the FTL JIT instead
+	# of using ENABLE_JIT=OFF was stolen from OpenBSD.
+	use riscv && mycmakeargs+=( -DENABLE_WEBASSEMBLY=OFF -DENABLE_FTL_JIT=OFF )
 
 	# https://bugs.gentoo.org/761238
 	append-cppflags -DNDEBUG
