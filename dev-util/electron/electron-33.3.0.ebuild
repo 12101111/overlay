@@ -1289,9 +1289,9 @@ BDEPEND="
 	')
 	>=app-arch/gzip-1.7
 	$(llvm_gen_dep '
-		sys-devel/clang:${LLVM_SLOT}
-		sys-devel/llvm:${LLVM_SLOT}
-		sys-devel/lld:${LLVM_SLOT}
+		llvm-core/clang:${LLVM_SLOT}
+		llvm-core/llvm:${LLVM_SLOT}
+		llvm-core/lld:${LLVM_SLOT}
 	')
 	>=dev-util/bindgen-0.68.0
 	>=dev-build/gn-${GN_MIN_VER}
@@ -1484,7 +1484,7 @@ src_prepare() {
 
 	eapply "${FILESDIR}/${SLOT}/chromium/"
 	use elibc_musl && eapply "${FILESDIR}/${SLOT}/musl/"
-	if tc-is-clang && ( has_version "sys-devel/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
+	if tc-is-clang && ( has_version "llvm-core/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
 		eapply "${FILESDIR}/${SLOT}/remove-libatomic.patch"
 	fi
 	if use hevc; then
@@ -2106,7 +2106,7 @@ src_configure() {
 	# Use in-tree libc++ (buildtools/third_party/libc++ and buildtools/third_party/libc++abi)
 	# instead of the system C++ library for C++ standard library support.
 	# default: true, but let's be explicit (forced since 120 ; USE removed 127).
-	if tc-is-clang && ( has_version "sys-devel/clang-common[default-libcxx]" || is-flagq --stdlib=libc++ ); then
+	if tc-is-clang && ( has_version "llvm-core/clang-common[default-libcxx]" || is-flagq --stdlib=libc++ ); then
 		myconf_gn+=" use_custom_libcxx=false"
 	else
 		myconf_gn+=" use_custom_libcxx=true"
