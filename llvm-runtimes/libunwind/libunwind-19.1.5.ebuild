@@ -21,11 +21,11 @@ RDEPEND="
 	!sys-libs/libunwind
 "
 DEPEND="
-	sys-devel/llvm:${LLVM_MAJOR}
+	llvm-core/llvm:${LLVM_MAJOR}
 "
 BDEPEND="
 	clang? (
-		sys-devel/clang:${LLVM_MAJOR}
+		llvm-core/clang:${LLVM_MAJOR}
 	)
 	!test? (
 		${PYTHON_DEPS}

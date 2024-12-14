@@ -14,10 +14,10 @@ KEYWORDS="amd64 arm arm64 ~loong ppc64 ~riscv x86 ~amd64-linux"
 IUSE="+abi_x86_32 abi_x86_64 debug"
 
 DEPEND="
-	sys-devel/llvm:${LLVM_MAJOR}
-	=sys-devel/clang-${LLVM_VERSION}*:${LLVM_MAJOR}
-	=sys-libs/compiler-rt-${LLVM_VERSION}*
-	=sys-libs/llvm-libunwind-${LLVM_VERSION}*[static-libs]
+	llvm-core/llvm:${LLVM_MAJOR}
+	=llvm-core/clang-${LLVM_VERSION}*:${LLVM_MAJOR}
+	=llvm-runtimes/compiler-rt-${LLVM_VERSION}*
+	=llvm-runtimes/libunwind-${LLVM_VERSION}*[static-libs]
 	!!sys-devel/gcc
 "
 BDEPEND="
@@ -44,7 +44,6 @@ src_configure() {
 		-DCOMPILER_RT_INSTALL_PATH="${EPREFIX}/usr/lib/"
 
 		-DCOMPILER_RT_INCLUDE_TESTS=OFF
-		-DCOMPILER_RT_BUILD_CTX_PROFILE=OFF
 		-DCOMPILER_RT_BUILD_LIBFUZZER=OFF
 		-DCOMPILER_RT_BUILD_MEMPROF=OFF
 		-DCOMPILER_RT_BUILD_ORC=OFF

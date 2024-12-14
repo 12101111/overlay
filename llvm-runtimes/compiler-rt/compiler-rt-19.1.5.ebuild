@@ -18,13 +18,13 @@ REQUIRED_USE="atomic-builtins? ( clang )"
 RESTRICT="!test? ( test ) !clang? ( test )"
 
 DEPEND="
-	sys-devel/llvm:${LLVM_MAJOR}
+	llvm-core/llvm:${LLVM_MAJOR}
 "
 BDEPEND="
-	clang? ( sys-devel/clang:${LLVM_MAJOR} )
+	clang? ( llvm-core/clang:${LLVM_MAJOR} )
 	test? (
 		$(python_gen_any_dep ">=dev-python/lit-15[\${PYTHON_USEDEP}]")
-		=sys-devel/clang-${LLVM_VERSION}*:${LLVM_MAJOR}
+		=llvm-core/clang-${LLVM_VERSION}*:${LLVM_MAJOR}
 	)
 	!test? (
 		${PYTHON_DEPS}

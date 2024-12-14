@@ -19,17 +19,17 @@ RESTRICT="!test? ( test )"
 
 RDEPEND="
 	libcxxabi? (
-		~sys-libs/libcxxabi-${PV}[static-libs?,${MULTILIB_USEDEP}]
+		~llvm-runtimes/libcxxabi-${PV}[static-libs?,${MULTILIB_USEDEP}]
 	)
 	!libcxxabi? ( >=sys-devel/gcc-4.7:=[cxx] )
 "
 DEPEND="
 	${RDEPEND}
-	sys-devel/llvm:${LLVM_MAJOR}
+	llvm-core/llvm:${LLVM_MAJOR}
 "
 BDEPEND="
 	clang? (
-		sys-devel/clang:${LLVM_MAJOR}
+		llvm-core/clang:${LLVM_MAJOR}
 	)
 	!test? (
 		${PYTHON_DEPS}

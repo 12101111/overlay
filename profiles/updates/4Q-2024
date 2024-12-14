@@ -1,1 +1,8 @@
 move media-libs/libzim app-arch/libzim
+move sys-libs/llvm-libgcc llvm-runtimes/libgcc
+move dev-libs/libclc llvm-core/libclc
+move sys-libs/llvm-libunwind llvm-runtimes/libunwind
+move sys-libs/libcxxabi llvm-runtimes/libcxxabi
+move sys-libs/libcxx llvm-runtimes/libcxx
+move sys-libs/compiler-rt llvm-runtimes/compiler-rt
+

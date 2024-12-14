@@ -19,15 +19,15 @@ RESTRICT="!test? ( test )"
 
 # in 15.x, cxxabi.h is moving from libcxx to libcxxabi
 RDEPEND+="
-	!<sys-libs/libcxx-15
+	!<llvm-runtimes/libcxx-15
 "
 DEPEND="
 	${RDEPEND}
-	sys-devel/llvm:${LLVM_MAJOR}
+	llvm-core/llvm:${LLVM_MAJOR}
 "
 BDEPEND="
 	clang? (
-		sys-devel/clang:${LLVM_MAJOR}
+		llvm-core/clang:${LLVM_MAJOR}
 	)
 	!test? (
 		${PYTHON_DEPS}
