@@ -3,7 +3,7 @@
 
 EAPI=8
 
-inherit cmake flag-o-matic llvm llvm.org toolchain-funcs
+inherit cmake flag-o-matic llvm-utils llvm.org toolchain-funcs
 
 DESCRIPTION="Compiler runtime library for GCC (LLVM compatible version)"
 HOMEPAGE="https://llvm.org/"
@@ -28,6 +28,8 @@ LLVM_COMPONENTS=( compiler-rt cmake llvm/cmake llvm-libgcc )
 llvm.org_set_globals
 
 src_configure() {
+	llvm_prepend_path "${LLVM_MAJOR}"
+
 	# LLVM_ENABLE_ASSERTIONS=NO does not guarantee this for us, #614844
 	use debug || local -x CPPFLAGS="${CPPFLAGS} -DNDEBUG"
 
@@ -58,6 +60,16 @@ src_configure() {
 		mycmakeargs+=(
 			-DCAN_TARGET_i386=$(usex abi_x86_32)
 			-DCAN_TARGET_x86_64=$(usex abi_x86_64)
+		)
+	fi
+
+	if is_crosspkg; then
+		# Needed to target built libc headers
+		export CFLAGS="${CFLAGS} -isystem /usr/${CTARGET}/usr/include"
+		mycmakeargs+=(
+			-DCMAKE_ASM_COMPILER_TARGET="${CTARGET}"
+			-DCMAKE_C_COMPILER_TARGET="${CTARGET}"
+			-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON
 		)
 	fi
 
