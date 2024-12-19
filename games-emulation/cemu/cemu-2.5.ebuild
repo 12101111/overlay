@@ -74,7 +74,9 @@ src_prepare() {
         eapply "${FILESDIR}/libcxx-19.patch"
     fi
 
-    #sed -i 's/find_package(fmt 9/find_package(fmt 10.0.0...<11.0.0/' CMakeLists.txt
+    if has_version ">=dev-libs/boost-1.87.0"; then
+        eapply "${FILESDIR}/boost-1.87-fix.patch"
+    fi
 
     cmake_src_prepare
 }
