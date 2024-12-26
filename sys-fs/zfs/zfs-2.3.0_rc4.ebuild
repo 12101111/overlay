@@ -217,6 +217,7 @@ src_configure() {
 		$(use_enable python pyzfs)
 		$(use_with unwind libunwind)
 		--disable-static
+		--program-prefix=
 		$(usex minimal --without-python --with-python="${EPYTHON}")
 	)
 
