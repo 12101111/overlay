@@ -51,7 +51,6 @@ else
 fi
 
 PATCHES=(
-	"${FILESDIR}"/${PN}-1.2.4-arm64-crti-alignment.patch
 	"${FILESDIR}"/musl-1.2.2-gethostid.patch
 	"${FILESDIR}"/Make-scheduler-functions-Linux-compatible.patch
 	"${FILESDIR}"/Add-rpmalloc-for-musl.patch
