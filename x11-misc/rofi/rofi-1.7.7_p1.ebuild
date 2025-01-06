@@ -13,8 +13,8 @@ S="${WORKDIR}/rofi-${MY_PV}"
 
 LICENSE="MIT"
 SLOT="0"
-KEYWORDS="~amd64 ~arm64 ~x86"
-IUSE="+drun test +windowmode +wayland +X"
+KEYWORDS="~amd64 ~arm64 ~x86 ~loong"
+IUSE="+drun test +windowmode +wayland +X ime"
 RESTRICT="!test? ( test )"
 
 BDEPEND="
@@ -36,6 +36,7 @@ RDEPEND="
 	x11-libs/xcb-util-wm
 	x11-misc/xkeyboard-config
 	dev-libs/wayland
+	ime? ( x11-libs/xcb-imdkit )
 "
 DEPEND="
 	${RDEPEND}
@@ -50,6 +51,7 @@ src_configure() {
 		$(meson_feature test check)
 		$(meson_feature wayland)
 		$(meson_feature X xcb)
+		$(meson_use ime imdkit)
 	)
 	meson_src_configure
 }
