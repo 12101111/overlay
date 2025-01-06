@@ -160,7 +160,7 @@ BDEPEND="
 	virtual/pkgconfig
 	bpf? (
 		dev-util/bpftool
-		sys-devel/bpf-toolchain
+		llvm-core/clang
 	)
 	test? (
 		app-text/tree
@@ -272,8 +272,6 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
-		"${FILESDIR}/systemd-test-process-util.patch"
-		"${FILESDIR}/256-bpf-gcc.patch"
 	)
 
 	if ! use vanilla; then
@@ -322,7 +320,7 @@ multilib_src_configure() {
 		$(meson_native_use_bool audit)
 		$(meson_native_use_bool boot bootloader)
 		$(meson_native_use_bool bpf bpf-framework)
-		-Dbpf-compiler=gcc
+		-Dbpf-compiler=clang
 		$(meson_native_use_bool cryptsetup libcryptsetup)
 		$(meson_native_use_bool curl libcurl)
 		$(meson_native_use_bool dns-over-tls dns-over-tls)
@@ -383,7 +381,7 @@ multilib_src_configure() {
 	)
 
 	case $(tc-arch) in
-		amd64|arm|arm64|ppc|ppc64|s390|x86)
+		amd64|arm|arm64|loong|ppc|ppc64|riscv|s390|x86)
 			# src/vmspawn/vmspawn-util.h: QEMU_MACHINE_TYPE
 			myconf+=( $(meson_native_enabled vmspawn) ) ;;
 		*)

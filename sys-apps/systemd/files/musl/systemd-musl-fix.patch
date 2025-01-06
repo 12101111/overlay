@@ -1,0 +1,11 @@
+diff --git a/src/vmspawn/vmspawn-register.c b/src/vmspawn/vmspawn-register.c
+index 20e6def..8202460 100644
+--- a/src/vmspawn/vmspawn-register.c
++++ b/src/vmspawn/vmspawn-register.c
+@@ -1,5 +1,6 @@
+ /* SPDX-License-Identifier: LGPL-2.1-or-later */
+ 
++#include <unistd.h>
+ #include "sd-bus.h"
+ #include "sd-id128.h"
+ #include "sd-json.h"
