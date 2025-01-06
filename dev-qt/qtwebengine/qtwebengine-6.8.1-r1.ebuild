@@ -1,4 +1,4 @@
-# Copyright 2021-2024 Gentoo Authors
+# Copyright 2021-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -10,11 +10,11 @@ inherit prefix python-any-r1 qt6-build toolchain-funcs
 
 DESCRIPTION="Library for rendering dynamic web content in Qt6 C++ and QML applications"
 SRC_URI+="
-	https://dev.gentoo.org/~ionen/distfiles/${PN}-6.8-patchset-5.tar.xz
+	https://dev.gentoo.org/~ionen/distfiles/${PN}-6.8-patchset-7.tar.xz
 "
 
 if [[ ${QT6_BUILD_TYPE} == release ]]; then
-	KEYWORDS="~amd64 ~arm64"
+	KEYWORDS="amd64 arm64"
 fi
 
 IUSE="
@@ -107,9 +107,10 @@ PATCHES=( "${WORKDIR}"/patches/${PN} )
 
 PATCHES+=(
 	# add extras as needed here, may merge in set if carries across versions
-	"${FILESDIR}"/${PN}-6.7.3-missing-gn-deps.patch
 	"${FILESDIR}"/${PN}-6.8.1-QTBUG-131156.patch
 	"${FILESDIR}"/remove-libatomic.patch
+	"${FILESDIR}"/${PN}-6.8.1-aarch64-xnnpack.patch
+	"${FILESDIR}"/${PN}-6.8.1-cstdint.patch
 )
 
 python_check_deps() {
@@ -200,8 +201,9 @@ src_configure() {
 		-DQT_FEATURE_webengine_webchannel=ON
 		-DQT_FEATURE_webengine_webrtc=ON
 
-		# needs a modified ffmpeg to be usable, and even then it may not
-		# cooperate with new major ffmpeg versions (bug #831487)
+		# needs a modified ffmpeg to be usable (bug #831487), and even then
+		# it is picky about codecs/version and system's can lead to unexpected
+		# issues (e.g. builds but some files don't play even with support)
 		-DQT_FEATURE_webengine_system_ffmpeg=OFF
 
 		# use bundled re2 to avoid complications, Qt has also disabled
@@ -234,6 +236,9 @@ src_configure() {
 
 	if use !custom-cflags; then
 		strip-flags # fragile
+
+		# temporary workaround for bug #947356, should be fixed in Qt 6.9.x
+		append-cppflags -U_GLIBCXX_ASSERTIONS
 
 		if is-flagq '-g?(gdb)?([2-9])'; then #914475
 			replace-flags '-g?(gdb)?([2-9])' -g1
