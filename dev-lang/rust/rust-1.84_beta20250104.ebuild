@@ -146,7 +146,7 @@ PATCHES=(
 	"${FILESDIR}"/1.78.0-musl-dynamic-linking.patch
 	"${FILESDIR}"/1.83.0-cross-compile-libz.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
-	"${FILESDIR}"/1.83.0-dwarf-llvm-assertion.patch
+	"${FILESDIR}"/1.84.0-fix-bootstrap.patch
 )
 
 clear_vendor_checksums() {
