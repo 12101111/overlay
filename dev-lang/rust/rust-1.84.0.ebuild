@@ -1,4 +1,4 @@
-# Copyright 1999-2024 Gentoo Authors
+# Copyright 1999-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -146,7 +146,7 @@ PATCHES=(
 	"${FILESDIR}"/1.78.0-musl-dynamic-linking.patch
 	"${FILESDIR}"/1.83.0-cross-compile-libz.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
-	"${FILESDIR}"/1.83.0-dwarf-llvm-assertion.patch
+	"${FILESDIR}"/1.84.0-fix-bootstrap.patch
 )
 
 clear_vendor_checksums() {
@@ -284,6 +284,8 @@ src_configure() {
 
 	local cm_btype="$(usex debug DEBUG RELEASE)"
 	cat <<- _EOF_ > "${S}"/config.toml
+		# https://github.com/rust-lang/rust/issues/135358 (bug #947897)
+		profile = "dist"
 		change-id=123711
 		[llvm]
 		download-ci-llvm = false
