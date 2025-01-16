@@ -12,7 +12,7 @@ EGIT_BRANCH="v2.1-agentzh"
 
 LICENSE="MIT"
 # this should probably be pkgmoved to 2.1 for sake of consistency.
-SLOT="2.1"
+SLOT="2/${PV}"
 KEYWORDS=""
 IUSE="lua52compat static-libs"
 
