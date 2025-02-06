@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-134-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-135-patches-01.tar.xz"
 
 LLVM_COMPAT=( 17 18 19 )
 
@@ -1224,10 +1224,10 @@ src_install() {
 
 	# Install icons
 	local icon_srcdir="${S}/browser/branding/official"
-	local icon_symbolic_file="${FILESDIR}/icon/firefox-symbolic.svg"
 
+	# Prefer the upstream svg file they use when packaging flatpak so it's always up-to-date.
 	insinto /usr/share/icons/hicolor/symbolic/apps
-	newins "${icon_symbolic_file}" ${PN}-symbolic.svg
+	newins "${S}"/taskcluster/docker/firefox-flatpak/firefox-symbolic.svg firefox-symbolic.svg
 
 	local icon size
 	for icon in "${icon_srcdir}"/default*.png ; do
