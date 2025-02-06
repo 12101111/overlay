@@ -1,4 +1,4 @@
-# Copyright 2020-2024 Gentoo Authors
+# Copyright 2020-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -111,6 +111,8 @@ src_configure() {
 	done
 
 	cat <<- EOF > "${S}"/config.toml
+		# https://github.com/rust-lang/rust/issues/135358 (bug #947897)
+		profile = "dist"
 		change-id = 123711
 		[llvm]
 		download-ci-llvm = false
