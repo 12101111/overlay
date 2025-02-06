@@ -1,4 +1,4 @@
-# Copyright 1999-2024 Gentoo Authors
+# Copyright 1999-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -33,20 +33,21 @@ REQUIRED_USE="inspector? ( icu ssl )
 
 RESTRICT="!test? ( test )"
 
-RDEPEND=">=app-arch/brotli-1.0.9:=
+RDEPEND=">=app-arch/brotli-1.1.0:=
 	dev-db/sqlite:3
-	>=dev-libs/libuv-1.46.0:=
-	>=dev-libs/simdjson-3.9.1:=
-	>=net-dns/c-ares-1.18.1:=
-	>=net-libs/nghttp2-1.61.0:=
+	>=dev-libs/libuv-1.49.2:=
+	>=dev-libs/simdjson-3.10.1:=
+	>=net-dns/c-ares-1.34.4:=
+	>=net-libs/nghttp2-1.64.0:=
+	>=net-libs/nghttp3-1.7.0:=
 	sys-libs/zlib
 	corepack? ( !sys-apps/yarn )
 	system-icu? ( >=dev-libs/icu-73:= )
 	system-ssl? (
-		>=net-libs/ngtcp2-1.3.0:=
+		>=net-libs/ngtcp2-1.9.1:=
 		>=dev-libs/openssl-1.1.1:0=
 	)
-	!system-ssl? ( >=net-libs/ngtcp2-1.3.0:=[-gnutls] )
+	!system-ssl? ( >=net-libs/ngtcp2-1.9.1:=[-gnutls] )
 "
 BDEPEND="${PYTHON_DEPS}
 	app-alternatives/ninja
@@ -119,6 +120,8 @@ src_configure() {
 
 	# LTO compiler flags are handled by configure.py itself
 	filter-lto
+	# The warnings are *so* noisy and make build.logs massive
+	append-cxxflags $(test-flags-CXX -Wno-template-id-cdtor)
 	# GCC with -ftree-vectorize miscompiles node's exception handling code
 	# causing it to fail to catch exceptions sometimes
 	# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=116057
@@ -141,6 +144,7 @@ src_configure() {
 		--shared-cares
 		--shared-libuv
 		--shared-nghttp2
+		--shared-nghttp3
 		--shared-ngtcp2
 		--shared-simdjson
 		# sindutf is not packaged yet
