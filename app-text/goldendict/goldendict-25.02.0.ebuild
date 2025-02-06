@@ -2,19 +2,20 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PLOCALES="
-ar_SA ay_BO be_BY bg_BG crowdin cs_CZ de_CH de_DE el_GR eo_UY es_AR
-es_BO es_ES fa_IR fi_FI fr_FR hi_IN hu_HU ie_001 it_IT ja_JP jbo_EN ko_KR lt_LT 
-mk_MK nl_NL pl_PL pt_BR pt_PT qt_extra_es qt_extra_it qt_extra_lt qtwebengine_zh_CN
-qu_PE ru_RU sk_SK sq_AL sr_SP sv_SE tg_TJ tk_TM tr_TR uk_UA vi_VN zh_CN zh_TW"
+PLOCALES="ar_SA ay_BO be_BY bg_BG crowdin cs_CZ de_CH de_DE el_GR eo_UY es_AR
+es_BO es_ES fa_IR fi_FI fr_FR hi_IN hu_HU ie_001 it_IT ja_JP jbo_EN kab_KAB
+ko_KR lt_LT mk_MK nl_NL pl_PL pt_BR pt_PT qu_PE ru_RU sk_SK sq_AL sr_SP
+sv_SE tg_TJ tk_TM tr_TR uk_UA vi_VN zh_CN zh_TW"
 
 inherit cmake flag-o-matic plocale xdg
 
-MY_PV="24.09.1-Release.ca9dd133"
+MY_PV="25.02.0-Release.e895b18c"
 
 DESCRIPTION="Feature-rich dictionary lookup program (qtwebengine fork)"
 HOMEPAGE="https://xiaoyifang.github.io/goldendict-ng/"
-SRC_URI="https://github.com/xiaoyifang/goldendict-ng/archive/v${MY_PV}.tar.gz"
+SRC_URI="
+	https://github.com/xiaoyifang/goldendict-ng/archive/v${MY_PV}.tar.gz -> ${PN}-${MY_PV}.tar.gz
+"
 
 S="${WORKDIR}/goldendict-ng-${MY_PV}"
 LICENSE="
@@ -24,7 +25,7 @@ LICENSE="
 "
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
-IUSE="ffmpeg epwing systemfmt systemtoml tts wayland zim"
+IUSE="ffmpeg +epwing systemfmt systemtoml tts wayland zim"
 
 DEPEND="
 	app-arch/bzip2
@@ -41,6 +42,7 @@ DEPEND="
 	dev-qt/qtdeclarative:6
 	dev-qt/qtsvg:6
 	dev-qt/qtwebengine:6[widgets]
+	epwing? ( dev-libs/eb )
 	ffmpeg? (
 		media-libs/libao
 		media-video/ffmpeg:*
