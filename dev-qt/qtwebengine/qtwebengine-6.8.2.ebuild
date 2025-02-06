@@ -14,7 +14,7 @@ SRC_URI+="
 "
 
 if [[ ${QT6_BUILD_TYPE} == release ]]; then
-	KEYWORDS="amd64 arm64"
+	KEYWORDS="~amd64 ~arm64"
 fi
 
 IUSE="
@@ -107,7 +107,6 @@ PATCHES=( "${WORKDIR}"/patches/${PN} )
 
 PATCHES+=(
 	# add extras as needed here, may merge in set if carries across versions
-	"${FILESDIR}"/${PN}-6.8.1-QTBUG-131156.patch
 	"${FILESDIR}"/remove-libatomic.patch
 	"${FILESDIR}"/${PN}-6.8.1-aarch64-xnnpack.patch
 	"${FILESDIR}"/${PN}-6.8.1-cstdint.patch
