@@ -51,7 +51,7 @@ BDEPEND="
 DEPEND="||
 	(
 		>="${CATEGORY}"/gcc-4.7:*
-		>="${CATEGORY}"/clang-3.5:*
+		>="${CATEGORY/sys-devel/llvm-core}"/clang-3.5:*
 		>="${CATEGORY}"/clang-crossdev-wrappers-17.0:*
 	)
 "
