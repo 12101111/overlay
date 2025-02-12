@@ -3,3 +3,4 @@ app-text/goldendict
 www-client/chromium
 app-editors/vscode
 dev-db/mongodb
+llvm-runtimes/libgcc
