@@ -1,4 +1,4 @@
-# Copyright 1999-2024 Gentoo Authors
+# Copyright 1999-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=7
@@ -9,7 +9,7 @@ DESCRIPTION="Tools necessary to build programs"
 HOMEPAGE="https://sourceware.org/binutils/"
 
 LICENSE="GPL-3+"
-IUSE="+ld +gas +binutils +gprof cet debuginfod doc gold gprofng hardened multitarget +nls pgo +plugins static-libs test vanilla zstd"
+IUSE="+ld +gas +binutils +gprof cet debuginfod doc gprofng hardened multitarget +nls pgo +plugins static-libs test vanilla xxhash zstd"
 
 # Variables that can be set here  (ignored for live ebuilds)
 # PATCH_VER          - the patchset version
@@ -19,7 +19,7 @@ IUSE="+ld +gas +binutils +gprof cet debuginfod doc gold gprofng hardened multita
 # PATCH_DEV          - Use download URI https://dev.gentoo.org/~{PATCH_DEV}/distfiles/...
 #                      for the patchsets
 
-PATCH_VER=3
+PATCH_VER=1
 PATCH_DEV=dilfridge
 
 if [[ ${PV} == 9999 ]]; then
@@ -60,7 +60,10 @@ RDEPEND="
 	)
 	zstd? ( app-arch/zstd:= )
 "
-DEPEND="${RDEPEND}"
+DEPEND="
+	${RDEPEND}
+	xxhash? ( dev-libs/xxhash )
+"
 BDEPEND="
 	doc? ( sys-apps/texinfo )
 	pgo? (
@@ -83,7 +86,10 @@ MY_BUILDDIR=${WORKDIR}/build
 
 src_unpack() {
 	if [[ ${PV} == *9999 ]] ; then
-		EGIT_REPO_URI="https://anongit.gentoo.org/git/proj/toolchain/binutils-patches.git"
+		EGIT_REPO_URI="
+			https://anongit.gentoo.org/git/proj/toolchain/binutils-patches.git
+			https://github.com/gentoo/binutils-patches
+		"
 		EGIT_CHECKOUT_DIR=${WORKDIR}/patches-git
 		git-r3_src_unpack
 		mv patches-git/9999 patch || die
@@ -91,7 +97,11 @@ src_unpack() {
 		if [[ ${PV} != 9999 ]] ; then
 			EGIT_BRANCH=binutils-$(ver_cut 1)_$(ver_cut 2)-branch
 		fi
-		EGIT_REPO_URI="https://sourceware.org/git/binutils-gdb.git"
+		EGIT_REPO_URI="
+			https://sourceware.org/git/binutils-gdb.git
+			https://git.sr.ht/~sourceware/binutils-gdb
+			https://gitlab.com/x86-binutils/binutils-gdb.git
+		"
 		S=${WORKDIR}/binutils
 		EGIT_CHECKOUT_DIR=${S}
 		git-r3_src_unpack
@@ -132,7 +142,7 @@ src_prepare() {
 			# It should be okay on non-prefix systems though. See bug #892549.
 			if is_cross || use prefix; then
 				eapply "${FILESDIR}"/binutils-2.40-linker-search-path.patch \
-					"${FILESDIR}"/binutils-2.41-linker-prefix.patch
+					   "${FILESDIR}"/binutils-2.41-linker-prefix.patch
 			fi
 		fi
 	fi
@@ -185,9 +195,6 @@ src_configure() {
 	use cet && filter-flags -mindirect-branch -mindirect-branch=*
 	use elibc_musl && append-ldflags -Wl,-z,stack-size=2097152
 
-	# https://sourceware.org/PR32372
-	append-cflags -std=gnu17
-
 	local x
 	echo
 	for x in CATEGORY CBUILD CHOST CTARGET CFLAGS LDFLAGS ; do
@@ -200,10 +207,6 @@ src_configure() {
 
 	if use plugins ; then
 		myconf+=( --enable-plugins )
-	fi
-	# enable gold (installed as ld.gold) and ld's plugin architecture
-	if use gold ; then
-		myconf+=( --enable-gold )
 	fi
 
 	if use nls ; then
@@ -269,6 +272,7 @@ src_configure() {
 		--with-bugurl="$(toolchain-binutils_bugurl)"
 		--with-pkgversion="$(toolchain-binutils_pkgversion)"
 		$(use_enable static-libs static)
+		$(use_with xxhash)
 		$(use_with zstd)
 
 		# Disable modules that are in a combined binutils/gdb tree, bug #490566
@@ -295,6 +299,10 @@ src_configure() {
 		# - Broken at runtime without Java (https://sourceware.org/bugzilla/show_bug.cgi?id=29479)
 		# - binutils-config (and this ebuild?) needs adaptation first (https://bugs.gentoo.org/865113)
 		$(use_enable gprofng)
+
+		# Enables colored disassembly by default (equivalent to passing
+		# --disassembler-color=terminal to all objdump invocations).
+		--enable-colored-disassembly
 		$(use_enable ld)
 		$(use_enable gas)
 		$(use_enable binutils)
