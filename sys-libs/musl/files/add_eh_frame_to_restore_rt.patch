@@ -1,7 +1,7 @@
-From 16be753ddd06a17cf743bc2b5c2810c92eeb2065 Mon Sep 17 00:00:00 2001
+From 95d87d5f4658b36eabf3ab389f8689f70cac6758 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 4 Feb 2024 22:41:16 +0800
-Subject: [PATCH 3/3] Add .eh_frame to _restore_rt symbol
+Subject: [PATCH] Add .eh_frame to _restore_rt symbol
 
 ---
  src/signal/x86_64/restore.S | 178 ++++++++++++++++++++++++++++++++++++
@@ -12,7 +12,7 @@ Subject: [PATCH 3/3] Add .eh_frame to _restore_rt symbol
 
 diff --git a/src/signal/x86_64/restore.S b/src/signal/x86_64/restore.S
 new file mode 100644
-index 00000000..d23a5b7f
+index 00000000..276f226a
 --- /dev/null
 +++ b/src/signal/x86_64/restore.S
 @@ -0,0 +1,178 @@
@@ -182,7 +182,7 @@ index 00000000..d23a5b7f
 +RESTORE_GPR(RDX)
 +RESTORE_GPR(RAX)
 +RESTORE_GPR(RCX)
-+// Restoring RSP is unnecessary as the unwinder simply uses the CFA value.
++RESTORE_GPR(RSP)
 +RESTORE_GPR(RIP)
 +nop
 +.global __restore_rt
@@ -209,5 +209,5 @@ index 27d6cf31..00000000
 -	syscall
 -.size __restore_rt,.-__restore_rt
 -- 
-2.43.0
+2.48.1
 
