@@ -53,6 +53,7 @@ fi
 PATCHES=(
 	"${FILESDIR}"/${PN}-1.2.4-arm64-crti-alignment.patch
 	"${FILESDIR}"/${PN}-sched.h-reduce-namespace-conflicts.patch
+	"${FILESDIR}"/${PN}-iconv-out-of-bound-fix.patch
 	"${FILESDIR}"/musl-1.2.2-gethostid.patch
 	"${FILESDIR}"/Make-scheduler-functions-Linux-compatible.patch
 	"${FILESDIR}"/Add-rpmalloc-for-musl.patch
@@ -154,7 +155,7 @@ src_install() {
 	if ! use crypt ; then
 		# Allow sys-libs/libxcrypt[system] to provide it instead
 		rm "${ED}${sysroot}/usr/include/crypt.h" || die
-		rm "${ED}${sysroot}/usr/$(get_libdir)/libcrypt.a" || die
+		rm "${ED}${sysroot}"/usr/*/libcrypt.a || die
 	fi
 
 	if ! is_crosspkg ; then
