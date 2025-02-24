@@ -30,8 +30,8 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
-PATCH_V="${PV%%\.*}"
+PPC64_HASH="deefc994ce2d31faf6d27f5e81782e039c663aed"
+PATCH_V="${PV%%\.*}-2"
 PATCHSET_LOONG_PV="131.0.6778.85"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
@@ -398,6 +398,8 @@ src_prepare() {
 		"${FILESDIR}/chromium-131-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-132-bindgen-custom-toolchain.patch"
 		"${FILESDIR}/chromium-134-qt5-optional.patch"
+		"${FILESDIR}/chromium-134-map_droppable-glibc.patch"
+		"${FILESDIR}/chromium-135-fix-non-wayland-build.patch"
 	)
 
 	shopt -s globstar nullglob
@@ -472,7 +474,12 @@ src_prepare() {
 
 	default
 
-	rm third_party/node/linux/node-linux-x64/bin/node || die
+	# Not included in -lite tarballs, but we should check for it anyway.
+	if [[ -f third_party/node/linux/node-linux-x64/bin/node ]]; then
+		rm third_party/node/linux/node-linux-x64/bin/node || die
+	else
+		mkdir -p third_party/node/linux/node-linux-x64/bin || die
+	fi
 	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
 
 	# adjust python interpreter version
