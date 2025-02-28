@@ -96,6 +96,13 @@ multilib_src_configure() {
 		mycmakeargs+=(
 			-DCMAKE_CXX_COMPILER_WORKS=1
 		)
+		if [[ "${CTARGET}" == *elf* ]]; then
+			mycmakeargs+=(
+				-DLIBUNWIND_ENABLE_SHARED=OFF
+				-DLIBUNWIND_IS_BAREMETAL=ON
+				-DLIBUNWIND_ENABLE_THREADS=OFF
+			)
+		fi
 	fi
 	if use test; then
 		mycmakeargs+=(

@@ -140,7 +140,7 @@ src_configure() {
 			-DCMAKE_C_COMPILER_TARGET="${CTARGET}"
 			-DCOMPILER_RT_DEFAULT_TARGET_ONLY=ON
 		)
-		if [[ "${CTARGET}" == *wasm32* ]] ; then
+		if [[ "${CTARGET}" == *wasm32* || "${CTARGET}" == *elf* ]] ; then
 			mycmakeargs+=(
 				-DCOMPILER_RT_BAREMETAL_BUILD=ON
 			)

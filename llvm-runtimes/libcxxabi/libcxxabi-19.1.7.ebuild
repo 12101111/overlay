@@ -66,6 +66,9 @@ multilib_src_configure() {
 	local is_musllibc_like=$(usex elibc_musl)
 	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON
 
+	local enable_shared=ON
+	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF
+
 	local libdir=$(get_libdir)
 	local mycmakeargs=(
 		-DCMAKE_CXX_COMPILER_TARGET="${CHOST}"
@@ -73,7 +76,7 @@ multilib_src_configure() {
 		-DLLVM_ENABLE_RUNTIMES="libcxxabi;libcxx"
 		-DLLVM_INCLUDE_TESTS=OFF
 		-DLLVM_LIBDIR_SUFFIX=${libdir#lib}
-		-DLIBCXXABI_ENABLE_SHARED=ON
+		-DLIBCXXABI_ENABLE_SHARED=$(enable_shared)
 		-DLIBCXXABI_ENABLE_STATIC=$(usex static-libs)
 		-DLIBCXXABI_INCLUDE_TESTS=$(usex test)
 		-DLIBCXXABI_USE_COMPILER_RT=${use_compiler_rt}
@@ -85,12 +88,11 @@ multilib_src_configure() {
 		-DLIBCXXABI_USE_LLVM_UNWINDER=OFF
 
 		-DLIBCXX_LIBDIR_SUFFIX=
-		-DLIBCXX_ENABLE_SHARED=ON
+		-DLIBCXX_ENABLE_SHARED=$(enable_shared)
 		-DLIBCXX_ENABLE_STATIC=OFF
 		-DLIBCXX_CXX_ABI=libcxxabi
 		-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=OFF
 		-DLIBCXX_HAS_MUSL_LIBC=${is_musllibc_like}
-		-DLIBCXX_HAS_GCC_S_LIB=OFF
 		-DLIBCXX_INCLUDE_BENCHMARKS=OFF
 		-DLIBCXX_INCLUDE_TESTS=OFF
 	)
@@ -128,6 +130,24 @@ multilib_src_configure() {
 			)
 		fi
 	fi
+  if [[ "${CTARGET}" == *elf* ]]; then
+		mycmakeargs+=(
+			-DLIBCXXABI_BAREMETAL=ON
+			-DLIBCXX_ENABLE_EXCEPTIONS=ON
+			-DLIBCXX_ENABLE_FILESYSTEM=OFF
+			-DLIBCXX_ENABLE_THREADS=OFF
+			-DLIBCXX_HAS_PTHREAD_API=OFF
+			-DLIBCXXABI_ENABLE_THREADS=OFF
+			-DLIBCXXABI_HAS_PTHREAD_API=OFF
+			-DLIBCXX_HAS_EXTERNAL_THREAD_API=OFF
+			-DLIBCXX_HAS_WIN32_THREAD_API=OFF
+			-DLIBCXXABI_HAS_EXTERNAL_THREAD_API=OFF
+			-DLIBCXXABI_HAS_WIN32_THREAD_API=OFF
+			-DLIBCXX_ENABLE_WIDE_CHARACTERS=OFF
+			-DLIBCXX_ENABLE_RANDOM_DEVICE=OFF
+			-DLIBCXX_ENABLE_LOCALIZATION=OFF
+		)
+  fi
 	if use test; then
 		mycmakeargs+=(
 			-DLLVM_EXTERNAL_LIT="${EPREFIX}/usr/bin/lit"

@@ -115,6 +115,10 @@ multilib_src_configure() {
 	local libdir=$(get_libdir)
 	local runtimes="libcxx"
 	[[ ${CTARGET} == *-mingw* ]] && runtimes="libcxxabi;libcxx"
+
+	local enable_shared=ON
+	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF
+	
 	local mycmakeargs=(
 		-DCMAKE_CXX_COMPILER_TARGET="${CHOST}"
 		-DPython3_EXECUTABLE="${PYTHON}"
@@ -122,7 +126,7 @@ multilib_src_configure() {
 		-DLLVM_INCLUDE_TESTS=OFF
 		-DLLVM_LIBDIR_SUFFIX=${libdir#lib}
 
-		-DLIBCXX_ENABLE_SHARED=ON
+		-DLIBCXX_ENABLE_SHARED=$(enable_shared)
 		-DLIBCXX_ENABLE_STATIC=$(usex static-libs)
 		-DLIBCXX_CXX_ABI=${cxxabi}
 		-DLIBCXX_CXX_ABI_INCLUDE_PATHS=${cxxabi_incs}
@@ -172,6 +176,20 @@ multilib_src_configure() {
 			)
 		fi
 	fi
+	if [[ "${CTARGET}" == *elf* ]]; then
+		mycmakeargs+=(
+			-DLIBCXX_ENABLE_EXCEPTIONS=ON
+			-DLIBCXX_ENABLE_FILESYSTEM=OFF
+			-DLIBCXX_ENABLE_THREADS=OFF
+			-DLIBCXX_HAS_PTHREAD_API=OFF
+			-DLIBCXX_HAS_EXTERNAL_THREAD_API=OFF
+			-DLIBCXX_HAS_WIN32_THREAD_API=OFF
+			-DLIBCXX_ENABLE_WIDE_CHARACTERS=OFF
+			-DLIBCXX_ENABLE_RANDOM_DEVICE=OFF
+			-DLIBCXX_ENABLE_LOCALIZATION=OFF
+			-DLIBCXX_ENABLE_MONOTONIC_CLOCK=OFF
+		)
+	fi
 	if use test; then
 		mycmakeargs+=(
 			-DLLVM_EXTERNAL_LIT="${EPREFIX}/usr/bin/lit"
@@ -184,7 +202,7 @@ multilib_src_configure() {
 
 multilib_src_compile() {
 	cmake_src_compile
-	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]]; then
+	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] && [[ ${CHOST} != *elf* ]]; then
 		gen_shared_ldscript
 		use static-libs && gen_static_ldscript
 	fi
@@ -199,7 +217,7 @@ multilib_src_install() {
 	cmake_src_install
 	# since we've replaced libc++.{a,so} with ldscripts, now we have to
 	# install the extra symlinks
-	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] ; then
+	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] && [[ ${CHOST} != *elf* ]]; then
 		dolib.so lib/libc++_shared.so
 		use static-libs && dolib.a lib/libc++_static.a
 	fi
