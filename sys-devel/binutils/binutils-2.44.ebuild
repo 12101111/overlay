@@ -46,6 +46,9 @@ if [[ ${CTARGET} == ${CHOST} ]] ; then
 	if [[ ${CATEGORY} == cross-* ]] ; then
 		export CTARGET=${CATEGORY#cross-}
 	fi
+	if [[ ${CATEGORY} == cross_llvm-* ]]; then
+		export CTARGET=${CATEGORY#cross_llvm-}
+	fi
 fi
 is_cross() { [[ ${CHOST} != ${CTARGET} ]] ; }
 
