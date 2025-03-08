@@ -39,7 +39,6 @@ elif [[ ${PV} == *beta* ]]; then
 	SRC_URI="https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${PV}-src.tar.xz
 		verify-sig? ( https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz.asc
 			-> rustc-${PV}-src.tar.xz.asc )
-		https://github.com/rust-lang/rust/pull/137020.patch -> ${P}-vendor-in-install-phase.patch
 	"
 	S="${WORKDIR}/${MY_P}-src"
 elif [[ ${PV} = *rc* ]]; then
@@ -170,7 +169,6 @@ VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 
 PATCHES=(
 	"${FILESDIR}"/1.85.0-musl-dynamic-linking.patch
-	"${DISTDIR}"/${P}-vendor-in-install-phase.patch
 	"${FILESDIR}"/1.85.0-cross-compile-libz.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
 )
