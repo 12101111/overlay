@@ -148,3 +148,63 @@ index b8a69f11c7..21cdba5f8d 100644
 - </script>
 - </body>
 - </html>
+diff --git a/patches/v8/merged_reland_lower_the_maximum_js_parameter_count.patch b/patches/v8/merged_reland_lower_the_maximum_js_parameter_count.patch
+index 2ee0078a87..b486d28a82 100644
+--- a/patches/v8/merged_reland_lower_the_maximum_js_parameter_count.patch
++++ b/patches/v8/merged_reland_lower_the_maximum_js_parameter_count.patch
+@@ -53,55 +53,3 @@ index 122d0bba58b56343dca45cdcb0cbda13e6aba34e..ae443b70cc1537ad5dbdb319bc55b841
+  
+   private:
+    inline void set_instruction_start(IsolateForSandbox isolate, Address value);
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index 2fa90fc9399f18411eef2a8a5eb9b40357492c8c..c16f009eeefd74644e212ee17ef051686139a1e5 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -228,6 +228,10 @@
+- 
+-   # TODO(v8:12783): Turboshaft instruction selection not ported to these platforms yet.
+-   'wasm/turboshaft/instruction-selection': [PASS, ['arch in [riscv32]', SKIP]],
+-+
+-+  # TODO(thibaudm): Register allocation struggles with the function in this
+-+  # test, which has the maximum allowed number of parameters.
+-+  'regress/regress-crbug-724153': [SLOW],
+- }],  # ALWAYS
+- 
+- ################################################################################
+-diff --git a/test/mjsunit/regress/regress-11491.js b/test/mjsunit/regress/regress-11491.js
+-index 795480a15db69b3ca30e97fc49d283546be3319e..4e188d44226341f5bba843dd10a46ff1fbaa4897 100644
+---- a/test/mjsunit/regress/regress-11491.js
+-+++ b/test/mjsunit/regress/regress-11491.js
+-@@ -4,7 +4,7 @@
+- 
+- function test() {
+-   // Create a generator constructor with the maximum number of allowed parameters.
+--  const args = new Array(65535);
+-+  const args = new Array(65526);
+-   function* gen() {}
+-   const c = gen.constructor.apply(null, args);
+- 
+-diff --git a/test/mjsunit/regress/regress-crbug-724153.js b/test/mjsunit/regress/regress-crbug-724153.js
+-index a571f8e0bf5e85accc53a926358e61aea6c3d981..282532e5026270334b2d2c40f77578e2596ab67c 100644
+---- a/test/mjsunit/regress/regress-crbug-724153.js
+-+++ b/test/mjsunit/regress/regress-crbug-724153.js
+-@@ -6,7 +6,7 @@
+- 
+- (function TestParameterLimit() {
+-   var src = '(function f(a,';
+--  for (var i = 0; i < 65534 - 2; i++) {
+-+  for (var i = 0; i < 65525 - 2; i++) {
+-     src += 'b' + i + ',';
+-   }
+-   src += 'c) { return a + c })';
+-diff --git a/test/mjsunit/regress/regress-v8-6716.js b/test/mjsunit/regress/regress-v8-6716.js
+-index 87b72e148820e416ae698b9b414f3d5ce2b1bcb1..df8c06887720dd6694576e13d8423c8304da93f2 100644
+---- a/test/mjsunit/regress/regress-v8-6716.js
+-+++ b/test/mjsunit/regress/regress-v8-6716.js
+-@@ -3,5 +3,5 @@
+- // found in the LICENSE file.
+- 
+- function f() {}
+--var a = Array(2 ** 16 - 2);  // Elements in large-object-space.
+-+var a = Array(2 ** 16 - 10);  // Elements in large-object-space.
+- f.bind(...a);
