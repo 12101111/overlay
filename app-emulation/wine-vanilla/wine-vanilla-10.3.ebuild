@@ -26,15 +26,19 @@ HOMEPAGE="
 	https://gitlab.winehq.org/wine/wine/
 "
 
-LICENSE="LGPL-2.1+ BSD BSD-2 IJG MIT OPENLDAP ZLIB gsm libpng2 libtiff"
+LICENSE="
+	LGPL-2.1+
+	BSD BSD-2 IJG MIT OPENLDAP ZLIB gsm libpng2 libtiff
+	|| ( WTFPL-2 public-domain )
+"
 SLOT="${PV}"
 IUSE="
-	clang +X +abi_x86_32 +abi_x86_64 +alsa capi crossdev-mingw cups dos
+	clang +X +abi_x86_32 +abi_x86_64 +alsa capi crossdev-mingw cups +dbus dos
 	llvm-libunwind custom-cflags ffmpeg +fontconfig +gecko gphoto2
 	+gstreamer kerberos +mingw +mono netapi nls odbc opencl +opengl
-	osmesa pcap perl pulseaudio samba scanner +sdl selinux smartcard
-	+ssl +strip +truetype udev udisks +unwind usb v4l +vulkan wayland
-	wow64 +xcomposite xinerama
+	pcap perl pulseaudio samba scanner +sdl selinux smartcard +ssl
+	+strip +truetype udev +unwind usb v4l +vulkan wayland wow64
+	+xcomposite xinerama
 "
 # bug #551124 for truetype
 # TODO?: wow64 can be done without mingw if using clang (needs bug #912237)
@@ -58,14 +62,12 @@ WINE_DLOPEN_DEPEND="
 		x11-libs/libXrandr[${MULTILIB_USEDEP}]
 		x11-libs/libXrender[${MULTILIB_USEDEP}]
 		x11-libs/libXxf86vm[${MULTILIB_USEDEP}]
-		opengl? (
-			media-libs/libglvnd[X,${MULTILIB_USEDEP}]
-			osmesa? ( media-libs/mesa[osmesa,${MULTILIB_USEDEP}] )
-		)
+		opengl? ( media-libs/libglvnd[X,${MULTILIB_USEDEP}] )
 		xcomposite? ( x11-libs/libXcomposite[${MULTILIB_USEDEP}] )
 		xinerama? ( x11-libs/libXinerama[${MULTILIB_USEDEP}] )
 	)
 	cups? ( net-print/cups[${MULTILIB_USEDEP}] )
+	dbus? ( sys-apps/dbus[${MULTILIB_USEDEP}] )
 	fontconfig? ( media-libs/fontconfig[${MULTILIB_USEDEP}] )
 	kerberos? ( virtual/krb5[${MULTILIB_USEDEP}] )
 	netapi? ( net-fs/samba[${MULTILIB_USEDEP}] )
@@ -73,7 +75,6 @@ WINE_DLOPEN_DEPEND="
 	sdl? ( media-libs/libsdl2[haptic,joystick,${MULTILIB_USEDEP}] )
 	ssl? ( net-libs/gnutls:=[${MULTILIB_USEDEP}] )
 	truetype? ( media-libs/freetype[${MULTILIB_USEDEP}] )
-	udisks? ( sys-apps/dbus[${MULTILIB_USEDEP}] )
 	v4l? ( media-libs/libv4l[${MULTILIB_USEDEP}] )
 	vulkan? ( media-libs/vulkan-loader[X?,wayland?,${MULTILIB_USEDEP}] )
 "
@@ -129,7 +130,6 @@ RDEPEND="
 	)
 	samba? ( net-fs/samba[winbind] )
 	selinux? ( sec-policy/selinux-wine )
-	udisks? ( sys-fs/udisks:2 )
 "
 DEPEND="
 	${WINE_COMMON_DEPEND}
@@ -254,6 +254,7 @@ src_configure() {
 		$(use_with alsa)
 		$(use_with capi)
 		$(use_with cups)
+		$(use_with dbus)
 		$(use_with ffmpeg)
 		$(use_with fontconfig)
 		$(use_with gphoto2 gphoto)
@@ -265,7 +266,7 @@ src_configure() {
 		$(use_with nls gettext)
 		$(use_with opencl)
 		$(use_with opengl)
-		$(use_with osmesa)
+		--without-osmesa # media-libs/mesa no longer supports this
 		--without-oss # media-sound/oss is not packaged (OSSv4)
 		$(use_with pcap)
 		$(use_with pulseaudio pulse)
@@ -275,7 +276,6 @@ src_configure() {
 		$(use_with ssl gnutls)
 		$(use_with truetype freetype)
 		$(use_with udev)
-		$(use_with udisks dbus) # dbus is only used for udisks
 		$(use_with unwind)
 		$(use_with usb)
 		$(use_with v4l v4l2)
