@@ -58,3 +58,105 @@ index c8d186ce39..f56dd24717 100644
 --var a = Array(2 ** 16 - 2);  // Elements in large-object-space.
 -+var a = Array(2 ** 16 - 10);  // Elements in large-object-space.
 - f.bind(...a);
+diff --git a/patches/v8/wasm_fix_freeing_of_identical_shared_wrappers.patch b/patches/v8/wasm_fix_freeing_of_identical_shared_wrappers.patch
+index 0da8d3afba..b3d6b63a4b 100644
+--- a/patches/v8/wasm_fix_freeing_of_identical_shared_wrappers.patch
++++ b/patches/v8/wasm_fix_freeing_of_identical_shared_wrappers.patch
+@@ -321,77 +321,3 @@ index f6c100687a88d8fa269ce02506ab0a82b2c5ffbb..a34d48c24cb8cd478705ecb31664186b
+      call_target = wasm_code->instruction_start();
+    }
+  
+-diff --git a/test/cctest/wasm/test-wasm-import-wrapper-cache.cc b/test/cctest/wasm/test-wasm-import-wrapper-cache.cc
+-index e713648644e0d6dfc191f35d61a6e3be71ca6d38..57c5caa5eea3dd059348431270d58f48d8bb318e 100644
+---- a/test/cctest/wasm/test-wasm-import-wrapper-cache.cc
+-+++ b/test/cctest/wasm/test-wasm-import-wrapper-cache.cc
+-@@ -42,9 +42,9 @@ TEST(CacheHit) {
+-   int expected_arity = static_cast<int>(sig->parameter_count());
+-   {
+-     WasmCodeRefScope wasm_code_ref_scope;
+--    WasmCode* c1 = CompileImportWrapperForTest(
+--        module.get(), isolate->counters(), kind, sig, canonical_type_index,
+--        expected_arity, kNoSuspend);
+-+    WasmCode* c1 = CompileImportWrapperForTest(isolate, module.get(), kind, sig,
+-+                                               canonical_type_index,
+-+                                               expected_arity, kNoSuspend);
+- 
+-     CHECK_NOT_NULL(c1);
+-     CHECK_EQ(WasmCode::Kind::kWasmToJsWrapper, c1->kind());
+-@@ -79,8 +79,8 @@ TEST(CacheMissSig) {
+-   uint32_t canonical_type_index2 =
+-       GetTypeCanonicalizer()->AddRecursiveGroup(sig2);
+- 
+--  WasmCode* c1 = CompileImportWrapperForTest(module.get(), isolate->counters(),
+--                                             kind, sig1, canonical_type_index1,
+-+  WasmCode* c1 = CompileImportWrapperForTest(isolate, module.get(), kind, sig1,
+-+                                             canonical_type_index1,
+-                                              expected_arity1, kNoSuspend);
+- 
+-   CHECK_NOT_NULL(c1);
+-@@ -105,8 +105,8 @@ TEST(CacheMissKind) {
+-   uint32_t canonical_type_index =
+-       GetTypeCanonicalizer()->AddRecursiveGroup(sig);
+- 
+--  WasmCode* c1 = CompileImportWrapperForTest(module.get(), isolate->counters(),
+--                                             kind1, sig, canonical_type_index,
+-+  WasmCode* c1 = CompileImportWrapperForTest(isolate, module.get(), kind1, sig,
+-+                                             canonical_type_index,
+-                                              expected_arity, kNoSuspend);
+- 
+-   CHECK_NOT_NULL(c1);
+-@@ -134,8 +134,8 @@ TEST(CacheHitMissSig) {
+-   uint32_t canonical_type_index2 =
+-       GetTypeCanonicalizer()->AddRecursiveGroup(sig2);
+- 
+--  WasmCode* c1 = CompileImportWrapperForTest(module.get(), isolate->counters(),
+--                                             kind, sig1, canonical_type_index1,
+-+  WasmCode* c1 = CompileImportWrapperForTest(isolate, module.get(), kind, sig1,
+-+                                             canonical_type_index1,
+-                                              expected_arity1, kNoSuspend);
+- 
+-   CHECK_NOT_NULL(c1);
+-@@ -146,8 +146,8 @@ TEST(CacheHitMissSig) {
+- 
+-   CHECK_NULL(c2);
+- 
+--  c2 = CompileImportWrapperForTest(module.get(), isolate->counters(), kind,
+--                                   sig2, canonical_type_index2, expected_arity2,
+-+  c2 = CompileImportWrapperForTest(isolate, module.get(), kind, sig2,
+-+                                   canonical_type_index2, expected_arity2,
+-                                    kNoSuspend);
+- 
+-   CHECK_NE(c1, c2);
+-diff --git a/test/cctest/wasm/wasm-run-utils.cc b/test/cctest/wasm/wasm-run-utils.cc
+-index a8b93c9ebd53cf10b0c833139358254127d5deca..fb4f0c3c39aaba90729dfd1f6b9ed3f90d25ed1d 100644
+---- a/test/cctest/wasm/wasm-run-utils.cc
+-+++ b/test/cctest/wasm/wasm-run-utils.cc
+-@@ -99,7 +99,7 @@ TestingModuleBuilder::TestingModuleBuilder(
+-         kNoSuspend);
+-     if (import_wrapper == nullptr) {
+-       import_wrapper = CompileImportWrapperForTest(
+--          native_module_, isolate_->counters(), kind, sig, canonical_type_index,
+-+          isolate_, native_module_, kind, sig, canonical_type_index,
+-           static_cast<int>(sig->parameter_count()), kNoSuspend);
+-     }
+- 
+diff --git a/patches/v8/merged_wasm_replace_dead_code_set_with_is_dying_bit.patch b/patches/v8/merged_wasm_replace_dead_code_set_with_is_dying_bit.patch
+index c00d5c631c..aaf41cee15 100644
+--- a/patches/v8/merged_wasm_replace_dead_code_set_with_is_dying_bit.patch
++++ b/patches/v8/merged_wasm_replace_dead_code_set_with_is_dying_bit.patch
+@@ -184,15 +184,3 @@ index 0554f3d50a288b34bd4729a33ac523c4902d93e0..56fa64302665fdbd036c95e29610748c
+    return candidate;
+  }
+  
+-diff --git a/test/cctest/wasm/wasm-run-utils.cc b/test/cctest/wasm/wasm-run-utils.cc
+-index fb4f0c3c39aaba90729dfd1f6b9ed3f90d25ed1d..2063983ecb44eb3f50b33258e40cf7cc6d7e3089 100644
+---- a/test/cctest/wasm/wasm-run-utils.cc
+-+++ b/test/cctest/wasm/wasm-run-utils.cc
+-@@ -294,6 +294,7 @@ void TestingModuleBuilder::AddIndirectFunctionTable(
+-   WasmTableObject::AddUse(isolate_, table_obj, instance_object_, table_index);
+- 
+-   if (function_indexes) {
+-+    WasmCodeRefScope code_ref_scope;
+-     for (uint32_t i = 0; i < table_size; ++i) {
+-       WasmFunction& function = test_module_->functions[function_indexes[i]];
+-       int sig_id = test_module_->canonical_sig_id(function.sig_index);

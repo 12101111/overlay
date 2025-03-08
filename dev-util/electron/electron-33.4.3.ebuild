@@ -23,8 +23,8 @@ inherit rust-toolchain
 
 # Keep this in sync with DEPS:chromium_version
 # find least version of available snapshot in
-# https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-126.0.6437.0.tar.xz.hashe%40
-CHROMIUM_VERSION="128.0.6613.163"
+# https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-130.0.6699.2-testdata.tar.x%40
+CHROMIUM_VERSION="130.0.6723.130"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="20.18.1"
 
@@ -315,7 +315,7 @@ https://registry.yarnpkg.com/call-bind/-/call-bind-1.0.7.tgz
 https://registry.yarnpkg.com/callsites/-/callsites-3.1.0.tgz
 https://registry.yarnpkg.com/camelcase/-/camelcase-6.2.0.tgz
 https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001367.tgz
-https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001664.tgz
+https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001666.tgz
 https://registry.yarnpkg.com/chai/-/chai-4.2.0.tgz
 https://registry.yarnpkg.com/chalk/-/chalk-2.4.2.tgz
 https://registry.yarnpkg.com/chalk/-/chalk-3.0.0.tgz
@@ -390,7 +390,7 @@ https://registry.yarnpkg.com/duplexer/-/duplexer-0.1.1.tgz
 https://registry.yarnpkg.com/eastasianwidth/-/eastasianwidth-0.2.0.tgz
 https://registry.yarnpkg.com/ecdsa-sig-formatter/-/ecdsa-sig-formatter-1.0.11.tgz
 https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.195.tgz
-https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.30.tgz
+https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.31.tgz
 https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-8.0.0.tgz
 https://registry.yarnpkg.com/emoji-regex/-/emoji-regex-9.2.2.tgz
 https://registry.yarnpkg.com/emojis-list/-/emojis-list-3.0.0.tgz
@@ -1143,12 +1143,12 @@ https://registry.yarnpkg.com/zwitch/-/zwitch-2.0.2.tgz
 
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 NODE_P="node-${NODE_VERSION}"
-PATCH_V="${CHROMIUM_VERSION%%\.*}"
+PATCH_V="${CHROMIUM_VERSION%%\.*}-2"
 PATCHSET_NAME="chromium-patches-${PATCH_V}"
-PATCHSET_PPC64="128.0.6613.119-1raptor0~deb12u1"
-PATCHSET_LOONG="chromium-128.0.6613.84-1"
-PATCHSET_LOONG_PV="128.0.6613.84"
-HEVC_PATCHSET_VERSION="128.0.6597.0"
+PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+PATCHSET_LOONG="chromium-130.0.6723.58-1"
+PATCHSET_LOONG_PV="130.0.6723.58"
+HEVC_PATCHSET_VERSION="130.0.6711.0"
 HEVC_PATCHSET_NAME="enable-chromium-hevc-hardware-decoding-${HEVC_PATCHSET_VERSION}"
 
 SRC_URI="
@@ -1160,8 +1160,7 @@ SRC_URI="
 		https://github.com/AOSC-Dev/chromium-loongarch64/archive/refs/tags/${PATCHSET_LOONG}.tar.gz -> chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.tar.gz
 	)
 	ppc64? (
-		https://quickbuild.io/~raptor-engineering-public/+archive/ubuntu/chromium/+files/chromium_${PATCHSET_PPC64}.debian.tar.xz
-		https://deps.gentoo.zip/chromium-ppc64le-gentoo-patches-1.tar.xz
+		https://gitlab.solidsilicon.io/public-development/open-source/chromium/openpower-patches/-/archive/${PPC64_HASH}/openpower-patches-${PPC64_HASH}.tar.bz2 -> chromium-openpower-${PPC64_HASH:0:10}.tar.bz2
 	)
 	hevc? ( https://github.com/StaZhu/enable-chromium-hevc-hardware-decoding/archive/${HEVC_PATCHSET_VERSION}.tar.gz -> chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz )
 	https://codeload.github.com/nodejs/nan/tar.gz/e14bdcd1f72d62bca1d541b66da43130384ec213
@@ -1176,7 +1175,7 @@ SLOT="${PV%%[.+]*}"
 KEYWORDS="~amd64 ~arm64 ~loong"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="hevc +X custom-cflags ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium headless kerberos +official pax-kernel pgo +proprietary-codecs pulseaudio"
-IUSE+=" +screencast selinux +vaapi +wayland"
+IUSE+=" +screencast selinux +vaapi +wayland cpu_flags_ppc_vsx3"
 RESTRICT="
 	!bindist? ( bindist )
 	hevc? ( bindist )
@@ -1468,10 +1467,9 @@ src_unpack() {
 	unpack "electron-${NODE_P}.tar.gz"
 	unpack "${PATCHSET_NAME}.tar.bz2"
 	if use ppc64; then
-		unpack chromium_${PATCHSET_PPC64}.debian.tar.xz
-		unpack chromium-ppc64le-gentoo-patches-1.tar.xz
+		unpack chromium-openpower-${PPC64_HASH:0:10}.tar.bz2
 	fi
-	use loong && unpack "chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.tar.gz"
+	use loong && unpack "chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.zip"
 	use hevc && unpack "chromium-hevc-patch-${HEVC_PATCHSET_VERSION}.tar.gz"
 }
 
@@ -1494,7 +1492,10 @@ src_prepare() {
 		node "${WORKDIR}/${HEVC_PATCHSET_NAME}/add-hevc-ffmpeg-decoder-parser.js"
 		popd >/dev/null || die
 		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-ffmpeg-decoding.patch"
-		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-encoding-by-default.patch"
+		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-hevc-webrtc-send-receive-by-default.patch"
+		pushd third_party/webrtc
+		eapply "${WORKDIR}/${HEVC_PATCHSET_NAME}/enable-h26x-packet-buffer-by-default.patch"
+		popd >/dev/null || die
 	fi
 
 	# disable global media controls, crashes with libstdc++
@@ -1502,11 +1503,40 @@ src_prepare() {
 		"/\"GlobalMediaControlsCastStartStop\"/,+4{s/ENABLED/DISABLED/;}" \
 		"chrome/browser/media/router/media_router_feature.cc" || die
 
-	PATCHES+=( "${WORKDIR}/${PATCHSET_NAME}" )
-	# We can't use the bundled compiler builtins
-	sed -i -e \
-		"/if (is_clang && toolchain_has_rust) {/,+2d" \
-		build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
+	shopt -s globstar nullglob
+	# 130: moved the PPC64 patches into the chromium-patches repo
+	local patch
+	for patch in "${WORKDIR}/chromium-patches-${PATCH_V}"/**/*.patch; do
+		if [[ ${patch} == *"ppc64le"* ]]; then
+			use ppc64 && eapply "${patch}"
+		else
+			eapply "${patch}"
+		fi
+	done
+
+	# We can't use the bundled compiler builtins with the system toolchain
+	# `grep` is a development convenience to ensure we fail early when google changes something.
+	local builtins_match="if (is_clang && !is_nacl && !is_cronet_build) {"
+	grep -q "${builtins_match}" build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
+	sed -i -e "/${builtins_match}/,+2d" build/config/compiler/BUILD.gn
+
+	if use ppc64; then
+		# Above this level there are ungoogled-chromium patches that we can't apply
+		local patchset_dir="${WORKDIR}/openpower-patches-${PPC64_HASH}/patches/ppc64le"
+		# Apply the OpenPOWER patches
+		local power9_patch="patches/ppc64le/core/baseline-isa-3-0.patch"
+		for patch in ${patchset_dir}/**/*.{patch,diff}; do
+			if [[ ${patch} == *"${power9_patch}" ]]; then
+				use cpu_flags_ppc_vsx3 && eapply "${patch}"
+			else
+				eapply "${patch}"
+			fi
+		done
+
+		eapply "${WORKDIR}/openpower-patches-${PPC64_HASH}/patches/upstream/blink-fix-size-assertions.patch"
+	fi
+
+	shopt -u globstar nullglob
 
 	cd "${S}/electron" || die
 	echo "yarn-offline-mirror \"${DISTDIR}\"" >> "${S}/electron/.yarnrc"
@@ -1532,24 +1562,37 @@ src_prepare() {
 
 	cd "${S}" || die
 
+	# Upstream Rust replaced adler with adler2, for never versions of Rust we still need
+	# to tell GN that we have adler2 when it tries to copy the Rust sysroot
+	# into the bulid directory.
+	if ver_test ${RUST_SLOT} -ge "1.86.0"; then
+	sed -i 's/adler/adler2/' build/rust/std/BUILD.gn ||
+		die "Failed to tell GN that we have adler and not adler2"
+	fi
+
 	if use loong ; then
 		local p
-		eapply "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-fix-clang-builtins-path.diff
-		rm "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".4000-loongarch64-clang-no-lsx.diff
-		eapply "${FILESDIR}/${SLOT}/chromium-libpng-loong-lsx.patch"
+		local other_patches_to_apply=(
+			# Fedora-chromium-121-nullptr_t-without-namespace-std
+			# Debian-upstream-std-to-address
+			# Debian-fixes-internalalloc
+			# Debian-fixes-optional2
+			Debian-fixes-blink
+			Debian-fixes-blink-frags
+			fix-clang-builtins-path
+			fix-missing-header
+			fix-static-assertion
+		)
+		for p in "${other_patches_to_apply[@]}"; do
+			eapply "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-"${p}".diff
+		done
+		if ! tc-is-clang || ver_test "$(clang-major-version)" -gt 17; then
+			rm "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".4000-loongarch64-clang-no-lsx.diff
+		fi
 		for p in "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-loongarch64*; do
 			eapply "${p}"
 		done
-	fi
-	if use ppc64 ; then
-		local p
-		for p in $(grep -v "^#" "${WORKDIR}"/debian/patches/series | grep "^ppc64le" || die); do
-			if [[ ! $p =~ "fix-breakpad-compile.patch" ]]; then
-				eapply "${WORKDIR}/debian/patches/${p}"
-			fi
-		done
-		PATCHES+=( "${WORKDIR}/ppc64le" )
-		PATCHES+=( "${WORKDIR}/debian/patches/fixes/rust-clanglib.patch" )
+		eapply "${FILESDIR}/${SLOT}/chromium-123-gentoo-loong.patch"
 	fi
 
 	cd "${S}/electron" || die
@@ -1581,7 +1624,6 @@ src_prepare() {
 		buildtools/third_party/libc++
 		buildtools/third_party/libc++abi
 		chrome/third_party/mozilla_security_manager
-		courgette/third_party
 		net/third_party/mozilla_security_manager
 		net/third_party/nss
 		net/third_party/quic
@@ -1652,6 +1694,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/mitt
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/parsel-js
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/rxjs
+		third_party/devtools-frontend/src/front_end/third_party/third-party-web
 		third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/front_end/third_party/web-vitals
@@ -1661,6 +1704,7 @@ src_prepare() {
 		third_party/eigen3
 		third_party/emoji-segmenter
 		third_party/farmhash
+		third_party/fast_float
 		third_party/fdlibm
 		third_party/ffmpeg
 		third_party/fft2d
@@ -1700,7 +1744,6 @@ src_prepare() {
 		third_party/libsecret
 		third_party/libsrtp
 		third_party/libsync
-		third_party/libudev
 		third_party/liburlpattern
 		third_party/libva_protected_content
 		third_party/libvpx
@@ -1754,6 +1797,7 @@ src_prepare() {
 		third_party/pyjson5
 		third_party/pyyaml
 		third_party/qcms
+		third_party/rapidhash
 		third_party/re2
 		third_party/rnnoise
 		third_party/rust
@@ -1870,8 +1914,34 @@ src_prepare() {
 		popd >/dev/null || die
 	fi
 
-	ebegin "Unbundling third-party libraries ..."
+	# Sanity check keeplibs, on major version bumps it is often necessary to update this list
+	# and this enables us to hit them all at once.
+	# There are some entries that need to be whitelisted (TODO: Why? The file is understandable, the rest seem odd)
+	whitelist_libs=(
+		net/third_party/quic
+		third_party/devtools-frontend/src/front_end/third_party/additional_readme_paths.json
+		third_party/libjingle
+		third_party/mesa
+		third_party/skia/third_party/vulkan
+		third_party/vulkan
+	)
+	local not_found_libs=()
+	for lib in "${keeplibs[@]}"; do
+		if [[ ! -d "${lib}" ]] && ! has "${lib}" "${whitelist_libs[@]}"; then
+			not_found_libs+=( "${lib}" )
+		fi
+	done
+
+	if [[ ${#not_found_libs[@]} -gt 0 ]]; then
+		eerror "The following \`keeplibs\` directories were not found in the source tree:"
+		for lib in "${not_found_libs[@]}"; do
+			eerror "  ${lib}"
+		done
+		die "Please update the ebuild."
+	fi
+
 	# Remove most bundled libraries. Some are still needed.
+	ebegin "Unbundling third-party libraries ..."
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 	eend 0
 
@@ -2185,16 +2255,6 @@ src_configure() {
 		myconf_gn+=" ozone_platform=$(usex wayland \"wayland\" \"x11\")"
 		use wayland && myconf_gn+=" use_system_libffi=true"
 	fi
-
-	# Results in undefined references in chrome linking, may require CFI to work
-	if use arm64; then
-		myconf_gn+=" arm_control_flow_integrity=\"none\""
-	fi
-
-	# 936673: Updater (which we don't use) depends on libsystemd
-	# This _should_ always be disabled if we're not building a
-	# "Chrome" branded browser, but obviously this is not always sufficient.
-	myconf_gn+=" enable_updater=false"
 
 	myconf_gn+=" use_thin_lto=${use_lto}"
 	myconf_gn+=" thin_lto_enable_optimizations=${use_lto}"
