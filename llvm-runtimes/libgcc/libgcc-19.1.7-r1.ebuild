@@ -124,12 +124,12 @@ src_compile() {
 	cmake_src_compile
 
 	shopt -s nullglob
-	$(tc-getCC) -E -xc ${WORKDIR}/llvm-libgcc/gcc_s.ver.in -o ${BUILD_DIR}/gcc_s.ver || die
+	$(tc-getCC) ${CFLAGS} -E -xc ${WORKDIR}/llvm-libgcc/gcc_s.ver.in -o ${BUILD_DIR}/gcc_s.ver || die
 	local LIBROOT=${EPREFIX}/usr
 	if tc-is-cross-compiler; then
 		LIBROOT=${LIBROOT}/${CTARGET}/usr
 	fi
-	$(tc-getCC) -nostdlib -Wl,-znodelete,-zdefs -Wl,--version-script,${BUILD_DIR}/gcc_s.ver \
+	$(tc-getCC) ${LDFLAGS} -nostdlib -Wl,-znodelete,-zdefs -Wl,--version-script,${BUILD_DIR}/gcc_s.ver \
 		-Wl,--whole-archive ${LIBROOT}/lib/libunwind.a ${BUILD_DIR}/lib/linux/libclang_rt.builtins*.a \
 		-Wl,-soname,libgcc_s.so.1.0 -lc -shared -o ${BUILD_DIR}/libgcc_s.so.1.0 || die
 	shopt -u nullglob

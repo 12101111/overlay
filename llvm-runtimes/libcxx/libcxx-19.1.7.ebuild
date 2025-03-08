@@ -126,7 +126,7 @@ multilib_src_configure() {
 		-DLLVM_INCLUDE_TESTS=OFF
 		-DLLVM_LIBDIR_SUFFIX=${libdir#lib}
 
-		-DLIBCXX_ENABLE_SHARED=$(enable_shared)
+		-DLIBCXX_ENABLE_SHARED=${enable_shared}
 		-DLIBCXX_ENABLE_STATIC=$(usex static-libs)
 		-DLIBCXX_CXX_ABI=${cxxabi}
 		-DLIBCXX_CXX_ABI_INCLUDE_PATHS=${cxxabi_incs}

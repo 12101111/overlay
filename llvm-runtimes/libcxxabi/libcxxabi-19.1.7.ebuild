@@ -76,7 +76,7 @@ multilib_src_configure() {
 		-DLLVM_ENABLE_RUNTIMES="libcxxabi;libcxx"
 		-DLLVM_INCLUDE_TESTS=OFF
 		-DLLVM_LIBDIR_SUFFIX=${libdir#lib}
-		-DLIBCXXABI_ENABLE_SHARED=$(enable_shared)
+		-DLIBCXXABI_ENABLE_SHARED=${enable_shared}
 		-DLIBCXXABI_ENABLE_STATIC=$(usex static-libs)
 		-DLIBCXXABI_INCLUDE_TESTS=$(usex test)
 		-DLIBCXXABI_USE_COMPILER_RT=${use_compiler_rt}
@@ -88,7 +88,7 @@ multilib_src_configure() {
 		-DLIBCXXABI_USE_LLVM_UNWINDER=OFF
 
 		-DLIBCXX_LIBDIR_SUFFIX=
-		-DLIBCXX_ENABLE_SHARED=$(enable_shared)
+		-DLIBCXX_ENABLE_SHARED=${enable_shared}
 		-DLIBCXX_ENABLE_STATIC=OFF
 		-DLIBCXX_CXX_ABI=libcxxabi
 		-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=OFF
