@@ -3,7 +3,8 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-135-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-136-patches-01.tar.xz"
+FIREFOX_LOONG_PATCHSET="firefox-136-loong-patches-01.tar.xz"
 
 LLVM_COMPAT=( 17 18 19 )
 
@@ -63,10 +64,13 @@ PATCH_URIS=(
 
 DESCRIPTION="Firefox Web Browser"
 SRC_URI="${MOZ_SRC_BASE_URI}/source/${MOZ_P}.source.tar.xz -> ${MOZ_P_DISTFILES}.source.tar.xz
-	${PATCH_URIS[@]}"
+	${PATCH_URIS[@]}
+	loong? (
+		https://dev.gentoo.org/~xen0n/distfiles/www-client/${MOZ_PN}/${FIREFOX_LOONG_PATCHSET}
+	)"
 S="${WORKDIR}/${PN}-${PV%_*}"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
-KEYWORDS="~amd64 ~arm64 ~ppc64 ~riscv ~x86 ~loong"
+KEYWORDS="~amd64 ~arm64 ~loong ~ppc64 ~riscv ~x86"
 
 IUSE="+clang dbus debug eme-free hardened hwaccel jack libproxy pgo pulseaudio sndio selinux"
 IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-jpeg +system-libevent"
@@ -127,7 +131,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.107
+	>=dev-libs/nss-3.108
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -161,11 +165,11 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 		>=media-libs/harfbuzz-2.8.1:0=
 		!wasm-sandbox? ( >=media-gfx/graphite2-1.3.13 )
 	)
-	system-icu? ( >=dev-libs/icu-73.1:= )
+	system-icu? ( >=dev-libs/icu-76.1:= )
 	system-jpeg? ( >=media-libs/libjpeg-turbo-1.2.1:= )
 	system-libevent? ( >=dev-libs/libevent-2.1.12:0=[threads(+)] )
 	system-libvpx? ( >=media-libs/libvpx-1.8.2:0=[postproc] )
-	system-png? ( >=media-libs/libpng-1.6.35:0=[apng] )
+	system-png? ( >=media-libs/libpng-1.6.45:0=[apng] )
 	system-webp? ( >=media-libs/libwebp-1.1.0:0= )
 	valgrind? ( dev-debug/valgrind )
 	wayland? (
@@ -594,8 +598,7 @@ src_prepare() {
 	rm -v "${WORKDIR}"/firefox-patches/*bgo-940031-wasm-support.patch || die
 
 	eapply "${WORKDIR}/firefox-patches"
-
-	use loong && eapply "${FILESDIR}/firefox-133-loong"
+	use loong && eapply "${WORKDIR}/firefox-loong-patches"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
@@ -611,6 +614,10 @@ src_prepare() {
 			export RUST_TARGET="i686-unknown-linux-musl"
 		elif use arm64 ; then
 			export RUST_TARGET="aarch64-unknown-linux-musl"
+		elif use loong; then
+			# Only the LP64D ABI of LoongArch64 is actively supported among
+			# the wider Linux ecosystem, so the assumption is safe.
+			export RUST_TARGET="loongarch64-unknown-linux-musl"
 		elif use ppc64 ; then
 			export RUST_TARGET="powerpc64le-unknown-linux-musl"
 		elif use riscv ; then
@@ -800,7 +807,8 @@ src_configure() {
 	[[ -n ${MOZ_ESR} ]] && update_channel=esr
 	mozconfig_add_options_ac '' --enable-update-channel=${update_channel}
 
-	if ! use x86 ; then
+	# Whitelist to allow unkeyworded arches to build with "--disable-rust-simd" by default.
+	if use amd64 || use arm64 || use ppc64 || use loong || use riscv ; then
 		mozconfig_add_options_ac '' --enable-rust-simd
 	fi
 
@@ -857,6 +865,7 @@ src_configure() {
 	fi
 
 	mozconfig_use_with system-av1
+	use system-av1 && append-ldflags "-laom"
 	mozconfig_use_with system-harfbuzz
 	mozconfig_use_with system-icu
 	mozconfig_use_with system-jpeg
