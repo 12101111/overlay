@@ -449,6 +449,14 @@ src_prepare() {
 			die "Failed to remove default visibility nightly option"
 	fi
 
+	# Upstream Rust replaced adler with adler2, for never versions of Rust we still need
+	# to tell GN that we have adler2 when it tries to copy the Rust sysroot
+	# into the bulid directory.
+	if ver_test ${RUST_SLOT} -ge "1.86.0"; then
+		sed -i 's/adler/adler2/' build/rust/std/BUILD.gn ||
+			die "Failed to tell GN that we have adler and not adler2"
+	fi
+
 	if use loong ; then
 		local p
 		local other_patches_to_apply=(
