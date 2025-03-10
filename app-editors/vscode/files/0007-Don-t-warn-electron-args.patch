@@ -1,6 +1,6 @@
-From 0ad6f3dfceb02a96536057aad22d4ffb49244c5d Mon Sep 17 00:00:00 2001
+From f3e3ac620796d0c72171dc6cb3f66dbae425cdfa Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Thu, 18 Jul 2024 02:48:45 +0800
+Date: Mon, 10 Mar 2025 15:07:55 +0800
 Subject: [PATCH 07/11] Don't warn electron args
 
 ---
@@ -9,29 +9,29 @@ Subject: [PATCH 07/11] Don't warn electron args
  2 files changed, 4 insertions(+)
 
 diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
-index 818021ff0c1..f1da13b6046 100644
+index cdcb8ee0a05..c53235f3dc5 100644
 --- a/src/vs/platform/environment/common/argv.ts
 +++ b/src/vs/platform/environment/common/argv.ts
-@@ -145,4 +145,6 @@ export interface NativeParsedArgs {
- 	'trace-startup-format'?: string;
+@@ -149,4 +149,6 @@ export interface NativeParsedArgs {
  	'trace-startup-file'?: string;
  	'trace-startup-duration'?: string;
+ 	'xdg-portal-required-version'?: string;
 +	'app'?: string;
 +	'enable-features'?: string;
  }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 379e327c646..d013a31151b 100644
+index 7ac132ae5cd..7ea05bd489c 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
-@@ -209,6 +209,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
- 	'trace-startup-format': { type: 'string' },
+@@ -213,6 +213,8 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
  	'trace-startup-file': { type: 'string' },
  	'trace-startup-duration': { type: 'string' },
+ 	'xdg-portal-required-version': { type: 'string' },
 +	'app': { type: 'string' },
 +	'enable-features': { type: 'string' },
  
  	_: { type: 'string[]' } // main arguments
  };
 -- 
-2.47.1
+2.48.1
 

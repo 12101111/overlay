@@ -1,4 +1,4 @@
-From 084f35b3020f61d78b368186e7e31f2dcc8a4bdf Mon Sep 17 00:00:00 2001
+From d88fdf768f3452bb00d1c40b4dcf07172257625c Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 30 Nov 2024 23:28:25 +0800
 Subject: [PATCH 10/11] Accpet FLAGS from env
@@ -8,10 +8,10 @@ Subject: [PATCH 10/11] Accpet FLAGS from env
  1 file changed, 5 deletions(-)
 
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index 3ab8c67b30d..f453d7e5fd7 100644
+index 6d6bd651b74..07a8a873937 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -111,11 +111,6 @@ for (let dir of dirs) {
+@@ -128,11 +128,6 @@ for (let dir of dirs) {
  				...process.env
  			},
  		}
@@ -24,5 +24,5 @@ index 3ab8c67b30d..f453d7e5fd7 100644
  		npmInstall('build', opts);
  		continue;
 -- 
-2.47.1
+2.48.1
 
