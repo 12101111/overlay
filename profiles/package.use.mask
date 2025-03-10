@@ -1,22 +1,10 @@
 # Not ready for general use
 www-client/chromium pgo
 
-# Requires >media-libs/libaom-3.6.0
-# See www-client/chromium-113
->=dev-util/electron-25 system-av1
-
-# Need clang-17
->=dev-util/electron-25 pgo
-
-# Uses a function that is not available in media-video/ffmpeg.
->=dev-util/electron-15.3.0 system-ffmpeg
-
 # Mostly intended for development and not for general use.
 dev-util/electron headless
 
-# Mostly intended for debugging and development,
-# not recommended for general use. Build is also often
-# broken.
-dev-util/electron component-build
-
 www-client/firefox -clang -pgo
+
+# ICU 76.1 is not compatible with Chromium
+>=dev-util/electron-34 system-icu
