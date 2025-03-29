@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-136-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-136-patches-04.tar.xz"
 FIREFOX_LOONG_PATCHSET="firefox-136-loong-patches-01.tar.xz"
 
 LLVM_COMPAT=( 17 18 19 )
@@ -16,8 +16,6 @@ RUST_MIN_VER=1.77.1
 
 PYTHON_COMPAT=( python3_{10..13} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
-
-WANT_AUTOCONF="2.71"
 
 VIRTUALX_REQUIRED="manual"
 
@@ -451,12 +449,6 @@ virtwl() {
 
 pkg_pretend() {
 	if [[ ${MERGE_TYPE} != binary ]] ; then
-		if use pgo ; then
-			if ! has usersandbox $FEATURES ; then
-				die "You must enable usersandbox as X server can not run as root!"
-			fi
-		fi
-
 		# Ensure we have enough disk space to compile
 		if use pgo || use debug ; then
 			CHECKREQS_DISK_BUILD="14300M"
@@ -824,9 +816,11 @@ src_configure() {
 		mozconfig_add_options_ac '' --enable-sandbox
 	fi
 
-	# Enable JIT on riscv64 explicitly
-	# Can be removed once upstream enable it by default in the future.
-	use riscv && mozconfig_add_options_ac 'Enable JIT for RISC-V 64' --enable-jit
+	# riscv-related options, bgo#947337, bgo#947338
+	if use riscv ; then
+		mozconfig_add_options_ac 'Disable JIT for RISC-V 64' --disable-jit
+		mozconfig_add_options_ac 'Disable webrtc for RISC-V' --disable-webrtc
+	fi
 
 	if [[ -s "${S}/api-google.key" ]] ; then
 		local key_origin="Gentoo default"
@@ -865,7 +859,6 @@ src_configure() {
 	fi
 
 	mozconfig_use_with system-av1
-	use system-av1 && append-ldflags "-laom"
 	mozconfig_use_with system-harfbuzz
 	mozconfig_use_with system-icu
 	mozconfig_use_with system-jpeg
@@ -1218,11 +1211,7 @@ src_install() {
 	# Add telemetry config prefs, just in case something happens in future and telemetry build
 	# options stop working.
 	if ! use telemetry ; then
-		cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to set telemetry prefs"
-		sticky_pref("toolkit.telemetry.dap_enabled", false);
-		pref("toolkit.telemetry.dap_helper", "");
-		pref("toolkit.telemetry.dap_leader", "");
-		EOF
+		cat "${FILESDIR}"/gentoo-telemetry-prefs.js >>"${GENTOO_PREFS}" || die "failed to set telemetry prefs"
 	fi
 
 	# Install language packs
