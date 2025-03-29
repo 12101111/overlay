@@ -19,11 +19,12 @@ fi
 
 IUSE="
 	accessibility +alsa bindist custom-cflags designer geolocation
-	+jumbo-build kerberos opengl pdfium pulseaudio qml screencast
+	+jumbo-build kerberos opengl +pdfium pulseaudio qml screencast
 	+system-icu vaapi vulkan webdriver +widgets
 "
 REQUIRED_USE="
 	designer? ( qml widgets )
+	test? ( widgets )
 "
 
 # dlopen: krb5, libva, pciutils, udev
@@ -96,7 +97,7 @@ DEPEND="
 BDEPEND="
 	$(python_gen_any_dep 'dev-python/html5lib[${PYTHON_USEDEP}]')
 	dev-util/gperf
-	net-libs/nodejs[ssl]
+	net-libs/nodejs[icu,ssl]
 	sys-devel/bison
 	sys-devel/flex
 "
@@ -109,7 +110,7 @@ PATCHES+=(
 	# add extras as needed here, may merge in set if carries across versions
 	"${FILESDIR}"/remove-libatomic.patch
 	"${FILESDIR}"/${PN}-6.8.1-aarch64-xnnpack.patch
-	"${FILESDIR}"/${PN}-6.8.1-cstdint.patch
+	"${FILESDIR}"/${PN}-6.8.2-cstdint.patch
 	"${FILESDIR}"/${PN}-6.8.2-glibc2.41.patch
 )
 
@@ -170,13 +171,13 @@ src_prepare() {
 src_configure() {
 	local mycmakeargs=(
 		$(qt_feature pdfium qtpdf_build)
-		$(qt_feature qml qtpdf_quick_build)
-		$(qt_feature webdriver webenginedriver)
-		$(qt_feature widgets qtpdf_widgets_build)
+		$(use pdfium && qt_feature qml qtpdf_quick_build)
+		$(use pdfium && qt_feature widgets qtpdf_widgets_build)
 		$(usev pdfium -DQT_FEATURE_pdf_v8=ON)
 
 		-DQT_FEATURE_qtwebengine_build=ON
 		$(qt_feature qml qtwebengine_quick_build)
+		$(qt_feature webdriver webenginedriver)
 		$(qt_feature widgets qtwebengine_widgets_build)
 
 		$(cmake_use_find_package designer Qt6Designer)
@@ -235,7 +236,9 @@ src_configure() {
 	)
 
 	if use !custom-cflags; then
-		strip-flags # fragile
+		# qtwebengine can be rather fragile with *FLAGS
+		filter-lto
+		strip-flags
 
 		# temporary workaround for bug #947356, should be fixed in Qt 6.9.x
 		append-cppflags -U_GLIBCXX_ASSERTIONS
@@ -262,7 +265,8 @@ src_configure() {
 }
 
 src_compile() {
-	# tentatively work around a possible (rare) race condition (bug #921680)
+	# tentatively work around a possible (rare) race condition (bug #921680),
+	# has good chances to be obsolete but keep for now as a safety
 	cmake_build WebEngineCore_sync_all_public_headers
 
 	cmake_src_compile
