@@ -27,11 +27,16 @@ pkg_pretend() {
 
 src_compile() {
 	snapshot=p1
+	thread_model=single
 	if [[ ${CTARGET} == *p1* ]]; then
 		snapshot=p1
 	elif [[ ${CTARGET} == *p2* ]]; then
 		snapshot=p2
 	fi
+	if [[ ${CTARGET} == *threads* ]]; then
+		thread_model=posix
+	fi
+	
 	emake CC=clang \
 		AR=llvm-ar \
 		NM=llvm-nm \
@@ -40,6 +45,7 @@ src_compile() {
 		WASI_SNAPSHOT=$snapshot \
 		TARGET_TRIPLE=${CTARGET} \
 		BUILTINS_LIB="$(${CTARGET}-clang --print-libgcc-file-name)" \
+		THREAD_MODEL=${thread_model} \
 		default libc_so
 }
 
