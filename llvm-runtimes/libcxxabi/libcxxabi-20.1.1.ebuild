@@ -12,7 +12,7 @@ HOMEPAGE="https://libcxxabi.llvm.org/"
 
 LICENSE="Apache-2.0-with-LLVM-exceptions || ( UoI-NCSA MIT )"
 SLOT="0"
-KEYWORDS="amd64 ~arm arm64 ~loong ~riscv ~sparc x86 ~arm64-macos ~x64-macos"
+KEYWORDS="~amd64 ~arm ~arm64 ~loong ~riscv ~sparc ~x86 ~arm64-macos ~x64-macos"
 IUSE="+clang +static-libs test"
 REQUIRED_USE="test? ( clang )"
 RESTRICT="!test? ( test )"
@@ -38,7 +38,7 @@ BDEPEND="
 "
 
 LLVM_COMPONENTS=( runtimes libcxx{abi,} llvm/cmake cmake )
-LLVM_TEST_COMPONENTS=( llvm/utils/llvm-lit )
+LLVM_TEST_COMPONENTS=( libc llvm/utils/llvm-lit )
 llvm.org_set_globals
 [[ ${CTARGET} == *-mingw* ]] && IS_MINGW=true || IS_MINGW=false
 
@@ -68,6 +68,7 @@ multilib_src_configure() {
 
 	local enable_shared=ON
 	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF
+	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF
 
 	local libdir=$(get_libdir)
 	local mycmakeargs=(
@@ -124,11 +125,13 @@ multilib_src_configure() {
 			)
 		else
 			mycmakeargs+=(
-				-DLIBCXX_ENABLE_THREADS=OFF
-				-DLIBCXX_HAS_PTHREAD_API=OFF
-				-DLIBCXXABI_ENABLE_THREADS=OFF
-				-DLIBCXXABI_HAS_PTHREAD_API=OFF
+				-DLIBCXX_ENABLE_THREADS=ON
+				-DLIBCXX_HAS_PTHREAD_API=ON
+				-DLIBCXXABI_ENABLE_THREADS=ON
+				-DLIBCXXABI_HAS_PTHREAD_API=ON
 			)
+			append-flags -D_WASI_EMULATED_PTHREAD
+			append-ldflags -lwasi-emulated-pthread
 		fi
 	fi
   if [[ "${CTARGET}" == *elf* ]]; then

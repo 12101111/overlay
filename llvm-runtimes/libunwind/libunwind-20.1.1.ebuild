@@ -1,4 +1,4 @@
-# Copyright 1999-2024 Gentoo Authors
+# Copyright 1999-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -36,7 +36,7 @@ BDEPEND="
 "
 
 LLVM_COMPONENTS=( runtimes libunwind libcxx llvm/cmake cmake )
-LLVM_TEST_COMPONENTS=( libcxxabi llvm/utils/llvm-lit )
+LLVM_TEST_COMPONENTS=( libc libcxxabi llvm/utils/llvm-lit )
 llvm.org_set_globals
 
 python_check_deps() {

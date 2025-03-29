@@ -1,4 +1,4 @@
-# Copyright 1999-2024 Gentoo Authors
+# Copyright 1999-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -40,7 +40,9 @@ BDEPEND="
 	)
 "
 
-LLVM_COMPONENTS=( runtimes libcxx{,abi} llvm/{cmake,utils/llvm-lit} cmake )
+LLVM_COMPONENTS=(
+	runtimes libcxx{,abi} libc llvm/{cmake,utils/llvm-lit} cmake
+)
 llvm.org_set_globals
 
 python_check_deps() {
@@ -118,7 +120,8 @@ multilib_src_configure() {
 
 	local enable_shared=ON
 	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF
-	
+	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF
+
 	local mycmakeargs=(
 		-DCMAKE_CXX_COMPILER_TARGET="${CHOST}"
 		-DPython3_EXECUTABLE="${PYTHON}"
@@ -171,9 +174,11 @@ multilib_src_configure() {
 			)
 		else
 			mycmakeargs+=(
-				-DLIBCXX_ENABLE_THREADS=OFF
-				-DLIBCXX_HAS_PTHREAD_API=OFF
+				-DLIBCXX_ENABLE_THREADS=ON
+				-DLIBCXX_HAS_PTHREAD_API=ON
 			)
+			append-flags -D_WASI_EMULATED_PTHREAD
+      append-ldflags -lwasi-emulated-pthread
 		fi
 	fi
 	if [[ "${CTARGET}" == *elf* ]]; then
@@ -211,6 +216,11 @@ multilib_src_compile() {
 
 multilib_src_test() {
 	local -x LIT_PRESERVES_TMP=1
+	cmake_build install-cxx-test-suite-prefix
+	cp "${BUILD_DIR}"/{lib,libcxx/test-suite-install/$(get_libdir)}/libc++_shared.so || die
+	if use static-libs; then
+		cp "${BUILD_DIR}"/{lib,libcxx/test-suite-install/$(get_libdir)}/libc++_static.a || die
+	fi
 	cmake_build check-cxx
 }
 
