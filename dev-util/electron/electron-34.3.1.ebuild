@@ -1395,7 +1395,7 @@ src_unpack() {
 	if use ppc64; then
 		unpack chromium-openpower-${PPC64_HASH:0:10}.tar.bz2
 	fi
-	use loong && unpack "chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.zip"
+	use loong && unpack "chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.tar.gz"
 }
 
 src_prepare() {
