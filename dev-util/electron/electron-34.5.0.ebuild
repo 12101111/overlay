@@ -26,7 +26,7 @@ inherit rust-toolchain
 # https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-130.0.6699.2-testdata.tar.x%40
 CHROMIUM_VERSION="132.0.6834.208"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="20.18.3"
+NODE_VERSION="20.19.0"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
@@ -1490,7 +1490,7 @@ src_prepare() {
 	# Upstream Rust replaced adler with adler2, for never versions of Rust we still need
 	# to tell GN that we have adler2 when it tries to copy the Rust sysroot
 	# into the bulid directory.
-	if ver_test ${RUST_SLOT} -ge "1.86.0"; then
+	if ver_test ${RUST_SLOT} -ge "1.86"; then
 		sed -i 's/adler/adler2/' build/rust/std/BUILD.gn ||
 			die "Failed to tell GN that we have adler and not adler2"
 	fi

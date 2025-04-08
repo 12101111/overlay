@@ -1,0 +1,48 @@
+From e7e74b7d3241d9d587bf2110270d4c24b912584c Mon Sep 17 00:00:00 2001
+From: Peter Kasting <pkasting@chromium.org>
+Date: Thu, 17 Oct 2024 12:28:09 +0000
+Subject: [PATCH] Fix wrong return type on override.
+
+I failed to fix this when rolling perfetto recently; it wasn't caught
+due to crbug.com/372381413. Thankfully there's no real functional effect
+or dangerous consequence.
+
+Bug: 372381413
+Change-Id: I264e84317988a95d07cd2846f500d85ea050563d
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/5937445
+Auto-Submit: Peter Kasting <pkasting@chromium.org>
+Reviewed-by: Primiano Tucci <primiano@chromium.org>
+Code-Coverage: findit-for-me@appspot.gserviceaccount.com <findit-for-me@appspot.gserviceaccount.com>
+Commit-Queue: Primiano Tucci <primiano@chromium.org>
+Cr-Commit-Position: refs/heads/main@{#1369940}
+---
+ services/tracing/public/cpp/perfetto/shared_memory.cc | 2 +-
+ services/tracing/public/cpp/perfetto/shared_memory.h  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/services/tracing/public/cpp/perfetto/shared_memory.cc b/services/tracing/public/cpp/perfetto/shared_memory.cc
+index 81258946d3209a..b85064adfa387d 100644
+--- a/services/tracing/public/cpp/perfetto/shared_memory.cc
++++ b/services/tracing/public/cpp/perfetto/shared_memory.cc
+@@ -39,7 +39,7 @@ base::UnsafeSharedMemoryRegion ChromeBaseSharedMemory::CloneRegion() {
+   return region_.Duplicate();
+ }
+ 
+-void* ChromeBaseSharedMemory::start() const {
++const void* ChromeBaseSharedMemory::start() const {
+   return mapping_.memory();
+ }
+ 
+diff --git a/services/tracing/public/cpp/perfetto/shared_memory.h b/services/tracing/public/cpp/perfetto/shared_memory.h
+index 34397639c059bf..161c128193519d 100644
+--- a/services/tracing/public/cpp/perfetto/shared_memory.h
++++ b/services/tracing/public/cpp/perfetto/shared_memory.h
+@@ -40,7 +40,7 @@ class COMPONENT_EXPORT(TRACING_CPP) ChromeBaseSharedMemory
+ 
+   // perfetto::SharedMemory implementation. Called internally by Perfetto
+   // classes.
+-  void* start() const override;
++  const void* start() const override;
+   size_t size() const override;
+ 
+  private:
