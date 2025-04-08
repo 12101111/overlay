@@ -1,0 +1,27 @@
+diff --git a/src/bootstrap/src/utils/helpers.rs b/src/bootstrap/src/utils/helpers.rs
+index 3fee397da..036622a83 100644
+--- a/src/bootstrap/src/utils/helpers.rs
++++ b/src/bootstrap/src/utils/helpers.rs
+@@ -451,9 +451,19 @@ pub fn linker_flags(
+     if !builder.is_lld_direct_linker(target) && builder.config.lld_mode.is_used() {
+         match builder.config.lld_mode {
+             LldMode::External => {
+-                args.push("-Clinker-flavor=gnu-lld-cc".to_string());
+-                // FIXME(kobzol): remove this flag once MCP510 gets stabilized
+-                args.push("-Zunstable-options".to_string());
++                if target.starts_with("wasm") {
++                    if target.ends_with("unknown") || target.ends_with("none") {
++                        args.push("-Clinker-flavor=wasm-lld".to_string());
++                    } else if target.ends_with("emscripten") {
++                        args.push("-Clinker-flavor=em-cc".to_string());
++                    } else {
++                        args.push("-Clinker-flavor=wasm-lld-cc".to_string());
++                    }
++                } else {
++                    args.push("-Clinker-flavor=gnu-lld-cc".to_string());
++                    // FIXME(kobzol): remove this flag once MCP510 gets stabilized
++                    args.push("-Zunstable-options".to_string());
++                }
+             }
+             LldMode::SelfContained => {
+                 args.push("-Clinker-flavor=gnu-lld-cc".to_string());

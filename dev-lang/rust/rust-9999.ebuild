@@ -8,7 +8,7 @@ PYTHON_COMPAT=( python3_{10..13} )
 
 RUST_MAX_VER=${PV%%_*}
 if [[ ${PV} == *9999* ]]; then
-	RUST_MIN_VER="1.86.0" # Update this as new `beta` releases come out.
+	RUST_MIN_VER="1.86" # Update this as new `beta` releases come out.
 elif [[ ${PV} == *beta* ]]; then
 	# Enforce that `beta` is built from `stable`.
 	# While uncommon it is possible for feature changes within `beta` to result
@@ -104,6 +104,7 @@ BDEPEND="${PYTHON_DEPS}
 		>=sys-devel/gcc-4.7[cxx]
 		>=llvm-core/clang-3.5
 	)
+	lto? ( $(llvm_gen_dep 'llvm-core/lld:${LLVM_SLOT}') )
 	!system-llvm? (
 		>=dev-build/cmake-3.13.4
 		app-alternatives/ninja
@@ -178,6 +179,7 @@ PATCHES=(
 	"${FILESDIR}"/1.85.0-cross-compile-libz.patch
 	"${FILESDIR}"/1.85.0-musl-dynamic-linking.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
+	"${FILESDIR}"/1.88.0-bootstrap-Pass-correct-linker-flavor-flag-for-wasm-t.patch
 )
 
 clear_vendor_checksums() {
@@ -314,6 +316,10 @@ src_prepare() {
 			eapply "${FILESDIR}/1.82.0-i586-baseline.patch"
 			#grep -rl cmd.args.push\(\"-march=i686\" . | xargs sed  -i 's/march=i686/-march=i586/g' || die
 		fi
+	fi
+
+	if use lto && tc-is-clang && ! tc-ld-is-lld; then
+		export RUSTFLAGS+=" -C link-arg=-fuse-ld=lld"
 	fi
 
 	default
@@ -486,6 +492,9 @@ src_configure() {
 		dist-src = false
 		remap-debuginfo = true
 		lld = $(usex system-llvm false $(toml_usex wasm))
+		$(if use lto && tc-is-clang ; then
+			echo "use-lld = true"
+		fi)
 		# only deny warnings if doc+wasm are NOT requested, documenting stage0 wasm std fails without it
 		# https://github.com/rust-lang/rust/issues/74976
 		# https://github.com/rust-lang/rust/issues/76526

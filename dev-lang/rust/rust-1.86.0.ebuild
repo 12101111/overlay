@@ -78,7 +78,7 @@ for _x in "${_ALL_RUST_EXPERIMENTAL_TARGETS[@]}"; do
 done
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD BSD-1 BSD-2 BSD-4"
-SLOT="${PV%%_*}" # Beta releases get to share the same SLOT as the eventual stable
+SLOT="$(ver_cut 1-2)"
 
 IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind lto rustfmt rust-analyzer rust-src system-llvm test wasm sanitizers ${ALL_LLVM_TARGETS[*]}"
 
@@ -104,6 +104,7 @@ BDEPEND="${PYTHON_DEPS}
 		>=sys-devel/gcc-4.7[cxx]
 		>=llvm-core/clang-3.5
 	)
+	lto? ( $(llvm_gen_dep 'llvm-core/lld:${LLVM_SLOT}') )
 	!system-llvm? (
 		>=dev-build/cmake-3.13.4
 		app-alternatives/ninja
@@ -178,6 +179,7 @@ PATCHES=(
 	"${FILESDIR}"/1.85.0-cross-compile-libz.patch
 	"${FILESDIR}"/1.85.0-musl-dynamic-linking.patch
 	"${FILESDIR}"/1.67.0-doc-wasm.patch
+	"${FILESDIR}"/1.86.0-bootstrap-Pass-correct-linker-flavor-flag-for-wasm-t.patch
 )
 
 clear_vendor_checksums() {
@@ -314,6 +316,10 @@ src_prepare() {
 			eapply "${FILESDIR}/1.82.0-i586-baseline.patch"
 			#grep -rl cmd.args.push\(\"-march=i686\" . | xargs sed  -i 's/march=i686/-march=i586/g' || die
 		fi
+	fi
+
+	if use lto && tc-is-clang && ! tc-ld-is-lld; then
+		export RUSTFLAGS+=" -C link-arg=-fuse-ld=lld"
 	fi
 
 	default
@@ -485,6 +491,9 @@ src_configure() {
 		dist-src = false
 		remap-debuginfo = true
 		lld = $(usex system-llvm false $(toml_usex wasm))
+		$(if use lto && tc-is-clang ; then
+			echo "use-lld = true"
+		fi)
 		# only deny warnings if doc+wasm are NOT requested, documenting stage0 wasm std fails without it
 		# https://github.com/rust-lang/rust/issues/74976
 		# https://github.com/rust-lang/rust/issues/76526
@@ -725,7 +734,7 @@ src_install() {
 		# we need realpath on /usr/bin/* symlink return version-appended binary path.
 		# so /usr/bin/rustc should point to /usr/lib/rust/<ver>/bin/rustc-<ver>
 		# need to fix eselect-rust to remove this hack.
-		local ver_i="${i}-${PV%%_*}"
+		local ver_i="${i}-${SLOT}"
 		if [[ -f "${ED}/usr/lib/${PN}/${SLOT}/bin/${i}" ]]; then
 			einfo "Installing ${i} symlink"
 			ln -v "${ED}/usr/lib/${PN}/${SLOT}/bin/${i}" "${ED}/usr/lib/${PN}/${SLOT}/bin/${ver_i}" || die
@@ -734,6 +743,7 @@ src_install() {
 			ewarn "please report this"
 		fi
 		dosym "../lib/${PN}/${SLOT}/bin/${ver_i}" "/usr/bin/${ver_i}"
+		dosym "../lib/${PN}/${SLOT}/bin/${ver_i}" "/usr/bin/${i}-${PV%%_*}"
 	done
 
 	# symlinks to switch components to active rust in eselect
