@@ -1,4 +1,4 @@
-# Copyright 2022-2024 Gentoo Authors
+# Copyright 2022-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -9,15 +9,15 @@ sv_SE tg_TJ tk_TM tr_TR uk_UA vi_VN zh_CN zh_TW"
 
 inherit cmake flag-o-matic plocale xdg
 
-MY_PV="25.02.0-Release.e895b18c"
+MY_PV="25.05.0-Release.2a2b0e16"
 
 DESCRIPTION="Feature-rich dictionary lookup program (qtwebengine fork)"
 HOMEPAGE="https://xiaoyifang.github.io/goldendict-ng/"
 SRC_URI="
-	https://github.com/xiaoyifang/goldendict-ng/archive/v${MY_PV}.tar.gz -> ${PN}-${MY_PV}.tar.gz
+	https://github.com/xiaoyifang/goldendict-ng/archive/v${MY_PV}.tar.gz -> ${PN}-ng-${MY_PV}.tar.gz
 "
-
 S="${WORKDIR}/goldendict-ng-${MY_PV}"
+
 LICENSE="
 	GPL-3
 	!systemfmt? ( MIT )
@@ -44,7 +44,6 @@ DEPEND="
 	dev-qt/qtwebengine:6[widgets]
 	epwing? ( dev-libs/eb )
 	ffmpeg? (
-		media-libs/libao
 		media-video/ffmpeg:*
 	)
 	!ffmpeg? ( dev-qt/qtmultimedia:6[gstreamer] )

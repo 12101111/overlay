@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index aaf8a82f..dd4ebd86 100644
+index 63665f0..fafe4c2 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -4,6 +4,7 @@ option(WITH_FFMPEG_PLAYER "Enable support for FFMPEG player" ON)
@@ -11,7 +11,7 @@ index aaf8a82f..dd4ebd86 100644
  # options for linux packaging
  option(USE_SYSTEM_FMT "use system fmt instead of bundled one" OFF)
 diff --git a/cmake/Deps_Unix.cmake b/cmake/Deps_Unix.cmake
-index f5a0ea19..cf6050b2 100644
+index f5a0ea1..cf6050b 100644
 --- a/cmake/Deps_Unix.cmake
 +++ b/cmake/Deps_Unix.cmake
 @@ -9,7 +9,7 @@ target_include_directories(${GOLDENDICT} PRIVATE
@@ -24,10 +24,10 @@ index f5a0ea19..cf6050b2 100644
      if (X11_FOUND AND X11_Xtst_FOUND)
          target_compile_definitions(${GOLDENDICT} PUBLIC HAVE_X11)
 diff --git a/src/main.cc b/src/main.cc
-index 4d8884f1..9a7991f9 100644
+index 731e678..4bc02d6 100644
 --- a/src/main.cc
 +++ b/src/main.cc
-@@ -317,7 +317,7 @@ void processCommandLine( QCoreApplication * app, GDOptions * result )
+@@ -254,7 +254,7 @@ void processCommandLine( QCoreApplication * app, GDOptions * result )
  
  int main( int argc, char ** argv )
  {
@@ -37,7 +37,7 @@ index 4d8884f1..9a7991f9 100644
    // natively on Wayland. This workaround will force GoldenDict to use
    // XWayland.
 diff --git a/src/ui/scanpopup.cc b/src/ui/scanpopup.cc
-index 23521d59..540cd70e 100644
+index 4f0687c..9073a77 100644
 --- a/src/ui/scanpopup.cc
 +++ b/src/ui/scanpopup.cc
 @@ -33,7 +33,7 @@ static const Qt::WindowFlags pinnedWindowFlags =
@@ -58,19 +58,18 @@ index 23521d59..540cd70e 100644
    }
  
    /// Too large strings make window expand which is probably not what user
-@@ -960,8 +960,8 @@ void ScanPopup::pinButtonClicked( bool checked )
+@@ -956,7 +956,8 @@ void ScanPopup::pinButtonClicked( bool checked )
      setAttribute( Qt::WA_MacAlwaysShowToolWindow );
  #endif
  
 -    setWindowTitle( QString( "%1 - GoldenDict-ng" ).arg( elideInputWord() ) );
--    dictionaryBar.setMovable( false );
 +    setWindowTitle( QString( "%1 - GoldenDict Popup" ).arg( elideInputWord() ) );
 +    dictionaryBar.setMovable( true );
      hideTimer.stop();
    }
    else {
 diff --git a/src/unix/x11hotkeywrapper.cc b/src/unix/x11hotkeywrapper.cc
-index 2cf13fcc..1abde3cc 100644
+index 2cf13fc..1abde3c 100644
 --- a/src/unix/x11hotkeywrapper.cc
 +++ b/src/unix/x11hotkeywrapper.cc
 @@ -1,5 +1,5 @@
