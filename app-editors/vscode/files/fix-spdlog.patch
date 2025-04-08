@@ -1,0 +1,15 @@
+diff --git a/binding.gyp b/binding.gyp
+index 3750c69..54086ba 100644
+--- a/binding.gyp
++++ b/binding.gyp
+@@ -10,8 +10,9 @@
+ 		],
+ 		"include_dirs": [
+ 			"<!(node -p \"require('node-addon-api').include_dir\")",
+-			"deps/spdlog/include"
++			"/usr/include"
+ 		],
++		"libraries": ['-lfmt'],
+ 		"defines": [ "NODE_API_SWALLOW_UNTHROWABLE_EXCEPTIONS" ],
+ 		'msvs_configuration_attributes': {
+ 			'SpectreMitigation': 'Spectre'
