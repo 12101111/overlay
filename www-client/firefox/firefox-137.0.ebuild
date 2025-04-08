@@ -3,16 +3,16 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-136-patches-04.tar.xz"
+FIREFOX_PATCHSET="firefox-137-patches-01.tar.xz"
 FIREFOX_LOONG_PATCHSET="firefox-136-loong-patches-01.tar.xz"
 
-LLVM_COMPAT=( 17 18 19 )
+LLVM_COMPAT=( 19 20 )
 
 # This will also filter rust versions that don't match LLVM_COMPAT in the non-clang path; this is fine.
 RUST_NEEDS_LLVM=1
 
 # If not building with clang we need at least rust 1.76
-RUST_MIN_VER=1.77.1
+RUST_MIN_VER=1.82.0
 
 PYTHON_COMPAT=( python3_{10..13} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
@@ -84,7 +84,7 @@ IUSE+=" +gmp-autoupdate gnome-shell +jumbo-build openh264 +telemetry wasm-sandbo
 REQUIRED_USE="|| ( X wayland )
 	debug? ( !system-av1 )
 	pgo? ( jumbo-build )
-	wasm-sandbox? ( llvm_slot_19 clang )
+	wasm-sandbox? ( clang )
 	wayland? ( dbus )
 	wifi? ( dbus )
 "
@@ -129,7 +129,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.108
+	>=dev-libs/nss-3.109
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -642,6 +642,10 @@ src_prepare() {
 		-e 's/ccache_stats = None/return None/' \
 		"${S}"/python/mozbuild/mozbuild/controller/building.py || die "sed failed to disable ccache stats call"
 
+	if use pgo && use clang; then
+		eapply "${FILESDIR}/cross-pgo.patch"
+	fi
+
 	einfo "Removing pre-built binaries ..."
 
 	find "${S}"/third_party -type f \( -name '*.so' -o -name '*.o' \) -print -delete || die
@@ -952,11 +956,9 @@ src_configure() {
 	# PGO was moved outside lto block to allow building pgo without lto.
 	if use pgo ; then
 		mozconfig_add_options_ac '+pgo' MOZ_PGO=1
-
 		if use clang ; then
 			# Used in build/pgo/profileserver.py
 			export LLVM_PROFDATA="llvm-profdata"
-			mozconfig_add_options_ac '+pgo' MOZ_PGO_RUST=1
 		fi
 	fi
 
