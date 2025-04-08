@@ -74,10 +74,6 @@ src_prepare() {
         eapply "${FILESDIR}/libcxx-19.patch"
     fi
 
-    if has_version ">=dev-libs/boost-1.87.0"; then
-        eapply "${FILESDIR}/boost-1.87-fix.patch"
-    fi
-
     cmake_src_prepare
 }
 
