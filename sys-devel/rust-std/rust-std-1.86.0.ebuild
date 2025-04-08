@@ -41,21 +41,20 @@ S="${WORKDIR}/${MY_P}-src"
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4"
 # please do not keyword
 #KEYWORDS="" #nowarn
-IUSE="debug llvm-libunwind profiler"
+IUSE="debug llvm-libunwind profiler lld"
 
 BDEPEND="
 	${PYTHON_DEPS}
 	~dev-lang/rust-${PV}:=
 "
-
 DEPEND="||
 	(
 		>="${CATEGORY}"/gcc-4.7:*
 		>="${CATEGORY/sys-devel/llvm-core}"/clang-3.5:*
 		>="${CATEGORY}"/clang-crossdev-wrappers-17.0:*
 	)
+	lld? ( llvm-core/lld:* )
 "
-
 RDEPEND="${DEPEND}"
 
 # need full compiler to run tests
@@ -152,6 +151,7 @@ src_configure() {
 		remap-debuginfo = true
 		jemalloc = false
 		deny-warnings = false
+		use-lld = $(toml_usex lld)
 		[dist]
 		src-tarball = false
 		[target.${rtarget}]
