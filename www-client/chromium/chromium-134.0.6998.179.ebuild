@@ -48,7 +48,7 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+PPC64_HASH="7d1ac28278b5679d0b950ebd380bdd889b319592"
 PATCH_V="${PV%%\.*}-1"
 PATCHSET_LOONG_PV="131.0.6778.85"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
@@ -63,7 +63,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 			-> chromium-rust-toolchain-${RUST_SHORT_HASH}-${BUNDLED_CLANG_VER%-*}.tar.xz
 	)
 	test? (
-		https://chromium-tarballs.distfiles.gentoo.org/${P}-linux-testdata.tar.xz
+		https://commondatastorage.googleapis.com/chromium-browser-official/${P}-testdata.tar.xz
 		https://chromium-fonts.storage.googleapis.com/${TEST_FONT} -> chromium-testfonts-${TEST_FONT:0:10}.tar.gz
 	)
 	loong? (
@@ -442,6 +442,7 @@ src_prepare() {
 		"${FILESDIR}/chromium-134-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-134-bindgen-custom-toolchain.patch"
 		"${FILESDIR}/chromium-135-fix-non-wayland-build.patch"
+		"${FILESDIR}/fix-pipewire.patch"
 	)
 
 	if use bundled-toolchain; then
@@ -516,9 +517,16 @@ src_prepare() {
 		# Upstream Rust replaced adler with adler2, for older versions of Rust we still need
 		# to tell GN that we have the older lib when it tries to copy the Rust sysroot
 		# into the bulid directory.
-		if ver_test ${RUST_SLOT} -lt "1.86.0"; then
+		if ver_test ${RUST_SLOT} -lt "1.86"; then
 			sed -i 's/adler2/adler/' build/rust/std/BUILD.gn ||
 				die "Failed to tell GN that we have adler and not adler2"
+		fi
+
+		if ver_test ${RUST_SLOT} -gt "1.86"; then
+				eapply "${FILESDIR}"/fix-rust-allocator-shim.patch
+				eapply "${FILESDIR}"/fix-rust-allocator-shim2.patch
+				eapply "${FILESDIR}"/fix-rust-allocator-shim3.patch
+				eapply "${FILESDIR}"/fix-rust-allocator-shim4.patch
 		fi
 	fi
 
