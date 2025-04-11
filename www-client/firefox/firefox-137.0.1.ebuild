@@ -3,8 +3,8 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-137-patches-01.tar.xz"
-FIREFOX_LOONG_PATCHSET="firefox-136-loong-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-137-patches-02.tar.xz"
+FIREFOX_LOONG_PATCHSET="firefox-137-loong-patches-01.tar.xz"
 
 LLVM_COMPAT=( 19 20 )
 
@@ -956,6 +956,7 @@ src_configure() {
 	# PGO was moved outside lto block to allow building pgo without lto.
 	if use pgo ; then
 		mozconfig_add_options_ac '+pgo' MOZ_PGO=1
+
 		if use clang ; then
 			# Used in build/pgo/profileserver.py
 			export LLVM_PROFDATA="llvm-profdata"
