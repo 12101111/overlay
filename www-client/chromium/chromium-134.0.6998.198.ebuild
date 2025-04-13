@@ -50,7 +50,7 @@ DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
 PPC64_HASH="7d1ac28278b5679d0b950ebd380bdd889b319592"
 PATCH_V="${PV%%\.*}-1"
-PATCHSET_LOONG_PV="131.0.6778.85"
+PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	!bundled-toolchain? (
@@ -158,7 +158,6 @@ COMMON_DEPEND="
 		x11-libs/cairo:=
 		x11-libs/gdk-pixbuf:2
 		x11-libs/pango:=
-		cups? ( >=net-print/cups-1.3.11:= )
 		qt6? ( dev-qt/qtbase:6[gui,widgets] )
 		X? ( ${COMMON_X_DEPEND} )
 	)
@@ -442,8 +441,15 @@ src_prepare() {
 		"${FILESDIR}/chromium-134-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-134-bindgen-custom-toolchain.patch"
 		"${FILESDIR}/chromium-135-fix-non-wayland-build.patch"
-		"${FILESDIR}/fix-pipewire.patch"
 	)
+
+	if has_version ">=media-video/pipewire-1.4.1" ; then
+		PATCHES+=( "${FILESDIR}/fix-pipewire.patch" )
+	fi
+
+	if has_version ">=dev-util/gperf-3.2"; then
+		PATCHES+=( "${FILESDIR}/fix-gperf.patch" )
+	fi
 
 	if use bundled-toolchain; then
 		# We need to symlink the toolchain into the expected location
@@ -945,7 +951,6 @@ src_prepare() {
 		if [[ -f $config2 ]]; then
 			sed -i 's/#define HAVE_MALLINFO 1/\/* #undef HAVE_MALLINFO *\//' $config2 || die
 		fi
-		eapply "${FILESDIR}/libcpp_has_musl-133.patch"
 	fi
 
 	# bundled eu-strip is for amd64 only and we don't want to pre-stripped binaries
