@@ -15,7 +15,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="4437686ffebaf200fa4a6e6e67f735f3edf24ada"
+COMMIT="4949701c880d4bdb949e3c0e6b400288da7f474b"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.15.10/lib/postinstall.js#L21
