@@ -8,7 +8,7 @@ PYTHON_COMPAT=( python3_{10..13} )
 
 RUST_MAX_VER=${PV%%_*}
 if [[ ${PV} == *9999* ]]; then
-	RUST_MIN_VER="1.86" # Update this as new `beta` releases come out.
+	RUST_MIN_VER="1.87.0" # Update this as new `beta` releases come out.
 elif [[ ${PV} == *beta* ]]; then
 	# Enforce that `beta` is built from `stable`.
 	# While uncommon it is possible for feature changes within `beta` to result
@@ -80,7 +80,7 @@ done
 LICENSE="|| ( MIT Apache-2.0 ) BSD BSD-1 BSD-2 BSD-4"
 SLOT="${PV%%_*}" # Beta releases get to share the same SLOT as the eventual stable
 
-IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind lto rustfmt rust-analyzer rust-src system-llvm test wasm sanitizers ${ALL_LLVM_TARGETS[*]}"
+IUSE="big-endian clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind lto rustfmt rust-analyzer rust-src +system-llvm test wasm sanitizers ${ALL_LLVM_TARGETS[*]}"
 
 if [[ ${PV} = *9999* ]]; then
 	# These USE flags require nightly rust
@@ -104,7 +104,7 @@ BDEPEND="${PYTHON_DEPS}
 		>=sys-devel/gcc-4.7[cxx]
 		>=llvm-core/clang-3.5
 	)
-	lto? ( $(llvm_gen_dep 'llvm-core/lld:${LLVM_SLOT}') )
+	lto? ( system-llvm? ( $(llvm_gen_dep 'llvm-core/lld:${LLVM_SLOT}') ) )
 	!system-llvm? (
 		>=dev-build/cmake-3.13.4
 		app-alternatives/ninja
