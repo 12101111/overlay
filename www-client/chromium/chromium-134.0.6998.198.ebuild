@@ -523,12 +523,12 @@ src_prepare() {
 		# Upstream Rust replaced adler with adler2, for older versions of Rust we still need
 		# to tell GN that we have the older lib when it tries to copy the Rust sysroot
 		# into the bulid directory.
-		if ver_test ${RUST_SLOT} -lt "1.86"; then
+		if ver_test ${RUST_SLOT} -lt "1.86.0"; then
 			sed -i 's/adler2/adler/' build/rust/std/BUILD.gn ||
 				die "Failed to tell GN that we have adler and not adler2"
 		fi
 
-		if ver_test ${RUST_SLOT} -gt "1.86"; then
+		if ver_test ${RUST_SLOT} -gt "1.86.0"; then
 				eapply "${FILESDIR}"/fix-rust-allocator-shim.patch
 				eapply "${FILESDIR}"/fix-rust-allocator-shim2.patch
 				eapply "${FILESDIR}"/fix-rust-allocator-shim3.patch
