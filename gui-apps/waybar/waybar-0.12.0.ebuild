@@ -74,10 +74,6 @@ DEPEND="${RDEPEND}
 	test? ( dev-cpp/catch:0 )
 "
 
-PATCHES=(
-	"${FILESDIR}"/tray-icons-fix.patch
-)
-
 src_configure() {
 	local emesonargs=(
 		-Dman-pages=enabled
