@@ -2357,6 +2357,7 @@ src_compile() {
 	# Don't inherit PYTHONPATH from environment, bug #789021, #812689
 	local -x PYTHONPATH=
 
+	export ELECTRON_OUT_DIR=Release
 	eninja -C out/Release electron:node_headers
 
 	if use pax-kernel; then
