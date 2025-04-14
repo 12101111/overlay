@@ -22,7 +22,7 @@ EAPI=8
 # new "Distro tarballs" and include binaries (etc) that are not useful for
 # downstream consumers (like distributions).
 
-GN_MIN_VER=0.2207
+GN_MIN_VER=0.2217
 # chromium-tools/get-chromium-toolchain-strings.py
 TEST_FONT=f26f29c9d3bfae588207bbc9762de8d142e58935c62a86f67332819b15203b35
 BUNDLED_CLANG_VER=llvmorg-20-init-17108-g29ed6000-3
@@ -48,8 +48,8 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="7d1ac28278b5679d0b950ebd380bdd889b319592"
-PATCH_V="${PV%%\.*}-1"
+PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+PATCH_V="${PV%%\.*}"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
@@ -158,6 +158,7 @@ COMMON_DEPEND="
 		x11-libs/cairo:=
 		x11-libs/gdk-pixbuf:2
 		x11-libs/pango:=
+		cups? ( >=net-print/cups-1.3.11:= )
 		qt6? ( dev-qt/qtbase:6[gui,widgets] )
 		X? ( ${COMMON_X_DEPEND} )
 	)
@@ -283,22 +284,25 @@ pre_build_checks() {
 	# Check build requirements: bugs #471810, #541816, #914220
 	# We're going to start doing maths here on the size of an unpacked source tarball,
 	# this should make updates easier as chromium continues to balloon in size.
-	local BASE_DISK=24
-	local EXTRA_DISK=1
-	local CHECKREQS_MEMORY="4G"
-	tc-is-cross-compiler && EXTRA_DISK=2
+	# xz -l /var/cache/distfiles/chromium-${PV}*.tar.xz
+	local base_disk=9 # Round up
+	use test && base_disk=$((base_disk + 5))
+	local extra_disk=1 # Always include a little extra space
+	local memory=4
+	tc-is-cross-compiler && extra_disk=$((extra_disk * 2))
 	if tc-is-lto || use pgo; then
-		CHECKREQS_MEMORY="9G"
-		tc-is-cross-compiler && EXTRA_DISK=4
-		use pgo && EXTRA_DISK=8
+		memory=$((memory * 2 + 1))
+		tc-is-cross-compiler && extra_disk=$((extra_disk * 2)) # Double the requirements
+		use pgo && extra_disk=$((extra_disk + 4))
 	fi
 	if is-flagq '-g?(gdb)?([1-9])'; then
 		if use custom-cflags; then
-			EXTRA_DISK=13
+			extra_disk=$((extra_disk + 5))
 		fi
-		CHECKREQS_MEMORY="16G"
+		memory=$((memory * 2))
 	fi
-	CHECKREQS_DISK_BUILD="$((BASE_DISK + EXTRA_DISK))G"
+	local CHECKREQS_MEMORY="${memory}G"
+	local CHECKREQS_DISK_BUILD="$((base_disk + extra_disk))G"
 	check-reqs_${EBUILD_PHASE_FUNC}
 }
 
@@ -437,19 +441,13 @@ src_prepare() {
 		"${FILESDIR}/chromium-109-system-zlib.patch"
 		"${FILESDIR}/chromium-111-InkDropHost-crash.patch"
 		"${FILESDIR}/chromium-131-unbundle-icu-target.patch"
-		"${FILESDIR}/chromium-134-map_droppable-glibc.patch"
-		"${FILESDIR}/chromium-134-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-134-bindgen-custom-toolchain.patch"
-		"${FILESDIR}/chromium-135-fix-non-wayland-build.patch"
+		"${FILESDIR}/chromium-135-oauth2-client-switches.patch"
+		"${FILESDIR}/chromium-135-map_droppable-glibc.patch"
+		"${FILESDIR}/chromium-135-webrtc-pipewire.patch"
+		"${FILESDIR}/chromium-135-gperf.patch"
+		"${FILESDIR}/fix-gtk.patch"
 	)
-
-	if has_version ">=media-video/pipewire-1.4.1" ; then
-		PATCHES+=( "${FILESDIR}/fix-pipewire.patch" )
-	fi
-
-	if has_version ">=dev-util/gperf-3.2"; then
-		PATCHES+=( "${FILESDIR}/fix-gperf.patch" )
-	fi
 
 	if use bundled-toolchain; then
 		# We need to symlink the toolchain into the expected location
@@ -539,10 +537,6 @@ src_prepare() {
 	if use loong ; then
 		local p
 		local other_patches_to_apply=(
-			# Fedora-chromium-121-nullptr_t-without-namespace-std
-			# Debian-upstream-std-to-address
-			# Debian-fixes-internalalloc
-			# Debian-fixes-optional2
 			Debian-fixes-blink
 			Debian-fixes-blink-frags
 			fix-clang-builtins-path
@@ -683,7 +677,6 @@ src_prepare() {
 		third_party/googletest
 		third_party/highway
 		third_party/hunspell
-		third_party/iccjpeg
 		third_party/ink_stroke_modeler/src/ink_stroke_modeler
 		third_party/ink_stroke_modeler/src/ink_stroke_modeler/internal
 		third_party/ink/src/ink/brush
@@ -769,6 +762,7 @@ src_prepare() {
 		third_party/private_membership
 		third_party/private-join-and-compute
 		third_party/protobuf
+		third_party/protobuf/third_party/utf8_range
 		third_party/pthreadpool
 		third_party/puffin
 		third_party/pyjson5
