@@ -20,7 +20,7 @@ case ${PV}  in
 *)
 	SRC_URI="https://storage.googleapis.com/golang/go${MY_PV}.src.tar.gz "
 	S="${WORKDIR}"/go
-	KEYWORDS="-* amd64 arm arm64 ~loong ~mips ppc64 ~riscv ~s390 x86 ~amd64-linux ~x86-linux ~x64-macos ~x64-solaris"
+	KEYWORDS="-* ~amd64 ~arm ~arm64 ~loong ~mips ~ppc64 ~riscv ~s390 ~x86 ~amd64-linux ~x86-linux ~x64-macos ~x64-solaris"
 	;;
 esac
 
@@ -74,6 +74,7 @@ PATCHES=(
 	"${FILESDIR}"/use-lld.patch
 	"${FILESDIR}"/0001-cmd-link-prefer-musl-s-over-glibc-s-ld.so-during-dyn.patch
 	"${FILESDIR}"/go-1.24-skip-gdb-tests.patch
+	"${FILESDIR}"/go-1.24-vgetrandom.patch
 	"${FILESDIR}"/go-never-download-newer-toolchains.patch
 )
 
