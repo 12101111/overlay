@@ -15,12 +15,8 @@ EAPI=8
 # and need to get a release out quickly (less likely with `dev` in-tree).
 
 # Since m133 we are using CI-generated tarballs from
-# https://github.com/chromium-linux-tarballs/chromium-tarballs/ (uploaded to S3
-# and made available via https://chromium-tarballs.distfiles.gentoo.org/).
-
-# We do this because upstream tarballs weigh in at about 3.5x the size of our
-# new "Distro tarballs" and include binaries (etc) that are not useful for
-# downstream consumers (like distributions).
+# https://github.com/chromium-linux-tarballs/chromium-tarballs/ as we have
+# control over the generation and are able to avoid issues with upstream CI.
 
 GN_MIN_VER=0.2217
 # chromium-tools/get-chromium-toolchain-strings.py
@@ -48,11 +44,11 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+PPC64_HASH="2c25ddd2bbabaef094918fe15eb5de524d16949c"
 PATCH_V="${PV%%\.*}"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
-SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
+SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
 	!bundled-toolchain? (
 		https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
 	)
@@ -63,7 +59,7 @@ SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}
 			-> chromium-rust-toolchain-${RUST_SHORT_HASH}-${BUNDLED_CLANG_VER%-*}.tar.xz
 	)
 	test? (
-		https://commondatastorage.googleapis.com/chromium-browser-official/${P}-testdata.tar.xz
+		https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux-testdata.tar.xz
 		https://chromium-fonts.storage.googleapis.com/${TEST_FONT} -> chromium-testfonts-${TEST_FONT:0:10}.tar.gz
 	)
 	loong? (
@@ -392,7 +388,7 @@ pkg_setup() {
 }
 
 src_unpack() {
-	unpack ${P}.tar.xz
+	unpack ${P}-linux.tar.xz
 	# These should only be required when we're not using the official toolchain
 	use !bundled-toolchain && unpack chromium-patches-${PATCH_V}.tar.bz2
 
