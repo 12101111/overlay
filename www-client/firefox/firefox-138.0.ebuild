@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-137-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-138-patches-01.tar.xz"
 FIREFOX_LOONG_PATCHSET="firefox-137-loong-patches-01.tar.xz"
 
 LLVM_COMPAT=( 19 20 )
@@ -72,7 +72,7 @@ KEYWORDS="~amd64 ~arm64 ~loong ~ppc64 ~riscv ~x86"
 
 IUSE="+clang dbus debug eme-free hardened hwaccel jack libproxy pgo pulseaudio sndio selinux"
 IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-jpeg +system-libevent"
-IUSE+=" +system-libvpx system-png +system-webp valgrind wayland wifi +X"
+IUSE+=" +system-libvpx system-png +system-webp test valgrind wayland wifi +X"
 
 # Firefox-only IUSE
 IUSE+=" +gmp-autoupdate gnome-shell +jumbo-build openh264 +telemetry wasm-sandbox"
@@ -89,6 +89,8 @@ REQUIRED_USE="|| ( X wayland )
 	wifi? ( dbus )
 "
 
+RESTRICT="!test? ( test )"
+
 FF_ONLY_DEPEND="!www-client/firefox:0
 	selinux? ( sec-policy/selinux-mozilla )"
 BDEPEND="${PYTHON_DEPS}
@@ -104,7 +106,7 @@ BDEPEND="${PYTHON_DEPS}
 	app-alternatives/awk
 	app-arch/unzip
 	app-arch/zip
-	>=dev-util/cbindgen-0.26.0
+	>=dev-util/cbindgen-0.28.0
 	net-libs/nodejs
 	virtual/pkgconfig
 	amd64? ( >=dev-lang/nasm-2.14 )
@@ -129,7 +131,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.109
+	>=dev-libs/nss-3.110
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -773,14 +775,12 @@ src_configure() {
 		--disable-legacy-profile-creation \
 		--disable-parental-controls \
 		--disable-strip \
-		--disable-tests \
 		--disable-updater \
 		--disable-wmf \
 		--enable-negotiateauth \
 		--enable-new-pass-manager \
 		--enable-official-branding \
 		--enable-release \
-		--enable-system-pixman \
 		--enable-system-policies \
 		--host="${CBUILD:-${CHOST}}" \
 		--libdir="${EPREFIX}/usr/$(get_libdir)" \
@@ -792,6 +792,7 @@ src_configure() {
 		--with-system-ffi \
 		--with-system-nspr \
 		--with-system-nss \
+		--with-system-pixman \
 		--with-system-zlib \
 		--with-toolchain-prefix="${CHOST}-" \
 		--with-unsigned-addon-scopes=app,system \
@@ -1050,6 +1051,8 @@ src_configure() {
 		mozconfig_add_options_mk '-telemetry setting' "MOZ_TELEMETRY_REPORTING=0"
 	fi
 
+	mozconfig_use_enable test tests
+
 	# Disable notification when build system has finished
 	export MOZ_NOSPAM=1
 
@@ -1130,6 +1133,29 @@ src_compile() {
 	fi
 
 	${virtx_cmd} ./mach build --verbose || die
+}
+
+src_test() {
+	# https://firefox-source-docs.mozilla.org/testing/automated-testing/index.html
+	local -a failures=()
+
+	# Some tests respect this
+	local -x MOZ_HEADLESS=1
+
+	# Check testing/mach_commands.py
+	einfo "Testing with cppunittest ..."
+	./mach cppunittest
+	local ret=$?
+	if [[ ${ret} -ne 0 ]]; then
+		eerror "Test suite cppunittest failed with error code ${ret}"
+		failures+=( cppunittest )
+	fi
+
+	if [[ ${#failures} -eq 0 ]]; then
+		einfo "Test suites succeeded"
+	else
+		die "Test suites failed: ${failures[@]}"
+	fi
 }
 
 src_install() {
