@@ -282,7 +282,7 @@ pkg_postinst() {
 	fi
 
 	if systemd_is_booted || has_version sys-apps/systemd; then
-		einfo "Please refer to ${EROOT}/$(systemd_get_systempresetdir)/50-zfs.preset"
+		einfo "Please refer to $(systemd_get_systempresetdir)/50-zfs.preset"
 		einfo "for default zfs systemd service configuration"
 	else
 		[[ -e "${EROOT}/etc/runlevels/boot/zfs-import" ]] || \
