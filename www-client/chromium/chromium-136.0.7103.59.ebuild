@@ -15,15 +15,20 @@ EAPI=8
 # and need to get a release out quickly (less likely with `dev` in-tree).
 
 # Since m133 we are using CI-generated tarballs from
-# https://github.com/chromium-linux-tarballs/chromium-tarballs/ as we have
-# control over the generation and are able to avoid issues with upstream CI.
+# https://github.com/chromium-linux-tarballs/chromium-tarballs/ (uploaded to S3
+# and made available via https://chromium-tarballs.distfiles.gentoo.org/).
+
+# We do this because upstream tarballs weigh in at about 3.5x the size of our
+# new "Distro tarballs" and include binaries (etc) that are not useful for
+# downstream consumers (like distributions).
 
 GN_MIN_VER=0.2217
 # chromium-tools/get-chromium-toolchain-strings.py
 TEST_FONT=f26f29c9d3bfae588207bbc9762de8d142e58935c62a86f67332819b15203b35
-BUNDLED_CLANG_VER=llvmorg-20-init-17108-g29ed6000-3
-BUNDLED_RUST_VER=ad211ced81509462cdfe4c29ed10f97279a0acae-1
+BUNDLED_CLANG_VER=llvmorg-21-init-5118-g52cd27e6-5
+BUNDLED_RUST_VER=f7b43542838f0a4a6cfdb17fbeadf45002042a77-1
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
+NODE_VER=22.11.0
 
 VIRTUALX_REQUIRED="pgo"
 
@@ -44,8 +49,8 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="2c25ddd2bbabaef094918fe15eb5de524d16949c"
-PATCH_V="${PV%%\.*}"
+PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+PATCH_V="${PV%%\.*}-2"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
@@ -213,9 +218,9 @@ BDEPEND="
 	>=dev-build/gn-${GN_MIN_VER}
 	app-alternatives/ninja
 	dev-lang/perl
-	>=dev-util/gperf-3.0.3
+	>=dev-util/gperf-3.2
 	dev-vcs/git
-	>=net-libs/nodejs-7.6.0[inspector]
+	>=net-libs/nodejs-${NODE_VER}:0/${NODE_VER%%.*}[inspector]
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
@@ -440,9 +445,8 @@ src_prepare() {
 		"${FILESDIR}/chromium-134-bindgen-custom-toolchain.patch"
 		"${FILESDIR}/chromium-135-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-135-map_droppable-glibc.patch"
-		"${FILESDIR}/chromium-135-webrtc-pipewire.patch"
+		"${FILESDIR}/chromium-136-drop-nodejs-ver-check.patch"
 		"${FILESDIR}/chromium-135-gperf.patch"
-		"${FILESDIR}/fix-gtk.patch"
 	)
 
 	if use bundled-toolchain; then
@@ -553,6 +557,16 @@ src_prepare() {
 
 	default
 
+	if [[ ${LLVM_SLOT} == "19" ]]; then
+		# Upstream now hard depend on a feature that was added in LLVM 20.1, but we don't want to stabilise that yet.
+		# Do the temp file shuffle in case someone is using something other than `gawk`
+		{
+			awk '/config\("clang_warning_suppression"\) \{/	{ print $0 " }"; sub(/clang/, "xclang"); print; next }
+				{ print }' build/config/compiler/BUILD.gn > "${T}/build.gn" && \
+				mv "${T}/build.gn" build/config/compiler/BUILD.gn
+		} || die "Unable to disable warning suppression"
+	fi
+
 	# Not included in -lite tarballs, but we should check for it anyway.
 	if [[ -f third_party/node/linux/node-linux-x64/bin/node ]]; then
 		rm third_party/node/linux/node-linux-x64/bin/node || die
@@ -640,6 +654,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/i18n
 		third_party/devtools-frontend/src/front_end/third_party/intl-messageformat
 		third_party/devtools-frontend/src/front_end/third_party/json5
+		third_party/devtools-frontend/src/front_end/third_party/legacy-javascript
 		third_party/devtools-frontend/src/front_end/third_party/lighthouse
 		third_party/devtools-frontend/src/front_end/third_party/lit
 		third_party/devtools-frontend/src/front_end/third_party/marked
