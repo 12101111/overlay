@@ -102,7 +102,7 @@ multilib_src_configure() {
 	local use_compiler_rt=OFF
 	[[ $(tc-get-c-rtlib) == compiler-rt ]] && use_compiler_rt=ON
 
-	local is_musllibc_like=$(usex elibc_musl)
+	local is_musllibc_like=$(llvm_cmake_use_musl)
 	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON
 
 	# bootstrap: cmake is unhappy if compiler can't link to stdlib
