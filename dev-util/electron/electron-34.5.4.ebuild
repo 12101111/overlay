@@ -1506,26 +1506,18 @@ src_prepare() {
 	if use loong ; then
 		local p
 		local other_patches_to_apply=(
-			# Fedora-chromium-121-nullptr_t-without-namespace-std
-			# Debian-upstream-std-to-address
-			# Debian-fixes-internalalloc
-			# Debian-fixes-optional2
-			Debian-fixes-blink
-			Debian-fixes-blink-frags
+			fix-invalid-substition-type
 			fix-clang-builtins-path
-			fix-missing-header
-			fix-static-assertion
 		)
+		pushd "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}"
+			eapply "${FILESDIR}/${SLOT}/fix-loong-patches.patch"
+		popd
 		for p in "${other_patches_to_apply[@]}"; do
 			eapply "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-"${p}".diff
 		done
-		if ! tc-is-clang || ver_test "$(clang-major-version)" -gt 17; then
-			rm "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".4000-loongarch64-clang-no-lsx.diff
-		fi
 		for p in "${WORKDIR}/chromium-loongarch64-${PATCHSET_LOONG}/chromium/chromium-${PATCHSET_LOONG_PV}".????-loongarch64*; do
 			eapply "${p}"
 		done
-		eapply "${FILESDIR}/${SLOT}/chromium-123-gentoo-loong.patch"
 	fi
 
 	cd "${S}/electron" || die
