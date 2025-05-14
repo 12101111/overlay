@@ -44,10 +44,10 @@ elif [[ ${PV} == *beta* ]]; then
 elif [[ ${PV} = *rc* ]]; then
 	rcver=${PV//*rc}
 	RC_SNAPSHOT="${rcver:0:4}-${rcver:4:2}-${rcver:6:2}"
+	ABI_VER=${PV//_rc*}
 	MY_P="rustc-${ABI_VER}"
-	IS_DEV="dev-"
 	SRC_URI="https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz -> rustc-${PV}-src.tar.xz
-		verify-sig? ( https://static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz.asc
+		verify-sig? ( https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz.asc
 			-> rustc-${PV}-src.tar.xz.asc )
 	"
 	S="${WORKDIR}/${MY_P}-src"
@@ -104,7 +104,12 @@ BDEPEND="${PYTHON_DEPS}
 		>=sys-devel/gcc-4.7[cxx]
 		>=llvm-core/clang-3.5
 	)
-	lto? ( system-llvm? ( $(llvm_gen_dep 'llvm-core/lld:${LLVM_SLOT}') ) )
+	lto? ( system-llvm? (
+		|| (
+			$(llvm_gen_dep 'llvm-core/lld:${LLVM_SLOT}')
+			sys-devel/mold
+		)
+	) )
 	!system-llvm? (
 		>=dev-build/cmake-3.13.4
 		app-alternatives/ninja
@@ -134,6 +139,7 @@ RDEPEND="${DEPEND}
 	dev-lang/rust-common
 	sys-apps/lsb-release
 	!dev-lang/rust:stable
+	!dev-lang/rust:1.86
 	!dev-lang/rust-bin:stable
 "
 
@@ -318,7 +324,7 @@ src_prepare() {
 		fi
 	fi
 
-	if use lto && tc-is-clang && ! tc-ld-is-lld; then
+	if use lto && tc-is-clang && ! tc-ld-is-lld && ! tc-ld-is-mold; then
 		export RUSTFLAGS+=" -C link-arg=-fuse-ld=lld"
 	fi
 
@@ -491,7 +497,7 @@ src_configure() {
 		dist-src = false
 		remap-debuginfo = true
 		lld = $(usex system-llvm false $(toml_usex wasm))
-		$(if use lto && tc-is-clang ; then
+		$(if use lto && tc-is-clang && ! tc-ld-is-mold; then
 			echo "use-lld = true"
 		fi)
 		# only deny warnings if doc+wasm are NOT requested, documenting stage0 wasm std fails without it
