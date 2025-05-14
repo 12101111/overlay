@@ -174,11 +174,9 @@ multilib_src_configure() {
 			)
 		else
 			mycmakeargs+=(
-				-DLIBCXX_ENABLE_THREADS=ON
-				-DLIBCXX_HAS_PTHREAD_API=ON
+				-DLIBCXX_ENABLE_THREADS=OFF
+				-DLIBCXX_HAS_PTHREAD_API=OFF
 			)
-			append-flags -D_WASI_EMULATED_PTHREAD
-      append-ldflags -lwasi-emulated-pthread
 		fi
 	fi
 	if [[ "${CTARGET}" == *elf* ]]; then
