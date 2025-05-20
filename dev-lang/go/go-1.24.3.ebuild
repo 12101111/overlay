@@ -20,7 +20,7 @@ case ${PV}  in
 *)
 	SRC_URI="https://storage.googleapis.com/golang/go${MY_PV}.src.tar.gz "
 	S="${WORKDIR}"/go
-	KEYWORDS="-* ~amd64 arm arm64 ~loong ~mips ppc64 ~riscv ~s390 x86 ~amd64-linux ~x86-linux ~x64-macos ~x64-solaris"
+	KEYWORDS="-* ~amd64 ~arm ~arm64 ~loong ~mips ~ppc64 ~riscv ~s390 ~x86 ~amd64-linux ~x86-linux ~x64-macos ~x64-solaris"
 	;;
 esac
 
@@ -28,8 +28,7 @@ DESCRIPTION="A concurrent garbage collected and typesafe programming language"
 HOMEPAGE="https://go.dev"
 
 LICENSE="BSD"
-# XXX: Drop the .1 after 1.24.2 (added for bug #955451)
-SLOT="0/${PV}.1"
+SLOT="0/${PV}"
 IUSE="cpu_flags_x86_sse2"
 
 RDEPEND="
@@ -75,7 +74,6 @@ PATCHES=(
 	"${FILESDIR}"/use-lld.patch
 	"${FILESDIR}"/0001-cmd-link-prefer-musl-s-over-glibc-s-ld.so-during-dyn.patch
 	"${FILESDIR}"/go-1.24-skip-gdb-tests.patch
-	"${FILESDIR}"/go-1.24-vgetrandom.patch
 	"${FILESDIR}"/go-never-download-newer-toolchains.patch
 )
 
