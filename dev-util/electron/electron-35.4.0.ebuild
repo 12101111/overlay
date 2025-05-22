@@ -26,7 +26,7 @@ inherit rust-toolchain
 # https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-134.0.6998.167.tar.xz.hashe%40
 CHROMIUM_VERSION="134.0.6998.198"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="22.14.0"
+NODE_VERSION="22.15.0"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
@@ -1150,7 +1150,7 @@ NODE_S="${S}/third_party/electron_node"
 LICENSE="BSD"
 SLOT="${PV%%[.+]*}"
 KEYWORDS="~amd64 ~arm64 ~loong"
-IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
+IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png"
 IUSE="hevc +X custom-cflags ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium headless kerberos +official pax-kernel pgo +proprietary-codecs pulseaudio"
 IUSE+=" +screencast selinux +vaapi +wayland cpu_flags_ppc_vsx3"
 RESTRICT="
@@ -1186,7 +1186,6 @@ COMMON_SNAPSHOT_DEPEND="
 	system-harfbuzz? ( >=media-libs/harfbuzz-3:0=[icu(-)] )
 	media-libs/libjpeg-turbo:=
 	system-png? ( media-libs/libpng:=[-apng(-)] )
-	system-zstd? ( >=app-arch/zstd-1.5.5:= )
 	>=media-libs/libwebp-0.4.0:=
 	media-libs/mesa:=[gbm(+)]
 	>=media-libs/openh264-1.6.0:=
@@ -1539,6 +1538,7 @@ src_prepare() {
 	done
 
 	cd "${S}" || die
+	eapply "${FILESDIR}/${SLOT}/fix-system-libs.patch"
 
 	# Upstream Rust replaced adler with adler2, for older versions of Rust we still need
 	# to tell GN that we have the older lib when it tries to copy the Rust sysroot
@@ -1900,9 +1900,9 @@ src_prepare() {
 		keeplibs+=( third_party/libpng )
 	fi
 
-	if ! use system-zstd; then
-		keeplibs+=( third_party/zstd )
-	fi
+	#if ! use system-zstd; then
+	keeplibs+=( third_party/zstd )
+	#fi
 
 	# Arch-specific
 	if use arm64 || use ppc64 ; then
@@ -2086,9 +2086,9 @@ src_configure() {
 	if use system-png; then
 		gn_system_libraries+=( libpng )
 	fi
-	if use system-zstd; then
-		gn_system_libraries+=( zstd )
-	fi
+	#if use system-zstd; then
+	#	gn_system_libraries+=( zstd )
+	#fi
 
 	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
 
