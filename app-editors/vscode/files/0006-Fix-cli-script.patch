@@ -1,4 +1,4 @@
-From 5773559220b88f954e2f21eb6d0fc242971545e9 Mon Sep 17 00:00:00 2001
+From c2fd5a8aa575c6d754c1512ba0358d34d8c3f2d0 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 3 Feb 2024 11:34:33 +0800
 Subject: [PATCH 06/11] Fix cli script
