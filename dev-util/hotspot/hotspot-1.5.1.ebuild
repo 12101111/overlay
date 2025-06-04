@@ -41,7 +41,7 @@ RDEPEND="
 	>=kde-frameworks/kwindowsystem-${KFMIN}
 	>=kde-frameworks/kparts-${KFMIN}
 	dev-util/perf
-	>=dev-qt/kddockwidgets-2.1.0
+	gui-libs/kddockwidgets:=
 	media-gfx/kgraphviewer
 	dev-libs/qcustomplot
 	rust? ( dev-libs/rustc-demangle )
@@ -49,7 +49,10 @@ RDEPEND="
 
 DEPEND="${RDEPEND}"
 
-PATCHES=( "${FILESDIR}/include.patch" )
+PATCHES=(
+	"${FILESDIR}/include.patch"
+	"${FILESDIR}/qt6.9.patch"
+)
 
 S="${WORKDIR}/${PN}"
 
