@@ -135,7 +135,6 @@ RDEPEND="${COMMON_DEPEND}
 	)
 	sysv-utils? (
 		!sys-apps/openrc[sysv-utils(-)]
-		!sys-apps/openrc-navi[sysv-utils(-)]
 		!sys-apps/sysvinit
 	)
 	!sysv-utils? ( sys-apps/sysvinit )
@@ -159,7 +158,7 @@ BDEPEND="
 	sys-devel/gettext
 	virtual/pkgconfig
 	bpf? (
-		dev-util/bpftool
+		>=dev-util/bpftool-7.0.0
 		llvm-core/clang
 	)
 	test? (
@@ -272,6 +271,7 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
+		"${FILESDIR}"/systemd-257-cred-util-tpm2.patch
 	)
 
 	if ! use vanilla; then
