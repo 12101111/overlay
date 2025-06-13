@@ -3,8 +3,8 @@
 
 EAPI=8
 
-KDE_ORG_COMMIT=5d8bfe4441be81ff3ced10114bb012d24ec0ab86
-inherit cmake kde.org xdg-utils
+KDE_ORG_COMMIT=0fb2eb516b5d762f202195f8f439bbf1ea463880
+inherit cmake kde.org xdg
 
 DESCRIPTION="Fast heap memory profiler"
 HOMEPAGE="https://apps.kde.org/heaptrack/
@@ -57,15 +57,9 @@ src_configure() {
 }
 
 pkg_postinst() {
-	if use gui; then
-		xdg_desktop_database_update
-		xdg_icon_cache_update
-	fi
+	use gui && xdg_pkg_postinst
 }
 
 pkg_postrm() {
-	if use gui; then
-		xdg_desktop_database_update
-		xdg_icon_cache_update
-	fi
+	use gui && xdg_pkg_postrm
 }
