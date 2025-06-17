@@ -141,6 +141,9 @@ src_prepare() {
 			eapply "${WORKDIR}/patch"
 			einfo "Done."
 
+			# This is a fix on top of a patch we backported to 2.44
+			eapply "${FILESDIR}"/${P}-strip-static.patch
+
 			# This is applied conditionally for now just out of caution.
 			# It should be okay on non-prefix systems though. See bug #892549.
 			if is_cross || use prefix; then
