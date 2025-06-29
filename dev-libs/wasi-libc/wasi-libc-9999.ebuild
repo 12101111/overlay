@@ -25,6 +25,13 @@ pkg_pretend() {
 	target_is_not_host || die "${PN} should only be used for cross"
 }
 
+src_prepare() {
+	mkdir -p build/${CTARGET}
+	local resdir=$(realpath $(clang -target $CTARGET -print-resource-dir))
+	ln -s ${resdir} build/${CTARGET}/resource-dir
+	default
+}
+
 src_compile() {
 	snapshot=p1
 	thread_model=single
