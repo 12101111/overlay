@@ -10,8 +10,8 @@ HOMEPAGE="https://github.com/microsoft/mimalloc"
 SRC_URI="https://github.com/microsoft/mimalloc/archive/refs/tags/v${PV}.tar.gz -> ${P}.tar.gz"
 
 LICENSE="MIT"
-SLOT="0/2"
-KEYWORDS="amd64 ~arm ~arm64 ~loong ~m68k ~ppc ~ppc64 ~riscv ~sparc ~x86"
+SLOT="0/3"
+KEYWORDS="~amd64 ~arm ~arm64 ~loong ~m68k ~ppc ~ppc64 ~riscv ~sparc ~x86"
 IUSE="debug hardened test valgrind"
 RESTRICT="!test? ( test )"
 
