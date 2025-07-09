@@ -3,42 +3,41 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{10..13} )
+PYTHON_COMPAT=( python3_{11..14} )
 
-inherit crossdev flag-o-matic multiprocessing python-any-r1 rust-toolchain toolchain-funcs
+inherit crossdev edo flag-o-matic multiprocessing python-any-r1 rust-toolchain toolchain-funcs verify-sig
 
 DESCRIPTION="Rust standard library, standalone (for crossdev)"
 HOMEPAGE="https://www.rust-lang.org"
 
-
-if [[ ${PV} = *beta* ]]; then
+if [[ ${PV} = *9999* ]]; then
+	inherit git-r3
+	EGIT_REPO_URI="https://github.com/rust-lang/rust.git"
+	EGIT_SUBMODULES=(
+			"*"
+			"-src/gcc"
+	)
+elif [[ ${PV} == *beta* ]]; then
+	# Identify the snapshot date of the beta release:
+	# curl -Ls static.rust-lang.org/dist/channel-rust-beta.toml | grep beta-src.tar.xz
 	betaver=${PV//*beta}
-	ABI_VER=${PV//_beta*}
 	BETA_SNAPSHOT="${betaver:0:4}-${betaver:4:2}-${betaver:6:2}"
 	MY_P="rustc-beta"
-	SLOT="beta/${ABI_VER}"
-	SRC="${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${PV}-src.tar.xz"
-	IS_DEV=""
-elif [[ ${PV} = *rc* ]]; then
-	rcver=${PV//*rc}
-	ABI_VER=${PV//_rc*}
-	RC_SNAPSHOT="${rcver:0:4}-${rcver:4:2}-${rcver:6:2}"
-	MY_P="rustc-${ABI_VER}"
-	SLOT="rc/${ABI_VER}"
-	SRC="${RC_SNAPSHOT}/${MY_P}-src.tar.xz -> rustc-${PV}-src.tar.xz"
-	IS_DEV="dev-"
+	SRC_URI="https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${PV}-src.tar.xz
+			verify-sig? ( https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz.asc
+					-> rustc-${PV}-src.tar.xz.asc )
+	"
+	S="${WORKDIR}/${MY_P}-src"
 else
-	ABI_VER="$(ver_cut 1-2)"
-	SLOT="stable/${ABI_VER}"
 	MY_P="rustc-${PV}"
-	SRC="${MY_P}-src.tar.xz"
-	IS_DEV=""
+	SRC_URI="https://static.rust-lang.org/dist/${MY_P}-src.tar.xz
+			verify-sig? ( https://static.rust-lang.org/dist/${MY_P}-src.tar.xz.asc )
+	"
+	S="${WORKDIR}/${MY_P}-src"
 fi
 
-SRC_URI="https://${IS_DEV}static.rust-lang.org/dist/${SRC}"
-S="${WORKDIR}/${MY_P}-src"
-
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4"
+SLOT="stable/$(ver_cut 1-2)"
 # please do not keyword
 #KEYWORDS="" #nowarn
 IUSE="debug llvm-libunwind profiler lld"
@@ -46,6 +45,7 @@ IUSE="debug llvm-libunwind profiler lld"
 BDEPEND="
 	${PYTHON_DEPS}
 	~dev-lang/rust-${PV}:=
+	verify-sig? ( sec-keys/openpgp-keys-rust )
 "
 DEPEND="||
 	(
@@ -59,6 +59,8 @@ RDEPEND="${DEPEND}"
 
 # need full compiler to run tests
 RESTRICT="test"
+
+VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 
 QA_FLAGS_IGNORED="usr/lib/rust/${PV}/rustlib/.*/lib/lib.*.so"
 
@@ -109,10 +111,10 @@ src_configure() {
 		einfo "$(printf '%10s' ${x^^}:) ${!x}"
 	done
 
-	cat <<- EOF > "${S}"/config.toml
+	cat <<- EOF > "${S}"/bootstrap.toml
+		change-id = "ignore"
 		# https://github.com/rust-lang/rust/issues/135358 (bug #947897)
 		profile = "dist"
-		change-id = 123711
 		[llvm]
 		download-ci-llvm = false
 		[build]
@@ -166,24 +168,24 @@ src_configure() {
 	EOF
 
 	if [[ "${CTARGET}" == *-musl* ]]; then
-		cat <<- _EOF_ >> "${S}"/config.toml
+		cat <<- _EOF_ >> "${S}"/bootstrap.toml
 			musl-root = "${EPREFIX}/usr/${CTARGET}/usr"
 		_EOF_
 	fi
 	if [[ "${CTARGET}" == *-wasi* ]]; then
-		cat <<- _EOF_ >> "${S}"/config.toml
+		cat <<- _EOF_ >> "${S}"/bootstrap.toml
 			wasi-root = "${EPREFIX}/usr/${CTARGET}/"
 		_EOF_
 	fi
 
 	einfo "${PN^} configured with the following settings:"
-	cat "${S}"/config.toml || die
+	cat "${S}"/bootstrap.toml || die
 }
 
 src_compile() {
-	env RUST_BACKTRACE=1 \
-		"${EPYTHON}" ./x.py build -vv --config="${S}"/config.toml -j$(makeopts_jobs) \
-		library/std --stage 0 || die
+	edo env RUST_BACKTRACE=1 \
+		"${EPYTHON}" ./x.py build -vv --config="${S}"/bootstrap.toml -j$(makeopts_jobs) \
+		library/std --stage 0
 }
 
 src_test() {
