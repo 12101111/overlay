@@ -19,7 +19,7 @@ fi
 
 LICENSE="MIT"
 SLOT="0"
-IUSE="evdev experimental jack +libinput +logind mpd mpris network niri pipewire pulseaudio sndio systemd test tray +udev upower wifi"
+IUSE="evdev experimental gps jack +libinput +logind mpd mpris network niri pipewire pulseaudio sndio systemd test tray +udev upower wifi"
 REQUIRED_USE="
 	upower? ( logind )
 "
@@ -68,6 +68,7 @@ RDEPEND="
 	udev? ( virtual/libudev:= )
 	upower? ( sys-power/upower:= )
 	wifi? ( sys-apps/util-linux )
+	gps? ( sci-geosciences/gpsd )
 "
 DEPEND="${RDEPEND}
 	dev-libs/wayland-protocols
@@ -96,6 +97,7 @@ src_configure() {
 		$(meson_feature udev libudev)
 		$(meson_feature upower upower_glib)
 		$(meson_feature wifi rfkill)
+		$(meson_feature gps)
 		$(meson_use experimental)
 	)
 	if [[ $(tc-get-cxx-stdlib) == libc++ ]]; then
