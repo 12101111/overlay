@@ -26,7 +26,7 @@ inherit rust-toolchain
 # https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-134.0.6998.167.tar.xz.hashe%40
 CHROMIUM_VERSION="134.0.6998.198"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="22.15.0"
+NODE_VERSION="22.16.0"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
