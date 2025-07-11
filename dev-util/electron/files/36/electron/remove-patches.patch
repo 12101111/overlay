@@ -1,0 +1,12 @@
+diff --git a/patches/chromium/.patches b/patches/chromium/.patches
+index ddb8f6e197..0b5c4395f3 100644
+--- a/patches/chromium/.patches
++++ b/patches/chromium/.patches
+@@ -143,7 +143,6 @@ feat_separate_content_settings_callback_for_sync_and_async_clipboard.patch
+ fix_win32_synchronous_spellcheck.patch
+ chore_remove_conflicting_allow_unsafe_libc_calls.patch
+ fix_linter_error.patch
+-revert_enable_crel_for_arm32_targets.patch
+ mac_fix_check_on_ime_reconversion_due_to_invalid_replacement_range.patch
+ fix_osr_stutter_fix_backport_for_electron.patch
+ do_not_check_the_order_of_display_id_order_on_windows.patch

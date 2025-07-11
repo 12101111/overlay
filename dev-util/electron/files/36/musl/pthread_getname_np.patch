@@ -1,0 +1,22 @@
+diff --git a/third_party/perfetto/include/perfetto/ext/base/thread_utils.h b/third_party/perfetto/include/perfetto/ext/base/thread_utils.h
+index 2e9c4e54ef..dfcbd222d8 100644
+--- a/third_party/perfetto/include/perfetto/ext/base/thread_utils.h
++++ b/third_party/perfetto/include/perfetto/ext/base/thread_utils.h
+@@ -57,16 +57,7 @@ inline bool MaybeSetThreadName(const std::string& name) {
+ }
+ 
+ inline bool GetThreadName(std::string& out_result) {
+-  char buf[16] = {};
+-#if PERFETTO_BUILDFLAG(PERFETTO_OS_ANDROID)
+-  if (prctl(PR_GET_NAME, buf) != 0)
+-    return false;
+-#else
+-  if (pthread_getname_np(pthread_self(), buf, sizeof(buf)) != 0)
+-    return false;
+-#endif
+-  out_result = std::string(buf);
+-  return true;
++  return false;
+ }
+ 
+ #else

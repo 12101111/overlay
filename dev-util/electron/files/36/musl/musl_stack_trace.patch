@@ -1,0 +1,14 @@
+diff --git a/base/debug/stack_trace_posix.cc b/base/debug/stack_trace_posix.cc
+index 0eaad5ce33..8aa3c1baff 100644
+--- a/base/debug/stack_trace_posix.cc
++++ b/base/debug/stack_trace_posix.cc
+@@ -40,8 +40,7 @@
+ // Surprisingly, uClibc defines __GLIBC__ in some build configs, but
+ // execinfo.h and backtrace(3) are really only present in glibc and in macOS
+ // libc.
+-#if BUILDFLAG(IS_APPLE) || \
+-    (defined(__GLIBC__) && !defined(__UCLIBC__) && !defined(__AIX))
++#if BUILDFLAG(IS_APPLE) || BUILDFLAG(IS_LINUX) && !defined(__UCLIBC__)
+ #define HAVE_BACKTRACE
+ #include <execinfo.h>
+ #endif
