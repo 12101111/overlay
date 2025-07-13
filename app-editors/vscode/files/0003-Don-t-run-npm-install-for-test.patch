@@ -1,4 +1,4 @@
-From d3bc8100ac3377c07f43ad783e4d0c69bd93072e Mon Sep 17 00:00:00 2001
+From fe725321a4e76c75c0e4e9fa1ee0d47b6e594ddd Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 23 Nov 2024 22:27:26 +0800
 Subject: [PATCH 03/11] Don't run npm install for test
@@ -26,15 +26,15 @@ index 9f653c72479..ca8b6d2b9e5 100644
  
  if (fs.existsSync(`${__dirname}/../../.build/distro/npm`)) {
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index 458847afac5..7a8c7f5f1e9 100644
+index 1033e4ecf68..5656ac6da97 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
-@@ -188,5 +188,3 @@ for (let dir of dirs) {
+@@ -176,5 +176,3 @@ for (let dir of dirs) {
  	npmInstall(dir, opts);
  }
  
 -cp.execSync('git config pull.rebase merges');
 -cp.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
 -- 
-2.49.0
+2.50.1
 

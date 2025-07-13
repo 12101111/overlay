@@ -1,4 +1,4 @@
-From 70870c602746e9282237fb4882cfea0a5f8003e6 Mon Sep 17 00:00:00 2001
+From 5cc59f3a06c6f39d49d1342b8e3c87da89717369 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 15 Sep 2024 21:27:46 +0800
 Subject: [PATCH 09/11] Add support for riscv64, loong64
@@ -25,10 +25,10 @@ index aafc64e81c2..b80ba8b4025 100644
  
  // The following files do not have PDBs downloaded for them during the download symbols process.
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 5eda057ce34..668a5b57863 100644
+index e38e67e4f81..903322a7066 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -485,6 +485,8 @@ const BUILD_TARGETS = [
+@@ -469,6 +469,8 @@ const BUILD_TARGETS = [
  	{ platform: 'linux', arch: 'x64' },
  	{ platform: 'linux', arch: 'armhf' },
  	{ platform: 'linux', arch: 'arm64' },
@@ -51,7 +51,7 @@ index 59b46e33d00..fb2d51da75f 100644
  
  BUILD_TARGETS.forEach(({ arch }) => {
 diff --git a/src/vs/platform/extensionManagement/common/extensionManagement.ts b/src/vs/platform/extensionManagement/common/extensionManagement.ts
-index 109607b695c..3ccbda739c2 100644
+index 2f8d1e83b99..0623afa4042 100644
 --- a/src/vs/platform/extensionManagement/common/extensionManagement.ts
 +++ b/src/vs/platform/extensionManagement/common/extensionManagement.ts
 @@ -45,6 +45,8 @@ export function TargetPlatformToString(targetPlatform: TargetPlatform) {
@@ -86,10 +86,10 @@ index 109607b695c..3ccbda739c2 100644
  
  		case 'alpine':
 diff --git a/src/vs/platform/extensions/common/extensions.ts b/src/vs/platform/extensions/common/extensions.ts
-index 8e68cbe06d1..69efc42248f 100644
+index bf4bb318095..f935435abbd 100644
 --- a/src/vs/platform/extensions/common/extensions.ts
 +++ b/src/vs/platform/extensions/common/extensions.ts
-@@ -317,6 +317,8 @@ export const enum TargetPlatform {
+@@ -327,6 +327,8 @@ export const enum TargetPlatform {
  	LINUX_X64 = 'linux-x64',
  	LINUX_ARM64 = 'linux-arm64',
  	LINUX_ARMHF = 'linux-armhf',
@@ -99,5 +99,5 @@ index 8e68cbe06d1..69efc42248f 100644
  	ALPINE_X64 = 'alpine-x64',
  	ALPINE_ARM64 = 'alpine-arm64',
 -- 
-2.49.0
+2.50.1
 
