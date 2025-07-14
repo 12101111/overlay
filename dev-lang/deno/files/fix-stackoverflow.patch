@@ -1,36 +1,26 @@
-diff --git a/cli/build.rs b/cli/build.rs
-index ecfc19dc0..6e4c519a4 100644
---- a/cli/build.rs
-+++ b/cli/build.rs
-@@ -489,15 +489,22 @@ fn main() {
-   let c = PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").unwrap());
-   let o = PathBuf::from(env::var_os("OUT_DIR").unwrap());
- 
--  let compiler_snapshot_path = o.join("COMPILER_SNAPSHOT.bin");
--  ts::create_compiler_snapshot(compiler_snapshot_path, &c);
--
--  #[cfg(not(feature = "hmr"))]
--  {
+diff --git a/cli/snapshot/build.rs b/cli/snapshot/build.rs
+index 9f08ac0e9..cdb77429b 100644
+--- a/cli/snapshot/build.rs
++++ b/cli/snapshot/build.rs
+@@ -6,10 +6,18 @@ mod shared;
+ fn main() {
+   #[cfg(not(feature = "disable"))]
+   {
+-    let o = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap());
 -    let cli_snapshot_path = o.join("CLI_SNAPSHOT.bin");
 -    create_cli_snapshot(cli_snapshot_path);
--  }
--
-+  let thread = std::thread::Builder::new().stack_size(8 * 1024 * 1024);
-+  thread
-+    .spawn(move || {
-+      let compiler_snapshot_path = o.join("COMPILER_SNAPSHOT.bin");
-+      ts::create_compiler_snapshot(compiler_snapshot_path, &c);
-+
-+      #[cfg(not(feature = "hmr"))]
-+      {
++    let thread = std::thread::Builder::new().stack_size(8 * 1024 * 1024);
++    thread
++      .spawn(move || {
++        let o = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap());
 +        let cli_snapshot_path = o.join("CLI_SNAPSHOT.bin");
 +        create_cli_snapshot(cli_snapshot_path);
-+      }
-+    })
-+    .unwrap()
-+    .join()
-+    .unwrap();
++      })
++      .unwrap()
++      .join()
++      .unwrap();
+   }
 +  println!("cargo:rustc-link-arg=-Wl,-z,stack-size=0x800000");
-   #[cfg(target_os = "windows")]
-   {
-     let mut res = winres::WindowsResource::new();
+ }
+ 
+ #[cfg(not(feature = "disable"))]

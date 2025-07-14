@@ -1,43 +1,16 @@
 diff --git a/Cargo.lock b/Cargo.lock
-index 20874265b..b97dc474c 100644
+index a4067f44d..a023ffa1b 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
-@@ -499,6 +499,26 @@ dependencies = [
-  "serde",
- ]
- 
-+[[package]]
-+name = "bindgen"
-+version = "0.69.5"
-+source = "registry+https://github.com/rust-lang/crates.io-index"
-+checksum = "271383c67ccabffb7381723dea0672a673f292304fcb45c01cc648c7a8d58088"
-+dependencies = [
-+ "bitflags 2.6.0",
-+ "cexpr",
-+ "clang-sys",
-+ "itertools 0.10.5",
-+ "lazy_static",
-+ "lazycell",
-+ "proc-macro2",
-+ "quote",
-+ "regex",
-+ "rustc-hash 1.1.0",
-+ "shlex",
-+ "syn 2.0.87",
-+]
-+
- [[package]]
- name = "bindgen"
- version = "0.70.1"
-@@ -1485,7 +1505,6 @@ dependencies = [
-  "bit-vec",
+@@ -1859,7 +1859,6 @@ dependencies = [
   "bytes",
+  "capacity_builder",
   "cooked-waker",
 - "deno_core_icudata",
+  "deno_error",
   "deno_ops",
-  "deno_unsync",
-  "futures",
-@@ -1507,12 +1526,6 @@ dependencies = [
+  "deno_path_util",
+@@ -1883,12 +1882,6 @@ dependencies = [
   "wasm_dep_analyzer",
  ]
  
@@ -49,88 +22,52 @@ index 20874265b..b97dc474c 100644
 -
  [[package]]
  name = "deno_cron"
- version = "0.61.0"
-@@ -4526,6 +4539,12 @@ dependencies = [
-  "spin",
- ]
- 
-+[[package]]
-+name = "lazycell"
-+version = "1.3.0"
-+source = "registry+https://github.com/rust-lang/crates.io-index"
-+checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
-+
- [[package]]
- name = "libc"
- version = "0.2.153"
-@@ -4593,7 +4612,7 @@ version = "0.30.0"
- source = "registry+https://github.com/rust-lang/crates.io-index"
- checksum = "6b694a822684ddb75df4d657029161431bcb4a85c1856952f845b76912bc6fec"
+ version = "0.90.0"
+@@ -5503,7 +5496,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "fbb8270bb4060bd76c6e96f20c52d80620f1d82a3470885694e41e0f81ef6fe7"
  dependencies = [
+  "bindgen 0.71.1",
 - "cc",
-+ "bindgen 0.69.5",
   "pkg-config",
   "vcpkg",
  ]
-@@ -4617,7 +4636,7 @@ version = "1.48.2"
- source = "registry+https://github.com/rust-lang/crates.io-index"
- checksum = "ca8dfd1a173826d193e3b955e07c22765829890f62c677a59c4a410cb4f47c01"
- dependencies = [
-- "bindgen",
-+ "bindgen 0.70.1",
-  "libloading 0.8.5",
- ]
- 
-@@ -8275,7 +8294,7 @@ version = "130.0.1"
- source = "registry+https://github.com/rust-lang/crates.io-index"
- checksum = "c23b5c2caff00209b03a716609b275acae94b02dd3b63c4648e7232a84a8402f"
- dependencies = [
-- "bindgen",
-+ "bindgen 0.70.1",
-  "bitflags 2.6.0",
-  "fslock",
-  "gzip-header",
 diff --git a/Cargo.toml b/Cargo.toml
-index 4698acd06..5476b43c6 100644
+index a6749f58a..caed3a7b6 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -48,7 +48,7 @@ repository = "https://github.com/denoland/deno"
+@@ -59,7 +59,7 @@ repository = "https://github.com/denoland/deno"
  
  [workspace.dependencies]
- deno_ast = { version = "=0.44.0", features = ["transpiling"] }
--deno_core = { version = "0.324.0" }
-+deno_core = { version = "0.324.0", default-features = false }
+ deno_ast = { version = "=0.48.1", features = ["transpiling"] }
+-deno_core = { version = "0.352.0" }
++deno_core = { version = "0.352.0", default-features = false }
  
- deno_bench_util = { version = "0.175.0", path = "./bench_util" }
- deno_config = { version = "=0.39.3", features = ["workspace", "sync"] }
-@@ -171,7 +171,7 @@ rand = "=0.8.5"
+ deno_cache_dir = "=0.23.0"
+ deno_doc = "=0.179.0"
+@@ -225,7 +225,7 @@ rand = "=0.8.5"
+ rayon = "1.8.0"
  regex = "^1.7.0"
  reqwest = { version = "=0.12.5", default-features = false, features = ["rustls-tls", "stream", "gzip", "brotli", "socks", "json", "http2"] } # pinned because of https://github.com/seanmonstar/reqwest/pull/1955
- ring = "^0.17.0"
--rusqlite = { version = "0.32.0", features = ["unlock_notify", "bundled"] }
-+rusqlite = { version = "0.32.0", features = ["unlock_notify", "buildtime_bindgen"] }
- rustls = { version = "0.23.11", default-features = false, features = ["logging", "std", "tls12", "ring"] }
+-rusqlite = { version = "0.34.0", features = ["unlock_notify", "bundled", "session", "modern_sqlite", "limits"] } # "modern_sqlite": need sqlite >= 3.49.0 for some db configs
++rusqlite = { version = "0.34.0", features = ["unlock_notify", "buildtime_bindgen", "session", "modern_sqlite", "limits"] } # "modern_sqlite": need sqlite >= 3.49.0 for some db configs
+ rustls = { version = "0.23.11", default-features = false, features = ["logging", "std", "tls12", "aws_lc_rs"] }
  rustls-pemfile = "2"
- rustls-tokio-stream = "=0.3.0"
-@@ -212,7 +212,7 @@ webpki-roots = "0.26"
- which = "4.2.5"
- yoke = { version = "0.7.4", features = ["derive"] }
- zeromq = { version = "=0.4.1", default-features = false, features = ["tcp-transport", "tokio-runtime"] }
--zstd = "=0.12.4"
-+zstd = { version = "=0.12.4", features = ["pkg-config"] }
+ rustls-tokio-stream = "=0.5.0"
+@@ -318,7 +318,7 @@ strsim = "0.11.1"
+ text-size = "=1.1.1"
+ text_lines = "=0.6.0"
+ unicode-width = "0.1.3"
+-zstd = "=0.13.2"
++zstd = { version = "=0.13.2", features = ["pkg-config"]}
  
- opentelemetry = "0.27.0"
- opentelemetry-http = "0.27.0"
-diff --git a/ext/ffi/Cargo.toml b/ext/ffi/Cargo.toml
-index 23c71d003..b90265431 100644
---- a/ext/ffi/Cargo.toml
-+++ b/ext/ffi/Cargo.toml
-@@ -19,7 +19,7 @@ deno_permissions.workspace = true
- dlopen2.workspace = true
- dynasmrt = "1.2.3"
- libffi = "=3.2.0"
--libffi-sys = "=2.3.0"
-+libffi-sys = { version = "=2.3.0" , features = ["system"] }
- log.workspace = true
- num-bigint.workspace = true
- serde.workspace = true
+ # crypto
+ aead-gcm-stream = "0.4"
+@@ -365,7 +365,7 @@ cranelift = "0.116"
+ cranelift-native = "0.116"
+ dlopen2 = "0.6.1"
+ libffi = "=4.0.0"
+-libffi-sys = "=3.2.0"
++libffi-sys = { version = "=3.2.0", features = ["system"] }
+ memmap2 = "0.9"
+ 
+ # napi
