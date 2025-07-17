@@ -36,7 +36,6 @@ RDEPEND="
 	x11-libs/libXScrnSaver
 	x11-libs/libXtst
 	app-crypt/libsecret[crypt]
-	app-eselect/eselect-electron
 	!dev-util/electron:${SLOT}
 "
 DEPEND="${RDEPEND}"
@@ -92,7 +91,9 @@ EOF
 	rm -rf "${ED}/${install_dir}/node_headers"
 	# set up a symlink structure that npm expects..
 	dodir "${node_headers}"/node/deps/{v8,uv}
+	dodir "${node_headers}"/node/include
 	dosym . "${node_headers}"/node/src
+	dosym .. "${node_headers}"/node/include/node
 	for var in deps/{uv,v8}/include; do
 		dosym ../.. "${node_headers}"/node/${var}
 	done
