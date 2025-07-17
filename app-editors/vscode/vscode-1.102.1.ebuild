@@ -5,7 +5,7 @@ EAPI=8
 
 PYTHON_COMPAT=( python3_{10..13} )
 
-inherit python-any-r1 savedconfig xdg
+inherit check-reqs python-any-r1 savedconfig xdg
 
 DESCRIPTION="Visual Studio Code - Open Source"
 HOMEPAGE="https://code.visualstudio.com/"
@@ -1944,7 +1944,8 @@ SRC_URI+="
 
 RESTRICT="mirror"
 BDEPEND="
-	>=net-libs/nodejs-20.18.0:=[npm]
+	>=net-libs/nodejs-22.16.0:=[npm]
+	!>=net-libs/nodejs-24.1.0
 	app-arch/unzip
 	app-arch/gzip
 "
@@ -1978,6 +1979,13 @@ PATCHES=(
 	"${FILESDIR}/0010-Accpet-FLAGS-from-env.patch"
 	"${FILESDIR}/0011-Fix-tunnel-path.patch"
 )
+
+pkg_pretend() {
+	if [[ ${MERGE_TYPE} != binary ]]; then
+		local CHECKREQS_MEMORY=23G
+		check-reqs_pkg_pretend
+	fi
+}
 
 pkg_setup() {
 	python-any-r1_pkg_setup
@@ -2038,7 +2046,7 @@ src_prepare() {
 	sed -i "s|\"@emmetio/css-parser\": \"ramya-rao-a/css-parser#vscode\",|\"@emmetio/css-parser\": \"file:/${TMPDIR}/css-parser.tgz\",|" \
 		extensions/emmet/package.json || die
 	pushd "${S}"/extensions/emmet || die
-		npm install --package-lock-only --no-progress --no-audit --verbose --nodedir="$(get_electron_nodedir)" || die
+	npm install --package-lock-only --no-progress --no-audit --verbose --nodedir="$(get_electron_nodedir)" || die
 	popd >/dev/null || die
 
 	sed -i "/execSync/d" "${S}/node-pty/scripts/post-install.js" || die
@@ -2064,7 +2072,7 @@ src_configure() {
 	export DESTDIR=${TMPDIR}
 	local DEPS=$(ls "${DISTDIR}"/*.tgz 2>/dev/null)
 	npm cache add $DEPS --no-progress --verbose || die
-	npm install --offline --no-progress --no-audit --verbose --nodedir="$(get_electron_nodedir)" || die
+	npm ci --offline --no-progress --no-audit --verbose --nodedir="$(get_electron_nodedir)" || die
 }
 
 src_compile() {
