@@ -53,7 +53,7 @@ S="${WORKDIR}/jdk${SLOT}u-jdk-${MY_PV}"
 
 LICENSE="GPL-2-with-classpath-exception"
 SLOT="${MY_PV%%[.+]*}"
-KEYWORDS="amd64 ~arm arm64 ppc64 ~riscv x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~ppc64 ~riscv ~x86"
 
 IUSE="alsa big-endian cups debug doc examples headless-awt javafx +jbootstrap lto selinux source system-bootstrap systemtap"
 
@@ -278,6 +278,9 @@ src_compile() {
 src_install() {
 	local dest="/usr/$(get_libdir)/${PN}-${SLOT}"
 	local ddest="${ED}/${dest#/}"
+
+	# https://bugs.gentoo.org/922741
+	docompress "${dest}/man"
 
 	cd "${S}"/build/*-release/images/jdk || die
 
