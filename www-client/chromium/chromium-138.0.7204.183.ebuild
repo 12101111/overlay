@@ -38,6 +38,7 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 LLVM_COMPAT=( 19 20 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
+RUST_MAX_VER=1.88.0 # M140 fails to build with 1.89+
 RUST_MIN_VER=1.78.0
 RUST_NEEDS_LLVM="yes please"
 RUST_OPTIONAL="yes" # Not actually optional, but we don't need system Rust (or LLVM) with USE=bundled-toolchain
@@ -48,7 +49,7 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+PPC64_HASH="e1538a223437603b214fdcb1a6adfb91e98f769a"
 PATCH_V="${PV%%\.*}-1"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
@@ -81,7 +82,7 @@ LICENSE+=" SGI-B-2.0 SSLeay SunSoft Unicode-3.0 Unicode-DFS-2015 Unlicense UoI-N
 LICENSE+=" rar? ( unRAR )"
 
 SLOT="0/stable"
-KEYWORDS="~amd64 ~arm64 ~loong"
+KEYWORDS="~amd64 ~arm64"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
 IUSE="hevc +X ${IUSE_SYSTEM_LIBS} bindist bundled-toolchain cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo"
 IUSE+=" +proprietary-codecs pulseaudio qt6 +rar +screencast selinux test +vaapi +wayland +widevine cpu_flags_ppc_vsx3"
@@ -1297,7 +1298,7 @@ chromium_configure() {
 	# Odds and ends
 
 	# skipping typecheck is only supported on amd64, bug #876157
-	if ! use amd64; then
+	if ! (use amd64 && use elibc_glibc); then
 		myconf_gn+=( "devtools_skip_typecheck=false" )
 	fi
 
