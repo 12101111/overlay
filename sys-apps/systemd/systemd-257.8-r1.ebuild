@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PYTHON_COMPAT=( python3_{10..13} )
+PYTHON_COMPAT=( python3_{11..13} )
 
 # Avoid QA warnings
 TMPFILES_OPTIONAL=1
@@ -139,6 +139,7 @@ RDEPEND="${COMMON_DEPEND}
 	)
 	!sysv-utils? ( sys-apps/sysvinit )
 	resolvconf? ( !net-dns/openresolv )
+	!sys-apps/hwids[udev]
 	!sys-auth/nss-myhostname
 	!sys-fs/eudev
 	!sys-fs/udev
@@ -272,6 +273,7 @@ src_unpack() {
 src_prepare() {
 	local PATCHES=(
 		"${FILESDIR}"/systemd-257-cred-util-tpm2.patch
+		"${FILESDIR}"/257-Revert-resolved-don-t-wait-for-TLS-close_notify-repl.patch
 	)
 
 	if ! use vanilla; then
@@ -299,6 +301,7 @@ src_configure() {
 multilib_src_configure() {
 	local myconf=(
 		--localstatedir="${EPREFIX}/var"
+		-Ddocdir="share/doc/${PF}"
 		# default is developer, bug 918671
 		-Dmode=release
 		-Dsupport-url="https://gentoo.org/support/"
@@ -420,9 +423,6 @@ multilib_src_test() {
 }
 
 multilib_src_install_all() {
-	# meson doesn't know about docdir
-	mv "${ED}"/usr/share/doc/{systemd,${PF}} || die
-
 	einstalldocs
 	dodoc "${FILESDIR}"/nsswitch.conf
 
