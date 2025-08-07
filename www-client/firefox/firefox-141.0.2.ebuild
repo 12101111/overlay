@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-139-patches-03.tar.xz"
+FIREFOX_PATCHSET="firefox-141-patches-02.tar.xz"
 FIREFOX_LOONG_PATCHSET="firefox-139-loong-patches-02.tar.xz"
 
 LLVM_COMPAT=( 19 20 )
@@ -127,7 +127,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.112
+	>=dev-libs/nss-3.113
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -166,7 +166,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	system-jpeg? ( >=media-libs/libjpeg-turbo-1.2.1:= )
 	system-libevent? ( >=dev-libs/libevent-2.1.12:0=[threads(+)] )
 	system-libvpx? ( >=media-libs/libvpx-1.8.2:0=[postproc] )
-	system-pipewire? ( media-video/pipewire:= )
+	system-pipewire? ( >=media-video/pipewire-1.4.7-r2:= )
 	system-png? ( >=media-libs/libpng-1.6.45:0=[apng] )
 	system-webp? ( >=media-libs/libwebp-1.1.0:0= )
 	valgrind? ( dev-debug/valgrind )
@@ -822,7 +822,6 @@ src_configure() {
 
 	# riscv-related options, bgo#947337, bgo#947338
 	if use riscv ; then
-		mozconfig_add_options_ac 'Disable JIT for RISC-V 64' --disable-jit
 		mozconfig_add_options_ac 'Disable webrtc for RISC-V' --disable-webrtc
 	fi
 
