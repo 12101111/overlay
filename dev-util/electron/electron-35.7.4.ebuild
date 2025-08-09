@@ -3,7 +3,7 @@
 
 EAPI=8
 
-GN_MIN_VER=0.2217
+GN_MIN_VER=0.2165
 
 VIRTUALX_REQUIRED="pgo"
 
@@ -15,6 +15,7 @@ LLVM_COMPAT=( 19 20 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.78.0
+RUST_MAX_VER=1.88.0 # allocator shim change in 1.89
 RUST_NEEDS_LLVM="yes please"
 
 inherit check-reqs chromium-2 desktop flag-o-matic llvm-r1 multiprocessing ninja-utils pax-utils
@@ -24,9 +25,9 @@ inherit rust-toolchain
 # Keep this in sync with DEPS:chromium_version
 # find least version of available snapshot in
 # https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-134.0.6998.167.tar.xz.hashe%40
-CHROMIUM_VERSION="136.0.7103.168"
+CHROMIUM_VERSION="134.0.6998.198"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="22.17.1"
+NODE_VERSION="22.16.0"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
@@ -80,7 +81,7 @@ https://registry.yarnpkg.com/@electron/fiddle-core/-/fiddle-core-1.3.4.tgz
 https://registry.yarnpkg.com/@electron/get/-/get-2.0.2.tgz
 https://registry.yarnpkg.com/@electron/github-app-auth/-/github-app-auth-2.2.1.tgz
 https://registry.yarnpkg.com/@electron/lint-roller/-/lint-roller-3.1.1.tgz
-https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-9.1.2.tgz
+https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-9.0.0.tgz
 https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.4.0.tgz
 https://registry.yarnpkg.com/@eslint-community/regexpp/-/regexpp-4.11.1.tgz
 https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-2.1.4.tgz
@@ -297,7 +298,7 @@ https://registry.yarnpkg.com/chalk/-/chalk-4.1.2.tgz
 https://registry.yarnpkg.com/chalk/-/chalk-5.3.0.tgz
 https://registry.yarnpkg.com/character-entities-legacy/-/character-entities-legacy-3.0.0.tgz
 https://registry.yarnpkg.com/character-entities/-/character-entities-2.0.0.tgz
-https://registry.yarnpkg.com/character-reference-invalid/-/character-reference-invalid-2.0.0.tgz
+https://registry.yarnpkg.com/character-reference-invalid/-/character-reference-invalid-2.0.1.tgz
 https://registry.yarnpkg.com/check-error/-/check-error-2.1.1.tgz
 https://registry.yarnpkg.com/check-for-leaks/-/check-for-leaks-1.2.1.tgz
 https://registry.yarnpkg.com/chokidar/-/chokidar-3.5.2.tgz
@@ -544,8 +545,8 @@ https://registry.yarnpkg.com/internal-slot/-/internal-slot-1.0.7.tgz
 https://registry.yarnpkg.com/internal-slot/-/internal-slot-1.1.0.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-1.4.0.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-3.1.1.tgz
-https://registry.yarnpkg.com/is-alphabetical/-/is-alphabetical-2.0.0.tgz
-https://registry.yarnpkg.com/is-alphanumerical/-/is-alphanumerical-2.0.0.tgz
+https://registry.yarnpkg.com/is-alphabetical/-/is-alphabetical-2.0.1.tgz
+https://registry.yarnpkg.com/is-alphanumerical/-/is-alphanumerical-2.0.1.tgz
 https://registry.yarnpkg.com/is-array-buffer/-/is-array-buffer-3.0.2.tgz
 https://registry.yarnpkg.com/is-array-buffer/-/is-array-buffer-3.0.4.tgz
 https://registry.yarnpkg.com/is-array-buffer/-/is-array-buffer-3.0.5.tgz
@@ -567,7 +568,7 @@ https://registry.yarnpkg.com/is-data-view/-/is-data-view-1.0.1.tgz
 https://registry.yarnpkg.com/is-data-view/-/is-data-view-1.0.2.tgz
 https://registry.yarnpkg.com/is-date-object/-/is-date-object-1.0.5.tgz
 https://registry.yarnpkg.com/is-date-object/-/is-date-object-1.1.0.tgz
-https://registry.yarnpkg.com/is-decimal/-/is-decimal-2.0.0.tgz
+https://registry.yarnpkg.com/is-decimal/-/is-decimal-2.0.1.tgz
 https://registry.yarnpkg.com/is-empty/-/is-empty-1.2.0.tgz
 https://registry.yarnpkg.com/is-extglob/-/is-extglob-2.1.1.tgz
 https://registry.yarnpkg.com/is-finalizationregistry/-/is-finalizationregistry-1.1.1.tgz
@@ -575,7 +576,7 @@ https://registry.yarnpkg.com/is-fullwidth-code-point/-/is-fullwidth-code-point-3
 https://registry.yarnpkg.com/is-generator-function/-/is-generator-function-1.1.0.tgz
 https://registry.yarnpkg.com/is-glob/-/is-glob-3.1.0.tgz
 https://registry.yarnpkg.com/is-glob/-/is-glob-4.0.3.tgz
-https://registry.yarnpkg.com/is-hexadecimal/-/is-hexadecimal-2.0.0.tgz
+https://registry.yarnpkg.com/is-hexadecimal/-/is-hexadecimal-2.0.1.tgz
 https://registry.yarnpkg.com/is-interactive/-/is-interactive-2.0.0.tgz
 https://registry.yarnpkg.com/is-map/-/is-map-2.0.3.tgz
 https://registry.yarnpkg.com/is-negative-zero/-/is-negative-zero-2.0.2.tgz
@@ -1134,15 +1135,14 @@ https://registry.yarnpkg.com/zwitch/-/zwitch-2.0.2.tgz
 
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 NODE_P="node-${NODE_VERSION}"
-PATCH_V="${CHROMIUM_VERSION%%\.*}-2"
+PATCH_V="${CHROMIUM_VERSION%%\.*}-1"
 PATCHSET_NAME="chromium-patches-${PATCH_V}"
-PPC64_HASH="01dda910156deccddab855e2b6adaea2c751ae45"
+PPC64_HASH="c11b515d9addc3f8b516502e553ace507eb81815"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 
-#Official tarball: https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
 SRC_URI="
-	https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${CHROMIUM_VERSION}/chromium-${CHROMIUM_VERSION}-linux.tar.xz
+	https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
 	https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/${PATCHSET_NAME}.tar.bz2
 	https://github.com/electron/electron/archive/v${PV}.tar.gz -> ${P}.tar.gz
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
@@ -1286,9 +1286,9 @@ BDEPEND="
 	>=dev-build/gn-${GN_MIN_VER}
 	app-alternatives/ninja
 	dev-lang/perl
-	>=dev-util/gperf-3.2
+	>=dev-util/gperf-3.0.3
 	dev-vcs/git
-	>=net-libs/nodejs-22.11.0[inspector]
+	>=net-libs/nodejs-7.6.0[inspector]
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
@@ -1326,24 +1326,22 @@ pre_build_checks() {
 	# Check build requirements: bugs #471810, #541816, #914220
 	# We're going to start doing maths here on the size of an unpacked source tarball,
 	# this should make updates easier as chromium continues to balloon in size.
-	# xz -l /var/cache/distfiles/chromium-${PV}*.tar.xz
-	local base_disk=9 # Round up
-	local extra_disk=1 # Always include a little extra space
-	local memory=4
-	tc-is-cross-compiler && extra_disk=$((extra_disk * 2))
+	local BASE_DISK=24
+	local EXTRA_DISK=1
+	local CHECKREQS_MEMORY="4G"
+	tc-is-cross-compiler && EXTRA_DISK=2
 	if tc-is-lto || use pgo; then
-		memory=$((memory * 2 + 1))
-		tc-is-cross-compiler && extra_disk=$((extra_disk * 2)) # Double the requirements
-		use pgo && extra_disk=$((extra_disk + 4))
+		CHECKREQS_MEMORY="9G"
+		tc-is-cross-compiler && EXTRA_DISK=4
+		use pgo && EXTRA_DISK=8
 	fi
 	if is-flagq '-g?(gdb)?([1-9])'; then
 		if use custom-cflags; then
-			extra_disk=$((extra_disk + 5))
+			EXTRA_DISK=13
 		fi
-		memory=$((memory * 2))
+		CHECKREQS_MEMORY="16G"
 	fi
-	local CHECKREQS_MEMORY="${memory}G"
-	local CHECKREQS_DISK_BUILD="$((base_disk + extra_disk))G"
+	CHECKREQS_DISK_BUILD="$((BASE_DISK + EXTRA_DISK))G"
 	check-reqs_${EBUILD_PHASE_FUNC}
 }
 
@@ -1388,6 +1386,10 @@ pkg_setup() {
 			einfo "USE=official selected and LTO not detected."
 			einfo "It is _highly_ recommended that LTO be enabled for performance reasons"
 			einfo "and to be consistent with the upstream \"official\" build optimisations."
+		fi
+
+		if [ "$use_lto" = "false" ] && use test; then
+			die "Tests require CFI which requires LTO"
 		fi
 
 		export use_lto
@@ -1449,7 +1451,7 @@ _get_install_dir() {
 }
 
 src_unpack() {
-	unpack "${CHROMIUM_P}-linux.tar.xz"
+	unpack "${CHROMIUM_P}.tar.xz"
 	unpack ${P}.tar.gz
 	unpack "electron-${NODE_P}.tar.gz"
 	unpack "${PATCHSET_NAME}.tar.bz2"
@@ -1474,14 +1476,19 @@ src_prepare() {
 		eapply "${FILESDIR}/${SLOT}/remove-libatomic.patch"
 	fi
 
+	# disable global media controls, crashes with libstdc++
+	sed -i -e \
+		"/\"GlobalMediaControlsCastStartStop\"/,+4{s/ENABLED/DISABLED/;}" \
+		"chrome/browser/media/router/media_router_feature.cc" || die
+
 	shopt -s globstar nullglob
 	# 130: moved the PPC64 patches into the chromium-patches repo
 	local patch
 	for patch in "${WORKDIR}/chromium-patches-${PATCH_V}"/**/*.patch; do
 			if [[ ${patch} == *"ppc64le"* ]]; then
 					use ppc64 && PATCHES+=( "${patch}" )
-			#   else
-					#PATCHES+=( "${patch}" )
+			else
+					PATCHES+=( "${patch}" )
 			fi
 	done
 	shopt -u globstar nullglob
@@ -1492,13 +1499,12 @@ src_prepare() {
 	grep -q "${builtins_match}" build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
 	sed -i -e "/${builtins_match}/,+2d" build/config/compiler/BUILD.gn
 
-		# Strictly speaking this doesn't need to be gated (no bundled toolchain for ppc64); it keeps the logic together
 	if use ppc64; then
 		local patchset_dir="${WORKDIR}/openpower-patches-${PPC64_HASH}/patches"
 		# patch causes build errors on 4K page systems (https://bugs.gentoo.org/show_bug.cgi?id=940304)
 		local page_size_patch="ppc64le/third_party/use-sysconf-page-size-on-ppc64.patch"
 		local isa_3_patch="ppc64le/core/baseline-isa-3-0.patch"
-		# Apply the OpenPOWER patches (check for page size and isa 3.0)
+		# Apply the OpenPOWER patches (check for page size and isa3.0)
 		openpower_patches=( $(grep -E "^ppc64le|^upstream" "${patchset_dir}/series" | grep -v "${page_size_patch}" |
 			grep -v "${isa_3_patch}" || die) )
 		for patch in "${openpower_patches[@]}"; do
@@ -1554,6 +1560,14 @@ src_prepare() {
 			die "Failed to tell GN that we have adler and not adler2"
 	fi
 
+	if has_version ">=media-video/pipewire-1.4.1" ; then
+		eapply "${FILESDIR}/fix-pipewire.patch"
+	fi
+
+	if has_version ">=dev-util/gperf-3.2"; then
+		eapply "${FILESDIR}/fix-gperf.patch"
+	fi
+
 	if ver_test ${RUST_SLOT} -gt "1.86.0"; then
 			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim.patch
 			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim2.patch
@@ -1564,6 +1578,10 @@ src_prepare() {
 	if use loong ; then
 		local p
 		local other_patches_to_apply=(
+			# Fedora-chromium-121-nullptr_t-without-namespace-std
+			# Debian-upstream-std-to-address
+			# Debian-fixes-internalalloc
+			# Debian-fixes-optional2
 			Debian-fixes-blink
 			Debian-fixes-blink-frags
 			fix-clang-builtins-path
@@ -1590,16 +1608,6 @@ src_prepare() {
 	cd "${S}" || die
 
 	default
-
-	if [[ ${LLVM_SLOT} == "19" ]]; then
-		# Upstream now hard depend on a feature that was added in LLVM 20.1, but we don't want to stabilise that yet.
-		# Do the temp file shuffle in case someone is using something other than `gawk`
-		{
-			awk '/config\("clang_warning_suppression"\) \{/	{ print $0 " }"; sub(/clang/, "xclang"); print; next }
-				{ print }' build/config/compiler/BUILD.gn > "${T}/build.gn" && \
-				mv "${T}/build.gn" build/config/compiler/BUILD.gn
-		} || die "Unable to disable warning suppression"
-	fi
 
 	# Not included in -lite tarballs, but we should check for it anyway.
 	if [[ -f third_party/node/linux/node-linux-x64/bin/node ]]; then
@@ -1689,7 +1697,6 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/i18n
 		third_party/devtools-frontend/src/front_end/third_party/intl-messageformat
 		third_party/devtools-frontend/src/front_end/third_party/json5
-		third_party/devtools-frontend/src/front_end/third_party/legacy-javascript
 		third_party/devtools-frontend/src/front_end/third_party/lighthouse
 		third_party/devtools-frontend/src/front_end/third_party/lit
 		third_party/devtools-frontend/src/front_end/third_party/marked
@@ -1723,6 +1730,7 @@ src_prepare() {
 		third_party/googletest
 		third_party/highway
 		third_party/hunspell
+		third_party/iccjpeg
 		third_party/ink_stroke_modeler/src/ink_stroke_modeler
 		third_party/ink_stroke_modeler/src/ink_stroke_modeler/internal
 		third_party/ink/src/ink/brush
@@ -1808,7 +1816,6 @@ src_prepare() {
 		third_party/private_membership
 		third_party/private-join-and-compute
 		third_party/protobuf
-		third_party/protobuf/third_party/utf8_range
 		third_party/pthreadpool
 		third_party/puffin
 		third_party/pyjson5
@@ -2119,7 +2126,6 @@ src_configure() {
 		myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
 		myconf_gn+=" use_vaapi=$(usex vaapi true false)"
 		myconf_gn+=" rtc_use_pipewire=$(usex screencast true false)"
-		myconf_gn+=" gtk_version=3"
 	fi
 
 	# Allows distributions to link pulseaudio directly (DT_NEEDED) instead of
@@ -2279,7 +2285,6 @@ src_configure() {
 		myconf_gn+=" use_system_minigbm=true"
 		myconf_gn+=" use_xkbcommon=true"
 		myconf_gn+=" use_qt5=false"
-		myconf_gn+=" use_qt6=false"
 		myconf_gn+=" ozone_platform_x11=$(usex X true false)"
 		myconf_gn+=" ozone_platform_wayland=$(usex wayland true false)"
 		myconf_gn+=" ozone_platform=$(usex wayland \"wayland\" \"x11\")"
