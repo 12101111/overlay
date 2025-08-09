@@ -6,17 +6,17 @@ EAPI=8
 LLVM_COMPAT=( 20 )
 PYTHON_COMPAT=( python3_{11..14} )
 
-RUST_PATCH_VER=${PVR}
+RUST_PATCH_VER="${PVR}-1"
 
 RUST_MAX_VER=${PV%%_*}
 if [[ ${PV} == *9999* ]]; then
-	RUST_MIN_VER="1.86.0" # Update this as new `beta` releases come out.
+	RUST_MIN_VER="1.85.0" # Update this as new `beta` releases come out.
 elif [[ ${PV} == *beta* ]]; then
 	# Enforce that `beta` is built from `stable`.
 	# While uncommon it is possible for feature changes within `beta` to result
 	# in an older snapshot being unable to build a newer one without modifying the sources.
 	# 'stable' releases should always be able to build a beta snapshot so just use those.
-	RUST_MAX_VER="$(ver_cut 1).$(($(ver_cut 2) - 1)).0"
+	RUST_MAX_VER="$(ver_cut 1).$(($(ver_cut 2) - 1)).1"
 	RUST_MIN_VER="$(ver_cut 1).$(($(ver_cut 2) - 1)).0"
 else
 	RUST_MIN_VER="$(ver_cut 1).$(($(ver_cut 2) - 1)).0"
@@ -44,17 +44,6 @@ elif [[ ${PV} == *beta* ]]; then
 			-> rustc-${PV}-src.tar.xz.asc )
 	"
 	S="${WORKDIR}/${MY_P}-src"
-elif [[ ${PV} = *rc* ]]; then
-	rcver=${PV//*rc}
-	RC_SNAPSHOT="${rcver:0:4}-${rcver:4:2}-${rcver:6:2}"
-	ABI_VER=${PV//_rc*}
-	MY_P="rustc-${ABI_VER}"
-	SRC_URI="https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz -> rustc-${PV}-src.tar.xz
-		https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
-		verify-sig? ( https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz.asc
-			-> rustc-${PV}-src.tar.xz.asc )
-	"
-	S="${WORKDIR}/${MY_P}-src"
 else
 	MY_P="rustc-${PV}"
 	SRC_URI="https://static.rust-lang.org/dist/${MY_P}-src.tar.xz
@@ -62,7 +51,7 @@ else
 		verify-sig? ( https://static.rust-lang.org/dist/${MY_P}-src.tar.xz.asc )
 	"
 	S="${WORKDIR}/${MY_P}-src"
-	KEYWORDS="~amd64 ~arm ~arm64 ~loong ~mips ~ppc ~ppc64 ~riscv ~sparc ~x86"
+	KEYWORDS="amd64 arm arm64 ~loong ~mips ppc ppc64 ~riscv sparc x86"
 fi
 
 DESCRIPTION="Systems programming language originally developed by Mozilla"
@@ -95,7 +84,7 @@ fi
 LLVM_DEPEND=()
 # splitting usedeps needed to avoid CI/pkgcheck's UncheckableDep limitation
 for _x in "${ALL_LLVM_TARGETS[@]}"; do
-	LLVM_DEPEND+=( "	${_x}? ( $(llvm_gen_dep "llvm-core/llvm:\${LLVM_SLOT}[${_x}]") )" )
+	LLVM_DEPEND+=( "	${_x}? ( $(llvm_gen_dep "llvm-core/llvm:\${LLVM_SLOT}[${_x}=]") )" )
 	if [[ -v ALL_RUST_EXPERIMENTAL_TARGETS["${_x}"] ]] ; then
 		ALL_RUST_EXPERIMENTAL_TARGETS["${_x}"]=1
 	fi
@@ -319,6 +308,8 @@ src_prepare() {
 		${CARGO} generate-lockfile --offline || die "Failed to generate lockfiles"
 	fi
 
+	# Commit patches to the appropriate branch in proj/rust-patches.git
+	# then cut a new tag / tarball. Don't add patches to ${FILESDIR}
 	PATCHES=(
 		"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"
 		"${FILESDIR}"/1.87.0-bootstrap-wasm-fix.patch
@@ -457,6 +448,7 @@ src_configure() {
 		cargo = "${rust_stage0_root}/bin/cargo"
 		rustc = "${rust_stage0_root}/bin/rustc"
 		rustfmt = "${rust_stage0_root}/bin/rustfmt"
+		description = "gentoo"
 		docs = $(toml_usex doc)
 		compiler-docs = $(toml_usex doc)
 		submodules = false
@@ -495,7 +487,6 @@ src_configure() {
 			echo "default-linker = \"${CHOST}-cc\""
 		fi)
 		channel = "${build_channel}"
-		description = "gentoo"
 		rpath = true
 		verbose-tests = true
 		optimize-tests = $(toml_usex !debug)
