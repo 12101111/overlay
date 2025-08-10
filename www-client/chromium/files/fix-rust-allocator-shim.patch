@@ -1,0 +1,15 @@
+diff --git a/build/rust/allocator/lib.rs b/build/rust/allocator/lib.rs
+index c49d424..b3b2f9f 100644
+--- a/build/rust/allocator/lib.rs
++++ b/build/rust/allocator/lib.rs
+@@ -90,6 +90,10 @@ mod both_allocators {
+     #[linkage = "weak"]
+     static __rust_no_alloc_shim_is_unstable: u8 = 0;
+ 
++    #[rustc_std_internal_symbol]
++    #[linkage = "weak"]
++    fn __rust_no_alloc_shim_is_unstable_v2() {}
++
+     // Mangle the symbol name as rustc expects.
+     #[rustc_std_internal_symbol]
+     #[allow(non_upper_case_globals)]

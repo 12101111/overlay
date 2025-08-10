@@ -38,7 +38,7 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 LLVM_COMPAT=( 19 20 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
-RUST_MAX_VER=1.88.0 # M140 fails to build with 1.89+
+RUST_MAX_VER=1.89.0 # M140 fails to build with 1.89+
 RUST_MIN_VER=1.78.0
 RUST_NEEDS_LLVM="yes please"
 RUST_OPTIONAL="yes" # Not actually optional, but we don't need system Rust (or LLVM) with USE=bundled-toolchain
@@ -534,6 +534,11 @@ src_prepare() {
 		if ver_test ${RUST_SLOT} -lt "1.86.0"; then
 			sed -i 's/adler2/adler/' build/rust/std/BUILD.gn ||
 				die "Failed to tell GN that we have adler and not adler2"
+		fi
+
+		if ver_test ${RUST_SLOT} -ge "1.89.0"; then
+			eapply "${FILESDIR}/fix-rust-allocator-shim.patch"
+			eapply "${FILESDIR}/fix-rust-warning.patch"
 		fi
 	fi
 
