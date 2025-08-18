@@ -15,7 +15,7 @@ LLVM_COMPAT=( 19 20 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.78.0
-RUST_MAX_VER=1.88.0 # allocator shim change in 1.89
+# RUST_MAX_VER=1.89.0 # allocator shim change in 1.89
 RUST_NEEDS_LLVM="yes please"
 
 inherit check-reqs chromium-2 desktop flag-o-matic llvm-r1 multiprocessing ninja-utils pax-utils
@@ -1573,6 +1573,10 @@ src_prepare() {
 			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim2.patch
 			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim3.patch
 			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim4.patch
+	fi
+	if ver_test ${RUST_SLOT} -ge "1.89.0"; then
+			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim5.patch
+			eapply "${FILESDIR}/${SLOT}"/fix-rust-warning.patch
 	fi
 
 	if use loong ; then
