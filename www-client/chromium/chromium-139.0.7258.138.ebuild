@@ -49,8 +49,8 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="e1538a223437603b214fdcb1a6adfb91e98f769a"
-PATCH_V="${PV%%\.*}-1"
+PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+PATCH_V="${PV%%\.*}"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
@@ -455,7 +455,6 @@ src_prepare() {
 		"${FILESDIR}/chromium-134-bindgen-custom-toolchain.patch"
 		"${FILESDIR}/chromium-135-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-135-map_droppable-glibc.patch"
-		"${FILESDIR}/chromium-137-openh264-include-path.patch"
 		"${FILESDIR}/chromium-138-nodejs-version-check.patch"
 	)
 
@@ -537,7 +536,6 @@ src_prepare() {
 		fi
 
 		if ver_test ${RUST_SLOT} -ge "1.89.0"; then
-			eapply "${FILESDIR}/fix-rust-allocator-shim.patch"
 			eapply "${FILESDIR}/fix-rust-warning.patch"
 		fi
 	fi
@@ -598,7 +596,6 @@ src_prepare() {
 		base/third_party/xdg_user_dirs
 		buildtools/third_party/libc++
 		buildtools/third_party/libc++abi
-		chrome/third_party/mozilla_security_manager
 		net/third_party/mozilla_security_manager
 		net/third_party/nss
 		net/third_party/quic
@@ -751,9 +748,9 @@ src_prepare() {
 		third_party/mako
 		third_party/markupsafe
 		third_party/material_color_utilities
-		third_party/mesa
 		third_party/metrics_proto
 		third_party/minigbm
+		third_party/ml_dtypes
 		third_party/modp_b64
 		third_party/nasm
 		third_party/nearby
@@ -789,6 +786,7 @@ src_prepare() {
 		third_party/pyyaml
 		third_party/rapidhash
 		third_party/re2
+		third_party/readability
 		third_party/rnnoise
 		third_party/rust
 		third_party/ruy
@@ -824,6 +822,7 @@ src_prepare() {
 		third_party/tflite/src/third_party/xla/third_party/tsl
 		third_party/tflite/src/third_party/xla/xla/tsl/framework
 		third_party/tflite/src/third_party/xla/xla/tsl/lib/random
+		third_party/tflite/src/third_party/xla/xla/tsl/platform
 		third_party/tflite/src/third_party/xla/xla/tsl/protobuf
 		third_party/tflite/src/third_party/xla/xla/tsl/util
 		third_party/ukey2
@@ -954,6 +953,11 @@ src_prepare() {
 	ebegin "Unbundling third-party libraries ..."
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 	eend 0
+
+	# Interferes with our bundled clang path; we don't want stripped binaries anyway.
+	sed -i -e 's|${clang_base_path}/bin/llvm-strip|/bin/true|g' \
+		-e 's|${clang_base_path}/bin/llvm-objcopy|/bin/true|g' \
+		build/linux/strip_binary.gni || die
 
 	if use elibc_musl; then
 		config1="./third_party/swiftshader/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h"
@@ -1149,8 +1153,6 @@ chromium_configure() {
 		# We now need to opt-in
 		"enable_freetype=true"
 		"enable_hangout_services_extension=$(usex hangouts true false)"
-		# Disable nacl; deprecated, we can't build without pnacl (http://crbug.com/269560).
-		"enable_nacl=false"
 		# Don't need nocompile checks and GN crashes with our config (verify with modern GN)
 		"enable_nocompile_tests=false"
 		# pseudolocales are only used for testing
@@ -1337,7 +1339,7 @@ chromium_compile() {
 	# Build mksnapshot and pax-mark it.
 	if use pax-kernel; then
 		local x
-		for x in mksnapshot v8_context_snapshot_generator; do
+		for x in mksnapshot v8_context_snapshot_generator code_cache_generator; do
 			if tc-is-cross-compiler; then
 				eninja -C out/Release "host/${x}"
 				pax-mark m "out/Release/host/${x}"
@@ -1496,17 +1498,15 @@ src_test() {
 		ToolsSanityTest.BadVirtualCallWrongType
 		CancelableEventTest.BothCancelFailureAndSucceedOccurUnderContention #new m133: TODO investigate
 		DriveInfoTest.GetFileDriveInfo # new m137: TODO investigate
+		# Broken since M139 dev
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/RendererProcessIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/UtilityProcessIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/BrowserProcessIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/MainThreadIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/IOThreadIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/CompositorThreadIsCritical
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/ThreadPoolIsNotCritical
 	)
-
-	if use arm64; then
-		skip_tests+=(
-			# Apple Silicon on 138.0.7204.92
-			SystemMetrics2Test.GetSystemMemoryInfo
-			SysInfoTest.GetHardwareInfo
-			PartitionAllocPageAllocatorTest.AllocAndFreePagesWithPageReadExecuteConfirmCFI
-		)
-	fi
-
 	local test_filter="-$(IFS=:; printf '%s' "${skip_tests[*]}")"
 	# test-launcher-bot-mode enables parallelism and plain output
 	./out/Release/base_unittests --test-launcher-bot-mode \
