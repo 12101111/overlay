@@ -1,0 +1,105 @@
+diff --git a/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc.cc b/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc.cc
+index e576dc3..da740e1 100644
+--- a/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc.cc
++++ b/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_default_dispatch_to_partition_alloc.cc
+@@ -660,7 +660,7 @@ SHIM_ALWAYS_EXPORT int mallopt(int cmd, int value) __THROW {
+ 
+ #endif  // !PA_BUILDFLAG(IS_APPLE) && !PA_BUILDFLAG(IS_ANDROID)
+ 
+-#if PA_BUILDFLAG(IS_LINUX) || PA_BUILDFLAG(IS_CHROMEOS)
++#if PA_BUILDFLAG(IS_LINUX) && defined(__GLIBC__) || PA_BUILDFLAG(IS_CHROMEOS)
+ SHIM_ALWAYS_EXPORT struct mallinfo mallinfo(void) __THROW {
+   partition_alloc::SimplePartitionStatsDumper allocator_dumper;
+   Allocator()->DumpStats("malloc", true, &allocator_dumper);
+diff --git a/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_unittest.cc b/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_unittest.cc
+index 8ff2984..6b5608d 100644
+--- a/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_unittest.cc
++++ b/base/allocator/partition_allocator/src/partition_alloc/shim/allocator_shim_unittest.cc
+@@ -410,7 +410,7 @@ TEST_F(AllocatorShimTest, InterceptLibcSymbols) {
+   ASSERT_GE(aligned_allocs_intercepted_by_alignment[128], 1u);
+   ASSERT_GE(aligned_allocs_intercepted_by_size[53], 1u);
+ 
+-#if PA_BUILDFLAG(IS_POSIX) && !PA_BUILDFLAG(IS_ANDROID)
++#if PA_BUILDFLAG(IS_POSIX) && !PA_BUILDFLAG(IS_ANDROID) && defined(__GLIBC__)
+   void* pvalloc_ptr = pvalloc(67);
+   ASSERT_NE(nullptr, pvalloc_ptr);
+   ASSERT_EQ(0u, reinterpret_cast<uintptr_t>(pvalloc_ptr) % kPageSize);
+@@ -449,7 +449,7 @@ TEST_F(AllocatorShimTest, InterceptLibcSymbols) {
+   free(memalign_ptr);
+   ASSERT_GE(frees_intercepted_by_addr[Hash(memalign_ptr)], 1u);
+ 
+-#if PA_BUILDFLAG(IS_POSIX) && !PA_BUILDFLAG(IS_ANDROID)
++#if PA_BUILDFLAG(IS_POSIX) && !PA_BUILDFLAG(IS_ANDROID) && defined(__GLIBC__)
+   free(pvalloc_ptr);
+   ASSERT_GE(frees_intercepted_by_addr[Hash(pvalloc_ptr)], 1u);
+ #endif  // PA_BUILDFLAG(IS_POSIX) && !PA_BUILDFLAG(IS_ANDROID)
+diff --git a/base/process/memory_unittest.cc b/base/process/memory_unittest.cc
+index 9bf1708..d3bd728 100644
+--- a/base/process/memory_unittest.cc
++++ b/base/process/memory_unittest.cc
+@@ -370,7 +370,7 @@ TEST_F(OutOfMemoryDeathTest, SecurityAlignedRealloc) {
+ #endif  // BUILDFLAG(IS_WIN)
+ #endif  // !BUILDFLAG(IS_MAC)
+ 
+-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
++#if (BUILDFLAG(IS_LINUX) && defined(__GLIBC__)) || BUILDFLAG(IS_CHROMEOS)
+ 
+ TEST_F(OutOfMemoryDeathTest, Valloc) {
+   ASSERT_OOM_DEATH({
+diff --git a/base/process/process_metrics_posix.cc b/base/process/process_metrics_posix.cc
+index 9a25ea7..6706749 100644
+--- a/base/process/process_metrics_posix.cc
++++ b/base/process/process_metrics_posix.cc
+@@ -115,12 +115,14 @@ size_t GetMallocUsageMallinfo() {
+ #define MALLINFO2_FOUND_IN_LIBC
+   struct mallinfo2 minfo = mallinfo2();
+ #endif
+-#endif  // defined(__GLIBC__) && defined(__GLIBC_PREREQ)
+ #if !defined(MALLINFO2_FOUND_IN_LIBC)
+   struct mallinfo minfo = mallinfo();
+ #endif
+ #undef MALLINFO2_FOUND_IN_LIBC
+   return checked_cast<size_t>(minfo.hblkhd + minfo.arena);
++#else
++  return 0;
++#endif  // defined(__GLIBC__) && defined(__GLIBC_PREREQ)
+ }
+ 
+ }  // namespace
+diff --git a/base/trace_event/malloc_dump_provider.cc b/base/trace_event/malloc_dump_provider.cc
+index c13058c..9b6751e 100644
+--- a/base/trace_event/malloc_dump_provider.cc
++++ b/base/trace_event/malloc_dump_provider.cc
+@@ -187,7 +187,7 @@ void ReportAppleAllocStats(size_t* total_virtual_size,
+ 
+ #if (PA_BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC) && BUILDFLAG(IS_ANDROID)) || \
+     (!PA_BUILDFLAG(USE_PARTITION_ALLOC_AS_MALLOC) && !BUILDFLAG(IS_WIN) &&    \
+-     !BUILDFLAG(IS_APPLE) && !BUILDFLAG(IS_FUCHSIA))
++     !BUILDFLAG(IS_APPLE) && !BUILDFLAG(IS_FUCHSIA)) && !(BUILDFLAG(IS_LINUX) && !defined(__GLIBC__))
+ void ReportMallinfoStats(ProcessMemoryDump* pmd,
+                          size_t* total_virtual_size,
+                          size_t* resident_size,
+@@ -389,7 +389,7 @@ bool MallocDumpProvider::OnMemoryDump(const MemoryDumpArgs& args,
+   ReportWinHeapStats(args.level_of_detail, nullptr, &total_virtual_size,
+                      &resident_size, &allocated_objects_size,
+                      &allocated_objects_count);
+-#elif BUILDFLAG(IS_FUCHSIA)
++#elif BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(IS_LINUX) && !defined(__GLIBC__)
+ // TODO(fuchsia): Port, see https://crbug.com/706592.
+ #else
+   ReportMallinfoStats(/*pmd=*/nullptr, &total_virtual_size, &resident_size,
+diff --git a/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc b/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc
+index 9a4428e..8ba2c65 100644
+--- a/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc
++++ b/third_party/tflite/src/tensorflow/lite/profiling/memory_info.cc
+@@ -36,6 +36,10 @@ bool MemoryUsage::IsSupported() {
+   return false;
+ }
+ 
++#if defined(__linux__) && !defined(__GLIBC__)
++#define __NO_MALLINFO__
++#endif
++
+ MemoryUsage GetMemoryUsage() {
+   MemoryUsage result;
+ #ifdef __linux__
