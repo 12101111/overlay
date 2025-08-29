@@ -4,7 +4,6 @@
 EAPI=8
 
 FIREFOX_PATCHSET="firefox-141-patches-02.tar.xz"
-FIREFOX_LOONG_PATCHSET="firefox-139-loong-patches-02.tar.xz"
 
 LLVM_COMPAT=( 19 20 )
 
@@ -62,10 +61,7 @@ PATCH_URIS=(
 
 DESCRIPTION="Firefox Web Browser"
 SRC_URI="${MOZ_SRC_BASE_URI}/source/${MOZ_P}.source.tar.xz -> ${MOZ_P_DISTFILES}.source.tar.xz
-	${PATCH_URIS[@]}
-	loong? (
-		https://dev.gentoo.org/~xen0n/distfiles/www-client/${MOZ_PN}/${FIREFOX_LOONG_PATCHSET}
-	)"
+	${PATCH_URIS[@]}"
 
 S="${WORKDIR}/${PN}-${PV%_*}"
 LICENSE="MPL-2.0 GPL-2 LGPL-2.1"
@@ -587,7 +583,6 @@ src_prepare() {
 	rm -v "${WORKDIR}"/firefox-patches/*bgo-940031-wasm-support.patch || die
 
 	eapply "${WORKDIR}/firefox-patches"
-	use loong && eapply "${WORKDIR}/firefox-loong-patches"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
