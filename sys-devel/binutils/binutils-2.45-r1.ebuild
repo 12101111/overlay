@@ -19,7 +19,7 @@ IUSE="+ld +gas +binutils +gprof cet debuginfod doc gprofng hardened multitarget 
 # PATCH_DEV          - Use download URI https://dev.gentoo.org/~{PATCH_DEV}/distfiles/...
 #                      for the patchsets
 
-PATCH_VER=1
+PATCH_VER=3
 PATCH_DEV=dilfridge
 
 if [[ ${PV} == 9999 ]]; then
@@ -144,8 +144,8 @@ src_prepare() {
 			# This is applied conditionally for now just out of caution.
 			# It should be okay on non-prefix systems though. See bug #892549.
 			if is_cross || use prefix; then
-				#eapply "${FILESDIR}"/binutils-2.43-linker-search-path.patch \
-				eapply	   "${FILESDIR}"/binutils-2.43-linker-prefix.patch
+				eapply "${FILESDIR}"/binutils-2.40-linker-search-path.patch \
+					   "${FILESDIR}"/binutils-2.43-linker-prefix.patch
 			fi
 		fi
 	fi
