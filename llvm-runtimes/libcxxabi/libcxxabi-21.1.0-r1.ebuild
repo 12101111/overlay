@@ -4,8 +4,8 @@
 EAPI=8
 
 PYTHON_COMPAT=( python3_{11..14} )
-inherit cmake-multilib flag-o-matic llvm.org llvm-utils python-any-r1
-inherit toolchain-funcs
+inherit cmake-multilib crossdev flag-o-matic llvm.org llvm-utils
+inherit python-any-r1 toolchain-funcs
 
 DESCRIPTION="Low level support for a standard C++ library"
 HOMEPAGE="https://libcxxabi.llvm.org/"
@@ -17,10 +17,6 @@ IUSE="+clang +static-libs test"
 REQUIRED_USE="test? ( clang )"
 RESTRICT="!test? ( test )"
 
-# in 15.x, cxxabi.h is moving from libcxx to libcxxabi
-RDEPEND+="
-	!<llvm-runtimes/libcxx-15
-"
 DEPEND="
 	${RDEPEND}
 	llvm-core/llvm:${LLVM_MAJOR}
@@ -28,6 +24,9 @@ DEPEND="
 BDEPEND="
 	clang? (
 		llvm-core/clang:${LLVM_MAJOR}
+		llvm-core/clang-linker-config:${LLVM_MAJOR}
+		llvm-runtimes/clang-rtlib-config:${LLVM_MAJOR}
+		llvm-runtimes/clang-unwindlib-config:${LLVM_MAJOR}
 	)
 	!test? (
 		${PYTHON_DEPS}
@@ -38,7 +37,9 @@ BDEPEND="
 "
 
 LLVM_COMPONENTS=( runtimes libcxx{abi,} llvm/cmake cmake )
-LLVM_TEST_COMPONENTS=( libc llvm/utils/llvm-lit )
+LLVM_TEST_COMPONENTS=(
+	libc llvm/include/llvm/{Demangle,Testing} llvm/utils/llvm-lit
+)
 llvm.org_set_globals
 [[ ${CTARGET} == *-mingw* ]] && IS_MINGW=true || IS_MINGW=false
 
@@ -47,16 +48,43 @@ python_check_deps() {
 	python_has_version "dev-python/lit[${PYTHON_USEDEP}]"
 }
 
+test_compiler() {
+	target_is_not_host && return
+	$(tc-getCXX) ${CXXFLAGS} ${LDFLAGS} "${@}" -o /dev/null -x c - \
+		<<<'int main() { return 0; }' &>/dev/null
+}
+
 multilib_src_configure() {
 	if $IS_MINGW ; then
 		return 0
 	fi
-	llvm_prepend_path "${LLVM_MAJOR}"
+	# Workaround for bgo #961153.
+	# TODO: Fix the multilib.eclass, so it sets CTARGET properly.
+	if ! is_crosspkg; then
+		export CTARGET=${CHOST}
+	fi
 
 	if use clang; then
-		local -x CC=${CHOST}-clang
-		local -x CXX=${CHOST}-clang++
+		llvm_prepend_path -b "${LLVM_MAJOR}"
+		local -x CC=${CTARGET}-clang-${LLVM_MAJOR}
+		local -x CXX=${CTARGET}-clang++-${LLVM_MAJOR}
 		strip-unsupported-flags
+
+		# The full clang configuration might not be ready yet. Use the partial
+		# configuration of components that libunwind depends on.
+		#
+		local flags=(
+			--config="${ESYSROOT}"/etc/clang/"${LLVM_MAJOR}"/gentoo-{rtlib,unwindlib,linker}.cfg
+		)
+		local -x CFLAGS="${CFLAGS} ${flags[@]}"
+		local -x CXXFLAGS="${CXXFLAGS} ${flags[@]}"
+		local -x LDFLAGS="${LDFLAGS} ${flags[@]}"
+	fi
+
+	local nostdlib_flags=( -nostdlib++ )
+	if ! test_compiler && test_compiler "${nostdlib_flags[@]}"; then
+		local -x LDFLAGS="${LDFLAGS} ${nostdlib_flags[*]}"
+		ewarn "${CXX} seems to lack stdlib, trying with ${nostdlib_flags[*]}"
 	fi
 
 	# link to compiler-rt
@@ -72,7 +100,9 @@ multilib_src_configure() {
 
 	local libdir=$(get_libdir)
 	local mycmakeargs=(
-		-DCMAKE_CXX_COMPILER_TARGET="${CHOST}"
+		-DLLVM_ROOT="${ESYSROOT}/usr/lib/llvm/${LLVM_MAJOR}"
+
+		-DCMAKE_CXX_COMPILER_TARGET="${CTARGET}"
 		-DPython3_EXECUTABLE="${PYTHON}"
 		-DLLVM_ENABLE_RUNTIMES="libcxxabi;libcxx"
 		-DLLVM_INCLUDE_TESTS=OFF
@@ -98,7 +128,16 @@ multilib_src_configure() {
 		-DLIBCXX_INCLUDE_BENCHMARKS=OFF
 		-DLIBCXX_INCLUDE_TESTS=OFF
 	)
-	if tc-is-cross-compiler ; then
+	if is_crosspkg; then
+		mycmakeargs+=(
+			# Without this, the compiler will compile a test program
+			# and fail due to no builtins.
+			-DCMAKE_C_COMPILER_WORKS=1
+			-DCMAKE_CXX_COMPILER_WORKS=1
+			# Install inside the cross sysroot.
+			-DCMAKE_INSTALL_PREFIX="${EPREFIX}/usr/${CTARGET}/usr"
+		)
+	elif tc-is-cross-compiler ; then
 		mycmakeargs+=(
 			-DCMAKE_CXX_COMPILER_WORKS=1
 		)
@@ -132,7 +171,7 @@ multilib_src_configure() {
 			)
 		fi
 	fi
-  if [[ "${CTARGET}" == *elf* ]]; then
+  	if [[ "${CTARGET}" == *elf* ]]; then
 		mycmakeargs+=(
 			-DCMAKE_C_COMPILER_WORKS=1
 			-DLIBCXXABI_BAREMETAL=ON

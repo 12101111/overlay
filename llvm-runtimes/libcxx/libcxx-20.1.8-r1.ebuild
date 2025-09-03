@@ -4,8 +4,8 @@
 EAPI=8
 
 PYTHON_COMPAT=( python3_{11..14} )
-inherit cmake-multilib flag-o-matic llvm.org llvm-utils python-any-r1
-inherit toolchain-funcs
+inherit cmake-multilib crossdev flag-o-matic llvm.org llvm-utils
+inherit python-any-r1 toolchain-funcs
 
 DESCRIPTION="New implementation of the C++ standard library, targeting C++11"
 HOMEPAGE="https://libcxx.llvm.org/"
@@ -30,6 +30,9 @@ DEPEND="
 BDEPEND="
 	clang? (
 		llvm-core/clang:${LLVM_MAJOR}
+		llvm-core/clang-linker-config:${LLVM_MAJOR}
+		llvm-runtimes/clang-rtlib-config:${LLVM_MAJOR}
+		llvm-runtimes/clang-unwindlib-config:${LLVM_MAJOR}
 	)
 	!test? (
 		${PYTHON_DEPS}
@@ -59,7 +62,9 @@ pkg_setup() {
 		eerror "and try again."
 		die
 	fi
-	if tc-is-cross-compiler; then
+	if is_crosspkg; then
+		export CXXABI_ROOT="${EPREFIX}/usr/${CTARGET}"
+	elif tc-is-cross-compiler; then
 		export CXXABI_ROOT="${EROOT}"
 	else
 		export CXXABI_ROOT="${EPREFIX}"
@@ -92,10 +97,26 @@ src_configure() {
 }
 
 multilib_src_configure() {
+	# Workaround for bgo #961153.
+	# TODO: Fix the multilib.eclass, so it sets CTARGET properly.
+	if ! is_crosspkg; then
+		export CTARGET=${CHOST}
+	fi
+
 	if use clang; then
-		local -x CC=${CHOST}-clang
-		local -x CXX=${CHOST}-clang++
+		llvm_prepend_path -b "${LLVM_MAJOR}"
+		local -x CC=${CTARGET}-clang-${LLVM_MAJOR}
+		local -x CXX=${CTARGET}-clang++-${LLVM_MAJOR}
 		strip-unsupported-flags
+
+		# The full clang configuration might not be ready yet. Use the partial
+		# configuration of components that libunwind depends on.
+		local flags=(
+			--config="${ESYSROOT}"/etc/clang/"${LLVM_MAJOR}"/gentoo-{rtlib,unwindlib,linker}.cfg
+		)
+		local -x CFLAGS="${CFLAGS} ${flags[@]}"
+		local -x CXXFLAGS="${CXXFLAGS} ${flags[@]}"
+		local -x LDFLAGS="${LDFLAGS} ${flags[@]}"
 	fi
 
 	# link to compiler-rt
@@ -123,7 +144,9 @@ multilib_src_configure() {
 	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF
 
 	local mycmakeargs=(
-		-DCMAKE_CXX_COMPILER_TARGET="${CHOST}"
+		-DLLVM_ROOT="${ESYSROOT}/usr/lib/llvm/${LLVM_MAJOR}"
+
+		-DCMAKE_CXX_COMPILER_TARGET="${CTARGET}"
 		-DPython3_EXECUTABLE="${PYTHON}"
 		-DLLVM_ENABLE_RUNTIMES=${runtimes}
 		-DLLVM_INCLUDE_TESTS=OFF
@@ -143,18 +166,28 @@ multilib_src_configure() {
 		# this is broken with standalone builds, and also meaningless
 		-DLIBCXXABI_USE_LLVM_UNWINDER=OFF
 	)
-
-	if tc-is-cross-compiler ; then
+	if is_crosspkg; then
+		# Needed to target built libc headers
+		local -x CFLAGS="${CFLAGS} -isystem ${ESYSROOT}/usr/${CTARGET}/usr/include"
+		mycmakeargs+=(
+			# Without this, the compiler will compile a test program
+			# and fail due to no builtins.
+			-DCMAKE_C_COMPILER_WORKS=1
+			-DCMAKE_CXX_COMPILER_WORKS=1
+			# Install inside the cross sysroot.
+			-DCMAKE_INSTALL_PREFIX="${EPREFIX}/usr/${CTARGET}/usr"
+		)
+	elif tc-is-cross-compiler ; then
 		mycmakeargs+=(
 			-DCMAKE_CXX_COMPILER_WORKS=1
 		)
-		if [[ ${CHOST} == *-mingw* ]]; then
-			mycmakeargs+=(
-				-DLIBCXXABI_USE_COMPILER_RT=ON
-				-DLIBCXXABI_ENABLE_SHARED=OFF
-				-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=TRUE
-			)
-		fi
+	fi
+	if [[ ${CHOST} == *-mingw* ]]; then
+		mycmakeargs+=(
+			-DLIBCXXABI_USE_COMPILER_RT=ON
+			-DLIBCXXABI_ENABLE_SHARED=OFF
+			-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=TRUE
+		)
 	fi
 	if [[ "${CTARGET}" == *wasi* ]]; then
 		mycmakeargs+=(
@@ -227,6 +260,7 @@ multilib_src_install() {
 	# since we've replaced libc++.{a,so} with ldscripts, now we have to
 	# install the extra symlinks
 	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] && [[ ${CHOST} != *elf* ]]; then
+		is_crosspkg && into /usr/${CTARGET}
 		dolib.so lib/libc++_shared.so
 		use static-libs && dolib.a lib/libc++_static.a
 	fi

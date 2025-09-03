@@ -1,11 +1,11 @@
-# Copyright 1999-2024 Gentoo Authors
+# Copyright 1999-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{10..13} )
-inherit cmake-multilib flag-o-matic llvm.org llvm-utils python-any-r1
-inherit toolchain-funcs
+PYTHON_COMPAT=( python3_{11..13} )
+inherit cmake-multilib crossdev flag-o-matic llvm.org llvm-utils
+inherit python-any-r1 toolchain-funcs
 
 DESCRIPTION="New implementation of the C++ standard library, targeting C++11"
 HOMEPAGE="https://libcxx.llvm.org/"
@@ -57,7 +57,9 @@ pkg_setup() {
 		eerror "and try again."
 		die
 	fi
-	if tc-is-cross-compiler; then
+	if is_crosspkg; then
+		export CXXABI_ROOT="${EPREFIX}/usr/${CTARGET}"
+	elif tc-is-cross-compiler; then
 		export CXXABI_ROOT="${EROOT}"
 	else
 		export CXXABI_ROOT="${EPREFIX}"
@@ -90,9 +92,16 @@ src_configure() {
 }
 
 multilib_src_configure() {
+	# Workaround for bgo #961153.
+	# TODO: Fix the multilib.eclass, so it sets CTARGET properly.
+	if ! is_crosspkg; then
+		export CTARGET=${CHOST}
+	fi
+
 	if use clang; then
-		local -x CC=${CHOST}-clang
-		local -x CXX=${CHOST}-clang++
+		llvm_prepend_path -b "${LLVM_MAJOR}"
+		local -x CC=${CTARGET}-clang
+		local -x CXX=${CTARGET}-clang++
 		strip-unsupported-flags
 	fi
 
@@ -100,15 +109,22 @@ multilib_src_configure() {
 	local use_compiler_rt=OFF
 	[[ $(tc-get-c-rtlib) == compiler-rt ]] && use_compiler_rt=ON
 
-	local is_musllibc_like=$(usex elibc_musl)
+	local is_musllibc_like=$(llvm_cmake_use_musl)
 	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON
 
-	# bootstrap: cmake is unhappy if compiler can't link to stdlib
-	local nolib_flags=( -nostdlib++ )
-	if ! test_compiler && [[ "${CTARGET}" != *wasm* ]]; then
-		if test_compiler "${nolib_flags[@]}"; then
-			local -x LDFLAGS="${LDFLAGS} ${nolib_flags[*]}"
-			ewarn "${CXX} seems to lack runtime, trying with ${nolib_flags[*]}"
+	# Scenarios to consider:
+	#
+	# 1. Compiler test works with the default flags.
+	# 2. There is a runtime library, but no stdlib. In that case, leave the
+	#    LDFLAGS untouched, since there is no self-dependency in libc++.
+	# 3. There is no runtime library nor stdlib. In that case, overwrite the
+	#    LDFLAGS.
+	local nostdlib_flags=( -nostdlib --rtlib=compiler-rt -lc )
+	local nort_flags=( -nodefaultlibs -lc )
+	if ! test_compiler && ! test_compiler "${nostdlib_flags[@]}"; then
+		if test_compiler "${nort_flags[@]}"; then
+			local -x LDFLAGS="${LDFLAGS} ${nort_flags[*]}"
+			ewarn "${CXX} seems to lack runtime, trying with ${nort_flags[*]}"
 		fi
 	fi
 
@@ -118,9 +134,12 @@ multilib_src_configure() {
 
 	local enable_shared=ON
 	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF
-	
+	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF
+
 	local mycmakeargs=(
-		-DCMAKE_CXX_COMPILER_TARGET="${CHOST}"
+		-DLLVM_ROOT="${ESYSROOT}/usr/lib/llvm/${LLVM_MAJOR}"
+
+		-DCMAKE_CXX_COMPILER_TARGET="${CTARGET}"
 		-DPython3_EXECUTABLE="${PYTHON}"
 		-DLLVM_ENABLE_RUNTIMES=${runtimes}
 		-DLLVM_INCLUDE_TESTS=OFF
@@ -140,18 +159,28 @@ multilib_src_configure() {
 		# this is broken with standalone builds, and also meaningless
 		-DLIBCXXABI_USE_LLVM_UNWINDER=OFF
 	)
-
-	if tc-is-cross-compiler ; then
+	if is_crosspkg; then
+		# Needed to target built libc headers
+		local -x CFLAGS="${CFLAGS} -isystem ${ESYSROOT}/usr/${CTARGET}/usr/include"
+		mycmakeargs+=(
+			# Without this, the compiler will compile a test program
+			# and fail due to no builtins.
+			-DCMAKE_C_COMPILER_WORKS=1
+			-DCMAKE_CXX_COMPILER_WORKS=1
+			# Install inside the cross sysroot.
+			-DCMAKE_INSTALL_PREFIX="${EPREFIX}/usr/${CTARGET}/usr"
+		)
+	elif tc-is-cross-compiler ; then
 		mycmakeargs+=(
 			-DCMAKE_CXX_COMPILER_WORKS=1
 		)
-		if [[ ${CHOST} == *-mingw* ]]; then
-			mycmakeargs+=(
-				-DLIBCXXABI_USE_COMPILER_RT=ON
-				-DLIBCXXABI_ENABLE_SHARED=OFF
-				-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=TRUE
-			)
-		fi
+	fi
+	if [[ ${CHOST} == *-mingw* ]]; then
+		mycmakeargs+=(
+			-DLIBCXXABI_USE_COMPILER_RT=ON
+			-DLIBCXXABI_ENABLE_SHARED=OFF
+			-DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=TRUE
+		)
 	fi
 	if [[ "${CTARGET}" == *wasi* ]]; then
 		mycmakeargs+=(
@@ -219,6 +248,7 @@ multilib_src_install() {
 	# since we've replaced libc++.{a,so} with ldscripts, now we have to
 	# install the extra symlinks
 	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] && [[ ${CHOST} != *elf* ]]; then
+		is_crosspkg && into /usr/${CTARGET}
 		dolib.so lib/libc++_shared.so
 		use static-libs && dolib.a lib/libc++_static.a
 	fi

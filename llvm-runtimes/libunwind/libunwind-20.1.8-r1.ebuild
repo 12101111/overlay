@@ -4,8 +4,8 @@
 EAPI=8
 
 PYTHON_COMPAT=( python3_{11..14} )
-inherit cmake-multilib flag-o-matic llvm.org llvm-utils python-any-r1
-inherit toolchain-funcs
+inherit cmake-multilib crossdev flag-o-matic llvm.org llvm-utils
+inherit python-any-r1 toolchain-funcs
 
 DESCRIPTION="C++ runtime stack unwinder from LLVM"
 HOMEPAGE="https://llvm.org/docs/ExceptionHandling.html"
@@ -26,6 +26,8 @@ DEPEND="
 BDEPEND="
 	clang? (
 		llvm-core/clang:${LLVM_MAJOR}
+		llvm-core/clang-linker-config:${LLVM_MAJOR}
+		llvm-runtimes/clang-rtlib-config:${LLVM_MAJOR}
 	)
 	!test? (
 		${PYTHON_DEPS}
@@ -44,8 +46,18 @@ python_check_deps() {
 	python_has_version "dev-python/lit[${PYTHON_USEDEP}]"
 }
 
+test_compiler() {
+	target_is_not_host && return
+	local compiler=${1}
+	shift
+	${compiler} ${CFLAGS} ${LDFLAGS} "${@}" -o /dev/null -x c - \
+		<<<'int main() { return 0; }' &>/dev/null
+}
+
 multilib_src_configure() {
-	llvm_prepend_path "${LLVM_MAJOR}"
+	if use clang; then
+		llvm_prepend_path -b "${LLVM_MAJOR}"
+	fi
 
 	local libdir=$(get_libdir)
 
@@ -53,10 +65,49 @@ multilib_src_configure() {
 	# also separately bug #863917
 	filter-lto
 
+	# Workaround for bgo #961153.
+	# TODO: Fix the multilib.eclass, so it sets CTARGET properly.
+	if ! is_crosspkg; then
+		export CTARGET=${CHOST}
+	fi
+
 	if use clang; then
-		local -x CC=${CHOST}-clang
-		local -x CXX=${CHOST}-clang++
+		local -x CC=${CTARGET}-clang-${LLVM_MAJOR}
+		local -x CXX=${CTARGET}-clang++-${LLVM_MAJOR}
 		strip-unsupported-flags
+
+		# The full clang configuration might not be ready yet. Use the partial
+		# configuration files that are guaranteed to exist even during initial
+		# installations and upgrades.
+		local flags=(
+			--config="${ESYSROOT}"/etc/clang/"${LLVM_MAJOR}"/gentoo-{rtlib,linker}.cfg
+		)
+		local -x CFLAGS="${CFLAGS} ${flags[@]}"
+		local -x CXXFLAGS="${CXXFLAGS} ${flags[@]}"
+		local -x LDFLAGS="${LDFLAGS} ${flags[@]}"
+	fi
+
+	# Check whether C compiler runtime is available.
+	if ! test_compiler "$(tc-getCC)"; then
+		local nolib_flags=( -nodefaultlibs -lc )
+		if test_compiler "$(tc-getCC)" "${nolib_flags[@]}"; then
+			local -x LDFLAGS="${LDFLAGS} ${nolib_flags[*]}"
+			ewarn "${CC} seems to lack runtime, trying with ${nolib_flags[*]}"
+		elif test_compiler "$(tc-getCC)" "${nolib_flags[@]}" -nostartfiles; then
+			# Avoiding -nostartfiles earlier on for bug #862540,
+			# and set available entry symbol for bug #862798.
+			nolib_flags+=( -nostartfiles -e main )
+			local -x LDFLAGS="${LDFLAGS} ${nolib_flags[*]}"
+			ewarn "${CC} seems to lack runtime, trying with ${nolib_flags[*]}"
+		fi
+	fi
+	# Check whether C++ standard library is available,
+	local nostdlib_flags=( -nostdlib++ )
+	if ! test_compiler "$(tc-getCXX)" &&
+		test_compiler "$(tc-getCXX)" "${nostdlib_flags[@]}"
+	then
+		local -x LDFLAGS="${LDFLAGS} ${nostdlib_flags[*]}"
+		ewarn "${CXX} seems to lack runtime, trying with ${nostdlib_flags[*]}"
 	fi
 
 	# link to compiler-rt
@@ -74,7 +125,10 @@ multilib_src_configure() {
 	use debug || append-cppflags -DNDEBUG
 
 	local mycmakeargs=(
-		-DCMAKE_CXX_COMPILER_TARGET="${CHOST}"
+		-DLLVM_ROOT="${ESYSROOT}/usr/lib/llvm/${LLVM_MAJOR}"
+
+		-DCMAKE_C_COMPILER_TARGET="${CTARGET}"
+		-DCMAKE_CXX_COMPILER_TARGET="${CTARGET}"
 		-DPython3_EXECUTABLE="${PYTHON}"
 		-DLLVM_ENABLE_RUNTIMES="libunwind"
 		-DLLVM_LIBDIR_SUFFIX=${libdir#lib}
@@ -84,26 +138,35 @@ multilib_src_configure() {
 		-DLIBUNWIND_INCLUDE_TESTS=$(usex test)
 		-DLIBUNWIND_INSTALL_HEADERS=ON
 
+		# cross-unwinding increases unwinding footprint (to account
+		# for the worst case) and causes some breakage on AArch64
+		# https://github.com/llvm/llvm-project/issues/152549
+		-DLIBUNWIND_ENABLE_CROSS_UNWINDING=OFF
 
 		# avoid dependency on libgcc_s if compiler-rt is used
 		-DLIBUNWIND_USE_COMPILER_RT=${use_compiler_rt}
 	)
-	if ! tc-is-cross-compiler ; then
+	if is_crosspkg; then
 		mycmakeargs+=(
-			-DLIBUNWIND_ENABLE_CROSS_UNWINDING=ON
+			# Without this, the compiler will compile a test program
+			# and fail due to no builtins.
+			-DCMAKE_C_COMPILER_WORKS=1
+			-DCMAKE_CXX_COMPILER_WORKS=1
+			# Install inside the cross sysroot.
+			-DCMAKE_INSTALL_PREFIX="${EPREFIX}/usr/${CTARGET}/usr"
 		)
-	else
+	elif tc-is-cross-compiler ; then
 		mycmakeargs+=(
+			-DCMAKE_C_COMPILER_WORKS=1
 			-DCMAKE_CXX_COMPILER_WORKS=1
 		)
-		if [[ "${CTARGET}" == *elf* ]]; then
-			mycmakeargs+=(
-				-DCMAKE_C_COMPILER_WORKS=1
-				-DLIBUNWIND_ENABLE_SHARED=OFF
-				-DLIBUNWIND_IS_BAREMETAL=ON
-				-DLIBUNWIND_ENABLE_THREADS=OFF
-			)
-		fi
+	fi
+	if [[ "${CTARGET}" == *elf* ]]; then
+		mycmakeargs+=(
+			-DLIBUNWIND_ENABLE_SHARED=OFF
+			-DLIBUNWIND_IS_BAREMETAL=ON
+			-DLIBUNWIND_ENABLE_THREADS=OFF
+		)
 	fi
 	if use test; then
 		mycmakeargs+=(
