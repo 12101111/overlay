@@ -24,8 +24,8 @@ EAPI=8
 GN_MIN_VER=0.2235
 # chromium-tools/get-chromium-toolchain-strings.py
 TEST_FONT=a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969
-BUNDLED_CLANG_VER=llvmorg-21-init-11777-gfd3fecfc-1
-BUNDLED_RUST_VER=4a0969e06dbeaaa43914d2d00b2e843d49aa3886-1
+BUNDLED_CLANG_VER=llvmorg-21-init-16348-gbd809ffb-15
+BUNDLED_RUST_VER=22be76b7e259f27bf3e55eb931f354cd8b69d55f-3
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
 NODE_VER=22.11.0
 
@@ -35,10 +35,9 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
-LLVM_COMPAT=( 19 20 )
+LLVM_COMPAT=( 20 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
-RUST_MAX_VER=1.89.0 # M140 fails to build with 1.89+
 RUST_MIN_VER=1.78.0
 RUST_NEEDS_LLVM="yes please"
 RUST_OPTIONAL="yes" # Not actually optional, but we don't need system Rust (or LLVM) with USE=bundled-toolchain
@@ -433,6 +432,59 @@ src_unpack() {
 	fi
 }
 
+remove_compiler_builtins() {
+	# We can't use the bundled compiler builtins with the system toolchain
+	# We used to `grep` then `sed`, but it was indirect. Combining the two into a single
+	# `awk` command is more efficient and lets us document the logic more clearly.
+
+	local pattern='    configs += [ "//build/config/clang:compiler_builtins" ]'
+	local target='build/config/compiler/BUILD.gn'
+
+	local tmpfile
+	tmpfile=$(mktemp) || die "Failed to create temporary file."
+
+	if awk -v pat="${pattern}" '
+	BEGIN {
+		match_found = 0
+	}
+
+	# If the delete countdown is active, decrement it and skip to the next line.
+	d > 0 { d--; next }
+
+	# If the current line matches the pattern...
+	$0 == pat {
+		match_found = 1   # ...set our flag to true.
+		d = 2             # Set delete counter for this line and the next two.
+		prev = ""         # Clear the buffered previous line so it is not printed.
+		next
+	}
+
+	# For any other line, print the buffered previous line.
+	NR > 1 { print prev }
+
+	# Buffer the current line to be printed on the next cycle.
+	{ prev = $0 }
+
+	END {
+		# Print the last line if it was not part of a deleted block.
+		if (d == 0) { print prev }
+
+		# If the pattern was never found, exit with a failure code.
+		if (match_found == 0) {
+		exit 1
+		}
+	}
+	' "${target}" > "${tmpfile}"; then
+		# AWK SUCCEEDED (exit code 0): The pattern was found and edited.
+		# This is to avoid gawk's `-i inplace` option which users complain about.
+		mv "${tmpfile}" "${target}"
+	else
+		# AWK FAILED (exit code 1): The pattern was not found.
+		rm -f "${tmpfile}"
+		die "Awk patch failed: Pattern not found in ${target}."
+	fi
+}
+
 src_prepare() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
@@ -457,6 +509,12 @@ src_prepare() {
 		"${FILESDIR}/chromium-135-map_droppable-glibc.patch"
 		"${FILESDIR}/chromium-138-nodejs-version-check.patch"
 	)
+
+	# https://issues.chromium.org/issues/442698344
+	# Unreleased fontconfig changed magic numbers and google have rolled to this version
+	if has_version "<=media-libs/fontconfig-2.17.1"; then
+		PATCHES+=( "${FILESDIR}/chromium-140-work-with-old-fontconfig.patch" )
+	fi
 
 	if use bundled-toolchain; then
 		# We need to symlink the toolchain into the expected location
@@ -492,11 +550,7 @@ src_prepare() {
 
 		shopt -u globstar nullglob
 
-		# We can't use the bundled compiler builtins with the system toolchain
-		# `grep` is a development convenience to ensure we fail early when google changes something.
-		local builtins_match="if (is_clang && !is_nacl && !is_cronet_build) {"
-		grep -q "${builtins_match}" build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
-		sed -i -e "/${builtins_match}/,+2d" build/config/compiler/BUILD.gn
+		remove_compiler_builtins
 
 		# Strictly speaking this doesn't need to be gated (no bundled toolchain for ppc64); it keeps the logic together
 		if use ppc64; then
@@ -535,8 +589,9 @@ src_prepare() {
 				die "Failed to tell GN that we have adler and not adler2"
 		fi
 
-		if ver_test ${RUST_SLOT} -ge "1.89.0"; then
-			eapply "${FILESDIR}/fix-rust-warning.patch"
+		if ver_test ${RUST_SLOT} -lt "1.89.0"; then
+			# The rust allocator was changed in 1.89.0, so we need to patch sources for older versions
+			PATCHES+=( "${FILESDIR}/chromium-140-__rust_no_alloc_shim_is_unstable.patch" )
 		fi
 	fi
 
@@ -668,6 +723,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/mitt
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/parsel-js
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/rxjs
+		third_party/devtools-frontend/src/front_end/third_party/source-map-scopes-codec
 		third_party/devtools-frontend/src/front_end/third_party/third-party-web
 		third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
@@ -828,7 +884,6 @@ src_prepare() {
 		third_party/ukey2
 		third_party/utf
 		third_party/vulkan
-		third_party/wasm_tts_engine
 		third_party/wayland
 		third_party/webdriver
 		third_party/webgpu-cts
@@ -1097,8 +1152,8 @@ chromium_configure() {
 			myconf_gn+=(
 				'host_toolchain="//build/toolchain/linux/unbundle:host"'
 				'v8_snapshot_toolchain="//build/toolchain/linux/unbundle:host"'
-				"host_pkg_config=$(tc-getBUILD_PKG_CONFIG)"
-				"pkg_config=$(tc-getPKG_CONFIG)"
+				"host_pkg_config=\"$(tc-getBUILD_PKG_CONFIG)\""
+				"pkg_config=\"$(tc-getPKG_CONFIG)\""
 			)
 
 			# setup cups-config, build system only uses --libs option
@@ -1506,6 +1561,8 @@ src_test() {
 		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/IOThreadIsCritical
 		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/CompositorThreadIsCritical
 		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/ThreadPoolIsNotCritical
+		# M140
+		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/GpuProcessIsCritical
 	)
 	local test_filter="-$(IFS=:; printf '%s' "${skip_tests[*]}")"
 	# test-launcher-bot-mode enables parallelism and plain output
