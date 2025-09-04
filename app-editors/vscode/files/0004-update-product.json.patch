@@ -1,4 +1,4 @@
-From 53635163d244ac1222d9c52aaf5de914eb177274 Mon Sep 17 00:00:00 2001
+From 35759ee570a3d61acc0557ba137b5fb733eebcc1 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Oct 2020 09:52:23 +0800
 Subject: [PATCH 04/11] update product.json
@@ -29,5 +29,5 @@ index a0719353135..e4e1c00e295 100644
  	"nameLong": "Code - OSS",
  	"applicationName": "code-oss",
 -- 
-2.50.1
+2.51.0
 

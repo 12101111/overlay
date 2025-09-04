@@ -1,4 +1,4 @@
-From e73dc30565a1f3092f62cee847953147a2569508 Mon Sep 17 00:00:00 2001
+From ed1b9b4023940dccfc803f1a006d189ec0f5cec7 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 18 Jul 2024 02:46:03 +0800
 Subject: [PATCH 01/11] Add install script for Gentoo
@@ -78,5 +78,5 @@ index cd8610da011..59b46e33d00 100644
 +	gulp.task(installGentooTask);
  });
 -- 
-2.50.1
+2.51.0
 

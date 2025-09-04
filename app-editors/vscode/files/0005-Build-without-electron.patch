@@ -1,6 +1,6 @@
-From 646a40d2dc85ec0a5b5cf3ee09012430a7845c10 Mon Sep 17 00:00:00 2001
+From 74ca385bfd07e5ef16e50ffd3868930040746644 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Mon, 31 Jul 2023 18:26:28 +0800
+Date: Thu, 4 Sep 2025 22:05:21 +0800
 Subject: [PATCH 05/11] Build without electron
 
 ---
@@ -8,7 +8,7 @@ Subject: [PATCH 05/11] Build without electron
  1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index f819cd6a1c2..e38e67e4f81 100644
+index 25d89164517..2cc57ead23b 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
 @@ -207,6 +207,13 @@ function computeChecksum(filename) {
@@ -28,7 +28,7 @@ index f819cd6a1c2..e38e67e4f81 100644
 @@ -214,7 +221,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
  	platform = platform || process.platform;
  
- 	return () => {
+ 	const task = () => {
 -		const electron = require('@vscode/gulp-electron');
  		const json = require('gulp-json-editor');
  
@@ -43,5 +43,5 @@ index f819cd6a1c2..e38e67e4f81 100644
  
  		if (platform === 'linux') {
 -- 
-2.50.1
+2.51.0
 

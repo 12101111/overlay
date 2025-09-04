@@ -1,4 +1,4 @@
-From 5cc59f3a06c6f39d49d1342b8e3c87da89717369 Mon Sep 17 00:00:00 2001
+From 77bfe0d280301dc550d28f62744bef547acd24f9 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 15 Sep 2024 21:27:46 +0800
 Subject: [PATCH 09/11] Add support for riscv64, loong64
@@ -25,10 +25,10 @@ index aafc64e81c2..b80ba8b4025 100644
  
  // The following files do not have PDBs downloaded for them during the download symbols process.
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index e38e67e4f81..903322a7066 100644
+index 2cc57ead23b..727e7f38b3c 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -469,6 +469,8 @@ const BUILD_TARGETS = [
+@@ -484,6 +484,8 @@ const BUILD_TARGETS = [
  	{ platform: 'linux', arch: 'x64' },
  	{ platform: 'linux', arch: 'armhf' },
  	{ platform: 'linux', arch: 'arm64' },
@@ -51,7 +51,7 @@ index 59b46e33d00..fb2d51da75f 100644
  
  BUILD_TARGETS.forEach(({ arch }) => {
 diff --git a/src/vs/platform/extensionManagement/common/extensionManagement.ts b/src/vs/platform/extensionManagement/common/extensionManagement.ts
-index 2f8d1e83b99..0623afa4042 100644
+index 1bf72a2aa12..b24c607cf06 100644
 --- a/src/vs/platform/extensionManagement/common/extensionManagement.ts
 +++ b/src/vs/platform/extensionManagement/common/extensionManagement.ts
 @@ -45,6 +45,8 @@ export function TargetPlatformToString(targetPlatform: TargetPlatform) {
@@ -99,5 +99,5 @@ index bf4bb318095..f935435abbd 100644
  	ALPINE_X64 = 'alpine-x64',
  	ALPINE_ARM64 = 'alpine-arm64',
 -- 
-2.50.1
+2.51.0
 
