@@ -40,11 +40,27 @@ src_configure() {
 	append-flags -nostdlib
 	filter-flags -fomit-frame-pointer
 	
-  local emesonargs=( )
+  local emesonargs=( -Dmultilib=false )
   meson_src_configure
 }
 
 src_install() {
 	meson_src_install --destdir ${ED}/usr/${CTARGET}
 	mv ${ED}/usr/share ${ED}/usr/${CTARGET}/usr/
+	if [[ ${CTARGET} == riscv64* ]]; then
+		elf_header=$(llvm-readelf -h "${ED}/usr/${CTARGET}/usr/lib/crt0.o")
+		flags_info=$(echo "$elf_header"| grep 'Flags:' | tr -d ',')
+		flags_val=$(echo "$flags_info" | grep -o '0x[0-9a-fA-F]*' | head -n1)
+		flags_dec=$((flags_val))
+		float_abi_mask=$((flags_dec & 0x6))
+		if [[ $float_abi_mask == 4 ]]; then
+			mkdir -p "${ED}/usr/${CTARGET}/rv64imafdc/lp64d"
+			dosym -r /usr/${CTARGET}/usr/include /usr/${CTARGET}/rv64imafdc/lp64d/include
+			dosym -r /usr/${CTARGET}/usr/lib /usr/${CTARGET}/rv64imafdc/lp64d/lib
+		else
+			mkdir -p "${ED}/usr/${CTARGET}/rv64imac/lp64"
+			dosym -r /usr/${CTARGET}/usr/include /usr/${CTARGET}/rv64imac/lp64/include
+			dosym -r /usr/${CTARGET}/usr/lib /usr/${CTARGET}/rv64imac/lp64/lib
+		fi
+	fi
 }
