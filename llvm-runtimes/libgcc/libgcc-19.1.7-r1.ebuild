@@ -17,7 +17,6 @@ KEYWORDS="amd64 arm arm64 x86 ~amd64-linux"
 IUSE="debug test"
 
 DEPEND="
-	~llvm-runtimes/compiler-rt-${LLVM_VERSION}
 	~llvm-runtimes/libunwind-${LLVM_VERSION}[static-libs]"
 RDEPEND="
 	${DEPEND}
