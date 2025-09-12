@@ -513,7 +513,7 @@ src_prepare() {
 	# https://issues.chromium.org/issues/442698344
 	# Unreleased fontconfig changed magic numbers and google have rolled to this version
 	if has_version "<=media-libs/fontconfig-2.17.1"; then
-		PATCHES+=( "${FILESDIR}/chromium-140-work-with-old-fontconfig.patch" )
+		PATCHES+=( "${FILESDIR}/chromium-140-work-with-old-fontconfig-again.patch" )
 	fi
 
 	if use bundled-toolchain; then
