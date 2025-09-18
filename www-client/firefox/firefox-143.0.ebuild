@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-141-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-143-patches-01.tar.xz"
 
 LLVM_COMPAT=( 19 20 )
 
@@ -13,7 +13,7 @@ RUST_NEEDS_LLVM=1
 # If not building with clang we need at least rust 1.76
 RUST_MIN_VER=1.82.0
 
-PYTHON_COMPAT=( python3_{11..13} )
+PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
 
 VIRTUALX_REQUIRED="manual"
@@ -120,7 +120,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.114
+	>=dev-libs/nss-3.115.1
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -636,6 +636,9 @@ src_prepare() {
 
 	if use pgo && use clang; then
 		eapply "${FILESDIR}/cross-pgo.patch"
+	fi
+	if tc-get-cxx-stdlib; then
+		eapply "${FILESDIR}/libcxx.patch"
 	fi
 
 	einfo "Removing pre-built binaries ..."
