@@ -63,4 +63,28 @@ src_install() {
 			dosym -r /usr/${CTARGET}/usr/lib /usr/${CTARGET}/rv64imac/lp64/lib
 		fi
 	fi
+  if [[ ${CTARGET} == riscv32* ]]; then
+		elf_header=$(llvm-readelf -h "${ED}/usr/${CTARGET}/usr/lib/crt0.o")
+		flags_info=$(echo "$elf_header"| grep 'Flags:' | tr -d ',')
+		flags_val=$(echo "$flags_info" | grep -o '0x[0-9a-fA-F]*' | head -n1)
+		flags_dec=$((flags_val))
+		float_abi_mask=$((flags_dec & 0x6))
+		case $float_abi_mask in
+		4)
+			mkdir -p "${ED}/usr/${CTARGET}/rv32imafdc/ilp32d"
+			dosym -r /usr/${CTARGET}/usr/include /usr/${CTARGET}/rv32imafdc/ilp32d/include
+			dosym -r /usr/${CTARGET}/usr/lib /usr/${CTARGET}/rv32imafdc/ilp32d/lib
+			;;
+		2) 
+			mkdir -p "${ED}/usr/${CTARGET}/rv32imafc/ilp32f"
+			dosym -r /usr/${CTARGET}/usr/include /usr/${CTARGET}/rv32imafc/ilp32f/include
+			dosym -r /usr/${CTARGET}/usr/lib /usr/${CTARGET}/rv32imafc/ilp32f/lib
+			;;
+		0)
+			mkdir -p "${ED}/usr/${CTARGET}/rv32imac/ilp32"
+			dosym -r /usr/${CTARGET}/usr/include /usr/${CTARGET}/rv32imac/ilp32/include
+			dosym -r /usr/${CTARGET}/usr/lib /usr/${CTARGET}/rv32imac/ilp32/lib
+		;;
+		esac
+  fi
 }
