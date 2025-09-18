@@ -195,19 +195,10 @@ multilib_src_configure() {
 			-DLIBCXX_HAS_EXTERNAL_THREAD_API=OFF
 			-DLIBCXX_HAS_WIN32_THREAD_API=OFF
 			-DLIBCXX_ENABLE_TIME_ZONE_DATABASE=OFF
+			-DLIBCXX_ENABLE_THREADS=ON
+			-DLIBCXX_HAS_PTHREAD_API=ON
 			-DUNIX=ON
 		)
-		if [[ "${CTARGET}" == *wasi*-threads ]]; then
-			mycmakeargs+=(
-				-DLIBCXX_ENABLE_THREADS=ON
-				-DLIBCXX_HAS_PTHREAD_API=ON
-			)
-		else
-			mycmakeargs+=(
-				-DLIBCXX_ENABLE_THREADS=OFF
-				-DLIBCXX_HAS_PTHREAD_API=OFF
-			)
-		fi
 	fi
 	if [[ "${CTARGET}" == *elf* ]]; then
 		mycmakeargs+=(
