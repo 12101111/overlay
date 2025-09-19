@@ -593,6 +593,9 @@ src_prepare() {
 			# The rust allocator was changed in 1.89.0, so we need to patch sources for older versions
 			PATCHES+=( "${FILESDIR}/chromium-140-__rust_no_alloc_shim_is_unstable.patch" )
 		fi
+		if ver_test ${RUST_SLOT} -ge "1.90.0"; then
+			PATCHES+=( "${FILESDIR}/chromium-140-__rust_alloc_error_handler_should_panic_v2.patch" )
+		fi
 	fi
 
 	if use loong ; then
