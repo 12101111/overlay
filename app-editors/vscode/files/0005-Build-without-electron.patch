@@ -1,4 +1,4 @@
-From 74ca385bfd07e5ef16e50ffd3868930040746644 Mon Sep 17 00:00:00 2001
+From 697c58442eab84f5fb8ac699f5167817e2127ae2 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 4 Sep 2025 22:05:21 +0800
 Subject: [PATCH 05/11] Build without electron
@@ -8,7 +8,7 @@ Subject: [PATCH 05/11] Build without electron
  1 file changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 25d89164517..2cc57ead23b 100644
+index ed06b6a5aa8..9be52be7f61 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
 @@ -207,6 +207,13 @@ function computeChecksum(filename) {

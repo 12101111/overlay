@@ -1,6 +1,6 @@
-From 256cb045bbe58995d05b784c455da2f43242c3cb Mon Sep 17 00:00:00 2001
+From a677afb6c37766b7faa6aa6f8ea81b742197c4e7 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 14 Dec 2024 23:07:43 +0800
+Date: Fri, 19 Sep 2025 21:50:31 +0800
 Subject: [PATCH 02/11] Don't download bundle marketplace extensions in gulp
 
 ---
@@ -8,10 +8,10 @@ Subject: [PATCH 02/11] Don't download bundle marketplace extensions in gulp
  1 file changed, 8 deletions(-)
 
 diff --git a/build/gulpfile.extensions.js b/build/gulpfile.extensions.js
-index 73c227e29ae..3addebbceb0 100644
+index 687bd16fd8c..2431efa54c8 100644
 --- a/build/gulpfile.extensions.js
 +++ b/build/gulpfile.extensions.js
-@@ -237,17 +237,11 @@ exports.compileExtensionMediaBuildTask = compileExtensionMediaBuildTask;
+@@ -225,17 +225,11 @@ exports.compileExtensionMediaBuildTask = compileExtensionMediaBuildTask;
  const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimraf('.build/extensions'));
  exports.cleanExtensionsBuildTask = cleanExtensionsBuildTask;
  
@@ -26,10 +26,10 @@ index 73c227e29ae..3addebbceb0 100644
   */
  const compileNonNativeExtensionsBuildTask = task.define('compile-non-native-extensions-build', task.series(
 -	bundleMarketplaceExtensionsBuildTask,
- 	task.define('bundle-non-native-extensions-build', () => ext.packageNonNativeLocalExtensionsStream().pipe(gulp.dest('.build')))
+ 	task.define('bundle-non-native-extensions-build', () => ext.packageNonNativeLocalExtensionsStream(false, false).pipe(gulp.dest('.build')))
  ));
  gulp.task(compileNonNativeExtensionsBuildTask);
-@@ -267,7 +261,6 @@ exports.compileNativeExtensionsBuildTask = compileNativeExtensionsBuildTask;
+@@ -255,7 +249,6 @@ exports.compileNativeExtensionsBuildTask = compileNativeExtensionsBuildTask;
   */
  const compileAllExtensionsBuildTask = task.define('compile-extensions-build', task.series(
  	cleanExtensionsBuildTask,
@@ -37,7 +37,7 @@ index 73c227e29ae..3addebbceb0 100644
  	task.define('bundle-extensions-build', () => ext.packageAllLocalExtensionsStream(false, false).pipe(gulp.dest('.build'))),
  ));
  gulp.task(compileAllExtensionsBuildTask);
-@@ -279,7 +272,6 @@ gulp.task(task.define('extensions-ci', task.series(compileNonNativeExtensionsBui
+@@ -267,7 +260,6 @@ gulp.task(task.define('extensions-ci', task.series(compileNonNativeExtensionsBui
  
  const compileExtensionsBuildPullRequestTask = task.define('compile-extensions-build-pr', task.series(
  	cleanExtensionsBuildTask,

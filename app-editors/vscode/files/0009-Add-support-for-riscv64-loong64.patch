@@ -1,4 +1,4 @@
-From 77bfe0d280301dc550d28f62744bef547acd24f9 Mon Sep 17 00:00:00 2001
+From 4b181e152e7555ad1eeb534c5202395c02133b7d Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 15 Sep 2024 21:27:46 +0800
 Subject: [PATCH 09/11] Add support for riscv64, loong64
@@ -25,7 +25,7 @@ index aafc64e81c2..b80ba8b4025 100644
  
  // The following files do not have PDBs downloaded for them during the download symbols process.
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 2cc57ead23b..727e7f38b3c 100644
+index 9be52be7f61..405051a3475 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
 @@ -484,6 +484,8 @@ const BUILD_TARGETS = [
@@ -38,10 +38,10 @@ index 2cc57ead23b..727e7f38b3c 100644
  BUILD_TARGETS.forEach(buildTarget => {
  	const dashed = (str) => (str ? `-${str}` : ``);
 diff --git a/build/gulpfile.vscode.linux.js b/build/gulpfile.vscode.linux.js
-index 59b46e33d00..fb2d51da75f 100644
+index cf4f79b4694..65801fe88d7 100644
 --- a/build/gulpfile.vscode.linux.js
 +++ b/build/gulpfile.vscode.linux.js
-@@ -353,6 +353,8 @@ const BUILD_TARGETS = [
+@@ -354,6 +354,8 @@ const BUILD_TARGETS = [
  	{ arch: 'x64' },
  	{ arch: 'armhf' },
  	{ arch: 'arm64' },
@@ -51,7 +51,7 @@ index 59b46e33d00..fb2d51da75f 100644
  
  BUILD_TARGETS.forEach(({ arch }) => {
 diff --git a/src/vs/platform/extensionManagement/common/extensionManagement.ts b/src/vs/platform/extensionManagement/common/extensionManagement.ts
-index 1bf72a2aa12..b24c607cf06 100644
+index cd5c1945c5a..2b1da8598ef 100644
 --- a/src/vs/platform/extensionManagement/common/extensionManagement.ts
 +++ b/src/vs/platform/extensionManagement/common/extensionManagement.ts
 @@ -45,6 +45,8 @@ export function TargetPlatformToString(targetPlatform: TargetPlatform) {

@@ -1,18 +1,18 @@
-From 863905ec45933590df39c7fdd800b242eccd689d Mon Sep 17 00:00:00 2001
+From 29a39d1da6efa11a91019c8e218551e5bfad8137 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 23 Nov 2024 22:27:26 +0800
+Date: Fri, 19 Sep 2025 21:51:36 +0800
 Subject: [PATCH 03/11] Don't run npm install for test
 
 ---
- build/npm/dirs.js        | 6 ------
+ build/npm/dirs.js        | 7 -------
  build/npm/postinstall.js | 2 --
- 2 files changed, 8 deletions(-)
+ 2 files changed, 9 deletions(-)
 
 diff --git a/build/npm/dirs.js b/build/npm/dirs.js
-index 9f653c72479..ca8b6d2b9e5 100644
+index a7ee7c3a6c7..ca8b6d2b9e5 100644
 --- a/build/npm/dirs.js
 +++ b/build/npm/dirs.js
-@@ -48,12 +48,6 @@ const dirs = [
+@@ -48,13 +48,6 @@ const dirs = [
  	'extensions/vscode-test-resolver',
  	'remote',
  	'remote/web',
@@ -20,6 +20,7 @@ index 9f653c72479..ca8b6d2b9e5 100644
 -	'test/integration/browser',
 -	'test/monaco',
 -	'test/smoke',
+-	'test/mcp',
 -	'.vscode/extensions/vscode-selfhost-import-aid',
 -	'.vscode/extensions/vscode-selfhost-test-provider',
  ];
