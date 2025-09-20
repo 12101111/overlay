@@ -35,21 +35,10 @@ elif [[ ${PV} == *beta* ]]; then
 			-> rustc-${PV}-src.tar.xz.asc )
 	"
 	S="${WORKDIR}/${MY_P}-src"
-elif [[ ${PV} = *rc* ]]; then
-	rcver=${PV//*rc}
-	RC_SNAPSHOT="${rcver:0:4}-${rcver:4:2}-${rcver:6:2}"
-	ABI_VER=${PV//_rc*}
-	MY_P="rustc-${ABI_VER}"
-	SRC_URI="https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz -> rustc-${PV}-src.tar.xz
-		https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
-		verify-sig? ( https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz.asc
-			-> rustc-${PV}-src.tar.xz.asc )
-	"
-	S="${WORKDIR}/${MY_P}-src"
 else
 	MY_P="rustc-${PV}"
+	#https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
 	SRC_URI="https://static.rust-lang.org/dist/${MY_P}-src.tar.xz
-		https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
 		verify-sig? ( https://static.rust-lang.org/dist/${MY_P}-src.tar.xz.asc )
 	"
 	S="${WORKDIR}/${MY_P}-src"
@@ -334,7 +323,11 @@ src_prepare() {
 	# Commit patches to the appropriate branch in proj/rust-patches.git
 	# then cut a new tag / tarball. Don't add patches to ${FILESDIR}
 	PATCHES=(
-		"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"
+		#"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"
+		"${FILESDIR}/1.67.0-doc-wasm.patch"
+		"${FILESDIR}/1.87.0-znver.patch"
+		"${FILESDIR}/1.89.0-compiler-link-with-system-libs-unconditionally.patch"
+		"${FILESDIR}/1.90.0-compiler-musl-dynamic-linking.patch"
 	)
 
 	if use lto && tc-is-clang && ! tc-ld-is-lld && ! tc-ld-is-mold; then
