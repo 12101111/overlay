@@ -3,7 +3,7 @@
 
 EAPI=8
 
-GN_MIN_VER=0.2165
+GN_MIN_VER=0.2235
 
 VIRTUALX_REQUIRED="pgo"
 
@@ -24,10 +24,10 @@ inherit rust-toolchain
 
 # Keep this in sync with DEPS:chromium_version
 # find least version of available snapshot in
-# https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-134.0.6998.167.tar.xz.hashe%40
-CHROMIUM_VERSION="134.0.6998.198"
+# https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-137.0.7151.8.tar.xz.hashe%40
+CHROMIUM_VERSION="138.0.7204.232"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="22.16.0"
+NODE_VERSION="22.19.0"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
@@ -81,7 +81,7 @@ https://registry.yarnpkg.com/@electron/fiddle-core/-/fiddle-core-1.3.4.tgz
 https://registry.yarnpkg.com/@electron/get/-/get-2.0.2.tgz
 https://registry.yarnpkg.com/@electron/github-app-auth/-/github-app-auth-2.2.1.tgz
 https://registry.yarnpkg.com/@electron/lint-roller/-/lint-roller-3.1.1.tgz
-https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-9.0.0.tgz
+https://registry.yarnpkg.com/@electron/typescript-definitions/-/typescript-definitions-9.1.2.tgz
 https://registry.yarnpkg.com/@eslint-community/eslint-utils/-/eslint-utils-4.4.0.tgz
 https://registry.yarnpkg.com/@eslint-community/regexpp/-/regexpp-4.11.1.tgz
 https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-2.1.4.tgz
@@ -189,7 +189,6 @@ https://registry.yarnpkg.com/@types/text-table/-/text-table-0.2.2.tgz
 https://registry.yarnpkg.com/@types/unist/-/unist-2.0.3.tgz
 https://registry.yarnpkg.com/@types/unist/-/unist-2.0.6.tgz
 https://registry.yarnpkg.com/@types/unist/-/unist-3.0.2.tgz
-https://registry.yarnpkg.com/@types/webpack-env/-/webpack-env-1.18.5.tgz
 https://registry.yarnpkg.com/@types/yauzl/-/yauzl-2.10.0.tgz
 https://registry.yarnpkg.com/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.7.0.tgz
 https://registry.yarnpkg.com/@typescript-eslint/parser/-/parser-8.7.0.tgz
@@ -298,7 +297,7 @@ https://registry.yarnpkg.com/chalk/-/chalk-4.1.2.tgz
 https://registry.yarnpkg.com/chalk/-/chalk-5.3.0.tgz
 https://registry.yarnpkg.com/character-entities-legacy/-/character-entities-legacy-3.0.0.tgz
 https://registry.yarnpkg.com/character-entities/-/character-entities-2.0.0.tgz
-https://registry.yarnpkg.com/character-reference-invalid/-/character-reference-invalid-2.0.1.tgz
+https://registry.yarnpkg.com/character-reference-invalid/-/character-reference-invalid-2.0.0.tgz
 https://registry.yarnpkg.com/check-error/-/check-error-2.1.1.tgz
 https://registry.yarnpkg.com/check-for-leaks/-/check-for-leaks-1.2.1.tgz
 https://registry.yarnpkg.com/chokidar/-/chokidar-3.5.2.tgz
@@ -545,8 +544,8 @@ https://registry.yarnpkg.com/internal-slot/-/internal-slot-1.0.7.tgz
 https://registry.yarnpkg.com/internal-slot/-/internal-slot-1.1.0.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-1.4.0.tgz
 https://registry.yarnpkg.com/interpret/-/interpret-3.1.1.tgz
-https://registry.yarnpkg.com/is-alphabetical/-/is-alphabetical-2.0.1.tgz
-https://registry.yarnpkg.com/is-alphanumerical/-/is-alphanumerical-2.0.1.tgz
+https://registry.yarnpkg.com/is-alphabetical/-/is-alphabetical-2.0.0.tgz
+https://registry.yarnpkg.com/is-alphanumerical/-/is-alphanumerical-2.0.0.tgz
 https://registry.yarnpkg.com/is-array-buffer/-/is-array-buffer-3.0.2.tgz
 https://registry.yarnpkg.com/is-array-buffer/-/is-array-buffer-3.0.4.tgz
 https://registry.yarnpkg.com/is-array-buffer/-/is-array-buffer-3.0.5.tgz
@@ -568,7 +567,7 @@ https://registry.yarnpkg.com/is-data-view/-/is-data-view-1.0.1.tgz
 https://registry.yarnpkg.com/is-data-view/-/is-data-view-1.0.2.tgz
 https://registry.yarnpkg.com/is-date-object/-/is-date-object-1.0.5.tgz
 https://registry.yarnpkg.com/is-date-object/-/is-date-object-1.1.0.tgz
-https://registry.yarnpkg.com/is-decimal/-/is-decimal-2.0.1.tgz
+https://registry.yarnpkg.com/is-decimal/-/is-decimal-2.0.0.tgz
 https://registry.yarnpkg.com/is-empty/-/is-empty-1.2.0.tgz
 https://registry.yarnpkg.com/is-extglob/-/is-extglob-2.1.1.tgz
 https://registry.yarnpkg.com/is-finalizationregistry/-/is-finalizationregistry-1.1.1.tgz
@@ -576,7 +575,7 @@ https://registry.yarnpkg.com/is-fullwidth-code-point/-/is-fullwidth-code-point-3
 https://registry.yarnpkg.com/is-generator-function/-/is-generator-function-1.1.0.tgz
 https://registry.yarnpkg.com/is-glob/-/is-glob-3.1.0.tgz
 https://registry.yarnpkg.com/is-glob/-/is-glob-4.0.3.tgz
-https://registry.yarnpkg.com/is-hexadecimal/-/is-hexadecimal-2.0.1.tgz
+https://registry.yarnpkg.com/is-hexadecimal/-/is-hexadecimal-2.0.0.tgz
 https://registry.yarnpkg.com/is-interactive/-/is-interactive-2.0.0.tgz
 https://registry.yarnpkg.com/is-map/-/is-map-2.0.3.tgz
 https://registry.yarnpkg.com/is-negative-zero/-/is-negative-zero-2.0.2.tgz
@@ -1137,10 +1136,12 @@ CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 NODE_P="node-${NODE_VERSION}"
 PATCH_V="${CHROMIUM_VERSION%%\.*}-1"
 PATCHSET_NAME="chromium-patches-${PATCH_V}"
-PPC64_HASH="c11b515d9addc3f8b516502e553ace507eb81815"
+PPC64_HASH="e1538a223437603b214fdcb1a6adfb91e98f769a"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 
+#Official tarball: https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
+#Downstream tarball : https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${CHROMIUM_VERSION}/chromium-${CHROMIUM_VERSION}-linux.tar.xz
 SRC_URI="
 	https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
 	https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/${PATCHSET_NAME}.tar.bz2
@@ -1286,9 +1287,9 @@ BDEPEND="
 	>=dev-build/gn-${GN_MIN_VER}
 	app-alternatives/ninja
 	dev-lang/perl
-	>=dev-util/gperf-3.0.3
+	>=dev-util/gperf-3.2
 	dev-vcs/git
-	>=net-libs/nodejs-7.6.0[inspector]
+	>=net-libs/nodejs-22.11.0[inspector]
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
@@ -1326,22 +1327,24 @@ pre_build_checks() {
 	# Check build requirements: bugs #471810, #541816, #914220
 	# We're going to start doing maths here on the size of an unpacked source tarball,
 	# this should make updates easier as chromium continues to balloon in size.
-	local BASE_DISK=24
-	local EXTRA_DISK=1
-	local CHECKREQS_MEMORY="4G"
-	tc-is-cross-compiler && EXTRA_DISK=2
+	# xz -l /var/cache/distfiles/chromium-${PV}*.tar.xz
+	local base_disk=9 # Round up
+	local extra_disk=1 # Always include a little extra space
+	local memory=4
+	tc-is-cross-compiler && extra_disk=$((extra_disk * 2))
 	if tc-is-lto || use pgo; then
-		CHECKREQS_MEMORY="9G"
-		tc-is-cross-compiler && EXTRA_DISK=4
-		use pgo && EXTRA_DISK=8
+		memory=$((memory * 2 + 1))
+		tc-is-cross-compiler && extra_disk=$((extra_disk * 2)) # Double the requirements
+		use pgo && extra_disk=$((extra_disk + 4))
 	fi
 	if is-flagq '-g?(gdb)?([1-9])'; then
 		if use custom-cflags; then
-			EXTRA_DISK=13
+			extra_disk=$((extra_disk + 5))
 		fi
-		CHECKREQS_MEMORY="16G"
+		memory=$((memory * 2))
 	fi
-	CHECKREQS_DISK_BUILD="$((BASE_DISK + EXTRA_DISK))G"
+	local CHECKREQS_MEMORY="${memory}G"
+	local CHECKREQS_DISK_BUILD="$((base_disk + extra_disk))G"
 	check-reqs_${EBUILD_PHASE_FUNC}
 }
 
@@ -1386,10 +1389,6 @@ pkg_setup() {
 			einfo "USE=official selected and LTO not detected."
 			einfo "It is _highly_ recommended that LTO be enabled for performance reasons"
 			einfo "and to be consistent with the upstream \"official\" build optimisations."
-		fi
-
-		if [ "$use_lto" = "false" ] && use test; then
-			die "Tests require CFI which requires LTO"
 		fi
 
 		export use_lto
@@ -1471,24 +1470,24 @@ src_prepare() {
 	mv "${WORKDIR}/${P}" "${S}/electron" || die
 
 	eapply "${FILESDIR}/${SLOT}/chromium/"
-	use elibc_musl && eapply "${FILESDIR}/${SLOT}/musl/"
+
+	if use elibc_musl; then
+		eapply "${FILESDIR}/${SLOT}/musl"
+		echo "$(rust_abi)" >> build/rust/known-target-triples.txt
+	fi
+
 	if tc-is-clang && ( has_version "llvm-core/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
 		eapply "${FILESDIR}/${SLOT}/remove-libatomic.patch"
 	fi
-
-	# disable global media controls, crashes with libstdc++
-	sed -i -e \
-		"/\"GlobalMediaControlsCastStartStop\"/,+4{s/ENABLED/DISABLED/;}" \
-		"chrome/browser/media/router/media_router_feature.cc" || die
 
 	shopt -s globstar nullglob
 	# 130: moved the PPC64 patches into the chromium-patches repo
 	local patch
 	for patch in "${WORKDIR}/chromium-patches-${PATCH_V}"/**/*.patch; do
 			if [[ ${patch} == *"ppc64le"* ]]; then
-					use ppc64 && PATCHES+=( "${patch}" )
+					use ppc64 && eapply "${patch}"
 			else
-					PATCHES+=( "${patch}" )
+					eapply "${patch}"
 			fi
 	done
 	shopt -u globstar nullglob
@@ -1499,12 +1498,13 @@ src_prepare() {
 	grep -q "${builtins_match}" build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
 	sed -i -e "/${builtins_match}/,+2d" build/config/compiler/BUILD.gn
 
+		# Strictly speaking this doesn't need to be gated (no bundled toolchain for ppc64); it keeps the logic together
 	if use ppc64; then
 		local patchset_dir="${WORKDIR}/openpower-patches-${PPC64_HASH}/patches"
 		# patch causes build errors on 4K page systems (https://bugs.gentoo.org/show_bug.cgi?id=940304)
 		local page_size_patch="ppc64le/third_party/use-sysconf-page-size-on-ppc64.patch"
 		local isa_3_patch="ppc64le/core/baseline-isa-3-0.patch"
-		# Apply the OpenPOWER patches (check for page size and isa3.0)
+		# Apply the OpenPOWER patches (check for page size and isa 3.0)
 		openpower_patches=( $(grep -E "^ppc64le|^upstream" "${patchset_dir}/series" | grep -v "${page_size_patch}" |
 			grep -v "${isa_3_patch}" || die) )
 		for patch in "${openpower_patches[@]}"; do
@@ -1560,32 +1560,17 @@ src_prepare() {
 			die "Failed to tell GN that we have adler and not adler2"
 	fi
 
-	if has_version ">=media-video/pipewire-1.4.1" ; then
-		eapply "${FILESDIR}/fix-pipewire.patch"
-	fi
-
-	if has_version ">=dev-util/gperf-3.2"; then
-		eapply "${FILESDIR}/fix-gperf.patch"
-	fi
-
-	if ver_test ${RUST_SLOT} -gt "1.86.0"; then
-			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim.patch
-			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim2.patch
-			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim3.patch
-			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim4.patch
-	fi
 	if ver_test ${RUST_SLOT} -ge "1.89.0"; then
-			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim5.patch
+			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim.patch
 			eapply "${FILESDIR}/${SLOT}"/fix-rust-warning.patch
+	fi
+	if ver_test ${RUST_SLOT} -ge "1.90.0"; then
+			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim-1-90.patch
 	fi
 
 	if use loong ; then
 		local p
 		local other_patches_to_apply=(
-			# Fedora-chromium-121-nullptr_t-without-namespace-std
-			# Debian-upstream-std-to-address
-			# Debian-fixes-internalalloc
-			# Debian-fixes-optional2
 			Debian-fixes-blink
 			Debian-fixes-blink-frags
 			fix-clang-builtins-path
@@ -1612,6 +1597,16 @@ src_prepare() {
 	cd "${S}" || die
 
 	default
+
+	if [[ ${LLVM_SLOT} == "19" ]]; then
+		# Upstream now hard depend on a feature that was added in LLVM 20.1, but we don't want to stabilise that yet.
+		# Do the temp file shuffle in case someone is using something other than `gawk`
+		{
+			awk '/config\("clang_warning_suppression"\) \{/	{ print $0 " }"; sub(/clang/, "xclang"); print; next }
+				{ print }' build/config/compiler/BUILD.gn > "${T}/build.gn" && \
+				mv "${T}/build.gn" build/config/compiler/BUILD.gn
+		} || die "Unable to disable warning suppression"
+	fi
 
 	# Not included in -lite tarballs, but we should check for it anyway.
 	if [[ -f third_party/node/linux/node-linux-x64/bin/node ]]; then
@@ -1675,6 +1670,7 @@ src_prepare() {
 		third_party/ced
 		third_party/cld_3
 		third_party/closure_compiler
+		third_party/compiler-rt # Since M137 atomic is required; we could probably unbundle this as a target of opportunity.
 		third_party/content_analysis_sdk
 		third_party/cpuinfo
 		third_party/crabbyavif
@@ -1701,6 +1697,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/i18n
 		third_party/devtools-frontend/src/front_end/third_party/intl-messageformat
 		third_party/devtools-frontend/src/front_end/third_party/json5
+		third_party/devtools-frontend/src/front_end/third_party/legacy-javascript
 		third_party/devtools-frontend/src/front_end/third_party/lighthouse
 		third_party/devtools-frontend/src/front_end/third_party/lit
 		third_party/devtools-frontend/src/front_end/third_party/marked
@@ -1713,8 +1710,8 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/front_end/third_party/web-vitals
 		third_party/devtools-frontend/src/third_party
-		third_party/distributed_point_functions
 		third_party/dom_distiller_js
+		third_party/dragonbox
 		third_party/eigen3
 		third_party/emoji-segmenter
 		third_party/farmhash
@@ -1734,7 +1731,6 @@ src_prepare() {
 		third_party/googletest
 		third_party/highway
 		third_party/hunspell
-		third_party/iccjpeg
 		third_party/ink_stroke_modeler/src/ink_stroke_modeler
 		third_party/ink_stroke_modeler/src/ink_stroke_modeler/internal
 		third_party/ink/src/ink/brush
@@ -1820,6 +1816,7 @@ src_prepare() {
 		third_party/private_membership
 		third_party/private-join-and-compute
 		third_party/protobuf
+		third_party/protobuf/third_party/utf8_range
 		third_party/pthreadpool
 		third_party/puffin
 		third_party/pyjson5
@@ -1857,7 +1854,6 @@ src_prepare() {
 		third_party/tensorflow_models
 		third_party/tensorflow-text
 		third_party/tflite
-		third_party/tflite/src/third_party/eigen3
 		third_party/tflite/src/third_party/fft2d
 		third_party/tflite/src/third_party/xla/third_party/tsl
 		third_party/tflite/src/third_party/xla/xla/tsl/framework
@@ -1865,7 +1861,6 @@ src_prepare() {
 		third_party/tflite/src/third_party/xla/xla/tsl/protobuf
 		third_party/tflite/src/third_party/xla/xla/tsl/util
 		third_party/ukey2
-		third_party/unrar
 		third_party/utf
 		third_party/vulkan
 		third_party/wasm_tts_engine
@@ -1878,7 +1873,6 @@ src_prepare() {
 		third_party/webrtc/modules/third_party/fft
 		third_party/webrtc/modules/third_party/g711
 		third_party/webrtc/modules/third_party/g722
-		third_party/webrtc/rtc_base/third_party/base64
 		third_party/webrtc/rtc_base/third_party/sigslot
 		third_party/widevine
 		third_party/woff2
@@ -2000,81 +1994,12 @@ src_configure() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
 
-	local myconf_gn=""
+	# Bug 491582.
+	export TMPDIR="${WORKDIR}/temp"
+	mkdir -p -m 755 "${TMPDIR}" || die
 
-	# We already forced the "correct" clang via pkg_setup
-
-	if tc-is-cross-compiler; then
-		CC="${CC} -target ${CHOST} --sysroot ${ESYSROOT}"
-		CXX="${CXX} -target ${CHOST} --sysroot ${ESYSROOT}"
-		BUILD_AR=${AR}
-		BUILD_CC=${CC}
-		BUILD_CXX=${CXX}
-		BUILD_NM=${NM}
-	fi
-
-	strip-unsupported-flags
-
-	myconf_gn+=" is_clang=true clang_use_chrome_plugins=false"
-	# https://bugs.gentoo.org/918897#c32
-	append-ldflags -Wl,--undefined-version
-	myconf_gn+=" use_lld=true"
-
-	# Make sure the build system will use the right tools, bug #340795.
-	tc-export AR CC CXX NM
-
-	myconf_gn+=" custom_toolchain=\"//build/toolchain/linux/unbundle:default\""
-
-	if tc-is-cross-compiler; then
-		tc-export BUILD_{AR,CC,CXX,NM}
-		myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:host\""
-		myconf_gn+=" v8_snapshot_toolchain=\"//build/toolchain/linux/unbundle:host\""
-		myconf_gn+=" pkg_config=\"$(tc-getPKG_CONFIG)\""
-		myconf_gn+=" host_pkg_config=\"$(tc-getBUILD_PKG_CONFIG)\""
-
-		# setup cups-config, build system only uses --libs option
-		if use cups; then
-			mkdir "${T}/cups-config" || die
-			cp "${ESYSROOT}/usr/bin/${CHOST}-cups-config" "${T}/cups-config/cups-config" || die
-			export PATH="${PATH}:${T}/cups-config"
-		fi
-
-		# Don't inherit PKG_CONFIG_PATH from environment
-		local -x PKG_CONFIG_PATH=
-	else
-		myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:default\""
-	fi
-
-	# bindgen settings
-	# From 127, to make bindgen work, we need to provide a location for libclang.
-	# We patch this in for gentoo - see chromium-*-bindgen-custom-toolchain.patch
-	# rust_bindgen_root = directory with `bin/bindgen` beneath it.
-	myconf_gn+=" rust_bindgen_root=\"${EPREFIX}/usr/\""
-
-	myconf_gn+=" bindgen_libclang_path=\"$(get_llvm_prefix)/$(get_libdir)\""
-	# We don't need to set 'clang_base_bath' for anything in our build
-	# and it defaults to the google toolchain location. Instead provide a location
-	# to where system clang lives sot that bindgen can find system headers (e.g. stddef.h)
-	myconf_gn+=" clang_base_path=\"${EPREFIX}/usr/lib/clang/${LLVM_SLOT}/\""
-
-	myconf_gn+=" rust_sysroot_absolute=\"$(get_rust_prefix)\""
-	myconf_gn+=" rustc_version=\"${RUST_SLOT}\""
-	use elibc_musl && myconf_gn+=" rust_abi_target=\"$(rust_abi)\""
-
-	# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
-	myconf_gn+=" is_debug=false"
-
-	# enable DCHECK with USE=debug only, increases chrome binary size by 30%, bug #811138.
-	# DCHECK is fatal by default, make it configurable at runtime, #bug 807881.
-	myconf_gn+=" dcheck_always_on=$(usex debug true false)"
-	myconf_gn+=" dcheck_is_configurable=$(usex debug true false)"
-
-	# Component build isn't generally intended for use by end users. It's mostly useful
-	# for development and debugging.
-	myconf_gn+=" is_component_build=false"
-
-	# Disable nacl, we can't build without pnacl (http://crbug.com/269560).
-	myconf_gn+=" enable_nacl=false"
+	# https://bugs.gentoo.org/654216
+	addpredict /dev/dri/ #nowarn
 
 	# Use system-provided libraries.
 	# TODO: freetype -- remove sources (https://bugs.chromium.org/p/pdfium/issues/detail?id=733).
@@ -2106,7 +2031,8 @@ src_configure() {
 	#	gn_system_libraries+=( zstd )
 	#fi
 
-	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" || die
+	build/linux/unbundle/replace_gn_files.py --system-libraries "${gn_system_libraries[@]}" ||
+		die "Failed to replace GN files for system libraries"
 
 	# TODO 131: The above call clobbers `enable_freetype = true` in the freetype gni file
 	# drop the last line, then append the freetype line and a new curly brace to end the block
@@ -2115,98 +2041,12 @@ src_configure() {
 	echo "  enable_freetype = true" >> ${freetype_gni} || die
 	echo "}" >> ${freetype_gni} || die
 
-	# See dependency logic in third_party/BUILD.gn
-	myconf_gn+=" use_system_harfbuzz=$(usex system-harfbuzz true false)"
-
-	if use headless; then
-		myconf_gn+=" use_cups=false"
-		myconf_gn+=" use_kerberos=false"
-		myconf_gn+=" use_pulseaudio=false"
-		myconf_gn+=" use_vaapi=false"
-		myconf_gn+=" rtc_use_pipewire=false"
-	else
-		myconf_gn+=" use_cups=$(usex cups true false)"
-		myconf_gn+=" use_kerberos=$(usex kerberos true false)"
-		myconf_gn+=" use_pulseaudio=$(usex pulseaudio true false)"
-		myconf_gn+=" use_vaapi=$(usex vaapi true false)"
-		myconf_gn+=" rtc_use_pipewire=$(usex screencast true false)"
-	fi
-
-	# Allows distributions to link pulseaudio directly (DT_NEEDED) instead of
-	# using dlopen. This helps with automated detection of ABI mismatches and
-	# prevents silent errors.
-	if use pulseaudio; then
-		myconf_gn+=" link_pulseaudio=true"
-	fi
-
-	if use hevc; then
-		myconf_gn+=" media_use_ffmpeg=true enable_platform_hevc=true enable_hevc_parser_and_hw_decoder=true"
-	fi
-
-	# Non-developer builds of Chromium (for example, non-Chrome browsers, or
-	# Chromium builds provided by Linux distros) should disable the testing config
-	myconf_gn+=" disable_fieldtrial_testing_config=true"
-
-	# The sysroot is the oldest debian image that chromium supports, we don't need it
-	myconf_gn+=" use_sysroot=false"
-
-	# Use in-tree libc++ (buildtools/third_party/libc++ and buildtools/third_party/libc++abi)
-	# instead of the system C++ library for C++ standard library support.
-	# default: true, but let's be explicit (forced since 120 ; USE removed 127).
-	myconf_gn+=" use_custom_libcxx=true"
-
-	if use pgo; then
-		myconf_gn+=" chrome_pgo_phase=2"
-	else
-		myconf_gn+=" chrome_pgo_phase=0"
-	fi
-
-	# Disable pseudolocales, only used for testing
-	myconf_gn+=" enable_pseudolocales=false"
-
-	# Disable code formating of generated files
-	myconf_gn+=" blink_enable_generated_code_formatting=false"
-
-	if use bindist ; then
-		# proprietary_codecs just forces Chromium to say that it can use h264/aac,
-		# the work is still done by ffmpeg. If this is set to no Chromium
-		# won't be able to load the codec even if the library can handle it
-		myconf_gn+=" proprietary_codecs=true"
-		myconf_gn+=" ffmpeg_branding=\"Chrome\""
-		# build ffmpeg as an external component (libffmpeg.so) that we can remove / substitute
-		myconf_gn+=" is_component_ffmpeg=true"
-	else
-		ffmpeg_branding="$(usex proprietary-codecs Chrome Chromium)"
-		myconf_gn+=" proprietary_codecs=$(usex proprietary-codecs true false)"
-		myconf_gn+=" ffmpeg_branding=\"${ffmpeg_branding}\""
-	fi
-
-	# Set up Google API keys, see http://www.chromium.org/developers/how-tos/api-keys .
-	# Note: these are for Gentoo use ONLY. For your own distribution,
-	# please get your own set of keys. Feel free to contact chromium@gentoo.org
-	# for more info. The OAuth2 credentials, however, have been left out.
-	# Those OAuth2 credentials have been broken for quite some time anyway.
-	# Instead we apply a patch to use the --oauth2-client-id= and
-	# --oauth2-client-secret= switches for setting GOOGLE_DEFAULT_CLIENT_ID and
-	# GOOGLE_DEFAULT_CLIENT_SECRET at runtime. This allows signing into
-	# Chromium without baked-in values.
-	local google_api_key="AIzaSyDEAOvatFo0eTgsV_ZlEzx0ObmepsMzfAc"
-	myconf_gn+=" google_api_key=\"${google_api_key}\""
-	local myarch="$(tc-arch)"
-
-	# Avoid CFLAGS problems, bug #352457, bug #390147.
 	if ! use custom-cflags; then
 		replace-flags "-Os" "-O2"
 		strip-flags
-
 		# Debug info section overflows without component build
 		# Prevent linker from running out of address space, bug #471810 .
 		filter-flags "-g*"
-
-		# Prevent libvpx/xnnpack build failures. Bug 530248, 544702, 546984, 853646.
-		if [[ ${myarch} == amd64 ]]; then
-			filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 -mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-xop -mno-sse4a
-		fi
 
 		# The linked text section of Chromium won't fit within limits of the
 		# default normal code model.
@@ -2214,44 +2054,6 @@ src_configure() {
 			append-flags -mcmodel=medium
 		fi
 	fi
-
-	if [[ $myarch = amd64 ]] ; then
-		myconf_gn+=" target_cpu=\"x64\""
-		ffmpeg_target_arch=x64
-	elif [[ $myarch = arm64 ]] ; then
-		myconf_gn+=" target_cpu=\"arm64\""
-		ffmpeg_target_arch=arm64
-	elif [[ $myarch = loong ]] ; then
-		myconf_gn+=" target_cpu=\"loong64\""
-		ffmpeg_target_arch=loong64
-	elif [[ $myarch = ppc64 ]] ; then
-		myconf_gn+=" target_cpu=\"ppc64\""
-		ffmpeg_target_arch=ppc64
-	else
-		die "Failed to determine target arch, got '$myarch'."
-	fi
-
-	myconf_gn+=" treat_warnings_as_errors=false"
-	# Disable fatal linker warnings, bug 506268.
-	myconf_gn+=" fatal_linker_warnings=false"
-
-	# Disable external code space for V8 for ppc64. It is disabled for ppc64
-	# by default, but cross-compiling on amd64 enables it again.
-	if tc-is-cross-compiler; then
-		if ! use amd64 && ! use arm64; then
-			myconf_gn+=" v8_enable_external_code_space=false"
-		fi
-	fi
-
-	# Only enabled for clang, but gcc has endian macros too
-	myconf_gn+=" v8_use_libm_trig_functions=true"
-
-	# Bug 491582.
-	export TMPDIR="${WORKDIR}/temp"
-	mkdir -p -m 755 "${TMPDIR}" || die
-
-	# https://bugs.gentoo.org/654216
-	addpredict /dev/dri/ #nowarn
 
 	# We don't use the same clang version as upstream, and with -Werror
 	# we need to make sure that we don't get superfluous warnings.
@@ -2261,56 +2063,249 @@ src_configure() {
 			export BUILD_CFLAGS+=" -Wno-unknown-warning-option"
 	fi
 
+	# Start building our GN options
+	local myconf_gn=() # Tip: strings must be quoted, bools or numbers are fine
+
+	# We already forced the "correct" clang via pkg_setup
+	if tc-is-cross-compiler; then
+		CC="${CC} -target ${CHOST} --sysroot ${ESYSROOT}"
+		CXX="${CXX} -target ${CHOST} --sysroot ${ESYSROOT}"
+		BUILD_AR=${AR}
+		BUILD_CC=${CC}
+		BUILD_CXX=${CXX}
+		BUILD_NM=${NM}
+	fi
+
+	# Make sure the build system will use the right tools, bug #340795.
+	tc-export AR CC CXX NM
+
+	strip-unsupported-flags
+	append-ldflags -Wl,--undefined-version # https://bugs.gentoo.org/918897#c32
+
+	myconf_gn+=(
+		"is_clang=true"
+		"clang_use_chrome_plugins=false"
+		"use_lld=true"
+		'custom_toolchain="//build/toolchain/linux/unbundle:default"'
+		# From M127 we need to provide a location for libclang.
+		# We patch this in for gentoo - see chromium-*-bindgen-custom-toolchain.patch
+		# rust_bindgen_root = directory with `bin/bindgen` beneath it.
+		# We don't need to set 'clang_base_path' for anything in our build
+		# and it defaults to the google toolchain location. Instead provide a location
+		# to where system clang lives so that bindgen can find system headers (e.g. stddef.h)
+		"bindgen_libclang_path=\"$(get_llvm_prefix)/$(get_libdir)\""
+		"clang_base_path=\"${EPREFIX}/usr/lib/clang/${LLVM_SLOT}/\""
+		"rust_bindgen_root=\"${EPREFIX}/usr/\""
+		"rust_sysroot_absolute=\"$(get_rust_prefix)\""
+		"rustc_version=\"${RUST_SLOT}\""
+	)
+	use elibc_musl && myconf_gn+=( "rust_abi_target=\"$(rust_abi)\"" )
+		
+	if ! tc-is-cross-compiler; then
+			myconf_gn+=( 'host_toolchain="//build/toolchain/linux/unbundle:default"' )
+		else
+			tc-export BUILD_{AR,CC,CXX,NM}
+			myconf_gn+=(
+				'host_toolchain="//build/toolchain/linux/unbundle:host"'
+				'v8_snapshot_toolchain="//build/toolchain/linux/unbundle:host"'
+				"host_pkg_config=$(tc-getBUILD_PKG_CONFIG)"
+				"pkg_config=$(tc-getPKG_CONFIG)"
+			)
+
+			# setup cups-config, build system only uses --libs option
+			if use cups; then
+				mkdir "${T}/cups-config" || die
+				cp "${ESYSROOT}/usr/bin/${CHOST}-cups-config" "${T}/cups-config/cups-config" || die
+				export PATH="${PATH}:${T}/cups-config"
+			fi
+
+			# Don't inherit PKG_CONFIG_PATH from environment
+			local -x PKG_CONFIG_PATH=
+	fi
+
+	local myarch
+	myarch="$(tc-arch)"
+	case ${myarch} in
+		amd64)
+			# Bug 530248, 544702, 546984, 853646.
+			use !custom-cflags && filter-flags -mno-mmx -mno-sse2 -mno-ssse3 -mno-sse4.1 \
+										-mno-avx -mno-avx2 -mno-fma -mno-fma4 -mno-xop -mno-sse4a
+			myconf_gn+=( 'target_cpu="x64"' )
+			;;
+		arm64)
+			myconf_gn+=( 'target_cpu="arm64"' )
+			;;
+		ppc64)
+			myconf_gn+=( 'target_cpu="ppc64"' )
+			;;
+		loong)
+			myconf_gn+=( 'target_cpu="loong64"' )
+			;;
+		*)
+			die "Failed to determine target arch, got '${myarch}'."
+			;;
+	esac
+
+	# Common options
+
+	myconf_gn+=(
+		# Disable code formating of generated files
+		"blink_enable_generated_code_formatting=false"
+		# enable DCHECK with USE=debug only, increases chrome binary size by 30%, bug #811138.
+		# DCHECK is fatal by default, make it configurable at runtime, #bug 807881.
+		"dcheck_always_on=$(usex debug true false)"
+		"dcheck_is_configurable=$(usex debug true false)"
+		# Chromium builds provided by Linux distros should disable the testing config
+		"disable_fieldtrial_testing_config=true"
+		# 131 began laying the groundwork for replacing freetype with
+		# "Rust-based Fontations set of libraries plus Skia path rendering"
+		# We now need to opt-in
+		"enable_freetype=true"
+		"enable_hangout_services_extension=false"
+		# Disable nacl; deprecated, we can't build without pnacl (http://crbug.com/269560).
+		"enable_nacl=false"
+		# Don't need nocompile checks and GN crashes with our config (verify with modern GN)
+		"enable_nocompile_tests=false"
+		# pseudolocales are only used for testing
+		"enable_pseudolocales=false"
+		"enable_widevine=false"
+		# Disable fatal linker warnings, bug 506268.
+		"fatal_linker_warnings=false"
+		# Set up Google API keys, see http://www.chromium.org/developers/how-tos/api-keys
+		# Note: these are for Gentoo use ONLY. For your own distribution,
+		# please get your own set of keys. Feel free to contact chromium@gentoo.org for more info.
+		# note: OAuth2 is patched in; check patchset for details.
+		'google_api_key="AIzaSyDEAOvatFo0eTgsV_ZlEzx0ObmepsMzfAc"'
+		# Component build isn't generally intended for use by end users. It's mostly useful
+		# for development and debugging.
+		"is_component_build=false"
+		# GN needs explicit config for Debug/Release as opposed to inferring it from build directory.
+		"is_debug=false"
+		"is_official_build=$(usex official true false)"
+		# Enable ozone wayland and/or headless support
+		"ozone_auto_platforms=false"
+		"ozone_platform_headless=true"
+		# Enables building without non-free unRAR licence
+		"safe_browsing_use_unrar=false"
+		"thin_lto_enable_optimizations=${use_lto}"
+		"treat_warnings_as_errors=false"
+		# Use in-tree libc++ (buildtools/third_party/libc++ and buildtools/third_party/libc++abi)
+		# instead of the system C++ library for C++ standard library support.
+		# default: true, but let's be explicit (forced since 120 ; USE removed 127).
+		"use_custom_libcxx=true"
+		# Enable ozone wayland and/or headless support
+		"use_ozone=true"
+		# The sysroot is the oldest debian image that chromium supports, we don't need it
+		"use_sysroot=false"
+		# See dependency logic in third_party/BUILD.gn
+		"use_system_harfbuzz=$(usex system-harfbuzz true false)"
+		"use_thin_lto=${use_lto}"
+		# Only enabled for clang, but gcc has endian macros too
+		"v8_use_libm_trig_functions=true"
+	)
+
+	if use bindist ; then
+		myconf_gn+=(
+			# If this is set to false Chromium won't be able to load any proprietary codecs
+			# even if provided with an ffmpeg capable of h264/aac decoding
+			"proprietary_codecs=true"
+			'ffmpeg_branding="Chrome"'
+			# build ffmpeg as an external component (libffmpeg.so) that we can remove / substitute
+			"is_component_ffmpeg=true"
+		)
+	else
+		myconf_gn+=(
+			"proprietary_codecs=$(usex proprietary-codecs true false)"
+			"ffmpeg_branding=\"$(usex proprietary-codecs Chrome Chromium)\""
+		)
+	fi
+
+	if use hevc; then
+		myconf_gn+=(
+			"media_use_ffmpeg=true"
+			"enable_platform_hevc=true"
+			"enable_hevc_parser_and_hw_decoder=true"
+		)
+	fi
+
+	if use headless; then
+		myconf_gn+=(
+			"enable_print_preview=false"
+			"enable_remoting=false"
+			'ozone_platform="headless"'
+			"rtc_use_pipewire=false"
+			"use_alsa=false"
+			"use_cups=false"
+			"use_gio=false"
+			"use_glib=false"
+			"use_gtk=false"
+			"use_kerberos=false"
+			"use_libpci=false"
+			"use_pangocairo=false"
+			"use_pulseaudio=false"
+			"use_qt5=false"
+			"use_qt6=false"
+			"use_udev=false"
+			"use_vaapi=false"
+			"use_xkbcommon=false"
+		)
+	else
+		myconf_gn+=(
+			"gtk_version=3"
+			# link pulseaudio directly (DT_NEEDED) instead of using dlopen.
+			# helps with automated detection of ABI mismatches and prevents silent errors.
+			"link_pulseaudio=$(usex pulseaudio true false)"
+			"ozone_platform_wayland=$(usex wayland true false)"
+			"ozone_platform_x11=$(usex X true false)"
+			"ozone_platform=\"$(usex wayland wayland x11)\""
+			"rtc_use_pipewire=$(usex screencast true false)"
+			"use_cups=$(usex cups true false)"
+			"use_kerberos=$(usex kerberos true false)"
+			"use_pulseaudio=$(usex pulseaudio true false)"
+			"use_qt5=false"
+			"use_system_libffi=$(usex wayland true false)"
+			"use_system_minigbm=true"
+			"use_vaapi=$(usex vaapi true false)"
+			"use_xkbcommon=true"
+			"use_qt6=false"
+		)
+	fi
+
 	# Explicitly disable ICU data file support for system-icu/headless builds.
 	if use system-icu || use headless; then
-		myconf_gn+=" icu_use_data_file=false"
+		myconf_gn+=( "icu_use_data_file=false" )
 	fi
 
-	# Don't need nocompile checks and GN crashes with our config
-	myconf_gn+=" enable_nocompile_tests=false"
-
-	# 131 began laying the groundwork for replacing freetype with
-	# "Rust-based Fontations set of libraries plus Skia path rendering"
-	# We now need to opt-in
-	myconf_gn+=" enable_freetype=true"
-
-	# Enable ozone wayland and/or headless support
-	myconf_gn+=" use_ozone=true ozone_auto_platforms=false"
-	myconf_gn+=" ozone_platform_headless=true"
-	if use headless; then
-		myconf_gn+=" ozone_platform=\"headless\""
-		myconf_gn+=" use_xkbcommon=false use_gtk=false use_qt=false"
-		myconf_gn+=" use_glib=false use_gio=false"
-		myconf_gn+=" use_pangocairo=false use_alsa=false"
-		myconf_gn+=" use_libpci=false use_udev=false"
-		myconf_gn+=" enable_print_preview=false"
-		myconf_gn+=" enable_remoting=false"
-	else
-		myconf_gn+=" use_system_minigbm=true"
-		myconf_gn+=" use_xkbcommon=true"
-		myconf_gn+=" use_qt5=false"
-		myconf_gn+=" ozone_platform_x11=$(usex X true false)"
-		myconf_gn+=" ozone_platform_wayland=$(usex wayland true false)"
-		myconf_gn+=" ozone_platform=$(usex wayland \"wayland\" \"x11\")"
-		use wayland && myconf_gn+=" use_system_libffi=true"
-	fi
-
-	myconf_gn+=" use_thin_lto=${use_lto}"
-	myconf_gn+=" thin_lto_enable_optimizations=${use_lto}"
-
-	# Enable official builds
-	myconf_gn+=" is_official_build=$(usex official true false)"
 	if use official; then
 		# Allow building against system libraries in official builds
 		sed -i 's/OFFICIAL_BUILD/GOOGLE_CHROME_BUILD/' \
 			tools/generate_shim_headers/generate_shim_headers.py || die
-		# Req's LTO; TODO: not compatible with -fno-split-lto-unit
-		myconf_gn+=" is_cfi=false"
+		if use elibc_glibc && (use abi_x86_64 || use arm64); then
+			myconf_gn+=( "is_cfi=${use_lto}" )
+		else
+			myconf_gn+=( "is_cfi=false" ) # requires llvm-runtimes/compiler-rt-sanitizers[cfi]
+		fi
 		# Don't add symbols to build
-		myconf_gn+=" symbol_level=0"
+		myconf_gn+=( "symbol_level=0" )
+	fi
+
+	if use pgo; then
+		myconf_gn+=( "chrome_pgo_phase=2" )
 	else
-		# Need esbuild
-		myconf_gn+=" devtools_skip_typecheck=false"
+		myconf_gn+=( "chrome_pgo_phase=0" )
+	fi
+
+	# Odds and ends
+
+	# skipping typecheck is only supported on amd64, bug #876157
+	if ! (use amd64 && use elibc_glibc); then
+		myconf_gn+=( "devtools_skip_typecheck=false" )
+	fi
+
+	# Disable external code space for V8 for ppc64. It is disabled for ppc64
+	# by default, but cross-compiling on amd64 enables it again.
+	if tc-is-cross-compiler && use ppc64; then
+		myconf_gn+=( "v8_enable_external_code_space=false" )
 	fi
 
 	# This configutation can generate config.gypi
@@ -2351,14 +2346,15 @@ src_configure() {
 
 	popd > /dev/null || die
 
-	myconf_gn+=" use_system_cares=true use_system_nghttp2=true"
-
-	myconf_gn+=" override_electron_version=\"${PV}\""
-
-	myconf_gn+=" import(\"//electron/build/args/release.gn\")"
+	myconf_gn+=(
+		"use_system_cares=true"
+		"use_system_nghttp2=true"
+		"override_electron_version=\"${PV}\""
+		"import(\"//electron/build/args/release.gn\")"
+	)
 
 	einfo "Configuring Electron..."
-	set -- gn gen --args="${myconf_gn} ${EXTRA_GN}" out/Release
+	set -- gn gen --args="${myconf_gn[*]}${EXTRA_GN:+ ${EXTRA_GN}}" out/Release
 	echo "$@"
 	"$@" || die
 }

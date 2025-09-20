@@ -1565,6 +1565,9 @@ src_prepare() {
 			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim5.patch
 			eapply "${FILESDIR}/${SLOT}"/fix-rust-warning.patch
 	fi
+	if ver_test ${RUST_SLOT} -ge "1.89.0"; then
+			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim-1-90.patch
+	fi
 
 	if use loong ; then
 		local p
