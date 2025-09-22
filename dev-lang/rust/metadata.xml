@@ -10,6 +10,7 @@
 		<name>Rust Project</name>
 	</maintainer>
 	<use>
+		<flag name="llvm-tools">Install llvm-tools</flag>
 		<flag name="clippy">Install clippy, Rust code linter</flag>
 		<flag name="miri">Install miri, an interpreter for Rust's mid-level intermediate representation (requires USE=nightly)</flag>
 		<flag name="nightly">Enable nightly (UNSTABLE) features</flag>
