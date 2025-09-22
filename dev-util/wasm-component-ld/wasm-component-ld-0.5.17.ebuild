@@ -55,36 +55,26 @@ CRATES="
 	utf8parse@0.2.2
 	wasi-preview1-component-adapter-provider@36.0.1
 	wasi@0.14.2+wasi-0.2.4
-	wasm-encoder@0.237.0
-	wasm-metadata@0.237.0
-	wasmparser@0.237.0
-	wast@237.0.0
-	wat@1.237.0
+	wasm-encoder@0.239.0
+	wasm-metadata@0.239.0
+	wasmparser@0.239.0
+	wast@239.0.0
+	wat@1.239.0
 	windows-link@0.1.3
-	windows-sys@0.59.0
 	windows-sys@0.60.2
-	windows-targets@0.52.6
 	windows-targets@0.53.3
-	windows_aarch64_gnullvm@0.52.6
 	windows_aarch64_gnullvm@0.53.0
-	windows_aarch64_msvc@0.52.6
 	windows_aarch64_msvc@0.53.0
-	windows_i686_gnu@0.52.6
 	windows_i686_gnu@0.53.0
-	windows_i686_gnullvm@0.52.6
 	windows_i686_gnullvm@0.53.0
-	windows_i686_msvc@0.52.6
 	windows_i686_msvc@0.53.0
-	windows_x86_64_gnu@0.52.6
 	windows_x86_64_gnu@0.53.0
-	windows_x86_64_gnullvm@0.52.6
 	windows_x86_64_gnullvm@0.53.0
-	windows_x86_64_msvc@0.52.6
 	windows_x86_64_msvc@0.53.0
 	winsplit@0.1.0
 	wit-bindgen-rt@0.39.0
-	wit-component@0.237.0
-	wit-parser@0.237.0
+	wit-component@0.239.0
+	wit-parser@0.239.0
 "
 
 inherit cargo
