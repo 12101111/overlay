@@ -47,6 +47,9 @@ src_configure() {
 src_install() {
 	meson_src_install --destdir ${ED}/usr/${CTARGET}
 	mv ${ED}/usr/share ${ED}/usr/${CTARGET}/usr/
+	if [[ -f "${ED}/usr/${CTARGET}/usr/lib64/libc.a" ]]; then
+		mv "${ED}/usr/${CTARGET}/usr/lib64" "${ED}/usr/${CTARGET}/usr/lib"
+	fi
 	if [[ ${CTARGET} == riscv64* ]]; then
 		elf_header=$(llvm-readelf -h "${ED}/usr/${CTARGET}/usr/lib/crt0.o")
 		flags_info=$(echo "$elf_header"| grep 'Flags:' | tr -d ',')
