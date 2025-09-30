@@ -388,9 +388,12 @@ pkg_setup() {
 		export RUSTC_BOOTSTRAP=1
 
 		# Users should never hit this, it's purely a development convenience
-		if ver_test $(gn --version || die) -lt ${GN_MIN_VER}; then
-			die "dev-build/gn >= ${GN_MIN_VER} is required to build this Chromium"
-		fi
+		# This has been commented out as our revbump still reports the same version.
+		# Typically we would just update from upstream, but that would need a stablereq
+		# and we may as well do that once the GN patch has landed upstream.
+		# if ver_test $(gn --version || die) -lt ${GN_MIN_VER}; then
+		# 	die "dev-build/gn >= ${GN_MIN_VER} is required to build this Chromium"
+		# fi
 	fi
 
 	chromium_suid_sandbox_check_kernel_config
@@ -508,6 +511,7 @@ src_prepare() {
 		"${FILESDIR}/chromium-135-oauth2-client-switches.patch"
 		"${FILESDIR}/chromium-135-map_droppable-glibc.patch"
 		"${FILESDIR}/chromium-138-nodejs-version-check.patch"
+		"${FILESDIR}/chromium-140-bindgen-unknown-warning.patch"
 	)
 
 	# https://issues.chromium.org/issues/442698344
@@ -588,6 +592,12 @@ src_prepare() {
 			sed -i 's/adler2/adler/' build/rust/std/BUILD.gn ||
 				die "Failed to tell GN that we have adler and not adler2"
 		fi
+
+		# chromium@0420449584e2afb7473393f536379efe194ba23c
+		# this crate is not included in the latest versions of Rust,
+		# and apparently has been unnecessary in Chromium for a long time.
+				sed -i '/unicode_width/d' build/rust/std/BUILD.gn ||
+			die "Failed to remove unicode_width from build/rust/std/BUILD.gn"
 
 		if ver_test ${RUST_SLOT} -lt "1.89.0"; then
 			# The rust allocator was changed in 1.89.0, so we need to patch sources for older versions
