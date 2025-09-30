@@ -220,6 +220,7 @@ https://registry.yarnpkg.com/@webpack-cli/info/-/info-2.0.2.tgz
 https://registry.yarnpkg.com/@webpack-cli/serve/-/serve-2.0.5.tgz
 https://registry.yarnpkg.com/@xtuc/ieee754/-/ieee754-1.2.0.tgz
 https://registry.yarnpkg.com/@xtuc/long/-/long-4.2.2.tgz
+https://registry.yarnpkg.com/@xmldom/xmldom/-/xmldom-0.8.11.tgz
 https://registry.yarnpkg.com/abbrev/-/abbrev-2.0.0.tgz
 https://registry.yarnpkg.com/acorn-import-attributes/-/acorn-import-attributes-1.9.5.tgz
 https://registry.yarnpkg.com/acorn-jsx/-/acorn-jsx-5.3.2.tgz
