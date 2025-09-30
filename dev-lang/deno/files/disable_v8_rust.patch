@@ -1,0 +1,30 @@
+diff --git a/.gn b/.gn
+index a2ed131..d2ce532 100644
+--- a/.gn
++++ b/.gn
+@@ -99,8 +99,8 @@ default_args = {
+   # TODO: third_party/compiler-rt missing?
+   use_llvm_libatomic = false
+ 
+-  enable_rust = true
+-  enable_rust_cxx = true
++  enable_rust = false
++  enable_rust_cxx = false
+   v8_enable_temporal_support = true
+ 
+   # prevent hashdos
+diff --git a/third_party/rust/temporal_capi/BUILD.gn b/third_party/rust/temporal_capi/BUILD.gn
+index 349ba5d..84554ee 100644
+--- a/third_party/rust/temporal_capi/BUILD.gn
++++ b/third_party/rust/temporal_capi/BUILD.gn
+@@ -30,8 +30,9 @@ group("temporal_capi") {
+     ":temporal_capi_include_dirs",
+     ":temporal_capi_versioning_defines",
+   ]
+-  public_deps = [ "//third_party/rust/temporal_capi/v0_0_11:lib" ]
+ }
+ config("temporal_capi_include_dirs") {
+   include_dirs = [ "//third_party/rust/chromium_crates_io/vendor/temporal_capi-v0_0_11/bindings/cpp" ]
++  libs = [ "temporal_capi" ]
++  lib_dirs = [ "$root_build_dir/../../../../temporal_capi/target/debug" ]
+ }

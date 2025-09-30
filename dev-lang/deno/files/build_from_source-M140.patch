@@ -1,5 +1,5 @@
 diff --git a/build.rs b/build.rs
-index 8a8896a..e9bc194 100644
+index 7fefe10..3d5d8a4 100644
 --- a/build.rs
 +++ b/build.rs
 @@ -118,6 +118,7 @@ fn main() {
@@ -10,15 +10,20 @@ index 8a8896a..e9bc194 100644
    print_prebuilt_src_binding_path();
  
    download_static_lib_binaries();
-@@ -184,6 +185,7 @@ fn build_v8(is_asan: bool) {
+@@ -184,10 +185,11 @@ fn build_v8(is_asan: bool) {
    }
  
    if need_gn_ninja_download() {
 +    panic!("gn and ninja must be installed");
      download_ninja_gn_binaries();
    }
+ 
+-  download_rust_toolchain();
++  // download_rust_toolchain();
+ 
    // `#[cfg(...)]` attributes don't work as expected from build.rs -- they refer to the configuration
-@@ -215,7 +217,8 @@ fn build_v8(is_asan: bool) {
+   // of the host system which the build.rs script will be running on. In short, `cfg!(target_<os/arch>)`
+@@ -223,7 +225,8 @@ fn build_v8(is_asan: bool) {
      gn_args.push("host_cpu=\"arm64\"".to_string());
    }
  
@@ -28,7 +33,16 @@ index 8a8896a..e9bc194 100644
      gn_args.push("is_clang=false".into());
      // -gline-tables-only is Clang-only
      gn_args.push("line_tables_only=false".into());
-@@ -233,7 +236,8 @@ fn build_v8(is_asan: bool) {
+@@ -232,7 +235,7 @@ fn build_v8(is_asan: bool) {
+     gn_args.push(format!("clang_base_path={clang_base_path:?}"));
+     gn_args.push("treat_warnings_as_errors=false".to_string());
+   } else {
+-    println!("using Chromium's clang");
++    panic!("Can't use Chromium's clang");
+     let clang_base_path = clang_download();
+     gn_args.push(format!("clang_base_path={clang_base_path:?}"));
+ 
+@@ -241,7 +244,8 @@ fn build_v8(is_asan: bool) {
      }
    }
  
@@ -38,7 +52,7 @@ index 8a8896a..e9bc194 100644
      cc_wrapper(&mut gn_args, Path::new(&p));
    } else if let Ok(p) = which("sccache") {
      cc_wrapper(&mut gn_args, &p);
-@@ -253,21 +257,24 @@ fn build_v8(is_asan: bool) {
+@@ -261,21 +265,24 @@ fn build_v8(is_asan: bool) {
    // cross-compilation setup
    if target_arch == "aarch64" {
      gn_args.push(r#"target_cpu="arm64""#.to_string());
@@ -71,7 +85,7 @@ index 8a8896a..e9bc194 100644
      let arch = if target_arch == "x86_64" {
        "x64"
      } else if target_arch == "aarch64" {
-@@ -917,6 +924,7 @@ type NinjaEnv = Vec<(String, String)>;
+@@ -935,6 +942,7 @@ type NinjaEnv = Vec<(String, String)>;
  fn ninja(gn_out_dir: &Path, maybe_env: Option<NinjaEnv>) -> Command {
    let cmd_string = env::var("NINJA").unwrap_or_else(|_| "ninja".to_owned());
    let mut cmd = Command::new(&cmd_string);
@@ -79,11 +93,11 @@ index 8a8896a..e9bc194 100644
    cmd.arg("-C");
    cmd.arg(gn_out_dir);
    if !cmd_string.ends_with("autoninja") {
-@@ -957,6 +965,7 @@ fn maybe_gen(gn_args: &[String]) -> PathBuf {
-         .arg(format!("--script-executable={}", python()))
-         .arg("gen")
-         .arg(&gn_out_dir)
-+        .arg("-vv")
-         .arg("--ide=json")
-         .arg("--args=".to_owned() + &args)
-         .stdout(Stdio::inherit())
+@@ -974,6 +982,7 @@ fn run_gn_gen(gn_args: &[String]) -> PathBuf {
+       .arg(format!("--script-executable={}", python()))
+       .arg("gen")
+       .arg(&gn_out_dir)
++      .arg("-vv")
+       .arg("--ide=json")
+       .arg("--args=".to_owned() + &args)
+       .stdout(Stdio::inherit())

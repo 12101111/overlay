@@ -1,8 +1,8 @@
 diff --git a/runtime/worker.rs b/runtime/worker.rs
-index 55398efbe..adbc86a91 100644
+index c7d9c9ae0..62c7cc0b3 100644
 --- a/runtime/worker.rs
 +++ b/runtime/worker.rs
-@@ -80,6 +80,7 @@ pub(crate) static SIGUSR2_RX: LazyLock<tokio::sync::watch::Receiver<()>> =
+@@ -79,6 +79,7 @@ pub(crate) static SIGUSR2_RX: LazyLock<tokio::sync::watch::Receiver<()>> =
          sigusr2.recv().await;
  
          // SAFETY: calling into libc, nothing relevant on the Rust side.
