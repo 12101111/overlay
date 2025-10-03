@@ -733,7 +733,7 @@ src_install() {
 	# bug #689562, #689160
 	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/bash_completion.d/cargo" || die
 	# remove target-spec-json-schema.json, build-std is nightly only
-	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/target-spec-json-schema.json"
+	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/target-spec-json-schema.json" || die
 	rmdir -v "${ED}/usr/lib/${PN}/${SLOT}"/etc{/bash_completion.d,} || die
 
 	local symlinks=(
