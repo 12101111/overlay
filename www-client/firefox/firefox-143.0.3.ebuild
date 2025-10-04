@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-143-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-143-patches-02.tar.xz"
 
 LLVM_COMPAT=( 19 20 )
 
@@ -637,7 +637,7 @@ src_prepare() {
 	if use pgo && use clang; then
 		eapply "${FILESDIR}/cross-pgo.patch"
 	fi
-	if tc-get-cxx-stdlib; then
+	if [ $(tc-get-cxx-stdlib) == libc++ ]; then
 		eapply "${FILESDIR}/libcxx.patch"
 	fi
 
