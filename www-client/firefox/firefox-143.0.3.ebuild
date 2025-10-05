@@ -637,9 +637,6 @@ src_prepare() {
 	if use pgo && use clang; then
 		eapply "${FILESDIR}/cross-pgo.patch"
 	fi
-	if [ $(tc-get-cxx-stdlib) == libc++ ]; then
-		eapply "${FILESDIR}/libcxx.patch"
-	fi
 
 	einfo "Removing pre-built binaries ..."
 
