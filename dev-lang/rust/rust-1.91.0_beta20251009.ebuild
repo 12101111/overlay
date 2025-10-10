@@ -3,7 +3,7 @@
 
 EAPI=8
 
-LLVM_COMPAT=( 20 )
+LLVM_COMPAT=( 21 )
 PYTHON_COMPAT=( python3_{11..14} )
 
 RUST_PATCH_VER=${PVR}
@@ -30,15 +30,14 @@ elif [[ ${PV} == *beta* ]]; then
 	BETA_SNAPSHOT="${betaver:0:4}-${betaver:4:2}-${betaver:6:2}"
 	MY_P="rustc-beta"
 	SRC_URI="https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${PV}-src.tar.xz
-		https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
 		verify-sig? ( https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz.asc
 			-> rustc-${PV}-src.tar.xz.asc )
 	"
 	S="${WORKDIR}/${MY_P}-src"
 else
 	MY_P="rustc-${PV}"
-	#https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
 	SRC_URI="https://static.rust-lang.org/dist/${MY_P}-src.tar.xz
+		https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
 		verify-sig? ( https://static.rust-lang.org/dist/${MY_P}-src.tar.xz.asc )
 	"
 	S="${WORKDIR}/${MY_P}-src"
@@ -733,6 +732,8 @@ src_install() {
 
 	# bug #689562, #689160
 	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/bash_completion.d/cargo" || die
+	# remove target-spec-json-schema.json, build-std is nightly only
+	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/target-spec-json-schema.json" || die
 	rmdir -v "${ED}/usr/lib/${PN}/${SLOT}"/etc{/bash_completion.d,} || die
 
 	local symlinks=(
