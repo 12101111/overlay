@@ -14,6 +14,8 @@ declare -A GIT_CRATES=(
 	[candle-nn]='https://github.com/zed-industries/candle;724d75eb3deebefe83f2a7381a45d4fac6eda383;candle-%commit%/candle-nn'
 	[candle-onnx]='https://github.com/zed-industries/candle;724d75eb3deebefe83f2a7381a45d4fac6eda383;candle-%commit%/candle-onnx'
 	[dap-types]='https://github.com/zed-industries/dap-types;1b461b310481d01e02b2603c16d7144b926339f8;dap-types-%commit%/dap-types'
+	[gh-workflow-macros]='https://github.com/zed-industries/gh-workflow;3eaa84abca0778eb54272f45a312cb24f9a0b435;gh-workflow-%commit%/crates/gh-workflow-macros'
+	[gh-workflow]='https://github.com/zed-industries/gh-workflow;3eaa84abca0778eb54272f45a312cb24f9a0b435;gh-workflow-%commit%/crates/gh-workflow'
 	[jupyter-protocol]='https://github.com/ConradIrwin/runtimed;7130c804216b6914355d15d0b91ea91f6babd734;runtimed-%commit%/crates/jupyter-protocol'
 	[jupyter-websocket-client]='https://github.com/ConradIrwin/runtimed;7130c804216b6914355d15d0b91ea91f6babd734;runtimed-%commit%/crates/jupyter-websocket-client'
 	[libwebrtc]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/libwebrtc'
@@ -21,7 +23,7 @@ declare -A GIT_CRATES=(
 	[livekit-protocol]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/livekit-protocol'
 	[livekit-runtime]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/livekit-runtime'
 	[livekit]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/livekit'
-	[lsp-types]='https://github.com/zed-industries/lsp-types;0874f8742fe55b4dc94308c1e3c0069710d8eeaf;lsp-types-%commit%'
+	[lsp-types]='https://github.com/zed-industries/lsp-types;b71ab4eeb27d9758be8092020a46fe33fbca4e33;lsp-types-%commit%'
 	[nbformat]='https://github.com/ConradIrwin/runtimed;7130c804216b6914355d15d0b91ea91f6babd734;runtimed-%commit%/crates/nbformat'
 	[notify-types]='https://github.com/zed-industries/notify;bbb9ea5ae52b253e095737847e367c30653a2e96;notify-%commit%/notify-types'
 	[notify]='https://github.com/zed-industries/notify;bbb9ea5ae52b253e095737847e367c30653a2e96;notify-%commit%/notify'
@@ -66,7 +68,6 @@ declare -A GIT_CRATES=(
 	[windows-capture]='https://github.com/zed-industries/windows-capture;f0d6c1b6691db75461b732f6d5ff56eed002eeb9;windows-capture-%commit%'
 	[xim-ctext]='https://github.com/zed-industries/xim-rs;16f35a2c881b815a2b6cdfd6687988e84f8447d8;xim-rs-%commit%/xim-ctext'
 	[xim-parser]='https://github.com/zed-industries/xim-rs;16f35a2c881b815a2b6cdfd6687988e84f8447d8;xim-rs-%commit%/xim-parser'
-	[zed-async-tar]='https://github.com/zed-industries/async-tar;a307f6bf3e4219c3a457bea0cab198b6d7c36e25;async-tar-%commit%'
 	[zed-font-kit]='https://github.com/zed-industries/font-kit;110523127440aefb11ce0cf280ae7c5071337ec5;font-kit-%commit%'
 	[zed-reqwest]='https://github.com/zed-industries/reqwest;c15662463bda39148ba154100dd44d3fba5873a4;reqwest-%commit%'
 	[zed-scap]='https://github.com/zed-industries/scap;4afea48c3b002197176fb19cd0f9b180dd36eaac;scap-%commit%'
@@ -131,7 +132,7 @@ DEPEND="
 	media-libs/fontconfig
 	media-libs/vulkan-loader[X]
 	net-misc/curl
-	sys-libs/zlib
+	virtual/zlib:=
 	x11-libs/libX11
 	x11-libs/libxcb:=
 	x11-libs/libxkbcommon[X]
