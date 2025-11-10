@@ -72,7 +72,6 @@ PATCHES=(
 	"${FILESDIR}"/0001-cmd-link-prefer-musl-s-over-glibc-s-ld.so-during-dyn.patch
 	"${FILESDIR}"/go-1.24-skip-gdb-tests.patch
 	"${FILESDIR}"/go-1.25-no-dwarf5.patch
-	"${FILESDIR}"/go-1.25.3-ipv6-validation.patch # https://go-review.googlesource.com/c/go/+/712240
 	"${FILESDIR}"/go-never-download-newer-toolchains.patch
 )
 
