@@ -145,6 +145,10 @@ multilib_src_configure() {
 
 		# avoid dependency on libgcc_s if compiler-rt is used
 		-DLIBUNWIND_USE_COMPILER_RT=${use_compiler_rt}
+
+		# Include libgcc-compatible frame apis
+		# used by llvm-libgcc
+		-DLIBUNWIND_ENABLE_FRAME_APIS=ON
 	)
 	if is_crosspkg; then
 		mycmakeargs+=(

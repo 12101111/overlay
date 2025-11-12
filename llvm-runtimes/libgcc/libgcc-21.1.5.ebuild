@@ -32,6 +32,7 @@ BDEPEND="
 		${PYTHON_DEPS}
 	)
 "
+PATCHES=( "${FILESDIR}/add-more-symbols.patch" )
 
 LLVM_COMPONENTS=( compiler-rt cmake llvm/cmake llvm-libgcc )
 LLVM_TEST_COMPONENTS=( llvm/include/llvm/TargetParser )

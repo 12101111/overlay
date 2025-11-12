@@ -1,0 +1,14 @@
+diff --git a/llvm-libgcc/gcc_s.ver.in b/llvm-libgcc/gcc_s.ver.in
+index e0bbf0e07155..085771970772 100644
+--- a/llvm-libgcc/gcc_s.ver.in
++++ b/llvm-libgcc/gcc_s.ver.in
+@@ -149,6 +149,9 @@ GCC_4.3.0 { __bswapdi2; __bswapsi2; __emutls_get_address;                 };
+ #if defined(__x86_64__)
+   GCC_3.0 {
+     __deregister_frame;    __register_frame;
++    __register_frame_info; __register_frame_info_table; __deregister_frame_info;
++    __register_frame_info_table_bases; __register_frame_info_bases;
++    __register_frame_table; __deregister_frame_info_bases;
+     __fixunsxfti;          __fixxfti;                   __floattixf;
+   };
+ 
