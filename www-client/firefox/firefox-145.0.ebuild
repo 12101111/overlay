@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-144-patches-03.tar.xz"
+FIREFOX_PATCHSET="firefox-145-patches-01.tar.xz"
 
 LLVM_COMPAT=( 19 20 21 )
 
@@ -120,7 +120,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.116
+	>=dev-libs/nss-3.117
 	>=dev-libs/nspr-4.35
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -445,8 +445,40 @@ pkg_pretend() {
 		# Ensure we have enough disk space to compile
 		if use pgo || use debug ; then
 			CHECKREQS_DISK_BUILD="14300M"
+
+			if ! use clang ; then
+				if tc-is-gcc && ver_test "$(gcc-major-version)" -eq 15 && has_version -b "<sys-devel/gcc-15.2.1_p20251108-r1:15"; then
+					eerror "<gcc-15.2.1_p20251108-r1:15 and pgo detected. Firefox-145.0 can not be compiled"
+					eerror "with this GCC, when also enabling pgo."
+					eerror "See bug https://gcc.gnu.org/PR122620"
+					eerror ""
+					eerror "Your options are:"
+					eerror " 1) upgrade GCC to >=15.2.1_p20251108-r1 - note that even with the 16.0"
+					eerror "    releases, make sure the patch set is equal or newer than 16.0.0_p20251109-r1,"
+					eerror "    or use the \"trunk\" version,"
+					eerror " 2) compile Firefox with Clang by enabling the \"clang\" USE flag, or"
+					eerror " 3) disable pgo when compiling with GCC for now."
+					die "Firefox-${PV} with gcc+pgo cannot be compiled with the detected gcc version: $(gcc-fullversion)"
+				fi
+			fi
 		elif tc-is-lto ; then
 			CHECKREQS_DISK_BUILD="10600M"
+
+			if ! use clang ; then
+				if tc-is-gcc && ver_test "$(gcc-major-version)" -eq 15 && has_version -b "<sys-devel/gcc-15.2.1_p20251108-r1:15"; then
+					eerror "<gcc-15.2.1_p20251108-r1:15 and lto detected. Firefox-145.0 can not be compiled"
+					eerror "with this GCC, when also enabling lto."
+					eerror "See bug https://gcc.gnu.org/PR122620"
+					eerror ""
+					eerror "Your options are:"
+					eerror " 1) upgrade GCC to >=15.2.1_p20251108-r1 - note that even with the 16.0"
+					eerror "    releases, make sure the patch set is equal or newer than 16.0.0_p20251109-r1,"
+					eerror "    or use the \"trunk\" version,"
+					eerror " 2) compile Firefox with Clang by enabling the \"clang\" USE flag, or"
+					eerror " 3) disable lto when compiling with GCC for now."
+					die "Firefox-${PV} with gcc+lto cannot be compiled with the detected gcc version: $(gcc-fullversion)"
+				fi
+			fi
 		else
 			CHECKREQS_DISK_BUILD="7400M"
 		fi
@@ -466,11 +498,43 @@ pkg_setup() {
 			use_lto=yes
 			# LTO is handled via configure
 			filter-lto
+
+			if ! use clang ; then
+				if tc-is-gcc && ver_test "$(gcc-major-version)" -eq 15 && has_version -b "<sys-devel/gcc-15.2.1_p20251108-r1:15"; then
+					eerror "<gcc-15.2.1_p20251108-r1:15 and pgo detected. Firefox-145.0 can not be compiled"
+					eerror "with this GCC, when also enabling lto."
+					eerror "See bug https://gcc.gnu.org/PR122620"
+					eerror ""
+					eerror "Your options are:"
+					eerror " 1) upgrade GCC to >=15.2.1_p20251108-r1 - note that even with the 16.0"
+					eerror "    releases, make sure the patch set is equal or newer than 16.0.0_p20251109-r1,"
+					eerror "    or use the \"trunk\" version,"
+					eerror " 2) compile Firefox with Clang by enabling the \"clang\" USE flag, or"
+					eerror " 3) disable lto when compiling with GCC for now."
+					die "Firefox-${PV} with gcc+lto cannot be compiled with the detected gcc version: $(gcc-fullversion)"
+				fi
+			fi
 		fi
 
 		if use pgo ; then
 			if ! has userpriv ${FEATURES} ; then
 				eerror "Building ${PN} with USE=pgo and FEATURES=-userpriv is not supported!"
+			fi
+
+			if ! use clang ; then
+				if tc-is-gcc && ver_test "$(gcc-major-version)" -eq 15 && has_version -b "<sys-devel/gcc-15.2.1_p20251108-r1:15"; then
+					eerror "<gcc-15.2.1_p20251108-r1:15 and lto detected. Firefox-145.0 can not be compiled"
+					eerror "with this GCC, when also enabling pgo."
+					eerror "See bug https://gcc.gnu.org/PR122620"
+					eerror ""
+					eerror "Your options are:"
+					eerror " 1) upgrade GCC to >=15.2.1_p20251108-r1 - note that even with the 16.0"
+					eerror "    releases, make sure the patch set is equal or newer than 16.0.0_p20251109-r1,"
+					eerror "    or use the \"trunk\" version,"
+					eerror " 2) compile Firefox with Clang by enabling the \"clang\" USE flag, or"
+					eerror " 3) disable pgo when compiling with GCC for now."
+					die "Firefox-${PV} with gcc+pgo cannot be compiled with the detected gcc version: $(gcc-fullversion)"
+				fi
 			fi
 		fi
 
@@ -872,6 +936,7 @@ src_configure() {
 
 	if use hardened ; then
 		mozconfig_add_options_ac "+hardened" --enable-hardening
+		mozconfig_add_options_ac "+hardened stl" --enable-stl-hardening
 		append-ldflags "-Wl,-z,relro -Wl,-z,now"
 
 		# Increase the FORTIFY_SOURCE value, #910071.
