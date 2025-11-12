@@ -19,8 +19,8 @@ IUSE="+ld +gas +binutils +gprof cet debuginfod doc gprofng hardened multitarget 
 # PATCH_DEV          - Use download URI https://dev.gentoo.org/~{PATCH_DEV}/distfiles/...
 #                      for the patchsets
 
-PATCH_VER=3
-PATCH_DEV=dilfridge
+PATCH_VER=1
+PATCH_DEV=sam
 
 if [[ ${PV} == 9999 ]]; then
 	inherit git-r3
@@ -57,7 +57,7 @@ is_cross() { [[ ${CHOST} != ${CTARGET} ]] ; }
 #
 RDEPEND="
 	>=sys-devel/binutils-config-3
-	sys-libs/zlib
+	virtual/zlib:=
 	debuginfod? (
 		dev-libs/elfutils[debuginfod(-)]
 	)
@@ -538,9 +538,6 @@ src_install() {
 
 # Simple test to make sure our new binutils isn't completely broken.
 # Skip if this binutils is a cross compiler.
-#
-# If coreutils is built with USE=multicall, some of these files
-# will just be wrapper scripts, not actual ELFs we can test.
 binutils_sanity_check() {
 	pushd "${T}" >/dev/null
 
@@ -566,7 +563,8 @@ binutils_sanity_check() {
 	local opt opt2
 	# TODO: test multilib variants?
 	for opt in '' '-O2' ; do
-		for opt2 in '-static' '-static-pie' '-fno-PIE -no-pie' ; do
+		# TODO: add static-pie? we need to check if support exists, though (bug #965478)
+		for opt2 in '-static' '-fno-PIE -no-pie' ; do
 			$(tc-getCC) ${opt} ${opt2} -B"${ED}${BINPATH}" "${T}"/number.c "${T}"/test.c -o "${T}"/test
 			if "${T}"/test | grep -q "Hello Gentoo! Your magic number is: 42" ; then
 				:;
@@ -581,6 +579,7 @@ binutils_sanity_check() {
 
 pkg_preinst() {
 	[[ -n ${ROOT} ]] && return 0
+	[[ -n ${EPREFIX} ]] && return 0
 	[[ -d ${ED}${BINPATH} ]] || return 0
 	[[ -n ${BOOTSTRAP_RAP} ]] || return 0
 	is_cross && return 0
