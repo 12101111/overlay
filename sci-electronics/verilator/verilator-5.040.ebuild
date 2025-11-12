@@ -30,7 +30,7 @@ REQUIRED_USE="${PYTHON_REQUIRED_USE}"
 RDEPEND="
 	${PYTHON_DEPS}
 	dev-lang/perl
-	sys-libs/zlib
+	virtual/zlib:=
 "
 
 DEPEND="

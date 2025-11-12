@@ -20,7 +20,7 @@ RESTRICT="!test? ( test )"
 # TODO: unbundle robin-map
 DEPEND="
 	dev-libs/boost:=[zstd?,zlib]
-	sys-libs/zlib
+	virtual/zlib:=
 	gui? (
 		dev-libs/kdiagram:6
 		dev-qt/qtbase:6[gui,widgets]
