@@ -8,7 +8,7 @@ EAPI=8
 LLVM_COMPAT=( 21 )
 PYTHON_COMPAT=( python3_{11..14} )
 
-RUST_PATCH_VER=${PV#*_p}
+RUST_PATCH_VER=1.91.0 #${PV#*_p}
 RUST_MAX_VER=${PV%%_*}
 
 if [[ ${PV} == *9999* ]]; then

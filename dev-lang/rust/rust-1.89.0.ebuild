@@ -108,7 +108,7 @@ BDEPEND="${PYTHON_DEPS}
 DEPEND="
 	>=app-arch/xz-utils-5.2
 	net-misc/curl:=[http2,ssl]
-	sys-libs/zlib:=
+	virtual/zlib:=
 	dev-libs/openssl:0=
 	system-llvm? (
 		${LLVM_DEPEND[*]}
@@ -520,7 +520,7 @@ src_configure() {
 		jemalloc = false
 		# See https://github.com/rust-lang/rust/issues/121124
 		lto = "$(usex lto thin off)"
-		debug-logging = true
+		debug-logging = $(toml_usex debug)
 		[dist]
 		src-tarball = false
 		compression-formats = ["xz"]
