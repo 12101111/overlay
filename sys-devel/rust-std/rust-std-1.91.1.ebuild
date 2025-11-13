@@ -64,10 +64,6 @@ VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 
 QA_FLAGS_IGNORED="usr/lib/rust/${PV}/rustlib/.*/lib/lib.*.so"
 
-PATCHES=(
-	"${FILESDIR}"/1.89.0-enable-stage-0-build.patch  # remove for >=1.90.0
-)
-
 toml_usex() {
 	usex "$1" true false
 }
@@ -135,6 +131,7 @@ src_configure() {
 		verbose = 2
 		cargo-native-static = false
 		optimized-compiler-builtins = true
+		local-rebuild = true
 		[install]
 		prefix = "${EPREFIX}/usr/lib/${PN}/${PV}"
 		sysconfdir = "etc"
