@@ -72,13 +72,14 @@ multilib_src_configure() {
 
 		# The full clang configuration might not be ready yet. Use the partial
 		# configuration of components that libunwind depends on.
-		#
-		local flags=(
-			--config="${ESYSROOT}"/etc/clang/"${LLVM_MAJOR}"/gentoo-{rtlib,unwindlib,linker}.cfg
-		)
-		local -x CFLAGS="${CFLAGS} ${flags[@]}"
-		local -x CXXFLAGS="${CXXFLAGS} ${flags[@]}"
-		local -x LDFLAGS="${LDFLAGS} ${flags[@]}"
+		if ! tc-is-cross-compiler; then
+			local flags=(
+				--config="${ESYSROOT}"/etc/clang/"${LLVM_MAJOR}"/gentoo-{rtlib,unwindlib,linker}.cfg
+			)
+			local -x CFLAGS="${CFLAGS} ${flags[@]}"
+			local -x CXXFLAGS="${CXXFLAGS} ${flags[@]}"
+			local -x LDFLAGS="${LDFLAGS} ${flags[@]}"
+		fi
 	fi
 
 	local nostdlib_flags=( -nostdlib++ )
