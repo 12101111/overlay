@@ -1,0 +1,34 @@
+From 0420449584e2afb7473393f536379efe194ba23c Mon Sep 17 00:00:00 2001
+From: Devon Loehr <dloehr@google.com>
+Date: Mon, 15 Sep 2025 10:55:56 -0700
+Subject: [PATCH] Remove unicode_width from rust dependencies
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The newest versions of rust no longer include it, but it seems it was an
+unnecessary dependency even beforehand.
+
+Bug: 444225375
+Change-Id: I232a993b95c0a1644a03d6bfb95460ab443b4d47
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/6949745
+Auto-Submit: Devon Loehr <dloehr@google.com>
+Reviewed-by: Łukasz Anforowicz <lukasza@chromium.org>
+Commit-Queue: Devon Loehr <dloehr@google.com>
+Cr-Commit-Position: refs/heads/main@{#1515607}
+---
+ build/rust/std/BUILD.gn | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/build/rust/std/BUILD.gn b/build/rust/std/BUILD.gn
+index bb2c9884520b3e..6d510bc0c573c6 100644
+--- a/build/rust/std/BUILD.gn
++++ b/build/rust/std/BUILD.gn
+@@ -42,7 +42,6 @@ if (toolchain_has_rust) {
+     "rustc_demangle",
+     "std_detect",
+     "test",
+-    "unicode_width",
+     "unwind",
+   ]
+ 

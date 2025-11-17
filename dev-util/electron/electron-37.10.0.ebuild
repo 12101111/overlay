@@ -11,7 +11,7 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
-LLVM_COMPAT=( 19 20 )
+LLVM_COMPAT=( 19 20 21 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.78.0
@@ -27,7 +27,7 @@ inherit rust-toolchain
 # https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-137.0.7151.8.tar.xz.hashe%40
 CHROMIUM_VERSION="138.0.7204.232"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="22.20.0"
+NODE_VERSION="22.21.1"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
@@ -1567,6 +1567,11 @@ src_prepare() {
 	fi
 	if ver_test ${RUST_SLOT} -ge "1.90.0"; then
 			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim-1-90.patch
+	fi
+	if ver_test ${RUST_SLOT} -ge "1.91.0"; then
+			eapply "${FILESDIR}/${SLOT}"/rust-unicode_width.patch
+			eapply "${FILESDIR}/${SLOT}"/fix-rust-cfi.patch
+			eapply "${FILESDIR}/${SLOT}"/fix-static-assert.patch
 	fi
 
 	if use loong ; then
