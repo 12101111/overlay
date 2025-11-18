@@ -1,0 +1,17 @@
+diff --git a/build/config/rust.gni b/build/config/rust.gni
+index 980dc68..0404779 100644
+--- a/build/config/rust.gni
++++ b/build/config/rust.gni
+@@ -186,8 +186,10 @@ if (enable_rust) {
+ # targets to Rust targets comprehensively despite not having official support
+ # (see '*_toolchain_supports_platform above') to enable experimentation with
+ # other toolchains.
+-rust_abi_target = ""
+-if (is_linux || is_chromeos) {
++declare_args() {
++  rust_abi_target = ""
++}
++if (use_chromium_rust_toolchain && (is_linux || is_chromeos)) {
+   if (current_cpu == "arm64") {
+     rust_abi_target = "aarch64-unknown-linux-gnu"
+   } else if (current_cpu == "x86") {

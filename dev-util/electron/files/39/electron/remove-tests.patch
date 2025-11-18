@@ -1,0 +1,21 @@
+diff --git a/patches/v8/turboshaft_avoid_introducing_too_many_variables.patch b/patches/v8/turboshaft_avoid_introducing_too_many_variables.patch
+index f77378f1e3..82849d76ae 100644
+--- a/patches/v8/turboshaft_avoid_introducing_too_many_variables.patch
++++ b/patches/v8/turboshaft_avoid_introducing_too_many_variables.patch
+@@ -460,16 +460,3 @@ index b11338bdf6e928cd09a0bdbad42fd835c8210c36..03cc2fa77f0d4a194893a8be5747d6de
+    // {predecessors_} is used during merging, but we use an instance variable for
+    // it, in order to save memory and not reallocate it for each merge.
+    ZoneVector<Snapshot> predecessors_{__ phase_zone()};
+-diff --git a/test/unittests/compiler/turboshaft/control-flow-unittest.cc b/test/unittests/compiler/turboshaft/control-flow-unittest.cc
+-index 49e1c8c2561bd010d12e5229c4d6594b9846b40b..b39b073a2ea899550fe0df6a81dcebc2d75efa49 100644
+---- a/test/unittests/compiler/turboshaft/control-flow-unittest.cc
+-+++ b/test/unittests/compiler/turboshaft/control-flow-unittest.cc
+-@@ -55,7 +55,7 @@ TEST_F(ControlFlowTest, DefaultBlockInlining) {
+- // BranchElimination should remove such branches by cloning the block with the
+- // branch. In the end, the graph should contain (almost) no branches anymore.
+- TEST_F(ControlFlowTest, BranchElimination) {
+--  static constexpr int kSize = 10000;
+-+  static constexpr int kSize = 200;
+- 
+-   auto test = CreateFromGraph(1, [](auto& Asm) {
+-     V<Word32> cond =

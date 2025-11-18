@@ -1,0 +1,112 @@
+diff --git a/patches/chromium/inspectorpageagent_provisional_frame_speculative_fix.patch b/patches/chromium/inspectorpageagent_provisional_frame_speculative_fix.patch
+index dd02f7ede8..2eee582499 100644
+--- a/patches/chromium/inspectorpageagent_provisional_frame_speculative_fix.patch
++++ b/patches/chromium/inspectorpageagent_provisional_frame_speculative_fix.patch
+@@ -31,86 +31,3 @@ index fe17063fa8f572368096b88e1e3cc35b469e816a..07c1b9dd216518f70257a6637e3b50d8
+      }
+    }
+  
+-diff --git a/third_party/blink/web_tests/FlagExpectations/disable-site-isolation-trials b/third_party/blink/web_tests/FlagExpectations/disable-site-isolation-trials
+-index f462af59547e93378034b7e9301053a43f636ea4..3b829d94fa447e58a1acc57b7c7bdbd4564c9507 100644
+---- a/third_party/blink/web_tests/FlagExpectations/disable-site-isolation-trials
+-+++ b/third_party/blink/web_tests/FlagExpectations/disable-site-isolation-trials
+-@@ -63,6 +63,7 @@ http/tests/inspector-protocol/target/target-filter.js [ Skip ]
+- virtual/fenced-frame-mparch/http/tests/inspector-protocol/fenced-frame/fenced-frame-in-oopif-auto-attach.js [ Skip ]
+- http/tests/inspector-protocol/target/target-info-changed-auto-attach.js [ Skip ]
+- http/tests/inspector-protocol/page/frame-detached-oopif.js [ Skip ]
+-+http/tests/inspector-protocol/page/addScriptToEvaluateOnNewDocument-reload.js [ Skip ]
+- 
+- # Rely on OOPIF for an iframe to be a separate devtools target
+- http/tests/inspector-protocol/timeline/auction-worklet-frame.js [ Skip ]
+-diff --git a/third_party/blink/web_tests/http/tests/inspector-protocol/page/addScriptToEvaluateOnNewDocument-reload-expected.txt b/third_party/blink/web_tests/http/tests/inspector-protocol/page/addScriptToEvaluateOnNewDocument-reload-expected.txt
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..0131df6c227e1803741e654d42b15f589275061a
+---- /dev/null
+-+++ b/third_party/blink/web_tests/http/tests/inspector-protocol/page/addScriptToEvaluateOnNewDocument-reload-expected.txt
+-@@ -0,0 +1,28 @@
+-+Tests that Page.addScriptToEvaluateOnNewDocument on auto-attach with runImmediately=true.
+-+Regression test for crbug.com/390710982.
+-+console called: {
+-+    method : Runtime.consoleAPICalled
+-+    params : {
+-+        args : [
+-+            [0] : {
+-+                type : string
+-+                value : evaluated
+-+            }
+-+        ]
+-+        executionContextId : <number>
+-+        stackTrace : {
+-+            callFrames : [
+-+                [0] : {
+-+                    columnNumber : 8
+-+                    functionName :
+-+                    lineNumber : 0
+-+                    scriptId : <string>
+-+                    url :
+-+                }
+-+            ]
+-+        }
+-+        timestamp : <number>
+-+        type : log
+-+    }
+-+    sessionId : <string>
+-+}
+-diff --git a/third_party/blink/web_tests/http/tests/inspector-protocol/page/addScriptToEvaluateOnNewDocument-reload.js b/third_party/blink/web_tests/http/tests/inspector-protocol/page/addScriptToEvaluateOnNewDocument-reload.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..52ebe845c323c6d692147052f3458777dcd7f966
+---- /dev/null
+-+++ b/third_party/blink/web_tests/http/tests/inspector-protocol/page/addScriptToEvaluateOnNewDocument-reload.js
+-@@ -0,0 +1,31 @@
+-+(async function(/** @type {import('test_runner').TestRunner} */ testRunner) {
+-+  const { session, dp } = await testRunner.startBlank(
+-+    `Tests that Page.addScriptToEvaluateOnNewDocument on auto-attach with runImmediately=true.
+-+Regression test for crbug.com/390710982.`);
+-+
+-+  await dp.Page.enable();
+-+  await dp.Target.enable();
+-+  await dp.Target.setAutoAttach({ flatten: true, autoAttach: true, waitForDebuggerOnStart: true });
+-+
+-+  dp.Target.onAttachedToTarget(async event => {
+-+    const dp2 = session.createChild(event.params.sessionId).protocol;
+-+    dp2.Page.enable();
+-+    dp2.Runtime.enable();
+-+    dp2.Runtime.onConsoleAPICalled(event => {
+-+      testRunner.log(event, 'console called: ');
+-+    });
+-+    dp2.Page.addScriptToEvaluateOnNewDocument({
+-+      source: 'console.log("evaluated")',
+-+      runImmediately: true,
+-+    });
+-+    await dp2.Runtime.runIfWaitingForDebugger();
+-+  });
+-+
+-+  const loaded = dp.Page.onceLoadEventFired();
+-+  await dp.Page.navigate({
+-+    url: testRunner.url('resources/iframe-src.html')
+-+  });
+-+  await loaded;
+-+
+-+  testRunner.completeTest();
+-+});
+diff --git a/patches/v8/turboshaft_avoid_introducing_too_many_variables.patch b/patches/v8/turboshaft_avoid_introducing_too_many_variables.patch
+index 6e2ca0147d..2cf3fd294c 100644
+--- a/patches/v8/turboshaft_avoid_introducing_too_many_variables.patch
++++ b/patches/v8/turboshaft_avoid_introducing_too_many_variables.patch
+@@ -460,16 +460,3 @@ index b11338bdf6e928cd09a0bdbad42fd835c8210c36..03cc2fa77f0d4a194893a8be5747d6de
+    // {predecessors_} is used during merging, but we use an instance variable for
+    // it, in order to save memory and not reallocate it for each merge.
+    ZoneVector<Snapshot> predecessors_{__ phase_zone()};
+-diff --git a/test/unittests/compiler/turboshaft/control-flow-unittest.cc b/test/unittests/compiler/turboshaft/control-flow-unittest.cc
+-index 49e1c8c2561bd010d12e5229c4d6594b9846b40b..b39b073a2ea899550fe0df6a81dcebc2d75efa49 100644
+---- a/test/unittests/compiler/turboshaft/control-flow-unittest.cc
+-+++ b/test/unittests/compiler/turboshaft/control-flow-unittest.cc
+-@@ -55,7 +55,7 @@ TEST_F(ControlFlowTest, DefaultBlockInlining) {
+- // BranchElimination should remove such branches by cloning the block with the
+- // branch. In the end, the graph should contain (almost) no branches anymore.
+- TEST_F(ControlFlowTest, BranchElimination) {
+--  static constexpr int kSize = 10000;
+-+  static constexpr int kSize = 200;
+- 
+-   auto test = CreateFromGraph(1, [](auto& Asm) {
+-     V<Word32> cond =
