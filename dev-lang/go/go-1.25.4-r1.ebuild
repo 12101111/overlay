@@ -72,6 +72,7 @@ PATCHES=(
 	"${FILESDIR}"/0001-cmd-link-prefer-musl-s-over-glibc-s-ld.so-during-dyn.patch
 	"${FILESDIR}"/go-1.24-skip-gdb-tests.patch
 	"${FILESDIR}"/go-1.25-no-dwarf5.patch
+	"${FILESDIR}"/go-1.25-strip-top-level-const.patch
 	"${FILESDIR}"/go-never-download-newer-toolchains.patch
 )
 
