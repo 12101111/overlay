@@ -62,7 +62,7 @@ SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/d
 			-> chromium-patches-copium-${COPIUM_COMMIT:0:10}.tar.gz
 	)
 	bundled-toolchain? (
-		https://gsdview.appspot.com/chromium-browser-clang/Linux_x64/clang-${BUNDLED_CLANG_VER}.tar.xz
+		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/clang-${BUNDLED_CLANG_VER}.tar.xz
 			-> chromium-clang-${BUNDLED_CLANG_VER}.tar.xz
 		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/rust-toolchain-${BUNDLED_RUST_VER}-${BUNDLED_CLANG_VER%-*}.tar.xz
 			-> chromium-rust-toolchain-${RUST_SHORT_HASH}-${BUNDLED_CLANG_VER%-*}.tar.xz
@@ -1064,10 +1064,6 @@ src_prepare() {
 			sed -i 's/#define HAVE_MALLINFO 1/\/* #undef HAVE_MALLINFO *\//' $config2 || die
 		fi
 	fi
-
-	# bundled eu-strip is for amd64 only and we don't want to pre-stripped binaries
-	mkdir -p buildtools/third_party/eu-strip/bin || die
-	ln -s "${EPREFIX}"/bin/true buildtools/third_party/eu-strip/bin/eu-strip || die
 }
 
 chromium_configure() {
