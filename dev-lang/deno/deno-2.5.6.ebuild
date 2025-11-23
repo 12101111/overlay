@@ -4,7 +4,7 @@
 EAPI=8
 
 GN_MIN_VER=0.2235
-LLVM_COMPAT=( 20 )
+LLVM_COMPAT=( 20 21 )
 RUST_NEEDS_LLVM=1
 PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
@@ -44,7 +44,7 @@ CRATES="
 	asn1-rs-derive@0.4.0
 	asn1-rs-impl@0.1.0
 	asn1-rs@0.5.2
-	ast_node@3.0.3
+	ast_node@3.0.4
 	async-compression@0.4.11
 	async-once-cell@0.5.4
 	async-stream-impl@0.3.5
@@ -105,12 +105,12 @@ CRATES="
 	cexpr@0.6.0
 	cfg-if@1.0.3
 	cfg_aliases@0.2.1
-	chrono@0.4.37
+	chrono@0.4.42
 	cipher@0.4.4
 	clang-sys@1.8.1
-	clap@4.5.30
-	clap_builder@4.5.30
-	clap_complete@4.5.45
+	clap@4.5.47
+	clap_builder@4.5.47
+	clap_complete@4.5.57
 	clap_complete_fig@4.5.2
 	clap_lex@0.7.4
 	clipboard-win@5.3.0
@@ -175,22 +175,21 @@ CRATES="
 	debug-ignore@1.0.5
 	debugid@0.8.0
 	deno-tower-lsp-macros@0.11.3
-	deno_ast@0.50.0
+	deno_ast@0.50.3
 	deno_cache_dir@0.25.0
-	deno_core@0.362.0
-	deno_core_icudata@0.74.0
-	deno_doc@0.183.0
+	deno_core@0.363.0
+	deno_doc@0.186.0
 	deno_error@0.7.0
 	deno_error_macro@0.7.0
-	deno_graph@0.100.1
+	deno_graph@0.103.1
 	deno_lint@0.80.0
-	deno_lockfile@0.31.2
+	deno_lockfile@0.32.2
 	deno_media_type@0.2.9
 	deno_native_certs@0.3.0
-	deno_npm@0.38.1
-	deno_ops@0.238.0
+	deno_npm@0.42.0
+	deno_ops@0.239.0
 	deno_panic@0.1.0
-	deno_path_util@0.6.1
+	deno_path_util@0.6.4
 	deno_semver@0.9.0
 	deno_task_shell@0.26.0
 	deno_terminal@0.1.1
@@ -233,11 +232,11 @@ CRATES="
 	dotenvy@0.15.7
 	dprint-core-macros@0.1.0
 	dprint-core@0.67.4
-	dprint-plugin-json@0.20.0
-	dprint-plugin-jupyter@0.2.0
-	dprint-plugin-markdown@0.19.0
+	dprint-plugin-json@0.21.0
+	dprint-plugin-jupyter@0.2.1
+	dprint-plugin-markdown@0.20.0
 	dprint-plugin-typescript@0.95.11
-	dprint-swc-ext@0.25.0
+	dprint-swc-ext@0.25.1
 	dsa@0.6.3
 	dtoa-short@0.3.5
 	dtoa@1.0.10
@@ -263,7 +262,7 @@ CRATES="
 	error-code@3.2.0
 	error_reporter@1.0.0
 	esbuild_client@0.7.1
-	eszip@0.99.0
+	eszip@0.104.0
 	fallible-iterator@0.3.0
 	fallible-streaming-iterator@0.1.9
 	fancy-regex@0.14.0
@@ -354,7 +353,7 @@ CRATES="
 	hmac@0.12.1
 	home@0.5.9
 	hostname@0.3.1
-	hstr@2.0.1
+	hstr@2.1.0
 	html-escape@0.2.13
 	http-body-util@0.1.2
 	http-body@0.4.6
@@ -392,7 +391,7 @@ CRATES="
 	if_chain@1.0.2
 	ignore@0.4.20
 	image@0.25.4
-	import_map@0.23.0
+	import_map@0.24.0
 	indexmap@1.9.3
 	indexmap@2.9.0
 	inotify-sys@0.1.5
@@ -405,6 +404,7 @@ CRATES="
 	is-docker@0.2.0
 	is-macro@0.3.5
 	is-wsl@0.4.0
+	is_executable@1.0.5
 	is_terminal_polyfill@1.70.1
 	itertools@0.12.1
 	itertools@0.13.0
@@ -415,7 +415,7 @@ CRATES="
 	jni-sys@0.3.0
 	jobserver@0.1.32
 	js-sys@0.3.77
-	jsonc-parser@0.26.3
+	jsonc-parser@0.27.0
 	junction@1.2.0
 	jupyter-protocol@0.8.0
 	k256@0.13.3
@@ -433,8 +433,8 @@ CRATES="
 	lcms2@6.1.0
 	libc@0.2.172
 	libdbus-sys@0.2.5
-	libffi-sys@3.2.0
-	libffi@4.0.0
+	libffi-sys@3.3.3
+	libffi@4.1.2
 	libloading@0.7.4
 	libloading@0.8.5
 	libm@0.2.8
@@ -449,7 +449,7 @@ CRATES="
 	litemap@0.8.0
 	litrs@0.4.1
 	lock_api@0.4.11
-	log@0.4.27
+	log@0.4.28
 	lol_html@2.6.0
 	loom@0.7.2
 	lru-slab@0.1.2
@@ -620,6 +620,7 @@ CRATES="
 	rfc6979@0.4.0
 	ring@0.17.14
 	ripemd@0.1.3
+	rmp@0.8.14
 	ron@0.8.1
 	rowan@0.15.15
 	rsa@0.9.6
@@ -665,12 +666,15 @@ CRATES="
 	serde-value@0.7.0
 	serde-wasm-bindgen@0.5.0
 	serde@1.0.219
+	serde@1.0.228
 	serde_bytes@0.11.14
+	serde_core@1.0.228
 	serde_derive@1.0.219
+	serde_derive@1.0.228
 	serde_json@1.0.140
 	serde_repr@0.1.19
 	serde_urlencoded@0.7.1
-	serde_v8@0.271.0
+	serde_v8@0.272.0
 	serdect@0.2.0
 	servo_arc@0.4.1
 	sha1@0.10.6
@@ -720,23 +724,23 @@ CRATES="
 	subtle@2.5.0
 	swc_allocator@4.0.1
 	swc_atoms@7.0.0
-	swc_bundler@29.0.0
-	swc_common@14.0.3
-	swc_config@3.1.1
+	swc_bundler@32.0.0
+	swc_common@14.0.4
+	swc_config@3.1.2
 	swc_config_macro@1.0.1
 	swc_ecma_ast@15.0.0
-	swc_ecma_codegen@17.0.0
+	swc_ecma_codegen@17.0.2
 	swc_ecma_codegen_macros@2.0.2
-	swc_ecma_lexer@23.0.1
+	swc_ecma_lexer@23.0.2
 	swc_ecma_loader@14.0.0
-	swc_ecma_parser@23.0.0
-	swc_ecma_transforms_base@25.0.0
-	swc_ecma_transforms_classes@25.0.0
+	swc_ecma_parser@24.0.3
+	swc_ecma_transforms_base@27.0.0
+	swc_ecma_transforms_classes@27.0.0
 	swc_ecma_transforms_macros@1.0.1
-	swc_ecma_transforms_optimization@26.0.0
-	swc_ecma_transforms_proposal@25.0.0
-	swc_ecma_transforms_react@28.0.0
-	swc_ecma_transforms_typescript@28.0.0
+	swc_ecma_transforms_optimization@29.0.0
+	swc_ecma_transforms_proposal@27.0.0
+	swc_ecma_transforms_react@30.0.2
+	swc_ecma_transforms_typescript@30.0.1
 	swc_ecma_utils@21.0.0
 	swc_ecma_visit@15.0.0
 	swc_eq_ignore_macros@1.0.1
@@ -744,9 +748,9 @@ CRATES="
 	swc_macros_common@1.0.1
 	swc_sourcemap@9.3.4
 	swc_visit@2.0.1
+	syn@2.0.106
 	syn@1.0.109
 	syn@2.0.87
-	syn@2.0.106
 	sync_wrapper@1.0.1
 	synstructure@0.12.6
 	synstructure@0.13.1
@@ -863,7 +867,7 @@ CRATES="
 	weak-table@0.3.2
 	web-sys@0.3.77
 	web-time@1.1.0
-	web-transport-proto@0.2.3
+	web-transport-proto@0.2.7
 	webpki-root-certs@0.26.6
 	webpki-roots@0.26.1
 	wgpu-core@24.0.0
@@ -944,18 +948,19 @@ CRATES="
 	zerocopy-derive@0.7.32
 	zerocopy@0.7.32
 	zerofrom-derive@0.1.4
-	zerofrom-derive@0.1.6
 	zerofrom@0.1.4
+	zerofrom-derive@0.1.6
 	zerofrom@0.1.6
 	zeroize@1.8.1
+	zerovec@0.11.4
+	zerotrie@0.2.2
 	zeroize_derive@1.4.2
+	zerovec-derive@0.11.1
 	zeromq@0.4.1
 	zeromq@0.5.0-pre
 	zerotrie@0.2.2
 	zerovec-derive@0.10.3
-	zerovec-derive@0.11.1
 	zerovec@0.10.4
-	zerovec@0.11.4
 	zip@2.4.1
 	zstd-safe@7.2.4
 	zstd-sys@2.0.15+zstd.1.5.7
