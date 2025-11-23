@@ -25,7 +25,7 @@ inherit rust-toolchain
 # find least version of available snapshot in
 # https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-137.0.7151.8.tar.xz.hashe%40
 # the website is dead now
-CHROMIUM_VERSION="142.0.7444.162"
+CHROMIUM_VERSION="142.0.7444.175"
 # Keep this in sync with DEPS:node_version
 NODE_VERSION="22.21.1"
 
