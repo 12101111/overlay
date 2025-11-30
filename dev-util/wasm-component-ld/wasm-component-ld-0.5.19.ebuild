@@ -55,14 +55,14 @@ CRATES="
 	unicode-width@0.2.2
 	unicode-xid@0.2.6
 	utf8parse@0.2.2
-	wasi-preview1-component-adapter-provider@37.0.2
+	wasi-preview1-component-adapter-provider@38.0.4
 	wasi@0.14.7+wasi-0.2.4
 	wasip2@1.0.1+wasi-0.2.4
-	wasm-encoder@0.240.0
-	wasm-metadata@0.240.0
-	wasmparser@0.240.0
-	wast@240.0.0
-	wat@1.240.0
+	wasm-encoder@0.241.2
+	wasm-metadata@0.241.2
+	wasmparser@0.241.2
+	wast@241.0.2
+	wat@1.241.2
 	windows-link@0.2.1
 	windows-sys@0.60.2
 	windows-sys@0.61.2
@@ -77,10 +77,9 @@ CRATES="
 	windows_x86_64_msvc@0.53.1
 	winsplit@0.1.0
 	wit-bindgen@0.46.0
-	wit-component@0.240.0
-	wit-parser@0.240.0
+	wit-component@0.241.2
+	wit-parser@0.241.2
 "
-
 
 inherit cargo
 
