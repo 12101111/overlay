@@ -1,0 +1,12 @@
+diff --git a/src/boot/meson.build b/src/boot/meson.build
+index 29c5455..3034b29 100644
+--- a/src/boot/meson.build
++++ b/src/boot/meson.build
+@@ -131,6 +131,7 @@ efi_includes = [
+ 
+ efi_c_args = [
+         '-DSD_BOOT=1',
++        '-D__DEFINED_wchar_t=1',
+         '-ffreestanding',
+         '-fno-strict-aliasing',
+         '-fshort-wchar',
