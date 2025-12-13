@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-145-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-146-patches-01.tar.xz"
 
 LLVM_COMPAT=( 19 20 21 )
 
@@ -98,7 +98,7 @@ BDEPEND="${PYTHON_DEPS}
 	app-alternatives/awk
 	app-arch/unzip
 	app-arch/zip
-	>=dev-util/cbindgen-0.27.0
+	>=dev-util/cbindgen-0.29.1
 	net-libs/nodejs
 	virtual/pkgconfig
 	amd64? ( >=dev-lang/nasm-2.14 )
@@ -120,13 +120,13 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.117
-	>=dev-libs/nspr-4.35
+	>=dev-libs/nss-3.118
+	>=dev-libs/nspr-4.38
 	media-libs/alsa-lib
 	media-libs/fontconfig
 	media-libs/freetype
 	media-libs/mesa
-	<media-video/ffmpeg-8.0
+	media-video/ffmpeg
 	virtual/zlib:=
 	virtual/freedesktop-icon-theme
 	x11-libs/cairo
@@ -645,6 +645,8 @@ src_prepare() {
 		rm -v "${WORKDIR}"/firefox-patches/*bmo-1988166-musl-remove-nonexisting-system-header-req.patch || die
 	fi
 
+	use elibc_musl && eapply "${FILESDIR}/musl-fix-webrtc-prctl.patch"
+
 	rm -v "${WORKDIR}"/firefox-patches/*bgo-940031-wasm-support.patch || die
 
 	eapply "${WORKDIR}/firefox-patches"
@@ -1025,6 +1027,9 @@ src_configure() {
 		if use clang ; then
 			# Used in build/pgo/profileserver.py
 			export LLVM_PROFDATA="llvm-profdata"
+		else
+			# Attempt to fix pgo hanging with gcc, bgo#966309.
+			export MOZ_REMOTE_SETTINGS_DEVTOOLS=1
 		fi
 	fi
 
