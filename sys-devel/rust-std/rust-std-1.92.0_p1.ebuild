@@ -29,7 +29,8 @@ elif [[ ${PV} == *beta* ]]; then
 	"
 	S="${WORKDIR}/${MY_P}-src"
 else
-	MY_P="rustc-${PV}"
+	RUST_PV=${PV%%_p*}
+	MY_P="rustc-${RUST_PV}"
 	SRC_URI="https://static.rust-lang.org/dist/${MY_P}-src.tar.xz
 			verify-sig? ( https://static.rust-lang.org/dist/${MY_P}-src.tar.xz.asc )
 	"
@@ -37,7 +38,7 @@ else
 fi
 
 LICENSE="|| ( MIT Apache-2.0 ) BSD-1 BSD-2 BSD-4"
-SLOT="stable/$(ver_cut 1-2)"
+SLOT="${PV%%_*}"
 # please do not keyword
 #KEYWORDS="" #nowarn
 IUSE="debug llvm-libunwind profiler lld"
@@ -63,10 +64,6 @@ RESTRICT="test"
 VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 
 QA_FLAGS_IGNORED="usr/lib/rust/${PV}/rustlib/.*/lib/lib.*.so"
-
-PATCHES=(
-	"${FILESDIR}"/1.90.0-enable-stage-0-build.patch  # remove for >=1.91.0
-)
 
 toml_usex() {
 	usex "$1" true false
@@ -135,8 +132,9 @@ src_configure() {
 		verbose = 2
 		cargo-native-static = false
 		optimized-compiler-builtins = true
+		local-rebuild = true
 		[install]
-		prefix = "${EPREFIX}/usr/lib/${PN}/${PV}"
+		prefix = "${EPREFIX}/usr/lib/${PN}/${SLOT}"
 		sysconfdir = "etc"
 		docdir = "share/doc/rust"
 		bindir = "bin"
@@ -197,7 +195,7 @@ src_test() {
 }
 
 src_install() {
-	local rustlib="lib/rust/${PV}/lib/rustlib"
+	local rustlib="lib/rust/${SLOT}/lib/rustlib"
 	dodir "/usr/${rustlib}"
 	pushd "build/${rhost}/stage0-sysroot/lib/rustlib" > /dev/null || die
 	cp -pPRv "${rtarget}" "${ED}/usr/${rustlib}" || die
