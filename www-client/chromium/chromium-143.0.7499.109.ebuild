@@ -26,7 +26,7 @@ EAPI=8
 GN_MIN_VER=0.2235
 # chromium-tools/get-chromium-toolchain-strings.py
 TEST_FONT=a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969
-BUNDLED_CLANG_VER=llvmorg-22-init-8940-g4d4cb757-4
+BUNDLED_CLANG_VER=llvmorg-22-init-8940-g4d4cb757-84
 BUNDLED_RUST_VER=15283f6fe95e5b604273d13a428bab5fc0788f5a-1
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
 NODE_VER=22.11.0
@@ -52,7 +52,7 @@ DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
 PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
 PATCH_V="${PV%%\.*}"
-COPIUM_COMMIT="46d68912da04d9ed14856c50db986d5c8e786a4b"
+COPIUM_COMMIT="8025c57b5b5d0f93ca6392cbcfab8fd2f8255e75"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
@@ -66,10 +66,6 @@ SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/d
 			-> chromium-clang-${BUNDLED_CLANG_VER}.tar.xz
 		https://commondatastorage.googleapis.com/chromium-browser-clang/Linux_x64/rust-toolchain-${BUNDLED_RUST_VER}-${BUNDLED_CLANG_VER%-*}.tar.xz
 			-> chromium-rust-toolchain-${RUST_SHORT_HASH}-${BUNDLED_CLANG_VER%-*}.tar.xz
-	)
-	test? (
-		https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux-testdata.tar.xz
-		https://chromium-fonts.storage.googleapis.com/${TEST_FONT} -> chromium-testfonts-${TEST_FONT:0:10}.tar.gz
 	)
 	loong? (
 		https://github.com/AOSC-Dev/chromium-loongarch64/archive/refs/tags/${PATCHSET_LOONG}.tar.gz -> chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.tar.gz
@@ -87,12 +83,12 @@ LICENSE+=" rar? ( unRAR )"
 
 SLOT="0/stable"
 KEYWORDS="~amd64 ~arm64"
-IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png +system-zstd"
+IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-zstd"
 IUSE="hevc +X ${IUSE_SYSTEM_LIBS} bindist bundled-toolchain cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo"
 IUSE+=" +proprietary-codecs pulseaudio qt6 +rar +screencast selinux test +vaapi +wayland +widevine cpu_flags_ppc_vsx3"
 RESTRICT="
 	!bindist? ( bindist )
-	test" #!test? ( test ) # Since M142 tests have been segfaulting on Gentoo systems; disabling for now.
+	test" # Since M142 tests have been segfaulting on Gentoo systems; disabling for now.
 
 REQUIRED_USE="
 	!headless? ( || ( X wayland ) )
@@ -125,7 +121,6 @@ COMMON_SNAPSHOT_DEPEND="
 	>=media-libs/freetype-2.11.0-r1:=
 	system-harfbuzz? ( >=media-libs/harfbuzz-3:0=[icu(-)] )
 	media-libs/libjpeg-turbo:=
-	system-png? ( media-libs/libpng:=[-apng(-)] )
 	system-zstd? ( >=app-arch/zstd-1.5.5:= )
 	>=media-libs/libwebp-0.4.0:=
 	media-libs/mesa:=[gbm(+)]
@@ -521,7 +516,10 @@ src_prepare() {
 		"${FILESDIR}/${PN}-134-bindgen-custom-toolchain.patch"
 		"${FILESDIR}/${PN}-135-oauth2-client-switches.patch"
 		"${FILESDIR}/${PN}-138-nodejs-version-check.patch"
-		"${FILESDIR}/${PN}-142-iwyu-field-form-data.patch"
+	)
+
+	PATCHES+=(
+		"${WORKDIR}/copium/cr143-libsync-__BEGIN_DECLS.patch"
 	)
 
 	# https://issues.chromium.org/issues/442698344
@@ -732,6 +730,7 @@ src_prepare() {
 		third_party/dawn
 		third_party/dawn/third_party/gn/webgpu-cts
 		third_party/dawn/third_party/khronos
+		third_party/dawn/third_party/webgpu-headers
 		third_party/depot_tools
 		third_party/devscripts
 		third_party/devtools-frontend
@@ -815,6 +814,7 @@ src_prepare() {
 		third_party/libjingle
 		third_party/libpfm4
 		third_party/libphonenumber
+		third_party/libpng
 		third_party/libsecret
 		third_party/libsrtp
 		third_party/libsync
@@ -981,10 +981,6 @@ src_prepare() {
 		keeplibs+=( third_party/icu )
 	fi
 
-	if ! use system-png; then
-		keeplibs+=( third_party/libpng )
-	fi
-
 	if ! use system-zstd; then
 		keeplibs+=( third_party/zstd )
 	fi
@@ -1100,9 +1096,7 @@ chromium_configure() {
 	if use system-icu; then
 		gn_system_libraries+=( icu )
 	fi
-	if use system-png; then
-		gn_system_libraries+=( libpng )
-	fi
+
 	if use system-zstd; then
 		gn_system_libraries+=( zstd )
 	fi
