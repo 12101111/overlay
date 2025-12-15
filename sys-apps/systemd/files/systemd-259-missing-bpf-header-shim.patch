@@ -1,0 +1,14 @@
+diff --git a/src/core/bpf-devices.c b/src/core/bpf-devices.c
+index aeb01e8575..273144b007 100644
+--- a/src/core/bpf-devices.c
++++ b/src/core/bpf-devices.c
+@@ -2,6 +2,9 @@
+ 
+ #include <fnmatch.h>
+ #include <linux/bpf.h>
++#ifndef BPF_JMP_A
++#include "../include/override/linux/bpf.h"
++#endif
+ #include <linux/bpf_insn.h>
+ #include <sys/stat.h>
+ 

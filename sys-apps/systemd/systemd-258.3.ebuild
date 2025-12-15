@@ -278,17 +278,19 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
+		"${FILESDIR}/systemd-258-shared-add-missing-alloc-util.patch"
+		"${FILESDIR}/systemd-258.3-kernel-install-test.patch"
 	)
 
 	if ! use vanilla; then
 		PATCHES+=(
-			"${FILESDIR}/gentoo-journald-audit-r4.patch"
+			"${FILESDIR}/gentoo-journald-audit-r3.patch"
 		)
 	fi
 
 	if use elibc_musl; then
-		eapply "${FILESDIR}/musl/0017-Always-include-netinet-if_ether.h-first.patch"
-		# append-cflags -D__UAPI_DEF_ETHHDR=0
+		append-cflags -D__UAPI_DEF_ETHHDR=0
+		eapply "${FILESDIR}/258"
 	fi
 	default
 }
@@ -405,7 +407,6 @@ multilib_src_configure() {
 			-Dnss-systemd=false
 			-Dutmp=false
 			-Dlocaled=false
-			-Dlibc=musl
 		)
 	else
 		myconf+=(
