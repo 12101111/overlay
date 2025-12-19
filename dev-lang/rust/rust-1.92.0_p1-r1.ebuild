@@ -19,6 +19,7 @@ PYTHON_COMPAT=( python3_{11..14} )
 
 RUST_MAX_VER=${PV%%_*}
 RUST_PV=${PV%%_p*}
+RUST_P=${PN}-${RUST_PV}
 [[ -z ${RUST_PATCH_VER} ]] && RUST_PATCH_VER=${PV}
 
 if [[ ${PV} == *9999* ]]; then
@@ -42,9 +43,12 @@ elif [[ ${PV} == *beta* ]]; then
 	betaver=${PV//*beta}
 	BETA_SNAPSHOT="${betaver:0:4}-${betaver:4:2}-${betaver:6:2}"
 	MY_P="rustc-beta"
-	SRC_URI="https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${PV}-src.tar.xz
-		verify-sig? ( https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz.asc
-			-> rustc-${PV}-src.tar.xz.asc )
+	SRC_URI="
+		https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${RUST_PV}-src.tar.xz
+		verify-sig? (
+			https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz.asc
+				-> rustc-${RUST_PV}-src.tar.xz.asc
+		)
 	"
 	S="${WORKDIR}/${MY_P}-src"
 elif [[ ${PV} = *rc* ]]; then
@@ -351,15 +355,11 @@ src_unpack() {
 }
 
 src_prepare() {
-	if [[ ${PV} = *9999* ]]; then
-		# We need to update / generate lockfiles for the workspace
-		${CARGO} generate-lockfile --offline || die "Failed to generate lockfiles"
-	fi
-
 	# Commit patches to the appropriate branch in proj/rust-patches.git
 	# then cut a new tag / tarball. Don't add patches to ${FILESDIR}
 	PATCHES=(
 		"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"
+		"${FILESDIR}/rust-1.92.0-disable-link-self-contained.patch"
 	)
 
 	if use lto && tc-is-clang && ! tc-ld-is-lld && ! tc-ld-is-mold; then
@@ -795,7 +795,7 @@ src_install() {
 		# we need realpath on /usr/bin/* symlink return version-appended binary path.
 		# so /usr/bin/rustc should point to /usr/lib/rust/<ver>/bin/rustc-<ver>
 		# need to fix eselect-rust to remove this hack.
-		local ver_i="${i}-${PV%%_*}"
+		local ver_i="${i}-${RUST_PV%%_*}"
 		if [[ -f "${ED}/usr/lib/${PN}/${SLOT}/bin/${i}" ]]; then
 			einfo "Installing ${i} symlink"
 			ln -v "${ED}/usr/lib/${PN}/${SLOT}/bin/${i}" "${ED}/usr/lib/${PN}/${SLOT}/bin/${ver_i}" || die
@@ -811,9 +811,9 @@ src_install() {
 	use rust-analyzer && dosym "${SLOT}/libexec" "/usr/lib/${PN}/libexec-${SLOT}"
 	dosym "${SLOT}/share/man" "/usr/lib/${PN}/man-${SLOT}"
 	dosym "rust/${SLOT}/lib/rustlib" "/usr/lib/rustlib-${SLOT}"
-	dosym "../../lib/${PN}/${SLOT}/share/doc/rust" "/usr/share/doc/${P}"
+	dosym "../../lib/${PN}/${SLOT}/share/doc/rust" "/usr/share/doc/${RUST_P}"
 
-	newenvd - "50${P}" <<-_EOF_
+	newenvd - "50${RUST_P}" <<-_EOF_
 		MANPATH="${EPREFIX}/usr/lib/rust/man-${SLOT}"
 	_EOF_
 
@@ -835,20 +835,20 @@ src_install() {
 	_EOF_
 
 	if use clippy; then
-		echo /usr/bin/clippy-driver >> "${T}/provider-${P}"
-		echo /usr/bin/cargo-clippy >> "${T}/provider-${P}"
+		echo /usr/bin/clippy-driver >> "${T}/provider-${RUST_P}"
+		echo /usr/bin/cargo-clippy >> "${T}/provider-${RUST_P}"
 	fi
 	if [[ ${SLOT} == *9999* ]] && use miri; then
-		echo /usr/bin/miri >> "${T}/provider-${P}"
-		echo /usr/bin/cargo-miri >> "${T}/provider-${P}"
+		echo /usr/bin/miri >> "${T}/provider-${RUST_P}"
+		echo /usr/bin/cargo-miri >> "${T}/provider-${RUST_P}"
 	fi
 	if use rustfmt; then
-		echo /usr/bin/rustfmt >> "${T}/provider-${P}"
-		echo /usr/bin/cargo-fmt >> "${T}/provider-${P}"
+		echo /usr/bin/rustfmt >> "${T}/provider-${RUST_P}"
+		echo /usr/bin/cargo-fmt >> "${T}/provider-${RUST_P}"
 	fi
 	if use rust-analyzer; then
-		echo /usr/lib/rust/libexec >> "${T}/provider-${P}"
-		echo /usr/bin/rust-analyzer >> "${T}/provider-${P}"
+		echo /usr/lib/rust/libexec >> "${T}/provider-${RUST_P}"
+		echo /usr/bin/rust-analyzer >> "${T}/provider-${RUST_P}"
 	fi
 
 	insinto /etc/env.d/rust
@@ -862,7 +862,6 @@ src_install() {
 }
 
 pkg_postinst() {
-
 	eselect rust update
 
 	if has_version dev-debug/gdb || has_version llvm-core/lldb; then

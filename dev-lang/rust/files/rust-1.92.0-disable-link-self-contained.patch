@@ -1,0 +1,13 @@
+diff --git a/compiler/rustc_target/src/spec/base/linux_musl.rs b/compiler/rustc_target/src/spec/base/linux_musl.rs
+index 1bef602..8f18ca5 100644
+--- a/compiler/rustc_target/src/spec/base/linux_musl.rs
++++ b/compiler/rustc_target/src/spec/base/linux_musl.rs
+@@ -5,7 +5,7 @@ pub(crate) fn opts() -> TargetOptions {
+         env: "musl".into(),
+         pre_link_objects_self_contained: crt_objects::pre_musl_self_contained(),
+         post_link_objects_self_contained: crt_objects::post_musl_self_contained(),
+-        link_self_contained: LinkSelfContainedDefault::InferredForMusl,
++        link_self_contained: LinkSelfContainedDefault::False,
+         ..base::linux::opts()
+     }
+ }
