@@ -8,10 +8,11 @@ inherit crossdev git-r3
 DESCRIPTION="libc for WebAssembly programs built on top of WASI system calls"
 HOMEPAGE="https://wasi.dev/"
 EGIT_REPO_URI="https://github.com/WebAssembly/wasi-libc.git"
+EGIT_COMMIT=76db3247be3239ef75b4b854f775ada1c1202e66
 
 LICENSE="Apache-2.0-with-LLVM-exceptions Apache-2.0 MIT BSD-2 CC0-1.0"
 SLOT="0"
-KEYWORDS="~amd64 ~arm ~arm64 ~x86"
+KEYWORDS="~amd64 ~arm ~arm64 ~x86 ~loong"
 
 DEPEND="
 	>=llvm-core/clang-18.1.4
