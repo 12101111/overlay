@@ -360,6 +360,7 @@ src_prepare() {
 	PATCHES=(
 		"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"
 		"${FILESDIR}/rust-1.92.0-disable-link-self-contained.patch"
+		"${FILESDIR}/rust-1.92.0-dont-install-self-contained.patch"
 	)
 
 	if use lto && tc-is-clang && ! tc-ld-is-lld && ! tc-ld-is-mold; then
