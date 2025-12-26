@@ -15,8 +15,8 @@ declare -A GIT_CRATES=(
 	[candle-nn]='https://github.com/zed-industries/candle;724d75eb3deebefe83f2a7381a45d4fac6eda383;candle-%commit%/candle-nn'
 	[candle-onnx]='https://github.com/zed-industries/candle;724d75eb3deebefe83f2a7381a45d4fac6eda383;candle-%commit%/candle-onnx'
 	[dap-types]='https://github.com/zed-industries/dap-types;1b461b310481d01e02b2603c16d7144b926339f8;dap-types-%commit%/dap-types'
-	[gh-workflow-macros]='https://github.com/zed-industries/gh-workflow;3eaa84abca0778eb54272f45a312cb24f9a0b435;gh-workflow-%commit%/crates/gh-workflow-macros'
-	[gh-workflow]='https://github.com/zed-industries/gh-workflow;3eaa84abca0778eb54272f45a312cb24f9a0b435;gh-workflow-%commit%/crates/gh-workflow'
+	[gh-workflow-macros]='https://github.com/zed-industries/gh-workflow;09acfdf2bd5c1d6254abefd609c808ff73547b2c;gh-workflow-%commit%/crates/gh-workflow-macros'
+	[gh-workflow]='https://github.com/zed-industries/gh-workflow;09acfdf2bd5c1d6254abefd609c808ff73547b2c;gh-workflow-%commit%/crates/gh-workflow'
 	[libwebrtc]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/libwebrtc'
 	[livekit-api]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/livekit-api'
 	[livekit-protocol]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/livekit-protocol'
@@ -52,7 +52,7 @@ declare -A GIT_CRATES=(
 	[pet-windows-store]='https://github.com/microsoft/python-environment-tools;1e86914c3ce2f3a08c0cedbcb0615a7f9fa7a5da;python-environment-tools-%commit%/crates/pet-windows-store'
 	[pet]='https://github.com/microsoft/python-environment-tools;1e86914c3ce2f3a08c0cedbcb0615a7f9fa7a5da;python-environment-tools-%commit%/crates/pet'
 	[rodio]='https://github.com/RustAudio/rodio;e2074c6c2acf07b57cf717e076bdda7a9ac6e70b;rodio-%commit%'
-	[tiktoken-rs]='https://github.com/zed-industries/tiktoken-rs;7249f999c5fdf9bf3cc5c288c964454e4dac0c00;tiktoken-rs-%commit%/tiktoken-rs'
+	[tiktoken-rs]='https://github.com/zed-industries/tiktoken-rs;2570c4387a8505fb8f1d3f3557454b474f1e8271;tiktoken-rs-%commit%/tiktoken-rs'
 	[tree-sitter-cpp]='https://github.com/tree-sitter/tree-sitter-cpp;5cb9b693cfd7bfacab1d9ff4acac1a4150700609;tree-sitter-cpp-%commit%'
 	[tree-sitter-gitcommit]='https://github.com/zed-industries/tree-sitter-git-commit;88309716a69dd13ab83443721ba6e0b491d37ee9;tree-sitter-git-commit-%commit%'
 	[tree-sitter-gomod]='https://github.com/camdencheek/tree-sitter-go-mod;2e886870578eeba1927a2dc4bd2e2b3f598c5f9a;tree-sitter-go-mod-%commit%'
@@ -98,9 +98,8 @@ S="${WORKDIR}/${PN}-${PV/_/-}"
 LICENSE="GPL-3+"
 # Dependent crate licenses
 LICENSE+="
-	Apache-2.0 Apache-2.0-with-LLVM-exceptions BSD-2 BSD Boost-1.0
-	CC0-1.0 ISC LGPL-3 MIT MIT-0 MPL-2.0 UoI-NCSA openssl Unicode-3.0
-	ZLIB
+	Apache-2.0 Apache-2.0-with-LLVM-exceptions BSD-2 BSD CC0-1.0 ISC
+	LGPL-3 MIT MIT-0 MPL-2.0 UoI-NCSA openssl Unicode-3.0 ZLIB
 "
 IUSE="+collab"
 SLOT="0"
