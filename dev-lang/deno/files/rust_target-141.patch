@@ -1,18 +1,17 @@
 diff --git a/build/config/rust.gni b/build/config/rust.gni
-index 2e372ea..3e02373 100644
+index 55bd7b7..f07fcd8 100644
 --- a/build/config/rust.gni
 +++ b/build/config/rust.gni
-@@ -193,8 +193,11 @@ if (enable_rust) {
- # each `rust_abi_target` by doing `cargo build --target $rust_abi_target` with
- # a cargo project that dumps the `CARGO_CFG_TARGET_ABI` from its build.rs. See
- # https://issues.chromium.org/u/1/issues/372512092#comment5 for an example.
+@@ -175,8 +175,10 @@ if (enable_rust) {
+ # targets to Rust targets comprehensively despite not having official support
+ # (see '*_toolchain_supports_platform above') to enable experimentation with
+ # other toolchains.
 -rust_abi_target = ""
 -if (is_linux || is_chromeos) {
 +declare_args() {
 +  rust_abi_target = ""
-+  cargo_target_abi = ""
 +}
 +if (use_chromium_rust_toolchain && (is_linux || is_chromeos)) {
    if (current_cpu == "arm64") {
      rust_abi_target = "aarch64-unknown-linux-gnu"
-     cargo_target_abi = ""
+   } else if (current_cpu == "x86") {

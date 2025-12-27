@@ -10,11 +10,59 @@ PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.87.0
 
-V8_VER=140.2.0
+V8_VER=142.2.0
 STACKER_VER=0.1.15
-TEMPORAL_CAPI="ry_temporal_capi-0.0.11-ry.1"
+TEMPORAL_CAPI="temporal_capi-0.1.0"
 
 CRATES="
+	autocfg@1.4.0
+	bytes@1.10.1
+	calendrical_calculations@0.2.2
+	combine@4.6.7
+	core_maths@0.1.1
+	diplomat-runtime@0.13.0
+	diplomat@0.13.0
+	diplomat_core@0.13.0
+	displaydoc@0.2.5
+	icu_calendar@2.0.3
+	icu_calendar_data@2.0.0
+	icu_collections@2.0.0
+	icu_locale@2.0.0
+	icu_locale_core@2.0.0
+	icu_locale_data@2.0.0
+	icu_provider@2.0.0
+	ixdtf@0.6.2
+	jiff-tzdb@0.1.4
+	libm@0.2.15
+	litemap@0.8.0
+	memchr@2.7.4
+	num-traits@0.2.19
+	potential_utf@0.1.3
+	proc-macro2@1.0.95
+	quote@1.0.40
+	resb@0.1.0
+	serde@1.0.225
+	serde_core@1.0.225
+	serde_derive@1.0.225
+	smallvec@1.15.0
+	stable_deref_trait@1.2.0
+	strck@1.0.0
+	syn@2.0.106
+	synstructure@0.13.2
+	temporal_rs@0.1.0
+	timezone_provider@0.1.0
+	tinystr@0.8.1
+	tzif@0.4.0
+	unicode-ident@1.0.18
+	writeable@0.6.1
+	yoke-derive@0.8.0
+	yoke@0.8.0
+	zerofrom-derive@0.1.6
+	zerofrom@0.1.6
+	zerotrie@0.2.2
+	zerovec-derive@0.11.1
+	zerovec@0.11.4
+	zoneinfo64@0.2.0
 	Inflector@0.11.4
 	addr2line@0.24.2
 	adler2@2.0.0
@@ -44,7 +92,7 @@ CRATES="
 	asn1-rs-derive@0.4.0
 	asn1-rs-impl@0.1.0
 	asn1-rs@0.5.2
-	ast_node@3.0.4
+	ast_node@5.0.0
 	async-compression@0.4.11
 	async-once-cell@0.5.4
 	async-stream-impl@0.3.5
@@ -54,9 +102,8 @@ CRATES="
 	atomic-waker@1.1.2
 	auto_impl@1.2.0
 	autocfg@1.3.0
-	autocfg@1.5.0
-	aws-lc-rs@1.12.4
-	aws-lc-sys@0.26.0
+	aws-lc-rs@1.13.1
+	aws-lc-sys@0.29.0
 	axum-core@0.4.5
 	axum@0.7.5
 	az@1.2.1
@@ -72,7 +119,6 @@ CRATES="
 	bincode@1.3.3
 	bindgen@0.69.5
 	bindgen@0.70.1
-	bindgen@0.71.1
 	bindgen@0.72.1
 	bit-set@0.8.0
 	bit-vec@0.8.0
@@ -95,7 +141,7 @@ CRATES="
 	bytes-str@0.2.7
 	bytes@1.10.1
 	cache_control@0.2.0
-	calendrical_calculations@0.2.2
+	calendrical_calculations@0.2.3
 	capacity_builder@0.5.0
 	capacity_builder_macros@0.3.0
 	caseless@0.2.1
@@ -119,7 +165,6 @@ CRATES="
 	color-print-proc-macro@0.3.5
 	color-print@0.3.5
 	colorchoice@1.0.0
-	combine@4.6.7
 	compact_str@0.7.1
 	comrak@0.29.0
 	console_static_text@0.8.3
@@ -175,32 +220,31 @@ CRATES="
 	debug-ignore@1.0.5
 	debugid@0.8.0
 	deno-tower-lsp-macros@0.11.3
-	deno_ast@0.50.3
-	deno_cache_dir@0.25.0
-	deno_core@0.363.0
-	deno_doc@0.186.0
-	deno_error@0.7.0
-	deno_error_macro@0.7.0
-	deno_graph@0.103.1
-	deno_lint@0.80.0
+	deno_ast@0.52.0
+	deno_cache_dir@0.26.3
+	deno_core@0.376.0
+	deno_doc@0.188.0
+	deno_error@0.7.1
+	deno_error_macro@0.7.1
+	deno_graph@0.105.0
+	deno_lint@0.82.0
 	deno_lockfile@0.32.2
-	deno_media_type@0.2.9
+	deno_media_type@0.3.0
 	deno_native_certs@0.3.0
-	deno_npm@0.42.0
-	deno_ops@0.239.0
+	deno_npm@0.42.2
+	deno_ops@0.252.0
 	deno_panic@0.1.0
 	deno_path_util@0.6.4
-	deno_semver@0.9.0
+	deno_semver@0.9.1
 	deno_task_shell@0.26.0
-	deno_terminal@0.1.1
-	deno_terminal@0.2.2
+	deno_terminal@0.2.3
 	deno_tower_lsp@0.4.3
 	deno_tunnel@0.8.0
 	deno_unsync@0.4.4
 	deno_whoami@0.1.0
-	denokv_proto@0.12.0
-	denokv_remote@0.12.0
-	denokv_sqlite@0.12.0
+	denokv_proto@0.13.0
+	denokv_remote@0.13.0
+	denokv_sqlite@0.13.0
 	der-parser@8.2.0
 	der@0.7.9
 	der_derive@0.7.3
@@ -218,13 +262,12 @@ CRATES="
 	dhat@0.3.3
 	diff@0.1.13
 	digest@0.10.7
-	diplomat-runtime@0.12.0
-	diplomat@0.12.0
-	diplomat_core@0.12.1
+	diplomat-runtime@0.13.1
+	diplomat@0.13.0
+	diplomat_core@0.13.0
 	dirs-sys@0.4.1
 	dirs@5.0.1
 	displaydoc@0.2.4
-	displaydoc@0.2.5
 	dissimilar@1.0.9
 	dlopen2@0.6.1
 	dlopen2_derive@0.4.0
@@ -235,8 +278,8 @@ CRATES="
 	dprint-plugin-json@0.21.0
 	dprint-plugin-jupyter@0.2.1
 	dprint-plugin-markdown@0.20.0
-	dprint-plugin-typescript@0.95.11
-	dprint-swc-ext@0.25.1
+	dprint-plugin-typescript@0.95.13
+	dprint-swc-ext@0.26.0
 	dsa@0.6.3
 	dtoa-short@0.3.5
 	dtoa@1.0.10
@@ -262,7 +305,7 @@ CRATES="
 	error-code@3.2.0
 	error_reporter@1.0.0
 	esbuild_client@0.7.1
-	eszip@0.104.0
+	eszip@0.106.0
 	fallible-iterator@0.3.0
 	fallible-streaming-iterator@0.1.9
 	fancy-regex@0.14.0
@@ -276,12 +319,10 @@ CRATES="
 	ff@0.13.0
 	fiat-crypto@0.1.20
 	fiat-crypto@0.2.7
-	file_test_runner@0.7.3
+	file_test_runner@0.11.0
 	filetime@0.2.23
 	fixedbitset@0.4.2
 	fixedbitset@0.5.7
-	flaky_test@0.2.2
-	flaky_test_impl@0.2.2
 	flate2@1.0.35
 	float-cmp@0.9.0
 	fluent-uri@0.1.4
@@ -293,8 +334,8 @@ CRATES="
 	foreign-types@0.3.2
 	foreign-types@0.5.0
 	form_urlencoded@1.2.1
-	fqdn@0.3.4
-	from_variant@2.0.2
+	fqdn@0.4.6
+	from_variant@3.0.0
 	fs3@0.5.0
 	fs_extra@1.3.0
 	fsevent-sys@4.1.0
@@ -353,7 +394,7 @@ CRATES="
 	hmac@0.12.1
 	home@0.5.9
 	hostname@0.3.1
-	hstr@2.1.0
+	hstr@3.0.3
 	html-escape@0.2.13
 	http-body-util@0.1.2
 	http-body@0.4.6
@@ -368,13 +409,13 @@ CRATES="
 	hyper-util@0.1.17
 	hyper@0.14.28
 	hyper@1.6.0
-	icu_calendar@2.0.4
-	icu_calendar_data@2.0.0
+	icu_calendar@2.1.1
+	icu_calendar_data@2.1.1
 	icu_collections@1.5.0
-	icu_collections@2.0.0
-	icu_locale@2.0.0
-	icu_locale_core@2.0.0
-	icu_locale_data@2.0.0
+	icu_collections@2.1.1
+	icu_locale@2.1.1
+	icu_locale_core@2.1.1
+	icu_locale_data@2.1.1
 	icu_locid@1.5.0
 	icu_locid_transform@1.5.0
 	icu_locid_transform_data@1.5.0
@@ -383,7 +424,7 @@ CRATES="
 	icu_properties@1.5.1
 	icu_properties_data@1.5.0
 	icu_provider@1.5.0
-	icu_provider@2.0.0
+	icu_provider@2.1.1
 	icu_provider_macros@1.5.0
 	ident_case@1.0.1
 	idna@1.0.3
@@ -397,6 +438,7 @@ CRATES="
 	inotify-sys@0.1.5
 	inotify@0.9.6
 	inout@0.1.3
+	inventory@0.3.21
 	io-uring@0.7.8
 	ipconfig@0.3.2
 	ipnet@2.9.0
@@ -410,12 +452,11 @@ CRATES="
 	itertools@0.13.0
 	itertools@0.14.0
 	itoa@1.0.15
-	ixdtf@0.6.3
-	jiff-tzdb@0.1.4
+	ixdtf@0.6.4
 	jni-sys@0.3.0
 	jobserver@0.1.32
 	js-sys@0.3.77
-	jsonc-parser@0.27.0
+	jsonc-parser@0.27.1
 	junction@1.2.0
 	jupyter-protocol@0.8.0
 	k256@0.13.3
@@ -438,10 +479,9 @@ CRATES="
 	libloading@0.7.4
 	libloading@0.8.5
 	libm@0.2.8
-	libm@0.2.15
 	libredox@0.1.3
-	libsqlite3-sys@0.32.0
-	libsui@0.10.0
+	libsqlite3-sys@0.35.0
+	libsui@0.12.5
 	libuv-sys-lite@1.48.2
 	libz-sys@1.1.20
 	linux-raw-sys@0.4.13
@@ -489,7 +529,6 @@ CRATES="
 	nom@7.1.3
 	notify@6.1.1
 	ntapi@0.4.1
-	ntest_timeout@0.9.3
 	nu-ansi-term@0.50.1
 	num-bigint-dig@0.8.4
 	num-bigint@0.4.6
@@ -570,9 +609,6 @@ CRATES="
 	pretty_yaml@0.5.0
 	prettyplease@0.2.17
 	primeorder@0.13.6
-	proc-macro-crate@3.2.0
-	proc-macro-rules-macros@0.4.0
-	proc-macro-rules@0.4.0
 	proc-macro2@1.0.101
 	profiling@1.0.15
 	prost-build@0.13.3
@@ -588,7 +624,6 @@ CRATES="
 	quinn-udp@0.5.8
 	quinn@0.11.8
 	quote@1.0.37
-	quote@1.0.40
 	r-efi@5.3.0
 	radium@0.7.0
 	radix_fmt@1.0.0
@@ -603,19 +638,20 @@ CRATES="
 	rand_core@0.9.3
 	range-alloc@0.1.3
 	raw-window-handle@0.6.1
-	rayon-core@1.12.1
-	rayon@1.10.0
+	rayon-core@1.13.0
+	rayon@1.11.0
 	redox_syscall@0.4.1
 	redox_syscall@0.5.13
 	redox_users@0.4.5
 	ref-cast-impl@1.0.22
 	ref-cast@1.0.22
 	regalloc2@0.11.1
-	regex-automata@0.4.6
-	regex-syntax@0.8.3
-	regex@1.10.6
+	regex-automata@0.4.13
+	regex-syntax@0.8.8
+	regex@1.12.2
 	relative-path@1.9.2
 	reqwest@0.12.5
+	resb@0.1.1
 	resolv-conf@0.7.0
 	rfc6979@0.4.0
 	ring@0.17.14
@@ -625,7 +661,7 @@ CRATES="
 	rowan@0.15.15
 	rsa@0.9.6
 	runtimelib@0.28.0
-	rusqlite@0.34.0
+	rusqlite@0.37.0
 	rustc-demangle@0.1.24
 	rustc-hash@1.1.0
 	rustc-hash@2.1.1
@@ -643,7 +679,6 @@ CRATES="
 	rustversion@1.0.15
 	rustyline-derive@0.7.0
 	rustyline@13.0.0
-	ry_temporal_capi@0.0.11-ry.1
 	ryu-js@1.0.1
 	ryu@1.0.17
 	safe_arch@0.7.4
@@ -665,16 +700,14 @@ CRATES="
 	seq-macro@0.3.6
 	serde-value@0.7.0
 	serde-wasm-bindgen@0.5.0
-	serde@1.0.219
 	serde@1.0.228
 	serde_bytes@0.11.14
 	serde_core@1.0.228
-	serde_derive@1.0.219
 	serde_derive@1.0.228
 	serde_json@1.0.140
 	serde_repr@0.1.19
 	serde_urlencoded@0.7.1
-	serde_v8@0.272.0
+	serde_v8@0.285.0
 	serdect@0.2.0
 	servo_arc@0.4.1
 	sha1@0.10.6
@@ -699,7 +732,6 @@ CRATES="
 	slug@0.1.5
 	sm3@0.4.2
 	smallvec@1.14.0
-	smallvec@1.15.1
 	smartstring@1.0.1
 	socket2@0.5.5
 	socket2@0.6.0
@@ -723,38 +755,37 @@ CRATES="
 	strum_macros@0.27.1
 	subtle@2.5.0
 	swc_allocator@4.0.1
-	swc_atoms@7.0.0
-	swc_bundler@32.0.0
-	swc_common@14.0.4
+	swc_atoms@9.0.0
+	swc_bundler@35.0.0
+	swc_common@17.0.1
 	swc_config@3.1.2
 	swc_config_macro@1.0.1
-	swc_ecma_ast@15.0.0
-	swc_ecma_codegen@17.0.2
+	swc_ecma_ast@18.0.0
+	swc_ecma_codegen@20.0.2
 	swc_ecma_codegen_macros@2.0.2
-	swc_ecma_lexer@23.0.2
-	swc_ecma_loader@14.0.0
-	swc_ecma_parser@24.0.3
-	swc_ecma_transforms_base@27.0.0
-	swc_ecma_transforms_classes@27.0.0
+	swc_ecma_lexer@26.0.0
+	swc_ecma_loader@17.0.0
+	swc_ecma_parser@27.0.7
+	swc_ecma_transforms_base@30.0.1
+	swc_ecma_transforms_classes@30.0.0
 	swc_ecma_transforms_macros@1.0.1
-	swc_ecma_transforms_optimization@29.0.0
-	swc_ecma_transforms_proposal@27.0.0
-	swc_ecma_transforms_react@30.0.2
-	swc_ecma_transforms_typescript@30.0.1
-	swc_ecma_utils@21.0.0
-	swc_ecma_visit@15.0.0
+	swc_ecma_transforms_optimization@32.0.0
+	swc_ecma_transforms_proposal@30.0.0
+	swc_ecma_transforms_react@33.0.0
+	swc_ecma_transforms_typescript@33.0.0
+	swc_ecma_utils@24.0.0
+	swc_ecma_visit@18.0.1
 	swc_eq_ignore_macros@1.0.1
 	swc_graph_analyzer@14.0.1
 	swc_macros_common@1.0.1
 	swc_sourcemap@9.3.4
 	swc_visit@2.0.1
-	syn@2.0.106
+	syn-match@0.3.0
 	syn@1.0.109
 	syn@2.0.87
 	sync_wrapper@1.0.1
 	synstructure@0.12.6
 	synstructure@0.13.1
-	synstructure@0.13.2
 	sys_traits@0.1.17
 	sys_traits_macros@0.1.0
 	tagptr@0.2.0
@@ -762,7 +793,8 @@ CRATES="
 	tar@0.4.43
 	target-lexicon@0.13.2
 	tempfile@3.10.1
-	temporal_rs@0.0.11
+	temporal_capi@0.1.0
+	temporal_rs@0.1.1
 	termcolor@1.4.1
 	terminal_size@0.4.1
 	text-size@1.1.1
@@ -776,7 +808,7 @@ CRATES="
 	time-core@0.1.2
 	time-macros@0.2.18
 	time@0.3.36
-	timezone_provider@0.0.14
+	timezone_provider@0.1.1
 	tiny_pretty@0.2.0
 	tinystr@0.7.6
 	tinystr@0.8.1
@@ -792,8 +824,6 @@ CRATES="
 	tokio-vsock@0.7.1
 	tokio@1.47.1
 	toml@0.5.11
-	toml_datetime@0.6.8
-	toml_edit@0.22.23
 	tonic@0.12.3
 	tower-http@0.6.1
 	tower-layer@0.3.3
@@ -812,7 +842,6 @@ CRATES="
 	twox-hash@2.1.0
 	typed-arena@2.0.2
 	typenum@1.17.0
-	tzif@0.4.0
 	ucd-trie@0.1.6
 	unic-char-property@0.9.0
 	unic-char-range@0.9.0
@@ -822,11 +851,10 @@ CRATES="
 	unicase@2.7.0
 	unicode-id-start@1.2.0
 	unicode-ident@1.0.12
-	unicode-ident@1.0.18
 	unicode-normalization@0.1.23
 	unicode-segmentation@1.11.0
 	unicode-width@0.1.13
-	unicode-width@0.2.0
+	unicode-width@0.2.2
 	unicode-xid@0.2.6
 	unicode_categories@0.1.1
 	universal-hash@0.5.1
@@ -840,7 +868,7 @@ CRATES="
 	utf8_iter@1.0.4
 	utf8parse@0.2.1
 	uuid@1.8.0
-	v8@140.2.0
+	v8@142.2.0
 	v8_valueserializer@0.1.1
 	valuable@0.1.0
 	value-trait@0.10.0
@@ -924,7 +952,6 @@ CRATES="
 	windows_x86_64_msvc@0.52.6
 	windows_x86_64_msvc@0.53.0
 	winnow@0.6.26
-	winnow@0.7.1
 	winreg@0.50.0
 	winreg@0.52.0
 	winres@0.1.12
@@ -932,7 +959,7 @@ CRATES="
 	wit-bindgen-rt@0.39.0
 	write16@1.0.0
 	writeable@0.5.5
-	writeable@0.6.1
+	writeable@0.6.2
 	wtf8@0.1.0
 	wyz@0.5.1
 	x25519-dalek@2.0.1
@@ -949,19 +976,17 @@ CRATES="
 	zerocopy@0.7.32
 	zerofrom-derive@0.1.4
 	zerofrom@0.1.4
-	zerofrom-derive@0.1.6
-	zerofrom@0.1.6
 	zeroize@1.8.1
-	zerovec@0.11.4
-	zerotrie@0.2.2
 	zeroize_derive@1.4.2
-	zerovec-derive@0.11.1
 	zeromq@0.4.1
 	zeromq@0.5.0-pre
 	zerotrie@0.2.2
 	zerovec-derive@0.10.3
+	zerovec-derive@0.11.1
 	zerovec@0.10.4
+	zerovec@0.11.4
 	zip@2.4.1
+	zoneinfo64@0.2.1
 	zstd-safe@7.2.4
 	zstd-sys@2.0.15+zstd.1.5.7
 	zstd@0.13.2
@@ -1018,6 +1043,9 @@ pkg_setup() {
 	llvm-r1_pkg_setup
 	rust_pkg_setup
 	python-any-r1_pkg_setup
+	# I hate doing this but upstream Rust have yet to come up with a better solution for
+    # us poor packagers. Required for Split LTO units, which are required for CFI.
+    export RUSTC_BOOTSTRAP=1
 }
 
 src_unpack() {
@@ -1030,9 +1058,8 @@ src_prepare() {
 	mkdir -p "${WORKDIR}/v8/third_party/rust/chromium_crates_io/vendor/" || die
 	cp -r "${ECARGO_VENDOR}/${TEMPORAL_CAPI}" "${WORKDIR}/temporal_capi" || die
 	pushd "${WORKDIR}/temporal_capi" >/dev/null || die
-	eapply "${FILESDIR}/temporal_capi_deps.patch"
 	popd >/dev/null || die
-	ln -s "${WORKDIR}/temporal_capi" "${WORKDIR}/v8/third_party/rust/chromium_crates_io/vendor/temporal_capi-v0_0_11"
+	ln -s "${WORKDIR}/temporal_capi" "${WORKDIR}/v8/third_party/rust/chromium_crates_io/vendor/temporal_capi-v0_1"
 	pushd "${WORKDIR}/v8" >/dev/null || die
 	if tc-is-clang && (has_version "llvm-core/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt); then
 		eapply "${FILESDIR}/remove-libatomic.patch"
@@ -1041,16 +1068,14 @@ src_prepare() {
 		eapply "${FILESDIR}/execinfo.patch"
 	fi
 	if use elibc_musl; then
-		eapply "${FILESDIR}/rust_target-137.patch"
+		eapply "${FILESDIR}/rust_target-141.patch"
 		echo "$(rust_abi)" >> build/rust/known-target-triples.txt
 	fi
 	eapply "${FILESDIR}/disable_v8_rust.patch"
+	eapply "${FILESDIR}/fix-icu-private-header.patch"
 	eapply "${FILESDIR}/build_from_source-M140.patch"
 	eapply "${FILESDIR}/v8-use-system-libraries.patch"
-
-	pushd build >/dev/null || die
 	eapply "${FILESDIR}/v8-compiler.patch"
-	popd >/dev/null || die
 	if [[ -z "${CXXSTDLIB}" ]]; then
 		if [[ $(tc-get-cxx-stdlib) == libc++ ]]; then
 			export CXXSTDLIB=c++
@@ -1058,7 +1083,7 @@ src_prepare() {
 			export CXXSTDLIB=stdc++
 		fi
 	fi
-	install -Dm755 ${DISTDIR}/deno_129_generate_shim_headers.py tools/generate_shim_headers/generate_shim_headers.py
+	install -Dm755 ${DISTDIR}/deno_129_generate_shim_headers.py tools/generate_shim_headers/generate_shim_headers.py || die
 	build/linux/unbundle/replace_gn_files.py --system-libraries icu || die
 	popd >/dev/null || die
 
@@ -1088,6 +1113,9 @@ src_configure() {
 
 	export V8_FROM_SOURCE=1
 
+	# Make cargo respect MAKEOPTS
+	export CARGO_BUILD_JOBS="$(makeopts_jobs)"
+
 	if ! tc-is-clang; then
 		die "deno require CC=clang CXX=clang++"
 	fi
@@ -1110,11 +1138,8 @@ src_configure() {
 }
 
 src_compile() {
-	# Make cargo respect MAKEOPTS
-	export CARGO_BUILD_JOBS="$(makeopts_jobs)"
-
 	pushd "${WORKDIR}/temporal_capi" >/dev/null || die
-		cargo_env ${CARGO} rustc -p ry_temporal_capi --crate-type staticlib --features compiled_data -vv || die
+		cargo_env ${CARGO} rustc -p temporal_capi --crate-type staticlib --features compiled_data,zoneinfo64 -vv || die
 	popd >/dev/null || die
 
 	cargo_src_compile --bin deno -vv

@@ -1,19 +1,10 @@
-diff --git a/config/clang/BUILD.gn b/config/clang/BUILD.gn
-index a1e635c..b9ad202 100644
---- a/config/clang/BUILD.gn
-+++ b/config/clang/BUILD.gn
-@@ -176,7 +176,7 @@ template("clang_lib") {
-       _suffix = ""
-       _ext = "a"
- 
--      _clang_lib_dir = "$clang_base_path/lib/clang/$clang_version/lib"
-+      _clang_lib_dir = "$clang_resource_path/lib/"
-       if (is_win) {
-         _dir = "windows"
-         _prefix = ""
-@@ -207,16 +207,17 @@ template("clang_lib") {
-           assert(false)  # Unhandled cpu type
-         }
+diff --git a/build/config/clang/BUILD.gn b/build/config/clang/BUILD.gn
+index b171ee1..51ecf14 100644
+--- a/build/config/clang/BUILD.gn
++++ b/build/config/clang/BUILD.gn
+@@ -169,16 +169,17 @@ template("clang_lib") {
+       } else if (is_apple) {
+         _dir = "darwin"
        } else if (is_linux || is_chromeos) {
 +        _dir = "linux"
          if (current_cpu == "x64") {
@@ -32,23 +23,32 @@ index a1e635c..b9ad202 100644
          } else if (current_cpu == "riscv64") {
            _dir = "riscv64-unknown-linux-gnu"
          } else if (current_cpu == "ppc64") {
-diff --git a/config/clang/clang.gni b/config/clang/clang.gni
-index 95812df..83a4117 100644
---- a/config/clang/clang.gni
-+++ b/config/clang/clang.gni
-@@ -33,6 +33,7 @@ declare_args() {
-        is_mac || is_ios || is_chromeos)
+@@ -215,7 +216,7 @@ template("clang_lib") {
+         assert(false)  # Unhandled target platform
+       }
+ 
+-      _clang_lib_dir = "$clang_base_path/lib/clang/$clang_version/lib"
++      _clang_lib_dir = "$clang_resource_path/lib"
+       _lib_file = "${_prefix}clang_rt.${_libname}${_suffix}.${_ext}"
+       libs = [ "$_clang_lib_dir/$_dir/$_lib_file" ]
+     }
+diff --git a/build/config/clang/clang.gni b/build/config/clang/clang.gni
+index fd9fb45..b71d95b 100644
+--- a/build/config/clang/clang.gni
++++ b/build/config/clang/clang.gni
+@@ -71,6 +71,7 @@ declare_args() {
+   clang_use_unsafe_buffers_plugin = false
  
    clang_base_path = default_clang_base_path
 +  clang_resource_path = default_clang_base_path
  
    # Specifies whether or not bitcode should be embedded during compilation.
    # This is used for creating a MLGO corpus from Chromium in the non-ThinLTO case.
-diff --git a/config/compiler/BUILD.gn b/config/compiler/BUILD.gn
-index 1847f1a..2fb3e18 100644
---- a/config/compiler/BUILD.gn
-+++ b/config/compiler/BUILD.gn
-@@ -354,9 +354,6 @@ config("compiler") {
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index b789b00..eeaa260 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -356,9 +356,6 @@ config("compiler") {
  
    configs += [
      # See the definitions below.
@@ -58,77 +58,7 @@ index 1847f1a..2fb3e18 100644
      ":compiler_codegen",
      ":compiler_deterministic",
      ":clang_warning_suppression",
-@@ -652,14 +649,6 @@ config("compiler") {
-   }
- 
-   if (is_clang) {
--    cflags += [ "-fcrash-diagnostics-dir=" + clang_diagnostic_dir ]
--    if (save_reproducers_on_lld_crash && use_lld) {
--      ldflags += [
--        "-fcrash-diagnostics=all",
--        "-fcrash-diagnostics-dir=" + clang_diagnostic_dir,
--      ]
--    }
--
-     # TODO(hans): Remove this once Clang generates better optimized debug info
-     # by default. https://crbug.com/765793
-     cflags += [
-@@ -825,7 +814,7 @@ config("compiler") {
- 
-     cflags += [
-       "-flto=thin",
--      "-fsplit-lto-unit",
-+      "-fno-split-lto-unit",
-     ]
- 
-     if (thin_lto_enable_cache) {
-@@ -924,14 +913,12 @@ config("compiler") {
-     # TODO(crbug.com/40182783): investigate why this isn't effective on
-     # arm32.
-     if (!is_android || current_cpu == "arm64") {
--      cflags += [ "-fwhole-program-vtables" ]
- 
-       if (toolchain_supports_rust_thin_lto) {
-         # whole-program-vtables implies -fsplit-lto-unit, and Rust needs to match
-         # behaviour. Rust needs to know the linker will be doing LTO in this case
-         # or it rejects the Zsplit-lto-unit flag.
-         rustflags += [
--          "-Zsplit-lto-unit",
-           "-Clinker-plugin-lto=yes",
-         ]
-       } else {
-@@ -939,9 +926,6 @@ config("compiler") {
-         rustflags += [ "-Cembed-bitcode=no" ]
-       }
- 
--      if (!is_win) {
--        ldflags += [ "-fwhole-program-vtables" ]
--      }
-     }
- 
-     # This flag causes LTO to create an .ARM.attributes section with the correct
-@@ -1123,20 +1107,6 @@ config("compiler") {
-     # `-nodefaultlibs` from the linker invocation from Rust, which would be used
-     # to compile dylibs on Android, such as for constructing unit test APKs.
-     "-Cdefault-linker-libraries",
--
--    # To make Rust .d files compatible with ninja
--    "-Zdep-info-omit-d-target",
--
--    # If a macro panics during compilation, show which macro and where it is
--    # defined.
--    "-Zmacro-backtrace",
--
--    # For deterministic builds, keep the local machine's current working
--    # directory from appearing in build outputs.
--    "-Zremap-cwd-prefix=.",
--
--    # We use clang-rt sanitizer runtimes.
--    "-Zexternal-clangrt",
-   ]
- 
-   if (!is_win || force_rustc_color_output) {
-@@ -1661,43 +1631,6 @@ config("compiler_deterministic") {
+@@ -1689,43 +1686,6 @@ config("compiler_deterministic") {
      }
    }
  
@@ -172,7 +102,7 @@ index 1847f1a..2fb3e18 100644
    # Tells the compiler not to use absolute paths when passing the default
    # paths to the tools it invokes. We don't want this because we don't
    # really need it and it can mess up the RBE cache entries.
-@@ -1724,87 +1657,6 @@ config("compiler_deterministic") {
+@@ -1752,88 +1712,6 @@ config("compiler_deterministic") {
    }
  }
  
@@ -230,7 +160,8 @@ index 1847f1a..2fb3e18 100644
 -          "clang_revision=\"$_clang_revision\" but clang_version=\"$clang_version\". clang_version in build/toolchain/toolchain.gni is likely outdated.")
 -    }
 -
--    if (toolchain_has_rust && _perform_consistency_checks) {
+-    if (toolchain_has_rust && _perform_consistency_checks &&
+-        !rust_force_head_revision) {
 -      # Ensure that the synced rust version matches what's in git.
 -      _rust_revision_lines =
 -          filter_include(read_file("//tools/rust/update_rust.py", "list lines"),
@@ -260,7 +191,7 @@ index 1847f1a..2fb3e18 100644
  # Controls the usage of a warning suppression mapping (WSM) file to suppress
  # warnings based on the path of the file they come from. It's controlled by the
  # `clang_warning_suppression_file` gn argument , which points to a text file
-@@ -1848,18 +1700,6 @@ config("sanitize_c_array_bounds") {
+@@ -1877,18 +1755,6 @@ config("sanitize_c_array_bounds") {
    }
  }
  
@@ -279,7 +210,7 @@ index 1847f1a..2fb3e18 100644
  config("compiler_arm_fpu") {
    if (current_cpu == "arm" && !is_ios) {
      cflags = [ "-mfpu=$arm_fpu" ]
-@@ -2302,11 +2142,7 @@ config("chromium_code") {
+@@ -2323,11 +2189,7 @@ config("chromium_code") {
        defines = [ "_HAS_NODISCARD" ]
      }
    } else {
@@ -292,7 +223,7 @@ index 1847f1a..2fb3e18 100644
  
      # In Chromium code, we define __STDC_foo_MACROS in order to get the
      # C99 macros on Mac and Linux.
-@@ -2315,24 +2151,6 @@ config("chromium_code") {
+@@ -2336,24 +2198,6 @@ config("chromium_code") {
        "__STDC_FORMAT_MACROS",
      ]
  
@@ -308,7 +239,7 @@ index 1847f1a..2fb3e18 100644
 -      # ChromeOS's toolchain supports a high-quality _FORTIFY_SOURCE=3
 -      # implementation with a few custom glibc patches. Use that if it's
 -      # available.
--      if (is_chromeos_device && !lacros_use_chromium_toolchain) {
+-      if (is_chromeos_device) {
 -        fortify_level = "3"
 -      }
 -      defines += [ "_FORTIFY_SOURCE=" + fortify_level ]
@@ -317,7 +248,7 @@ index 1847f1a..2fb3e18 100644
      if (is_apple) {
        cflags_objc = [ "-Wimplicit-retain-self" ]
        cflags_objcc = [ "-Wimplicit-retain-self" ]
-@@ -2748,7 +2566,8 @@ config("default_stack_frames") {
+@@ -2777,7 +2621,8 @@ config("default_stack_frames") {
  # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/147634a8be0000
  # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/132bc772be0000
  # [2]: https://crrev.com/c/5447532
@@ -327,7 +258,7 @@ index 1847f1a..2fb3e18 100644
    if (is_win) {
      # clang-cl's /O2 corresponds to clang's -O3, and really want -O2 for
      # consistency with the other platforms.
-@@ -2797,7 +2616,8 @@ config("optimize") {
+@@ -2826,7 +2671,8 @@ config("optimize") {
  }
  
  # Turn off optimizations.
@@ -337,7 +268,7 @@ index 1847f1a..2fb3e18 100644
    if (is_win) {
      cflags = [
        "/Od",  # Disable optimization.
-@@ -2829,10 +2649,11 @@ config("no_optimize") {
+@@ -2858,10 +2704,11 @@ config("no_optimize") {
    }
  }
  
@@ -350,7 +281,7 @@ index 1847f1a..2fb3e18 100644
    ldflags = common_optimize_on_ldflags
    if (is_win) {
      # Favor speed over size, /O2 must be before the common flags.
-@@ -2846,6 +2667,7 @@ config("optimize_max") {
+@@ -2875,6 +2722,7 @@ config("optimize_max") {
    rustflags = [ "-Copt-level=3" ]
  }
  
@@ -358,7 +289,7 @@ index 1847f1a..2fb3e18 100644
  # This config can be used to override the default settings for per-component
  # and whole-program optimization, optimizing the particular target for speed
  # instead of code size. This config is exactly the same as "optimize_max"
-@@ -2853,7 +2675,7 @@ config("optimize_max") {
+@@ -2882,7 +2730,7 @@ config("optimize_max") {
  #
  # TODO(crbug.com/41259697) - rework how all of these configs are related
  # so that we don't need this disclaimer.
@@ -367,7 +298,7 @@ index 1847f1a..2fb3e18 100644
    ldflags = common_optimize_on_ldflags
    if (is_win) {
      # Favor speed over size, /O2 must be before the common flags.
-@@ -2870,7 +2692,8 @@ config("optimize_speed") {
+@@ -2899,7 +2747,8 @@ config("optimize_speed") {
    rustflags = [ "-Copt-level=3" ]
  }
  
@@ -377,7 +308,7 @@ index 1847f1a..2fb3e18 100644
    cflags = [ "-O1" ] + common_optimize_on_cflags
    rustflags = [ "-Copt-level=1" ]
    ldflags = common_optimize_on_ldflags
-@@ -2997,7 +2820,8 @@ config("win_pdbaltpath") {
+@@ -3026,7 +2875,8 @@ config("win_pdbaltpath") {
  }
  
  # Full symbols.
@@ -387,7 +318,7 @@ index 1847f1a..2fb3e18 100644
    rustflags = []
    configs = []
    if (is_win) {
-@@ -3153,7 +2977,8 @@ config("symbols") {
+@@ -3191,7 +3041,8 @@ config("symbols") {
  # Minimal symbols.
  # This config guarantees to hold symbol for stack trace which are shown to user
  # when crash happens in unittests running on buildbot.
@@ -397,7 +328,7 @@ index 1847f1a..2fb3e18 100644
    rustflags = []
    cflags = []
    ldflags = []
-@@ -3234,7 +3059,8 @@ config("minimal_symbols") {
+@@ -3272,7 +3123,8 @@ config("minimal_symbols") {
  # This configuration contains function names only. That is, the compiler is
  # told to not generate debug information and the linker then just puts function
  # names in the final debug information.
@@ -407,10 +338,10 @@ index 1847f1a..2fb3e18 100644
    if (is_win) {
      ldflags = [ "/DEBUG" ]
  
-diff --git a/rust/rs_bindings_from_cc.gni b/rust/rs_bindings_from_cc.gni
-index 54775ea..2f65063 100644
---- a/rust/rs_bindings_from_cc.gni
-+++ b/rust/rs_bindings_from_cc.gni
+diff --git a/build/rust/rs_bindings_from_cc.gni b/build/rust/rs_bindings_from_cc.gni
+index 10c6487..c1045de 100644
+--- a/build/rust/rs_bindings_from_cc.gni
++++ b/build/rust/rs_bindings_from_cc.gni
 @@ -287,7 +287,7 @@ template("rs_bindings_from_cc") {
        #
        # Add it last so includes from deps and configs take precedence.
@@ -420,11 +351,11 @@ index 54775ea..2f65063 100644
                root_build_dir),
  
        # Passes C comments through as rustdoc attributes.
-diff --git a/rust/rust_bindgen_generator.gni b/rust/rust_bindgen_generator.gni
-index 652c19b..20f275c 100644
---- a/rust/rust_bindgen_generator.gni
-+++ b/rust/rust_bindgen_generator.gni
-@@ -226,7 +226,7 @@ template("rust_bindgen_generator") {
+diff --git a/build/rust/rust_bindgen_generator.gni b/build/rust/rust_bindgen_generator.gni
+index 8a60841..e38f284 100644
+--- a/build/rust/rust_bindgen_generator.gni
++++ b/build/rust/rust_bindgen_generator.gni
+@@ -220,7 +220,7 @@ template("rust_bindgen_generator") {
      # make it behave consistently with our other command line flags and allows
      # system headers to be found.
      clang_resource_dir =
