@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-146-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-146-patches-03.tar.xz"
 
 LLVM_COMPAT=( 19 20 21 )
 
@@ -643,10 +643,8 @@ src_prepare() {
 	if use elibc_glibc ; then
 		rm -v "${WORKDIR}"/firefox-patches/*bgo-748849-RUST_TARGET_override.patch || die
 		rm -v "${WORKDIR}"/firefox-patches/*bmo-1988166-musl-remove-nonexisting-system-header-req.patch || die
+		rm -v "${WORKDIR}"/firefox-patches/*bgo-967694-musl-prctrl-exception-on-musl.patch || die
 	fi
-
-	use elibc_musl && eapply "${FILESDIR}/musl-fix-webrtc-prctl.patch"
-
 	rm -v "${WORKDIR}"/firefox-patches/*bgo-940031-wasm-support.patch || die
 
 	eapply "${WORKDIR}/firefox-patches"
