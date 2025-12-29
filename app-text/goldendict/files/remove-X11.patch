@@ -1,46 +1,8 @@
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 63665f0..fafe4c2 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -4,6 +4,7 @@ option(WITH_FFMPEG_PLAYER "Enable support for FFMPEG player" ON)
- option(WITH_EPWING_SUPPORT "Enable epwing support" ON)
- option(WITH_ZIM "enable zim support" ON)
- option(WITH_TTS "enable QTexttoSpeech support" OFF)
-+option(WITH_X11 "enable X11 support" ON)
- 
- # options for linux packaging
- option(USE_SYSTEM_FMT "use system fmt instead of bundled one" OFF)
-diff --git a/cmake/Deps_Unix.cmake b/cmake/Deps_Unix.cmake
-index f5a0ea1..cf6050b 100644
---- a/cmake/Deps_Unix.cmake
-+++ b/cmake/Deps_Unix.cmake
-@@ -9,7 +9,7 @@ target_include_directories(${GOLDENDICT} PRIVATE
- 
- #### Special Platform supporting libraries
- 
--if (LINUX OR BSD)
-+if (WITH_X11 AND (LINUX OR BSD))
-     find_package(X11 REQUIRED)
-     if (X11_FOUND AND X11_Xtst_FOUND)
-         target_compile_definitions(${GOLDENDICT} PUBLIC HAVE_X11)
-diff --git a/src/main.cc b/src/main.cc
-index 731e678..4bc02d6 100644
---- a/src/main.cc
-+++ b/src/main.cc
-@@ -254,7 +254,7 @@ void processCommandLine( QCoreApplication * app, GDOptions * result )
- 
- int main( int argc, char ** argv )
- {
--#if defined( Q_OS_UNIX ) && !defined( Q_OS_MACOS )
-+#if defined( Q_OS_UNIX ) && !defined( Q_OS_MACOS ) && defined(HAVE_X11)
-   // GoldenDict use lots of X11 functions and it currently cannot work
-   // natively on Wayland. This workaround will force GoldenDict to use
-   // XWayland.
 diff --git a/src/ui/scanpopup.cc b/src/ui/scanpopup.cc
-index 4f0687c..9073a77 100644
+index 9c5ccfc..c0c6e2d 100644
 --- a/src/ui/scanpopup.cc
 +++ b/src/ui/scanpopup.cc
-@@ -33,7 +33,7 @@ static const Qt::WindowFlags pinnedWindowFlags =
+@@ -30,7 +30,7 @@ static const Qt::WindowFlags pinnedWindowFlags =
    /// Qt::Window allows to use the popup and the main window independently.
    Qt::Window
  #else
@@ -49,7 +11,7 @@ index 4f0687c..9073a77 100644
  #endif
    ;
  
-@@ -592,7 +592,7 @@ void ScanPopup::engagePopup( bool forcePopup, bool giveFocus )
+@@ -595,7 +595,7 @@ void ScanPopup::engagePopup( bool forcePopup, bool giveFocus )
    }
  
    if ( ui.pinButton->isChecked() ) {
@@ -58,7 +20,7 @@ index 4f0687c..9073a77 100644
    }
  
    /// Too large strings make window expand which is probably not what user
-@@ -956,7 +956,8 @@ void ScanPopup::pinButtonClicked( bool checked )
+@@ -960,7 +960,8 @@ void ScanPopup::pinButtonClicked( bool checked )
      setAttribute( Qt::WA_MacAlwaysShowToolWindow );
  #endif
  
@@ -68,25 +30,3 @@ index 4f0687c..9073a77 100644
      hideTimer.stop();
    }
    else {
-diff --git a/src/unix/x11hotkeywrapper.cc b/src/unix/x11hotkeywrapper.cc
-index 2cf13fc..1abde3c 100644
---- a/src/unix/x11hotkeywrapper.cc
-+++ b/src/unix/x11hotkeywrapper.cc
-@@ -1,5 +1,5 @@
-+#include "hotkeywrapper.hh"
- #ifdef HAVE_X11
--  #include "hotkeywrapper.hh"
-   #include <X11/keysym.h>
- 
- //
-@@ -304,4 +304,10 @@ void HotkeyWrapper::unregister()
-     ungrabKey( grabbedKeys.begin() );
- }
- 
-+#else
-+  void HotkeyWrapper::init() {}
-+  void HotkeyWrapper::unregister() {}
-+  bool HotkeyWrapper::setGlobalKey( QKeySequence const & seq, int handle ) {
-+    return false;
-+  }
- #endif
