@@ -1,9 +1,9 @@
-# Copyright 1999-2024 Gentoo Authors
+# Copyright 1999-2025 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-inherit meson toolchain-funcs
+inherit meson toolchain-funcs optfeature
 
 DESCRIPTION="Highly customizable Wayland bar for Sway and Wlroots based compositors"
 HOMEPAGE="https://github.com/Alexays/Waybar"
@@ -19,9 +19,10 @@ fi
 
 LICENSE="MIT"
 SLOT="0"
-IUSE="evdev experimental gps jack +libinput +logind mpd mpris network niri pipewire pulseaudio sndio systemd test tray +udev upower wifi"
+IUSE="backlight evdev experimental gps jack +libinput +logind mpd mpris network niri pipewire pulseaudio sndio systemd test tray +udev upower wifi"
 REQUIRED_USE="
 	upower? ( logind )
+	backlight? ( udev logind )
 "
 
 RESTRICT="!test? ( test )"
@@ -43,11 +44,12 @@ RDEPEND="
 	>=dev-libs/spdlog-1.10.0:=
 	dev-libs/date:=
 	dev-libs/wayland
-	gui-libs/gtk-layer-shell
+	>=gui-libs/gtk-layer-shell-0.9.0
 	media-video/pipewire:=
 	x11-libs/gtk+:3[wayland]
 	x11-libs/libxkbcommon
 	evdev? ( dev-libs/libevdev )
+	gps? ( sci-geosciences/gpsd:= )
 	jack? ( virtual/jack )
 	libinput? ( dev-libs/libinput:= )
 	logind? (
@@ -68,7 +70,6 @@ RDEPEND="
 	udev? ( virtual/libudev:= )
 	upower? ( sys-power/upower:= )
 	wifi? ( sys-apps/util-linux )
-	gps? ( sci-geosciences/gpsd )
 "
 DEPEND="${RDEPEND}
 	dev-libs/wayland-protocols
@@ -78,14 +79,14 @@ DEPEND="${RDEPEND}
 src_configure() {
 	local emesonargs=(
 		-Dman-pages=enabled
-		-Dcava=disabled
+		-Dcava=disabled # depends on LukashonakV/cava fork, but media-sound/cava is karlstav/cava
 		$(meson_feature evdev libevdev)
+		$(meson_feature gps)
 		$(meson_feature jack)
 		$(meson_feature libinput)
 		$(meson_feature logind)
 		$(meson_feature mpd)
 		$(meson_feature mpris)
-		$(meson_use niri)
 		$(meson_feature network libnl)
 		$(meson_feature pulseaudio)
 		$(meson_feature pipewire wireplumber)
@@ -97,11 +98,16 @@ src_configure() {
 		$(meson_feature udev libudev)
 		$(meson_feature upower upower_glib)
 		$(meson_feature wifi rfkill)
-		$(meson_feature gps)
+		$(meson_use backlight login-proxy)
 		$(meson_use experimental)
+		$(meson_use niri) # communicates by socket with gui-wm/niri::guru
 	)
 	if [[ $(tc-get-cxx-stdlib) == libc++ ]]; then
 		emesonargs+=( -Dlibcxx=true )
 	fi
 	meson_src_configure
+}
+
+pkg_postinst() {
+	optfeature "default icons support" "media-fonts/fontawesome"
 }
