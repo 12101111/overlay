@@ -1402,7 +1402,7 @@ chromium_configure() {
 	einfo "Configuring Chromium ..."
 	set -- gn gen --args="${myconf_gn[*]}${EXTRA_GN:+ ${EXTRA_GN}}" out/Release
 	echo "$@"
-	"$@" || die
+	"$@" || die "Failed to configure Chromium"
 }
 
 src_configure() {
