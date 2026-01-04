@@ -1,17 +1,26 @@
-From 697c58442eab84f5fb8ac699f5167817e2127ae2 Mon Sep 17 00:00:00 2001
+From 74ea310cba5b9601a74d5ac64d651636c26f450a Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Thu, 4 Sep 2025 22:05:21 +0800
+Date: Sun, 4 Jan 2026 21:32:02 +0800
 Subject: [PATCH 05/11] Build without electron
 
 ---
- build/gulpfile.vscode.js | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ build/gulpfile.vscode.ts | 10 ++++++++--
+ build/npm/preinstall.ts  |  3 +++
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index ed06b6a5aa8..9be52be7f61 100644
---- a/build/gulpfile.vscode.js
-+++ b/build/gulpfile.vscode.js
-@@ -207,6 +207,13 @@ function computeChecksum(filename) {
+diff --git a/build/gulpfile.vscode.ts b/build/gulpfile.vscode.ts
+index d3ab651ef2e..d52ec506302 100644
+--- a/build/gulpfile.vscode.ts
++++ b/build/gulpfile.vscode.ts
+@@ -11,7 +11,6 @@ import vfs from 'vinyl-fs';
+ import rename from 'gulp-rename';
+ import replace from 'gulp-replace';
+ import filter from 'gulp-filter';
+-import electron from '@vscode/gulp-electron';
+ import jsonEditor from 'gulp-json-editor';
+ import * as util from './lib/util.ts';
+ import { getVersion } from './lib/getVersion.ts';
+@@ -212,6 +211,13 @@ function computeChecksum(filename: string): string {
  	return hash;
  }
  
@@ -22,26 +31,32 @@ index ed06b6a5aa8..9be52be7f61 100644
 +	});
 +}
 +
- function packageTask(platform, arch, sourceFolderName, destinationFolderName, opts) {
- 	opts = opts || {};
- 
-@@ -214,7 +221,6 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+ function packageTask(platform: string, arch: string, sourceFolderName: string, destinationFolderName: string, _opts?: { stats?: boolean }) {
+ 	const destination = path.join(path.dirname(root), destinationFolderName);
  	platform = platform || process.platform;
- 
- 	const task = () => {
--		const electron = require('@vscode/gulp-electron');
- 		const json = require('gulp-json-editor');
- 
- 		const out = sourceFolderName;
-@@ -368,7 +374,7 @@ function packageTask(platform, arch, sourceFolderName, destinationFolderName, op
+@@ -377,7 +383,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
  			.pipe(util.skipDirectories())
  			.pipe(util.fixWin32DirectoryPermissions())
  			.pipe(filter(['**', '!**/.github/**'], { dot: true })) // https://github.com/microsoft/vscode/issues/116523
--			.pipe(electron({ ...config, platform, arch: arch === 'armhf' ? 'arm' : arch, ffmpegChromium: false }))
+-			.pipe(electron({ ...config, platform, arch: arch === 'armhf' ? 'arm' : arch, ffmpegChromium: false, ...customElectronConfig }))
 +			.pipe(moveApp())
  			.pipe(filter(['**', '!LICENSE', '!version'], { dot: true }));
  
  		if (platform === 'linux') {
+diff --git a/build/npm/preinstall.ts b/build/npm/preinstall.ts
+index 3476fcabb50..2d4555f5244 100644
+--- a/build/npm/preinstall.ts
++++ b/build/npm/preinstall.ts
+@@ -97,6 +97,9 @@ function hasSupportedVisualStudioVersion() {
+ }
+ 
+ function installHeaders() {
++	if (process.env['ELECTRON_SKIP_BINARY_DOWNLOAD']) {
++		return;
++	}
+ 	const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+ 	child_process.execSync(`${npm} ${process.env.npm_command || 'ci'}`, {
+ 		env: process.env,
 -- 
-2.51.0
+2.52.0
 

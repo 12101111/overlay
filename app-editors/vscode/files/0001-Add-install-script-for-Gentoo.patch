@@ -1,24 +1,24 @@
-From 3a763ba6e8ba7ad8e6954a04c42193ec92696919 Mon Sep 17 00:00:00 2001
+From 17c9c6f727727c710e858f3d702ea21a4ba55e00 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Thu, 18 Jul 2024 02:46:03 +0800
+Date: Sun, 4 Jan 2026 21:27:26 +0800
 Subject: [PATCH 01/11] Add install script for Gentoo
 
 ---
- build/gulpfile.vscode.linux.js | 54 ++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ build/gulpfile.vscode.linux.ts | 53 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
 
-diff --git a/build/gulpfile.vscode.linux.js b/build/gulpfile.vscode.linux.js
-index 9cf6411e46a..cf4f79b4694 100644
---- a/build/gulpfile.vscode.linux.js
-+++ b/build/gulpfile.vscode.linux.js
-@@ -299,6 +299,57 @@ function buildSnapPackage(arch) {
+diff --git a/build/gulpfile.vscode.linux.ts b/build/gulpfile.vscode.linux.ts
+index c5d216319ce..aab174b7e31 100644
+--- a/build/gulpfile.vscode.linux.ts
++++ b/build/gulpfile.vscode.linux.ts
+@@ -280,6 +280,57 @@ function buildSnapPackage(arch: string) {
  	return () => exec('snapcraft', { cwd });
  }
  
-+function installGentooPackage(arch) {
++function installGentooPackage(arch: string) {
 +	const binaryDir = '../VSCode-linux-' + arch;
-+	const destination = process.env.DESTDIR;
-+	const libDir = process.env.LIBDIR;
++	const destination = process.env.DESTDIR!;
++	const libDir = process.env.LIBDIR!;
 +
 +	return function () {
 +		const desktop = gulp.src('resources/linux/code.desktop', { base: '.' })
@@ -69,14 +69,13 @@ index 9cf6411e46a..cf4f79b4694 100644
  const BUILD_TARGETS = [
  	{ arch: 'x64' },
  	{ arch: 'armhf' },
-@@ -322,4 +373,7 @@ BUILD_TARGETS.forEach(({ arch }) => {
+@@ -303,4 +354,6 @@ BUILD_TARGETS.forEach(({ arch }) => {
  	gulp.task(prepareSnapTask);
  	const buildSnapTask = task.define(`vscode-linux-${arch}-build-snap`, task.series(prepareSnapTask, buildSnapPackage(arch)));
  	gulp.task(buildSnapTask);
-+
 +	const installGentooTask = task.define(`vscode-linux-${arch}-install-gentoo`, installGentooPackage(arch));
 +	gulp.task(installGentooTask);
  });
 -- 
-2.51.0
+2.52.0
 

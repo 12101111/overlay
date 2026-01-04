@@ -1,18 +1,18 @@
-From 29a39d1da6efa11a91019c8e218551e5bfad8137 Mon Sep 17 00:00:00 2001
+From 356f6e275f185c0ec145e58b160c992caa25ba3a Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 19 Sep 2025 21:51:36 +0800
+Date: Sun, 4 Jan 2026 21:29:55 +0800
 Subject: [PATCH 03/11] Don't run npm install for test
 
 ---
- build/npm/dirs.js        | 7 -------
- build/npm/postinstall.js | 2 --
- 2 files changed, 9 deletions(-)
+ build/npm/dirs.ts        | 7 -------
+ build/npm/postinstall.ts | 3 ---
+ 2 files changed, 10 deletions(-)
 
-diff --git a/build/npm/dirs.js b/build/npm/dirs.js
-index a7ee7c3a6c7..ca8b6d2b9e5 100644
---- a/build/npm/dirs.js
-+++ b/build/npm/dirs.js
-@@ -48,13 +48,6 @@ const dirs = [
+diff --git a/build/npm/dirs.ts b/build/npm/dirs.ts
+index 48d76e2731a..d71b9cbe292 100644
+--- a/build/npm/dirs.ts
++++ b/build/npm/dirs.ts
+@@ -53,13 +53,6 @@ export const dirs = [
  	'extensions/vscode-test-resolver',
  	'remote',
  	'remote/web',
@@ -25,17 +25,18 @@ index a7ee7c3a6c7..ca8b6d2b9e5 100644
 -	'.vscode/extensions/vscode-selfhost-test-provider',
  ];
  
- if (fs.existsSync(`${__dirname}/../../.build/distro/npm`)) {
-diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index 1033e4ecf68..5656ac6da97 100644
---- a/build/npm/postinstall.js
-+++ b/build/npm/postinstall.js
-@@ -176,5 +176,3 @@ for (let dir of dirs) {
+ if (existsSync(`${import.meta.dirname}/../../.build/distro/npm`)) {
+diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
+index c4bbbf52960..3ef3afc9200 100644
+--- a/build/npm/postinstall.ts
++++ b/build/npm/postinstall.ts
+@@ -181,6 +181,3 @@ for (const dir of dirs) {
+ 
  	npmInstall(dir, opts);
  }
- 
--cp.execSync('git config pull.rebase merges');
--cp.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
+-
+-child_process.execSync('git config pull.rebase merges');
+-child_process.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
 -- 
-2.51.0
+2.52.0
 

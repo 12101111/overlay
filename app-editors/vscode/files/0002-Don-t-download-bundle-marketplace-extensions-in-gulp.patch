@@ -1,19 +1,19 @@
-From a677afb6c37766b7faa6aa6f8ea81b742197c4e7 Mon Sep 17 00:00:00 2001
+From 5d96b6b4db9f54ea28dfa7d97f9d09e87a12eabc Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Fri, 19 Sep 2025 21:50:31 +0800
+Date: Sun, 4 Jan 2026 21:28:40 +0800
 Subject: [PATCH 02/11] Don't download bundle marketplace extensions in gulp
 
 ---
- build/gulpfile.extensions.js | 8 --------
+ build/gulpfile.extensions.ts | 8 --------
  1 file changed, 8 deletions(-)
 
-diff --git a/build/gulpfile.extensions.js b/build/gulpfile.extensions.js
-index 687bd16fd8c..2431efa54c8 100644
---- a/build/gulpfile.extensions.js
-+++ b/build/gulpfile.extensions.js
-@@ -225,17 +225,11 @@ exports.compileExtensionMediaBuildTask = compileExtensionMediaBuildTask;
- const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimraf('.build/extensions'));
- exports.cleanExtensionsBuildTask = cleanExtensionsBuildTask;
+diff --git a/build/gulpfile.extensions.ts b/build/gulpfile.extensions.ts
+index 6f5cf0d25d8..8d8d12f5575 100644
+--- a/build/gulpfile.extensions.ts
++++ b/build/gulpfile.extensions.ts
+@@ -208,17 +208,11 @@ gulp.task(compileExtensionMediaBuildTask);
+  */
+ export const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimraf('.build/extensions'));
  
 -/**
 - * brings in the marketplace extensions for the build
@@ -24,20 +24,20 @@ index 687bd16fd8c..2431efa54c8 100644
   * Compiles the non-native extensions for the build
   * @note this does not clean the directory ahead of it. See {@link cleanExtensionsBuildTask} for that.
   */
- const compileNonNativeExtensionsBuildTask = task.define('compile-non-native-extensions-build', task.series(
+ export const compileNonNativeExtensionsBuildTask = task.define('compile-non-native-extensions-build', task.series(
 -	bundleMarketplaceExtensionsBuildTask,
  	task.define('bundle-non-native-extensions-build', () => ext.packageNonNativeLocalExtensionsStream(false, false).pipe(gulp.dest('.build')))
  ));
  gulp.task(compileNonNativeExtensionsBuildTask);
-@@ -255,7 +249,6 @@ exports.compileNativeExtensionsBuildTask = compileNativeExtensionsBuildTask;
+@@ -236,7 +230,6 @@ gulp.task(compileNativeExtensionsBuildTask);
   */
- const compileAllExtensionsBuildTask = task.define('compile-extensions-build', task.series(
+ export const compileAllExtensionsBuildTask = task.define('compile-extensions-build', task.series(
  	cleanExtensionsBuildTask,
 -	bundleMarketplaceExtensionsBuildTask,
  	task.define('bundle-extensions-build', () => ext.packageAllLocalExtensionsStream(false, false).pipe(gulp.dest('.build'))),
  ));
  gulp.task(compileAllExtensionsBuildTask);
-@@ -267,7 +260,6 @@ gulp.task(task.define('extensions-ci', task.series(compileNonNativeExtensionsBui
+@@ -247,7 +240,6 @@ gulp.task(task.define('extensions-ci', task.series(compileNonNativeExtensionsBui
  
  const compileExtensionsBuildPullRequestTask = task.define('compile-extensions-build-pr', task.series(
  	cleanExtensionsBuildTask,
@@ -46,5 +46,5 @@ index 687bd16fd8c..2431efa54c8 100644
  ));
  gulp.task(compileExtensionsBuildPullRequestTask);
 -- 
-2.51.0
+2.52.0
 
