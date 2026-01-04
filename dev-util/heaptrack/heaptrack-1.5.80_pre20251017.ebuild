@@ -3,23 +3,24 @@
 
 EAPI=8
 
-KDE_ORG_COMMIT=0fb2eb516b5d762f202195f8f439bbf1ea463880
+KDE_ORG_COMMIT=f813c68d2ca89989334734f2183598ee2f8aa1b5
 inherit cmake kde.org xdg
 
 DESCRIPTION="Fast heap memory profiler"
 HOMEPAGE="https://apps.kde.org/heaptrack/
 https://milianw.de/blog/heaptrack-a-heap-memory-profiler-for-linux"
+SRC_URI="https://dev.gentoo.org/~asturm/distfiles/kde/${KDE_ORG_NAME}-${PV}-${KDE_ORG_COMMIT:0:8}.tar.gz"
 
 LICENSE="LGPL-2.1+"
 SLOT="0"
 KEYWORDS="~amd64"
-IUSE="+gui test zstd"
+IUSE="+gui test"
 
 RESTRICT="!test? ( test )"
 
-# TODO: unbundle robin-map
 DEPEND="
-	dev-libs/boost:=[zstd?,zlib]
+	dev-cpp/robin-map
+	dev-libs/boost:=[zstd,zlib]
 	virtual/zlib:=
 	gui? (
 		dev-libs/kdiagram:6
@@ -33,25 +34,33 @@ DEPEND="
 		kde-frameworks/kwidgetsaddons:6
 		kde-frameworks/threadweaver:6
 	)
-	zstd? ( app-arch/zstd:= )
 "
 RDEPEND="${DEPEND}
 	gui? ( >=kde-frameworks/kf-env-4 )
 "
 BDEPEND="gui? ( kde-frameworks/extra-cmake-modules:0 )"
 
+PATCHES=(
+	"${FILESDIR}/${P}-unbundle-robin-map.patch" # bug #964521
+	"${FILESDIR}/${P}-fix-zstd-use-boost-1.70.patch" # bug #964695
+)
+
+QA_CONFIG_IMPL_DECL_SKIP=(
+	# This doesn't exist in libunwind (bug #898768).
+	unw_backtrace_skip
+)
+
 src_prepare() {
+	rm -r 3rdparty/{boost-zstd,robin-map} || die # ensure no bundling
 	cmake_src_prepare
-	rm -rf 3rdparty/boost-zstd || die # ensure no bundling
 }
 
 src_configure() {
 	local mycmakeargs=(
-		-DHEAPTRACK_USE_QT6=ON
+		-DHEAPTRACK_USE_SYSTEM_ROBINMAP=ON
 		-DHEAPTRACK_BUILD_GUI=$(usex gui)
 		-DHEAPTRACK_USE_LIBUNWIND=NO
 		-DBUILD_TESTING=$(usex test)
-		$(cmake_use_find_package zstd ZSTD)
 	)
 	cmake_src_configure
 }
