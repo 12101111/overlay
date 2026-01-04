@@ -1,26 +1,26 @@
-# Copyright 2023 Gentoo Authors
+# Copyright 2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
 CRATES="
-	arbitrary-1.3.2
-	cc-1.0.104
-	compiler_builtins-0.1.92
-	jobserver-0.1.31
-	libc-0.2.155
-	libfuzzer-sys-0.4.6
-	once_cell-1.19.0
-	rustc-std-workspace-core-1.0.0
+	arbitrary@1.2.0
+	cc@1.0.77
+	compiler_builtins@0.1.84
+	jobserver@0.1.25
+	libc@0.2.137
+	libfuzzer-sys@0.4.5
+	once_cell@1.16.0
+	rustc-std-workspace-core@1.0.0
 "
 
 inherit cargo
 
-DESCRIPTION="C API for the rustc-demangle crate"
-HOMEPAGE="https://github.com/alexcrichton/rustc-demangle"
+DESCRIPTION="Rust compiler symbol demangling."
+HOMEPAGE="https://github.com/rust-lang/rustc-demangle"
 SRC_URI="
-	$(cargo_crate_uris ${CRATES})
-	https://github.com/rust-lang/${PN}/archive/${PV}.tar.gz -> ${P}.tar.gz
+	${CARGO_CRATE_URIS}
+	https://github.com/rust-lang/${PN}/archive/${PN}-v${PV}.tar.gz -> ${P}.tar.gz
 "
 
 LICENSE="|| ( MIT Apache-2.0 )"
@@ -30,6 +30,8 @@ KEYWORDS="~amd64 ~x86"
 DEPEND=""
 RDEPEND="${DEPEND}"
 BDEPEND=""
+
+S="${WORKDIR}/${PN}-${PN}-v${PV}"
 
 src_compile() {
 	cargo build -p rustc-demangle-capi --release
