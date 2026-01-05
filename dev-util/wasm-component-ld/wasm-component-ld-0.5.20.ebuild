@@ -6,79 +6,68 @@ EAPI=8
 CRATES="
 	anstream@0.6.21
 	anstyle-parse@0.2.7
-	anstyle-query@1.1.4
-	anstyle-wincon@3.0.10
+	anstyle-query@1.1.5
+	anstyle-wincon@3.0.11
 	anstyle@1.0.13
 	anyhow@1.0.100
-	bitflags@2.9.4
-	bumpalo@3.19.0
-	cfg-if@1.0.3
-	clap@4.5.48
-	clap_builder@4.5.48
-	clap_derive@4.5.47
-	clap_lex@0.7.5
+	bitflags@2.10.0
+	bumpalo@3.19.1
+	cfg-if@1.0.4
+	clap@4.5.54
+	clap_builder@4.5.54
+	clap_derive@4.5.49
+	clap_lex@0.7.6
 	colorchoice@1.0.4
 	equivalent@1.0.2
 	errno@0.3.14
 	fastrand@2.3.0
 	foldhash@0.1.5
-	getrandom@0.3.3
+	getrandom@0.3.4
 	hashbrown@0.15.5
-	hashbrown@0.16.0
+	hashbrown@0.16.1
 	heck@0.5.0
 	id-arena@2.2.1
 	indexmap@2.11.4
-	is_terminal_polyfill@1.70.1
-	itoa@1.0.15
+	is_terminal_polyfill@1.70.2
+	itoa@1.0.17
 	leb128fmt@0.1.0
 	lexopt@0.3.1
-	libc@0.2.176
+	libc@0.2.179
 	linux-raw-sys@0.11.0
-	log@0.4.28
+	log@0.4.29
 	memchr@2.7.6
 	once_cell@1.21.3
-	once_cell_polyfill@1.70.1
-	proc-macro2@1.0.101
-	quote@1.0.41
+	once_cell_polyfill@1.70.2
+	proc-macro2@1.0.104
+	quote@1.0.42
 	r-efi@5.3.0
-	rustix@1.1.2
-	ryu@1.0.20
+	rustix@1.1.3
 	semver@1.0.27
 	serde@1.0.228
 	serde_core@1.0.228
 	serde_derive@1.0.228
-	serde_json@1.0.145
+	serde_json@1.0.148
 	strsim@0.11.1
-	syn@2.0.106
-	tempfile@3.23.0
-	unicode-ident@1.0.19
+	syn@2.0.113
+	tempfile@3.24.0
+	unicode-ident@1.0.22
 	unicode-width@0.2.2
 	unicode-xid@0.2.6
 	utf8parse@0.2.2
-	wasi-preview1-component-adapter-provider@38.0.4
-	wasi@0.14.7+wasi-0.2.4
+	wasi-preview1-component-adapter-provider@40.0.0
 	wasip2@1.0.1+wasi-0.2.4
-	wasm-encoder@0.241.2
-	wasm-metadata@0.241.2
-	wasmparser@0.241.2
-	wast@241.0.2
-	wat@1.241.2
+	wasm-encoder@0.243.0
+	wasm-metadata@0.243.0
+	wasmparser@0.243.0
+	wast@243.0.0
+	wat@1.243.0
 	windows-link@0.2.1
-	windows-sys@0.60.2
 	windows-sys@0.61.2
-	windows-targets@0.53.5
-	windows_aarch64_gnullvm@0.53.1
-	windows_aarch64_msvc@0.53.1
-	windows_i686_gnu@0.53.1
-	windows_i686_gnullvm@0.53.1
-	windows_i686_msvc@0.53.1
-	windows_x86_64_gnu@0.53.1
-	windows_x86_64_gnullvm@0.53.1
-	windows_x86_64_msvc@0.53.1
 	winsplit@0.1.0
 	wit-bindgen@0.46.0
-	wit-component@0.241.2
-	wit-parser@0.241.2
+	wit-component@0.243.0
+	wit-parser@0.243.0
+	zmij@1.0.10
 "
 
 inherit cargo
