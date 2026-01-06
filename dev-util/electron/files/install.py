@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import hashlib
 import re
 import urllib.parse
