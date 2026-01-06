@@ -2,12 +2,12 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
-PLOCALES="ar ay be bg crowdin cs de de_CH el eo es es_AR es_BO fa fi fr hi hu ie
- it ja jbo kab ko lt mk nl pl pt pt_BR qu ru sk sq sr sv tg tk tr uk vi zh_CN zh_TW"
+PLOCALES="ar ay be bg crowdin cs de de_CH el en eo es es_AR es_BO fa fi fr hi hu
+ ie it ja jbo kab ko lt mk nl pl pt pt_BR qu ru sk sq sr sv tg tk tr uk vi zh_CN zh_TW"
 
 inherit cmake flag-o-matic plocale xdg
 
-MY_PV="25.10.2-Release.673d1b90"
+MY_PV="26.1.1-Release.5491ffca"
 
 DESCRIPTION="Feature-rich dictionary lookup program (GoldenDict-ng fork)"
 HOMEPAGE="https://xiaoyifang.github.io/goldendict-ng/"
@@ -69,6 +69,7 @@ src_prepare() {
 	plocale_for_each_disabled_locale rm_loc
 
 	use wayland && eapply "${FILESDIR}/remove-X11.patch"
+	sed -i "6i#include <sstream>" "${S}/src/metadata.cc" || die
 
 	cmake_src_prepare
 }
@@ -81,7 +82,6 @@ src_configure() {
 		-DWITH_X11=$(usex wayland OFF ON)
 		-DWITH_FFMPEG_PLAYER=$(usex ffmpeg ON OFF)
 		-DWITH_EPWING_SUPPORT=$(usex epwing ON OFF)
-		-DUSE_SYSTEM_FMT=ON
 		-DUSE_SYSTEM_TOML=ON
 		-DWITH_TTS=$(usex tts ON OFF)
 		-DWITH_ZIM=$(usex zim ON OFF)
