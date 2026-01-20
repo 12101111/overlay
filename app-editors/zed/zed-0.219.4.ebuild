@@ -10,6 +10,9 @@ CRATES="
 
 declare -A GIT_CRATES=(
 	[async-pipe]='https://github.com/zed-industries/async-pipe-rs;82d00a04211cf4e1236029aa03e6b6ce2a74c553;async-pipe-rs-%commit%'
+	[blade-graphics]='https://github.com/kvark/blade;e3cf011ca18a6dfd907d1dedd93e85e21f005fe3;blade-%commit%/blade-graphics'
+	[blade-macros]='https://github.com/kvark/blade;e3cf011ca18a6dfd907d1dedd93e85e21f005fe3;blade-%commit%/blade-macros'
+	[blade-util]='https://github.com/kvark/blade;e3cf011ca18a6dfd907d1dedd93e85e21f005fe3;blade-%commit%/blade-util'
 	[calloop]='https://github.com/zed-industries/calloop;eb6b4fd17b9af5ecc226546bdd04185391b3e265;calloop-%commit%'
 	[candle-core]='https://github.com/zed-industries/candle;724d75eb3deebefe83f2a7381a45d4fac6eda383;candle-%commit%/candle-core'
 	[candle-nn]='https://github.com/zed-industries/candle;724d75eb3deebefe83f2a7381a45d4fac6eda383;candle-%commit%/candle-nn'
@@ -73,7 +76,7 @@ declare -A GIT_CRATES=(
 )
 
 LLVM_COMPAT=( 21 )
-RUST_MIN_VER="1.91.0"
+RUST_MIN_VER="1.92.0"
 RUST_NEEDS_LLVM=1
 WEBRTC_COMMIT="b99fd2c-6"
 
@@ -104,7 +107,7 @@ LICENSE+="
 IUSE="+collab"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
-CHECKREQS_DISK_BUILD="13G"
+CHECKREQS_DISK_BUILD="16G"
 CHECKREQS_MEMORY="8G"
 
 DEPEND="
