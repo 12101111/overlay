@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-146-patches-03.tar.xz"
+FIREFOX_PATCHSET="firefox-147-patches-01.tar.xz"
 
 LLVM_COMPAT=( 19 20 21 )
 
@@ -117,10 +117,9 @@ BDEPEND="${PYTHON_DEPS}
 	)"
 COMMON_DEPEND="${FF_ONLY_DEPEND}
 	>=app-accessibility/at-spi2-core-2.46.0:2
-	dev-libs/expat
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.118
+	>=dev-libs/nss-3.119
 	>=dev-libs/nspr-4.38
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -155,7 +154,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 		>=media-libs/harfbuzz-2.8.1:0=
 		!wasm-sandbox? ( >=media-gfx/graphite2-1.3.13 )
 	)
-	system-icu? ( >=dev-libs/icu-76.1:= )
+	system-icu? ( >=dev-libs/icu-78.1:= )
 	system-jpeg? ( >=media-libs/libjpeg-turbo-1.2.1:= )
 	system-libevent? ( >=dev-libs/libevent-2.1.12:0=[threads(+)] )
 	system-libvpx? ( >=media-libs/libvpx-1.8.2:0=[postproc] )
@@ -648,10 +647,6 @@ src_prepare() {
 	rm -v "${WORKDIR}"/firefox-patches/*bgo-940031-wasm-support.patch || die
 
 	eapply "${WORKDIR}/firefox-patches"
-
-	if use system-icu && has_version ">=dev-libs/icu-78.1"; then
-		eapply "${FILESDIR}/${P}-icu78.patch" # in 147, bug #967261
-	fi
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
