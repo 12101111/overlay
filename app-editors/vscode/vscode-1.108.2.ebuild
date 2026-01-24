@@ -15,7 +15,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="94e8ae2b28cb5cc932b86e1070569c4463565c37"
+COMMIT="c9d77990917f3102ada88be140d28b038d1dd7c7"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.15.14/lib/postinstall.js#L21
@@ -626,7 +626,7 @@ https://registry.npmjs.org/@xterm/addon-progress/-/addon-progress-0.3.0-beta.91.
 https://registry.npmjs.org/@xterm/addon-search/-/addon-search-0.17.0-beta.91.tgz
 https://registry.npmjs.org/@xterm/addon-serialize/-/addon-serialize-0.15.0-beta.91.tgz
 https://registry.npmjs.org/@xterm/addon-unicode11/-/addon-unicode11-0.10.0-beta.91.tgz
-https://registry.npmjs.org/@xterm/addon-webgl/-/addon-webgl-0.20.0-beta.90.tgz
+https://registry.npmjs.org/@xterm/addon-webgl/-/addon-webgl-0.20.0-beta.101.tgz
 https://registry.npmjs.org/@xterm/headless/-/headless-6.1.0-beta.91.tgz
 https://registry.npmjs.org/@xterm/xterm/-/xterm-6.1.0-beta.91.tgz
 https://registry.npmjs.org/@xtuc/ieee754/-/ieee754-1.2.0.tgz
@@ -2211,9 +2211,9 @@ SRC_URI+="
 )"
 
 RESTRICT="mirror"
+# .nvmrc
 BDEPEND="
-	>=net-libs/nodejs-22.16.0:=[npm]
-	!>=net-libs/nodejs-24.1.0
+	>=net-libs/nodejs-22.21.1:=[npm]
 	app-arch/unzip
 	app-arch/gzip
 "
@@ -2271,15 +2271,11 @@ src_unpack() {
 src_prepare() {
 	default
 
-	# fix https://github.com/npm/cli/pull/6941
-	local npm_path="/usr/$(get_libdir)/node_modules/npm/"
-	local node_gyp_path="${npm_path}bin/node-gyp-bin"
-	if [ -f "${node-gyp_path}/node-gyp" ]; then
-		export PATH="${node_gyp_path}:${PATH}"
-	else
-		create_fake_bin "node ${npm_path}node_modules/node-gyp/bin/node-gyp.js" node-gyp
-		export PATH="${S}:${PATH}"
-	fi
+	# npm 11 from nodejs 24 don't works with offline cache
+	local npm_path="$(get_electron_dir)/npm/"
+	create_fake_bin "node ${npm_path}bin/npm-cli.js" npm
+	create_fake_bin "node ${npm_path}node_modules/node-gyp/bin/node-gyp.js" node-gyp
+	export PATH="${S}:${PATH}"
 
 	# Build native modules for system electron
 	local electron_version="$(get_local_electron_version)"
