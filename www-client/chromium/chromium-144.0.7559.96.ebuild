@@ -1,4 +1,4 @@
-# Copyright 2009-2025 Gentoo Authors
+# Copyright 2009-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -26,10 +26,10 @@ EAPI=8
 GN_MIN_VER=0.2235
 # chromium-tools/get-chromium-toolchain-strings.py
 TEST_FONT=a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969
-BUNDLED_CLANG_VER=llvmorg-22-init-8940-g4d4cb757-84
-BUNDLED_RUST_VER=15283f6fe95e5b604273d13a428bab5fc0788f5a-1
+BUNDLED_CLANG_VER=llvmorg-22-init-14273-gea10026b-2
+BUNDLED_RUST_VER=11339a0ef5ed586bb7ea4f85a9b7287880caac3a-1
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
-NODE_VER=22.11.0
+NODE_VER=24.11.1
 
 VIRTUALX_REQUIRED="pgo"
 
@@ -37,10 +37,10 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
-LLVM_COMPAT=( 20 21 )
+LLVM_COMPAT=( 21 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
-RUST_MIN_VER=1.78.0
+RUST_MIN_VER=1.91.0
 RUST_NEEDS_LLVM="yes please"
 RUST_OPTIONAL="yes" # Not actually optional, but we don't need system Rust (or LLVM) with USE=bundled-toolchain
 
@@ -51,8 +51,8 @@ inherit rust-toolchain
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
 PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
-PATCH_V="${PV%%\.*}"
-COPIUM_COMMIT="8025c57b5b5d0f93ca6392cbcfab8fd2f8255e75"
+PATCH_V="${PV%%\.*}-1"
+COPIUM_COMMIT="bd8cca0b09a9316960853a3150c26e18ed59afd9"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
@@ -124,7 +124,7 @@ COMMON_SNAPSHOT_DEPEND="
 	system-zstd? ( >=app-arch/zstd-1.5.5:= )
 	>=media-libs/libwebp-0.4.0:=
 	media-libs/mesa:=[gbm(+)]
-	>=media-libs/openh264-1.6.0:=
+	>=media-libs/openh264-2.6.0:=
 	sys-libs/zlib:=
 	!headless? (
 		dev-libs/glib:2
@@ -218,7 +218,7 @@ BDEPEND="
 		>=dev-python/selenium-3.141.0
 		>=dev-util/web_page_replay_go-20220314
 	)
-	>=dev-util/bindgen-0.68.0
+	>=dev-util/bindgen-0.72.1
 	>=dev-build/gn-${GN_MIN_VER}
 	app-alternatives/ninja
 	dev-lang/perl
@@ -509,17 +509,16 @@ src_prepare() {
 	#		| sed 's|\${FILESDIR}/|files/|; s|\${PN}|chromium|' | sort -u) \
 	# 	<(find files/ -name "*.patch" | sort)
 
+	# The patches here should apply to both the bundled and system toolchain builds.
+	# If it's something that we're doing to fix a build issue it's _probably_ not
+	# something that impacts the upstream toolchain builds - test and confirm though.
+
 	local PATCHES=(
-		"${FILESDIR}/${PN}-cross-compile.patch"
 		"${FILESDIR}/${PN}-109-system-zlib.patch"
 		"${FILESDIR}/${PN}-131-unbundle-icu-target.patch"
-		"${FILESDIR}/${PN}-134-bindgen-custom-toolchain.patch"
 		"${FILESDIR}/${PN}-135-oauth2-client-switches.patch"
 		"${FILESDIR}/${PN}-138-nodejs-version-check.patch"
-	)
-
-	PATCHES+=(
-		"${WORKDIR}/copium/cr143-libsync-__BEGIN_DECLS.patch"
+		"${FILESDIR}/${PN}-cross-compile.patch"
 	)
 
 	# https://issues.chromium.org/issues/442698344
@@ -549,6 +548,13 @@ src_prepare() {
 			"${WORKDIR}"/rust-toolchain/INSTALLED_VERSION || die "Failed to set rust version"
 	else
 		# We don't need our toolchain patches if we're using the official toolchain
+
+		if use !bundled-toolchain; then
+			PATCHES+=(
+				"${WORKDIR}/copium/cr143-libsync-__BEGIN_DECLS.patch"
+			)
+		fi
+
 		shopt -s globstar nullglob
 		# 130: moved the PPC64 patches into the chromium-patches repo
 		local patch
@@ -586,38 +592,8 @@ src_prepare() {
 		fi
 
 		# Oxidised hacks, let's keep 'em all in one place
-		# This is a nightly option that does not exist in older releases
-		# https://github.com/rust-lang/rust/commit/389a399a501a626ebf891ae0bb076c25e325ae64
-		if ver_test ${RUST_SLOT} -lt "1.83.0"; then
-			sed '/rustflags = \[ "-Zdefault-visibility=hidden" \]/d' -i build/config/gcc/BUILD.gn ||
-				die "Failed to remove default visibility nightly option"
-		fi
-
-		# Upstream Rust replaced adler with adler2, for older versions of Rust we still need
-		# to tell GN that we have the older lib when it tries to copy the Rust sysroot
-		# into the bulid directory.
-		if ver_test ${RUST_SLOT} -lt "1.86.0"; then
-			sed -i 's/adler2/adler/' build/rust/std/BUILD.gn ||
-				die "Failed to tell GN that we have adler and not adler2"
-		fi
-
-		if ver_test ${RUST_SLOT} -lt "1.89.0"; then
-			# The rust allocator was changed in 1.89.0, so we need to patch sources for older versions
-			PATCHES+=( "${FILESDIR}/chromium-140-__rust_no_alloc_shim_is_unstable.patch" )
-		fi
-
-		if ver_test ${RUST_SLOT} -lt "1.90.0"; then
-			PATCHES+=(
-				"${WORKDIR}/copium/cr142-rust-pre1.90.patch"
-			)
-		fi
-
-		if ver_test ${RUST_SLOT} -lt "1.91.0"; then
-			PATCHES+=(
-				"${WORKDIR}/copium/cr142-crabbyavif-gn-rust-pre1.91.patch"
-				"${WORKDIR}/copium/cr142-crabbyavif-src-rust-pre1.91.patch"
-			)
-		fi
+		# "Adler2" is part of the stdlib since Rust 1.86, but it's behind a nightly-only feature flag in GN.
+		PATCHES+=( "${WORKDIR}/copium/cr144-rust-1.86-is-not-nightly--adler2.patch" )
 	fi
 
 	if use loong ; then
@@ -642,16 +618,6 @@ src_prepare() {
 	fi
 
 	default
-
-	if [[ ${LLVM_SLOT} == "19" ]]; then
-		# Upstream now hard depend on a feature that was added in LLVM 20.1, but we don't want to stabilise that yet.
-		# Do the temp file shuffle in case someone is using something other than `gawk`
-		{
-			awk '/config\("clang_warning_suppression"\) \{/	{ print $0 " }"; sub(/clang/, "xclang"); print; next }
-				{ print }' build/config/compiler/BUILD.gn > "${T}/build.gn" && \
-				mv "${T}/build.gn" build/config/compiler/BUILD.gn
-		} || die "Unable to disable warning suppression"
-	fi
 
 	# Not included in -lite tarballs, but we should check for it anyway.
 	if [[ -f third_party/node/linux/node-linux-x64/bin/node ]]; then
@@ -866,6 +832,7 @@ src_prepare() {
 		third_party/pdfium/third_party/libtiff
 		third_party/perfetto
 		third_party/perfetto/protos/third_party/chromium
+		third_party/perfetto/protos/third_party/pprof
 		third_party/perfetto/protos/third_party/simpleperf
 		third_party/pffft
 		third_party/ply
@@ -966,7 +933,6 @@ src_prepare() {
 			third_party/fuzztest
 			third_party/google_benchmark/src/include/benchmark
 			third_party/google_benchmark/src/src
-			third_party/perfetto/protos/third_party/pprof
 			third_party/test_fonts
 			third_party/test_fonts/fontconfig
 		)
@@ -1516,19 +1482,69 @@ src_compile() {
 
 	rm -f out/Release/locales/*.pak.info || die
 
-	# Build manpage; bug #684550
-	sed -e 's|@@PACKAGE@@|chromium-browser|g;
-		s|@@MENUNAME@@|Chromium|g;' \
-		chrome/app/resources/manpage.1.in > \
-		out/Release/chromium-browser.1 || die
+	# Generate support files: #684550 #706786 #968958
+	# Use upstream's python installer script to generate support files
+	# This replaces fragile sed commands and handles @@include@@ directives.
+	# It'll also verify that all substitution markers have been resolved, meaning that
+	# future changes to templates that add new variables will be caught during the build.
+	cat > "${T}/generate_support_files.py" <<-EOF || die
+		import sys
+		from pathlib import Path
 
-	# Build desktop file; bug #706786
-	sed -e 's|@@MENUNAME@@|Chromium|g;
-		s|@@USR_BIN_SYMLINK_NAME@@|chromium-browser|g;
-		s|@@PACKAGE@@|chromium-browser|g;
-		s|\(^Exec=\)/usr/bin/|\1|g;' \
-		chrome/installer/linux/common/desktop.template > \
-		out/Release/chromium-browser-chromium.desktop || die
+		# Add upstream installer script to search path
+		sys.path.insert(0, str(Path.cwd() / "chrome/installer/linux/common"))
+		import installer
+
+		# Configure contexts strictly for file generation
+		# Common variables used across templates
+		context = {
+		    "BUGTRACKERURL": "https://bugs.gentoo.org/enter_bug.cgi?product=Gentoo Linux&component=Current packages",
+		    "DEVELOPER_NAME": "The Chromium Authors",
+		    "EXTRA_DESKTOP_ENTRIES": "",
+		    "FULLDESC": "An open-source browser project that aims to build a safer, faster, and more stable way to experience the web.",
+		    "HELPURL": "https://wiki.gentoo.org/wiki/Chromium",
+		    "INSTALLDIR": "/usr/$(get_libdir)/chromium-browser",
+		    "MAINTMAIL": "Gentoo Chromium Project <chromium@gentoo.org>",
+		    "MENUNAME": "Chromium",
+		    "PACKAGE": "chromium-browser",
+		    "PRODUCTURL": "https://www.chromium.org/",
+		    "PROGNAME": "chrome",
+		    "PROJECT_LICENSE": "BSD, LGPL-2, LGPL-2.1, MPL-1.1, MPL-2.0, Apache-2.0, and others",
+		    "SHORTDESC": "Open-source foundation of many web browsers including Google Chrome",
+		    "URI_SCHEME": "x-scheme-handler/chromium",
+		    "USR_BIN_SYMLINK_NAME": "chromium-browser",
+		}
+
+		# Generate Desktop file
+		installer.process_template(
+		    Path("chrome/installer/linux/common/desktop.template"),
+		    Path("out/Release/chromium-browser-chromium.desktop"),
+		    context
+		)
+
+		# Generate Manpage
+		installer.process_template(
+		    Path("chrome/app/resources/manpage.1.in"),
+		    Path("out/Release/chromium-browser.1"),
+		    context
+		)
+
+		# Generate AppData (AppStream)
+		installer.process_template(
+		    Path("chrome/installer/linux/common/appdata.xml.template"),
+		    Path("out/Release/chromium-browser.appdata.xml"),
+		    context
+		)
+
+		# Generate GNOME Default Apps entry
+		installer.process_template(
+		    Path("chrome/installer/linux/common/default-app.template"),
+		    Path("out/Release/chromium-browser.xml"),
+		    context
+		)
+	EOF
+
+	"${EPYTHON}" "${T}/generate_support_files.py" || die "Failed to generate support files"
 
 	# Build vk_swiftshader_icd.json; bug #827861
 	sed -e 's|${ICD_LIBRARY_PATH}|./libvk_swiftshader.so|g' \
@@ -1642,7 +1658,7 @@ src_install() {
 
 	pushd out/Release/locales > /dev/null || die
 	chromium_remove_language_paks
-	popd
+	popd > /dev/null || die
 
 	insinto "${CHROMIUM_HOME}"
 	doins out/Release/*.bin
@@ -1700,7 +1716,11 @@ src_install() {
 
 	# Install GNOME default application entry (bug #303100).
 	insinto /usr/share/gnome-control-center/default-apps
-	newins "${FILESDIR}"/chromium-browser.xml chromium-browser.xml
+	doins out/Release/chromium-browser.xml
+
+	# Install AppStream metadata
+	insinto /usr/share/appdata
+	doins out/Release/chromium-browser.appdata.xml
 
 	# Install manpage; bug #684550
 	doman out/Release/chromium-browser.1
