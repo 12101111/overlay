@@ -1,11 +1,11 @@
 #!/bin/bash
 
-BASE_URL="https://commondatastorage.googleapis.com/chromium-browser-official/chromium-140.0.7339."
+BASE_URL="https://commondatastorage.googleapis.com/chromium-browser-official/chromium-142.0.7444."
 
-for version in $(seq 258 -1 207); do
+for version in $(seq 265 -1 175); do
     url="${BASE_URL}${version}.tar.xz"
     if curl -I -f -s -o /dev/null "$url"; then
-        echo "available version: 140.0.7339.$version"
+        echo "available version: 142.0.7444.$version"
         echo "URL: $url"
         exit 0
     fi

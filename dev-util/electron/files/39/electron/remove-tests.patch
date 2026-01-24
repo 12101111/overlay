@@ -19,3 +19,35 @@ index f77378f1e3..82849d76ae 100644
 - 
 -   auto test = CreateFromGraph(1, [](auto& Asm) {
 -     V<Word32> cond =
+diff --git a/patches/v8/runtime_setprototypeproperties_handling_of.patch b/patches/v8/runtime_setprototypeproperties_handling_of.patch
+index 8091c43470..556ae839a1 100644
+--- a/patches/v8/runtime_setprototypeproperties_handling_of.patch
++++ b/patches/v8/runtime_setprototypeproperties_handling_of.patch
+@@ -127,27 +127,3 @@ index 83074253314c438eed3006332c63c6bf7dfe4421..ded3b466625c99da6f27936ae4e5e0c8
+    Handle<ObjectBoilerplateDescription> object_boilerplate_description =
+        args.at<ObjectBoilerplateDescription>(1);
+    DirectHandle<ClosureFeedbackCellArray> feedback_cell_array =
+-diff --git a/test/unittests/interpreter/bytecode_expectations/SetPrototypePropertiesOptimization.golden b/test/unittests/interpreter/bytecode_expectations/SetPrototypePropertiesOptimization.golden
+-index 84ebbb755f8a5432c2e8da3d26ceb648bee2cf2d..bb9d697caec6e79810fa757abec4b71ad4cf3f2f 100644
+---- a/test/unittests/interpreter/bytecode_expectations/SetPrototypePropertiesOptimization.golden
+-+++ b/test/unittests/interpreter/bytecode_expectations/SetPrototypePropertiesOptimization.golden
+-@@ -50,15 +50,17 @@ snippet: "
+- "
+- frame size: 0
+- parameter count: 1
+--bytecode array length: 7
+-+bytecode array length: 9
+- bytecodes: [
+-                 B(LdaImmutableCurrentContextSlot), U8(2),
+--  /*  109 E> */ B(SetPrototypeProperties), U8(0), U8(0),
+-+  /*  109 E> */ B(ThrowReferenceErrorIfHole), U8(1),
+-+                B(SetPrototypeProperties), U8(0), U8(0),
+-                 B(LdaUndefined),
+-   /*  245 S> */ B(Return),
+- ]
+- constant pool: [
+-   OBJECT_BOILERPLATE_DESCRIPTION_TYPE,
+-+  INTERNALIZED_ONE_BYTE_STRING_TYPE ["MyClass"],
+- ]
+- handlers: [
+- ]
