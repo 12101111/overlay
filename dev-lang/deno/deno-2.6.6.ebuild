@@ -134,8 +134,8 @@ CRATES="
 	brotli@6.0.0
 	bstr@1.9.1
 	bumpalo@3.19.0
-	bytemuck@1.21.0
-	bytemuck_derive@1.8.1
+	bytemuck@1.24.0
+	bytemuck_derive@1.10.2
 	byteorder-lite@0.1.0
 	byteorder@1.5.0
 	bytes-str@0.2.7
@@ -161,9 +161,10 @@ CRATES="
 	clap_lex@0.7.4
 	clipboard-win@5.3.0
 	cmake@0.1.50
-	codespan-reporting@0.11.1
+	codespan-reporting@0.12.0
 	color-print-proc-macro@0.3.5
 	color-print@0.3.5
+	color_quant@1.1.0
 	colorchoice@1.0.0
 	compact_str@0.7.1
 	comrak@0.29.0
@@ -174,7 +175,7 @@ CRATES="
 	core-foundation-sys@0.8.6
 	core-foundation@0.10.1
 	core-foundation@0.9.4
-	core-graphics-types@0.1.3
+	core-graphics-types@0.2.0
 	core_maths@0.1.1
 	countme@3.0.1
 	cpufeatures@0.2.12
@@ -201,6 +202,7 @@ CRATES="
 	crossbeam-utils@0.8.21
 	crossterm@0.28.1
 	crossterm_winapi@0.9.1
+	crunchy@0.2.4
 	crypto-bigint@0.5.5
 	crypto-common@0.1.6
 	css_dataset@0.4.1
@@ -222,21 +224,21 @@ CRATES="
 	deno-tower-lsp-macros@0.11.3
 	deno_ast@0.52.0
 	deno_cache_dir@0.26.3
-	deno_core@0.376.0
-	deno_doc@0.188.0
+	deno_core@0.380.1
+	deno_doc@0.189.1
 	deno_error@0.7.1
 	deno_error_macro@0.7.1
-	deno_graph@0.105.0
+	deno_graph@0.106.0
 	deno_lint@0.82.0
 	deno_lockfile@0.32.2
 	deno_media_type@0.3.0
 	deno_native_certs@0.3.0
-	deno_npm@0.42.2
-	deno_ops@0.252.0
+	deno_npm@0.42.3
+	deno_ops@0.256.0
 	deno_panic@0.1.0
 	deno_path_util@0.6.4
 	deno_semver@0.9.1
-	deno_task_shell@0.26.0
+	deno_task_shell@0.28.0
 	deno_terminal@0.2.3
 	deno_tower_lsp@0.4.3
 	deno_tunnel@0.8.0
@@ -305,7 +307,7 @@ CRATES="
 	error-code@3.2.0
 	error_reporter@1.0.0
 	esbuild_client@0.7.1
-	eszip@0.106.0
+	eszip@0.107.0
 	fallible-iterator@0.3.0
 	fallible-streaming-iterator@0.1.9
 	fancy-regex@0.14.0
@@ -313,13 +315,13 @@ CRATES="
 	fastbloom@0.9.0
 	faster-hex@0.10.0
 	fastrand@2.3.0
-	fastwebsockets@0.8.0
+	fastwebsockets@0.8.1
 	fd-lock@4.0.2
 	fdeflate@0.3.4
 	ff@0.13.0
 	fiat-crypto@0.1.20
 	fiat-crypto@0.2.7
-	file_test_runner@0.11.0
+	file_test_runner@0.12.1
 	filetime@0.2.23
 	fixedbitset@0.4.2
 	fixedbitset@0.5.7
@@ -328,13 +330,14 @@ CRATES="
 	fluent-uri@0.1.4
 	fnv@1.0.7
 	foldhash@0.1.4
+	foldhash@0.2.0
 	foreign-types-macros@0.2.3
 	foreign-types-shared@0.1.1
 	foreign-types-shared@0.3.1
 	foreign-types@0.3.2
 	foreign-types@0.5.0
-	form_urlencoded@1.2.1
-	fqdn@0.4.6
+	form_urlencoded@1.2.2
+	fqdn@0.5.2
 	from_variant@3.0.0
 	fs3@0.5.0
 	fs_extra@1.3.0
@@ -356,27 +359,28 @@ CRATES="
 	getrandom@0.2.14
 	getrandom@0.3.3
 	ghash@0.5.1
+	gif@0.13.1
 	gimli@0.31.1
 	gl_generator@0.14.0
 	glob@0.3.1
 	globset@0.4.14
 	glow@0.16.0
 	glutin_wgl_sys@0.6.1
-	gpu-alloc-types@0.3.0
-	gpu-alloc@0.6.0
-	gpu-allocator@0.27.0
+	gpu-allocator@0.28.0
 	gpu-descriptor-types@0.2.0
-	gpu-descriptor@0.3.0
+	gpu-descriptor@0.3.2
 	group@0.13.0
 	gzip-header@1.0.0
 	h2@0.3.26
 	h2@0.4.7
+	half@2.7.1
 	halfbrown@0.2.5
 	handlebars@6.1.0
 	hash32@0.3.1
 	hashbrown@0.12.3
 	hashbrown@0.14.5
 	hashbrown@0.15.5
+	hashbrown@0.16.0
 	hashlink@0.10.0
 	hashlink@0.8.4
 	hdrhistogram@7.5.4
@@ -422,17 +426,20 @@ CRATES="
 	icu_normalizer@1.5.0
 	icu_normalizer_data@1.5.0
 	icu_properties@1.5.1
+	icu_properties@2.1.1
 	icu_properties_data@1.5.0
+	icu_properties_data@2.1.1
 	icu_provider@1.5.0
 	icu_provider@2.1.1
 	icu_provider_macros@1.5.0
 	ident_case@1.0.1
-	idna@1.0.3
+	idna@1.1.0
 	idna_adapter@1.2.0
 	if_chain@1.0.2
 	ignore@0.4.20
+	image-webp@0.2.1
 	image@0.25.4
-	import_map@0.24.0
+	import_map@0.25.0
 	indexmap@1.9.3
 	indexmap@2.9.0
 	inotify-sys@0.1.5
@@ -481,7 +488,7 @@ CRATES="
 	libm@0.2.8
 	libredox@0.1.3
 	libsqlite3-sys@0.35.0
-	libsui@0.12.5
+	libsui@0.12.6
 	libuv-sys-lite@1.48.2
 	libz-sys@1.1.20
 	linux-raw-sys@0.4.13
@@ -494,6 +501,8 @@ CRATES="
 	loom@0.7.2
 	lru-slab@0.1.2
 	lsp-types@0.97.0
+	macro_rules_attribute-proc_macro@0.2.2
+	macro_rules_attribute@0.2.2
 	malloc_buf@0.0.6
 	malva@0.12.1
 	markup_fmt@0.22.0
@@ -505,7 +514,7 @@ CRATES="
 	memchr@2.7.5
 	memmap2@0.9.5
 	memoffset@0.9.1
-	metal@0.31.0
+	metal@0.33.0
 	mime@0.3.17
 	minimal-lexical@0.2.1
 	miniz_oxide@0.7.2
@@ -516,21 +525,22 @@ CRATES="
 	moka@0.12.10
 	monch@0.5.0
 	multimap@0.8.3
-	naga@24.0.0
+	naga@28.0.0
 	napi-build@1.2.1
 	napi-sys@2.2.2
-	ndk-sys@0.5.0+25.2.9519653
+	ndk-sys@0.6.0+11769913
 	netif@0.1.6
 	new_debug_unreachable@1.0.6
 	nibble_vec@0.1.0
 	nix@0.27.1
 	nix@0.29.0
+	node_shim@0.2.0
 	nom@5.1.3
 	nom@7.1.3
 	notify@6.1.1
 	ntapi@0.4.1
 	nu-ansi-term@0.50.1
-	num-bigint-dig@0.8.4
+	num-bigint-dig@0.8.6
 	num-bigint@0.4.6
 	num-complex@0.4.6
 	num-conv@0.1.0
@@ -542,6 +552,7 @@ CRATES="
 	num_cpus@1.16.0
 	objc@0.2.7
 	object@0.36.3
+	ocb3@0.1.0
 	oid-registry@0.6.1
 	once_cell@1.21.3
 	opaque-debug@0.3.1
@@ -576,7 +587,7 @@ CRATES="
 	pathdiff@0.2.1
 	pbkdf2@0.12.2
 	pem-rfc7468@0.7.0
-	percent-encoding@2.3.1
+	percent-encoding@2.3.2
 	pest@2.7.15
 	pest_derive@2.7.15
 	pest_generator@2.7.15
@@ -618,6 +629,7 @@ CRATES="
 	psm@0.1.21
 	pulldown-cmark@0.11.2
 	quick-error@1.2.3
+	quick-error@2.0.1
 	quick-junit@0.3.6
 	quick-xml@0.31.0
 	quinn-proto@0.11.12
@@ -631,13 +643,13 @@ CRATES="
 	raffia@0.9.2
 	raffia_macro@0.1.1
 	rand@0.8.5
-	rand@0.9.1
+	rand@0.9.2
 	rand_chacha@0.3.1
 	rand_chacha@0.9.0
 	rand_core@0.6.4
 	rand_core@0.9.3
 	range-alloc@0.1.3
-	raw-window-handle@0.6.1
+	raw-window-handle@0.6.2
 	rayon-core@1.13.0
 	rayon@1.11.0
 	redox_syscall@0.4.1
@@ -657,9 +669,9 @@ CRATES="
 	ring@0.17.14
 	ripemd@0.1.3
 	rmp@0.8.14
-	ron@0.8.1
+	ron@0.12.0
 	rowan@0.15.15
-	rsa@0.9.6
+	rsa@0.9.10
 	runtimelib@0.28.0
 	rusqlite@0.37.0
 	rustc-demangle@0.1.24
@@ -707,7 +719,7 @@ CRATES="
 	serde_json@1.0.140
 	serde_repr@0.1.19
 	serde_urlencoded@0.7.1
-	serde_v8@0.285.0
+	serde_v8@0.289.0
 	serdect@0.2.0
 	servo_arc@0.4.1
 	sha1@0.10.6
@@ -724,7 +736,7 @@ CRATES="
 	signature@2.2.0
 	simd-adler32@0.3.7
 	simd-json@0.14.0
-	simdutf8@0.1.4
+	simdutf8@0.1.5
 	siphasher@0.3.11
 	siphasher@1.0.1
 	slab@0.4.9
@@ -749,9 +761,7 @@ CRATES="
 	stringcase@0.4.0
 	strip-ansi-escapes@0.2.0
 	strsim@0.11.1
-	strum@0.26.3
 	strum@0.27.1
-	strum_macros@0.26.4
 	strum_macros@0.27.1
 	subtle@2.5.0
 	swc_allocator@4.0.1
@@ -786,7 +796,7 @@ CRATES="
 	sync_wrapper@1.0.1
 	synstructure@0.12.6
 	synstructure@0.13.1
-	sys_traits@0.1.17
+	sys_traits@0.1.22
 	sys_traits_macros@0.1.0
 	tagptr@0.2.0
 	tap@1.0.1
@@ -841,13 +851,9 @@ CRATES="
 	twox-hash@1.6.3
 	twox-hash@2.1.0
 	typed-arena@2.0.2
+	typeid@1.0.3
 	typenum@1.17.0
 	ucd-trie@0.1.6
-	unic-char-property@0.9.0
-	unic-char-range@0.9.0
-	unic-common@0.9.0
-	unic-ucd-ident@0.9.0
-	unic-ucd-version@0.9.0
 	unicase@2.7.0
 	unicode-id-start@1.2.0
 	unicode-ident@1.0.12
@@ -860,8 +866,8 @@ CRATES="
 	universal-hash@0.5.1
 	untrusted@0.7.1
 	untrusted@0.9.0
-	url@2.5.4
-	urlpattern@0.3.0
+	url@2.5.7
+	urlpattern@0.4.2
 	utf-8@0.7.6
 	utf16_iter@1.0.5
 	utf8-width@0.1.7
@@ -898,27 +904,45 @@ CRATES="
 	web-transport-proto@0.2.7
 	webpki-root-certs@0.26.6
 	webpki-roots@0.26.1
-	wgpu-core@24.0.0
-	wgpu-hal@24.0.0
-	wgpu-types@24.0.0
+	weezl@0.1.8
+	wgpu-core-deps-apple@28.0.0
+	wgpu-core-deps-emscripten@28.0.0
+	wgpu-core-deps-windows-linux-android@28.0.0
+	wgpu-core@28.0.0
+	wgpu-hal@28.0.0
+	wgpu-types@28.0.0
 	which@4.4.2
 	which@6.0.1
 	which@8.0.0
 	whoami@1.6.0
 	wide@0.7.33
 	widestring@1.1.0
-	win32job@2.0.0
+	win32job@2.0.3
 	winapi-i686-pc-windows-gnu@0.4.0
 	winapi-util@0.1.6
 	winapi-x86_64-pc-windows-gnu@0.4.0
 	winapi@0.3.9
-	windows-core@0.52.0
+	windows-collections@0.2.0
+	windows-collections@0.3.2
 	windows-core@0.58.0
+	windows-core@0.61.2
+	windows-core@0.62.2
+	windows-future@0.2.1
+	windows-future@0.3.2
 	windows-implement@0.58.0
+	windows-implement@0.60.2
 	windows-interface@0.58.0
+	windows-interface@0.59.3
 	windows-link@0.1.3
+	windows-link@0.2.1
+	windows-numerics@0.2.0
+	windows-numerics@0.3.1
 	windows-result@0.2.0
+	windows-result@0.3.4
+	windows-result@0.4.1
 	windows-strings@0.1.0
+	windows-strings@0.4.2
+	windows-strings@0.5.1
 	windows-sys@0.48.0
 	windows-sys@0.52.0
 	windows-sys@0.59.0
@@ -926,8 +950,11 @@ CRATES="
 	windows-targets@0.48.5
 	windows-targets@0.52.6
 	windows-targets@0.53.3
-	windows@0.52.0
+	windows-threading@0.1.0
+	windows-threading@0.2.1
 	windows@0.58.0
+	windows@0.61.3
+	windows@0.62.2
 	windows_aarch64_gnullvm@0.48.5
 	windows_aarch64_gnullvm@0.52.6
 	windows_aarch64_gnullvm@0.53.0
@@ -973,7 +1000,9 @@ CRATES="
 	yoke@0.7.4
 	yoke@0.8.0
 	zerocopy-derive@0.7.32
+	zerocopy-derive@0.8.27
 	zerocopy@0.7.32
+	zerocopy@0.8.27
 	zerofrom-derive@0.1.4
 	zerofrom@0.1.4
 	zeroize@1.8.1
