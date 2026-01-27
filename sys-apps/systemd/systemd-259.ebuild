@@ -1,4 +1,4 @@
-# Copyright 2011-2025 Gentoo Authors
+# Copyright 2011-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -278,6 +278,7 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
+		"${FILESDIR}/systemd-259-vmspawn-use-indexed-loop.patch"
 	)
 
 	if ! use vanilla; then
