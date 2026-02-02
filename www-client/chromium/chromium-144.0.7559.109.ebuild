@@ -82,7 +82,10 @@ LICENSE+=" SGI-B-2.0 SSLeay SunSoft Unicode-3.0 Unicode-DFS-2015 Unlicense UoI-N
 LICENSE+=" rar? ( unRAR )"
 
 SLOT="0/stable"
+# Dev exists mostly to give devs some breathing room for beta/stable releases;
+# it shouldn't be keyworded but adventurous users can select it.
 KEYWORDS="~amd64 ~arm64"
+
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-zstd"
 IUSE="hevc +X ${IUSE_SYSTEM_LIBS} bindist bundled-toolchain cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo"
 IUSE+=" +proprietary-codecs pulseaudio qt6 +rar +screencast selinux test +vaapi +wayland +widevine cpu_flags_ppc_vsx3"
