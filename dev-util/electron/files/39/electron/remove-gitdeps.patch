@@ -1,8 +1,8 @@
 diff --git a/spec/package.json b/spec/package.json
-index 545e704362..e271e5ae7b 100644
+index cc18041797..259f188103 100644
 --- a/spec/package.json
 +++ b/spec/package.json
-@@ -27,13 +27,11 @@
+@@ -26,13 +26,11 @@
      "@types/uuid": "^3.4.6",
      "@types/w3c-web-serial": "^1.0.7",
      "@types/ws": "^7.2.0",
@@ -17,10 +17,10 @@ index 545e704362..e271e5ae7b 100644
      "express": "^4.20.0",
      "graceful-fs": "^4.1.15",
 diff --git a/yarn.lock b/yarn.lock
-index 16f5e1d62a..f594c67e63 100644
+index 9be4f8959f..accee9a28a 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -981,13 +981,6 @@ __metadata:
+@@ -1045,13 +1045,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -34,7 +34,7 @@ index 16f5e1d62a..f594c67e63 100644
  "@npmcli/agent@npm:^3.0.0":
    version: 3.0.0
    resolution: "@npmcli/agent@npm:3.0.0"
-@@ -2481,16 +2474,6 @@ __metadata:
+@@ -2526,16 +2519,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -51,7 +51,7 @@ index 16f5e1d62a..f594c67e63 100644
  "accepts@npm:~1.3.8":
    version: 1.3.8
    resolution: "accepts@npm:1.3.8"
-@@ -3110,15 +3093,6 @@ __metadata:
+@@ -3155,15 +3138,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -67,7 +67,7 @@ index 16f5e1d62a..f594c67e63 100644
  "bl@npm:^4.1.0":
    version: 4.1.0
    resolution: "bl@npm:4.1.0"
-@@ -4107,27 +4081,6 @@ __metadata:
+@@ -4152,27 +4126,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -95,7 +95,7 @@ index 16f5e1d62a..f594c67e63 100644
  "debug@npm:2.6.9, debug@npm:^2.2.0":
    version: 2.6.9
    resolution: "debug@npm:2.6.9"
-@@ -4473,13 +4426,6 @@ __metadata:
+@@ -4508,13 +4461,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -109,7 +109,7 @@ index 16f5e1d62a..f594c67e63 100644
  "duplexer@npm:~0.1.1":
    version: 0.1.1
    resolution: "duplexer@npm:0.1.1"
-@@ -4535,13 +4481,11 @@ __metadata:
+@@ -4569,13 +4515,11 @@ __metadata:
      "@types/uuid": "npm:^3.4.6"
      "@types/w3c-web-serial": "npm:^1.0.7"
      "@types/ws": "npm:^7.2.0"
@@ -123,7 +123,7 @@ index 16f5e1d62a..f594c67e63 100644
      dirty-chai: "npm:^2.0.1"
      express: "npm:^4.20.0"
      graceful-fs: "npm:^4.1.15"
-@@ -5626,21 +5570,6 @@ __metadata:
+@@ -5592,21 +5536,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -145,7 +145,7 @@ index 16f5e1d62a..f594c67e63 100644
  "eventemitter3@npm:^5.0.1":
    version: 5.0.1
    resolution: "eventemitter3@npm:5.0.1"
-@@ -5886,13 +5815,6 @@ __metadata:
+@@ -5852,13 +5781,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -159,7 +159,7 @@ index 16f5e1d62a..f594c67e63 100644
  "filename-reserved-regex@npm:^2.0.0":
    version: 2.0.0
    resolution: "filename-reserved-regex@npm:2.0.0"
-@@ -6086,13 +6008,6 @@ __metadata:
+@@ -6052,13 +5974,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -173,7 +173,7 @@ index 16f5e1d62a..f594c67e63 100644
  "fs-extra@npm:^10.0.0, fs-extra@npm:^10.1.0":
    version: 10.1.0
    resolution: "fs-extra@npm:10.1.0"
-@@ -6829,15 +6744,6 @@ __metadata:
+@@ -6795,15 +6710,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -189,7 +189,7 @@ index 16f5e1d62a..f594c67e63 100644
  "hosted-git-info@npm:^2.1.4":
    version: 2.8.9
    resolution: "hosted-git-info@npm:2.8.9"
-@@ -8284,13 +8190,6 @@ __metadata:
+@@ -8250,13 +8156,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -203,7 +203,7 @@ index 16f5e1d62a..f594c67e63 100644
  "longest-streak@npm:^3.0.0":
    version: 3.0.0
    resolution: "longest-streak@npm:3.0.0"
-@@ -8406,13 +8305,6 @@ __metadata:
+@@ -8372,13 +8271,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -217,7 +217,7 @@ index 16f5e1d62a..f594c67e63 100644
  "markdown-extensions@npm:^2.0.0":
    version: 2.0.0
    resolution: "markdown-extensions@npm:2.0.0"
-@@ -9226,13 +9118,6 @@ __metadata:
+@@ -9192,13 +9084,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -231,7 +231,7 @@ index 16f5e1d62a..f594c67e63 100644
  "minimist@npm:^1.0.0, minimist@npm:^1.2.0, minimist@npm:^1.2.5, minimist@npm:^1.2.6, minimist@npm:^1.2.8, minimist@npm:~1.2.0":
    version: 1.2.8
    resolution: "minimist@npm:1.2.8"
-@@ -9528,15 +9413,6 @@ __metadata:
+@@ -9494,15 +9379,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -247,7 +247,7 @@ index 16f5e1d62a..f594c67e63 100644
  "node-fetch@npm:^2.6.1":
    version: 2.6.8
    resolution: "node-fetch@npm:2.6.8"
-@@ -9913,16 +9789,6 @@ __metadata:
+@@ -9879,16 +9755,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -264,7 +264,7 @@ index 16f5e1d62a..f594c67e63 100644
  "optionator@npm:^0.9.3":
    version: 0.9.4
    resolution: "optionator@npm:0.9.4"
-@@ -10356,15 +10222,6 @@ __metadata:
+@@ -10322,15 +10188,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -280,7 +280,7 @@ index 16f5e1d62a..f594c67e63 100644
  "pdfjs-dist@npm:4.2.67":
    version: 4.2.67
    resolution: "pdfjs-dist@npm:4.2.67"
-@@ -11958,7 +11815,7 @@ __metadata:
+@@ -11924,7 +11781,7 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -289,7 +289,23 @@ index 16f5e1d62a..f594c67e63 100644
    version: 5.2.1
    resolution: "safe-buffer@npm:5.2.1"
    checksum: 10c0/6501914237c0a86e9675d4e51d89ca3c21ffd6a31642efeba25ad65720bce6921c9e7e974e5be91a786b25aa058b5303285d3c15dbabf983a919f5f630d349f3
-@@ -12634,16 +12491,6 @@ __metadata:
+@@ -12469,15 +12326,6 @@ __metadata:
+   languageName: node
+   linkType: hard
+ 
+-"split@npm:^1.0.1":
+-  version: 1.0.1
+-  resolution: "split@npm:1.0.1"
+-  dependencies:
+-    through: "npm:2"
+-  checksum: 10c0/7f489e7ed5ff8a2e43295f30a5197ffcb2d6202c9cf99357f9690d645b19c812bccf0be3ff336fea5054cda17ac96b91d67147d95dbfc31fbb5804c61962af85
+-  languageName: node
+-  linkType: hard
+-
+ "sprintf-js@npm:^1.1.2":
+   version: 1.1.2
+   resolution: "sprintf-js@npm:1.1.2"
+@@ -12600,16 +12448,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -306,16 +322,16 @@ index 16f5e1d62a..f594c67e63 100644
  "stream-json@npm:^1.9.1":
    version: 1.9.1
    resolution: "stream-json@npm:1.9.1"
-@@ -13150,7 +12997,7 @@ __metadata:
+@@ -13116,7 +12954,7 @@ __metadata:
    languageName: node
    linkType: hard
  
 -"through@npm:2, through@npm:^2.3.6, through@npm:^2.3.8, through@npm:~2.3, through@npm:~2.3.4":
-+"through@npm:2, through@npm:^2.3.6":
++"through@npm:^2.3.6":
    version: 2.3.8
    resolution: "through@npm:2.3.8"
    checksum: 10c0/4b09f3774099de0d4df26d95c5821a62faee32c7e96fb1f4ebd54a2d7c11c57fe88b0a0d49cf375de5fee5ae6bf4eb56dbbf29d07366864e2ee805349970d3cc
-@@ -14353,13 +14200,6 @@ __metadata:
+@@ -14319,13 +14157,6 @@ __metadata:
    languageName: node
    linkType: hard
  
