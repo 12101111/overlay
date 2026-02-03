@@ -4,34 +4,34 @@
 EAPI=8
 
 GN_MIN_VER=0.2235
-LLVM_COMPAT=( 20 21 )
+LLVM_COMPAT=( 21 )
 RUST_NEEDS_LLVM=1
 PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
-RUST_MIN_VER=1.87.0
+RUST_MIN_VER=1.92.0
 
-V8_VER=142.2.0
+V8_VER=145.0.0
 STACKER_VER=0.1.15
-TEMPORAL_CAPI="temporal_capi-0.1.0"
+TEMPORAL_CAPI="temporal_capi-0.1.2"
 
 CRATES="
 	autocfg@1.4.0
 	bytes@1.10.1
-	calendrical_calculations@0.2.2
+	calendrical_calculations@0.2.3
 	combine@4.6.7
 	core_maths@0.1.1
-	diplomat-runtime@0.13.0
-	diplomat@0.13.0
-	diplomat_core@0.13.0
+	diplomat-runtime@0.14.0
+	diplomat@0.14.0
+	diplomat_core@0.14.0
 	displaydoc@0.2.5
-	icu_calendar@2.0.3
-	icu_calendar_data@2.0.0
-	icu_collections@2.0.0
-	icu_locale@2.0.0
-	icu_locale_core@2.0.0
-	icu_locale_data@2.0.0
-	icu_provider@2.0.0
-	ixdtf@0.6.2
+	icu_calendar@2.1.0
+	icu_calendar_data@2.1.0
+	icu_collections@2.1.0
+	icu_locale@2.1.0
+	icu_locale_core@2.1.0
+	icu_locale_data@2.1.0
+	icu_provider@2.1.0
+	ixdtf@0.6.4
 	jiff-tzdb@0.1.4
 	libm@0.2.15
 	litemap@0.8.0
@@ -49,18 +49,18 @@ CRATES="
 	strck@1.0.0
 	syn@2.0.106
 	synstructure@0.13.2
-	temporal_rs@0.1.0
-	timezone_provider@0.1.0
+	temporal_rs@0.1.2
+	timezone_provider@0.1.2
 	tinystr@0.8.1
 	tzif@0.4.0
 	unicode-ident@1.0.18
-	writeable@0.6.1
+	writeable@0.6.2
 	yoke-derive@0.8.0
 	yoke@0.8.0
 	zerofrom-derive@0.1.6
 	zerofrom@0.1.6
-	zerotrie@0.2.2
-	zerovec-derive@0.11.1
+	zerotrie@0.2.3
+	zerovec-derive@0.11.2
 	zerovec@0.11.4
 	zoneinfo64@0.2.0
 	Inflector@0.11.4
@@ -154,9 +154,9 @@ CRATES="
 	chrono@0.4.42
 	cipher@0.4.4
 	clang-sys@1.8.1
-	clap@4.5.47
-	clap_builder@4.5.47
-	clap_complete@4.5.57
+	clap@4.5.56
+	clap_builder@4.5.56
+	clap_complete@4.5.65
 	clap_complete_fig@4.5.2
 	clap_lex@0.7.4
 	clipboard-win@5.3.0
@@ -224,7 +224,7 @@ CRATES="
 	deno-tower-lsp-macros@0.11.3
 	deno_ast@0.52.0
 	deno_cache_dir@0.26.3
-	deno_core@0.380.1
+	deno_core@0.383.0
 	deno_doc@0.189.1
 	deno_error@0.7.1
 	deno_error_macro@0.7.1
@@ -233,9 +233,9 @@ CRATES="
 	deno_lockfile@0.32.2
 	deno_media_type@0.3.0
 	deno_native_certs@0.3.0
-	deno_npm@0.42.3
-	deno_ops@0.256.0
-	deno_panic@0.1.0
+	deno_npm@0.43.0
+	deno_ops@0.259.0
+	deno_panic@0.2.0
 	deno_path_util@0.6.4
 	deno_semver@0.9.1
 	deno_task_shell@0.28.0
@@ -264,9 +264,9 @@ CRATES="
 	dhat@0.3.3
 	diff@0.1.13
 	digest@0.10.7
-	diplomat-runtime@0.13.1
-	diplomat@0.13.0
-	diplomat_core@0.13.0
+	diplomat-runtime@0.14.0
+	diplomat@0.14.0
+	diplomat_core@0.14.0
 	dirs-sys@0.4.1
 	dirs@5.0.1
 	displaydoc@0.2.4
@@ -303,11 +303,14 @@ CRATES="
 	env_filter@0.1.3
 	env_logger@0.11.6
 	equivalent@1.0.1
+	errno-dragonfly@0.1.2
+	errno@0.2.8
 	errno@0.3.10
 	error-code@3.2.0
 	error_reporter@1.0.0
 	esbuild_client@0.7.1
-	eszip@0.107.0
+	eszip@0.108.0
+	exec@0.3.1
 	fallible-iterator@0.3.0
 	fallible-streaming-iterator@0.1.9
 	fancy-regex@0.14.0
@@ -496,6 +499,7 @@ CRATES="
 	litemap@0.8.0
 	litrs@0.4.1
 	lock_api@0.4.11
+	locked-tripwire@0.1.1
 	log@0.4.28
 	lol_html@2.6.0
 	loom@0.7.2
@@ -534,7 +538,6 @@ CRATES="
 	nibble_vec@0.1.0
 	nix@0.27.1
 	nix@0.29.0
-	node_shim@0.2.0
 	nom@5.1.3
 	nom@7.1.3
 	notify@6.1.1
@@ -719,7 +722,7 @@ CRATES="
 	serde_json@1.0.140
 	serde_repr@0.1.19
 	serde_urlencoded@0.7.1
-	serde_v8@0.289.0
+	serde_v8@0.292.0
 	serdect@0.2.0
 	servo_arc@0.4.1
 	sha1@0.10.6
@@ -803,8 +806,8 @@ CRATES="
 	tar@0.4.43
 	target-lexicon@0.13.2
 	tempfile@3.10.1
-	temporal_capi@0.1.0
-	temporal_rs@0.1.1
+	temporal_capi@0.1.2
+	temporal_rs@0.1.2
 	termcolor@1.4.1
 	terminal_size@0.4.1
 	text-size@1.1.1
@@ -818,7 +821,7 @@ CRATES="
 	time-core@0.1.2
 	time-macros@0.2.18
 	time@0.3.36
-	timezone_provider@0.1.1
+	timezone_provider@0.1.2
 	tiny_pretty@0.2.0
 	tinystr@0.7.6
 	tinystr@0.8.1
@@ -874,7 +877,7 @@ CRATES="
 	utf8_iter@1.0.4
 	utf8parse@0.2.1
 	uuid@1.8.0
-	v8@142.2.0
+	v8@145.0.0
 	v8_valueserializer@0.1.1
 	valuable@0.1.0
 	value-trait@0.10.0
@@ -1102,7 +1105,7 @@ src_prepare() {
 	fi
 	eapply "${FILESDIR}/disable_v8_rust.patch"
 	eapply "${FILESDIR}/fix-icu-private-header.patch"
-	eapply "${FILESDIR}/build_from_source-M140.patch"
+	eapply "${FILESDIR}/build_from_source-M145.patch"
 	eapply "${FILESDIR}/v8-use-system-libraries.patch"
 	eapply "${FILESDIR}/v8-compiler.patch"
 	if [[ -z "${CXXSTDLIB}" ]]; then
