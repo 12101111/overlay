@@ -71,7 +71,7 @@ https://registry.npmjs.org/@electron/fuses/-/fuses-1.8.0.tgz -> @electron-fuses-
 https://registry.npmjs.org/@electron/get/-/get-2.0.2.tgz -> @electron-get-2.0.2.tgz
 https://registry.npmjs.org/@electron/get/-/get-3.1.0.tgz -> @electron-get-3.1.0.tgz
 https://registry.npmjs.org/@electron/github-app-auth/-/github-app-auth-3.2.0.tgz -> @electron-github-app-auth-3.2.0.tgz
-https://registry.npmjs.org/@electron/lint-roller/-/lint-roller-3.1.2.tgz -> @electron-lint-roller-3.1.2.tgz
+https://registry.npmjs.org/@electron/lint-roller/-/lint-roller-3.2.0.tgz -> @electron-lint-roller-3.2.0.tgz
 https://registry.npmjs.org/@electron/notarize/-/notarize-2.5.0.tgz -> @electron-notarize-2.5.0.tgz
 https://registry.npmjs.org/@electron/osx-sign/-/osx-sign-1.3.3.tgz -> @electron-osx-sign-1.3.3.tgz
 https://registry.npmjs.org/@electron/packager/-/packager-18.4.4.tgz -> @electron-packager-18.4.4.tgz
