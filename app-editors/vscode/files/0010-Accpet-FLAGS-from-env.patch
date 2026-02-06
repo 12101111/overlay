@@ -1,4 +1,4 @@
-From fb886ae06d6bd1e47a50643b3132b2a367afd026 Mon Sep 17 00:00:00 2001
+From 8f5e9d4c37eb98a055ce8dcdda4cc3fd6767e8c3 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 4 Jan 2026 21:36:37 +0800
 Subject: [PATCH 10/11] Accpet FLAGS from env
@@ -8,10 +8,10 @@ Subject: [PATCH 10/11] Accpet FLAGS from env
  1 file changed, 7 deletions(-)
 
 diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
-index 3ef3afc9200..a5cc7c3804c 100644
+index 4da6eaab37d..122ba1a61b7 100644
 --- a/build/npm/postinstall.ts
 +++ b/build/npm/postinstall.ts
-@@ -159,17 +159,10 @@ for (const dir of dirs) {
+@@ -190,17 +190,10 @@ for (const dir of dirs) {
  		};
  		if (process.env['VSCODE_REMOTE_CC']) {
  			opts.env!['CC'] = process.env['VSCODE_REMOTE_CC'];
@@ -30,5 +30,5 @@ index 3ef3afc9200..a5cc7c3804c 100644
  		if (process.env['VSCODE_REMOTE_LDFLAGS']) { opts.env!['LDFLAGS'] = process.env['VSCODE_REMOTE_LDFLAGS']; }
  		if (process.env['VSCODE_REMOTE_NODE_GYP']) { opts.env!['npm_config_node_gyp'] = process.env['VSCODE_REMOTE_NODE_GYP']; }
 -- 
-2.52.0
+2.53.0
 

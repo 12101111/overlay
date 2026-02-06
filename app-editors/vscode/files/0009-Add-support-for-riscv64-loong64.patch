@@ -1,4 +1,4 @@
-From 676a49d3ed7373e511f7863ef45d69dfe24e83dd Mon Sep 17 00:00:00 2001
+From 63ffaf7d591e285b19ae7cb6182ac665700209e4 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 4 Jan 2026 21:35:18 +0800
 Subject: [PATCH 09/11] Add support for riscv64, loong64
@@ -56,10 +56,10 @@ index aab174b7e31..73d0c2fb645 100644
  
  BUILD_TARGETS.forEach(({ arch }) => {
 diff --git a/build/gulpfile.vscode.ts b/build/gulpfile.vscode.ts
-index d52ec506302..e3687c3f156 100644
+index 9466400faf1..89daca0b02f 100644
 --- a/build/gulpfile.vscode.ts
 +++ b/build/gulpfile.vscode.ts
-@@ -511,6 +511,8 @@ const BUILD_TARGETS = [
+@@ -508,6 +508,8 @@ const BUILD_TARGETS = [
  	{ platform: 'linux', arch: 'x64' },
  	{ platform: 'linux', arch: 'armhf' },
  	{ platform: 'linux', arch: 'arm64' },
@@ -69,7 +69,7 @@ index d52ec506302..e3687c3f156 100644
  BUILD_TARGETS.forEach(buildTarget => {
  	const dashed = (str: string) => (str ? `-${str}` : ``);
 diff --git a/src/vs/platform/extensionManagement/common/extensionManagement.ts b/src/vs/platform/extensionManagement/common/extensionManagement.ts
-index 34eaca06df6..5b5e04ad1e4 100644
+index ab11f6bb950..4fd7a6476b6 100644
 --- a/src/vs/platform/extensionManagement/common/extensionManagement.ts
 +++ b/src/vs/platform/extensionManagement/common/extensionManagement.ts
 @@ -46,6 +46,8 @@ export function TargetPlatformToString(targetPlatform: TargetPlatform) {
@@ -104,10 +104,10 @@ index 34eaca06df6..5b5e04ad1e4 100644
  
  		case 'alpine':
 diff --git a/src/vs/platform/extensions/common/extensions.ts b/src/vs/platform/extensions/common/extensions.ts
-index 4c5d20c9b13..c85df5022c9 100644
+index 021ad016e02..693ecf2bfb2 100644
 --- a/src/vs/platform/extensions/common/extensions.ts
 +++ b/src/vs/platform/extensions/common/extensions.ts
-@@ -328,6 +328,8 @@ export const enum TargetPlatform {
+@@ -340,6 +340,8 @@ export const enum TargetPlatform {
  	LINUX_X64 = 'linux-x64',
  	LINUX_ARM64 = 'linux-arm64',
  	LINUX_ARMHF = 'linux-armhf',
@@ -117,5 +117,5 @@ index 4c5d20c9b13..c85df5022c9 100644
  	ALPINE_X64 = 'alpine-x64',
  	ALPINE_ARM64 = 'alpine-arm64',
 -- 
-2.52.0
+2.53.0
 

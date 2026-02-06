@@ -1,6 +1,6 @@
-From 74ea310cba5b9601a74d5ac64d651636c26f450a Mon Sep 17 00:00:00 2001
+From f6e9717ef334f930623cd6bc24942a3a6e4cc266 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 4 Jan 2026 21:32:02 +0800
+Date: Fri, 6 Feb 2026 11:40:22 +0800
 Subject: [PATCH 05/11] Build without electron
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 05/11] Build without electron
  2 files changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/build/gulpfile.vscode.ts b/build/gulpfile.vscode.ts
-index d3ab651ef2e..d52ec506302 100644
+index 358bb3acad3..9466400faf1 100644
 --- a/build/gulpfile.vscode.ts
 +++ b/build/gulpfile.vscode.ts
 @@ -11,7 +11,6 @@ import vfs from 'vinyl-fs';
@@ -20,7 +20,7 @@ index d3ab651ef2e..d52ec506302 100644
  import jsonEditor from 'gulp-json-editor';
  import * as util from './lib/util.ts';
  import { getVersion } from './lib/getVersion.ts';
-@@ -212,6 +211,13 @@ function computeChecksum(filename: string): string {
+@@ -213,6 +212,13 @@ function computeChecksum(filename: string): string {
  	return hash;
  }
  
@@ -34,11 +34,11 @@ index d3ab651ef2e..d52ec506302 100644
  function packageTask(platform: string, arch: string, sourceFolderName: string, destinationFolderName: string, _opts?: { stats?: boolean }) {
  	const destination = path.join(path.dirname(root), destinationFolderName);
  	platform = platform || process.platform;
-@@ -377,7 +383,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
+@@ -374,7 +380,7 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
  			.pipe(util.skipDirectories())
  			.pipe(util.fixWin32DirectoryPermissions())
  			.pipe(filter(['**', '!**/.github/**'], { dot: true })) // https://github.com/microsoft/vscode/issues/116523
--			.pipe(electron({ ...config, platform, arch: arch === 'armhf' ? 'arm' : arch, ffmpegChromium: false, ...customElectronConfig }))
+-			.pipe(electron({ ...config, platform, arch: arch === 'armhf' ? 'arm' : arch, ffmpegChromium: false }))
 +			.pipe(moveApp())
  			.pipe(filter(['**', '!LICENSE', '!version'], { dot: true }));
  
@@ -58,5 +58,5 @@ index 3476fcabb50..2d4555f5244 100644
  	child_process.execSync(`${npm} ${process.env.npm_command || 'ci'}`, {
  		env: process.env,
 -- 
-2.52.0
+2.53.0
 

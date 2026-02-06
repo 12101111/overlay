@@ -1,4 +1,4 @@
-From 0f51bdb1d21a238558ad6d63ffb243532d04c71e Mon Sep 17 00:00:00 2001
+From da022d76f47aee2004c67e39f1a91e3718ed1474 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Mon, 10 Mar 2025 15:07:55 +0800
 Subject: [PATCH 07/11] Don't warn electron args
@@ -33,5 +33,5 @@ index 35a833d5f90..05052ba47ab 100644
  	_: { type: 'string[]' } // main arguments
  };
 -- 
-2.52.0
+2.53.0
 

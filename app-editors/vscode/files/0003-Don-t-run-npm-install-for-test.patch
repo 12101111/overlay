@@ -1,12 +1,12 @@
-From 356f6e275f185c0ec145e58b160c992caa25ba3a Mon Sep 17 00:00:00 2001
+From 45982e958402f0b915fbc0076a45a482358bdf45 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 4 Jan 2026 21:29:55 +0800
+Date: Fri, 6 Feb 2026 11:37:48 +0800
 Subject: [PATCH 03/11] Don't run npm install for test
 
 ---
  build/npm/dirs.ts        | 7 -------
- build/npm/postinstall.ts | 3 ---
- 2 files changed, 10 deletions(-)
+ build/npm/postinstall.ts | 2 --
+ 2 files changed, 9 deletions(-)
 
 diff --git a/build/npm/dirs.ts b/build/npm/dirs.ts
 index 48d76e2731a..d71b9cbe292 100644
@@ -27,16 +27,15 @@ index 48d76e2731a..d71b9cbe292 100644
  
  if (existsSync(`${import.meta.dirname}/../../.build/distro/npm`)) {
 diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
-index c4bbbf52960..3ef3afc9200 100644
+index b6a934f74b3..4da6eaab37d 100644
 --- a/build/npm/postinstall.ts
 +++ b/build/npm/postinstall.ts
-@@ -181,6 +181,3 @@ for (const dir of dirs) {
- 
- 	npmInstall(dir, opts);
+@@ -216,5 +216,3 @@ for (const dir of dirs) {
+ 	npmInstall(dir, { env });
  }
--
+ 
 -child_process.execSync('git config pull.rebase merges');
 -child_process.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
 -- 
-2.52.0
+2.53.0
 
