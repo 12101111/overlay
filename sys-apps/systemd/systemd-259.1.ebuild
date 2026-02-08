@@ -24,8 +24,8 @@ else
 	fi
 fi
 
-inherit bash-completion-r1 flag-o-matic linux-info meson-multilib optfeature pam python-single-r1
-inherit secureboot systemd toolchain-funcs udev
+inherit branding flag-o-matic linux-info meson-multilib optfeature pam python-single-r1
+inherit secureboot shell-completion systemd toolchain-funcs udev
 
 DESCRIPTION="System and service manager for Linux"
 HOMEPAGE="https://systemd.io/"
@@ -131,6 +131,7 @@ RDEPEND="${COMMON_DEPEND}
 	>=acct-user/systemd-resolve-0-r1
 	>=acct-user/systemd-timesync-0-r1
 	>=sys-apps/baselayout-2.2
+	elibc_musl? ( >=sys-libs/musl-1.2.5-r8 )
 	ukify? (
 		${PYTHON_DEPS}
 		$(python_gen_cond_dep "${PEFILE_DEPEND}")
@@ -277,14 +278,11 @@ src_unpack() {
 }
 
 src_prepare() {
-	local PATCHES=(
-		"${FILESDIR}/systemd-259-vmspawn-use-indexed-loop.patch"
-	)
+	local PATCHES=()
 
 	if ! use vanilla; then
 		PATCHES+=(
 			"${FILESDIR}/gentoo-journald-audit-r4.patch"
-			"${FILESDIR}/systemd-259-missing-bpf-header-shim.patch"
 		)
 	fi
 
@@ -309,10 +307,12 @@ multilib_src_configure() {
 		-Ddocdir="share/doc/${PF}"
 		# default is developer, bug 918671
 		-Dmode=release
-		-Dsupport-url="https://gentoo.org/support/"
+		-Dsupport-url="${BRANDING_OS_SUPPORT_URL}"
 		-Dpamlibdir="$(getpam_mod_dir)"
+		-Dlibc=$(usex elibc_musl musl glibc)
 		# avoid bash-completion dep
 		-Dbashcompletiondir="$(get_bashcompdir)"
+		-Dzshcompletiondir="$(get_zshcompdir)"
 		-Dsplit-bin=false
 		# Disable compatibility with sysvinit
 		-Dsysvinit-path=
@@ -406,7 +406,6 @@ multilib_src_configure() {
 			-Dnss-systemd=false
 			-Dutmp=false
 			-Dlocaled=false
-			-Dlibc=musl
 		)
 	else
 		myconf+=(
