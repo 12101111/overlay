@@ -122,9 +122,6 @@ multilib_src_configure() {
 	local use_compiler_rt=OFF
 	[[ $(tc-get-c-rtlib) == compiler-rt ]] && use_compiler_rt=ON
 
-	local is_musllibc_like=$(llvm_cmake_use_musl)
-	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON
-
 	local nostdlib_flags=( -nostdlib++ )
 	if ! test_compiler && test_compiler "${nostdlib_flags[@]}"; then
 		local -x LDFLAGS="${LDFLAGS} ${nostdlib_flags[*]}"
@@ -154,7 +151,7 @@ multilib_src_configure() {
 		-DLIBCXX_CXX_ABI_INCLUDE_PATHS=${cxxabi_incs}
 		# we're using our own mechanism for generating linker scripts
 		-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=OFF
-		-DLIBCXX_HAS_MUSL_LIBC=${is_musllibc_like}
+		-DLIBCXX_HAS_MUSL_LIBC=$(llvm_cmake_use_musl)
 		-DLIBCXX_INCLUDE_BENCHMARKS=OFF
 		-DLIBCXX_INCLUDE_TESTS=$(usex test)
 		-DLIBCXX_INSTALL_MODULES=ON
