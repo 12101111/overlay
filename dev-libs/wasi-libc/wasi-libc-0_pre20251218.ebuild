@@ -26,6 +26,11 @@ pkg_pretend() {
 	target_is_not_host || die "${PN} should only be used for cross"
 }
 
+src_prepare() {
+	sed -i 's/-Werror//' "${S}/Makefile" || die
+	default
+}
+
 src_compile() {
 	snapshot=p1
 	thread_model=single
