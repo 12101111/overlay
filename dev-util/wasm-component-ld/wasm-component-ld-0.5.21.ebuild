@@ -21,53 +21,52 @@ CRATES="
 	equivalent@1.0.2
 	errno@0.3.14
 	fastrand@2.3.0
-	foldhash@0.1.5
+	foldhash@0.2.0
 	getrandom@0.3.4
-	hashbrown@0.15.5
 	hashbrown@0.16.1
 	heck@0.5.0
-	id-arena@2.2.1
-	indexmap@2.11.4
+	id-arena@2.3.0
+	indexmap@2.13.0
 	is_terminal_polyfill@1.70.2
 	itoa@1.0.17
 	leb128fmt@0.1.0
 	lexopt@0.3.1
-	libc@0.2.179
+	libc@0.2.180
 	linux-raw-sys@0.11.0
 	log@0.4.29
 	memchr@2.7.6
 	once_cell@1.21.3
 	once_cell_polyfill@1.70.2
-	proc-macro2@1.0.104
-	quote@1.0.42
+	proc-macro2@1.0.105
+	quote@1.0.43
 	r-efi@5.3.0
 	rustix@1.1.3
 	semver@1.0.27
 	serde@1.0.228
 	serde_core@1.0.228
 	serde_derive@1.0.228
-	serde_json@1.0.148
+	serde_json@1.0.149
 	strsim@0.11.1
-	syn@2.0.113
+	syn@2.0.114
 	tempfile@3.24.0
 	unicode-ident@1.0.22
 	unicode-width@0.2.2
 	unicode-xid@0.2.6
 	utf8parse@0.2.2
-	wasi-preview1-component-adapter-provider@40.0.0
+	wasi-preview1-component-adapter-provider@40.0.1
 	wasip2@1.0.1+wasi-0.2.4
-	wasm-encoder@0.243.0
-	wasm-metadata@0.243.0
-	wasmparser@0.243.0
-	wast@243.0.0
-	wat@1.243.0
+	wasm-encoder@0.245.1
+	wasm-metadata@0.245.1
+	wasmparser@0.245.1
+	wast@245.0.1
+	wat@1.245.1
 	windows-link@0.2.1
 	windows-sys@0.61.2
 	winsplit@0.1.0
 	wit-bindgen@0.46.0
-	wit-component@0.243.0
-	wit-parser@0.243.0
-	zmij@1.0.10
+	wit-component@0.245.1
+	wit-parser@0.245.1
+	zmij@1.0.12
 "
 
 inherit cargo
