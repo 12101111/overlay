@@ -25,12 +25,11 @@ EAPI=8
 
 GN_MIN_VER=0.2235
 # chromium-tools/get-chromium-toolchain-strings.py
-TEST_FONT=a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969
-BUNDLED_CLANG_VER=llvmorg-22-init-14273-gea10026b-2
-BUNDLED_RUST_VER=11339a0ef5ed586bb7ea4f85a9b7287880caac3a-1
+TEST_FONT="a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969"
+BUNDLED_CLANG_VER="llvmorg-22-init-14273-gea10026b-2"
+BUNDLED_RUST_VER="11339a0ef5ed586bb7ea4f85a9b7287880caac3a-1"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
-NODE_VER=24.11.1
-
+NODE_VER="24.11.1"
 VIRTUALX_REQUIRED="pgo"
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
@@ -232,6 +231,7 @@ BDEPEND="
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
+	=dev-util/esbuild-0.25.1
 "
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
@@ -522,6 +522,7 @@ src_prepare() {
 		"${FILESDIR}/${PN}-135-oauth2-client-switches.patch"
 		"${FILESDIR}/${PN}-138-nodejs-version-check.patch"
 		"${FILESDIR}/${PN}-cross-compile.patch"
+		"${FILESDIR}/cr144-glibc-2.43.patch"
 	)
 
 	# https://issues.chromium.org/issues/442698344
@@ -629,6 +630,13 @@ src_prepare() {
 		mkdir -p third_party/node/linux/node-linux-x64/bin || die
 	fi
 	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
+	if [[ -f third_party/devtools-frontend/src/third_party/esbuild/esbuild ]]; then
+		rm third_party/devtools-frontend/src/third_party/esbuild/esbuild || die
+	else
+		mkdir -p third_party/devtools-frontend/src/third_party/esbuild || die
+	fi
+	ln -s "${EPREFIX}"/usr/bin/esbuild-0.25.1 third_party/devtools-frontend/src/third_party/esbuild/esbuild || die
+	third_party/devtools-frontend/src/third_party/esbuild/esbuild --version > /dev/null || die
 
 	# adjust python interpreter version
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
