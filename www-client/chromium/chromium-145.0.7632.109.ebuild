@@ -23,13 +23,16 @@ EAPI=8
 # using an external CI system that we have some control over, in case
 # issues pop up again with official tarball generation.
 
-GN_MIN_VER=0.2235
-# chromium-tools/get-chromium-toolchain-strings.py
+GN_MIN_VER=0.2318
+# chromium-tools/get-chromium-toolchain-strings.py (or just use Chromicler)
+# Node for M145+ should be 24.12.0 but that's not packaged in Gentoo yet. See #969145
 TEST_FONT="a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969"
-BUNDLED_CLANG_VER="llvmorg-22-init-14273-gea10026b-2"
-BUNDLED_RUST_VER="11339a0ef5ed586bb7ea4f85a9b7287880caac3a-1"
+BUNDLED_CLANG_VER="llvmorg-22-init-17020-gbd1bd178-2"
+BUNDLED_RUST_VER="a4cfac7093a1c1c7fbdb6bc75d6b6dc4d385fc69-2"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
 NODE_VER="24.11.1"
+ESBUILD_VER="0.25.1" # currently manual
+ROLLUP_VER="4.57.1" # currently manual.
 VIRTUALX_REQUIRED="pgo"
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
@@ -42,6 +45,7 @@ PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.91.0
 RUST_NEEDS_LLVM="yes please"
 RUST_OPTIONAL="yes" # Not actually optional, but we don't need system Rust (or LLVM) with USE=bundled-toolchain
+RUST_REQ_USE="rustfmt" # Upstream run rustfmt on bindgen output, so we need it to be available.
 
 inherit check-reqs chromium-2 desktop flag-o-matic llvm-r1 multiprocessing ninja-utils pax-utils
 inherit python-any-r1 readme.gentoo-r1 rust systemd toolchain-funcs virtualx xdg-utils
@@ -51,10 +55,11 @@ DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
 PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
 PATCH_V="${PV%%\.*}-1"
-COPIUM_COMMIT="bd8cca0b09a9316960853a3150c26e18ed59afd9"
+COPIUM_COMMIT="fe1caafa06f27542c18a881348f78e984e2d9fe2"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
+	https://deps.gentoo.zip/www-client/chromium/rollup-wasm-node-${ROLLUP_VER}.tgz
 	!bundled-toolchain? (
 		https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
 		https://codeberg.org/selfisekai/copium/archive/${COPIUM_COMMIT}.tar.gz
@@ -69,8 +74,8 @@ SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/d
 	loong? (
 		https://github.com/AOSC-Dev/chromium-loongarch64/archive/refs/tags/${PATCHSET_LOONG}.tar.gz -> chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.tar.gz
 	)
-	ppc64? (
-		https://gitlab.raptorengineering.com/raptor-engineering-public/chromium/openpower-patches/-/archive/${PPC64_HASH}/openpower-patches-${PPC64_HASH}.tar.bz2 -> chromium-openpower-${PPC64_HASH:0:10}.tar.bz2
+	test? (
+		https://chromium-fonts.storage.googleapis.com/${TEST_FONT} -> chromium-testfonts-${TEST_FONT:0:10}.tar.gz
 	)
 	pgo? ( https://github.com/elkablo/chromium-profiler/releases/download/v0.2/chromium-profiler-0.2.tar )"
 
@@ -90,7 +95,7 @@ IUSE="hevc +X ${IUSE_SYSTEM_LIBS} bindist bundled-toolchain cups debug ffmpeg-ch
 IUSE+=" +proprietary-codecs pulseaudio qt6 +rar +screencast selinux test +vaapi +wayland +widevine cpu_flags_ppc_vsx3"
 RESTRICT="
 	!bindist? ( bindist )
-	test" # Since M142 tests have been segfaulting on Gentoo systems; disabling for now.
+	!test? ( test )" # Since M142 tests have been segfaulting on Gentoo systems; disabling for now.
 
 REQUIRED_USE="
 	!headless? ( || ( X wayland ) )
@@ -113,6 +118,7 @@ COMMON_X_DEPEND="
 "
 
 # sys-libs/zlib: https://bugs.gentoo.org/930365; -ng is not compatible.
+# We _could_ use the bundled minizip, but that's against policy.
 COMMON_SNAPSHOT_DEPEND="
 	system-icu? ( >=dev-libs/icu-73.0:= )
 	>=dev-libs/libxml2-2.12.4:=[icu]
@@ -225,13 +231,13 @@ BDEPEND="
 	app-alternatives/ninja
 	dev-lang/perl
 	>=dev-util/gperf-3.2
+	dev-util/esbuild:${ESBUILD_VER}
 	dev-vcs/git
 	>=net-libs/nodejs-${NODE_VER}[inspector]
 	sys-apps/hwdata
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
-	=dev-util/esbuild-0.25.1
 "
 
 if ! has chromium_pkg_die ${EBUILD_DEATH_HOOKS}; then
@@ -382,6 +388,13 @@ pkg_setup() {
 		CC="${CHOST}-clang-${LLVM_SLOT}"
 		CXX="${CHOST}-clang++-${LLVM_SLOT}"
 
+		# Sanity check our linker here; sometimes when adding a new LLVM slot devs (me) forget
+		# to install an appropriate lld version. llvm-r1_pkg_setup prefixed PATH for us, so it should be there.
+		local lld_ver=$(ld.lld --version | awk '{split($2,a,"."); print a[1]}' || die "Failed to check lld version")
+		if [[ ${lld_ver} -lt ${LLVM_SLOT} ]]; then
+			die "Your lld version (${lld_ver}) is too old for the selected LLVM slot (${LLVM_SLOT}). Please install a newer lld or select an older LLVM slot."
+		fi
+
 		if tc-is-cross-compiler; then
 			use pgo && die "The pgo USE flag cannot be used when cross-compiling"
 			CPP="${CBUILD}-clang++-${LLVM_SLOT} -E"
@@ -414,10 +427,12 @@ src_unpack() {
 		# A new testdata tarball is available for each release; but testfonts tend to remain stable
 		# for the duration of a release.
 		# This unpacks directly into/over ${WORKDIR}/${P} so we can just use `unpack`.
-		unpack ${P}-linux-testdata.tar.xz
+		# Not generated by chromium-linux-tarballs. Apparently not required to run unit tests either, we'll see!
+		# unpack ${P}-linux-testdata.tar.xz
 		# This just contains a bunch of font files that need to be unpacked (or moved) to the correct location.
-		local testfonts_dir="${WORKDIR}/${P}/third_party/test_fonts"
+		local testfonts_dir="${WORKDIR}/${P}/third_party/test_fonts/test_fonts"
 		local testfonts_tar="${DISTDIR}/chromium-testfonts-${TEST_FONT:0:10}.tar.gz"
+		einfo "Unpacking test fonts ..."
 		tar xf "${testfonts_tar}" -C "${testfonts_dir}" || die "Failed to unpack testfonts"
 	fi
 
@@ -437,6 +452,10 @@ src_unpack() {
 	if use ppc64; then
 		unpack chromium-openpower-${PPC64_HASH:0:10}.tar.bz2
 	fi
+
+	# This is a dirty hack, but we need rollup to build successfully and it's proving to be challenging
+	# to build locally due to deps
+	unpack rollup-wasm-node-${ROLLUP_VER}.tgz
 }
 
 remove_compiler_builtins() {
@@ -496,6 +515,50 @@ src_prepare() {
 	# Calling this here supports resumption via FEATURES=keepwork
 	python_setup
 
+	# Sanity check esbuild version before we start removing files.
+	# We _could_ patch the version check out - in theory esbuild upstream are being super conservative after
+	# arch(AUR) packaged an `esbuild` binary and set ESBUILD_BINARY_PATH=/usr/bin/esbuild, causing much breakage,
+	# but this is fine too and exactly matches what upstream are expecting.
+	# https://github.com/evanw/esbuild/issues/2894
+	local esbuild_js="${S}/third_party/devtools-frontend/src/node_modules/esbuild/lib/main.js"
+	local found
+	found=$(awk -F'"' '/if \(binaryVersion !==/ {print $2}' "${esbuild_js}")
+	if [[ "${found}" != "${ESBUILD_VER}" ]]; then
+		die "esbuild version mismatch: expected ${ESBUILD_VER}, found ${found}"
+	fi
+
+	elog "Removing bundled binaries from source tree ..."
+	# Purge bundled ELF files: These are non-portable and will cause issues if used instead of system versions.
+	# Use `--wasm` to also remove WebAssembly binaries, if desired - they're portable so shouldn't break builds.
+	${EPYTHON} "${FILESDIR}/bin-finder.py" --elf "${S}" | awk '{print $1}' | xargs rm -f ||
+		die "Failed to remove bundled binaries"
+
+	# And now we restore any that we actually need, from the host system
+	local esbuild_path="${S}/third_party/devtools-frontend/src/third_party/esbuild"
+	local -A restore_list=(
+		["/usr/bin/esbuild-${ESBUILD_VER}"]="${esbuild_path}/esbuild"
+		["/usr/bin/node"]="${S}/third_party/node/linux/node-linux-x64/bin/node"
+	)
+
+	for src in "${!restore_list[@]}"; do
+		dst="${restore_list[${src}]}"
+		if [[ -f "${src}" ]]; then
+			einfo "Symlinking ${src} ..."
+			# Make sure the parent dir exists; some tarballs don't include (e.g.) node's bindir
+			mkdir -p "$(dirname "${dst}")" || die "Failed to create directory for ${dst}"
+			ln -s "${src}" "${dst}" || die "Failed to symlink ${dst} from ${src}"
+		else
+			die "Expected to find ${src} to restore ${dst}, but it does not exist."
+		fi
+	done
+
+	# Until we can just symlink in a system rollup, we'll `mv` the wasm version and modify some files.
+	einfo "Moving rollup wasm-node package into place ..."
+	mkdir -p third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
+		die "Failed to create node_modules/@rollup/wasm-node"
+	mv "${WORKDIR}"/package/* third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
+		die "Failed to move rollup package"
+
 	if use elibc_musl; then
 		eapply "${FILESDIR}/musl"
 		eapply "${FILESDIR}/rust_target-141.patch"
@@ -512,18 +575,17 @@ src_prepare() {
 	#		| sed 's|\${FILESDIR}/|files/|; s|\${PN}|chromium|' | sort -u) \
 	# 	<(find files/ -name "*.patch" | sort)
 
-	# The patches here should apply to both the bundled and system toolchain builds.
-	# If it's something that we're doing to fix a build issue it's _probably_ not
-	# something that impacts the upstream toolchain builds - test and confirm though.
-
 	local PATCHES=(
+		"${FILESDIR}/${PN}-cross-compile.patch"
 		"${FILESDIR}/${PN}-109-system-zlib.patch"
 		"${FILESDIR}/${PN}-131-unbundle-icu-target.patch"
-		"${FILESDIR}/${PN}-135-oauth2-client-switches.patch"
 		"${FILESDIR}/${PN}-138-nodejs-version-check.patch"
-		"${FILESDIR}/${PN}-cross-compile.patch"
 		"${FILESDIR}/cr144-glibc-2.43.patch"
+		"${FILESDIR}/cr145-oauth2-client-switches.patch"
+		"${FILESDIR}/cr145-revert-to-rollup-wasm.patch"
 	)
+	# No copium patches here: they should only need to apply to unbundled toolchain builds
+	# and don't get fetched or unpacked.
 
 	# https://issues.chromium.org/issues/442698344
 	# Unreleased fontconfig changed magic numbers and google have rolled to this version
@@ -553,24 +615,51 @@ src_prepare() {
 	else
 		# We don't need our toolchain patches if we're using the official toolchain
 
-		if use !bundled-toolchain; then
-			PATCHES+=(
-				"${WORKDIR}/copium/cr143-libsync-__BEGIN_DECLS.patch"
-			)
-		fi
+		# Copium patches go here.
+		PATCHES+=(
+			"${WORKDIR}/copium/cr143-libsync-__BEGIN_DECLS.patch"
+			"${WORKDIR}/copium/cr145-rustc_nightly_capability.patch"
+		)
 
-		shopt -s globstar nullglob
-		# 130: moved the PPC64 patches into the chromium-patches repo
-		local patch
-		for patch in "${WORKDIR}/chromium-patches-${PATCH_V}"/**/*.patch; do
-			if [[ ${patch} == *"ppc64le"* ]]; then
-				use ppc64 && PATCHES+=( "${patch}" )
-			else
-				PATCHES+=( "${patch}" )
+		# Automate conditional application of chromium-patches
+		# The directory structure is expected to be something like:
+		# chromium-patches-145/
+		# ├── common/
+		# │   ├── cr123-foo.patch
+		# │   └── cr135-bar.patch
+		# ├── llvm/
+		# │   ├── cr144-baz.patch
+		# │   └── lt-23/
+		# │       └── cr145-bleeding-edge-llvm-feature.patch
+		# Where `lt-23` means "apply this patch if the LLVM version is less than 23".
+		# Only categories in `slot_map` will be checked for version constraints.
+		shopt -s nullglob
+		local -A slot_map=( [llvm]="${LLVM_SLOT}" [rust]="${RUST_SLOT}" )
+
+		for category in "${WORKDIR}/chromium-patches-${PATCH_V}"/*/; do
+			local category_name="${category%/}"
+			category_name="${category_name##*/}"
+
+			# Skip arch-specific categories if they don't match our arch
+			if [[ "${category_name}" == "ppc64le" ]]; then
+				use ppc64 || continue
 			fi
+
+			# Unconditional patches for this category
+			PATCHES+=( "${category}"*.patch )
+
+			# Version-constrained subdirectories (e.g., llvm/lt-23/)
+			for constraint_dir in "${category}"*/; do
+				local dir_name="${constraint_dir%/}"
+				dir_name="${dir_name##*/}"
+				if [[ "${dir_name}" =~ ^lt-(.*)$ && -v slot_map[${category_name}] ]]; then
+					ver_test "${slot_map[${category_name}]}" -lt "${BASH_REMATCH[1]}" &&
+						PATCHES+=( "${constraint_dir}"*.patch )
+				fi
+			done
 		done
 
-		shopt -u globstar nullglob
+		shopt -u nullglob
 
 		remove_compiler_builtins
 
@@ -595,9 +684,6 @@ src_prepare() {
 			fi
 		fi
 
-		# Oxidised hacks, let's keep 'em all in one place
-		# "Adler2" is part of the stdlib since Rust 1.86, but it's behind a nightly-only feature flag in GN.
-		PATCHES+=( "${WORKDIR}/copium/cr144-rust-1.86-is-not-nightly--adler2.patch" )
 	fi
 
 	if use loong ; then
@@ -622,21 +708,6 @@ src_prepare() {
 	fi
 
 	default
-
-	# Not included in -lite tarballs, but we should check for it anyway.
-	if [[ -f third_party/node/linux/node-linux-x64/bin/node ]]; then
-		rm third_party/node/linux/node-linux-x64/bin/node || die
-	else
-		mkdir -p third_party/node/linux/node-linux-x64/bin || die
-	fi
-	ln -s "${EPREFIX}"/usr/bin/node third_party/node/linux/node-linux-x64/bin/node || die
-	if [[ -f third_party/devtools-frontend/src/third_party/esbuild/esbuild ]]; then
-		rm third_party/devtools-frontend/src/third_party/esbuild/esbuild || die
-	else
-		mkdir -p third_party/devtools-frontend/src/third_party/esbuild || die
-	fi
-	ln -s "${EPREFIX}"/usr/bin/esbuild-0.25.1 third_party/devtools-frontend/src/third_party/esbuild/esbuild || die
-	third_party/devtools-frontend/src/third_party/esbuild/esbuild --version > /dev/null || die
 
 	# adjust python interpreter version
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
@@ -707,6 +778,7 @@ src_prepare() {
 		third_party/dawn
 		third_party/dawn/third_party/gn/webgpu-cts
 		third_party/dawn/third_party/khronos
+		third_party/dawn/third_party/renderdoc
 		third_party/dawn/third_party/webgpu-headers
 		third_party/depot_tools
 		third_party/devscripts
@@ -909,7 +981,6 @@ src_prepare() {
 		third_party/webrtc/modules/third_party/fft
 		third_party/webrtc/modules/third_party/g711
 		third_party/webrtc/modules/third_party/g722
-		third_party/webrtc/rtc_base/third_party/sigslot
 		third_party/widevine
 		third_party/woff2
 		third_party/wuffs
@@ -933,9 +1004,9 @@ src_prepare() {
 		third_party/xdg-utils
 	)
 
-	if use rar; then
-		keeplibs+=( third_party/unrar )
-	fi
+	#if use rar; then
+	keeplibs+=( third_party/unrar )
+	#fi
 
 	if use test; then
 		# tar tvf /var/cache/distfiles/${P}-testdata.tar.xz | grep '^d' | grep 'third_party' | awk '{print $NF}'
@@ -1493,74 +1564,9 @@ src_compile() {
 
 	rm -f out/Release/locales/*.pak.info || die
 
-	# Generate support files: #684550 #706786 #968958
-	# Use upstream's python installer script to generate support files
-	# This replaces fragile sed commands and handles @@include@@ directives.
-	# It'll also verify that all substitution markers have been resolved, meaning that
-	# future changes to templates that add new variables will be caught during the build.
-	cat > "${T}/generate_support_files.py" <<-EOF || die
-		import sys
-		from pathlib import Path
-
-		# Add upstream installer script to search path
-		sys.path.insert(0, str(Path.cwd() / "chrome/installer/linux/common"))
-		import installer
-
-		# Configure contexts strictly for file generation
-		# Common variables used across templates
-		context = {
-		    "BUGTRACKERURL": "https://bugs.gentoo.org/enter_bug.cgi?product=Gentoo Linux&component=Current packages",
-		    "DEVELOPER_NAME": "The Chromium Authors",
-		    "EXTRA_DESKTOP_ENTRIES": "",
-		    "FULLDESC": "An open-source browser project that aims to build a safer, faster, and more stable way to experience the web.",
-		    "HELPURL": "https://wiki.gentoo.org/wiki/Chromium",
-		    "INSTALLDIR": "/usr/$(get_libdir)/chromium-browser",
-		    "MAINTMAIL": "Gentoo Chromium Project <chromium@gentoo.org>",
-		    "MENUNAME": "Chromium",
-		    "PACKAGE": "chromium-browser",
-		    "PRODUCTURL": "https://www.chromium.org/",
-		    "PROGNAME": "chrome",
-		    "PROJECT_LICENSE": "BSD, LGPL-2, LGPL-2.1, MPL-1.1, MPL-2.0, Apache-2.0, and others",
-		    "SHORTDESC": "Open-source foundation of many web browsers including Google Chrome",
-		    "URI_SCHEME": "x-scheme-handler/chromium",
-		    "USR_BIN_SYMLINK_NAME": "chromium-browser",
-		}
-
-		# Generate Desktop file
-		installer.process_template(
-		    Path("chrome/installer/linux/common/desktop.template"),
-		    Path("out/Release/chromium-browser-chromium.desktop"),
-		    context
-		)
-
-		# Generate Manpage
-		installer.process_template(
-		    Path("chrome/app/resources/manpage.1.in"),
-		    Path("out/Release/chromium-browser.1"),
-		    context
-		)
-
-		# Generate AppData (AppStream)
-		installer.process_template(
-		    Path("chrome/installer/linux/common/appdata.xml.template"),
-		    Path("out/Release/chromium-browser.appdata.xml"),
-		    context
-		)
-
-		# Generate GNOME Default Apps entry
-		installer.process_template(
-		    Path("chrome/installer/linux/common/default-app.template"),
-		    Path("out/Release/chromium-browser.xml"),
-		    context
-		)
-	EOF
-
-	"${EPYTHON}" "${T}/generate_support_files.py" || die "Failed to generate support files"
-
-	# Build vk_swiftshader_icd.json; bug #827861
-	sed -e 's|${ICD_LIBRARY_PATH}|./libvk_swiftshader.so|g' \
-		third_party/swiftshader/src/Vulkan/vk_swiftshader_icd.json.tmpl > \
-		out/Release/vk_swiftshader_icd.json || die
+	# Generate support files (desktop file, manpage, etc.) See: #684550 #706786 #968958
+	python3 "${FILESDIR}/generate-support-files.py" --installdir "/usr/$(get_libdir)/chromium-browser" ||
+		die "Failed to generate support files"
 }
 
 src_test() {
