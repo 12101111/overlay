@@ -1,0 +1,12 @@
+diff --git a/third_party/libwebrtc/modules/desktop_capture/desktop_capturer.h b/third_party/libwebrtc/modules/desktop_capture/desktop_capturer.h
+index 9b1efa0..a2dbee2 100644
+--- a/third_party/libwebrtc/modules/desktop_capture/desktop_capturer.h
++++ b/third_party/libwebrtc/modules/desktop_capture/desktop_capturer.h
+@@ -17,6 +17,7 @@
+ #include <string>
+ #include <type_traits>
+ #include <vector>
++#include <sys/types.h>
+ 
+ // TODO(alcooper): Update include usage in downstream consumers and then change
+ // this to a forward declaration.
