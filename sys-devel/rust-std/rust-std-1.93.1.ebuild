@@ -78,6 +78,7 @@ pkg_setup() {
 }
 
 src_prepare() {
+	sed -i "s|run.builder.top_stage - 1|run.builder.top_stage.max\(1\) - 1|g" src/bootstrap/src/core/build_steps/install.rs || die
 	default
 }
 
@@ -134,7 +135,7 @@ src_configure() {
 		optimized-compiler-builtins = true
 		local-rebuild = true
 		[install]
-		prefix = "${EPREFIX}/usr/lib/${PN}/${SLOT}"
+		prefix = "${WORKDIR}/${PN}/${SLOT}"
 		sysconfdir = "etc"
 		docdir = "share/doc/rust"
 		bindir = "bin"
@@ -186,7 +187,7 @@ src_configure() {
 
 src_compile() {
 	edo env RUST_BACKTRACE=1 \
-		"${EPYTHON}" ./x.py build -vv --config="${S}"/bootstrap.toml -j$(makeopts_jobs) \
+		"${EPYTHON}" ./x.py install -vv --config="${S}"/bootstrap.toml -j$(makeopts_jobs) \
 		library/std --stage 0
 }
 
@@ -197,7 +198,7 @@ src_test() {
 src_install() {
 	local rustlib="lib/rust/${SLOT}/lib/rustlib"
 	dodir "/usr/${rustlib}"
-	pushd "build/${rhost}/stage0-sysroot/lib/rustlib" > /dev/null || die
+	pushd "${WORKDIR}/${PN}/${SLOT}/lib/rustlib" > /dev/null || die
 	cp -pPRv "${rtarget}" "${ED}/usr/${rustlib}" || die
 	popd > /dev/null || die
 }
