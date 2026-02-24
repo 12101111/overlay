@@ -645,9 +645,11 @@ src_prepare() {
 		rm -v "${WORKDIR}"/firefox-patches/*bgo-967694-musl-prctrl-exception-on-musl.patch || die
 	fi
 	rm -v "${WORKDIR}"/firefox-patches/*bgo-940031-wasm-support.patch || die
+	rm -v "${WORKDIR}"/firefox-patches/0021-bgo-966424-PR_GetEnv-non-unified-build-fix.patch
 
 	eapply "${WORKDIR}/firefox-patches"
 	eapply "${FILESDIR}/fix-musl-include.patch"
+	eapply "${FILESDIR}/fix-non-jumbo-include.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
