@@ -11,11 +11,10 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
-LLVM_COMPAT=( 19 20 21 )
+LLVM_COMPAT=( 20 21 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
-RUST_MIN_VER=1.78.0
-# RUST_MAX_VER=1.89.0 # allocator shim change in 1.89
+RUST_MIN_VER=1.87.0
 RUST_NEEDS_LLVM="yes please"
 
 inherit check-reqs chromium-2 desktop flag-o-matic llvm-r1 multiprocessing ninja-utils pax-utils
@@ -25,9 +24,10 @@ inherit rust-toolchain
 # Keep this in sync with DEPS:chromium_version
 # find least version of available snapshot in
 # https://gsdview.appspot.com/chromium-browser-official/?marker=chromium-137.0.7151.8.tar.xz.hashe%40
-CHROMIUM_VERSION="138.0.7204.232"
+# the website is dead now
+CHROMIUM_VERSION="142.0.7444.234"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="22.21.1"
+NODE_VERSION="22.22.0"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
@@ -48,12 +48,10 @@ https://registry.npmjs.org/@azure/core-tracing/-/core-tracing-1.3.0.tgz -> @azur
 https://registry.npmjs.org/@azure/core-util/-/core-util-1.13.0.tgz -> @azure-core-util-1.13.0.tgz
 https://registry.npmjs.org/@azure/core-xml/-/core-xml-1.5.0.tgz -> @azure-core-xml-1.5.0.tgz
 https://registry.npmjs.org/@azure/logger/-/logger-1.3.0.tgz -> @azure-logger-1.3.0.tgz
-https://registry.npmjs.org/@azure/storage-blob/-/storage-blob-12.29.1.tgz -> @azure-storage-blob-12.29.1.tgz
-https://registry.npmjs.org/@azure/storage-common/-/storage-common-12.1.1.tgz -> @azure-storage-common-12.1.1.tgz
+https://registry.npmjs.org/@azure/storage-blob/-/storage-blob-12.28.0.tgz -> @azure-storage-blob-12.28.0.tgz
+https://registry.npmjs.org/@azure/storage-common/-/storage-common-12.0.0.tgz -> @azure-storage-common-12.0.0.tgz
 https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.25.7.tgz -> @babel-code-frame-7.25.7.tgz
-https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.27.1.tgz -> @babel-code-frame-7.27.1.tgz
 https://registry.npmjs.org/@babel/helper-validator-identifier/-/helper-validator-identifier-7.25.7.tgz -> @babel-helper-validator-identifier-7.25.7.tgz
-https://registry.npmjs.org/@babel/helper-validator-identifier/-/helper-validator-identifier-7.28.5.tgz -> @babel-helper-validator-identifier-7.28.5.tgz
 https://registry.npmjs.org/@babel/highlight/-/highlight-7.25.7.tgz -> @babel-highlight-7.25.7.tgz
 https://registry.npmjs.org/@datadog/datadog-ci-base/-/datadog-ci-base-4.1.2.tgz -> @datadog-datadog-ci-base-4.1.2.tgz
 https://registry.npmjs.org/@datadog/datadog-ci-plugin-deployment/-/datadog-ci-plugin-deployment-4.1.2.tgz -> @datadog-datadog-ci-plugin-deployment-4.1.2.tgz
@@ -63,7 +61,6 @@ https://registry.npmjs.org/@datadog/datadog-ci-plugin-sarif/-/datadog-ci-plugin-
 https://registry.npmjs.org/@datadog/datadog-ci-plugin-sbom/-/datadog-ci-plugin-sbom-4.1.2.tgz -> @datadog-datadog-ci-plugin-sbom-4.1.2.tgz
 https://registry.npmjs.org/@datadog/datadog-ci-plugin-synthetics/-/datadog-ci-plugin-synthetics-4.1.2.tgz -> @datadog-datadog-ci-plugin-synthetics-4.1.2.tgz
 https://registry.npmjs.org/@datadog/datadog-ci/-/datadog-ci-4.1.2.tgz -> @datadog-datadog-ci-4.1.2.tgz
-https://registry.npmjs.org/@dbus-types/dbus/-/dbus-0.0.4.tgz -> @dbus-types-dbus-0.0.4.tgz
 https://registry.npmjs.org/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz -> @discoveryjs-json-ext-0.5.7.tgz
 https://registry.npmjs.org/@dsanders11/vscode-markdown-languageservice/-/vscode-markdown-languageservice-0.3.0.tgz -> @dsanders11-vscode-markdown-languageservice-0.3.0.tgz
 https://registry.npmjs.org/@electron/asar/-/asar-3.2.13.tgz -> @electron-asar-3.2.13.tgz
@@ -73,8 +70,8 @@ https://registry.npmjs.org/@electron/fiddle-core/-/fiddle-core-1.3.4.tgz -> @ele
 https://registry.npmjs.org/@electron/fuses/-/fuses-1.8.0.tgz -> @electron-fuses-1.8.0.tgz
 https://registry.npmjs.org/@electron/get/-/get-2.0.2.tgz -> @electron-get-2.0.2.tgz
 https://registry.npmjs.org/@electron/get/-/get-3.1.0.tgz -> @electron-get-3.1.0.tgz
-https://registry.npmjs.org/@electron/github-app-auth/-/github-app-auth-2.2.1.tgz -> @electron-github-app-auth-2.2.1.tgz
-https://registry.npmjs.org/@electron/lint-roller/-/lint-roller-3.1.3.tgz -> @electron-lint-roller-3.1.3.tgz
+https://registry.npmjs.org/@electron/github-app-auth/-/github-app-auth-3.2.0.tgz -> @electron-github-app-auth-3.2.0.tgz
+https://registry.npmjs.org/@electron/lint-roller/-/lint-roller-3.2.0.tgz -> @electron-lint-roller-3.2.0.tgz
 https://registry.npmjs.org/@electron/notarize/-/notarize-2.5.0.tgz -> @electron-notarize-2.5.0.tgz
 https://registry.npmjs.org/@electron/osx-sign/-/osx-sign-1.3.3.tgz -> @electron-osx-sign-1.3.3.tgz
 https://registry.npmjs.org/@electron/packager/-/packager-18.4.4.tgz -> @electron-packager-18.4.4.tgz
@@ -86,8 +83,6 @@ https://registry.npmjs.org/@eslint-community/eslint-utils/-/eslint-utils-4.7.0.t
 https://registry.npmjs.org/@eslint-community/regexpp/-/regexpp-4.11.1.tgz -> @eslint-community-regexpp-4.11.1.tgz
 https://registry.npmjs.org/@eslint/eslintrc/-/eslintrc-2.1.4.tgz -> @eslint-eslintrc-2.1.4.tgz
 https://registry.npmjs.org/@eslint/js/-/js-8.57.1.tgz -> @eslint-js-8.57.1.tgz
-https://registry.npmjs.org/@homebridge/long/-/long-5.2.1.tgz -> @homebridge-long-5.2.1.tgz
-https://registry.npmjs.org/@homebridge/put/-/put-0.0.8.tgz -> @homebridge-put-0.0.8.tgz
 https://registry.npmjs.org/@humanwhocodes/config-array/-/config-array-0.13.0.tgz -> @humanwhocodes-config-array-0.13.0.tgz
 https://registry.npmjs.org/@humanwhocodes/module-importer/-/module-importer-1.0.1.tgz -> @humanwhocodes-module-importer-1.0.1.tgz
 https://registry.npmjs.org/@humanwhocodes/object-schema/-/object-schema-2.0.3.tgz -> @humanwhocodes-object-schema-2.0.3.tgz
@@ -117,41 +112,36 @@ https://registry.npmjs.org/@npmcli/map-workspaces/-/map-workspaces-3.0.6.tgz -> 
 https://registry.npmjs.org/@npmcli/name-from-folder/-/name-from-folder-2.0.0.tgz -> @npmcli-name-from-folder-2.0.0.tgz
 https://registry.npmjs.org/@npmcli/package-json/-/package-json-5.2.1.tgz -> @npmcli-package-json-5.2.1.tgz
 https://registry.npmjs.org/@npmcli/promise-spawn/-/promise-spawn-7.0.2.tgz -> @npmcli-promise-spawn-7.0.2.tgz
-https://registry.npmjs.org/@octokit/auth-app/-/auth-app-4.0.13.tgz -> @octokit-auth-app-4.0.13.tgz
-https://registry.npmjs.org/@octokit/auth-oauth-app/-/auth-oauth-app-5.0.5.tgz -> @octokit-auth-oauth-app-5.0.5.tgz
-https://registry.npmjs.org/@octokit/auth-oauth-device/-/auth-oauth-device-4.0.3.tgz -> @octokit-auth-oauth-device-4.0.3.tgz
-https://registry.npmjs.org/@octokit/auth-oauth-user/-/auth-oauth-user-2.0.4.tgz -> @octokit-auth-oauth-user-2.0.4.tgz
-https://registry.npmjs.org/@octokit/auth-token/-/auth-token-3.0.3.tgz -> @octokit-auth-token-3.0.3.tgz
+https://registry.npmjs.org/@octokit/auth-app/-/auth-app-8.1.2.tgz -> @octokit-auth-app-8.1.2.tgz
+https://registry.npmjs.org/@octokit/auth-oauth-app/-/auth-oauth-app-9.0.3.tgz -> @octokit-auth-oauth-app-9.0.3.tgz
+https://registry.npmjs.org/@octokit/auth-oauth-device/-/auth-oauth-device-8.0.3.tgz -> @octokit-auth-oauth-device-8.0.3.tgz
+https://registry.npmjs.org/@octokit/auth-oauth-user/-/auth-oauth-user-6.0.2.tgz -> @octokit-auth-oauth-user-6.0.2.tgz
 https://registry.npmjs.org/@octokit/auth-token/-/auth-token-4.0.0.tgz -> @octokit-auth-token-4.0.0.tgz
-https://registry.npmjs.org/@octokit/core/-/core-4.2.1.tgz -> @octokit-core-4.2.1.tgz
+https://registry.npmjs.org/@octokit/auth-token/-/auth-token-6.0.0.tgz -> @octokit-auth-token-6.0.0.tgz
 https://registry.npmjs.org/@octokit/core/-/core-5.2.2.tgz -> @octokit-core-5.2.2.tgz
-https://registry.npmjs.org/@octokit/endpoint/-/endpoint-7.0.3.tgz -> @octokit-endpoint-7.0.3.tgz
+https://registry.npmjs.org/@octokit/core/-/core-7.0.6.tgz -> @octokit-core-7.0.6.tgz
+https://registry.npmjs.org/@octokit/endpoint/-/endpoint-11.0.2.tgz -> @octokit-endpoint-11.0.2.tgz
 https://registry.npmjs.org/@octokit/endpoint/-/endpoint-9.0.6.tgz -> @octokit-endpoint-9.0.6.tgz
-https://registry.npmjs.org/@octokit/graphql/-/graphql-5.0.5.tgz -> @octokit-graphql-5.0.5.tgz
 https://registry.npmjs.org/@octokit/graphql/-/graphql-7.1.1.tgz -> @octokit-graphql-7.1.1.tgz
-https://registry.npmjs.org/@octokit/oauth-authorization-url/-/oauth-authorization-url-5.0.0.tgz -> @octokit-oauth-authorization-url-5.0.0.tgz
-https://registry.npmjs.org/@octokit/oauth-methods/-/oauth-methods-2.0.4.tgz -> @octokit-oauth-methods-2.0.4.tgz
-https://registry.npmjs.org/@octokit/openapi-types/-/openapi-types-14.0.0.tgz -> @octokit-openapi-types-14.0.0.tgz
-https://registry.npmjs.org/@octokit/openapi-types/-/openapi-types-16.0.0.tgz -> @octokit-openapi-types-16.0.0.tgz
-https://registry.npmjs.org/@octokit/openapi-types/-/openapi-types-17.2.0.tgz -> @octokit-openapi-types-17.2.0.tgz
+https://registry.npmjs.org/@octokit/graphql/-/graphql-9.0.3.tgz -> @octokit-graphql-9.0.3.tgz
+https://registry.npmjs.org/@octokit/oauth-authorization-url/-/oauth-authorization-url-8.0.0.tgz -> @octokit-oauth-authorization-url-8.0.0.tgz
+https://registry.npmjs.org/@octokit/oauth-methods/-/oauth-methods-6.0.2.tgz -> @octokit-oauth-methods-6.0.2.tgz
 https://registry.npmjs.org/@octokit/openapi-types/-/openapi-types-24.2.0.tgz -> @octokit-openapi-types-24.2.0.tgz
+https://registry.npmjs.org/@octokit/openapi-types/-/openapi-types-27.0.0.tgz -> @octokit-openapi-types-27.0.0.tgz
 https://registry.npmjs.org/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-11.4.4-cjs.2.tgz -> @octokit-plugin-paginate-rest-11.4.4-cjs.2.tgz
-https://registry.npmjs.org/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-6.1.2.tgz -> @octokit-plugin-paginate-rest-6.1.2.tgz
-https://registry.npmjs.org/@octokit/plugin-request-log/-/plugin-request-log-1.0.4.tgz -> @octokit-plugin-request-log-1.0.4.tgz
+https://registry.npmjs.org/@octokit/plugin-paginate-rest/-/plugin-paginate-rest-14.0.0.tgz -> @octokit-plugin-paginate-rest-14.0.0.tgz
 https://registry.npmjs.org/@octokit/plugin-request-log/-/plugin-request-log-4.0.1.tgz -> @octokit-plugin-request-log-4.0.1.tgz
+https://registry.npmjs.org/@octokit/plugin-request-log/-/plugin-request-log-6.0.0.tgz -> @octokit-plugin-request-log-6.0.0.tgz
 https://registry.npmjs.org/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-13.3.2-cjs.1.tgz -> @octokit-plugin-rest-endpoint-methods-13.3.2-cjs.1.tgz
-https://registry.npmjs.org/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-7.1.2.tgz -> @octokit-plugin-rest-endpoint-methods-7.1.2.tgz
-https://registry.npmjs.org/@octokit/request-error/-/request-error-3.0.2.tgz -> @octokit-request-error-3.0.2.tgz
+https://registry.npmjs.org/@octokit/plugin-rest-endpoint-methods/-/plugin-rest-endpoint-methods-17.0.0.tgz -> @octokit-plugin-rest-endpoint-methods-17.0.0.tgz
 https://registry.npmjs.org/@octokit/request-error/-/request-error-5.1.1.tgz -> @octokit-request-error-5.1.1.tgz
-https://registry.npmjs.org/@octokit/request/-/request-6.2.4.tgz -> @octokit-request-6.2.4.tgz
+https://registry.npmjs.org/@octokit/request-error/-/request-error-7.1.0.tgz -> @octokit-request-error-7.1.0.tgz
+https://registry.npmjs.org/@octokit/request/-/request-10.0.7.tgz -> @octokit-request-10.0.7.tgz
 https://registry.npmjs.org/@octokit/request/-/request-8.4.1.tgz -> @octokit-request-8.4.1.tgz
-https://registry.npmjs.org/@octokit/rest/-/rest-19.0.11.tgz -> @octokit-rest-19.0.11.tgz
 https://registry.npmjs.org/@octokit/rest/-/rest-20.1.2.tgz -> @octokit-rest-20.1.2.tgz
-https://registry.npmjs.org/@octokit/tsconfig/-/tsconfig-1.0.2.tgz -> @octokit-tsconfig-1.0.2.tgz
+https://registry.npmjs.org/@octokit/rest/-/rest-22.0.1.tgz -> @octokit-rest-22.0.1.tgz
 https://registry.npmjs.org/@octokit/types/-/types-13.10.0.tgz -> @octokit-types-13.10.0.tgz
-https://registry.npmjs.org/@octokit/types/-/types-8.0.0.tgz -> @octokit-types-8.0.0.tgz
-https://registry.npmjs.org/@octokit/types/-/types-9.0.0.tgz -> @octokit-types-9.0.0.tgz
-https://registry.npmjs.org/@octokit/types/-/types-9.2.3.tgz -> @octokit-types-9.2.3.tgz
+https://registry.npmjs.org/@octokit/types/-/types-16.0.0.tgz -> @octokit-types-16.0.0.tgz
 https://registry.npmjs.org/@opentelemetry/api/-/api-1.0.4.tgz -> @opentelemetry-api-1.0.4.tgz
 https://registry.npmjs.org/@pkgjs/parseargs/-/parseargs-0.11.0.tgz -> @pkgjs-parseargs-0.11.0.tgz
 https://registry.npmjs.org/@primer/octicons/-/octicons-10.0.0.tgz -> @primer-octicons-10.0.0.tgz
@@ -166,7 +156,6 @@ https://registry.npmjs.org/@szmarczak/http-timer/-/http-timer-4.0.6.tgz -> @szma
 https://registry.npmjs.org/@tootallnate/quickjs-emscripten/-/quickjs-emscripten-0.23.0.tgz -> @tootallnate-quickjs-emscripten-0.23.0.tgz
 https://registry.npmjs.org/@types/basic-auth/-/basic-auth-1.1.8.tgz -> @types-basic-auth-1.1.8.tgz
 https://registry.npmjs.org/@types/body-parser/-/body-parser-1.19.6.tgz -> @types-body-parser-1.19.6.tgz
-https://registry.npmjs.org/@types/btoa-lite/-/btoa-lite-1.0.0.tgz -> @types-btoa-lite-1.0.0.tgz
 https://registry.npmjs.org/@types/busboy/-/busboy-1.5.4.tgz -> @types-busboy-1.5.4.tgz
 https://registry.npmjs.org/@types/cacheable-request/-/cacheable-request-6.0.2.tgz -> @types-cacheable-request-6.0.2.tgz
 https://registry.npmjs.org/@types/chai-as-promised/-/chai-as-promised-7.1.8.tgz -> @types-chai-as-promised-7.1.8.tgz
@@ -179,7 +168,9 @@ https://registry.npmjs.org/@types/datadog-metrics/-/datadog-metrics-0.6.1.tgz ->
 https://registry.npmjs.org/@types/debug/-/debug-4.1.7.tgz -> @types-debug-4.1.7.tgz
 https://registry.npmjs.org/@types/deep-eql/-/deep-eql-4.0.2.tgz -> @types-deep-eql-4.0.2.tgz
 https://registry.npmjs.org/@types/dirty-chai/-/dirty-chai-2.0.5.tgz -> @types-dirty-chai-2.0.5.tgz
+https://registry.npmjs.org/@types/estree-jsx/-/estree-jsx-1.0.5.tgz -> @types-estree-jsx-1.0.5.tgz
 https://registry.npmjs.org/@types/estree/-/estree-1.0.5.tgz -> @types-estree-1.0.5.tgz
+https://registry.npmjs.org/@types/estree/-/estree-1.0.8.tgz -> @types-estree-1.0.8.tgz
 https://registry.npmjs.org/@types/express-serve-static-core/-/express-serve-static-core-4.19.7.tgz -> @types-express-serve-static-core-4.19.7.tgz
 https://registry.npmjs.org/@types/express/-/express-4.17.23.tgz -> @types-express-4.17.23.tgz
 https://registry.npmjs.org/@types/glob/-/glob-7.2.0.tgz -> @types-glob-7.2.0.tgz
@@ -190,11 +181,11 @@ https://registry.npmjs.org/@types/is-empty/-/is-empty-1.2.0.tgz -> @types-is-emp
 https://registry.npmjs.org/@types/json-buffer/-/json-buffer-3.0.0.tgz -> @types-json-buffer-3.0.0.tgz
 https://registry.npmjs.org/@types/json-schema/-/json-schema-7.0.11.tgz -> @types-json-schema-7.0.11.tgz
 https://registry.npmjs.org/@types/json5/-/json5-0.0.29.tgz -> @types-json5-0.0.29.tgz
-https://registry.npmjs.org/@types/jsonwebtoken/-/jsonwebtoken-9.0.1.tgz -> @types-jsonwebtoken-9.0.1.tgz
 https://registry.npmjs.org/@types/katex/-/katex-0.16.7.tgz -> @types-katex-0.16.7.tgz
 https://registry.npmjs.org/@types/keyv/-/keyv-3.1.4.tgz -> @types-keyv-3.1.4.tgz
 https://registry.npmjs.org/@types/linkify-it/-/linkify-it-5.0.0.tgz -> @types-linkify-it-5.0.0.tgz
 https://registry.npmjs.org/@types/markdown-it/-/markdown-it-14.1.2.tgz -> @types-markdown-it-14.1.2.tgz
+https://registry.npmjs.org/@types/mdast/-/mdast-3.0.15.tgz -> @types-mdast-3.0.15.tgz
 https://registry.npmjs.org/@types/mdast/-/mdast-4.0.4.tgz -> @types-mdast-4.0.4.tgz
 https://registry.npmjs.org/@types/mdurl/-/mdurl-2.0.0.tgz -> @types-mdurl-2.0.0.tgz
 https://registry.npmjs.org/@types/mime/-/mime-1.3.5.tgz -> @types-mime-1.3.5.tgz
@@ -203,9 +194,8 @@ https://registry.npmjs.org/@types/minimist/-/minimist-1.2.5.tgz -> @types-minimi
 https://registry.npmjs.org/@types/mocha/-/mocha-7.0.2.tgz -> @types-mocha-7.0.2.tgz
 https://registry.npmjs.org/@types/ms/-/ms-0.7.31.tgz -> @types-ms-0.7.31.tgz
 https://registry.npmjs.org/@types/node/-/node-20.16.12.tgz -> @types-node-20.16.12.tgz
-https://registry.npmjs.org/@types/node/-/node-22.19.0.tgz -> @types-node-22.19.0.tgz
+https://registry.npmjs.org/@types/node/-/node-22.19.1.tgz -> @types-node-22.19.1.tgz
 https://registry.npmjs.org/@types/node/-/node-22.7.7.tgz -> @types-node-22.7.7.tgz
-https://registry.npmjs.org/@types/parse-json/-/parse-json-4.0.2.tgz -> @types-parse-json-4.0.2.tgz
 https://registry.npmjs.org/@types/qs/-/qs-6.14.0.tgz -> @types-qs-6.14.0.tgz
 https://registry.npmjs.org/@types/range-parser/-/range-parser-1.2.7.tgz -> @types-range-parser-1.2.7.tgz
 https://registry.npmjs.org/@types/responselike/-/responselike-1.0.0.tgz -> @types-responselike-1.0.0.tgz
@@ -216,13 +206,12 @@ https://registry.npmjs.org/@types/send/-/send-1.2.0.tgz -> @types-send-1.2.0.tgz
 https://registry.npmjs.org/@types/serve-static/-/serve-static-1.15.9.tgz -> @types-serve-static-1.15.9.tgz
 https://registry.npmjs.org/@types/sinon/-/sinon-9.0.11.tgz -> @types-sinon-9.0.11.tgz
 https://registry.npmjs.org/@types/sinonjs__fake-timers/-/sinonjs__fake-timers-15.0.0.tgz -> @types-sinonjs__fake-timers-15.0.0.tgz
-https://registry.npmjs.org/@types/split/-/split-1.0.5.tgz -> @types-split-1.0.5.tgz
 https://registry.npmjs.org/@types/stream-chain/-/stream-chain-2.0.0.tgz -> @types-stream-chain-2.0.0.tgz
 https://registry.npmjs.org/@types/stream-json/-/stream-json-1.7.8.tgz -> @types-stream-json-1.7.8.tgz
 https://registry.npmjs.org/@types/supports-color/-/supports-color-8.1.1.tgz -> @types-supports-color-8.1.1.tgz
 https://registry.npmjs.org/@types/temp/-/temp-0.9.4.tgz -> @types-temp-0.9.4.tgz
 https://registry.npmjs.org/@types/text-table/-/text-table-0.2.2.tgz -> @types-text-table-0.2.2.tgz
-https://registry.npmjs.org/@types/through/-/through-0.0.33.tgz -> @types-through-0.0.33.tgz
+https://registry.npmjs.org/@types/unist/-/unist-2.0.11.tgz -> @types-unist-2.0.11.tgz
 https://registry.npmjs.org/@types/unist/-/unist-2.0.3.tgz -> @types-unist-2.0.3.tgz
 https://registry.npmjs.org/@types/unist/-/unist-2.0.6.tgz -> @types-unist-2.0.6.tgz
 https://registry.npmjs.org/@types/unist/-/unist-3.0.2.tgz -> @types-unist-3.0.2.tgz
@@ -231,19 +220,17 @@ https://registry.npmjs.org/@types/uuid/-/uuid-9.0.8.tgz -> @types-uuid-9.0.8.tgz
 https://registry.npmjs.org/@types/w3c-web-serial/-/w3c-web-serial-1.0.8.tgz -> @types-w3c-web-serial-1.0.8.tgz
 https://registry.npmjs.org/@types/ws/-/ws-7.4.7.tgz -> @types-ws-7.4.7.tgz
 https://registry.npmjs.org/@types/yauzl/-/yauzl-2.10.0.tgz -> @types-yauzl-2.10.0.tgz
-https://registry.npmjs.org/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.46.4.tgz -> @typescript-eslint-eslint-plugin-8.46.4.tgz
+https://registry.npmjs.org/@typescript-eslint/eslint-plugin/-/eslint-plugin-8.32.1.tgz -> @typescript-eslint-eslint-plugin-8.32.1.tgz
 https://registry.npmjs.org/@typescript-eslint/parser/-/parser-8.7.0.tgz -> @typescript-eslint-parser-8.7.0.tgz
-https://registry.npmjs.org/@typescript-eslint/project-service/-/project-service-8.46.4.tgz -> @typescript-eslint-project-service-8.46.4.tgz
-https://registry.npmjs.org/@typescript-eslint/scope-manager/-/scope-manager-8.46.4.tgz -> @typescript-eslint-scope-manager-8.46.4.tgz
+https://registry.npmjs.org/@typescript-eslint/scope-manager/-/scope-manager-8.32.1.tgz -> @typescript-eslint-scope-manager-8.32.1.tgz
 https://registry.npmjs.org/@typescript-eslint/scope-manager/-/scope-manager-8.7.0.tgz -> @typescript-eslint-scope-manager-8.7.0.tgz
-https://registry.npmjs.org/@typescript-eslint/tsconfig-utils/-/tsconfig-utils-8.46.4.tgz -> @typescript-eslint-tsconfig-utils-8.46.4.tgz
-https://registry.npmjs.org/@typescript-eslint/type-utils/-/type-utils-8.46.4.tgz -> @typescript-eslint-type-utils-8.46.4.tgz
-https://registry.npmjs.org/@typescript-eslint/types/-/types-8.46.4.tgz -> @typescript-eslint-types-8.46.4.tgz
+https://registry.npmjs.org/@typescript-eslint/type-utils/-/type-utils-8.32.1.tgz -> @typescript-eslint-type-utils-8.32.1.tgz
+https://registry.npmjs.org/@typescript-eslint/types/-/types-8.32.1.tgz -> @typescript-eslint-types-8.32.1.tgz
 https://registry.npmjs.org/@typescript-eslint/types/-/types-8.7.0.tgz -> @typescript-eslint-types-8.7.0.tgz
-https://registry.npmjs.org/@typescript-eslint/typescript-estree/-/typescript-estree-8.46.4.tgz -> @typescript-eslint-typescript-estree-8.46.4.tgz
+https://registry.npmjs.org/@typescript-eslint/typescript-estree/-/typescript-estree-8.32.1.tgz -> @typescript-eslint-typescript-estree-8.32.1.tgz
 https://registry.npmjs.org/@typescript-eslint/typescript-estree/-/typescript-estree-8.7.0.tgz -> @typescript-eslint-typescript-estree-8.7.0.tgz
-https://registry.npmjs.org/@typescript-eslint/utils/-/utils-8.46.4.tgz -> @typescript-eslint-utils-8.46.4.tgz
-https://registry.npmjs.org/@typescript-eslint/visitor-keys/-/visitor-keys-8.46.4.tgz -> @typescript-eslint-visitor-keys-8.46.4.tgz
+https://registry.npmjs.org/@typescript-eslint/utils/-/utils-8.32.1.tgz -> @typescript-eslint-utils-8.32.1.tgz
+https://registry.npmjs.org/@typescript-eslint/visitor-keys/-/visitor-keys-8.32.1.tgz -> @typescript-eslint-visitor-keys-8.32.1.tgz
 https://registry.npmjs.org/@typescript-eslint/visitor-keys/-/visitor-keys-8.7.0.tgz -> @typescript-eslint-visitor-keys-8.7.0.tgz
 https://registry.npmjs.org/@typespec/ts-http-runtime/-/ts-http-runtime-0.3.0.tgz -> @typespec-ts-http-runtime-0.3.0.tgz
 https://registry.npmjs.org/@ungap/structured-clone/-/structured-clone-1.2.0.tgz -> @ungap-structured-clone-1.2.0.tgz
@@ -279,13 +266,13 @@ https://registry.npmjs.org/acorn/-/acorn-8.12.1.tgz
 https://registry.npmjs.org/agent-base/-/agent-base-6.0.2.tgz
 https://registry.npmjs.org/agent-base/-/agent-base-7.1.1.tgz
 https://registry.npmjs.org/agent-base/-/agent-base-7.1.4.tgz
-https://registry.npmjs.org/aggregate-error/-/aggregate-error-3.1.0.tgz
 https://registry.npmjs.org/ajv-formats/-/ajv-formats-2.1.1.tgz
 https://registry.npmjs.org/ajv-keywords/-/ajv-keywords-3.5.2.tgz
 https://registry.npmjs.org/ajv/-/ajv-6.12.6.tgz
 https://registry.npmjs.org/ajv/-/ajv-8.17.1.tgz
 https://registry.npmjs.org/ansi-colors/-/ansi-colors-4.1.3.tgz
 https://registry.npmjs.org/ansi-escapes/-/ansi-escapes-4.3.2.tgz
+https://registry.npmjs.org/ansi-escapes/-/ansi-escapes-7.0.0.tgz
 https://registry.npmjs.org/ansi-regex/-/ansi-regex-3.0.1.tgz
 https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz
 https://registry.npmjs.org/ansi-regex/-/ansi-regex-6.0.1.tgz
@@ -319,7 +306,6 @@ https://registry.npmjs.org/assert-plus/-/assert-plus-1.0.0.tgz
 https://registry.npmjs.org/assertion-error/-/assertion-error-1.1.0.tgz
 https://registry.npmjs.org/assertion-error/-/assertion-error-2.0.1.tgz
 https://registry.npmjs.org/ast-types/-/ast-types-0.13.4.tgz
-https://registry.npmjs.org/astral-regex/-/astral-regex-2.0.0.tgz
 https://registry.npmjs.org/async-function/-/async-function-1.0.0.tgz
 https://registry.npmjs.org/async-retry/-/async-retry-1.3.1.tgz
 https://registry.npmjs.org/async/-/async-3.2.4.tgz
@@ -337,6 +323,7 @@ https://registry.npmjs.org/basic-auth/-/basic-auth-2.0.1.tgz
 https://registry.npmjs.org/basic-ftp/-/basic-ftp-5.0.5.tgz
 https://registry.npmjs.org/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.2.tgz
 https://registry.npmjs.org/before-after-hook/-/before-after-hook-2.2.3.tgz
+https://registry.npmjs.org/before-after-hook/-/before-after-hook-4.0.0.tgz
 https://registry.npmjs.org/big.js/-/big.js-5.2.2.tgz
 https://registry.npmjs.org/bignumber.js/-/bignumber.js-9.3.1.tgz
 https://registry.npmjs.org/binary-extensions/-/binary-extensions-2.1.0.tgz
@@ -349,9 +336,7 @@ https://registry.npmjs.org/brace-expansion/-/brace-expansion-2.0.2.tgz
 https://registry.npmjs.org/braces/-/braces-3.0.3.tgz
 https://registry.npmjs.org/browser-stdout/-/browser-stdout-1.3.1.tgz
 https://registry.npmjs.org/browserslist/-/browserslist-4.23.3.tgz
-https://registry.npmjs.org/btoa-lite/-/btoa-lite-1.0.0.tgz
 https://registry.npmjs.org/buffer-crc32/-/buffer-crc32-0.2.13.tgz
-https://registry.npmjs.org/buffer-equal-constant-time/-/buffer-equal-constant-time-1.0.1.tgz
 https://registry.npmjs.org/buffer-from/-/buffer-from-1.1.1.tgz
 https://registry.npmjs.org/buffer-from/-/buffer-from-1.1.2.tgz
 https://registry.npmjs.org/buffer/-/buffer-5.7.1.tgz
@@ -373,6 +358,7 @@ https://registry.npmjs.org/callsites/-/callsites-3.1.0.tgz
 https://registry.npmjs.org/camelcase/-/camelcase-6.3.0.tgz
 https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001659.tgz
 https://registry.npmjs.org/canvas/-/canvas-2.11.2.tgz
+https://registry.npmjs.org/ccount/-/ccount-2.0.1.tgz
 https://registry.npmjs.org/chai-as-promised/-/chai-as-promised-7.1.2.tgz
 https://registry.npmjs.org/chai/-/chai-4.5.0.tgz
 https://registry.npmjs.org/chai/-/chai-5.1.1.tgz
@@ -381,8 +367,13 @@ https://registry.npmjs.org/chalk/-/chalk-3.0.0.tgz
 https://registry.npmjs.org/chalk/-/chalk-4.1.0.tgz
 https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz
 https://registry.npmjs.org/chalk/-/chalk-5.3.0.tgz
+https://registry.npmjs.org/chalk/-/chalk-5.4.1.tgz
+https://registry.npmjs.org/character-entities-html4/-/character-entities-html4-2.1.0.tgz
+https://registry.npmjs.org/character-entities-legacy/-/character-entities-legacy-1.1.4.tgz
 https://registry.npmjs.org/character-entities-legacy/-/character-entities-legacy-3.0.0.tgz
+https://registry.npmjs.org/character-entities/-/character-entities-1.2.4.tgz
 https://registry.npmjs.org/character-entities/-/character-entities-2.0.0.tgz
+https://registry.npmjs.org/character-reference-invalid/-/character-reference-invalid-1.1.4.tgz
 https://registry.npmjs.org/character-reference-invalid/-/character-reference-invalid-2.0.0.tgz
 https://registry.npmjs.org/chardet/-/chardet-2.1.1.tgz
 https://registry.npmjs.org/charenc/-/charenc-0.0.2.tgz
@@ -395,19 +386,18 @@ https://registry.npmjs.org/chownr/-/chownr-2.0.0.tgz
 https://registry.npmjs.org/chownr/-/chownr-3.0.0.tgz
 https://registry.npmjs.org/chrome-trace-event/-/chrome-trace-event-1.0.2.tgz
 https://registry.npmjs.org/ci-info/-/ci-info-4.0.0.tgz
-https://registry.npmjs.org/clean-stack/-/clean-stack-2.2.0.tgz
 https://registry.npmjs.org/cli-cursor/-/cli-cursor-3.1.0.tgz
 https://registry.npmjs.org/cli-cursor/-/cli-cursor-5.0.0.tgz
 https://registry.npmjs.org/cli-spinners/-/cli-spinners-2.9.2.tgz
-https://registry.npmjs.org/cli-truncate/-/cli-truncate-2.1.0.tgz
+https://registry.npmjs.org/cli-truncate/-/cli-truncate-4.0.0.tgz
 https://registry.npmjs.org/cli-width/-/cli-width-3.0.0.tgz
 https://registry.npmjs.org/clipanion/-/clipanion-3.2.1.tgz
 https://registry.npmjs.org/cliui/-/cliui-7.0.4.tgz
 https://registry.npmjs.org/clone-deep/-/clone-deep-4.0.1.tgz
 https://registry.npmjs.org/clone-response/-/clone-response-1.0.2.tgz
 https://registry.npmjs.org/clone/-/clone-1.0.4.tgz
-https://registry.npmjs.org/co/-/co-3.1.0.tgz
 https://registry.npmjs.org/coffeescript/-/coffeescript-2.7.0.tgz
+https://registry.npmjs.org/collapse-white-space/-/collapse-white-space-2.1.0.tgz
 https://registry.npmjs.org/color-convert/-/color-convert-1.9.3.tgz
 https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz
 https://registry.npmjs.org/color-name/-/color-name-1.1.3.tgz
@@ -417,9 +407,9 @@ https://registry.npmjs.org/colorette/-/colorette-2.0.20.tgz
 https://registry.npmjs.org/combined-stream/-/combined-stream-1.0.8.tgz
 https://registry.npmjs.org/comma-separated-tokens/-/comma-separated-tokens-2.0.3.tgz
 https://registry.npmjs.org/commander/-/commander-10.0.1.tgz
+https://registry.npmjs.org/commander/-/commander-14.0.0.tgz
 https://registry.npmjs.org/commander/-/commander-2.20.3.tgz
 https://registry.npmjs.org/commander/-/commander-5.1.0.tgz
-https://registry.npmjs.org/commander/-/commander-6.2.1.tgz
 https://registry.npmjs.org/commander/-/commander-8.3.0.tgz
 https://registry.npmjs.org/commander/-/commander-9.5.0.tgz
 https://registry.npmjs.org/compare-version/-/compare-version-0.1.2.tgz
@@ -432,7 +422,6 @@ https://registry.npmjs.org/content-type/-/content-type-1.0.5.tgz
 https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.6.tgz
 https://registry.npmjs.org/cookie/-/cookie-0.7.1.tgz
 https://registry.npmjs.org/core-util-is/-/core-util-is-1.0.2.tgz
-https://registry.npmjs.org/cosmiconfig/-/cosmiconfig-7.1.0.tgz
 https://registry.npmjs.org/cpu-features/-/cpu-features-0.0.10.tgz
 https://registry.npmjs.org/cross-dirname/-/cross-dirname-0.1.0.tgz
 https://registry.npmjs.org/cross-spawn/-/cross-spawn-7.0.6.tgz
@@ -446,17 +435,16 @@ https://registry.npmjs.org/data-view-byte-length/-/data-view-byte-length-1.0.2.t
 https://registry.npmjs.org/data-view-byte-offset/-/data-view-byte-offset-1.0.0.tgz
 https://registry.npmjs.org/data-view-byte-offset/-/data-view-byte-offset-1.0.1.tgz
 https://registry.npmjs.org/datadog-metrics/-/datadog-metrics-0.9.3.tgz
-https://registry.npmjs.org/dbus-ts/-/dbus-ts-0.0.7.tgz
 https://registry.npmjs.org/debug/-/debug-2.6.9.tgz
 https://registry.npmjs.org/debug/-/debug-3.1.0.tgz
 https://registry.npmjs.org/debug/-/debug-3.2.7.tgz
+https://registry.npmjs.org/debug/-/debug-4.4.0.tgz
 https://registry.npmjs.org/debug/-/debug-4.4.1.tgz
 https://registry.npmjs.org/debug/-/debug-4.4.3.tgz
 https://registry.npmjs.org/decamelize/-/decamelize-4.0.0.tgz
 https://registry.npmjs.org/decode-named-character-reference/-/decode-named-character-reference-1.0.2.tgz
 https://registry.npmjs.org/decompress-response/-/decompress-response-4.2.1.tgz
 https://registry.npmjs.org/decompress-response/-/decompress-response-6.0.0.tgz
-https://registry.npmjs.org/dedent/-/dedent-0.7.0.tgz
 https://registry.npmjs.org/deep-eql/-/deep-eql-4.1.4.tgz
 https://registry.npmjs.org/deep-eql/-/deep-eql-5.0.2.tgz
 https://registry.npmjs.org/deep-extend/-/deep-extend-0.6.0.tgz
@@ -484,12 +472,10 @@ https://registry.npmjs.org/dirty-chai/-/dirty-chai-2.0.1.tgz
 https://registry.npmjs.org/doctrine/-/doctrine-2.1.0.tgz
 https://registry.npmjs.org/doctrine/-/doctrine-3.0.0.tgz
 https://registry.npmjs.org/dogapi/-/dogapi-2.8.4.tgz
-https://registry.npmjs.org/dugite/-/dugite-2.7.1.tgz
 https://registry.npmjs.org/dunder-proto/-/dunder-proto-1.0.1.tgz
 https://registry.npmjs.org/duplexer/-/duplexer-0.1.1.tgz
 https://registry.npmjs.org/eastasianwidth/-/eastasianwidth-0.2.0.tgz
 https://registry.npmjs.org/ecc-jsbn/-/ecc-jsbn-0.1.2.tgz
-https://registry.npmjs.org/ecdsa-sig-formatter/-/ecdsa-sig-formatter-1.0.11.tgz
 https://registry.npmjs.org/ee-first/-/ee-first-1.1.1.tgz
 https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.5.18.tgz
 https://registry.npmjs.org/emoji-regex/-/emoji-regex-10.4.0.tgz
@@ -502,11 +488,11 @@ https://registry.npmjs.org/encoding/-/encoding-0.1.13.tgz
 https://registry.npmjs.org/end-of-stream/-/end-of-stream-1.4.4.tgz
 https://registry.npmjs.org/enhanced-resolve/-/enhanced-resolve-4.1.0.tgz
 https://registry.npmjs.org/enhanced-resolve/-/enhanced-resolve-5.17.1.tgz
-https://registry.npmjs.org/enquirer/-/enquirer-2.4.1.tgz
 https://registry.npmjs.org/ensure-posix-path/-/ensure-posix-path-1.1.1.tgz
 https://registry.npmjs.org/entities/-/entities-4.5.0.tgz
 https://registry.npmjs.org/env-paths/-/env-paths-2.2.1.tgz
 https://registry.npmjs.org/envinfo/-/envinfo-7.20.0.tgz
+https://registry.npmjs.org/environment/-/environment-1.1.0.tgz
 https://registry.npmjs.org/err-code/-/err-code-2.0.3.tgz
 https://registry.npmjs.org/errno/-/errno-0.1.7.tgz
 https://registry.npmjs.org/error-ex/-/error-ex-1.3.2.tgz
@@ -547,6 +533,7 @@ https://registry.npmjs.org/eslint-plugin-es/-/eslint-plugin-es-3.0.1.tgz
 https://registry.npmjs.org/eslint-plugin-es/-/eslint-plugin-es-4.1.0.tgz
 https://registry.npmjs.org/eslint-plugin-import/-/eslint-plugin-import-2.27.5.tgz
 https://registry.npmjs.org/eslint-plugin-import/-/eslint-plugin-import-2.32.0.tgz
+https://registry.npmjs.org/eslint-plugin-markdown/-/eslint-plugin-markdown-5.1.0.tgz
 https://registry.npmjs.org/eslint-plugin-mocha/-/eslint-plugin-mocha-10.5.0.tgz
 https://registry.npmjs.org/eslint-plugin-n/-/eslint-plugin-n-15.7.0.tgz
 https://registry.npmjs.org/eslint-plugin-n/-/eslint-plugin-n-16.6.2.tgz
@@ -554,7 +541,6 @@ https://registry.npmjs.org/eslint-plugin-node/-/eslint-plugin-node-11.1.0.tgz
 https://registry.npmjs.org/eslint-plugin-promise/-/eslint-plugin-promise-6.1.1.tgz
 https://registry.npmjs.org/eslint-plugin-promise/-/eslint-plugin-promise-6.6.0.tgz
 https://registry.npmjs.org/eslint-plugin-react/-/eslint-plugin-react-7.32.2.tgz
-https://registry.npmjs.org/eslint-plugin-standard/-/eslint-plugin-standard-5.0.0.tgz
 https://registry.npmjs.org/eslint-scope/-/eslint-scope-5.1.1.tgz
 https://registry.npmjs.org/eslint-scope/-/eslint-scope-7.2.2.tgz
 https://registry.npmjs.org/eslint-utils/-/eslint-utils-2.1.0.tgz
@@ -562,7 +548,7 @@ https://registry.npmjs.org/eslint-utils/-/eslint-utils-3.0.0.tgz
 https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-1.1.0.tgz
 https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-2.0.0.tgz
 https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-3.4.3.tgz
-https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-4.2.1.tgz
+https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-4.2.0.tgz
 https://registry.npmjs.org/eslint/-/eslint-8.57.1.tgz
 https://registry.npmjs.org/espree/-/espree-9.6.1.tgz
 https://registry.npmjs.org/esprima/-/esprima-4.0.1.tgz
@@ -573,13 +559,14 @@ https://registry.npmjs.org/estraverse/-/estraverse-5.1.0.tgz
 https://registry.npmjs.org/estraverse/-/estraverse-5.3.0.tgz
 https://registry.npmjs.org/esutils/-/esutils-2.0.3.tgz
 https://registry.npmjs.org/etag/-/etag-1.8.1.tgz
+https://registry.npmjs.org/eventemitter3/-/eventemitter3-5.0.1.tgz
 https://registry.npmjs.org/events-to-array/-/events-to-array-1.1.2.tgz
 https://registry.npmjs.org/events/-/events-3.3.0.tgz
-https://registry.npmjs.org/execa/-/execa-4.1.0.tgz
 https://registry.npmjs.org/exponential-backoff/-/exponential-backoff-3.1.3.tgz
 https://registry.npmjs.org/express/-/express-4.21.2.tgz
 https://registry.npmjs.org/extend/-/extend-3.0.2.tgz
 https://registry.npmjs.org/extract-zip/-/extract-zip-2.0.1.tgz
+https://registry.npmjs.org/fast-content-type-parse/-/fast-content-type-parse-3.0.0.tgz
 https://registry.npmjs.org/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz
 https://registry.npmjs.org/fast-glob/-/fast-glob-3.3.2.tgz
 https://registry.npmjs.org/fast-glob/-/fast-glob-3.3.3.tgz
@@ -608,7 +595,7 @@ https://registry.npmjs.org/flat-cache/-/flat-cache-3.0.4.tgz
 https://registry.npmjs.org/flat/-/flat-5.0.2.tgz
 https://registry.npmjs.org/flatted/-/flatted-3.2.7.tgz
 https://registry.npmjs.org/flora-colossus/-/flora-colossus-2.0.0.tgz
-https://registry.npmjs.org/folder-hash/-/folder-hash-2.1.2.tgz
+https://registry.npmjs.org/folder-hash/-/folder-hash-4.1.1.tgz
 https://registry.npmjs.org/follow-redirects/-/follow-redirects-1.15.11.tgz
 https://registry.npmjs.org/for-each/-/for-each-0.3.3.tgz
 https://registry.npmjs.org/for-each/-/for-each-0.3.5.tgz
@@ -638,7 +625,6 @@ https://registry.npmjs.org/get-func-name/-/get-func-name-2.0.2.tgz
 https://registry.npmjs.org/get-intrinsic/-/get-intrinsic-1.2.1.tgz
 https://registry.npmjs.org/get-intrinsic/-/get-intrinsic-1.2.4.tgz
 https://registry.npmjs.org/get-intrinsic/-/get-intrinsic-1.3.0.tgz
-https://registry.npmjs.org/get-own-enumerable-property-symbols/-/get-own-enumerable-property-symbols-3.0.2.tgz
 https://registry.npmjs.org/get-package-info/-/get-package-info-1.0.0.tgz
 https://registry.npmjs.org/get-proto/-/get-proto-1.0.1.tgz
 https://registry.npmjs.org/get-stdin/-/get-stdin-8.0.0.tgz
@@ -656,7 +642,6 @@ https://registry.npmjs.org/glob-parent/-/glob-parent-6.0.2.tgz
 https://registry.npmjs.org/glob-to-regexp/-/glob-to-regexp-0.4.1.tgz
 https://registry.npmjs.org/glob/-/glob-10.4.5.tgz
 https://registry.npmjs.org/glob/-/glob-7.2.0.tgz
-https://registry.npmjs.org/glob/-/glob-7.2.3.tgz
 https://registry.npmjs.org/glob/-/glob-8.1.0.tgz
 https://registry.npmjs.org/glob/-/glob-9.3.5.tgz
 https://registry.npmjs.org/global-agent/-/global-agent-3.0.0.tgz
@@ -668,7 +653,6 @@ https://registry.npmjs.org/globby/-/globby-14.1.0.tgz
 https://registry.npmjs.org/gopd/-/gopd-1.0.1.tgz
 https://registry.npmjs.org/gopd/-/gopd-1.2.0.tgz
 https://registry.npmjs.org/got/-/got-11.8.5.tgz
-https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.1.15.tgz
 https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.11.tgz
 https://registry.npmjs.org/graphemer/-/graphemer-1.4.0.tgz
 https://registry.npmjs.org/has-bigints/-/has-bigints-1.0.2.tgz
@@ -702,8 +686,7 @@ https://registry.npmjs.org/http2-wrapper/-/http2-wrapper-1.0.3.tgz
 https://registry.npmjs.org/https-proxy-agent/-/https-proxy-agent-5.0.1.tgz
 https://registry.npmjs.org/https-proxy-agent/-/https-proxy-agent-7.0.5.tgz
 https://registry.npmjs.org/https-proxy-agent/-/https-proxy-agent-7.0.6.tgz
-https://registry.npmjs.org/human-signals/-/human-signals-1.1.1.tgz
-https://registry.npmjs.org/husky/-/husky-8.0.3.tgz
+https://registry.npmjs.org/husky/-/husky-9.1.7.tgz
 https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.24.tgz
 https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.6.3.tgz
 https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.7.0.tgz
@@ -715,7 +698,6 @@ https://registry.npmjs.org/import-fresh/-/import-fresh-3.3.0.tgz
 https://registry.npmjs.org/import-local/-/import-local-3.1.0.tgz
 https://registry.npmjs.org/import-meta-resolve/-/import-meta-resolve-4.1.0.tgz
 https://registry.npmjs.org/imurmurhash/-/imurmurhash-0.1.4.tgz
-https://registry.npmjs.org/indent-string/-/indent-string-4.0.0.tgz
 https://registry.npmjs.org/inflight/-/inflight-1.0.6.tgz
 https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz
 https://registry.npmjs.org/ini/-/ini-1.3.8.tgz
@@ -724,11 +706,12 @@ https://registry.npmjs.org/inquirer/-/inquirer-8.2.7.tgz
 https://registry.npmjs.org/internal-slot/-/internal-slot-1.0.5.tgz
 https://registry.npmjs.org/internal-slot/-/internal-slot-1.0.7.tgz
 https://registry.npmjs.org/internal-slot/-/internal-slot-1.1.0.tgz
-https://registry.npmjs.org/interpret/-/interpret-1.4.0.tgz
 https://registry.npmjs.org/interpret/-/interpret-3.1.1.tgz
 https://registry.npmjs.org/ip-address/-/ip-address-10.0.1.tgz
 https://registry.npmjs.org/ipaddr.js/-/ipaddr.js-1.9.1.tgz
+https://registry.npmjs.org/is-alphabetical/-/is-alphabetical-1.0.4.tgz
 https://registry.npmjs.org/is-alphabetical/-/is-alphabetical-2.0.0.tgz
+https://registry.npmjs.org/is-alphanumerical/-/is-alphanumerical-1.0.4.tgz
 https://registry.npmjs.org/is-alphanumerical/-/is-alphanumerical-2.0.0.tgz
 https://registry.npmjs.org/is-array-buffer/-/is-array-buffer-3.0.2.tgz
 https://registry.npmjs.org/is-array-buffer/-/is-array-buffer-3.0.4.tgz
@@ -751,14 +734,18 @@ https://registry.npmjs.org/is-data-view/-/is-data-view-1.0.1.tgz
 https://registry.npmjs.org/is-data-view/-/is-data-view-1.0.2.tgz
 https://registry.npmjs.org/is-date-object/-/is-date-object-1.0.5.tgz
 https://registry.npmjs.org/is-date-object/-/is-date-object-1.1.0.tgz
+https://registry.npmjs.org/is-decimal/-/is-decimal-1.0.4.tgz
 https://registry.npmjs.org/is-decimal/-/is-decimal-2.0.0.tgz
 https://registry.npmjs.org/is-empty/-/is-empty-1.2.0.tgz
 https://registry.npmjs.org/is-extglob/-/is-extglob-2.1.1.tgz
 https://registry.npmjs.org/is-finalizationregistry/-/is-finalizationregistry-1.1.1.tgz
 https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz
+https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-4.0.0.tgz
+https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-5.0.0.tgz
 https://registry.npmjs.org/is-generator-function/-/is-generator-function-1.1.0.tgz
 https://registry.npmjs.org/is-glob/-/is-glob-3.1.0.tgz
 https://registry.npmjs.org/is-glob/-/is-glob-4.0.3.tgz
+https://registry.npmjs.org/is-hexadecimal/-/is-hexadecimal-1.0.4.tgz
 https://registry.npmjs.org/is-hexadecimal/-/is-hexadecimal-2.0.0.tgz
 https://registry.npmjs.org/is-interactive/-/is-interactive-1.0.0.tgz
 https://registry.npmjs.org/is-interactive/-/is-interactive-2.0.0.tgz
@@ -768,21 +755,17 @@ https://registry.npmjs.org/is-negative-zero/-/is-negative-zero-2.0.3.tgz
 https://registry.npmjs.org/is-number-object/-/is-number-object-1.0.7.tgz
 https://registry.npmjs.org/is-number-object/-/is-number-object-1.1.1.tgz
 https://registry.npmjs.org/is-number/-/is-number-7.0.0.tgz
-https://registry.npmjs.org/is-obj/-/is-obj-1.0.1.tgz
 https://registry.npmjs.org/is-path-inside/-/is-path-inside-3.0.3.tgz
 https://registry.npmjs.org/is-plain-obj/-/is-plain-obj-2.1.0.tgz
 https://registry.npmjs.org/is-plain-obj/-/is-plain-obj-4.0.0.tgz
 https://registry.npmjs.org/is-plain-object/-/is-plain-object-2.0.4.tgz
-https://registry.npmjs.org/is-plain-object/-/is-plain-object-5.0.0.tgz
 https://registry.npmjs.org/is-primitive/-/is-primitive-3.0.1.tgz
 https://registry.npmjs.org/is-regex/-/is-regex-1.1.4.tgz
 https://registry.npmjs.org/is-regex/-/is-regex-1.2.1.tgz
-https://registry.npmjs.org/is-regexp/-/is-regexp-1.0.0.tgz
 https://registry.npmjs.org/is-set/-/is-set-2.0.3.tgz
 https://registry.npmjs.org/is-shared-array-buffer/-/is-shared-array-buffer-1.0.2.tgz
 https://registry.npmjs.org/is-shared-array-buffer/-/is-shared-array-buffer-1.0.3.tgz
 https://registry.npmjs.org/is-shared-array-buffer/-/is-shared-array-buffer-1.0.4.tgz
-https://registry.npmjs.org/is-stream/-/is-stream-2.0.1.tgz
 https://registry.npmjs.org/is-string/-/is-string-1.0.7.tgz
 https://registry.npmjs.org/is-string/-/is-string-1.1.1.tgz
 https://registry.npmjs.org/is-symbol/-/is-symbol-1.0.4.tgz
@@ -824,23 +807,20 @@ https://registry.npmjs.org/json5/-/json5-2.2.3.tgz
 https://registry.npmjs.org/jsonc-parser/-/jsonc-parser-3.3.1.tgz
 https://registry.npmjs.org/jsonfile/-/jsonfile-4.0.0.tgz
 https://registry.npmjs.org/jsonfile/-/jsonfile-6.0.1.tgz
-https://registry.npmjs.org/jsonwebtoken/-/jsonwebtoken-9.0.0.tgz
 https://registry.npmjs.org/jsx-ast-utils/-/jsx-ast-utils-3.3.3.tgz
 https://registry.npmjs.org/jszip/-/jszip-3.10.1.tgz
 https://registry.npmjs.org/junk/-/junk-3.1.0.tgz
 https://registry.npmjs.org/just-extend/-/just-extend-4.2.1.tgz
-https://registry.npmjs.org/jwa/-/jwa-1.4.1.tgz
-https://registry.npmjs.org/jws/-/jws-3.2.2.tgz
 https://registry.npmjs.org/katex/-/katex-0.16.22.tgz
 https://registry.npmjs.org/keyv/-/keyv-4.3.1.tgz
 https://registry.npmjs.org/kind-of/-/kind-of-6.0.3.tgz
 https://registry.npmjs.org/levn/-/levn-0.4.1.tgz
 https://registry.npmjs.org/lie/-/lie-3.3.0.tgz
-https://registry.npmjs.org/lines-and-columns/-/lines-and-columns-1.2.4.tgz
+https://registry.npmjs.org/lilconfig/-/lilconfig-3.1.3.tgz
 https://registry.npmjs.org/lines-and-columns/-/lines-and-columns-2.0.4.tgz
 https://registry.npmjs.org/linkify-it/-/linkify-it-5.0.0.tgz
-https://registry.npmjs.org/lint-staged/-/lint-staged-10.5.4.tgz
-https://registry.npmjs.org/listr2/-/listr2-3.14.0.tgz
+https://registry.npmjs.org/lint-staged/-/lint-staged-16.1.0.tgz
+https://registry.npmjs.org/listr2/-/listr2-8.3.3.tgz
 https://registry.npmjs.org/load-json-file/-/load-json-file-2.0.0.tgz
 https://registry.npmjs.org/load-json-file/-/load-json-file-5.3.0.tgz
 https://registry.npmjs.org/load-plugin/-/load-plugin-6.0.3.tgz
@@ -857,7 +837,7 @@ https://registry.npmjs.org/lodash.merge/-/lodash.merge-4.6.2.tgz
 https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz
 https://registry.npmjs.org/log-symbols/-/log-symbols-4.1.0.tgz
 https://registry.npmjs.org/log-symbols/-/log-symbols-6.0.0.tgz
-https://registry.npmjs.org/log-update/-/log-update-4.0.0.tgz
+https://registry.npmjs.org/log-update/-/log-update-6.1.0.tgz
 https://registry.npmjs.org/longest-streak/-/longest-streak-3.0.0.tgz
 https://registry.npmjs.org/loose-envify/-/loose-envify-1.4.0.tgz
 https://registry.npmjs.org/loupe/-/loupe-2.3.7.tgz
@@ -880,12 +860,18 @@ https://registry.npmjs.org/matcher-collection/-/matcher-collection-1.1.2.tgz
 https://registry.npmjs.org/matcher/-/matcher-3.0.0.tgz
 https://registry.npmjs.org/math-intrinsics/-/math-intrinsics-1.1.0.tgz
 https://registry.npmjs.org/md5/-/md5-2.3.0.tgz
-https://registry.npmjs.org/mdast-comment-marker/-/mdast-comment-marker-1.1.2.tgz
+https://registry.npmjs.org/mdast-comment-marker/-/mdast-comment-marker-3.0.0.tgz
+https://registry.npmjs.org/mdast-util-directive/-/mdast-util-directive-3.1.0.tgz
+https://registry.npmjs.org/mdast-util-from-markdown/-/mdast-util-from-markdown-0.8.5.tgz
 https://registry.npmjs.org/mdast-util-from-markdown/-/mdast-util-from-markdown-2.0.2.tgz
-https://registry.npmjs.org/mdast-util-heading-style/-/mdast-util-heading-style-1.0.6.tgz
+https://registry.npmjs.org/mdast-util-heading-style/-/mdast-util-heading-style-3.0.0.tgz
+https://registry.npmjs.org/mdast-util-mdx-expression/-/mdast-util-mdx-expression-2.0.1.tgz
+https://registry.npmjs.org/mdast-util-mdx-jsx/-/mdast-util-mdx-jsx-3.2.0.tgz
+https://registry.npmjs.org/mdast-util-mdx/-/mdast-util-mdx-3.0.0.tgz
+https://registry.npmjs.org/mdast-util-mdxjs-esm/-/mdast-util-mdxjs-esm-2.0.1.tgz
 https://registry.npmjs.org/mdast-util-phrasing/-/mdast-util-phrasing-4.1.0.tgz
 https://registry.npmjs.org/mdast-util-to-markdown/-/mdast-util-to-markdown-2.1.0.tgz
-https://registry.npmjs.org/mdast-util-to-string/-/mdast-util-to-string-1.1.0.tgz
+https://registry.npmjs.org/mdast-util-to-string/-/mdast-util-to-string-2.0.0.tgz
 https://registry.npmjs.org/mdast-util-to-string/-/mdast-util-to-string-4.0.0.tgz
 https://registry.npmjs.org/mdurl/-/mdurl-2.0.0.tgz
 https://registry.npmjs.org/media-typer/-/media-typer-0.3.0.tgz
@@ -894,7 +880,6 @@ https://registry.npmjs.org/merge-descriptors/-/merge-descriptors-1.0.3.tgz
 https://registry.npmjs.org/merge-stream/-/merge-stream-2.0.0.tgz
 https://registry.npmjs.org/merge2/-/merge2-1.4.1.tgz
 https://registry.npmjs.org/methods/-/methods-1.1.2.tgz
-https://registry.npmjs.org/micromark-core-commonmark/-/micromark-core-commonmark-2.0.1.tgz
 https://registry.npmjs.org/micromark-core-commonmark/-/micromark-core-commonmark-2.0.3.tgz
 https://registry.npmjs.org/micromark-extension-directive/-/micromark-extension-directive-4.0.0.tgz
 https://registry.npmjs.org/micromark-extension-gfm-autolink-literal/-/micromark-extension-gfm-autolink-literal-2.1.0.tgz
@@ -921,6 +906,7 @@ https://registry.npmjs.org/micromark-util-subtokenize/-/micromark-util-subtokeni
 https://registry.npmjs.org/micromark-util-symbol/-/micromark-util-symbol-2.0.0.tgz
 https://registry.npmjs.org/micromark-util-types/-/micromark-util-types-2.0.0.tgz
 https://registry.npmjs.org/micromark-util-types/-/micromark-util-types-2.0.2.tgz
+https://registry.npmjs.org/micromark/-/micromark-2.11.4.tgz
 https://registry.npmjs.org/micromark/-/micromark-4.0.0.tgz
 https://registry.npmjs.org/micromark/-/micromark-4.0.2.tgz
 https://registry.npmjs.org/micromatch/-/micromatch-4.0.8.tgz
@@ -932,12 +918,11 @@ https://registry.npmjs.org/mimic-function/-/mimic-function-5.0.1.tgz
 https://registry.npmjs.org/mimic-response/-/mimic-response-1.0.1.tgz
 https://registry.npmjs.org/mimic-response/-/mimic-response-2.1.0.tgz
 https://registry.npmjs.org/mimic-response/-/mimic-response-3.1.0.tgz
-https://registry.npmjs.org/minimatch/-/minimatch-3.0.8.tgz
 https://registry.npmjs.org/minimatch/-/minimatch-3.1.2.tgz
 https://registry.npmjs.org/minimatch/-/minimatch-5.1.6.tgz
+https://registry.npmjs.org/minimatch/-/minimatch-7.4.6.tgz
 https://registry.npmjs.org/minimatch/-/minimatch-8.0.4.tgz
 https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz
-https://registry.npmjs.org/minimist/-/minimist-1.2.6.tgz
 https://registry.npmjs.org/minimist/-/minimist-1.2.8.tgz
 https://registry.npmjs.org/minipass-collect/-/minipass-collect-2.0.1.tgz
 https://registry.npmjs.org/minipass-fetch/-/minipass-fetch-4.0.1.tgz
@@ -962,6 +947,7 @@ https://registry.npmjs.org/ms/-/ms-2.0.0.tgz
 https://registry.npmjs.org/ms/-/ms-2.1.3.tgz
 https://registry.npmjs.org/mute-stream/-/mute-stream-0.0.8.tgz
 https://registry.npmjs.org/nan/-/nan-2.23.0.tgz
+https://registry.npmjs.org/nano-spawn/-/nano-spawn-1.0.2.tgz
 https://registry.npmjs.org/natural-compare/-/natural-compare-1.4.0.tgz
 https://registry.npmjs.org/negotiator/-/negotiator-0.6.3.tgz
 https://registry.npmjs.org/negotiator/-/negotiator-1.0.0.tgz
@@ -983,7 +969,6 @@ https://registry.npmjs.org/npm-install-checks/-/npm-install-checks-6.3.0.tgz
 https://registry.npmjs.org/npm-normalize-package-bin/-/npm-normalize-package-bin-3.0.1.tgz
 https://registry.npmjs.org/npm-package-arg/-/npm-package-arg-11.0.3.tgz
 https://registry.npmjs.org/npm-pick-manifest/-/npm-pick-manifest-9.1.0.tgz
-https://registry.npmjs.org/npm-run-path/-/npm-run-path-4.0.1.tgz
 https://registry.npmjs.org/npmlog/-/npmlog-5.0.1.tgz
 https://registry.npmjs.org/null-loader/-/null-loader-4.0.1.tgz
 https://registry.npmjs.org/object-assign/-/object-assign-4.1.1.tgz
@@ -1018,7 +1003,6 @@ https://registry.npmjs.org/p-locate/-/p-locate-2.0.0.tgz
 https://registry.npmjs.org/p-locate/-/p-locate-3.0.0.tgz
 https://registry.npmjs.org/p-locate/-/p-locate-4.1.0.tgz
 https://registry.npmjs.org/p-locate/-/p-locate-5.0.0.tgz
-https://registry.npmjs.org/p-map/-/p-map-4.0.0.tgz
 https://registry.npmjs.org/p-map/-/p-map-7.0.3.tgz
 https://registry.npmjs.org/p-try/-/p-try-1.0.0.tgz
 https://registry.npmjs.org/p-try/-/p-try-2.2.0.tgz
@@ -1030,11 +1014,11 @@ https://registry.npmjs.org/packageurl-js/-/packageurl-js-2.0.1.tgz
 https://registry.npmjs.org/pako/-/pako-1.0.11.tgz
 https://registry.npmjs.org/parent-module/-/parent-module-1.0.1.tgz
 https://registry.npmjs.org/parse-author/-/parse-author-2.0.0.tgz
+https://registry.npmjs.org/parse-entities/-/parse-entities-2.0.0.tgz
 https://registry.npmjs.org/parse-entities/-/parse-entities-4.0.2.tgz
 https://registry.npmjs.org/parse-gitignore/-/parse-gitignore-0.4.0.tgz
 https://registry.npmjs.org/parse-json/-/parse-json-2.2.0.tgz
 https://registry.npmjs.org/parse-json/-/parse-json-4.0.0.tgz
-https://registry.npmjs.org/parse-json/-/parse-json-5.2.0.tgz
 https://registry.npmjs.org/parse-json/-/parse-json-7.1.1.tgz
 https://registry.npmjs.org/parse-ms/-/parse-ms-4.0.0.tgz
 https://registry.npmjs.org/parse5/-/parse5-7.1.2.tgz
@@ -1049,7 +1033,6 @@ https://registry.npmjs.org/path-scurry/-/path-scurry-1.9.2.tgz
 https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-0.1.12.tgz
 https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-1.9.0.tgz
 https://registry.npmjs.org/path-type/-/path-type-2.0.0.tgz
-https://registry.npmjs.org/path-type/-/path-type-4.0.0.tgz
 https://registry.npmjs.org/path-type/-/path-type-6.0.0.tgz
 https://registry.npmjs.org/path2d/-/path2d-0.2.2.tgz
 https://registry.npmjs.org/pathval/-/pathval-1.1.1.tgz
@@ -1063,11 +1046,11 @@ https://registry.npmjs.org/picomatch/-/picomatch-2.0.7.tgz
 https://registry.npmjs.org/picomatch/-/picomatch-2.2.2.tgz
 https://registry.npmjs.org/picomatch/-/picomatch-2.3.1.tgz
 https://registry.npmjs.org/picomatch/-/picomatch-4.0.3.tgz
+https://registry.npmjs.org/pidtree/-/pidtree-0.6.0.tgz
 https://registry.npmjs.org/pify/-/pify-2.3.0.tgz
 https://registry.npmjs.org/pify/-/pify-4.0.1.tgz
 https://registry.npmjs.org/pkg-conf/-/pkg-conf-3.1.0.tgz
 https://registry.npmjs.org/pkg-dir/-/pkg-dir-4.2.0.tgz
-https://registry.npmjs.org/please-upgrade-node/-/please-upgrade-node-3.2.0.tgz
 https://registry.npmjs.org/plist/-/plist-3.1.0.tgz
 https://registry.npmjs.org/pluralize/-/pluralize-8.0.0.tgz
 https://registry.npmjs.org/possible-typed-array-names/-/possible-typed-array-names-1.0.0.tgz
@@ -1097,6 +1080,7 @@ https://registry.npmjs.org/punycode/-/punycode-2.1.1.tgz
 https://registry.npmjs.org/q/-/q-1.5.1.tgz
 https://registry.npmjs.org/qs/-/qs-6.13.0.tgz
 https://registry.npmjs.org/quick-lru/-/quick-lru-5.1.1.tgz
+https://registry.npmjs.org/quotation/-/quotation-2.0.3.tgz
 https://registry.npmjs.org/rambda/-/rambda-7.5.0.tgz
 https://registry.npmjs.org/randombytes/-/randombytes-2.1.0.tgz
 https://registry.npmjs.org/range-parser/-/range-parser-1.2.1.tgz
@@ -1110,7 +1094,6 @@ https://registry.npmjs.org/readable-stream/-/readable-stream-2.3.6.tgz
 https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.0.tgz
 https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz
 https://registry.npmjs.org/readdirp/-/readdirp-3.6.0.tgz
-https://registry.npmjs.org/rechoir/-/rechoir-0.6.2.tgz
 https://registry.npmjs.org/rechoir/-/rechoir-0.8.0.tgz
 https://registry.npmjs.org/reflect.getprototypeof/-/reflect.getprototypeof-1.0.10.tgz
 https://registry.npmjs.org/regexp.prototype.flags/-/regexp.prototype.flags-1.5.0.tgz
@@ -1118,54 +1101,52 @@ https://registry.npmjs.org/regexp.prototype.flags/-/regexp.prototype.flags-1.5.2
 https://registry.npmjs.org/regexp.prototype.flags/-/regexp.prototype.flags-1.5.4.tgz
 https://registry.npmjs.org/regexpp/-/regexpp-3.0.0.tgz
 https://registry.npmjs.org/remark-cli/-/remark-cli-12.0.1.tgz
-https://registry.npmjs.org/remark-lint-blockquote-indentation/-/remark-lint-blockquote-indentation-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-code-block-style/-/remark-lint-code-block-style-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-definition-case/-/remark-lint-definition-case-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-definition-spacing/-/remark-lint-definition-spacing-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-emphasis-marker/-/remark-lint-emphasis-marker-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-fenced-code-flag/-/remark-lint-fenced-code-flag-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-fenced-code-marker/-/remark-lint-fenced-code-marker-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-file-extension/-/remark-lint-file-extension-1.0.5.tgz
-https://registry.npmjs.org/remark-lint-final-definition/-/remark-lint-final-definition-2.1.0.tgz
-https://registry.npmjs.org/remark-lint-hard-break-spaces/-/remark-lint-hard-break-spaces-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-heading-increment/-/remark-lint-heading-increment-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-heading-style/-/remark-lint-heading-style-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-link-title-style/-/remark-lint-link-title-style-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-list-item-content-indent/-/remark-lint-list-item-content-indent-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-list-item-indent/-/remark-lint-list-item-indent-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-list-item-spacing/-/remark-lint-list-item-spacing-3.0.0.tgz
-https://registry.npmjs.org/remark-lint-maximum-heading-length/-/remark-lint-maximum-heading-length-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-maximum-line-length/-/remark-lint-maximum-line-length-2.0.3.tgz
-https://registry.npmjs.org/remark-lint-no-auto-link-without-protocol/-/remark-lint-no-auto-link-without-protocol-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-no-blockquote-without-marker/-/remark-lint-no-blockquote-without-marker-4.0.0.tgz
-https://registry.npmjs.org/remark-lint-no-consecutive-blank-lines/-/remark-lint-no-consecutive-blank-lines-3.0.0.tgz
-https://registry.npmjs.org/remark-lint-no-duplicate-headings/-/remark-lint-no-duplicate-headings-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-no-emphasis-as-heading/-/remark-lint-no-emphasis-as-heading-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-no-file-name-articles/-/remark-lint-no-file-name-articles-1.0.5.tgz
-https://registry.npmjs.org/remark-lint-no-file-name-consecutive-dashes/-/remark-lint-no-file-name-consecutive-dashes-1.0.5.tgz
-https://registry.npmjs.org/remark-lint-no-file-name-irregular-characters/-/remark-lint-no-file-name-irregular-characters-1.0.5.tgz
-https://registry.npmjs.org/remark-lint-no-file-name-mixed-case/-/remark-lint-no-file-name-mixed-case-1.0.5.tgz
-https://registry.npmjs.org/remark-lint-no-file-name-outer-dashes/-/remark-lint-no-file-name-outer-dashes-1.0.6.tgz
-https://registry.npmjs.org/remark-lint-no-heading-punctuation/-/remark-lint-no-heading-punctuation-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-no-inline-padding/-/remark-lint-no-inline-padding-3.0.0.tgz
-https://registry.npmjs.org/remark-lint-no-literal-urls/-/remark-lint-no-literal-urls-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-no-multiple-toplevel-headings/-/remark-lint-no-multiple-toplevel-headings-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-no-shell-dollars/-/remark-lint-no-shell-dollars-2.0.2.tgz
-https://registry.npmjs.org/remark-lint-no-shortcut-reference-image/-/remark-lint-no-shortcut-reference-image-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-no-shortcut-reference-link/-/remark-lint-no-shortcut-reference-link-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-no-table-indentation/-/remark-lint-no-table-indentation-3.0.0.tgz
-https://registry.npmjs.org/remark-lint-ordered-list-marker-style/-/remark-lint-ordered-list-marker-style-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-ordered-list-marker-value/-/remark-lint-ordered-list-marker-value-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-rule-style/-/remark-lint-rule-style-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-strong-marker/-/remark-lint-strong-marker-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-table-cell-padding/-/remark-lint-table-cell-padding-3.0.0.tgz
-https://registry.npmjs.org/remark-lint-table-pipe-alignment/-/remark-lint-table-pipe-alignment-2.0.1.tgz
-https://registry.npmjs.org/remark-lint-table-pipes/-/remark-lint-table-pipes-3.0.0.tgz
-https://registry.npmjs.org/remark-lint-unordered-list-marker-style/-/remark-lint-unordered-list-marker-style-2.0.1.tgz
-https://registry.npmjs.org/remark-lint/-/remark-lint-8.0.0.tgz
-https://registry.npmjs.org/remark-message-control/-/remark-message-control-6.0.0.tgz
+https://registry.npmjs.org/remark-lint-blockquote-indentation/-/remark-lint-blockquote-indentation-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-code-block-style/-/remark-lint-code-block-style-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-definition-case/-/remark-lint-definition-case-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-definition-spacing/-/remark-lint-definition-spacing-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-emphasis-marker/-/remark-lint-emphasis-marker-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-fenced-code-flag/-/remark-lint-fenced-code-flag-4.2.0.tgz
+https://registry.npmjs.org/remark-lint-fenced-code-marker/-/remark-lint-fenced-code-marker-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-file-extension/-/remark-lint-file-extension-3.0.1.tgz
+https://registry.npmjs.org/remark-lint-final-definition/-/remark-lint-final-definition-4.0.2.tgz
+https://registry.npmjs.org/remark-lint-hard-break-spaces/-/remark-lint-hard-break-spaces-4.1.1.tgz
+https://registry.npmjs.org/remark-lint-heading-increment/-/remark-lint-heading-increment-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-heading-style/-/remark-lint-heading-style-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-link-title-style/-/remark-lint-link-title-style-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-list-item-content-indent/-/remark-lint-list-item-content-indent-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-list-item-indent/-/remark-lint-list-item-indent-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-list-item-spacing/-/remark-lint-list-item-spacing-5.0.1.tgz
+https://registry.npmjs.org/remark-lint-maximum-heading-length/-/remark-lint-maximum-heading-length-4.1.1.tgz
+https://registry.npmjs.org/remark-lint-maximum-line-length/-/remark-lint-maximum-line-length-4.1.1.tgz
+https://registry.npmjs.org/remark-lint-no-blockquote-without-marker/-/remark-lint-no-blockquote-without-marker-6.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-consecutive-blank-lines/-/remark-lint-no-consecutive-blank-lines-5.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-duplicate-headings/-/remark-lint-no-duplicate-headings-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-emphasis-as-heading/-/remark-lint-no-emphasis-as-heading-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-file-name-articles/-/remark-lint-no-file-name-articles-3.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-file-name-consecutive-dashes/-/remark-lint-no-file-name-consecutive-dashes-3.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-file-name-irregular-characters/-/remark-lint-no-file-name-irregular-characters-3.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-file-name-mixed-case/-/remark-lint-no-file-name-mixed-case-3.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-file-name-outer-dashes/-/remark-lint-no-file-name-outer-dashes-3.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-heading-punctuation/-/remark-lint-no-heading-punctuation-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-literal-urls/-/remark-lint-no-literal-urls-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-multiple-toplevel-headings/-/remark-lint-no-multiple-toplevel-headings-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-shell-dollars/-/remark-lint-no-shell-dollars-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-shortcut-reference-image/-/remark-lint-no-shortcut-reference-image-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-shortcut-reference-link/-/remark-lint-no-shortcut-reference-link-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-no-table-indentation/-/remark-lint-no-table-indentation-5.0.1.tgz
+https://registry.npmjs.org/remark-lint-ordered-list-marker-style/-/remark-lint-ordered-list-marker-style-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-ordered-list-marker-value/-/remark-lint-ordered-list-marker-value-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-rule-style/-/remark-lint-rule-style-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-strong-marker/-/remark-lint-strong-marker-4.0.1.tgz
+https://registry.npmjs.org/remark-lint-table-cell-padding/-/remark-lint-table-cell-padding-5.1.1.tgz
+https://registry.npmjs.org/remark-lint-table-pipe-alignment/-/remark-lint-table-pipe-alignment-4.1.1.tgz
+https://registry.npmjs.org/remark-lint-table-pipes/-/remark-lint-table-pipes-5.0.1.tgz
+https://registry.npmjs.org/remark-lint-unordered-list-marker-style/-/remark-lint-unordered-list-marker-style-4.0.1.tgz
+https://registry.npmjs.org/remark-lint/-/remark-lint-10.0.1.tgz
+https://registry.npmjs.org/remark-message-control/-/remark-message-control-8.0.0.tgz
 https://registry.npmjs.org/remark-parse/-/remark-parse-11.0.0.tgz
-https://registry.npmjs.org/remark-preset-lint-markdown-style-guide/-/remark-preset-lint-markdown-style-guide-4.0.0.tgz
+https://registry.npmjs.org/remark-preset-lint-markdown-style-guide/-/remark-preset-lint-markdown-style-guide-6.0.1.tgz
 https://registry.npmjs.org/remark-stringify/-/remark-stringify-11.0.0.tgz
 https://registry.npmjs.org/remark/-/remark-15.0.1.tgz
 https://registry.npmjs.org/require-directory/-/require-directory-2.1.1.tgz
@@ -1226,8 +1207,6 @@ https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.2.0.tgz
 https://registry.npmjs.org/shallow-clone/-/shallow-clone-3.0.1.tgz
 https://registry.npmjs.org/shebang-command/-/shebang-command-2.0.0.tgz
 https://registry.npmjs.org/shebang-regex/-/shebang-regex-3.0.0.tgz
-https://registry.npmjs.org/shelljs/-/shelljs-0.8.5.tgz
-https://registry.npmjs.org/shx/-/shx-0.3.4.tgz
 https://registry.npmjs.org/side-channel-list/-/side-channel-list-1.0.0.tgz
 https://registry.npmjs.org/side-channel-map/-/side-channel-map-1.0.1.tgz
 https://registry.npmjs.org/side-channel-weakmap/-/side-channel-weakmap-1.0.2.tgz
@@ -1241,9 +1220,8 @@ https://registry.npmjs.org/simple-get/-/simple-get-3.1.1.tgz
 https://registry.npmjs.org/simple-git/-/simple-git-3.16.0.tgz
 https://registry.npmjs.org/sinon/-/sinon-9.2.4.tgz
 https://registry.npmjs.org/slash/-/slash-5.1.0.tgz
-https://registry.npmjs.org/slice-ansi/-/slice-ansi-3.0.0.tgz
-https://registry.npmjs.org/slice-ansi/-/slice-ansi-4.0.0.tgz
-https://registry.npmjs.org/sliced/-/sliced-1.0.1.tgz
+https://registry.npmjs.org/slice-ansi/-/slice-ansi-5.0.0.tgz
+https://registry.npmjs.org/slice-ansi/-/slice-ansi-7.1.0.tgz
 https://registry.npmjs.org/smart-buffer/-/smart-buffer-4.2.0.tgz
 https://registry.npmjs.org/socks-proxy-agent/-/socks-proxy-agent-8.0.5.tgz
 https://registry.npmjs.org/socks/-/socks-2.8.7.tgz
@@ -1255,7 +1233,6 @@ https://registry.npmjs.org/spdx-correct/-/spdx-correct-3.2.0.tgz
 https://registry.npmjs.org/spdx-exceptions/-/spdx-exceptions-2.3.0.tgz
 https://registry.npmjs.org/spdx-expression-parse/-/spdx-expression-parse-3.0.1.tgz
 https://registry.npmjs.org/spdx-license-ids/-/spdx-license-ids-3.0.13.tgz
-https://registry.npmjs.org/split/-/split-1.0.1.tgz
 https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.0.3.tgz
 https://registry.npmjs.org/sprintf-js/-/sprintf-js-1.1.2.tgz
 https://registry.npmjs.org/ssh2/-/ssh2-1.17.0.tgz
@@ -1269,7 +1246,7 @@ https://registry.npmjs.org/stop-iteration-iterator/-/stop-iteration-iterator-1.1
 https://registry.npmjs.org/stream-chain/-/stream-chain-2.2.5.tgz
 https://registry.npmjs.org/stream-json/-/stream-json-1.9.1.tgz
 https://registry.npmjs.org/streamsearch/-/streamsearch-1.1.0.tgz
-https://registry.npmjs.org/string-argv/-/string-argv-0.3.1.tgz
+https://registry.npmjs.org/string-argv/-/string-argv-0.3.2.tgz
 https://registry.npmjs.org/string-width/-/string-width-4.2.0.tgz
 https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz
 https://registry.npmjs.org/string-width/-/string-width-5.1.2.tgz
@@ -1286,12 +1263,11 @@ https://registry.npmjs.org/string.prototype.trimstart/-/string.prototype.trimsta
 https://registry.npmjs.org/string.prototype.trimstart/-/string.prototype.trimstart-1.0.8.tgz
 https://registry.npmjs.org/string_decoder/-/string_decoder-1.1.1.tgz
 https://registry.npmjs.org/string_decoder/-/string_decoder-1.3.0.tgz
-https://registry.npmjs.org/stringify-object/-/stringify-object-3.3.0.tgz
+https://registry.npmjs.org/stringify-entities/-/stringify-entities-4.0.4.tgz
 https://registry.npmjs.org/strip-ansi/-/strip-ansi-4.0.0.tgz
 https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz
 https://registry.npmjs.org/strip-ansi/-/strip-ansi-7.1.0.tgz
 https://registry.npmjs.org/strip-bom/-/strip-bom-3.0.0.tgz
-https://registry.npmjs.org/strip-final-newline/-/strip-final-newline-2.0.0.tgz
 https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-2.0.1.tgz
 https://registry.npmjs.org/strip-json-comments/-/strip-json-comments-3.1.1.tgz
 https://registry.npmjs.org/strip-outer/-/strip-outer-1.0.1.tgz
@@ -1323,6 +1299,7 @@ https://registry.npmjs.org/tiny-async-pool/-/tiny-async-pool-2.1.0.tgz
 https://registry.npmjs.org/tinyexec/-/tinyexec-1.0.2.tgz
 https://registry.npmjs.org/tinyglobby/-/tinyglobby-0.2.15.tgz
 https://registry.npmjs.org/to-regex-range/-/to-regex-range-5.0.1.tgz
+https://registry.npmjs.org/toad-cache/-/toad-cache-3.7.0.tgz
 https://registry.npmjs.org/toidentifier/-/toidentifier-1.0.1.tgz
 https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz
 https://registry.npmjs.org/trim-repeated/-/trim-repeated-1.0.0.tgz
@@ -1365,24 +1342,21 @@ https://registry.npmjs.org/undici-types/-/undici-types-6.21.0.tgz
 https://registry.npmjs.org/unicorn-magic/-/unicorn-magic-0.3.0.tgz
 https://registry.npmjs.org/unified-args/-/unified-args-11.0.1.tgz
 https://registry.npmjs.org/unified-engine/-/unified-engine-11.2.1.tgz
-https://registry.npmjs.org/unified-lint-rule/-/unified-lint-rule-1.0.6.tgz
-https://registry.npmjs.org/unified-message-control/-/unified-message-control-3.0.3.tgz
+https://registry.npmjs.org/unified-lint-rule/-/unified-lint-rule-3.0.1.tgz
+https://registry.npmjs.org/unified-message-control/-/unified-message-control-5.0.0.tgz
 https://registry.npmjs.org/unified/-/unified-11.0.5.tgz
 https://registry.npmjs.org/unique-filename/-/unique-filename-4.0.0.tgz
 https://registry.npmjs.org/unique-slug/-/unique-slug-5.0.0.tgz
-https://registry.npmjs.org/unist-util-generated/-/unist-util-generated-1.1.6.tgz
 https://registry.npmjs.org/unist-util-inspect/-/unist-util-inspect-8.1.0.tgz
-https://registry.npmjs.org/unist-util-is/-/unist-util-is-4.1.0.tgz
 https://registry.npmjs.org/unist-util-is/-/unist-util-is-6.0.0.tgz
-https://registry.npmjs.org/unist-util-position/-/unist-util-position-3.1.0.tgz
+https://registry.npmjs.org/unist-util-position/-/unist-util-position-5.0.0.tgz
 https://registry.npmjs.org/unist-util-stringify-position/-/unist-util-stringify-position-2.0.1.tgz
 https://registry.npmjs.org/unist-util-stringify-position/-/unist-util-stringify-position-4.0.0.tgz
-https://registry.npmjs.org/unist-util-visit-parents/-/unist-util-visit-parents-3.1.1.tgz
 https://registry.npmjs.org/unist-util-visit-parents/-/unist-util-visit-parents-6.0.1.tgz
-https://registry.npmjs.org/unist-util-visit/-/unist-util-visit-2.0.3.tgz
 https://registry.npmjs.org/unist-util-visit/-/unist-util-visit-5.0.0.tgz
-https://registry.npmjs.org/universal-github-app-jwt/-/universal-github-app-jwt-1.1.1.tgz
+https://registry.npmjs.org/universal-github-app-jwt/-/universal-github-app-jwt-2.2.2.tgz
 https://registry.npmjs.org/universal-user-agent/-/universal-user-agent-6.0.0.tgz
+https://registry.npmjs.org/universal-user-agent/-/universal-user-agent-7.0.3.tgz
 https://registry.npmjs.org/universalify/-/universalify-0.1.2.tgz
 https://registry.npmjs.org/universalify/-/universalify-1.0.0.tgz
 https://registry.npmjs.org/universalify/-/universalify-2.0.0.tgz
@@ -1398,7 +1372,6 @@ https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz
 https://registry.npmjs.org/validate-npm-package-license/-/validate-npm-package-license-3.0.4.tgz
 https://registry.npmjs.org/validate-npm-package-name/-/validate-npm-package-name-5.0.1.tgz
 https://registry.npmjs.org/vary/-/vary-1.1.2.tgz
-https://registry.npmjs.org/vfile-location/-/vfile-location-3.2.0.tgz
 https://registry.npmjs.org/vfile-location/-/vfile-location-5.0.3.tgz
 https://registry.npmjs.org/vfile-message/-/vfile-message-4.0.2.tgz
 https://registry.npmjs.org/vfile-reporter/-/vfile-reporter-8.1.1.tgz
@@ -1441,13 +1414,12 @@ https://registry.npmjs.org/workerpool/-/workerpool-6.5.1.tgz
 https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-6.2.0.tgz
 https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz
 https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-8.1.0.tgz
-https://registry.npmjs.org/wrapped/-/wrapped-1.0.1.tgz
+https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-9.0.0.tgz
 https://registry.npmjs.org/wrapper-webpack-plugin/-/wrapper-webpack-plugin-2.2.2.tgz
 https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz
 https://registry.npmjs.org/ws/-/ws-7.5.10.tgz
 https://registry.npmjs.org/xdg-basedir/-/xdg-basedir-4.0.0.tgz
 https://registry.npmjs.org/xml/-/xml-1.0.1.tgz
-https://registry.npmjs.org/xml2js/-/xml2js-0.4.23.tgz
 https://registry.npmjs.org/xml2js/-/xml2js-0.5.0.tgz
 https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-11.0.1.tgz
 https://registry.npmjs.org/xmlbuilder/-/xmlbuilder-15.1.1.tgz
@@ -1456,8 +1428,8 @@ https://registry.npmjs.org/xtend/-/xtend-4.0.2.tgz
 https://registry.npmjs.org/y18n/-/y18n-5.0.8.tgz
 https://registry.npmjs.org/yallist/-/yallist-4.0.0.tgz
 https://registry.npmjs.org/yallist/-/yallist-5.0.0.tgz
-https://registry.npmjs.org/yaml/-/yaml-1.10.2.tgz
 https://registry.npmjs.org/yaml/-/yaml-2.8.0.tgz
+https://registry.npmjs.org/yaml/-/yaml-2.8.2.tgz
 https://registry.npmjs.org/yamux-js/-/yamux-js-0.1.2.tgz
 https://registry.npmjs.org/yargs-parser/-/yargs-parser-20.2.9.tgz
 https://registry.npmjs.org/yargs-parser/-/yargs-parser-21.1.1.tgz
@@ -1471,9 +1443,10 @@ https://registry.npmjs.org/zwitch/-/zwitch-2.0.2.tgz
 
 CHROMIUM_P="chromium-${CHROMIUM_VERSION}"
 NODE_P="node-${NODE_VERSION}"
-PATCH_V="${CHROMIUM_VERSION%%\.*}-1"
+PATCH_V="${CHROMIUM_VERSION%%\.*}"
 PATCHSET_NAME="chromium-patches-${PATCH_V}"
-PPC64_HASH="e1538a223437603b214fdcb1a6adfb91e98f769a"
+PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+COPIUM_COMMIT="46d68912da04d9ed14856c50db986d5c8e786a4b"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 
@@ -1482,6 +1455,8 @@ PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="
 	https://commondatastorage.googleapis.com/chromium-browser-official/${CHROMIUM_P}.tar.xz
 	https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/${PATCHSET_NAME}.tar.bz2
+	https://codeberg.org/selfisekai/copium/archive/${COPIUM_COMMIT}.tar.gz
+			-> chromium-patches-copium-${COPIUM_COMMIT:0:10}.tar.gz
 	https://github.com/electron/electron/archive/v${PV}.tar.gz -> ${P}.tar.gz
 	https://github.com/nodejs/node/archive/v${NODE_VERSION}.tar.gz -> electron-${NODE_P}.tar.gz
 	loong? (
@@ -1497,7 +1472,9 @@ SRC_URI="
 S="${WORKDIR}/${CHROMIUM_P}"
 NODE_S="${S}/third_party/electron_node"
 
-LICENSE="BSD"
+LICENSE="BSD Apache-2.0 Apache-2.0-with-LLVM-exceptions BSD-2 Base64 Boost-1.0 CC-BY-3.0 CC-BY-4.0 Clear-BSD"
+LICENSE+=" FFT2D FTL IJG ISC LGPL-2 LGPL-2.1 libpng libpng2 MIT MPL-1.1 MPL-2.0 Ms-PL openssl PSF-2"
+LICENSE+=" SGI-B-2.0 SSLeay SunSoft Unicode-3.0 Unicode-DFS-2015 Unlicense UoI-NCSA X11-Lucent"
 SLOT="${PV%%[.+]*}"
 KEYWORDS="~amd64 ~arm64 ~loong"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-png"
@@ -1505,9 +1482,11 @@ IUSE="hevc +X custom-cflags ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromi
 IUSE+=" +screencast selinux +vaapi +wayland cpu_flags_ppc_vsx3"
 RESTRICT="
 	!bindist? ( bindist )
+	test
 "
 
 REQUIRED_USE="
+	!headless? ( || ( X wayland ) )
 	screencast? ( wayland )
 	ffmpeg-chromium? ( bindist proprietary-codecs )
 	hevc? ( official vaapi proprietary-codecs )
@@ -1525,6 +1504,7 @@ COMMON_X_DEPEND="
 	x11-libs/libxshmfence:=
 "
 
+# sys-libs/zlib: https://bugs.gentoo.org/930365; -ng is not compatible.
 COMMON_SNAPSHOT_DEPEND="
 	system-icu? ( >=dev-libs/icu-73.0:= )
 	>=dev-libs/libxml2-2.12.4:=[icu]
@@ -1628,6 +1608,7 @@ BDEPEND="
 	>=dev-util/gperf-3.2
 	dev-vcs/git
 	>=net-libs/nodejs-22.13.0[inspector]
+	sys-apps/hwdata
 	>=sys-devel/bison-2.4.3
 	sys-devel/flex
 	virtual/pkgconfig
@@ -1787,14 +1768,68 @@ _get_install_dir() {
 }
 
 src_unpack() {
-	unpack "${CHROMIUM_P}.tar.xz"
+	unpack chromium-${CHROMIUM_VERSION}.tar.xz
 	unpack ${P}.tar.gz
 	unpack "electron-${NODE_P}.tar.gz"
 	unpack "${PATCHSET_NAME}.tar.bz2"
+	unpack chromium-patches-copium-${COPIUM_COMMIT:0:10}.tar.gz
 	if use ppc64; then
 		unpack chromium-openpower-${PPC64_HASH:0:10}.tar.bz2
 	fi
 	use loong && unpack "chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.tar.gz"
+}
+
+remove_compiler_builtins() {
+	# We can't use the bundled compiler builtins with the system toolchain
+	# We used to `grep` then `sed`, but it was indirect. Combining the two into a single
+	# `awk` command is more efficient and lets us document the logic more clearly.
+
+	local pattern='    configs += [ "//build/config/clang:compiler_builtins" ]'
+	local target='build/config/compiler/BUILD.gn'
+
+	local tmpfile
+	tmpfile=$(mktemp) || die "Failed to create temporary file."
+
+	if awk -v pat="${pattern}" '
+	BEGIN {
+		match_found = 0
+	}
+
+	# If the delete countdown is active, decrement it and skip to the next line.
+	d > 0 { d--; next }
+
+	# If the current line matches the pattern...
+	$0 == pat {
+		match_found = 1   # ...set our flag to true.
+		d = 2             # Set delete counter for this line and the next two.
+		prev = ""         # Clear the buffered previous line so it is not printed.
+		next
+	}
+
+	# For any other line, print the buffered previous line.
+	NR > 1 { print prev }
+
+	# Buffer the current line to be printed on the next cycle.
+	{ prev = $0 }
+
+	END {
+		# Print the last line if it was not part of a deleted block.
+		if (d == 0) { print prev }
+
+		# If the pattern was never found, exit with a failure code.
+		if (match_found == 0) {
+		exit 1
+		}
+	}
+	' "${target}" > "${tmpfile}"; then
+		# AWK SUCCEEDED (exit code 0): The pattern was found and edited.
+		# This is to avoid gawk's `-i inplace` option which users complain about.
+		mv "${tmpfile}" "${target}"
+	else
+		# AWK FAILED (exit code 1): The pattern was not found.
+		rm -f "${tmpfile}"
+		die "Awk patch failed: Pattern not found in ${target}."
+	fi
 }
 
 src_prepare() {
@@ -1817,6 +1852,12 @@ src_prepare() {
 		eapply "${FILESDIR}/${SLOT}/remove-libatomic.patch"
 	fi
 
+	# https://issues.chromium.org/issues/442698344
+	# Unreleased fontconfig changed magic numbers and google have rolled to this version
+	if has_version "<=media-libs/fontconfig-2.17.1"; then
+		PATCHES+=( "${FILESDIR}/${SLOT}/chromium-142-work-with-old-fontconfig.patch" )
+	fi
+
 	shopt -s globstar nullglob
 	# 130: moved the PPC64 patches into the chromium-patches repo
 	local patch
@@ -1828,12 +1869,7 @@ src_prepare() {
 			fi
 	done
 	shopt -u globstar nullglob
-
-	# We can't use the bundled compiler builtins with the system toolchain
-	# `grep` is a development convenience to ensure we fail early when google changes something.
-	local builtins_match="if (is_clang && !is_nacl && !is_cronet_build) {"
-	grep -q "${builtins_match}" build/config/compiler/BUILD.gn || die "Failed to disable bundled compiler builtins"
-	sed -i -e "/${builtins_match}/,+2d" build/config/compiler/BUILD.gn
+	remove_compiler_builtins
 
 		# Strictly speaking this doesn't need to be gated (no bundled toolchain for ppc64); it keeps the logic together
 	if use ppc64; then
@@ -1854,14 +1890,6 @@ src_prepare() {
 		if use cpu_flags_ppc_vsx3 ; then
 			PATCHES+=( "${patchset_dir}/${isa_3_patch}" )
 		fi
-	fi
-
-	# Oxidised hacks, let's keep 'em all in one place
-	# This is a nightly option that does not exist in older releases
-	# https://github.com/rust-lang/rust/commit/389a399a501a626ebf891ae0bb076c25e325ae64
-	if ver_test ${RUST_SLOT} -lt "1.83.0"; then
-		sed '/rustflags = \[ "-Zdefault-visibility=hidden" \]/d' -i build/config/gcc/BUILD.gn ||
-			die "Failed to remove default visibility nightly option"
 	fi
 
 	cd "${S}/electron" || die
@@ -1902,25 +1930,15 @@ EOF
 	cd "${S}" || die
 	eapply "${FILESDIR}/${SLOT}/fix-system-libs.patch"
 
-	# Upstream Rust replaced adler with adler2, for older versions of Rust we still need
-	# to tell GN that we have the older lib when it tries to copy the Rust sysroot
-	# into the bulid directory.
-	if ver_test ${RUST_SLOT} -lt "1.86.0"; then
-		sed -i 's/adler2/adler/' build/rust/std/BUILD.gn ||
-			die "Failed to tell GN that we have adler and not adler2"
+	if ver_test ${RUST_SLOT} -lt "1.89.0"; then
+			eapply "${FILESDIR}/${SLOT}"/chromium-140-__rust_no_alloc_shim_is_unstable.patch
 	fi
-
-	if ver_test ${RUST_SLOT} -ge "1.89.0"; then
-			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim.patch
-			eapply "${FILESDIR}/${SLOT}"/fix-rust-warning.patch
+	if ver_test ${RUST_SLOT} -lt "1.90.0"; then
+			eapply "${WORKDIR}/copium/cr142-rust-pre1.90.patch"
 	fi
-	if ver_test ${RUST_SLOT} -ge "1.90.0"; then
-			eapply "${FILESDIR}/${SLOT}"/fix-rust-allocator-shim-1-90.patch
-	fi
-	if ver_test ${RUST_SLOT} -ge "1.91.0"; then
-			eapply "${FILESDIR}/${SLOT}"/rust-unicode_width.patch
-			eapply "${FILESDIR}/${SLOT}"/fix-rust-cfi.patch
-			eapply "${FILESDIR}/${SLOT}"/fix-static-assert.patch
+	if ver_test ${RUST_SLOT} -lt "1.91.0"; then
+			eapply "${WORKDIR}/copium/cr142-crabbyavif-gn-rust-pre1.91.patch"
+			eapply "${WORKDIR}/copium/cr142-crabbyavif-src-rust-pre1.91.patch"
 	fi
 
 	if use loong ; then
@@ -1947,23 +1965,13 @@ EOF
 	cd "${S}/electron" || die
 	# ignore dugite, which download a git binary!
 	export YARN_ENABLE_OFFLINE_MODE=1
-	mkdir "${WORKDIR}/cache" || die
-	"${EPYTHON}" "${FILESDIR}/install.py" "${S}/electron/yarn.lock" "${DISTDIR}" "${WORKDIR}/cache" || die
-	node ./script/yarn.js install --mode skip-build --immutable --immutable-cache || die
+        mkdir "${WORKDIR}/cache" || die
+        "${EPYTHON}" "${FILESDIR}/install.py" "${S}/electron/yarn.lock" "${DISTDIR}" "${WORKDIR}/cache" || die
+        node ./script/yarn.js install --mode skip-build --immutable --immutable-cache || die
 
 	cd "${S}" || die
 
 	default
-
-	if [[ ${LLVM_SLOT} == "19" ]]; then
-		# Upstream now hard depend on a feature that was added in LLVM 20.1, but we don't want to stabilise that yet.
-		# Do the temp file shuffle in case someone is using something other than `gawk`
-		{
-			awk '/config\("clang_warning_suppression"\) \{/	{ print $0 " }"; sub(/clang/, "xclang"); print; next }
-				{ print }' build/config/compiler/BUILD.gn > "${T}/build.gn" && \
-				mv "${T}/build.gn" build/config/compiler/BUILD.gn
-		} || die "Unable to disable warning suppression"
-	fi
 
 	# Not included in -lite tarballs, but we should check for it anyway.
 	if [[ -f third_party/node/linux/node-linux-x64/bin/node ]]; then
@@ -1975,6 +1983,10 @@ EOF
 
 	# adjust python interpreter version
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
+
+	# Use the system copy of hwdata's usb.ids; upstream is woefully out of date (2015!)
+	sed 's|//third_party/usb_ids/usb.ids|/usr/share/hwdata/usb.ids|g' \
+		-i services/device/public/cpp/usb/BUILD.gn || die "Failed to set system usb.ids path"
 
 	# remove_bundled_libraries.py walks the source tree and looks for paths containing the substring 'third_party'
 	# whitelist matches use the right-most matching path component, so we need to whitelist from that point down.
@@ -1989,9 +2001,7 @@ EOF
 		base/third_party/xdg_user_dirs
 		buildtools/third_party/libc++
 		buildtools/third_party/libc++abi
-		chrome/third_party/mozilla_security_manager
 		net/third_party/mozilla_security_manager
-		net/third_party/nss
 		net/third_party/quic
 		net/third_party/uri_template
 		third_party/abseil-cpp
@@ -2062,6 +2072,7 @@ EOF
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/mitt
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/parsel-js
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/rxjs
+		third_party/devtools-frontend/src/front_end/third_party/source-map-scopes-codec
 		third_party/devtools-frontend/src/front_end/third_party/third-party-web
 		third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
@@ -2074,6 +2085,11 @@ EOF
 		third_party/farmhash
 		third_party/fast_float
 		third_party/fdlibm
+		third_party/federated_compute/chromium/fcp/confidentialcompute
+		third_party/federated_compute/src/fcp/base
+		third_party/federated_compute/src/fcp/confidentialcompute
+		third_party/federated_compute/src/fcp/protos/confidentialcompute
+		third_party/federated_compute/src/fcp/protos/federatedcompute
 		third_party/ffmpeg
 		third_party/fft2d
 		third_party/flatbuffers
@@ -2116,6 +2132,7 @@ EOF
 		third_party/libdrm
 		third_party/libgav1
 		third_party/libjingle
+		third_party/libpfm4
 		third_party/libphonenumber
 		third_party/libsecret
 		third_party/libsrtp
@@ -2142,14 +2159,16 @@ EOF
 		third_party/mako
 		third_party/markupsafe
 		third_party/material_color_utilities
-		third_party/mesa
 		third_party/metrics_proto
 		third_party/minigbm
+		third_party/ml_dtypes
 		third_party/modp_b64
 		third_party/nasm
 		third_party/nearby
 		third_party/neon_2_sse
 		third_party/node
+		third_party/oak/chromium/proto
+		third_party/oak/chromium/proto/attestation
 		third_party/omnibox_proto
 		third_party/one_euro_filter
 		third_party/openscreen
@@ -2180,6 +2199,7 @@ EOF
 		third_party/pyyaml
 		third_party/rapidhash
 		third_party/re2
+		third_party/readability
 		third_party/rnnoise
 		third_party/rust
 		third_party/ruy
@@ -2215,12 +2235,12 @@ EOF
 		third_party/tflite/src/third_party/xla/third_party/tsl
 		third_party/tflite/src/third_party/xla/xla/tsl/framework
 		third_party/tflite/src/third_party/xla/xla/tsl/lib/random
+		third_party/tflite/src/third_party/xla/xla/tsl/platform
 		third_party/tflite/src/third_party/xla/xla/tsl/protobuf
 		third_party/tflite/src/third_party/xla/xla/tsl/util
 		third_party/ukey2
 		third_party/utf
 		third_party/vulkan
-		third_party/wasm_tts_engine
 		third_party/wayland
 		third_party/webdriver
 		third_party/webgpu-cts
@@ -2240,11 +2260,11 @@ EOF
 		third_party/zlib/google
 		third_party/zxcvbn-cpp
 		url/third_party/mozilla
-		v8/third_party/siphash
-		v8/third_party/utf8-decoder
 		v8/third_party/glibc
 		v8/third_party/inspector_protocol
 		v8/third_party/rapidhash-v8
+		v8/third_party/siphash
+		v8/third_party/utf8-decoder
 		v8/third_party/v8
 		v8/third_party/valgrind
 
@@ -2329,6 +2349,11 @@ EOF
 	build/linux/unbundle/remove_bundled_libraries.py "${keeplibs[@]}" --do-remove || die
 	eend 0
 
+	# Interferes with our bundled clang path; we don't want stripped binaries anyway.
+	sed -i -e 's|${clang_base_path}/bin/llvm-strip|/bin/true|g' \
+		-e 's|${clang_base_path}/bin/llvm-objcopy|/bin/true|g' \
+		build/linux/strip_binary.gni || die
+
 	if use elibc_musl; then
 		config1="./third_party/swiftshader/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h"
 		if [[ -f $config1 ]]; then
@@ -2398,7 +2423,7 @@ src_configure() {
 	echo "  enable_freetype = true" >> ${freetype_gni} || die
 	echo "}" >> ${freetype_gni} || die
 
-	if ! use custom-cflags; then
+	if use !custom-cflags; then
 		replace-flags "-Os" "-O2"
 		strip-flags
 		# Debug info section overflows without component build
@@ -2415,7 +2440,7 @@ src_configure() {
 	# We don't use the same clang version as upstream, and with -Werror
 	# we need to make sure that we don't get superfluous warnings.
 	append-flags -Wno-unknown-warning-option
-	if tc-is-cross-compiler; then
+	if tc-is-cross-compiler; then # can you cross-compile with the bundled toolchain?
 			export BUILD_CXXFLAGS+=" -Wno-unknown-warning-option"
 			export BUILD_CFLAGS+=" -Wno-unknown-warning-option"
 	fi
@@ -2442,6 +2467,7 @@ src_configure() {
 	myconf_gn+=(
 		"is_clang=true"
 		"clang_use_chrome_plugins=false"
+		"use_clang_modules=false" # M141 enables this for the linux platform by default.
 		"use_lld=true"
 		'custom_toolchain="//build/toolchain/linux/unbundle:default"'
 		# From M127 we need to provide a location for libclang.
@@ -2457,7 +2483,7 @@ src_configure() {
 		"rustc_version=\"${RUST_SLOT}\""
 	)
 	use elibc_musl && myconf_gn+=( "rust_abi_target=\"$(rust_abi)\"" )
-		
+
 	if ! tc-is-cross-compiler; then
 			myconf_gn+=( 'host_toolchain="//build/toolchain/linux/unbundle:default"' )
 		else
@@ -2465,8 +2491,8 @@ src_configure() {
 			myconf_gn+=(
 				'host_toolchain="//build/toolchain/linux/unbundle:host"'
 				'v8_snapshot_toolchain="//build/toolchain/linux/unbundle:host"'
-				"host_pkg_config=$(tc-getBUILD_PKG_CONFIG)"
-				"pkg_config=$(tc-getPKG_CONFIG)"
+				"host_pkg_config=\"$(tc-getBUILD_PKG_CONFIG)\""
+				"pkg_config=\"$(tc-getPKG_CONFIG)\""
 			)
 
 			# setup cups-config, build system only uses --libs option
@@ -2519,8 +2545,6 @@ src_configure() {
 		# We now need to opt-in
 		"enable_freetype=true"
 		"enable_hangout_services_extension=false"
-		# Disable nacl; deprecated, we can't build without pnacl (http://crbug.com/269560).
-		"enable_nacl=false"
 		# Don't need nocompile checks and GN crashes with our config (verify with modern GN)
 		"enable_nocompile_tests=false"
 		# pseudolocales are only used for testing
@@ -2731,7 +2755,7 @@ src_compile() {
 
 	if use pax-kernel; then
 		local x
-		for x in mksnapshot v8_context_snapshot_generator; do
+		for x in mksnapshot v8_context_snapshot_generator code_cache_generator; do
 			if tc-is-cross-compiler; then
 				eninja -C out/Release "host/${x}"
 				pax-mark m "out/Release/host/${x}"

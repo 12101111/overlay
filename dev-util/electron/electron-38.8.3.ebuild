@@ -32,25 +32,6 @@ NODE_VERSION="22.22.0"
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
 
-yarn_uris() {
-	local -r regex='^https\:\/\/registry.yarnpkg.com\/(.+)\/\-\/([^/]+).tgz$'
-	local -r namespace='^@([^@/]+)\/([^@/]+)$'
-	local uri
-	for uri in "$@"; do
-		local name filename
-		[[ $uri =~ $regex ]] || die "Could not parse url: ${uri}"
-			name="${BASH_REMATCH[1]}"
-			filename="${BASH_REMATCH[2]}"   
-		if [[ $name =~ $namespace ]]; then
-			local scope
-			scope="${BASH_REMATCH[1]}"
-			echo "${uri} -> @${scope}-${filename}.tgz"
-		else
-			echo "${uri} -> ${filename}.tgz"
-		fi
-	done
-}
-
 # ./files/yarnv4.sh yarn.lock | wl-copy
 YARNPKGS="
 https://registry.npmjs.org/@antfu/install-pkg/-/install-pkg-1.1.0.tgz -> @antfu-install-pkg-1.1.0.tgz
@@ -224,13 +205,11 @@ https://registry.npmjs.org/@types/send/-/send-1.2.0.tgz -> @types-send-1.2.0.tgz
 https://registry.npmjs.org/@types/serve-static/-/serve-static-1.15.9.tgz -> @types-serve-static-1.15.9.tgz
 https://registry.npmjs.org/@types/sinon/-/sinon-9.0.11.tgz -> @types-sinon-9.0.11.tgz
 https://registry.npmjs.org/@types/sinonjs__fake-timers/-/sinonjs__fake-timers-15.0.0.tgz -> @types-sinonjs__fake-timers-15.0.0.tgz
-https://registry.npmjs.org/@types/split/-/split-1.0.5.tgz -> @types-split-1.0.5.tgz
 https://registry.npmjs.org/@types/stream-chain/-/stream-chain-2.0.0.tgz -> @types-stream-chain-2.0.0.tgz
 https://registry.npmjs.org/@types/stream-json/-/stream-json-1.7.8.tgz -> @types-stream-json-1.7.8.tgz
 https://registry.npmjs.org/@types/supports-color/-/supports-color-8.1.1.tgz -> @types-supports-color-8.1.1.tgz
 https://registry.npmjs.org/@types/temp/-/temp-0.9.4.tgz -> @types-temp-0.9.4.tgz
 https://registry.npmjs.org/@types/text-table/-/text-table-0.2.2.tgz -> @types-text-table-0.2.2.tgz
-https://registry.npmjs.org/@types/through/-/through-0.0.33.tgz -> @types-through-0.0.33.tgz
 https://registry.npmjs.org/@types/unist/-/unist-2.0.11.tgz -> @types-unist-2.0.11.tgz
 https://registry.npmjs.org/@types/unist/-/unist-2.0.3.tgz -> @types-unist-2.0.3.tgz
 https://registry.npmjs.org/@types/unist/-/unist-2.0.6.tgz -> @types-unist-2.0.6.tgz
@@ -1466,6 +1445,7 @@ https://registry.npmjs.org/y18n/-/y18n-5.0.8.tgz
 https://registry.npmjs.org/yallist/-/yallist-4.0.0.tgz
 https://registry.npmjs.org/yallist/-/yallist-5.0.0.tgz
 https://registry.npmjs.org/yaml/-/yaml-2.8.0.tgz
+https://registry.npmjs.org/yaml/-/yaml-2.8.2.tgz
 https://registry.npmjs.org/yamux-js/-/yamux-js-0.1.2.tgz
 https://registry.npmjs.org/yargs-parser/-/yargs-parser-20.2.9.tgz
 https://registry.npmjs.org/yargs-parser/-/yargs-parser-21.1.1.tgz
