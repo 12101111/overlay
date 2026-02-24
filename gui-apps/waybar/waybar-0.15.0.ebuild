@@ -41,7 +41,7 @@ RDEPEND="
 	dev-libs/jsoncpp:=
 	dev-libs/libsigc++:2
 	>=dev-libs/libfmt-8.1.1:=
-	>=dev-libs/spdlog-1.10.0:=
+	>=dev-libs/spdlog-1.15.3:=
 	dev-libs/date:=
 	dev-libs/wayland
 	>=gui-libs/gtk-layer-shell-0.9.0
