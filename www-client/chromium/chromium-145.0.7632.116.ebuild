@@ -31,7 +31,7 @@ BUNDLED_CLANG_VER="llvmorg-22-init-17020-gbd1bd178-2"
 BUNDLED_RUST_VER="a4cfac7093a1c1c7fbdb6bc75d6b6dc4d385fc69-2"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
 NODE_VER="24.11.1"
-ESBUILD_VER="0.25.1" # currently manual
+ESBUILD_VER="0.25.1"
 ROLLUP_VER="4.57.1" # currently manual.
 VIRTUALX_REQUIRED="pgo"
 
@@ -95,7 +95,7 @@ IUSE="hevc +X ${IUSE_SYSTEM_LIBS} bindist bundled-toolchain cups debug ffmpeg-ch
 IUSE+=" +proprietary-codecs pulseaudio qt6 +rar +screencast selinux test +vaapi +wayland +widevine cpu_flags_ppc_vsx3"
 RESTRICT="
 	!bindist? ( bindist )
-	!test? ( test )" # Since M142 tests have been segfaulting on Gentoo systems; disabling for now.
+	!test? ( test )"
 
 REQUIRED_USE="
 	!headless? ( || ( X wayland ) )
@@ -584,6 +584,7 @@ src_prepare() {
 		"${FILESDIR}/cr145-oauth2-client-switches.patch"
 		"${FILESDIR}/cr145-revert-to-rollup-wasm.patch"
 		"${FILESDIR}/cr145-fix-no-unrar.patch"
+		"${FILESDIR}/cr145-fix-no-unrar-2-include-harder.patch"
 	)
 	# No copium patches here: they should only need to apply to unbundled toolchain builds
 	# and don't get fetched or unpacked.
@@ -1571,71 +1572,39 @@ src_compile() {
 }
 
 src_test() {
-	# Initial list of tests to skip pulled from Alpine. Thanks Lauren!
-	# https://issues.chromium.org/issues/40939315
 	local skip_tests=(
-		'MessagePumpLibeventTest.NestedNotification*'
-		ClampTest.Death
-		OptionalTest.DereferencingNoValueCrashes
-		PlatformThreadTest.SetCurrentThreadTypeTest
-		RawPtrTest.TrivialRelocability
-		SafeNumerics.IntMaxOperations
-		StackTraceTest.TraceStackFramePointersFromBuffer
-		StringPieceTest.InvalidLengthDeath
-		StringPieceTest.OutOfBoundsDeath
-		ThreadPoolEnvironmentConfig.CanUseBackgroundPriorityForWorker
-		ValuesUtilTest.FilePath
-		# Gentoo-specific
-		AlternateTestParams/PartitionAllocDeathTest.RepeatedAllocReturnNullDirect/0
-		AlternateTestParams/PartitionAllocDeathTest.RepeatedAllocReturnNullDirect/1
-		AlternateTestParams/PartitionAllocDeathTest.RepeatedAllocReturnNullDirect/2
-		AlternateTestParams/PartitionAllocDeathTest.RepeatedAllocReturnNullDirect/3
-		AlternateTestParams/PartitionAllocDeathTest.RepeatedReallocReturnNullDirect/0
-		AlternateTestParams/PartitionAllocDeathTest.RepeatedReallocReturnNullDirect/1
-		AlternateTestParams/PartitionAllocDeathTest.RepeatedReallocReturnNullDirect/2
-		AlternateTestParams/PartitionAllocDeathTest.RepeatedReallocReturnNullDirect/3
-		CharacterEncodingTest.GetCanonicalEncodingNameByAliasName
-		CheckExitCodeAfterSignalHandlerDeathTest.CheckSIGFPE
-		CheckExitCodeAfterSignalHandlerDeathTest.CheckSIGILL
-		CheckExitCodeAfterSignalHandlerDeathTest.CheckSIGSEGV
-		CheckExitCodeAfterSignalHandlerDeathTest.CheckSIGSEGVNonCanonicalAddress
-		FilePathTest.FromUTF8Unsafe_And_AsUTF8Unsafe
-		FileTest.GetInfoForCreationTime
-		ICUStringConversionsTest.ConvertToUtf8AndNormalize
-		NumberFormattingTest.FormatPercent
-		PathServiceTest.CheckedGetFailure
-		PlatformThreadTest.CanChangeThreadType
-		RustLogIntegrationTest.CheckAllSeverity
-		StackCanary.ChangingStackCanaryCrashesOnReturn
-		StackTraceDeathTest.StackDumpSignalHandlerIsMallocFree
+		# Wildcard exclusions (if all tests in a test suite are broken)
+		'AlternateTestParams/PartitionAllocDeathTest.RepeatedAllocReturnNullDirect/*'
+		'AlternateTestParams/PartitionAllocDeathTest.RepeatedReallocReturnNullDirect/*'
+		'AlternateTestParams/PartitionAllocTest.*' # 200+ tests, >= 1 crashes entire test runner with usersandbox.
+		'CheckExitCodeAfterSignalHandlerDeathTest.*'
+		'CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.*'
+		'PostJobTest.*' # M145
+		'LazyThreadPoolTaskRunnerEnvironmentTest.*' # M142
+		'LazyThreadPoolTaskRunnerTest.*' # M145
+		'SequenceManager*'
+		'ToolsSanityTest.BadVirtualCall*'
+		# requires en-us locale
 		SysStrings.SysNativeMBAndWide
 		SysStrings.SysNativeMBToWide
 		SysStrings.SysWideToNativeMB
+		# Specific test cases
+		CancelableEventTest.BothCancelFailureAndSucceedOccurUnderContention
+		FilePathTest.FromUTF8Unsafe_And_AsUTF8Unsafe
+		HistogramTesterTest.PumaTestUniqueSample
+		PathServiceTest.CheckedGetFailure
+		PlatformThreadTest.CanChangeThreadType
+		RawPtrTest.SetLookupUsesGetForComparison # M146 ; also broken for alpine in M144.
+		RustLogIntegrationTest.CheckAllSeverity
+		StackCanary.ChangingStackCanaryCrashesOnReturn
+		SequenceManagerWithTaskRunnerTest.DeleteSequenceManagerInsideATask # crashes test runner
+		StackTraceDeathTest.StackDumpSignalHandlerIsMallocFree
 		TestLauncherTools.TruncateSnippetFocusedMatchesFatalMessagesTest
-		ToolsSanityTest.BadVirtualCallNull
-		ToolsSanityTest.BadVirtualCallWrongType
-		CancelableEventTest.BothCancelFailureAndSucceedOccurUnderContention #new m133: TODO investigate
-		DriveInfoTest.GetFileDriveInfo # new m137: TODO investigate
-		# Broken since M139 dev
-		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/RendererProcessIsCritical
-		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/UtilityProcessIsCritical
-		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/BrowserProcessIsCritical
-		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/MainThreadIsCritical
-		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/IOThreadIsCritical
-		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/CompositorThreadIsCritical
-		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/ThreadPoolIsNotCritical
-		# M140
-		CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.AnyCriticalThreadHung/GpuProcessIsCritical
-		# M142 - needs investigation if they persist into beta
-		AlternateTestParams/PartitionAllocTest.Realloc/2
-		AlternateTestParams/PartitionAllocTest.Realloc/3
-		AlternateTestParams/PartitionAllocTest.ReallocDirectMapAligned/2
-		AlternateTestParams/PartitionAllocTest.ReallocDirectMapAligned/3
-		# M142 - new beta failures
-		'LazyThreadPoolTaskRunnerEnvironmentTest.*'
+		ThreadPoolEnvironmentConfig.CanUseBackgroundPriorityForWorker
 	)
 	local test_filter="-$(IFS=:; printf '%s' "${skip_tests[*]}")"
 	# test-launcher-bot-mode enables parallelism and plain output
+	# Check individual tests with --gtest_filter=<test you want> --single-process-tests
 	./out/Release/base_unittests --test-launcher-bot-mode \
 		--test-launcher-jobs="$(makeopts_jobs)" \
 		--gtest_filter="${test_filter}" || die "Tests failed!"
