@@ -28,14 +28,15 @@ elif [[ ${PV} == *_p* ]] ; then
 	"
 	S="${WORKDIR}"/${PN}-${HOTSPOT_COMMIT}
 else
+	PERFPARSER_COMMIT="65472541f74da213583535c8bb4fea831e875109"
+	PREFIXTICKLABELS_COMMIT="7cd6d5a04cf3747cc9327efdbcbf43620efaa0c1"
 	SRC_URI="
-		https://github.com/KDAB/hotspot/releases/download/v${PV}/${PN}-v${PV}.tar.gz
-		https://github.com/KDAB/hotspot/releases/download/v${PV}/${PN}-perfparser-v${PV}.tar.gz
-			-> ${PN}-v${PV}-perfparser.tar.gz
-		https://github.com/KDAB/hotspot/releases/download/v${PV}/${PN}-PrefixTickLabels-v${PV}.tar.gz
-			-> ${PN}-v${PV}-PrefixTickLabels.tar.gz
+		https://github.com/KDAB/hotspot/archive/refs/tags/v${PV}.tar.gz -> ${P}.gh.tar.gz
+		https://github.com/KDAB/perfparser/archive/${PERFPARSER_COMMIT}.tar.gz
+			-> perfparser-${PERFPARSER_COMMIT}.gh.tar.gz
+		https://github.com/koenpoppe/PrefixTickLabels/archive/${PREFIXTICKLABELS_COMMIT}.tar.gz
+			-> PrefixTickLabels-${PREFIXTICKLABELS_COMMIT}.gh.tar.gz
 	"
-	S="${WORKDIR}"/${PN}
 fi
 
 # hotspot itself is GPL-2 or GPL-3
@@ -94,10 +95,10 @@ src_unpack() {
 		tar -xf "${DISTDIR}"/PrefixTickLabels-${PREFIXTICKLABELS_COMMIT}.gh.tar.gz --strip-components=1 \
 			-C "${S}"/3rdparty/PrefixTickLabels || die
 	else
-		unpack ${PN}-v${PV}.tar.gz
-		tar -xf "${DISTDIR}"/${PN}-v${PV}-perfparser.tar.gz --strip-components=1 \
+		unpack ${P}.gh.tar.gz
+		tar -xf "${DISTDIR}"/perfparser-${PERFPARSER_COMMIT}.gh.tar.gz --strip-components=1 \
 			-C "${S}"/3rdparty/perfparser || die
-		tar -xf "${DISTDIR}"/${PN}-v${PV}-PrefixTickLabels.tar.gz --strip-components=1 \
+		tar -xf "${DISTDIR}"/PrefixTickLabels-${PREFIXTICKLABELS_COMMIT}.gh.tar.gz --strip-components=1 \
 			-C "${S}"/3rdparty/PrefixTickLabels || die
 	fi
 }
