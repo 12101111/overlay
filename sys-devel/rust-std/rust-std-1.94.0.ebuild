@@ -65,6 +65,11 @@ VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/rust.asc
 
 QA_FLAGS_IGNORED="usr/lib/rust/${PV}/rustlib/.*/lib/lib.*.so"
 
+PATCHES=(
+	"${FILESDIR}/rust-1.92.0-disable-link-self-contained.patch"
+	"${FILESDIR}/rust-1.92.0-dont-install-self-contained.patch"
+)
+
 toml_usex() {
 	usex "$1" true false
 }
