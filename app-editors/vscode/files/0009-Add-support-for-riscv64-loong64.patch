@@ -1,4 +1,4 @@
-From 11c1145638fe63cb40a4e4f3312c07635685c68b Mon Sep 17 00:00:00 2001
+From 0d21ad1c80815dd8f527bb47258ec172fbd5bf17 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 4 Jan 2026 21:35:18 +0800
 Subject: [PATCH 09/11] Add support for riscv64, loong64
@@ -56,10 +56,10 @@ index aab174b7e31..73d0c2fb645 100644
  
  BUILD_TARGETS.forEach(({ arch }) => {
 diff --git a/build/gulpfile.vscode.ts b/build/gulpfile.vscode.ts
-index ac907918b5c..286edb00658 100644
+index a684d4f61b9..fdb60e0d880 100644
 --- a/build/gulpfile.vscode.ts
 +++ b/build/gulpfile.vscode.ts
-@@ -675,6 +675,8 @@ const BUILD_TARGETS = [
+@@ -672,6 +672,8 @@ const BUILD_TARGETS = [
  	{ platform: 'linux', arch: 'x64' },
  	{ platform: 'linux', arch: 'armhf' },
  	{ platform: 'linux', arch: 'arm64' },

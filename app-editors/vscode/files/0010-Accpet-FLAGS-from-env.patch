@@ -1,34 +1,45 @@
-From 8327e5cf4f430a003e84af60dd3bb4875fc37575 Mon Sep 17 00:00:00 2001
+From 42d85336725c09454551b7687d9c7d409873e982 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 4 Jan 2026 21:36:37 +0800
+Date: Tue, 10 Mar 2026 22:01:32 +0800
 Subject: [PATCH 10/11] Accpet FLAGS from env
 
 ---
- build/npm/postinstall.ts | 7 -------
- 1 file changed, 7 deletions(-)
+ build/npm/postinstall.ts | 11 -----------
+ 1 file changed, 11 deletions(-)
 
 diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
-index 4da6eaab37d..122ba1a61b7 100644
+index dae90461c5f..141cf6e2860 100644
 --- a/build/npm/postinstall.ts
 +++ b/build/npm/postinstall.ts
-@@ -190,17 +190,10 @@ for (const dir of dirs) {
- 		};
- 		if (process.env['VSCODE_REMOTE_CC']) {
- 			opts.env!['CC'] = process.env['VSCODE_REMOTE_CC'];
--		} else {
--			delete opts.env!['CC'];
- 		}
- 		if (process.env['VSCODE_REMOTE_CXX']) {
- 			opts.env!['CXX'] = process.env['VSCODE_REMOTE_CXX'];
--		} else {
--			delete opts.env!['CXX'];
- 		}
--		if (process.env['CXXFLAGS']) { delete opts.env!['CXXFLAGS']; }
--		if (process.env['CFLAGS']) { delete opts.env!['CFLAGS']; }
--		if (process.env['LDFLAGS']) { delete opts.env!['LDFLAGS']; }
- 		if (process.env['VSCODE_REMOTE_CXXFLAGS']) { opts.env!['CXXFLAGS'] = process.env['VSCODE_REMOTE_CXXFLAGS']; }
- 		if (process.env['VSCODE_REMOTE_LDFLAGS']) { opts.env!['LDFLAGS'] = process.env['VSCODE_REMOTE_LDFLAGS']; }
- 		if (process.env['VSCODE_REMOTE_NODE_GYP']) { opts.env!['npm_config_node_gyp'] = process.env['VSCODE_REMOTE_NODE_GYP']; }
+@@ -227,10 +227,6 @@ async function main() {
+ 		if (dir === 'build') {
+ 			nativeTasks.push(() => {
+ 				const env: NodeJS.ProcessEnv = { ...process.env };
+-				if (process.env['CC']) { env['CC'] = 'gcc'; }
+-				if (process.env['CXX']) { env['CXX'] = 'g++'; }
+-				if (process.env['CXXFLAGS']) { env['CXXFLAGS'] = ''; }
+-				if (process.env['LDFLAGS']) { env['LDFLAGS'] = ''; }
+ 				setNpmrcConfig('build', env);
+ 				return npmInstallAsync('build', { env });
+ 			});
+@@ -243,17 +239,10 @@ async function main() {
+ 				const env: NodeJS.ProcessEnv = { ...process.env };
+ 				if (process.env['VSCODE_REMOTE_CC']) {
+ 					env['CC'] = process.env['VSCODE_REMOTE_CC'];
+-				} else {
+-					delete env['CC'];
+ 				}
+ 				if (process.env['VSCODE_REMOTE_CXX']) {
+ 					env['CXX'] = process.env['VSCODE_REMOTE_CXX'];
+-				} else {
+-					delete env['CXX'];
+ 				}
+-				if (process.env['CXXFLAGS']) { delete env['CXXFLAGS']; }
+-				if (process.env['CFLAGS']) { delete env['CFLAGS']; }
+-				if (process.env['LDFLAGS']) { delete env['LDFLAGS']; }
+ 				if (process.env['VSCODE_REMOTE_CXXFLAGS']) { env['CXXFLAGS'] = process.env['VSCODE_REMOTE_CXXFLAGS']; }
+ 				if (process.env['VSCODE_REMOTE_LDFLAGS']) { env['LDFLAGS'] = process.env['VSCODE_REMOTE_LDFLAGS']; }
+ 				if (process.env['VSCODE_REMOTE_NODE_GYP']) { env['npm_config_node_gyp'] = process.env['VSCODE_REMOTE_NODE_GYP']; }
 -- 
 2.53.0
 

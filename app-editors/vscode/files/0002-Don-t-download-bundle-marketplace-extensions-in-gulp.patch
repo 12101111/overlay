@@ -1,17 +1,17 @@
-From 0a5db7e67331eeb78af3fddaa930ef9d5c3ff6be Mon Sep 17 00:00:00 2001
+From 6ddcedb25055ab4fdd1acfdc9892afbffb2aa8e6 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 4 Jan 2026 21:28:40 +0800
+Date: Tue, 10 Mar 2026 21:55:45 +0800
 Subject: [PATCH 02/11] Don't download bundle marketplace extensions in gulp
 
 ---
- build/gulpfile.extensions.ts | 8 --------
- 1 file changed, 8 deletions(-)
+ build/gulpfile.extensions.ts | 7 -------
+ 1 file changed, 7 deletions(-)
 
 diff --git a/build/gulpfile.extensions.ts b/build/gulpfile.extensions.ts
-index a2eb47535f4..17b1be452dd 100644
+index 8f9ac9b2b21..a01b3ac509e 100644
 --- a/build/gulpfile.extensions.ts
 +++ b/build/gulpfile.extensions.ts
-@@ -256,17 +256,11 @@ gulp.task(compileExtensionMediaBuildTask);
+@@ -257,17 +257,11 @@ gulp.task(compileExtensionMediaBuildTask);
   */
  export const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimraf('.build/extensions'));
  
@@ -29,7 +29,7 @@ index a2eb47535f4..17b1be452dd 100644
  	task.define('bundle-non-native-extensions-build', () => ext.packageNonNativeLocalExtensionsStream(false, false).pipe(gulp.dest('.build')))
  ));
  gulp.task(compileNonNativeExtensionsBuildTask);
-@@ -284,7 +278,6 @@ gulp.task(compileNativeExtensionsBuildTask);
+@@ -285,7 +279,6 @@ gulp.task(compileNativeExtensionsBuildTask);
   */
  export const compileAllExtensionsBuildTask = task.define('compile-extensions-build', task.series(
  	cleanExtensionsBuildTask,
@@ -37,14 +37,6 @@ index a2eb47535f4..17b1be452dd 100644
  	task.define('bundle-extensions-build', () => ext.packageAllLocalExtensionsStream(false, false).pipe(gulp.dest('.build'))),
  ));
  gulp.task(compileAllExtensionsBuildTask);
-@@ -295,7 +288,6 @@ gulp.task(task.define('extensions-ci', task.series(compileNonNativeExtensionsBui
- 
- const compileExtensionsBuildPullRequestTask = task.define('compile-extensions-build-pr', task.series(
- 	cleanExtensionsBuildTask,
--	bundleMarketplaceExtensionsBuildTask,
- 	task.define('bundle-extensions-build-pr', () => ext.packageAllLocalExtensionsStream(false, true).pipe(gulp.dest('.build'))),
- ));
- gulp.task(compileExtensionsBuildPullRequestTask);
 -- 
 2.53.0
 

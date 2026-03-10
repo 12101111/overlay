@@ -1,4 +1,4 @@
-From 0c63d7f9065b0bbaac69d26bbec51bc0a9ace4a3 Mon Sep 17 00:00:00 2001
+From 73e37d658613b2646e5de9cbea339071cf6db8f9 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 10 Mar 2026 19:32:17 +0800
 Subject: [PATCH 11/11] Fix tunnel path
@@ -8,7 +8,7 @@ Subject: [PATCH 11/11] Fix tunnel path
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
-index 8e29f492476..d68760656c6 100644
+index 5f50659ff46..508d19ac47d 100644
 --- a/src/vs/code/node/cli.ts
 +++ b/src/vs/code/node/cli.ts
 @@ -75,7 +75,7 @@ export async function main(argv: string[]): Promise<void> {
