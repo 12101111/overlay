@@ -1,6 +1,6 @@
-From b06796c63f2f2bc747522af80b9b2ed2d1852e5d Mon Sep 17 00:00:00 2001
+From 0c63d7f9065b0bbaac69d26bbec51bc0a9ace4a3 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 1 Dec 2024 20:57:59 +0800
+Date: Tue, 10 Mar 2026 19:32:17 +0800
 Subject: [PATCH 11/11] Fix tunnel path
 
 ---
@@ -8,12 +8,12 @@ Subject: [PATCH 11/11] Fix tunnel path
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
-index b3bdca721dd..6de007020bb 100644
+index 8e29f492476..d68760656c6 100644
 --- a/src/vs/code/node/cli.ts
 +++ b/src/vs/code/node/cli.ts
 @@ -75,7 +75,7 @@ export async function main(argv: string[]): Promise<void> {
  					const appPath = process.platform === 'darwin'
- 						// ./Contents/MacOS/Electron => ./Contents/Resources/app/bin/code-tunnel-insiders
+ 						// ./Contents/MacOS/Code => ./Contents/Resources/app/bin/code-tunnel-insiders
  						? join(dirname(dirname(process.execPath)), 'Resources', 'app')
 -						: dirname(process.execPath);
 +						: join(getAppRoot(), '..', '..');

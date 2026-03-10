@@ -1,0 +1,13 @@
+diff --git a/package-lock.json b/package-lock.json
+index 5bfaf4c4a9e..c7e0cce1083 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -3118,7 +3118,7 @@
+     },
+     "node_modules/@vscode/gulp-electron": {
+       "version": "1.40.0",
+-      "resolved": "git+ssh://git@github.com/microsoft/vscode-gulp-electron.git#580228be384d7942b39aca6466b5a5050e4744a2",
++      "resolved": "https://registry.npmjs.org/@vscode/gulp-electron/-/gulp-electron-1.40.0.tgz",
+       "integrity": "sha512-EfQqw/kFmqiUgBv7WXx3wIrtz9cujAgX2uKQzTq517MbVjlpg7BIAjNC4Iq/wVB4Vgpl/ZGB7/XuSN7LsaLdlA==",
+       "dev": true,
+       "license": "MIT",
