@@ -1,0 +1,12 @@
+diff --git a/build.rs b/build.rs
+index 719db89..558ef06 100644
+--- a/build.rs
++++ b/build.rs
+@@ -276,6 +276,7 @@ fn build_v8(is_asan: bool) {
+     "use_custom_libcxx={}",
+     env::var("CARGO_FEATURE_USE_CUSTOM_LIBCXX").is_ok()
+   ));
++  println!("cargo:rustc-link-lib=atomic");
+ 
+   let extra_args = {
+     if env::var("CARGO_FEATURE_V8_ENABLE_SANDBOX").is_ok() {

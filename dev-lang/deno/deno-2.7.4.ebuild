@@ -1138,8 +1138,8 @@ pkg_setup() {
 	rust_pkg_setup
 	python-any-r1_pkg_setup
 	# I hate doing this but upstream Rust have yet to come up with a better solution for
-    # us poor packagers. Required for Split LTO units, which are required for CFI.
-    export RUSTC_BOOTSTRAP=1
+	# us poor packagers. Required for Split LTO units, which are required for CFI.
+	export RUSTC_BOOTSTRAP=1
 }
 
 src_unpack() {
@@ -1156,10 +1156,12 @@ src_prepare() {
 	ln -s "${WORKDIR}/temporal_capi" "${WORKDIR}/v8/third_party/rust/chromium_crates_io/vendor/temporal_capi-v0_1"
 	pushd "${WORKDIR}/v8" >/dev/null || die
 	if tc-is-clang && (has_version "llvm-core/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt); then
-		eapply "${FILESDIR}/remove-libatomic.patch"
+		eapply "${FILESDIR}/clang-remove-libatomic.patch"
+	else
+		eapply "${FILESDIR}/v8-link-libatomic.patch"
 	fi
 	if use elibc_musl; then
-		eapply "${FILESDIR}/execinfo.patch"
+		eapply "${FILESDIR}/v8-execinfo.patch"
 	fi
 	if use elibc_musl; then
 		eapply "${FILESDIR}/rust_target-141.patch"
@@ -1233,7 +1235,7 @@ src_configure() {
 
 src_compile() {
 	pushd "${WORKDIR}/temporal_capi" >/dev/null || die
-		cargo_env ${CARGO} rustc -p temporal_capi --crate-type staticlib --features compiled_data,zoneinfo64 -vv || die
+	cargo_env ${CARGO} rustc -r -p temporal_capi --crate-type staticlib --features compiled_data,zoneinfo64 -vv || die
 	popd >/dev/null || die
 
 	cargo_src_compile --bin deno -vv
@@ -1252,8 +1254,8 @@ src_test() {
 }
 
 src_install() {
-	cargo_src_install --path ${S}/cli --bin deno
-	use denort && cargo_src_install --path ${S}/cli/rt --bin denort
+	dobin "$(cargo_target_dir)/deno"
+	use denort && dobin "$(cargo_target_dir)/denort"
 	einstalldocs
 	use static-libs && dolib.a "$(cargo_target_dir)"/gn_out/obj/librusty_v8.a
 	if use bash-completion; then

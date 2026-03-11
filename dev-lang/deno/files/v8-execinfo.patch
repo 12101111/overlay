@@ -1,8 +1,8 @@
 diff --git a/build.rs b/build.rs
-index 7e9a65a..7fefe10 100644
+index b7af326..719db89 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -197,6 +197,7 @@ fn build_v8(is_asan: bool) {
+@@ -263,6 +263,7 @@ fn build_v8(is_asan: bool) {
    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
    // On windows, rustc cannot link with a V8 debug build.
    let mut gn_args = if is_debug() && target_os != "windows" {
@@ -10,3 +10,17 @@ index 7e9a65a..7fefe10 100644
      // Note: When building for Android aarch64-qemu, use release instead of debug.
      vec!["is_debug=true".to_string()]
    } else {
+diff --git a/build/config/linux/BUILD.gn b/build/config/linux/BUILD.gn
+index e08b1d6..eade7f8 100644
+--- a/build/config/linux/BUILD.gn
++++ b/build/config/linux/BUILD.gn
+@@ -39,6 +39,9 @@ config("runtime_library") {
+   if (is_chromeos) {
+     defines = [ "OS_CHROMEOS" ]
+   }
++  if (is_debug) {
++    libs = [ "execinfo" ]
++  }
+ }
+ 
+ config("libcap") {
