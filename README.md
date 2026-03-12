@@ -6,6 +6,181 @@ The patches and changes in it may only apply to me, so it is not recommended to 
 Please follow the [official instruction](https://wiki.gentoo.org/wiki/Ebuild_repository#Masking_installed_but_unsafe_ebuild_repositories) to add this overlay,
  and mask/unmask ebuild you don't want/want, otherwise your system may break after installing some ebuild only for musl.
 
+## How to compile WASI Sdk using crossdev
+
+1. Create `crossdev` overlay
+
+Symlink cmake.eclass in this overlay to `crossdev`
+
+```shell
+ln -s 12101111-overlay/eclass/cmake.eclass crossdev/eclass
+```
+
+2. Create crossdev wrapper
+
+```shell
+sudo crossdev -L -t wasm32-wasip1
+```
+
+This will failed with mseeage: error: Target architecture not supported by installed LLVM toolchain. It's Ok because gentoo don't have official wasm32-wasi support.
+
+Symlink llvm-runtimes in this overlay to `crossdev`
+
+```shell
+ln -s ../../12101111-overlay/sys-devel/clang-crossdev-wrappers crossdev/cross_llvm-wasm32-wasip1
+ln -s ../../12101111-overlay/llvm-runtimes/compiler-rt crossdev/cross_llvm-wasm32-wasip1
+ln -s ../../12101111-overlay/llvm-runtimes/libcxx crossdev/cross_llvm-wasm32-wasip1
+ln -s ../../12101111-overlay/llvm-runtimes/libcxxabi crossdev/cross_llvm-wasm32-wasip1
+ln -s ../../12101111-overlay/llvm-runtimes/libunwind crossdev/cross_llvm-wasm32-wasip1
+ln -s ../../12101111-overlay/sys-devel/rust-std crossdev/cross_llvm-wasm32-wasip1
+ln -s ../../12101111-overlay/dev-libs/wasi-libc crossdev/cross_llvm-wasm32-wasip1
+```
+
+3. Edit configs
+
+Append those flags to `/etc/portage/env/cross_llvm-wasm32-wasip1/llvm.conf`
+
+```shell
+AS="wasm32-wasip1-as"
+CPP="wasm32-wasip1-cpp"
+
+CFLAGS="-Os -pipe -mcpu=lime1"
+CXXFLAGS="-Os -pipe -mcpu=lime1"
+LDFLAGS=""
+RUSTFLAGS="-Ctarget-cpu=lime1 -Copt-level=s -Ccodegen-units=1"
+```
+
+Append those flags to `/etc/portage/package.env/cross_llvm-wasm32-wasip1`
+
+```shell
+cross_llvm-wasm32-wasip1/wasi-libc cross_llvm-wasm32-wasip1/wasi-libc.conf
+cross_llvm-wasm32-wasip1/wasi-libc cross_llvm-wasm32-wasip1/llvm.conf
+cross_llvm-wasm32-wasip1/libcxxabi cross_llvm-wasm32-wasip1/libcxx.conf
+cross_llvm-wasm32-wasip1/libcxxabi cross_llvm-wasm32-wasip1/llvm.conf
+```
+
+```shell
+cp /etc/portage/env/cross_llvm-wasm32-wasip1/{linux-headers.conf,wasi-libc.conf}
+```
+
+Remove `@../gentoo-runtimes.cfg` in `/etc/clang/cross/wasm32-wasip1.cfg` and append those flags
+
+```shell
+--sysroot=/usr/wasm32-wasip1
+--target=wasm32-wasip1
+--rtlib=compiler-rt
+--stdlib=libc++
+-fuse-ld=lld
+--unwindlib=none
+```
+
+4. Install packages
+
+```shell
+emerge cross_llvm-wasm32-wasip1/clang-crossdev-wrappers
+emerge cross_llvm-wasm32-wasip1/compiler-rt
+```
+
+Check compiler-rt is compiled correctly:
+
+```
+llvm-readelf -h /usr/lib/clang/22/lib/wasm32-unknown-wasip1/libclang_rt.builtins.a | grep WASM | wc -l
+# should output number like 150
+llvm-readelf -h /usr/lib/clang/22/lib/wasm32-unknown-wasip1/libclang_rt.builtins.a | grep ELF
+# should output nothing
+```
+
+```shell
+emerge cross_llvm-wasm32-wasip1/wasi-libc
+```
+
+Check wasi-libc is compiled correctly:
+
+```shell
+cat << EOF > /tmp/hello.c
+#include <stdio.h>
+int main() {
+    printf("Hello world!\n");
+    return 0;
+}
+EOF
+wasm32-wasip1-cc /tmp/hello.c -Os -o /tmp/hello.wasm
+wasmtime /tmp/hello.wasm
+```
+
+Install C++ std:
+
+```shell
+emerge cross_llvm-wasm32-wasip1/libcxxabi
+emerge cross_llvm-wasm32-wasip1/libcxx
+```
+
+Check libc++ is compiled correctly:
+
+```shell
+cat << EOF > /tmp/hello.cpp
+#include <iostream>
+int main() {
+  std::cout << "Gentoo Linux Clang/LLVM/LLD toolchain for WASI!" << std::endl;
+  return 0;
+}
+EOF
+wasm32-wasip1-c++ /tmp/hello.cpp cpp -Os -o /tmp/hello.wasm
+wasmtime /tmp/hello.wasm
+```
+
+Install Rust std:
+
+/etc/portage/package.accept_keywords/cross_llvm-wasm32-wasip1
+
+```
+cross_llvm-wasm32-wasip1/rust-std **
+```
+
+```shell
+emerge cross_llvm-wasm32-wasip1/rust-std
+```
+
+Check Rust-std is compiled correctly:
+
+```shell
+/usr/bin/cargo new hello
+cd hello
+/usr/bin/cargo build -r --target wasm32-wasip1
+wasmtime target/wasm32-wasip1/release/hello.wasm
+```
+
+5. Setup portage
+
+Most packages don't work under wasm32-wasi. But if you want try it, set those flags.
+
+/usr/wasm32-wasip1/etc/portage/profile/make.defaults
+
+```shell
+ARCH="wasm32"
+KERNEL="wasi"
+ELIBC="wasip1"
+AS=wasm32-wasip1-as
+CPP=wasm32-wasip1-cpp
+CC="wasm32-wasip1-clang"
+CXX="wasm32-wasip1-clang++"
+LD=wasm-ld
+```
+
+/usr/wasm32-wasip1/etc/portage/repos.conf
+
+```toml
+[DEFAULT]
+main-repo = gentoo
+
+[gentoo]
+location = <fill this>
+
+[12101111-overlay]
+location = <fill this>
+priority = 1000
+```
+
 ## Packages
 
 - [app-doc/zeal](https://github.com/zealdocs/zeal): Live ebuild, use qtwebengine as backend.
@@ -85,6 +260,4 @@ All patch files are distributed under the same license of the corresponding pack
 
 The following patches are not a fork from Gentoo main tree, musl overlay or GURU Project
 
-- `app-emulation/wine-staging`: [collabora](https://gitlab.collabora.com/alf/wine/-/tree/wayland)'s WIP winewayland.drv
-- `sys-apps/systemd`: [openembedded](https://github.com/openembedded/openembedded-core)
 - `www-client/chromium`, `dev-util/electron` and `dev-qt/qtwebengine`: Alpine Linux and Voidlinux
