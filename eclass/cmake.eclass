@@ -620,6 +620,7 @@ cmake_src_configure() {
 				cat >> "${toolchain_file}" <<- _EOF_ || die
 					set(WASI 1)
 					set(CMAKE_SYSTEM_VERSION 1)
+					set(CMAKE_SYSTEM_PROCESSOR wasm32)
 				_EOF_
 				;;
 			*) sysname="${KERNEL}" ;;

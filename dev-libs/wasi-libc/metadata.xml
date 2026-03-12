@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>w12101111@gmail.com</email>
+	</maintainer>
+	<longdescription>libc for WebAssembly programs built on top of WASI system calls</longdescription>
+	<use>
+		<flag name="emmalloc">Use emmalloc instead of dlmalloc as malloc implementation</flag>
+		<flag name="setjmp">Build setjmp/longjmp support (libsetjmp)</flag>
+		<flag name="simd">Whether or not to build simd-enabled intrinsics into wasi-libc</flag>
+		<flag name="shared">Whether or not to build shared libraries</flag>
+	</use>
+	<upstream>
+		<remote-id type="github">WebAssembly/wasi-libc/</remote-id>
+	</upstream>
+</pkgmetadata>
