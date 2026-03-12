@@ -70,7 +70,6 @@ Remove `@../gentoo-runtimes.cfg` in `/etc/clang/cross/wasm32-wasip1.cfg` and app
 --target=wasm32-wasip1
 --rtlib=compiler-rt
 --stdlib=libc++
--fuse-ld=lld
 --unwindlib=none
 ```
 
