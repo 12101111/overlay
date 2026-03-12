@@ -232,7 +232,7 @@ multilib_src_configure() {
 
 multilib_src_compile() {
 	cmake_src_compile
-	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] && [[ ${CHOST} != *elf* ]]; then
+	if [[ ${CTARGET} != *-darwin* ]] && [[ ${CTARGET} != *-mingw* ]] && [[ ${CTARGET} != *-wasi* ]] && [[ ${CTARGET} != *elf* ]]; then
 		gen_shared_ldscript
 		use static-libs && gen_static_ldscript
 	fi
@@ -247,7 +247,7 @@ multilib_src_install() {
 	cmake_src_install
 	# since we've replaced libc++.{a,so} with ldscripts, now we have to
 	# install the extra symlinks
-	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] && [[ ${CHOST} != *elf* ]]; then
+	if [[ ${CTARGET} != *-darwin* ]] && [[ ${CTARGET} != *-mingw* ]] && [[ ${CTARGET} != *-wasi* ]] && [[ ${CTARGET} != *elf* ]]; then
 		is_crosspkg && into /usr/${CTARGET}
 		dolib.so lib/libc++_shared.so
 		use static-libs && dolib.a lib/libc++_static.a

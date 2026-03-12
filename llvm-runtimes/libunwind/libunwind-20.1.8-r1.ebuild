@@ -79,7 +79,7 @@ multilib_src_configure() {
 		# The full clang configuration might not be ready yet. Use the partial
 		# configuration files that are guaranteed to exist even during initial
 		# installations and upgrades.
-		if ! tc-is-cross-compiler; then
+		if ! tc-is-cross-compiler && ! is_crosspkg; then
 			local flags=(
 				--config="${ESYSROOT}"/etc/clang/"${LLVM_MAJOR}"/gentoo-{rtlib,linker}.cfg
 			)

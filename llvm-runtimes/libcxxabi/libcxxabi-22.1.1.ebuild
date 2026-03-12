@@ -72,7 +72,7 @@ multilib_src_configure() {
 
 		# The full clang configuration might not be ready yet. Use the partial
 		# configuration of components that libunwind depends on.
-		if ! tc-is-cross-compiler; then
+		if ! tc-is-cross-compiler && ! is_crosspkg; then
 			local flags=(
 				--config="${ESYSROOT}"/etc/clang/"${LLVM_MAJOR}"/gentoo-{rtlib,unwindlib,linker}.cfg
 			)

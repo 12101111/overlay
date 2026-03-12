@@ -109,7 +109,7 @@ multilib_src_configure() {
 
 		# The full clang configuration might not be ready yet. Use the partial
 		# configuration of components that libunwind depends on.
-		if ! tc-is-cross-compiler; then
+		if ! tc-is-cross-compiler && ! is_crosspkg; then
 			local flags=(
 				--config="${ESYSROOT}"/etc/clang/"${LLVM_MAJOR}"/gentoo-{rtlib,unwindlib,linker}.cfg
 			)
@@ -230,7 +230,7 @@ multilib_src_configure() {
 
 multilib_src_compile() {
 	cmake_src_compile
-	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] && [[ ${CHOST} != *elf* ]]; then
+	if [[ ${CTARGET} != *-darwin* ]] && [[ ${CTARGET} != *-mingw* ]] && [[ ${CTARGET} != *-wasi* ]] && [[ ${CTARGET} != *elf* ]]; then
 		local libdir=$(get_libdir)
 		gen_shared_ldscript
 		use static-libs && gen_static_ldscript
@@ -242,7 +242,7 @@ multilib_src_test() {
 	# https://github.com/llvm/llvm-project/issues/153940
 	local -x LIT_XFAIL="libcxx/gdb/gdb_pretty_printer_test.sh.cpp"
 	cmake_build libcxx-test-suite-install-cxx
-	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] && [[ ${CHOST} != *elf* ]]; then
+	if [[ ${CTARGET} != *-darwin* ]] && [[ ${CTARGET} != *-mingw* ]] && [[ ${CTARGET} != *-wasi* ]] && [[ ${CTARGET} != *elf* ]]; then
 		local libdir=$(get_libdir)
 		cp "${BUILD_DIR}"/{,libcxx/test-suite-install/}"${libdir}"/libc++_shared.so || die
 		if use static-libs; then
@@ -256,7 +256,7 @@ multilib_src_install() {
 	cmake_src_install
 	# since we've replaced libc++.{a,so} with ldscripts, now we have to
 	# install the extra symlinks
-	if [[ ${CHOST} != *-darwin* ]] && [[ ${CHOST} != *-mingw* ]] && [[ ${CHOST} != *-wasi* ]] && [[ ${CHOST} != *elf* ]]; then
+	if [[ ${CTARGET} != *-darwin* ]] && [[ ${CTARGET} != *-mingw* ]] && [[ ${CTARGET} != *-wasi* ]] && [[ ${CTARGET} != *elf* ]]; then
 		local libdir=$(get_libdir)
 		is_crosspkg && into /usr/${CTARGET}/usr
 		dolib.so "${libdir}"/libc++_shared.so
