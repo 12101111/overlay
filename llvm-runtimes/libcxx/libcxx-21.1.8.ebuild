@@ -19,7 +19,7 @@ RESTRICT="!test? ( test )"
 
 RDEPEND="
 	libcxxabi? (
-		~llvm-runtimes/libcxxabi-${PV}[static-libs?,${MULTILIB_USEDEP}]
+		~"${CATEGORY}"/libcxxabi-${PV}[static-libs?,${MULTILIB_USEDEP}]
 	)
 	!libcxxabi? ( >=sys-devel/gcc-4.7:=[cxx] )
 "

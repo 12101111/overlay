@@ -17,7 +17,7 @@ KEYWORDS="amd64 arm arm64 x86 ~amd64-linux"
 IUSE="debug test"
 
 DEPEND="
-	~llvm-runtimes/libunwind-${PV}[static-libs]
+	~"${CATEGORY}"/libunwind-${PV}[static-libs]
 "
 RDEPEND="
 	${DEPEND}
