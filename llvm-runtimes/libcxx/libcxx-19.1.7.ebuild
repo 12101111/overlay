@@ -109,9 +109,6 @@ multilib_src_configure() {
 	local use_compiler_rt=OFF
 	[[ $(tc-get-c-rtlib) == compiler-rt ]] && use_compiler_rt=ON
 
-	local is_musllibc_like=$(llvm_cmake_use_musl)
-	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON
-
 	# Scenarios to consider:
 	#
 	# 1. Compiler test works with the default flags.
@@ -130,11 +127,13 @@ multilib_src_configure() {
 
 	local libdir=$(get_libdir)
 	local runtimes="libcxx"
-	[[ ${CTARGET} == *-mingw* ]] && runtimes="libcxxabi;libcxx"
-
 	local enable_shared=ON
-	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF
-	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF
+	local is_musllibc_like=$(llvm_cmake_use_musl)
+
+	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON && libdir="lib"
+	[[ ${CTARGET} == *-mingw* ]] && runtimes="libcxxabi;libcxx" && libdir="lib"
+	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF && libdir="lib"
+	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF && libdir="lib"
 
 	local mycmakeargs=(
 		-DLLVM_ROOT="${ESYSROOT}/usr/lib/llvm/${LLVM_MAJOR}"

@@ -131,11 +131,11 @@ multilib_src_configure() {
 
 	local libdir=$(get_libdir)
 	local runtimes="libcxx"
-	[[ ${CTARGET} == *-mingw* ]] && runtimes="libcxxabi;libcxx"
-
 	local enable_shared=ON
-	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF
-	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF
+	[[ ${CTARGET} == *wasi* ]] && libdir="lib"
+	[[ ${CTARGET} == *-mingw* ]] && runtimes="libcxxabi;libcxx" && libdir="lib"
+	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF && libdir="lib"
+	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF && libdir="lib"
 
 	local mycmakeargs=(
 		-DLLVM_ROOT="${ESYSROOT}/usr/lib/llvm/${LLVM_MAJOR}"

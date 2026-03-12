@@ -90,14 +90,13 @@ multilib_src_configure() {
 	local use_compiler_rt=OFF
 	[[ $(tc-get-c-rtlib) == compiler-rt ]] && use_compiler_rt=ON
 
-	local is_musllibc_like=$(llvm_cmake_use_musl)
-	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON
-
-	local enable_shared=ON
-	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF
-	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF
-
 	local libdir=$(get_libdir)
+	local is_musllibc_like=$(llvm_cmake_use_musl)
+	local enable_shared=ON
+	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF && libdir="lib"
+	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF && libdir="lib"
+	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON && libdir="lib"
+
 	local mycmakeargs=(
 		-DLLVM_ROOT="${ESYSROOT}/usr/lib/llvm/${LLVM_MAJOR}"
 

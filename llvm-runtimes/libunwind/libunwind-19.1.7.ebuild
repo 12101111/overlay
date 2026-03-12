@@ -72,6 +72,10 @@ multilib_src_configure() {
 	local use_compiler_rt=OFF
 	[[ $(tc-get-c-rtlib) == compiler-rt ]] && use_compiler_rt=ON
 
+	[[ ${CTARGET} == *elf* ]] && libdir="lib"
+	[[ ${CTARGET} == *wasi-threads* ]] && && libdir="lib"
+	[[ ${CTARGET} == *wasi* ]] && libdir="lib"
+
 	# Respect upstream build type assumptions (bug #910436) where they do:
 	# -DLIBUNWIND_ENABLE_ASSERTIONS=ON =>
 	#       -DCMAKE_BUILD_TYPE=DEBUG  => -UNDEBUG
