@@ -124,7 +124,7 @@ int main() {
   return 0;
 }
 EOF
-wasm32-wasip1-c++ /tmp/hello.cpp cpp -Os -o /tmp/hello.wasm
+wasm32-wasip1-c++ /tmp/hello.cpp -fno-exceptions -Os -o /tmp/hello.wasm
 wasmtime /tmp/hello.wasm
 ```
 
