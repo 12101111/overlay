@@ -364,6 +364,7 @@ src_prepare() {
 		"${FILESDIR}/rust-1.92.0-disable-link-self-contained.patch"
 		"${FILESDIR}/rust-1.92.0-dont-install-self-contained.patch"
 	)
+	rm "${WORKDIR}/rust-patches-${RUST_PATCH_VER}/1.87.0-znver.patch"
 
 	if use lto && tc-is-clang && ! tc-ld-is-lld && ! tc-ld-is-mold; then
 		export RUSTFLAGS+=" -C link-arg=-fuse-ld=lld"
