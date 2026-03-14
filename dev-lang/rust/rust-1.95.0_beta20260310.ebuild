@@ -24,9 +24,8 @@ RUST_P=${PN}-${RUST_PV}
 
 if [[ ${PV} == *9999* ]]; then
 	# Update this as new `beta` releases come out.
-	RUST_MIN_VER="1.94.0"
+	RUST_MIN_VER="1.93.0"
 elif [[ ${PV} == *beta* ]]; then
-	RUST_MAX_VER="$(ver_cut 1).$(ver_cut 2).0"
 	RUST_MIN_VER="$(ver_cut 1).$(($(ver_cut 2) - 1)).0"
 else
 	RUST_MIN_VER="$(ver_cut 1).$(($(ver_cut 2) - 1)).0"
@@ -46,20 +45,11 @@ elif [[ ${PV} == *beta* ]]; then
 	MY_P="rustc-beta"
 	SRC_URI="
 		https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${RUST_PV}-src.tar.xz
+		https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
 		verify-sig? (
 			https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz.asc
 				-> rustc-${RUST_PV}-src.tar.xz.asc
 		)
-	"
-	S="${WORKDIR}/${MY_P}-src"
-elif [[ ${PV} = *rc* ]]; then
-	rcver=${PV//*rc}
-	RC_SNAPSHOT="${rcver:0:4}-${rcver:4:2}-${rcver:6:2}"
-	ABI_VER=${PV//_rc*}
-	MY_P="rustc-${ABI_VER}"
-	SRC_URI="https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz -> rustc-${PV}-src.tar.xz
-		verify-sig? ( https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz.asc
-			-> rustc-${PV}-src.tar.xz.asc )
 	"
 	S="${WORKDIR}/${MY_P}-src"
 else
@@ -792,7 +782,9 @@ src_install() {
 	# bash-completion files are installed by dev-lang/rust-common instead
 	# bug #689562, #689160.
 	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/bash_completion.d/cargo" || die
-	rmdir -v "${ED}/usr/lib/${PN}/${SLOT}/etc/bash_completion.d" || die
+	# remove target-spec-json-schema.json, build-std is nightly only
+	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/target-spec-json-schema.json" || die
+	rmdir -v "${ED}/usr/lib/${PN}/${SLOT}"/etc{/bash_completion.d,} || die
 
 	local symlinks=(
 		cargo
