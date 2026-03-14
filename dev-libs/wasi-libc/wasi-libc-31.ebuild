@@ -86,7 +86,7 @@ src_install() {
 	cmake_src_install
 	dosym usr/include /usr/${CTARGET}/include
 	mv "${ED}/usr/include/${CTARGET}" "${ED}/usr/${CTARGET}/usr/include"
-	mv "${ED}/usr/lib/${CTARGET}" "${ED}/usr/${CTARGET}/usr/lib"
+	mv "${ED}/usr/$(get_libdir)/${CTARGET}" "${ED}/usr/${CTARGET}/usr/lib"
 	mv "${ED}/usr/share" "${ED}/usr/${CTARGET}/usr"
 	dosym . /usr/${CTARGET}/usr/include/${CTARGET}
 	dosym ../usr/lib /usr/${CTARGET}/lib/${CTARGET}
