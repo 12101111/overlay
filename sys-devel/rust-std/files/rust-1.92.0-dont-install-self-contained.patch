@@ -2,7 +2,7 @@ diff --git a/src/bootstrap/src/core/build_steps/compile.rs b/src/bootstrap/src/c
 index 6857a40ada8..006d16eb0bf 100644
 --- a/src/bootstrap/src/core/build_steps/compile.rs
 +++ b/src/bootstrap/src/core/build_steps/compile.rs
-@@ -385,16 +385,6 @@ fn copy_self_contained_objects(
+@@ -394,16 +394,6 @@ fn copy_self_contained_objects(
              panic!("Target {:?} does not have a \"musl-libdir\" key", target.triple)
          });
          if !target.starts_with("wasm32") {
@@ -19,7 +19,7 @@ index 6857a40ada8..006d16eb0bf 100644
              let crt_path = builder.ensure(llvm::CrtBeginEnd { target });
              for &obj in &["crtbegin.o", "crtbeginS.o", "crtend.o", "crtendS.o"] {
                  let src = crt_path.join(obj);
-@@ -416,10 +406,6 @@ fn copy_self_contained_objects(
+@@ -425,10 +415,6 @@ fn copy_self_contained_objects(
                  );
              }
          }
