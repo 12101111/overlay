@@ -19,14 +19,14 @@ declare -A GIT_CRATES=(
 	[dap-types]='https://github.com/zed-industries/dap-types;1b461b310481d01e02b2603c16d7144b926339f8;dap-types-%commit%/dap-types'
 	[gh-workflow-macros]='https://github.com/zed-industries/gh-workflow;c9eac0ed361583e1072860d96776fa52775b82ac;gh-workflow-%commit%/crates/gh-workflow-macros'
 	[gh-workflow]='https://github.com/zed-industries/gh-workflow;c9eac0ed361583e1072860d96776fa52775b82ac;gh-workflow-%commit%/crates/gh-workflow'
-	[libwebrtc]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/libwebrtc'
-	[livekit-api]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/livekit-api'
-	[livekit-protocol]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/livekit-protocol'
-	[livekit-runtime]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/livekit-runtime'
-	[livekit]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/livekit'
+	[libwebrtc]='https://github.com/zed-industries/livekit-rust-sdks;37835f840d0070d45ac8b31cce6a6ae7aca3f459;livekit-rust-sdks-%commit%/libwebrtc'
+	[livekit-api]='https://github.com/zed-industries/livekit-rust-sdks;37835f840d0070d45ac8b31cce6a6ae7aca3f459;livekit-rust-sdks-%commit%/livekit-api'
+	[livekit-protocol]='https://github.com/zed-industries/livekit-rust-sdks;37835f840d0070d45ac8b31cce6a6ae7aca3f459;livekit-rust-sdks-%commit%/livekit-protocol'
+	[livekit-runtime]='https://github.com/zed-industries/livekit-rust-sdks;37835f840d0070d45ac8b31cce6a6ae7aca3f459;livekit-rust-sdks-%commit%/livekit-runtime'
+	[livekit]='https://github.com/zed-industries/livekit-rust-sdks;37835f840d0070d45ac8b31cce6a6ae7aca3f459;livekit-rust-sdks-%commit%/livekit'
 	[lsp-types]='https://github.com/zed-industries/lsp-types;a4f410987660bf560d1e617cb78117c6b6b9f599;lsp-types-%commit%'
-	[mermaid-rs-renderer]='https://github.com/zed-industries/mermaid-rs-renderer;9d8360d9cea10dc4bc86d7b8012cc6e9656e6cf2;mermaid-rs-renderer-%commit%'
-	[naga]='https://github.com/zed-industries/wgpu;e0f83a6cedc5e0b97da1ebe2d638ad103672e0a2;wgpu-%commit%/naga'
+	[mermaid-rs-renderer]='https://github.com/zed-industries/mermaid-rs-renderer;374db9ead5426697c6c2111151d9f246899bc638;mermaid-rs-renderer-%commit%'
+	[naga]='https://github.com/zed-industries/wgpu;6e0c2546d99dad72ce6ffb5b04349e6a4ce96e6d;wgpu-%commit%/naga'
 	[notify-types]='https://github.com/zed-industries/notify;ce58c24cad542c28e04ced02e20325a4ec28a31d;notify-%commit%/notify-types'
 	[notify]='https://github.com/zed-industries/notify;ce58c24cad542c28e04ced02e20325a4ec28a31d;notify-%commit%/notify'
 	[nvim-rs]='https://github.com/KillTheMule/nvim-rs;764dd270c642f77f10f3e19d05cc178a6cbe69f3;nvim-rs-%commit%'
@@ -65,15 +65,15 @@ declare -A GIT_CRATES=(
 	[tree-sitter-md]='https://github.com/tree-sitter-grammars/tree-sitter-markdown;9a23c1a96c0513d8fc6520972beedd419a973539;tree-sitter-markdown-%commit%'
 	[tree-sitter-typescript]='https://github.com/zed-industries/tree-sitter-typescript;e2c53597d6a5d9cf7bbe8dccde576fe1e46c5899;tree-sitter-typescript-%commit%'
 	[tree-sitter-yaml]='https://github.com/zed-industries/tree-sitter-yaml;baff0b51c64ef6a1fb1f8390f3ad6015b83ec13a;tree-sitter-yaml-%commit%'
-	[webrtc-sys-build]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/webrtc-sys/build'
-	[webrtc-sys]='https://github.com/zed-industries/livekit-rust-sdks;5f04705ac3f356350ae31534ffbc476abc9ea83d;livekit-rust-sdks-%commit%/webrtc-sys'
-	[wgpu-core-deps-apple]='https://github.com/zed-industries/wgpu;e0f83a6cedc5e0b97da1ebe2d638ad103672e0a2;wgpu-%commit%/wgpu-core/platform-deps/apple'
-	[wgpu-core-deps-emscripten]='https://github.com/zed-industries/wgpu;e0f83a6cedc5e0b97da1ebe2d638ad103672e0a2;wgpu-%commit%/wgpu-core/platform-deps/emscripten'
-	[wgpu-core-deps-windows-linux-android]='https://github.com/zed-industries/wgpu;e0f83a6cedc5e0b97da1ebe2d638ad103672e0a2;wgpu-%commit%/wgpu-core/platform-deps/windows-linux-android'
-	[wgpu-core]='https://github.com/zed-industries/wgpu;e0f83a6cedc5e0b97da1ebe2d638ad103672e0a2;wgpu-%commit%/wgpu-core'
-	[wgpu-hal]='https://github.com/zed-industries/wgpu;e0f83a6cedc5e0b97da1ebe2d638ad103672e0a2;wgpu-%commit%/wgpu-hal'
-	[wgpu-types]='https://github.com/zed-industries/wgpu;e0f83a6cedc5e0b97da1ebe2d638ad103672e0a2;wgpu-%commit%/wgpu-types'
-	[wgpu]='https://github.com/zed-industries/wgpu;e0f83a6cedc5e0b97da1ebe2d638ad103672e0a2;wgpu-%commit%/wgpu'
+	[webrtc-sys-build]='https://github.com/zed-industries/livekit-rust-sdks;37835f840d0070d45ac8b31cce6a6ae7aca3f459;livekit-rust-sdks-%commit%/webrtc-sys/build'
+	[webrtc-sys]='https://github.com/zed-industries/livekit-rust-sdks;37835f840d0070d45ac8b31cce6a6ae7aca3f459;livekit-rust-sdks-%commit%/webrtc-sys'
+	[wgpu-core-deps-apple]='https://github.com/zed-industries/wgpu;6e0c2546d99dad72ce6ffb5b04349e6a4ce96e6d;wgpu-%commit%/wgpu-core/platform-deps/apple'
+	[wgpu-core-deps-emscripten]='https://github.com/zed-industries/wgpu;6e0c2546d99dad72ce6ffb5b04349e6a4ce96e6d;wgpu-%commit%/wgpu-core/platform-deps/emscripten'
+	[wgpu-core-deps-windows-linux-android]='https://github.com/zed-industries/wgpu;6e0c2546d99dad72ce6ffb5b04349e6a4ce96e6d;wgpu-%commit%/wgpu-core/platform-deps/windows-linux-android'
+	[wgpu-core]='https://github.com/zed-industries/wgpu;6e0c2546d99dad72ce6ffb5b04349e6a4ce96e6d;wgpu-%commit%/wgpu-core'
+	[wgpu-hal]='https://github.com/zed-industries/wgpu;6e0c2546d99dad72ce6ffb5b04349e6a4ce96e6d;wgpu-%commit%/wgpu-hal'
+	[wgpu-types]='https://github.com/zed-industries/wgpu;6e0c2546d99dad72ce6ffb5b04349e6a4ce96e6d;wgpu-%commit%/wgpu-types'
+	[wgpu]='https://github.com/zed-industries/wgpu;6e0c2546d99dad72ce6ffb5b04349e6a4ce96e6d;wgpu-%commit%/wgpu'
 	[windows-capture]='https://github.com/zed-industries/windows-capture;f0d6c1b6691db75461b732f6d5ff56eed002eeb9;windows-capture-%commit%'
 	[wprcontrol]='https://github.com/zed-industries/wprcontrol;cd811f7d744f65291e13131b1d907fda63ed91a1;wprcontrol-%commit%'
 	[xim-ctext]='https://github.com/zed-industries/xim-rs;16f35a2c881b815a2b6cdfd6687988e84f8447d8;xim-rs-%commit%/xim-ctext'
@@ -87,7 +87,7 @@ declare -A GIT_CRATES=(
 LLVM_COMPAT=( 21 )
 RUST_MIN_VER="1.93.0"
 RUST_NEEDS_LLVM=1
-WEBRTC_COMMIT="b99fd2c-6"
+WEBRTC_COMMIT="0001d84-2"
 
 inherit cargo check-reqs desktop flag-o-matic llvm-r1 toolchain-funcs xdg
 
@@ -108,6 +108,8 @@ SRC_URI="
 
 S="${WORKDIR}/${PN}-${PV/_/-}"
 LICENSE="GPL-3+"
+# license for fuchsia-cprng-0.1.1, which is not set correctly in crate
+LICENSE+=" BSD"
 # Dependent crate licenses
 LICENSE+="
 	Apache-2.0 Apache-2.0-with-LLVM-exceptions BSD-2 BSD CC0-1.0 ISC
@@ -120,10 +122,7 @@ CHECKREQS_DISK_BUILD="18G"
 CHECKREQS_MEMORY="8G"
 
 DEPEND="
-	app-arch/zstd:=
-	dev-db/sqlite:3
-	dev-libs/mimalloc
-	dev-libs/openssl:0/3
+	dev-libs/glib:2
 	dev-libs/wayland
 	|| (
 		media-fonts/dejavu
@@ -132,8 +131,9 @@ DEPEND="
 		media-fonts/ubuntu-font-family
 	)
 	media-libs/alsa-lib
-	media-libs/libpulse
+	media-libs/fontconfig
 	media-libs/freetype
+	media-libs/libpulse
 	media-libs/vulkan-loader[X]
 	virtual/zlib:=
 	x11-libs/libX11
@@ -198,6 +198,13 @@ src_prepare() {
 	local CALLOOP_GIT="calloop = { git = \"https://github.com/zed-industries/calloop\""
 	local CALLOOP_PATH="calloop = \\{ path = \"${WORKDIR}/calloop-${CALLOOP_COMMIT}\""
 
+	local LIVEKIT_COMMIT="37835f840d0070d45ac8b31cce6a6ae7aca3f459"
+	local LIVEKIT_GIT="livekit = { git = \"https://github.com/zed-industries/livekit-rust-sdks\", rev = \"${LIVEKIT_COMMIT}\""
+	local LIVEKIT_PATH="livekit = \\{ path = \"${WORKDIR}/livekit-rust-sdks-${LIVEKIT_COMMIT}/livekit\""
+
+	local LIBWERBRTC_GIT="libwebrtc = { git = \"https://github.com/zed-industries/livekit-rust-sdks\", rev = \"${LIVEKIT_COMMIT}\""
+	local LIBWERBRTC_PATH="libwebrtc = \\{ path = \"${WORKDIR}/livekit-rust-sdks-${LIVEKIT_COMMIT}/libwebrtc\""
+
 	local NOTIFY_COMMIT="ce58c24cad542c28e04ced02e20325a4ec28a31d"
 	local NOTIFY_GIT="notify = { git = \"https://github.com/zed-industries/notify.git\", rev = \"${NOTIFY_COMMIT}\""
 	local NOTIFY_PATH="notify = \\{ path = \"${WORKDIR}/notify-${NOTIFY_COMMIT}/notify\""
@@ -210,6 +217,8 @@ src_prepare() {
 
 	sed -e "s#${ASYNC_TASK_GIT}#${ASYNC_TASK_PATH}#" \
 		-e "s#${CALLOOP_GIT}#${CALLOOP_PATH}#" \
+		-e "s#${LIVEKIT_GIT}#${LIVEKIT_PATH}#" \
+		-e "s#${LIBWERBRTC_GIT}#${LIBWERBRTC_PATH}#" \
 		-e "s#${NOTIFY_GIT}#${NOTIFY_PATH}#" \
 		-e "s#${NOTIFY_TYPES_GIT}#${NOTIFY_TYPES_PATH}#" \
 		-e "s#${WIN_CAP_GIT}#${WIN_CAP_PATH}#" \
