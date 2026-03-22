@@ -1,0 +1,22 @@
+From 1cb53dbd1ceff0db89093567f2c859114b5a748b Mon Sep 17 00:00:00 2001
+From: Sy Brand <sy.brand@fastly.com>
+Date: Tue, 3 Mar 2026 15:23:37 +0000
+Subject: [PATCH] Guard against non-linux/FreeBSD systems for copy_file_range
+
+---
+ libcxx/src/filesystem/operations.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libcxx/src/filesystem/operations.cpp b/libcxx/src/filesystem/operations.cpp
+index 745db87ce3736..c1834a61b55de 100644
+--- a/libcxx/src/filesystem/operations.cpp
++++ b/libcxx/src/filesystem/operations.cpp
+@@ -41,7 +41,7 @@
+ #include <time.h>
+ 
+ // since Linux 4.5 and FreeBSD 13, but the Linux libc wrapper is only provided by glibc >= 2.27 and musl
+-#if _LIBCPP_GLIBC_PREREQ(2, 27) || _LIBCPP_HAS_MUSL_LIBC || defined(__FreeBSD__)
++#if (defined(__linux__) && (_LIBCPP_GLIBC_PREREQ(2, 27) || _LIBCPP_HAS_MUSL_LIBC)) || defined(__FreeBSD__)
+ #  define _LIBCPP_FILESYSTEM_USE_COPY_FILE_RANGE
+ #endif
+ 
