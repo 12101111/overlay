@@ -76,6 +76,10 @@ test_compiler() {
 		<<<'int main() { return 0; }' &>/dev/null
 }
 
+PATCHES=(
+	"${FILESDIR}"/0001-fix-llvm-pr184373.patch
+)
+
 src_configure() {
 	# note: we need to do this before multilib kicks in since it will
 	# alter the CHOST
