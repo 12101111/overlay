@@ -256,8 +256,6 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
-		"${FILESDIR}/systemd-260-mips.patch"
-		"${FILESDIR}/systemd-260-kernel-install.patch"
 	)
 
 	if ! use vanilla; then
