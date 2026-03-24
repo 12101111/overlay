@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-147-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-149-patches-01.tar.xz"
 
 LLVM_COMPAT=( 20 21 )
 
@@ -11,7 +11,7 @@ LLVM_COMPAT=( 20 21 )
 RUST_NEEDS_LLVM=1
 
 # If not building with clang we need at least rust 1.76
-RUST_MIN_VER=1.87.0
+RUST_MIN_VER=1.90.0
 
 PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
@@ -119,7 +119,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	>=app-accessibility/at-spi2-core-2.46.0:2
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.120.1
+	>=dev-libs/nss-3.121
 	>=dev-libs/nspr-4.38
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -200,6 +200,7 @@ DEPEND="${COMMON_DEPEND}
 		x11-libs/libICE
 		x11-libs/libSM
 	)"
+PDEPEND="~www-client/firefox-l10n-${PV}"
 
 # ESR and rapid dependencies.
 if [[ -n ${MOZ_ESR} ]] ; then
@@ -237,82 +238,6 @@ llvm_check_deps() {
 
 	einfo "Using LLVM slot ${LLVM_SLOT} to build" >&2
 }
-
-MOZ_LANGS=(
-	af ar ast be bg br ca cak cs cy da de dsb
-	el en-CA en-GB en-US es-AR es-ES et eu
-	fi fr fy-NL ga-IE gd gl he hr hsb hu
-	id is it ja ka kab kk ko lt lv ms nb-NO nl nn-NO
-	pa-IN pl pt-BR pt-PT rm ro ru
-	sk sl sq sr sv-SE th tr uk uz vi zh-CN zh-TW
-)
-
-# Firefox-only LANGS
-MOZ_LANGS+=( ach )
-MOZ_LANGS+=( an )
-MOZ_LANGS+=( az )
-MOZ_LANGS+=( bn )
-MOZ_LANGS+=( bs )
-MOZ_LANGS+=( ca-valencia )
-MOZ_LANGS+=( eo )
-MOZ_LANGS+=( es-CL )
-MOZ_LANGS+=( es-MX )
-MOZ_LANGS+=( fa )
-MOZ_LANGS+=( ff )
-MOZ_LANGS+=( fur )
-MOZ_LANGS+=( gn )
-MOZ_LANGS+=( gu-IN )
-MOZ_LANGS+=( hi-IN )
-MOZ_LANGS+=( hy-AM )
-MOZ_LANGS+=( ia )
-MOZ_LANGS+=( km )
-MOZ_LANGS+=( kn )
-MOZ_LANGS+=( lij )
-MOZ_LANGS+=( mk )
-MOZ_LANGS+=( mr )
-MOZ_LANGS+=( my )
-MOZ_LANGS+=( ne-NP )
-MOZ_LANGS+=( oc )
-MOZ_LANGS+=( sc )
-MOZ_LANGS+=( sco )
-MOZ_LANGS+=( si )
-MOZ_LANGS+=( skr )
-MOZ_LANGS+=( son )
-MOZ_LANGS+=( szl )
-MOZ_LANGS+=( ta )
-MOZ_LANGS+=( te )
-MOZ_LANGS+=( tl )
-MOZ_LANGS+=( trs )
-MOZ_LANGS+=( ur )
-MOZ_LANGS+=( xh )
-
-mozilla_set_globals() {
-	# https://bugs.gentoo.org/587334
-	local MOZ_TOO_REGIONALIZED_FOR_L10N=(
-		fy-NL ga-IE gu-IN hi-IN hy-AM nb-NO ne-NP nn-NO pa-IN sv-SE
-	)
-
-	local lang xflag
-	for lang in "${MOZ_LANGS[@]}" ; do
-		# en and en_US are handled internally
-		if [[ ${lang} == en ]] || [[ ${lang} == en-US ]] ; then
-			continue
-		fi
-
-		# strip region subtag if $lang is in the list
-		if has ${lang} "${MOZ_TOO_REGIONALIZED_FOR_L10N[@]}" ; then
-			xflag=${lang%%-*}
-		else
-			xflag=${lang}
-		fi
-
-		SRC_URI+=" l10n_${xflag/[_@]/-}? ("
-		SRC_URI+=" ${MOZ_SRC_BASE_URI}/linux-x86_64/xpi/${lang}.xpi -> ${MOZ_P_DISTFILES}-${lang}.xpi"
-		SRC_URI+=" )"
-		IUSE+=" l10n_${xflag/[_@]/-}"
-	done
-}
-mozilla_set_globals
 
 moz_clear_vendor_checksums() {
 	debug-print-function ${FUNCNAME} "$@"
@@ -645,11 +570,8 @@ src_prepare() {
 		rm -v "${WORKDIR}"/firefox-patches/*bgo-967694-musl-prctrl-exception-on-musl.patch || die
 	fi
 	rm -v "${WORKDIR}"/firefox-patches/*bgo-940031-wasm-support.patch || die
-	rm -v "${WORKDIR}"/firefox-patches/0021-bgo-966424-PR_GetEnv-non-unified-build-fix.patch
 
 	eapply "${WORKDIR}/firefox-patches"
-	eapply "${FILESDIR}/fix-musl-include.patch"
-	eapply "${FILESDIR}/fix-non-jumbo-include.patch"
 
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
@@ -1312,12 +1234,6 @@ src_install() {
 	# options stop working.
 	if ! use telemetry ; then
 		cat "${FILESDIR}"/gentoo-telemetry-prefs.js >>"${GENTOO_PREFS}" || die "failed to set telemetry prefs"
-	fi
-
-	# Install language packs
-	local langpacks=( $(find "${WORKDIR}/language_packs" -type f -name '*.xpi') )
-	if [[ -n "${langpacks}" ]] ; then
-		moz_install_xpi "${MOZILLA_FIVE_HOME}/distribution/extensions" "${langpacks[@]}"
 	fi
 
 	# Install icons
