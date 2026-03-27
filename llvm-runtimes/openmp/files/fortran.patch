@@ -1,0 +1,25 @@
+diff --git a/openmp/module/CMakeLists.txt b/openmp/module/CMakeLists.txt
+index 48f5b0f7a2e8..478e1c929127 100644
+--- a/openmp/module/CMakeLists.txt
++++ b/openmp/module/CMakeLists.txt
+@@ -57,7 +57,6 @@ elseif (LIBOMP_FORTRAN_MODULES)
+             ${LIBOMP_CONFIGURED_FFLAGS} ${LIBOMP_FORTRAN_SOURCE_FILE} "-J${CMAKE_CURRENT_BINARY_DIR}/../runtime/src"
+     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/${LIBOMP_FORTRAN_SOURCE_FILE}"
+   )
+-  set_property(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/../runtime/src" PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "omp_lib${CMAKE_C_OUTPUT_EXTENSION}")
+   set(BUILD_FORTRAN_MODULES True)
+ endif ()
+ 
+diff --git a/openmp/runtime/src/CMakeLists.txt b/openmp/runtime/src/CMakeLists.txt
+index 81fa9f0f2aaf..a2862c151203 100644
+--- a/openmp/runtime/src/CMakeLists.txt
++++ b/openmp/runtime/src/CMakeLists.txt
+@@ -459,3 +459,8 @@ if(${LIBOMP_OMPT_SUPPORT})
+   install(FILES ${LIBOMP_HEADERS_INTDIR}/omp-tools.h DESTINATION ${LIBOMP_HEADERS_INSTALL_PATH} RENAME ompt.h)
+   set(LIBOMP_OMP_TOOLS_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)
+ endif()
++
++# Set additional clean files for Fortran modules
++if(LIBOMP_FORTRAN_MODULES)
++  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY ADDITIONAL_MAKE_CLEAN_FILES "omp_lib${CMAKE_C_OUTPUT_EXTENSION}")
++endif()

@@ -40,6 +40,7 @@ BDEPEND="
 		llvm-core/clang
 	)
 "
+PATCHES=( "${FILESDIR}/fortran.patch" )
 
 LLVM_COMPONENTS=( runtimes openmp cmake llvm/{cmake,include,utils/llvm-lit} )
 llvm.org_set_globals
