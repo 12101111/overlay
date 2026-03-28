@@ -361,10 +361,12 @@ src_prepare() {
 	# then cut a new tag / tarball. Don't add patches to ${FILESDIR}
 	PATCHES=(
 		"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"
+		"${FILESDIR}/1.95.0-compiler-musl-dynamic-linking.patch"
 		"${FILESDIR}/rust-1.92.0-disable-link-self-contained.patch"
 		"${FILESDIR}/rust-1.92.0-dont-install-self-contained.patch"
 	)
 	rm "${WORKDIR}/rust-patches-${RUST_PATCH_VER}/1.87.0-znver.patch"
+	rm "${WORKDIR}/rust-patches-${RUST_PATCH_VER}/1.94.0-compiler-musl-dynamic-linking.patch"
 
 	if use lto && tc-is-clang && ! tc-ld-is-lld && ! tc-ld-is-mold; then
 		export RUSTFLAGS+=" -C link-arg=-fuse-ld=lld"
