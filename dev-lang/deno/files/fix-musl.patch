@@ -1,12 +1,38 @@
+diff --git a/ext/node/ops/process.rs b/ext/node/ops/process.rs
+index c26a00656..a43079e77 100644
+--- a/ext/node/ops/process.rs
++++ b/ext/node/ops/process.rs
+@@ -102,7 +102,7 @@ unsafe fn compute_argv_info(
+   }
+ }
+ 
+-#[cfg(target_os = "linux")]
++#[cfg(all(target_os = "linux", target_env = "gnu"))]
+ #[used]
+ #[unsafe(link_section = ".init_array")]
+ static ARGV_INIT_FN: unsafe extern "C" fn(
+diff --git a/runtime/ops/worker_host.rs b/runtime/ops/worker_host.rs
+index 309efa018..b77ddf67c 100644
+--- a/runtime/ops/worker_host.rs
++++ b/runtime/ops/worker_host.rs
+@@ -277,7 +277,7 @@ fn op_create_worker(
+     // OS. Without this, glibc in particular holds onto the fragmented heap
+     // pages, causing RSS to remain high after many workers are created and
+     // destroyed (https://github.com/denoland/deno/issues/26058).
+-    #[cfg(target_os = "linux")]
++    #[cfg(all(target_os = "linux", target_env = "gnu"))]
+     {
+       // SAFETY: calling libc function with no preconditions.
+       unsafe {
 diff --git a/runtime/worker.rs b/runtime/worker.rs
-index c7d9c9ae0..62c7cc0b3 100644
+index c4a27c811..41142acd3 100644
 --- a/runtime/worker.rs
 +++ b/runtime/worker.rs
-@@ -79,6 +79,7 @@ pub(crate) static SIGUSR2_RX: LazyLock<tokio::sync::watch::Receiver<()>> =
+@@ -77,6 +77,7 @@ pub(crate) static SIGUSR2_RX: LazyLock<tokio::sync::watch::Receiver<()>> =
          sigusr2.recv().await;
  
          // SAFETY: calling into libc, nothing relevant on the Rust side.
-+        #[cfg(not(target_env = "musl"))]
++        #[cfg(all(target_os = "linux", target_env = "gnu"))]
          unsafe {
            libc::malloc_trim(0);
          }
