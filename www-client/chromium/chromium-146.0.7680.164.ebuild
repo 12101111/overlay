@@ -27,10 +27,10 @@ GN_MIN_VER=0.2318
 # chromium-tools/get-chromium-toolchain-strings.py (or just use Chromicler)
 # Node for M145+ should be 24.12.0 but that's not packaged in Gentoo yet. See #969145
 TEST_FONT="a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969"
-BUNDLED_CLANG_VER="llvmorg-22-init-17020-gbd1bd178-2"
-BUNDLED_RUST_VER="a4cfac7093a1c1c7fbdb6bc75d6b6dc4d385fc69-2"
+BUNDLED_CLANG_VER="llvmorg-23-init-2224-g5bd8dadb-3"
+BUNDLED_RUST_VER="7d8ebe3128fc87f3da1ad64240e63ccf07b8f0bd-3"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
-NODE_VER="24.11.1"
+NODE_VER="24.12.0"
 ESBUILD_VER="0.25.1"
 ROLLUP_VER="4.57.1" # currently manual.
 VIRTUALX_REQUIRED="pgo"
@@ -39,7 +39,7 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
-LLVM_COMPAT=( 21 )
+LLVM_COMPAT=( 21 22 )
 PYTHON_COMPAT=( python3_{11..13} )
 PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.91.0
@@ -53,8 +53,8 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="6e839bd94774ccf59b4c0db697fcf15c7bc1f22e"
-PATCH_V="${PV%%\.*}-3"
+PPC64_HASH="eeff222874ccb0a1e67d0de18bcc9215eecd2105"
+PATCH_V="${PV%%\.*}-2"
 COPIUM_COMMIT="fe1caafa06f27542c18a881348f78e984e2d9fe2"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
@@ -531,6 +531,10 @@ src_prepare() {
 		echo "$(rust_abi)" >> build/rust/known-target-triples.txt
 	fi
 
+	if ver_test ${RUST_SLOT} -ge "1.95.0"; then
+		rm "${WORKDIR}/chromium-patches-${PATCH_V}/rust/cr146-fix-botched-bytemuck-roll.patch"
+	fi
+
 	if tc-is-clang && ( has_version "llvm-core/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
 		eapply "${FILESDIR}/remove-libatomic.patch"
 	fi
@@ -538,9 +542,7 @@ src_prepare() {
 	# We'll fill this in as we go. Patches go in chromium-patches.
 	local PATCHES=()
 
-	PATCHES+=(
-		"${WORKDIR}/chromium-patches-${PATCH_V}/common/"
-	)
+	PATCHES+=( "${WORKDIR}/chromium-patches-${PATCH_V}/common/" )
 
 	# https://issues.chromium.org/issues/442698344
 	# Unreleased fontconfig changed magic numbers and google have rolled to this version
@@ -573,7 +575,6 @@ src_prepare() {
 		# Copium patches go here.
 		PATCHES+=(
 			"${WORKDIR}/copium/cr143-libsync-__BEGIN_DECLS.patch"
-			"${WORKDIR}/copium/cr145-rustc_nightly_capability.patch"
 		)
 
 		# Automate conditional application of chromium-patches
@@ -623,17 +624,14 @@ src_prepare() {
 		if use ppc64; then
 			local patchset_dir="${WORKDIR}/openpower-patches-${PPC64_HASH}/patches"
 			# patch causes build errors on 4K page systems (https://bugs.gentoo.org/show_bug.cgi?id=940304)
-			local page_size_patch="ppc64le/third_party/use-sysconf-page-size-on-ppc64.patch"
 			local isa_3_patch="ppc64le/core/baseline-isa-3-0.patch"
-			# Apply the OpenPOWER patches (check for page size and isa 3.0)
-			openpower_patches=( $(grep -E "^ppc64le|^upstream" "${patchset_dir}/series" | grep -v "${page_size_patch}" |
-				grep -v "${isa_3_patch}" || die) )
+			openpower_patches=(
+				$(grep -E "^ppc64le|^upstream" "${patchset_dir}/series" | grep -v "${isa_3_patch}" |
+					grep -v "upstream" || die) # M146 `upstream` dir dropped but still referenced in series file.
+			)
 			for patch in "${openpower_patches[@]}"; do
 				PATCHES+=( "${patchset_dir}/${patch}" )
 			done
-			if [[ $(getconf PAGESIZE) == 65536 ]]; then
-				PATCHES+=( "${patchset_dir}/${page_size_patch}" )
-			fi
 			# We use vsx3 as a proxy for 'want isa3.0' (POWER9)
 			if use cpu_flags_ppc_vsx3 ; then
 				PATCHES+=( "${patchset_dir}/${isa_3_patch}" )
@@ -675,6 +673,13 @@ src_prepare() {
 		PATCHES+=( "${FILESDIR}/chromium-123-gentoo-loong.patch" )
 	fi
 
+	# Do this before we apply patches so that ppc64 can be applied without faffing around.
+	einfo "Moving rollup wasm-node package into place ..."
+	mkdir -p third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
+		die "Failed to create node_modules/@rollup/wasm-node"
+	mv "${WORKDIR}"/package/* third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
+		die "Failed to move rollup package"
+
 	default
 
 	# Sanity check esbuild version before we start removing files.
@@ -713,14 +718,6 @@ src_prepare() {
 			die "Expected to find ${src} to restore ${dst}, but it does not exist."
 		fi
 	done
-
-	# Until we can just symlink in a system rollup, we'll `mv` the wasm version and modify some files.
-	# Do this after removing bundled bins in case we decide to strip wasm binaries in the future.
-	einfo "Moving rollup wasm-node package into place ..."
-	mkdir -p third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
-		die "Failed to create node_modules/@rollup/wasm-node"
-	mv "${WORKDIR}"/package/* third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
-		die "Failed to move rollup package"
 
 	# adjust python interpreter version
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
@@ -1606,14 +1603,11 @@ src_test() {
 		'AlternateTestParams/PartitionAllocTest.*' # 200+ tests, >= 1 crashes entire test runner with usersandbox.
 		'CheckExitCodeAfterSignalHandlerDeathTest.*'
 		'CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.*'
-		'PostJobTest.*' # M145, flaky?
-		'ThreadControllerWithMessagePump*'
+		'PostJobTest.*' # M145 - fixed in 146?
 		'LazyThreadPoolTaskRunnerEnvironmentTest.*' # M142
 		'LazyThreadPoolTaskRunnerTest.*'
-		'SequenceManager*'
-		'SequencedTaskRunnerTest.*'
+		'SequenceManager*' # Crashes test runner
 		'ToolsSanityTest.BadVirtualCall*'
-		'WakeUpQueueTest.*'
 		# requires en-us locale
 		SysStrings.SysNativeMBAndWide
 		SysStrings.SysNativeMBToWide
@@ -1629,7 +1623,6 @@ src_test() {
 		StackCanary.ChangingStackCanaryCrashesOnReturn
 		StackTraceDeathTest.StackDumpSignalHandlerIsMallocFree
 		TestLauncherTools.TruncateSnippetFocusedMatchesFatalMessagesTest
-		ThreadControllerPowerMonitorTest.IsProcessInPowerSuspendState
 		ThreadPoolEnvironmentConfig.CanUseBackgroundPriorityForWorker
 	)
 	local test_filter="-$(IFS=:; printf '%s' "${skip_tests[*]}")"
