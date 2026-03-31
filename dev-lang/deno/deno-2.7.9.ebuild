@@ -13,6 +13,7 @@ RUST_MIN_VER=1.92.0
 V8_VER=147.0.0
 STACKER_VER=0.1.15
 TEMPORAL_CAPI="temporal_capi-0.1.2"
+ICU=0.77.0
 
 CRATES="
 	autocfg@1.4.0
@@ -1130,7 +1131,8 @@ LICENSE+="
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
 RESTRICT="mirror"
-IUSE="denort static-libs bash-completion zsh-completion fish-completion"
+IUSE="denort static-libs libcxx system-icu bash-completion zsh-completion fish-completion"
+REQUIRED_USE="?? ( libcxx system-icu )"
 
 BDEPEND="
 	>=dev-build/gn-${GN_MIN_VER}
@@ -1188,11 +1190,22 @@ src_prepare() {
 	if use elibc_musl; then
 		eapply "${FILESDIR}/rust_target-141.patch"
 		echo "$(rust_abi)" >> build/rust/known-target-triples.txt
+		if use libcxx; then
+			sed -i "s/_LIBCPP_HAS_MUSL_LIBC 0/_LIBCPP_HAS_MUSL_LIBC 1/g" buildtools/third_party/libc++/__config_site || die 
+		fi
 	fi
 	eapply "${FILESDIR}/disable_v8_rust.patch"
 	eapply "${FILESDIR}/fix-icu-private-header.patch"
 	eapply "${FILESDIR}/build_from_source-M145.patch"
-	eapply "${FILESDIR}/v8-use-system-libraries.patch"
+	if use system-icu; then
+		eapply "${FILESDIR}/v8-use-system-libraries.patch"
+		install -Dm755 ${DISTDIR}/deno_129_generate_shim_headers.py tools/generate_shim_headers/generate_shim_headers.py || die
+		build/linux/unbundle/replace_gn_files.py --system-libraries icu || die
+	else
+		mkdir -p "${WORKDIR}/v8/third_party/icu/common"
+		ln -s "${ECARGO_VENDOR}"/deno_core_icudata-${ICU}/src/icudtl.dat "${WORKDIR}/v8/third_party/icu/common"
+		eapply "${FILESDIR}/v8-use-system-libraries-non-icu.patch"
+	fi
 	eapply "${FILESDIR}/v8-compiler.patch"
 	if [[ -z "${CXXSTDLIB}" ]]; then
 		if [[ $(tc-get-cxx-stdlib) == libc++ ]]; then
@@ -1201,8 +1214,6 @@ src_prepare() {
 			export CXXSTDLIB=stdc++
 		fi
 	fi
-	install -Dm755 ${DISTDIR}/deno_129_generate_shim_headers.py tools/generate_shim_headers/generate_shim_headers.py || die
-	build/linux/unbundle/replace_gn_files.py --system-libraries icu || die
 	popd >/dev/null || die
 
 	cp -r "${ECARGO_VENDOR}/stacker-${STACKER_VER}" "${WORKDIR}/stacker"
@@ -1221,6 +1232,11 @@ src_prepare() {
 		eapply "${FILESDIR}/fix-musl.patch"
 	fi
 	eapply "${FILESDIR}/use-system-libraries.patch"
+	if use system-icu; then
+		sed -i 's/(deno_core = \{ version = "[^"]*", path = "\.\/libs\/core")/\1, default-features = false, features = ["reactor-tokio"]/; s/ \}$/ }/' Cargo.toml
+	else
+		sed -i 's/(deno_core = \{ version = "[^"]*", path = "\.\/libs\/core")/\1, default-features = false, features = ["include_icu_data", "reactor-tokio"]/; s/ \}$/ }/' Cargo.toml
+	fi
 	popd >/dev/null || die
 
 	default
@@ -1238,7 +1254,8 @@ src_configure() {
 		die "deno require CC=clang CXX=clang++"
 	fi
 
-	local myconf_gn="is_clang=true use_gold=false use_sysroot=false use_custom_libcxx=false v8_builtins_profiling_log_file=\"\""
+	local myconf_gn="is_clang=true use_gold=false use_sysroot=false v8_builtins_profiling_log_file=\"\""
+	myconf_gn+="  use_custom_libcxx=$(usex libcxx true false)"
 	myconf_gn+=" custom_toolchain=\"//build/toolchain/linux/unbundle:default\""
 	myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:default\""
 	myconf_gn+=" v8_snapshot_toolchain=\"//build/toolchain/linux/unbundle:default\""

@@ -5,6 +5,8 @@
 		<email>w12101111@gmail.com</email>
 	</maintainer>
 	<use>
-		<flag name="libcxx">Link to <pkg>sys-libs/libcxx</pkg> instead of libstdc++</flag>
+		<flag name="libcxx">build using the intree libcxx instead of systemd default one</flag>
+		<flag name="denort">build denort</flag>
+		<flag name="system-icu">Use system <pkg>dev-libs/icu</pkg> instead of the bundled one. Can't use with libcxx</flag>
 	</use>
 </pkgmetadata>

@@ -1,0 +1,13 @@
+diff --git a/build.rs b/build.rs
+index 970e88b..b7db6e4 100644
+--- a/build.rs
++++ b/build.rs
+@@ -810,6 +810,8 @@ fn print_link_flags() {
+       println!("cargo:rustc-link-lib=dylib=msvcprt");
+     }
+   }
++  // Link with system-provided zlib.
++  println!("cargo:rustc-link-lib=z");
+ }
+ 
+ fn print_prebuilt_src_binding_path() {

@@ -14,15 +14,6 @@ diff --git a/Cargo.toml b/Cargo.toml
 index d1878f148..896bf4d1c 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -140,7 +140,7 @@ denort_helper = { version = "0.40.0", path = "./ext/rt_helper" }
- deno_bench_util = { version = "0.236.0", path = "./tests/bench_util" }
- deno_cache_dir = { version = "0.34.0", path = "./libs/cache_dir" }
- deno_config = { version = "0.92.0", features = ["workspace"], path = "./libs/config" }
--deno_core = { version = "0.395.0", path = "./libs/core" }
-+deno_core = { version = "0.395.0", path = "./libs/core", default-features = false, features = ["reactor-tokio"] }
- deno_core_testing = { path = "./libs/core_testing" }
- deno_crypto_provider = { version = "0.36.0", path = "./libs/crypto" }
- deno_dotenv = { version = "0.11.0", path = "./libs/dotenv" }
 @@ -278,7 +278,7 @@ rayon = "1.11.0"
  regex = "^1.7.0"
  reqwest = { version = "=0.12.5", default-features = false, features = ["rustls-tls", "stream", "gzip", "brotli", "socks", "json", "http2"] } # pinned because of https://github.com/seanmonstar/reqwest/pull/1955
