@@ -12,20 +12,20 @@ SRC_URI="https://github.com/microsoft/mimalloc/archive/refs/tags/v${PV}.tar.gz -
 LICENSE="MIT"
 SLOT="0/3"
 KEYWORDS="~amd64 ~arm ~arm64 ~loong ~m68k ~ppc ~ppc64 ~riscv ~sparc ~x86"
-IUSE="debug hardened test valgrind"
+IUSE="debug test"
 RESTRICT="!test? ( test )"
 
-DEPEND="valgrind? ( dev-debug/valgrind )"
-
 src_configure() {
+	# hardened + valgrind could be restored w/ multibuild.eclass. They
+	# install renamed libraries which break reverse dependencies.
 	local mycmakeargs=(
 		-DMI_DEBUG_FULL=$(usex debug)
-		-DMI_SECURE=$(usex hardened)
+		-DMI_SECURE=OFF
 		-DMI_INSTALL_TOPLEVEL=ON
 		-DMI_BUILD_TESTS=$(usex test)
 		-DMI_BUILD_OBJECT=ON
 		-DMI_BUILD_STATIC=ON
-		-DMI_TRACK_VALGRIND=$(usex valgrind)
+		-DMI_TRACK_VALGRIND=OFF
 		-DMI_LIBC_MUSL=$(usex elibc_musl)
 		# Don't inject -march=XXX
 		-DMI_OPT_ARCH=OFF
