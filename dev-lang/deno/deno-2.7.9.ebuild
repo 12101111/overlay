@@ -1233,9 +1233,9 @@ src_prepare() {
 	fi
 	eapply "${FILESDIR}/use-system-libraries.patch"
 	if use system-icu; then
-		sed -i 's/(deno_core = \{ version = "[^"]*", path = "\.\/libs\/core")/\1, default-features = false, features = ["reactor-tokio"]/; s/ \}$/ }/' Cargo.toml
+		sed -i -E 's/(deno_core = \{ version = "[^"]*", path = "\.\/libs\/core")/\1, default-features = false, features = ["reactor-tokio"]/; s/ \}$/ }/' Cargo.toml || die
 	else
-		sed -i 's/(deno_core = \{ version = "[^"]*", path = "\.\/libs\/core")/\1, default-features = false, features = ["include_icu_data", "reactor-tokio"]/; s/ \}$/ }/' Cargo.toml
+		sed -i -E 's/(deno_core = \{ version = "[^"]*", path = "\.\/libs\/core")/\1, default-features = false, features = ["include_icu_data", "reactor-tokio"]/; s/ \}$/ }/' Cargo.toml || die
 	fi
 	popd >/dev/null || die
 
