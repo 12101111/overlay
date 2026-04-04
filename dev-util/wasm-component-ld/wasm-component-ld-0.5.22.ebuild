@@ -26,7 +26,7 @@ CRATES="
 	hashbrown@0.16.1
 	heck@0.5.0
 	id-arena@2.3.0
-	indexmap@2.13.0
+	indexmap@2.13.1
 	is_terminal_polyfill@1.70.2
 	itoa@1.0.17
 	leb128fmt@0.1.0
@@ -53,19 +53,19 @@ CRATES="
 	unicode-width@0.2.2
 	unicode-xid@0.2.6
 	utf8parse@0.2.2
-	wasi-preview1-component-adapter-provider@40.0.1
+	wasi-preview1-component-adapter-provider@43.0.0
 	wasip2@1.0.1+wasi-0.2.4
-	wasm-encoder@0.245.1
-	wasm-metadata@0.245.1
-	wasmparser@0.245.1
-	wast@245.0.1
-	wat@1.245.1
+	wasm-encoder@0.246.2
+	wasm-metadata@0.246.2
+	wasmparser@0.246.2
+	wast@246.0.2
+	wat@1.246.2
 	windows-link@0.2.1
 	windows-sys@0.61.2
 	winsplit@0.1.0
 	wit-bindgen@0.46.0
-	wit-component@0.245.1
-	wit-parser@0.245.1
+	wit-component@0.246.2
+	wit-parser@0.246.2
 	zmij@1.0.12
 "
 
