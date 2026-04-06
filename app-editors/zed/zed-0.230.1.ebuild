@@ -160,6 +160,8 @@ BDEPEND="
 	')
 "
 
+PATCHES=( "${FILESDIR}/webrtc.patch" )
+
 QA_FLAGS_IGNORED="usr/bin/zedit"
 
 pkg_setup() {
@@ -237,6 +239,7 @@ src_prepare() {
 		local files=(
 			"${S}/crates/audio/Cargo.toml"
 			"${S}/crates/audio/src/audio_pipeline/echo_canceller.rs"
+			"${S}/crates/call/src/call_impl/diagnostics.rs"
 			"${S}/crates/livekit_client/Cargo.toml"
 			"${S}/crates/livekit_client/src/lib.rs"
 		) 

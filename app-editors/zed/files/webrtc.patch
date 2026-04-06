@@ -1,0 +1,13 @@
+diff --git a/crates/livekit_client/Cargo.toml b/crates/livekit_client/Cargo.toml
+index 7a2e6ab..1f5b283 100644
+--- a/crates/livekit_client/Cargo.toml
++++ b/crates/livekit_client/Cargo.toml
+@@ -49,6 +49,8 @@ livekit.workspace = true
+ 
+ [target.'cfg(target_os = "linux")'.dependencies]
+ tokio = { workspace = true, features = ["time"] }
++
++[target.'cfg(all(target_os = "linux", target_env = "gnu"))'.dependencies]
+ webrtc-sys.workspace = true
+ 
+ [target.'cfg(any(target_os = "linux", target_os = "freebsd", target_os = "windows"))'.dependencies]
