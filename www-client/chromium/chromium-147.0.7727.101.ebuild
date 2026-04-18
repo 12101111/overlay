@@ -27,8 +27,8 @@ GN_MIN_VER=0.2318
 # chromium-tools/get-chromium-toolchain-strings.py (or just use Chromicler)
 # Node for M145+ should be 24.12.0 but that's not packaged in Gentoo yet. See #969145
 TEST_FONT="a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969"
-BUNDLED_CLANG_VER="llvmorg-23-init-2224-g5bd8dadb-3"
-BUNDLED_RUST_VER="7d8ebe3128fc87f3da1ad64240e63ccf07b8f0bd-3"
+BUNDLED_CLANG_VER="llvmorg-23-init-5669-g8a0be0bc-1"
+BUNDLED_RUST_VER="6f54d591c3116ee7f8ce9321ddeca286810cc142-2"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
 NODE_VER="24.12.0"
 ESBUILD_VER="0.25.1"
@@ -53,15 +53,15 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="eeff222874ccb0a1e67d0de18bcc9215eecd2105"
-PATCH_V="${PV%%\.*}-2"
+PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
+PATCH_V="${PV%%\.*}-4"
 COPIUM_COMMIT="fe1caafa06f27542c18a881348f78e984e2d9fe2"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
 	https://deps.gentoo.zip/www-client/chromium/rollup-wasm-node-${ROLLUP_VER}.tgz
+	https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
 	!bundled-toolchain? (
-		https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
 		https://codeberg.org/selfisekai/copium/archive/${COPIUM_COMMIT}.tar.gz
 			-> chromium-patches-copium-${COPIUM_COMMIT:0:10}.tar.gz
 	)
@@ -73,9 +73,6 @@ SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/d
 	)
 	test? (
 		https://chromium-fonts.storage.googleapis.com/${TEST_FONT} -> chromium-testfonts-${TEST_FONT:0:10}.tar.gz
-	)
-	ppc64? (
-		https://gitlab.raptorengineering.com/raptor-engineering-public/chromium/openpower-patches/-/archive/${PPC64_HASH}/openpower-patches-${PPC64_HASH}.tar.bz2 -> chromium-openpower-${PPC64_HASH:0:10}.tar.bz2
 	)
 	loong? (
 		https://github.com/AOSC-Dev/chromium-loongarch64/archive/refs/tags/${PATCHSET_LOONG}.tar.gz -> chromium-loongarch64-aosc-patches-${PATCHSET_LOONG}.tar.gz
@@ -92,7 +89,7 @@ SLOT="stable"
 # Unstable in gentoo exists mostly to give devs some breathing room for beta/stable releases.
 # It shouldn't be keyworded but adventurous users are encouraged to select it;
 # there's official dev channel Google Chrome after all.
-KEYWORDS="amd64 arm64 ~ppc64"
+KEYWORDS="amd64 arm64"
 
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-zstd"
 IUSE="hevc +X ${IUSE_SYSTEM_LIBS} bindist bundled-toolchain cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo"
@@ -532,7 +529,8 @@ src_prepare() {
 	fi
 
 	if ver_test ${RUST_SLOT} -ge "1.95.0"; then
-		rm "${WORKDIR}/chromium-patches-${PATCH_V}/rust/cr146-fix-botched-bytemuck-roll.patch"
+		rm "${WORKDIR}/chromium-patches-${PATCH_V}/rust/cr146-fix-botched-bytemuck-roll.patch" || die
+		eapply "${FILESDIR}/rust_1.95.patch"
 	fi
 
 	if tc-is-clang && ( has_version "llvm-core/clang-common[default-compiler-rt]" || is-flagq -rtlib=compiler-rt ); then
@@ -624,14 +622,17 @@ src_prepare() {
 		if use ppc64; then
 			local patchset_dir="${WORKDIR}/openpower-patches-${PPC64_HASH}/patches"
 			# patch causes build errors on 4K page systems (https://bugs.gentoo.org/show_bug.cgi?id=940304)
+			local page_size_patch="ppc64le/third_party/use-sysconf-page-size-on-ppc64.patch"
 			local isa_3_patch="ppc64le/core/baseline-isa-3-0.patch"
-			openpower_patches=(
-				$(grep -E "^ppc64le|^upstream" "${patchset_dir}/series" | grep -v "${isa_3_patch}" |
-					grep -v "upstream" || die) # M146 `upstream` dir dropped but still referenced in series file.
-			)
+			# Apply the OpenPOWER patches (check for page size and isa 3.0)
+			openpower_patches=( $(grep -E "^ppc64le|^upstream" "${patchset_dir}/series" | grep -v "${page_size_patch}" |
+				grep -v "${isa_3_patch}" || die) )
 			for patch in "${openpower_patches[@]}"; do
 				PATCHES+=( "${patchset_dir}/${patch}" )
 			done
+			if [[ $(getconf PAGESIZE) == 65536 ]]; then
+				PATCHES+=( "${patchset_dir}/${page_size_patch}" )
+			fi
 			# We use vsx3 as a proxy for 'want isa3.0' (POWER9)
 			if use cpu_flags_ppc_vsx3 ; then
 				PATCHES+=( "${patchset_dir}/${isa_3_patch}" )
@@ -673,13 +674,6 @@ src_prepare() {
 		PATCHES+=( "${FILESDIR}/chromium-123-gentoo-loong.patch" )
 	fi
 
-	# Do this before we apply patches so that ppc64 can be applied without faffing around.
-	einfo "Moving rollup wasm-node package into place ..."
-	mkdir -p third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
-		die "Failed to create node_modules/@rollup/wasm-node"
-	mv "${WORKDIR}"/package/* third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
-		die "Failed to move rollup package"
-
 	default
 
 	# Sanity check esbuild version before we start removing files.
@@ -718,6 +712,14 @@ src_prepare() {
 			die "Expected to find ${src} to restore ${dst}, but it does not exist."
 		fi
 	done
+
+	# Until we can just symlink in a system rollup, we'll `mv` the wasm version and modify some files.
+	# Do this after removing bundled bins in case we decide to strip wasm binaries in the future.
+	einfo "Moving rollup wasm-node package into place ..."
+	mkdir -p third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
+		die "Failed to create node_modules/@rollup/wasm-node"
+	mv "${WORKDIR}"/package/* third_party/devtools-frontend/src/node_modules/@rollup/wasm-node ||
+		die "Failed to move rollup package"
 
 	# adjust python interpreter version
 	sed -i -e "s|\(^script_executable = \).*|\1\"${EPYTHON}\"|g" .gn || die
@@ -865,7 +867,6 @@ src_prepare() {
 		third_party/libaddressinput
 		third_party/libaom
 		third_party/libaom/source/libaom/third_party/fastfeat
-		third_party/libaom/source/libaom/third_party/SVT-AV1
 		third_party/libaom/source/libaom/third_party/vector
 		third_party/libaom/source/libaom/third_party/x86inc
 		third_party/libc++
@@ -927,6 +928,7 @@ src_prepare() {
 		third_party/perfetto
 		third_party/perfetto/protos/third_party/chromium
 		third_party/perfetto/protos/third_party/pprof
+		third_party/perfetto/protos/third_party/primes
 		third_party/perfetto/protos/third_party/simpleperf
 		third_party/pffft
 		third_party/ply
@@ -1603,10 +1605,7 @@ src_test() {
 		'AlternateTestParams/PartitionAllocTest.*' # 200+ tests, >= 1 crashes entire test runner with usersandbox.
 		'CheckExitCodeAfterSignalHandlerDeathTest.*'
 		'CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.*'
-		'PostJobTest.*' # M145 - fixed in 146?
 		'LazyThreadPoolTaskRunnerEnvironmentTest.*' # M142
-		'LazyThreadPoolTaskRunnerTest.*'
-		'SequenceManager*' # Crashes test runner
 		'ToolsSanityTest.BadVirtualCall*'
 		# requires en-us locale
 		SysStrings.SysNativeMBAndWide
@@ -1816,6 +1815,7 @@ pkg_postinst() {
 		ewarn "please complete the configuration of this system before logging any bugs."
 	fi
 
+	# Stable slot doesn't change profile directory, and it's vanishingly unlikely that users will downgrade from dev.
 	if [[ -n "${REPLACING_VERSIONS}" ]]; then
 		local replacing_non_slotted=false
 		# there could be more than one PVR
