@@ -15,7 +15,7 @@ PYTHON_COMPAT=( python3_{11..14} )
 # in the ebuild for changes that don't require a revbump.
 #
 # Uncomment this line when the ebuild needs a patchset update but no revbump.
-RUST_PATCH_VER=1.95.0_beta20260404
+# RUST_PATCH_VER=1.95.0_beta20260404
 
 RUST_MAX_VER=${PV%%_*}
 RUST_PV=${PV%%_p*}
