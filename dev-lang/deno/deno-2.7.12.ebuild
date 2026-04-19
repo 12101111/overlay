@@ -674,6 +674,7 @@ CRATES="
 	proc-macro-crate@3.4.0
 	proc-macro2@1.0.101
 	profiling@1.0.15
+	proptest@1.9.0
 	prost-derive@0.13.3
 	prost@0.13.3
 	psm@0.1.21
@@ -700,6 +701,7 @@ CRATES="
 	rand_core@0.10.0
 	rand_core@0.6.4
 	rand_core@0.9.3
+	rand_xorshift@0.4.0
 	range-alloc@0.1.3
 	raw-window-handle@0.6.2
 	rayon-core@1.13.0
@@ -746,6 +748,7 @@ CRATES="
 	rustls-webpki@0.103.3
 	rustls@0.23.28
 	rustversion@1.0.15
+	rusty-fork@0.3.1
 	rustyline-derive@0.11.1
 	rustyline@17.0.0
 	ryu-js@1.0.1
@@ -861,7 +864,7 @@ CRATES="
 	synstructure@0.12.6
 	synstructure@0.13.1
 	syntect@5.3.0
-	sys_traits@0.1.25
+	sys_traits@0.1.27
 	sys_traits_macros@0.1.0
 	tagptr@0.2.0
 	tap@1.0.1
@@ -928,6 +931,7 @@ CRATES="
 	typeid@1.0.3
 	typenum@1.17.0
 	ucd-trie@0.1.6
+	unarray@0.1.4
 	unicase@2.7.0
 	unicode-id-start@1.2.0
 	unicode-ident@1.0.12
@@ -961,6 +965,7 @@ CRATES="
 	vte@0.11.1
 	vte@0.13.1
 	vte_generate_state_changes@0.1.1
+	wait-timeout@0.2.1
 	walkdir@2.5.0
 	want@0.3.1
 	wasi@0.11.0+wasi-snapshot-preview1
