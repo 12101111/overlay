@@ -7,7 +7,7 @@ PLOCALES="ar ay be bg crowdin cs de de_CH el en eo es es_AR es_BO fa fi fr hi hu
 
 inherit cmake flag-o-matic plocale xdg
 
-MY_PV="26.3.0-Release.fce2b872"
+MY_PV="26.5.0-Release.c5e2abc1"
 
 DESCRIPTION="Feature-rich dictionary lookup program (GoldenDict-ng fork)"
 HOMEPAGE="https://xiaoyifang.github.io/goldendict-ng/"
@@ -82,7 +82,6 @@ src_configure() {
 		-DWITH_X11=$(usex wayland OFF ON)
 		-DWITH_FFMPEG_PLAYER=$(usex ffmpeg ON OFF)
 		-DWITH_EPWING_SUPPORT=$(usex epwing ON OFF)
-		-DUSE_SYSTEM_TOML=ON
 		-DWITH_TTS=$(usex tts ON OFF)
 		-DWITH_ZIM=$(usex zim ON OFF)
 		-DWITH_VCPKG_BREAKPAD=OFF
