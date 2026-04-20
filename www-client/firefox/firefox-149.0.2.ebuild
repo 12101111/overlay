@@ -5,7 +5,7 @@ EAPI=8
 
 FIREFOX_PATCHSET="firefox-149-patches-02.tar.xz"
 
-LLVM_COMPAT=( 20 21 )
+LLVM_COMPAT=( 20 21 22 )
 
 # This will also filter rust versions that don't match LLVM_COMPAT in the non-clang path; this is fine.
 RUST_NEEDS_LLVM=1
@@ -103,7 +103,7 @@ BDEPEND="${PYTHON_DEPS}
 	virtual/pkgconfig
 	amd64? ( >=dev-lang/nasm-2.14 )
 	x86? ( >=dev-lang/nasm-2.14 )
-	wasm-sandbox? ( cross_llvm-wasm32-wasi/wasi-libc )
+	wasm-sandbox? ( cross_llvm-wasm32-wasip1/wasi-libc )
 	pgo? (
 		X? (
 			sys-devel/gettext
@@ -628,6 +628,10 @@ src_prepare() {
 	if use pgo && use clang; then
 		eapply "${FILESDIR}/cross-pgo.patch"
 	fi
+	sed -i -e "s/wasm32-wasi/wasm32-wasip1/" build/moz.configure/toolchain.configure || die
+	if ver_test ${RUST_SLOT} -ge "1.95.0"; then
+		eapply "${FILESDIR}/rust_1.95.patch"
+	fi
 
 	einfo "Removing pre-built binaries ..."
 
@@ -637,6 +641,7 @@ src_prepare() {
 	# moz_clear_vendor_checksums xyz
 	# glslopt: bgo#969412
 	moz_clear_vendor_checksums glslopt
+	moz_clear_vendor_checksums encoding_rs
 
 	# Respect choice for "jumbo-build"
 	# Changing the value for FILES_PER_UNIFIED_FILE may not work, see #905431
@@ -894,7 +899,7 @@ src_configure() {
 	# wasm-sandbox
 	# Since graphite2 is one of the sandboxed libraries, system-graphite2 obviously can't work with +wasm-sandbox.
 	if use wasm-sandbox ; then
-		mozconfig_add_options_ac '+wasm-sandbox' --with-wasi-sysroot="${EROOT}/usr/wasm32-wasi"
+		mozconfig_add_options_ac '+wasm-sandbox' --with-wasi-sysroot="${EROOT}/usr/wasm32-wasip1"
 	else
 		mozconfig_add_options_ac 'no wasm-sandbox' --without-wasm-sandboxed-libraries
 		mozconfig_use_with system-harfbuzz system-graphite2
