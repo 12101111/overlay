@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+  <maintainer type="person" proxied="yes">
+    <email>csfore@gentoo.org</email>
+    <name>Christopher Fore</name>
+  </maintainer>
+  <maintainer type="project">
+    <email>toolchain@gentoo.org</email>
+    <name>Gentoo Toolchain Project</name>
+  </maintainer>
+  <use>
+    <flag name="lto">Build with the experimental LTO plugin support</flag>
+  </use>
+  <upstream>
+    <remote-id type="github">davidlattimore/wild</remote-id>
+  </upstream>
+</pkgmetadata>
