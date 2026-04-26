@@ -7,7 +7,7 @@ PLOCALES="ar ay be bg crowdin cs de de_CH el en eo es es_AR es_BO fa fi fr hi hu
 
 inherit cmake flag-o-matic plocale xdg
 
-MY_PV="26.5.0-Release.c5e2abc1"
+MY_PV="26.5.2-Release.87b8c6c6"
 
 DESCRIPTION="Feature-rich dictionary lookup program (GoldenDict-ng fork)"
 HOMEPAGE="https://xiaoyifang.github.io/goldendict-ng/"
