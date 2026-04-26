@@ -6,7 +6,7 @@ EAPI=8
 CRATES="
 "
 
-LLVM_COMPAT=( {19..21} )
+LLVM_COMPAT=( {19..22} )
 RUST_MIN_VER="1.85.0"
 
 inherit cargo llvm-r2 optfeature shell-completion systemd
