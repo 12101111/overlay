@@ -3,9 +3,9 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-150-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-150-patches-02.tar.xz"
 
-LLVM_COMPAT=( 20 21 22 )
+LLVM_COMPAT=( 21 22 )
 
 # This will also filter rust versions that don't match LLVM_COMPAT in the non-clang path; this is fine.
 RUST_NEEDS_LLVM=1
@@ -117,7 +117,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	>=app-accessibility/at-spi2-core-2.46.0:2
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.122.1
+	>=dev-libs/nss-3.123.1
 	>=dev-libs/nspr-4.38
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -386,7 +386,7 @@ pkg_pretend() {
 				fi
 			fi
 		elif tc-is-lto ; then
-			CHECKREQS_DISK_BUILD="10600M"
+			CHECKREQS_DISK_BUILD="10900M"
 
 			if ! use clang ; then
 				if tc-is-gcc && ver_test "$(gcc-major-version)" -eq 15 && has_version -b "<sys-devel/gcc-15.2.1_p20251108-r1:15"; then
@@ -472,7 +472,7 @@ pkg_setup() {
 		if use pgo || use debug ; then
 			CHECKREQS_DISK_BUILD="18700M"
 		elif [[ ${use_lto} == "yes" ]] ; then
-			CHECKREQS_DISK_BUILD="10600M"
+			CHECKREQS_DISK_BUILD="10900M"
 		else
 			CHECKREQS_DISK_BUILD="9700M"
 		fi
@@ -625,10 +625,6 @@ src_prepare() {
 
 	if use pgo && use clang; then
 		eapply "${FILESDIR}/cross-pgo.patch"
-	fi
-	sed -i -e "s/wasm32-wasi/wasm32-wasip1/" build/moz.configure/toolchain.configure || die
-	if ver_test ${RUST_SLOT} -ge "1.95.0"; then
-		eapply "${FILESDIR}/rust_1.95.patch"
 	fi
 
 	einfo "Removing pre-built binaries ..."
