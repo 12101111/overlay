@@ -10,29 +10,29 @@ PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.92.0
 
-V8_VER=147.0.0
+V8_VER=147.4.0
 STACKER_VER=0.1.15
-TEMPORAL_CAPI="temporal_capi-0.1.2"
+TEMPORAL_CAPI="temporal_capi-0.2.3"
 ICU=0.77.0
 
 CRATES="
 	autocfg@1.4.0
-	bytes@1.10.1
-	calendrical_calculations@0.2.3
+	bytes@1.11.1
+	calendrical_calculations@0.2.4
 	combine@4.6.7
 	core_maths@0.1.1
-	diplomat-runtime@0.14.0
-	diplomat@0.14.0
-	diplomat_core@0.14.0
+	diplomat-runtime@0.15.0
+	diplomat@0.15.0
+	diplomat_core@0.15.0
 	displaydoc@0.2.5
-	icu_calendar@2.1.0
-	icu_calendar_data@2.1.0
-	icu_collections@2.1.0
-	icu_locale@2.1.0
-	icu_locale_core@2.1.0
-	icu_locale_data@2.1.0
-	icu_provider@2.1.0
-	ixdtf@0.6.4
+	icu_calendar@2.2.1
+	icu_calendar_data@2.2.0
+	icu_collections@2.2.0
+	icu_locale@2.2.0
+	icu_locale_core@2.2.0
+	icu_locale_data@2.2.0
+	icu_provider@2.2.0
+	ixdtf@0.6.5
 	jiff-tzdb@0.1.4
 	libm@0.2.15
 	litemap@0.8.0
@@ -40,8 +40,8 @@ CRATES="
 	num-traits@0.2.19
 	potential_utf@0.1.3
 	proc-macro2@1.0.95
-	quote@1.0.40
-	resb@0.1.0
+	quote@1.0.45
+	resb@0.1.2
 	serde@1.0.225
 	serde_core@1.0.225
 	serde_derive@1.0.225
@@ -50,20 +50,21 @@ CRATES="
 	strck@1.0.0
 	syn@2.0.106
 	synstructure@0.13.2
-	temporal_rs@0.1.2
-	timezone_provider@0.1.2
-	tinystr@0.8.1
+	temporal_rs@0.2.3
+	timezone_provider@0.2.3
+	tinystr@0.8.3
 	tzif@0.4.0
 	unicode-ident@1.0.18
+	utf8_iter@1.0.4
 	writeable@0.6.2
-	yoke-derive@0.8.0
-	yoke@0.8.0
+	yoke-derive@0.8.2
+	yoke@0.8.2
 	zerofrom-derive@0.1.6
 	zerofrom@0.1.6
-	zerotrie@0.2.3
-	zerovec-derive@0.11.2
-	zerovec@0.11.4
-	zoneinfo64@0.2.0
+	zerotrie@0.2.4
+	zerovec-derive@0.11.3
+	zerovec@0.11.6
+	zoneinfo64@0.3.0
 	Inflector@0.11.4
 	addr2line@0.24.2
 	adler2@2.0.0
@@ -140,6 +141,7 @@ CRATES="
 	boxed_error@0.2.3
 	brotli-decompressor@4.0.1
 	brotli@6.0.0
+	bsdiff@0.2.1
 	bstr@1.9.1
 	bumpalo@3.19.0
 	bytemuck@1.24.0
@@ -149,7 +151,7 @@ CRATES="
 	bytes-str@0.2.7
 	bytes@1.11.1
 	cache_control@0.2.0
-	calendrical_calculations@0.2.3
+	calendrical_calculations@0.2.4
 	capacity_builder@0.5.0
 	capacity_builder_macros@0.3.0
 	caseless@0.2.1
@@ -288,9 +290,9 @@ CRATES="
 	diff@0.1.13
 	digest@0.10.7
 	digest@0.11.1
-	diplomat-runtime@0.14.0
-	diplomat@0.14.0
-	diplomat_core@0.14.0
+	diplomat-runtime@0.15.1
+	diplomat@0.15.0
+	diplomat_core@0.15.0
 	dirs-sys@0.4.1
 	dirs-sys@0.5.0
 	dirs@5.0.1
@@ -450,24 +452,24 @@ CRATES="
 	hyper-util@0.1.17
 	hyper@0.14.28
 	hyper@1.6.0
-	icu_calendar@2.1.1
-	icu_calendar_data@2.1.1
+	icu_calendar@2.2.1
+	icu_calendar_data@2.2.0
 	icu_collections@1.5.0
-	icu_collections@2.1.1
-	icu_locale@2.1.1
-	icu_locale_core@2.1.1
-	icu_locale_data@2.1.1
+	icu_collections@2.2.0
+	icu_locale@2.2.0
+	icu_locale_core@2.2.0
+	icu_locale_data@2.2.0
 	icu_locid@1.5.0
 	icu_locid_transform@1.5.0
 	icu_locid_transform_data@1.5.0
 	icu_normalizer@1.5.0
 	icu_normalizer_data@1.5.0
 	icu_properties@1.5.1
-	icu_properties@2.1.1
+	icu_properties@2.2.0
 	icu_properties_data@1.5.0
-	icu_properties_data@2.1.1
+	icu_properties_data@2.2.0
 	icu_provider@1.5.0
-	icu_provider@2.1.1
+	icu_provider@2.2.0
 	icu_provider_macros@1.5.0
 	id-arena@2.3.0
 	ident_case@1.0.1
@@ -606,8 +608,8 @@ CRATES="
 	openssl-macros@0.1.1
 	openssl-probe@0.1.5
 	openssl-src@300.5.0+3.5.0
-	openssl-sys@0.9.108
-	openssl@0.10.72
+	openssl-sys@0.9.114
+	openssl@0.10.78
 	opentelemetry-http@0.27.0
 	opentelemetry-otlp@0.27.0
 	opentelemetry-proto@0.27.0
@@ -687,7 +689,7 @@ CRATES="
 	quinn-proto@0.11.14
 	quinn-udp@0.5.9
 	quinn@0.11.8
-	quote@1.0.37
+	quote@1.0.45
 	r-efi@5.3.0
 	radium@0.7.0
 	radix_fmt@1.0.0
@@ -719,7 +721,7 @@ CRATES="
 	regex@1.12.2
 	relative-path@1.9.2
 	reqwest@0.12.5
-	resb@0.1.1
+	resb@0.1.2
 	resolv-conf@0.7.0
 	rfc6979@0.4.0
 	ring@0.17.14
@@ -745,7 +747,7 @@ CRATES="
 	rustls-pki-types@1.12.0
 	rustls-tokio-stream@0.8.0
 	rustls-webpki@0.102.8
-	rustls-webpki@0.103.3
+	rustls-webpki@0.103.13
 	rustls@0.23.28
 	rustversion@1.0.15
 	rusty-fork@0.3.1
@@ -872,8 +874,8 @@ CRATES="
 	target-lexicon@0.13.2
 	target-triple@1.0.0
 	tempfile@3.10.1
-	temporal_capi@0.1.2
-	temporal_rs@0.1.2
+	temporal_capi@0.2.3
+	temporal_rs@0.2.3
 	termcolor@1.4.1
 	terminal_size@0.4.1
 	testing_macros@1.0.1
@@ -888,14 +890,14 @@ CRATES="
 	time-core@0.1.8
 	time-macros@0.2.27
 	time@0.3.47
-	timezone_provider@0.1.2
+	timezone_provider@0.2.3
 	tiny_pretty@0.2.0
 	tinystr@0.7.6
-	tinystr@0.8.1
+	tinystr@0.8.3
 	tinytemplate@1.2.1
 	tinyvec@1.6.0
 	tinyvec_macros@0.1.1
-	tokio-eld@0.2.0
+	tokio-eld@0.3.0
 	tokio-macros@2.5.0
 	tokio-metrics@0.3.1
 	tokio-rustls@0.26.0
@@ -954,7 +956,7 @@ CRATES="
 	utf8_iter@1.0.4
 	utf8parse@0.2.1
 	uuid@1.21.0
-	v8@147.0.0
+	v8@147.4.0
 	v8_valueserializer@0.1.1
 	valuable@0.1.0
 	value-trait@0.10.0
@@ -1090,25 +1092,25 @@ CRATES="
 	yaml_parser@0.2.1
 	yansi@1.0.1
 	yoke-derive@0.7.4
-	yoke-derive@0.8.0
+	yoke-derive@0.8.2
 	yoke@0.7.4
-	yoke@0.8.0
+	yoke@0.8.2
 	zerocopy-derive@0.7.32
 	zerocopy-derive@0.8.27
 	zerocopy@0.7.32
 	zerocopy@0.8.27
-	zerofrom-derive@0.1.4
-	zerofrom@0.1.4
+	zerofrom-derive@0.1.7
+	zerofrom@0.1.7
 	zeroize@1.8.1
 	zeroize_derive@1.4.2
 	zeromq@0.5.0
-	zerotrie@0.2.2
+	zerotrie@0.2.4
 	zerovec-derive@0.10.3
-	zerovec-derive@0.11.1
+	zerovec-derive@0.11.3
 	zerovec@0.10.4
-	zerovec@0.11.4
+	zerovec@0.11.6
 	zip@2.4.1
-	zoneinfo64@0.2.1
+	zoneinfo64@0.3.0
 	zstd-safe@7.2.4
 	zstd-sys@2.0.15+zstd.1.5.7
 	zstd@0.13.2
