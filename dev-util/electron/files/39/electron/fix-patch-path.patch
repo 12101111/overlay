@@ -1,11 +1,13 @@
 diff --git a/patches/config.json b/patches/config.json
-index f5dbe8600f..9e1e5e0704 100644
+index 6c3066eb86..4fda2e2bae 100644
 --- a/patches/config.json
 +++ b/patches/config.json
-@@ -14,5 +14,5 @@
+@@ -14,7 +14,7 @@
    { "patch_dir": "src/electron/patches/reclient-configs", "repo": "src/third_party/engflow-reclient-configs" },
    { "patch_dir": "src/electron/patches/sqlite", "repo": "src/third_party/sqlite/src" },
    { "patch_dir": "src/electron/patches/skia", "repo": "src/third_party/skia" },
--  { "patch_dir": "src/electron/patches/angle", "repo": "src/third_party/angle/src" }
-+  { "patch_dir": "src/electron/patches/angle", "repo": "src/third_party/angle" }
+-  { "patch_dir": "src/electron/patches/angle", "repo": "src/third_party/angle/src" },
++  { "patch_dir": "src/electron/patches/angle", "repo": "src/third_party/angle" },
+   { "patch_dir": "src/electron/patches/pdfium", "repo": "src/third_party/pdfium" },
+   { "patch_dir": "src/electron/patches/libaom", "repo": "src/third_party/libaom/source/libaom" }
  ]
