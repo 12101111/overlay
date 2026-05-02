@@ -1,4 +1,4 @@
-From 6ddcedb25055ab4fdd1acfdc9892afbffb2aa8e6 Mon Sep 17 00:00:00 2001
+From 735b93cb0a2571a508d61262f05891b942638695 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 10 Mar 2026 21:55:45 +0800
 Subject: [PATCH 02/11] Don't download bundle marketplace extensions in gulp
@@ -8,10 +8,10 @@ Subject: [PATCH 02/11] Don't download bundle marketplace extensions in gulp
  1 file changed, 7 deletions(-)
 
 diff --git a/build/gulpfile.extensions.ts b/build/gulpfile.extensions.ts
-index 8f9ac9b2b21..a01b3ac509e 100644
+index 83f47e797f3..326382c870b 100644
 --- a/build/gulpfile.extensions.ts
 +++ b/build/gulpfile.extensions.ts
-@@ -257,17 +257,11 @@ gulp.task(compileExtensionMediaBuildTask);
+@@ -263,17 +263,11 @@ gulp.task(compileExtensionMediaBuildTask);
   */
  export const cleanExtensionsBuildTask = task.define('clean-extensions-build', util.rimraf('.build/extensions'));
  
@@ -29,7 +29,7 @@ index 8f9ac9b2b21..a01b3ac509e 100644
  	task.define('bundle-non-native-extensions-build', () => ext.packageNonNativeLocalExtensionsStream(false, false).pipe(gulp.dest('.build')))
  ));
  gulp.task(compileNonNativeExtensionsBuildTask);
-@@ -285,7 +279,6 @@ gulp.task(compileNativeExtensionsBuildTask);
+@@ -298,7 +292,6 @@ gulp.task(compileCopilotExtensionBuildTask);
   */
  export const compileAllExtensionsBuildTask = task.define('compile-extensions-build', task.series(
  	cleanExtensionsBuildTask,
@@ -38,5 +38,5 @@ index 8f9ac9b2b21..a01b3ac509e 100644
  ));
  gulp.task(compileAllExtensionsBuildTask);
 -- 
-2.53.0
+2.54.0
 

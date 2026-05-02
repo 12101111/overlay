@@ -1,6 +1,6 @@
-From 39299a361c26fd7a837e1e22dec9e3768fe0d8d0 Mon Sep 17 00:00:00 2001
+From 63dfd813f4f5160f07a4ee5d2aedbb40e05f1151 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Tue, 10 Mar 2026 21:57:16 +0800
+Date: Sat, 2 May 2026 20:04:37 +0800
 Subject: [PATCH 03/11] Don't run npm install for test
 
 ---
@@ -9,10 +9,10 @@ Subject: [PATCH 03/11] Don't run npm install for test
  2 files changed, 13 deletions(-)
 
 diff --git a/build/npm/dirs.ts b/build/npm/dirs.ts
-index b56884af25c..d71b9cbe292 100644
+index 74b5422b581..ce64828a23c 100644
 --- a/build/npm/dirs.ts
 +++ b/build/npm/dirs.ts
-@@ -53,14 +53,6 @@ export const dirs = [
+@@ -55,14 +55,6 @@ export const dirs = [
  	'extensions/vscode-test-resolver',
  	'remote',
  	'remote/web',
@@ -28,10 +28,10 @@ index b56884af25c..d71b9cbe292 100644
  
  if (existsSync(`${import.meta.dirname}/../../.build/distro/npm`)) {
 diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
-index ae2651cd188..dae90461c5f 100644
+index dc154d4be9a..4fad23298b0 100644
 --- a/build/npm/postinstall.ts
 +++ b/build/npm/postinstall.ts
-@@ -210,8 +210,6 @@ async function runWithConcurrency(tasks: (() => Promise<void>)[], concurrency: n
+@@ -236,8 +236,6 @@ async function runWithConcurrency(tasks: (() => Promise<void>)[], concurrency: n
  async function main() {
  	if (!process.env['VSCODE_FORCE_INSTALL'] && isUpToDate()) {
  		log('.', 'All dependencies up to date, skipping postinstall.');
@@ -40,7 +40,7 @@ index ae2651cd188..dae90461c5f 100644
  		return;
  	}
  
-@@ -283,9 +281,6 @@ async function main() {
+@@ -309,9 +307,6 @@ async function main() {
  	log('.', `Running ${parallelTasks.length} npm installs with concurrency ${concurrency}...`);
  	await runWithConcurrency(parallelTasks, concurrency);
  
@@ -49,7 +49,7 @@ index ae2651cd188..dae90461c5f 100644
 -
  	fs.writeFileSync(stateFile, JSON.stringify(_state));
  	fs.writeFileSync(stateContentsFile, JSON.stringify(computeContents()));
- }
+ 
 -- 
-2.53.0
+2.54.0
 
