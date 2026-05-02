@@ -3429,19 +3429,17 @@ compile() {
 	export BUILD_SOURCEVERSION=${COMMIT}
 	export VSCODE_QUALITY=stable
 
-	npm run gulp vscode-linux-$(get_arch)-min || die
+	npm run gulp vscode-linux-$(get_arch)-min
 }
 
 # Error: tsgo exited with code unknown
 src_compile() {
-	local fail_count=0
-	while [ $fail_count -lt 5 ]; do
-		if compile; then
-			exit;
-		else
-			((fail_count++))
-		fi
-	done
+	if compile; then
+		exit;
+	else
+		# try again
+		compile || die
+	fi
 }
 
 src_install() {
