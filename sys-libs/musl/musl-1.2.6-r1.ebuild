@@ -1,4 +1,4 @@
-# Copyright 1999-2025 Gentoo Authors
+# Copyright 1999-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
@@ -15,8 +15,11 @@ else
 	VERIFY_SIG_OPENPGP_KEY_PATH=/usr/share/openpgp-keys/musl.asc
 	inherit verify-sig
 
-	SRC_URI="https://musl.libc.org/releases/${P}.tar.gz"
-	SRC_URI+=" verify-sig? ( https://musl.libc.org/releases/${P}.tar.gz.asc )"
+	SRC_URI="
+		https://musl.libc.org/releases/${P}.tar.gz
+		https://distfiles.gentoo.org/pub/proj/musl/${P}-patches.tar.xz
+		verify-sig? ( https://musl.libc.org/releases/${P}.tar.gz.asc )
+	"
 	KEYWORDS="-* ~amd64 ~arm ~arm64 ~m68k ~mips ~ppc ~ppc64 ~riscv ~x86 ~loong"
 
 	BDEPEND="verify-sig? ( sec-keys/openpgp-keys-musl )"
@@ -52,6 +55,7 @@ fi
 
 PATCHES=(
 	"${FILESDIR}"/${PN}-getifaddrs-qemu-workaround.patch
+	"${WORKDIR}"/${P}-patches
 	"${FILESDIR}"/musl-1.2.2-gethostid.patch
 	"${FILESDIR}"/Make-scheduler-functions-Linux-compatible.patch
 	"${FILESDIR}"/Add-rpmalloc-for-musl.patch
