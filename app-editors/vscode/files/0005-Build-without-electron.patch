@@ -1,7 +1,7 @@
-From 85025316857217b8083ae1bbd0a4f7c46f77e2c1 Mon Sep 17 00:00:00 2001
+From cf54ee0cb70eb76cb3f75dddd1048a14a718558c Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 2 May 2026 20:06:27 +0800
-Subject: [PATCH 05/11] Build without electron
+Subject: [PATCH 05/12] Build without electron
 
 ---
  build/gulpfile.vscode.ts | 31 ++++++++-----------------------
@@ -9,7 +9,7 @@ Subject: [PATCH 05/11] Build without electron
  2 files changed, 11 insertions(+), 23 deletions(-)
 
 diff --git a/build/gulpfile.vscode.ts b/build/gulpfile.vscode.ts
-index 028938bdbfa..94f9eb8108a 100644
+index 576ce07f85d..3b366e89619 100644
 --- a/build/gulpfile.vscode.ts
 +++ b/build/gulpfile.vscode.ts
 @@ -11,7 +11,6 @@ import vfs from 'vinyl-fs';
@@ -20,7 +20,7 @@ index 028938bdbfa..94f9eb8108a 100644
  import jsonEditor from 'gulp-json-editor';
  import * as util from './lib/util.ts';
  import { getVersion } from './lib/getVersion.ts';
-@@ -303,6 +302,13 @@ function computeChecksum(filename: string): string {
+@@ -237,6 +236,13 @@ function computeChecksum(filename: string): string {
  	return hash;
  }
  
@@ -34,7 +34,7 @@ index 028938bdbfa..94f9eb8108a 100644
  function packageTask(platform: string, arch: string, sourceFolderName: string, destinationFolderName: string, _opts?: { stats?: boolean }) {
  	const destination = path.join(path.dirname(root), destinationFolderName);
  	platform = platform || process.platform;
-@@ -525,32 +531,11 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
+@@ -459,32 +465,11 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
  			all = es.merge(all, shortcut, policyDest);
  		}
  

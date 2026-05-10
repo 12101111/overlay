@@ -1,18 +1,18 @@
-From 63dfd813f4f5160f07a4ee5d2aedbb40e05f1151 Mon Sep 17 00:00:00 2001
+From a2a86270b4db32d0bcfe7a83c6069c0af0297228 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 2 May 2026 20:04:37 +0800
-Subject: [PATCH 03/11] Don't run npm install for test
+Date: Sun, 10 May 2026 17:13:35 +0800
+Subject: [PATCH 03/12] Don't run npm install for test
 
 ---
- build/npm/dirs.ts        | 8 --------
+ build/npm/dirs.ts        | 9 ---------
  build/npm/postinstall.ts | 5 -----
- 2 files changed, 13 deletions(-)
+ 2 files changed, 14 deletions(-)
 
 diff --git a/build/npm/dirs.ts b/build/npm/dirs.ts
-index 74b5422b581..ce64828a23c 100644
+index 468d2df8083..ce64828a23c 100644
 --- a/build/npm/dirs.ts
 +++ b/build/npm/dirs.ts
-@@ -55,14 +55,6 @@ export const dirs = [
+@@ -55,15 +55,6 @@ export const dirs = [
  	'extensions/vscode-test-resolver',
  	'remote',
  	'remote/web',
@@ -24,6 +24,7 @@ index 74b5422b581..ce64828a23c 100644
 -	'.vscode/extensions/vscode-selfhost-import-aid',
 -	'.vscode/extensions/vscode-selfhost-test-provider',
 -	'.vscode/extensions/vscode-extras',
+-	'.vscode/extensions/vscode-pr-pinger',
  ];
  
  if (existsSync(`${import.meta.dirname}/../../.build/distro/npm`)) {

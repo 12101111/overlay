@@ -1,7 +1,7 @@
-From 3ed4239829198437e28e8518d025f2d6b1922bcc Mon Sep 17 00:00:00 2001
+From 29d1efae1cdd8f2cf37e554a89f7bb7ec564149d Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Oct 2020 09:52:23 +0800
-Subject: [PATCH 04/11] update product.json
+Subject: [PATCH 04/12] update product.json
 
 ---
  product.json | 12 ++++++++++++

@@ -1,3 +1,13 @@
+From 03441e6ce52f51350fe93cc532f5bf38c94c55cf Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sun, 10 May 2026 17:14:23 +0800
+Subject: [PATCH 12/12] remove @vscode/gulp-electron
+
+---
+ build/gulpfile.scan.ts | 12 ------------
+ build/lib/electron.ts  |  2 --
+ 2 files changed, 14 deletions(-)
+
 diff --git a/build/gulpfile.scan.ts b/build/gulpfile.scan.ts
 index 2cced2a31ad..ceac3eaacb0 100644
 --- a/build/gulpfile.scan.ts
@@ -55,3 +65,6 @@ index 8d4eb0f8844..3c9ac18241b 100644
  			.pipe(filter(['**', '!**/app/package.json']))
  			.pipe(vfs.dest('.build/electron'));
  	};
+-- 
+2.54.0
+

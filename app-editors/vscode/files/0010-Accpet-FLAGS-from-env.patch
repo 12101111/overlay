@@ -1,7 +1,7 @@
-From c0dbf5fc9b75eae6fc1b72ce16cea1990a2426d3 Mon Sep 17 00:00:00 2001
+From 05344c5ffe29cb2719df50a8b3ab659517f630c5 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 10 Mar 2026 22:01:32 +0800
-Subject: [PATCH 10/11] Accpet FLAGS from env
+Subject: [PATCH 10/12] Accpet FLAGS from env
 
 ---
  build/npm/postinstall.ts | 11 -----------

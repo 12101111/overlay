@@ -1,7 +1,7 @@
-From 5ec4c22bdd4009726bac1ba87bb19446482c4050 Mon Sep 17 00:00:00 2001
+From 799ae20a47f2f5c7326bfba98f56f7df3aab1057 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 16 Dec 2021 13:55:01 +0800
-Subject: [PATCH 08/11] Fix cli path
+Subject: [PATCH 08/12] Fix cli path
 
 ---
  src/vs/platform/native/electron-main/nativeHostMainService.ts | 2 +-
