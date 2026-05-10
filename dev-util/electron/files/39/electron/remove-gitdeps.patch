@@ -1,5 +1,27 @@
+diff --git a/package.json b/package.json
+index e1404097ce..faaf54f53b 100644
+--- a/package.json
++++ b/package.json
+@@ -142,7 +142,6 @@
+   },
+   "resolutions": {
+     "dbus-native/xml2js": "0.5.0",
+-    "abstract-socket": "github:deepak1556/node-abstractsocket#928cc591decd12aff7dad96449da8afc29832c19",
+     "minimist@npm:~0.0.1": "0.2.4",
+     "put": "npm:@nornagon/put@0.0.8"
+   },
+@@ -154,9 +153,6 @@
+   "dependenciesMeta": {
+     "@sentry/cli": {
+       "built": true
+-    },
+-    "abstract-socket": {
+-      "built": true
+     }
+   }
+ }
 diff --git a/spec/package.json b/spec/package.json
-index cc18041797..259f188103 100644
+index 6c73377274..259f188103 100644
 --- a/spec/package.json
 +++ b/spec/package.json
 @@ -26,13 +26,11 @@
@@ -12,29 +34,24 @@ index cc18041797..259f188103 100644
      "chai": "^4.2.0",
      "chai-as-promised": "^7.1.1",
      "coffeescript": "^2.4.1",
--    "dbus-native": "github:nornagon/dbus-native#master",
+-    "dbus-native": "^0.4.0",
      "dirty-chai": "^2.0.1",
      "express": "^4.20.0",
      "graceful-fs": "^4.1.15",
 diff --git a/yarn.lock b/yarn.lock
-index 1bdb5cc758..35d442e41c 100644
+index 213a8cddfd..a72c06c583 100644
 --- a/yarn.lock
 +++ b/yarn.lock
-@@ -1049,13 +1049,6 @@ __metadata:
-   languageName: node
-   linkType: hard
+@@ -495,8 +495,6 @@ __metadata:
+   dependenciesMeta:
+     "@sentry/cli":
+       built: true
+-    abstract-socket:
+-      built: true
+   languageName: unknown
+   linkType: soft
  
--"@nornagon/put@npm:0.0.8":
--  version: 0.0.8
--  resolution: "@nornagon/put@npm:0.0.8"
--  checksum: 10c0/855f9cee72d76570c76cdded2c3727ae7c3caa08208066ba77561675a43173bc62c8ee6dce6f4b64d65c5b465d20b4f9d986975ef3f2a6413e6f6c97bb5e1627
--  languageName: node
--  linkType: hard
--
- "@npmcli/agent@npm:^3.0.0":
-   version: 3.0.0
-   resolution: "@npmcli/agent@npm:3.0.0"
-@@ -2546,16 +2539,6 @@ __metadata:
+@@ -2539,16 +2537,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -51,7 +68,7 @@ index 1bdb5cc758..35d442e41c 100644
  "accepts@npm:~1.3.8":
    version: 1.3.8
    resolution: "accepts@npm:1.3.8"
-@@ -3199,15 +3182,6 @@ __metadata:
+@@ -3192,15 +3180,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -67,20 +84,20 @@ index 1bdb5cc758..35d442e41c 100644
  "bl@npm:^4.1.0":
    version: 4.1.0
    resolution: "bl@npm:4.1.0"
-@@ -4203,27 +4177,6 @@ __metadata:
+@@ -4196,27 +4175,6 @@ __metadata:
    languageName: node
    linkType: hard
  
--"dbus-native@github:nornagon/dbus-native#master":
+-"dbus-native@npm:^0.4.0":
 -  version: 0.4.0
--  resolution: "dbus-native@https://github.com/nornagon/dbus-native.git#commit=b90ed62d0b5cb93909173c3e0551d9bff0602a90"
+-  resolution: "dbus-native@npm:0.4.0"
 -  dependencies:
--    "@nornagon/put": "npm:0.0.8"
 -    abstract-socket: "npm:^2.0.0"
 -    event-stream: "npm:^4.0.0"
 -    hexy: "npm:^0.2.10"
 -    long: "npm:^4.0.0"
 -    optimist: "npm:^0.6.1"
+-    put: "npm:0.0.6"
 -    safe-buffer: "npm:^5.1.1"
 -    xml2js: "npm:^0.4.17"
 -  dependenciesMeta:
@@ -88,14 +105,14 @@ index 1bdb5cc758..35d442e41c 100644
 -      optional: true
 -  bin:
 -    dbus2js: ./bin/dbus2js.js
--  checksum: 10c0/4467ae4f9f1e9d5f7fc4d12f227a7cf5e45f77c89743646ccef7a1f89e5f37fbe671b47488cf78d6557fd6d4f2c3719f5c5a1de70078843e6b0f317d12aa55b1
+-  checksum: 10c0/f913bb8dc2162e0c6ee684dd7e63375005de2d238569f499b9478174ce31bcd089ea6bbddd629599a330218927e4bfe4fecaeb951db23aba4befd018f5f7ecfe
 -  languageName: node
 -  linkType: hard
 -
  "debug@npm:2.6.9, debug@npm:^2.2.0":
    version: 2.6.9
    resolution: "debug@npm:2.6.9"
-@@ -4559,13 +4512,6 @@ __metadata:
+@@ -4552,13 +4510,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -109,7 +126,7 @@ index 1bdb5cc758..35d442e41c 100644
  "duplexer@npm:~0.1.1":
    version: 0.1.1
    resolution: "duplexer@npm:0.1.1"
-@@ -4620,13 +4566,11 @@ __metadata:
+@@ -4613,13 +4564,11 @@ __metadata:
      "@types/uuid": "npm:^3.4.6"
      "@types/w3c-web-serial": "npm:^1.0.7"
      "@types/ws": "npm:^7.2.0"
@@ -119,11 +136,11 @@ index 1bdb5cc758..35d442e41c 100644
      chai: "npm:^4.2.0"
      chai-as-promised: "npm:^7.1.1"
      coffeescript: "npm:^2.4.1"
--    dbus-native: "github:nornagon/dbus-native#master"
+-    dbus-native: "npm:^0.4.0"
      dirty-chai: "npm:^2.0.1"
      express: "npm:^4.20.0"
      graceful-fs: "npm:^4.1.15"
-@@ -5643,21 +5587,6 @@ __metadata:
+@@ -5636,21 +5585,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -145,7 +162,7 @@ index 1bdb5cc758..35d442e41c 100644
  "eventemitter3@npm:^5.0.1":
    version: 5.0.1
    resolution: "eventemitter3@npm:5.0.1"
-@@ -5903,13 +5832,6 @@ __metadata:
+@@ -5896,13 +5830,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -159,7 +176,7 @@ index 1bdb5cc758..35d442e41c 100644
  "filename-reserved-regex@npm:^2.0.0":
    version: 2.0.0
    resolution: "filename-reserved-regex@npm:2.0.0"
-@@ -6103,13 +6025,6 @@ __metadata:
+@@ -6096,13 +6023,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -173,7 +190,7 @@ index 1bdb5cc758..35d442e41c 100644
  "fs-extra@npm:^10.0.0, fs-extra@npm:^10.1.0":
    version: 10.1.0
    resolution: "fs-extra@npm:10.1.0"
-@@ -6862,15 +6777,6 @@ __metadata:
+@@ -6855,15 +6775,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -189,7 +206,7 @@ index 1bdb5cc758..35d442e41c 100644
  "hosted-git-info@npm:^2.1.4":
    version: 2.8.9
    resolution: "hosted-git-info@npm:2.8.9"
-@@ -8326,13 +8232,6 @@ __metadata:
+@@ -8319,13 +8230,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -203,7 +220,7 @@ index 1bdb5cc758..35d442e41c 100644
  "longest-streak@npm:^3.0.0":
    version: 3.0.0
    resolution: "longest-streak@npm:3.0.0"
-@@ -8448,13 +8347,6 @@ __metadata:
+@@ -8441,13 +8345,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -217,7 +234,7 @@ index 1bdb5cc758..35d442e41c 100644
  "markdown-extensions@npm:^2.0.0":
    version: 2.0.0
    resolution: "markdown-extensions@npm:2.0.0"
-@@ -9244,13 +9136,6 @@ __metadata:
+@@ -9237,13 +9134,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -231,7 +248,7 @@ index 1bdb5cc758..35d442e41c 100644
  "minimist@npm:^1.0.0, minimist@npm:^1.2.0, minimist@npm:^1.2.5, minimist@npm:^1.2.6, minimist@npm:^1.2.8, minimist@npm:~1.2.0":
    version: 1.2.8
    resolution: "minimist@npm:1.2.8"
-@@ -9546,15 +9431,6 @@ __metadata:
+@@ -9539,15 +9429,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -247,7 +264,7 @@ index 1bdb5cc758..35d442e41c 100644
  "node-fetch@npm:^2.6.0":
    version: 2.7.0
    resolution: "node-fetch@npm:2.7.0"
-@@ -9964,16 +9840,6 @@ __metadata:
+@@ -9957,16 +9838,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -264,7 +281,7 @@ index 1bdb5cc758..35d442e41c 100644
  "optionator@npm:^0.9.3":
    version: 0.9.4
    resolution: "optionator@npm:0.9.4"
-@@ -10407,15 +10273,6 @@ __metadata:
+@@ -10400,15 +10271,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -280,7 +297,21 @@ index 1bdb5cc758..35d442e41c 100644
  "pdfjs-dist@npm:4.2.67":
    version: 4.2.67
    resolution: "pdfjs-dist@npm:4.2.67"
-@@ -12024,7 +11881,7 @@ __metadata:
+@@ -10743,13 +10605,6 @@ __metadata:
+   languageName: node
+   linkType: hard
+ 
+-"put@npm:@nornagon/put@0.0.8":
+-  version: 0.0.8
+-  resolution: "@nornagon/put@npm:0.0.8"
+-  checksum: 10c0/855f9cee72d76570c76cdded2c3727ae7c3caa08208066ba77561675a43173bc62c8ee6dce6f4b64d65c5b465d20b4f9d986975ef3f2a6413e6f6c97bb5e1627
+-  languageName: node
+-  linkType: hard
+-
+ "q@npm:^1.5.1":
+   version: 1.5.1
+   resolution: "q@npm:1.5.1"
+@@ -12024,7 +11879,7 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -289,7 +320,7 @@ index 1bdb5cc758..35d442e41c 100644
    version: 5.2.1
    resolution: "safe-buffer@npm:5.2.1"
    checksum: 10c0/6501914237c0a86e9675d4e51d89ca3c21ffd6a31642efeba25ad65720bce6921c9e7e974e5be91a786b25aa058b5303285d3c15dbabf983a919f5f630d349f3
-@@ -12569,15 +12426,6 @@ __metadata:
+@@ -12569,15 +12424,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -305,7 +336,7 @@ index 1bdb5cc758..35d442e41c 100644
  "sprintf-js@npm:^1.1.2":
    version: 1.1.2
    resolution: "sprintf-js@npm:1.1.2"
-@@ -12700,16 +12548,6 @@ __metadata:
+@@ -12700,16 +12546,6 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -322,7 +353,7 @@ index 1bdb5cc758..35d442e41c 100644
  "stream-json@npm:^1.9.1":
    version: 1.9.1
    resolution: "stream-json@npm:1.9.1"
-@@ -13236,7 +13074,7 @@ __metadata:
+@@ -13236,7 +13072,7 @@ __metadata:
    languageName: node
    linkType: hard
  
@@ -331,7 +362,7 @@ index 1bdb5cc758..35d442e41c 100644
    version: 2.3.8
    resolution: "through@npm:2.3.8"
    checksum: 10c0/4b09f3774099de0d4df26d95c5821a62faee32c7e96fb1f4ebd54a2d7c11c57fe88b0a0d49cf375de5fee5ae6bf4eb56dbbf29d07366864e2ee805349970d3cc
-@@ -14439,13 +14277,6 @@ __metadata:
+@@ -14439,13 +14275,6 @@ __metadata:
    languageName: node
    linkType: hard
  

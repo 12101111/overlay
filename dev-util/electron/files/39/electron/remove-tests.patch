@@ -257,3 +257,80 @@ index 91786218a8..5e28d27ccb 100644
 -+    'The text inputs value should not be restored because it was removed before restoring.');
 -+}, '<input> inside <selectedcontent> should be restored after form submission.');
 -+</script>
+diff --git a/patches/chromium/cherry-pick-d141d62357df.patch b/patches/chromium/cherry-pick-d141d62357df.patch
+index c7c353df15..82979b2a9f 100644
+--- a/patches/chromium/cherry-pick-d141d62357df.patch
++++ b/patches/chromium/cherry-pick-d141d62357df.patch
+@@ -372,72 +372,3 @@ index 32e7a227f38b4919582f65db7166a5ac29273710..d2774e1aefb982372deacf6121879930
+    ASSIGN_OR_RETURN(
+        const TensorInfo& input_tensor_info,
+        SerializeInputTensorInfo(
+-diff --git a/third_party/blink/web_tests/platform/mac/virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_gpu-expected.txt b/third_party/blink/web_tests/platform/mac/virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_gpu-expected.txt
+-index 035d7f3a1387c642e65205daef788ccc2db0b12f..7d6b36e0e78a0b41a0c4b1b280286e9574822e00 100644
+---- a/third_party/blink/web_tests/platform/mac/virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_gpu-expected.txt
+-+++ b/third_party/blink/web_tests/platform/mac/virtual/webnn-service-with-gpu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_gpu-expected.txt
+-@@ -4,15 +4,13 @@ This is a testharness.js-based test.
+- [FAIL] [required] convTranspose2d float32 4D input and filter tensors options.groups=2 options.strides=[2, 2]
+-   promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': convTranspose2d doesn't support dilations and groups."
+- [FAIL] [required] convTranspose2d float32 4D input and filter tensors options.padding
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float32 actual 0 should be close enough to expected 0.2787136137485504 by ULP distance: expected a number less than or equal to 8n but got 1049539469n
+-+  promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': Explicit padding is not supported for transpose conv2d."
+- [FAIL] [required] convTranspose2d float32 4D input and filter tensors options.dilations
+-   promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': convTranspose2d doesn't support dilations and groups."
+--[FAIL] [required] convTranspose2d same output size different padding (padding=1, outputPadding=0))
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float32 actual 0 should be close enough to expected 1 by ULP distance: expected a number less than or equal to 18n but got 1065353216n
+- [FAIL] [required] convTranspose2d same output size different padding (padding=2, outputPadding=2))
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float32 actual 0 should be close enough to expected 1 by ULP distance: expected a number less than or equal to 18n but got 1065353216n
+-+  promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': Explicit padding is not supported for transpose conv2d."
+- [FAIL] [required] convTranspose2d float16 4D input and filter tensors options.padding
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float16 actual 0 should be close enough to expected 0.27880859375 by ULP distance: expected a number less than or equal to 8 but got 13430
+-+  promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': Explicit padding is not supported for transpose conv2d."
+- [FAIL] [required] convTranspose2d float16 4D input and filter tensors options.dilations
+-   promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': convTranspose2d doesn't support dilations and groups."
+- Harness: the test ran to completion.
+-diff --git a/third_party/blink/web_tests/virtual/webnn-service-on-cpu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_cpu-expected.txt b/third_party/blink/web_tests/virtual/webnn-service-on-cpu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_cpu-expected.txt
+-index 035d7f3a1387c642e65205daef788ccc2db0b12f..7d6b36e0e78a0b41a0c4b1b280286e9574822e00 100644
+---- a/third_party/blink/web_tests/virtual/webnn-service-on-cpu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_cpu-expected.txt
+-+++ b/third_party/blink/web_tests/virtual/webnn-service-on-cpu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_cpu-expected.txt
+-@@ -4,15 +4,13 @@ This is a testharness.js-based test.
+- [FAIL] [required] convTranspose2d float32 4D input and filter tensors options.groups=2 options.strides=[2, 2]
+-   promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': convTranspose2d doesn't support dilations and groups."
+- [FAIL] [required] convTranspose2d float32 4D input and filter tensors options.padding
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float32 actual 0 should be close enough to expected 0.2787136137485504 by ULP distance: expected a number less than or equal to 8n but got 1049539469n
+-+  promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': Explicit padding is not supported for transpose conv2d."
+- [FAIL] [required] convTranspose2d float32 4D input and filter tensors options.dilations
+-   promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': convTranspose2d doesn't support dilations and groups."
+--[FAIL] [required] convTranspose2d same output size different padding (padding=1, outputPadding=0))
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float32 actual 0 should be close enough to expected 1 by ULP distance: expected a number less than or equal to 18n but got 1065353216n
+- [FAIL] [required] convTranspose2d same output size different padding (padding=2, outputPadding=2))
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float32 actual 0 should be close enough to expected 1 by ULP distance: expected a number less than or equal to 18n but got 1065353216n
+-+  promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': Explicit padding is not supported for transpose conv2d."
+- [FAIL] [required] convTranspose2d float16 4D input and filter tensors options.padding
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float16 actual 0 should be close enough to expected 0.27880859375 by ULP distance: expected a number less than or equal to 8 but got 13430
+-+  promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': Explicit padding is not supported for transpose conv2d."
+- [FAIL] [required] convTranspose2d float16 4D input and filter tensors options.dilations
+-   promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': convTranspose2d doesn't support dilations and groups."
+- Harness: the test ran to completion.
+-diff --git a/third_party/blink/web_tests/virtual/webnn-service-on-npu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_npu-expected.txt b/third_party/blink/web_tests/virtual/webnn-service-on-npu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_npu-expected.txt
+-index 035d7f3a1387c642e65205daef788ccc2db0b12f..7d6b36e0e78a0b41a0c4b1b280286e9574822e00 100644
+---- a/third_party/blink/web_tests/virtual/webnn-service-on-npu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_npu-expected.txt
+-+++ b/third_party/blink/web_tests/virtual/webnn-service-on-npu/external/wpt/webnn/conformance_tests/conv_transpose2d.https.any_npu-expected.txt
+-@@ -4,15 +4,13 @@ This is a testharness.js-based test.
+- [FAIL] [required] convTranspose2d float32 4D input and filter tensors options.groups=2 options.strides=[2, 2]
+-   promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': convTranspose2d doesn't support dilations and groups."
+- [FAIL] [required] convTranspose2d float32 4D input and filter tensors options.padding
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float32 actual 0 should be close enough to expected 0.2787136137485504 by ULP distance: expected a number less than or equal to 8n but got 1049539469n
+-+  promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': Explicit padding is not supported for transpose conv2d."
+- [FAIL] [required] convTranspose2d float32 4D input and filter tensors options.dilations
+-   promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': convTranspose2d doesn't support dilations and groups."
+--[FAIL] [required] convTranspose2d same output size different padding (padding=1, outputPadding=0))
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float32 actual 0 should be close enough to expected 1 by ULP distance: expected a number less than or equal to 18n but got 1065353216n
+- [FAIL] [required] convTranspose2d same output size different padding (padding=2, outputPadding=2))
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float32 actual 0 should be close enough to expected 1 by ULP distance: expected a number less than or equal to 18n but got 1065353216n
+-+  promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': Explicit padding is not supported for transpose conv2d."
+- [FAIL] [required] convTranspose2d float16 4D input and filter tensors options.padding
+--  assert_less_than_equal: assert_array_approx_equals_ulp: test convTranspose2d float16 actual 0 should be close enough to expected 0.27880859375 by ULP distance: expected a number less than or equal to 8 but got 13430
+-+  promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': Explicit padding is not supported for transpose conv2d."
+- [FAIL] [required] convTranspose2d float16 4D input and filter tensors options.dilations
+-   promise_test: Unhandled rejection with value: object "NotSupportedError: Failed to execute 'build' on 'MLGraphBuilder': convTranspose2d doesn't support dilations and groups."
+- Harness: the test ran to completion.
