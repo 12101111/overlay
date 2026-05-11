@@ -3167,6 +3167,7 @@ PATCHES=(
 	"${FILESDIR}/0012-remove-vscode-gulp-electron.patch"
 	"${FILESDIR}/package-lock.patch"
 	"${FILESDIR}/skip-npm-check.patch"
+	"${FILESDIR}/tsgo.patch"
 )
 
 pkg_pretend() {
@@ -3243,7 +3244,7 @@ src_compile() {
 	export BUILD_SOURCEVERSION=${COMMIT}
 	export VSCODE_QUALITY=stable
 
-	npm run gulp vscode-linux-$(get_arch)-min
+	npm run gulp vscode-linux-$(get_arch)-min || die
 }
 
 src_install() {

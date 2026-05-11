@@ -1,0 +1,90 @@
+diff --git a/build/lib/tsgo.ts b/build/lib/tsgo.ts
+index ff42fa6e88e..eb3a0caad8a 100644
+--- a/build/lib/tsgo.ts
++++ b/build/lib/tsgo.ts
+@@ -30,45 +30,53 @@ export function spawnTsgo(projectPath: string, config: { taskName: string; noEmi
+ 	} else {
+ 		args.push('--sourceMap', '--inlineSources');
+ 	}
+-	const child = cp.spawn(npx, args, {
+-		cwd: root,
+-		stdio: ['ignore', 'pipe', 'pipe'],
+-		shell: true
+-	});
+ 
+-	let stdoutData = '';
+-	let stderrData = '';
++	function attempt(retriesLeft: number): Promise<void> {
++		const child = cp.spawn(npx, args, {
++			cwd: root,
++			stdio: ['ignore', 'pipe', 'pipe'],
++			shell: true
++		});
+ 
+-	child.stdout?.on('data', (data: Buffer) => {
+-		stdoutData += data.toString();
+-	});
+-	child.stderr?.on('data', (data: Buffer) => {
+-		stderrData += data.toString();
+-	});
++		let stdoutData = '';
++		let stderrData = '';
+ 
+-	return new Promise<void>((resolve, reject) => {
+-		child.on('exit', code => {
+-			const allOutput = stdoutData + '\n' + stderrData;
+-			const lines = allOutput
+-				.split(/\r?\n/)
+-				.map(line => line.replace(ansiRegex, '').trim())
+-				.map(line => line.replace(timestampRegex, ''))
+-				.filter(line => line.length > 0)
+-				.filter(line => !/Starting compilation|File change detected|Compilation complete/i.test(line));
++		child.stdout?.on('data', (data: Buffer) => {
++			stdoutData += data.toString();
++		});
++		child.stderr?.on('data', (data: Buffer) => {
++			stderrData += data.toString();
++		});
+ 
+-			runReporter(lines.join('\n'));
++		return new Promise<void>((resolve, reject) => {
++			child.on('exit', code => {
++				const allOutput = stdoutData + '\n' + stderrData;
++				const lines = allOutput
++					.split(/\r?\n/)
++					.map(line => line.replace(ansiRegex, '').trim())
++					.map(line => line.replace(timestampRegex, ''))
++					.filter(line => line.length > 0)
++					.filter(line => !/Starting compilation|File change detected|Compilation complete/i.test(line));
+ 
+-			if (code === 0) {
+-				Promise.resolve(onComplete?.()).then(() => resolve(), reject);
+-			} else {
+-				reject(new Error(`tsgo exited with code ${code ?? 'unknown'}`));
+-			}
+-		});
++				runReporter(lines.join('\n'));
++
++				if (code === 0) {
++					Promise.resolve(onComplete?.()).then(() => resolve(), reject);
++				} else if (retriesLeft > 0) {
++					fancyLog(`tsgo exited with code ${code ?? 'unknown'}, retrying... (${retriesLeft} attempts left)`);
++					attempt(retriesLeft - 1).then(resolve, reject);
++				} else {
++					reject(new Error(`tsgo exited with code ${code ?? 'unknown'}`));
++				}
++			});
+ 
+-		child.on('error', err => {
+-			reject(err);
++			child.on('error', err => {
++				reject(err);
++			});
+ 		});
+-	});
++	}
++
++	return attempt(5);
+ }
+ 
+ export function createTsgoStream(projectPath: string, config: { taskName: string; noEmit?: boolean }, onComplete?: () => Promise<void> | void): NodeJS.ReadWriteStream {
