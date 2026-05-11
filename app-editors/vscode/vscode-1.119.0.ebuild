@@ -3165,6 +3165,8 @@ PATCHES=(
 	"${FILESDIR}/0010-Accpet-FLAGS-from-env.patch"
 	"${FILESDIR}/0011-Fix-tunnel-path.patch"
 	"${FILESDIR}/0012-remove-vscode-gulp-electron.patch"
+	"${FILESDIR}/package-lock.patch"
+	"${FILESDIR}/skip-npm-check.patch"
 )
 
 pkg_pretend() {
@@ -3185,14 +3187,6 @@ src_unpack() {
 
 src_prepare() {
 	default
-
-	# npm 11 from nodejs 24 don't works with offline cache
-	local npm_path="$(get_electron_dir)/npm/"
-	if [ -d "$npm_path/bin" ]; then
-		create_fake_bin "node ${npm_path}bin/npm-cli.js" npm
-		create_fake_bin "node ${npm_path}node_modules/node-gyp/bin/node-gyp.js" node-gyp
-		export PATH="${S}:${PATH}"
-	fi
 
 	# Build native modules for system electron
 	local electron_version="$(get_local_electron_version)"
