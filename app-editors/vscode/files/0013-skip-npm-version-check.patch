@@ -1,3 +1,12 @@
+From 6b3c7d4dfedc075688cd354eb274e19dd8196854 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sun, 17 May 2026 16:12:22 +0800
+Subject: [PATCH 13/14] skip npm version check
+
+---
+ build/npm/preinstall.ts | 11 -----------
+ 1 file changed, 11 deletions(-)
+
 diff --git a/build/npm/preinstall.ts b/build/npm/preinstall.ts
 index 65b03426cf7..e99f2b043e1 100644
 --- a/build/npm/preinstall.ts
@@ -20,3 +29,6 @@ index 65b03426cf7..e99f2b043e1 100644
  // Fast path: if nothing changed since last successful install, skip everything.
  // This makes `npm i` near-instant when dependencies haven't changed.
  if (!process.env['VSCODE_FORCE_INSTALL'] && isUpToDate()) {
+-- 
+2.54.0
+

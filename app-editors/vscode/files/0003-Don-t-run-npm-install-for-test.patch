@@ -1,7 +1,7 @@
-From a2a86270b4db32d0bcfe7a83c6069c0af0297228 Mon Sep 17 00:00:00 2001
+From 7f52cc0100278784a51a07c2991cf7621d9c7e3d Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 10 May 2026 17:13:35 +0800
-Subject: [PATCH 03/12] Don't run npm install for test
+Subject: [PATCH 03/14] Don't run npm install for test
 
 ---
  build/npm/dirs.ts        | 9 ---------

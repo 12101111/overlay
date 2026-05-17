@@ -1,3 +1,12 @@
+From ba5647c4f51fc5994598f9f615d60d01ce283f14 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sun, 17 May 2026 16:13:10 +0800
+Subject: [PATCH 14/14] retry tsgo to workaround crash
+
+---
+ build/lib/tsgo.ts | 72 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 40 insertions(+), 32 deletions(-)
+
 diff --git a/build/lib/tsgo.ts b/build/lib/tsgo.ts
 index ff42fa6e88e..eb3a0caad8a 100644
 --- a/build/lib/tsgo.ts
@@ -88,3 +97,6 @@ index ff42fa6e88e..eb3a0caad8a 100644
  }
  
  export function createTsgoStream(projectPath: string, config: { taskName: string; noEmit?: boolean }, onComplete?: () => Promise<void> | void): NodeJS.ReadWriteStream {
+-- 
+2.54.0
+

@@ -1,7 +1,7 @@
-From a8575bc88a7e7edce90e2569a8e447acd6d14af6 Mon Sep 17 00:00:00 2001
+From b7a7e015980cb9225df8dfd8dc49d9f63cd208a5 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 10 Mar 2026 21:55:45 +0800
-Subject: [PATCH 02/12] Don't download bundle marketplace extensions in gulp
+Subject: [PATCH 02/14] Don't download bundle marketplace extensions in gulp
 
 ---
  build/gulpfile.extensions.ts | 7 -------
