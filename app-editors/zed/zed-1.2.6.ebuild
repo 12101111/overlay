@@ -88,12 +88,12 @@ declare -A GIT_CRATES=(
 	[zed-xim]='https://github.com/zed-industries/xim-rs;16f35a2c881b815a2b6cdfd6687988e84f8447d8;xim-rs-%commit%'
 )
 
-LLVM_COMPAT=( 21 22 )
-RUST_MIN_VER="1.94.0"
+LLVM_COMPAT=( 22 )
+RUST_MIN_VER="1.95.0"
 RUST_NEEDS_LLVM=1
 WEBRTC_COMMIT="0001d84-2"
 
-inherit cargo check-reqs desktop flag-o-matic llvm-r1 toolchain-funcs xdg
+inherit cargo check-reqs desktop flag-o-matic toolchain-funcs xdg
 
 DESCRIPTION="The fast, collaborative code editor"
 HOMEPAGE="https://zed.dev https://github.com/zed-industries/zed"
@@ -117,12 +117,12 @@ LICENSE+=" BSD"
 # Dependent crate licenses
 LICENSE+="
 	Apache-2.0 Apache-2.0-with-LLVM-exceptions BSD-2 BSD CC0-1.0 ISC
-	LGPL-3 MIT MIT-0 MPL-2.0 UoI-NCSA openssl Unicode-3.0 ZLIB BZIP2
+	LGPL-3 MIT MIT-0 MPL-2.0 UoI-NCSA Unicode-3.0 ZLIB BZIP2
 "
 IUSE="+collab"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
-CHECKREQS_DISK_BUILD="19G"
+CHECKREQS_DISK_BUILD="20G"
 CHECKREQS_MEMORY="8G"
 
 DEPEND="
