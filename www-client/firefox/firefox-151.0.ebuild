@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-150-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-151-patches-01.tar.xz"
 
 LLVM_COMPAT=( 21 22 )
 
@@ -118,7 +118,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	dev-libs/glib:2
 	dev-libs/libffi:=
 	>=dev-libs/nss-3.123.1
-	>=dev-libs/nspr-4.38
+	>=dev-libs/nspr-4.39
 	media-libs/alsa-lib
 	media-libs/fontconfig
 	media-libs/freetype
