@@ -247,12 +247,6 @@ src_prepare() {
 			sed -e 's/all(target_os = "windows", target_env = "gnu")/all(target_os = "windows", target_env = "gnu"), all(target_os = "linux", target_env = "musl")/g' -i $file || die
 		done
 	fi
-	if use elibc_musl; then
-		cp -r "${ECARGO_VENDOR}/crash-handler-0.6.3" "${WORKDIR}/crash-handler" || die
-		sed -e 's/target_env = "musl", not(miri)/target_env = "musl", target_feature = "crt-static", not(miri)/g' \
-			-e 's/cfg(target_env = "musl")/cfg(all(target_env = "musl", target_feature = "crt-static"))/g' -i "${WORKDIR}/crash-handler/src/unix/pthread_interpose.rs" || die
-		sed -e "s|crash-handler = \"0.6\"|crash-handler = \\{ path = \"${WORKDIR}/crash-handler\" \\}|g" -i "${S}/Cargo.toml" || die
-	fi
 }
 
 src_compile() {
