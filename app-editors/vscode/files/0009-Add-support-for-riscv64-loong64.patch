@@ -1,4 +1,4 @@
-From 31f3c711b333a95e873c280160fda192950ad492 Mon Sep 17 00:00:00 2001
+From 43351b4cd03359b315daeeb0d1106f1828ad9556 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 4 Jan 2026 21:35:18 +0800
 Subject: [PATCH 09/14] Add support for riscv64, loong64

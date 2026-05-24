@@ -1,4 +1,4 @@
-From a3a7fbc2b3f2c4a208a42743644da64c744b14e0 Mon Sep 17 00:00:00 2001
+From f771ffc65fdc512290869aeb24e6943e04ac4c6b Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 10 May 2026 17:14:23 +0800
 Subject: [PATCH 12/14] remove @vscode/gulp-electron

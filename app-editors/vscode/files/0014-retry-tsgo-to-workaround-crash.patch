@@ -1,4 +1,4 @@
-From ba5647c4f51fc5994598f9f615d60d01ce283f14 Mon Sep 17 00:00:00 2001
+From 2e1e9ce44b7f5bb80efd87c125192ff4ce60b138 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 17 May 2026 16:13:10 +0800
 Subject: [PATCH 14/14] retry tsgo to workaround crash

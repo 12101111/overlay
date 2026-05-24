@@ -1,4 +1,4 @@
-From 36bc93bf0fcd366e3216327ec863eafd3b6d47ac Mon Sep 17 00:00:00 2001
+From ccc3a02faf6cd3ee7f59367be6cbd4fb170f2ffa Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Thu, 16 Dec 2021 13:55:01 +0800
 Subject: [PATCH 08/14] Fix cli path
