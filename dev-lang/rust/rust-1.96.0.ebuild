@@ -15,7 +15,7 @@ PYTHON_COMPAT=( python3_{11..14} )
 # in the ebuild for changes that don't require a revbump.
 #
 # Uncomment this line when the ebuild needs a patchset update but no revbump.
-# RUST_PATCH_VER=${PV}-1
+RUST_PATCH_VER=1.95.0
 
 RUST_MAX_VER=${PV%%_*}
 RUST_PV=${PV%%_p*}
@@ -45,6 +45,7 @@ elif [[ ${PV} == *beta* ]]; then
 	MY_P="rustc-beta"
 	SRC_URI="
 		https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${RUST_PV}-src.tar.xz
+		https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
 		verify-sig? (
 			https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz.asc
 				-> rustc-${RUST_PV}-src.tar.xz.asc
@@ -367,6 +368,7 @@ src_prepare() {
 		"${FILESDIR}/rust-1.92.0-disable-link-self-contained.patch"
 		"${FILESDIR}/rust-1.92.0-dont-install-self-contained.patch"
 	)
+	rm "${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"1.94.0-compiler-musl-dynamic-linking.patch
 
 	if use lto && tc-is-clang && ! tc-ld-is-lld && ! tc-ld-is-mold; then
 		export RUSTFLAGS+=" -C link-arg=-fuse-ld=lld"
@@ -801,7 +803,9 @@ src_install() {
 	# bash-completion files are installed by dev-lang/rust-common instead
 	# bug #689562, #689160.
 	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/bash_completion.d/cargo" || die
-	rmdir -v "${ED}/usr/lib/${PN}/${SLOT}/etc/bash_completion.d" || die
+	# remove target-spec-json-schema.json, build-std is nightly only
+	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/target-spec-json-schema.json" || die
+	rmdir -v "${ED}/usr/lib/${PN}/${SLOT}"/etc{/bash_completion.d,} || die
 
 	local symlinks=(
 		cargo
