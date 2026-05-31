@@ -1,20 +1,22 @@
 diff --git a/cli/snapshot/build.rs b/cli/snapshot/build.rs
-index 9f08ac0e9..cdb77429b 100644
+index 1fec6875a..0757cdcdc 100644
 --- a/cli/snapshot/build.rs
 +++ b/cli/snapshot/build.rs
-@@ -6,10 +6,18 @@ mod shared;
- fn main() {
+@@ -12,11 +12,19 @@ fn main() {
+   }
    #[cfg(not(feature = "disable"))]
    {
 -    let o = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap());
 -    let cli_snapshot_path = o.join("CLI_SNAPSHOT.bin");
--    create_cli_snapshot(cli_snapshot_path);
+-    let residual_path = o.join("EXTENSION_RESIDUAL_SOURCES.rs");
+-    create_cli_snapshot(cli_snapshot_path, residual_path);
 +    let thread = std::thread::Builder::new().stack_size(8 * 1024 * 1024);
 +    thread
 +      .spawn(move || {
 +        let o = std::path::PathBuf::from(std::env::var_os("OUT_DIR").unwrap());
 +        let cli_snapshot_path = o.join("CLI_SNAPSHOT.bin");
-+        create_cli_snapshot(cli_snapshot_path);
++        let residual_path = o.join("EXTENSION_RESIDUAL_SOURCES.rs");
++        create_cli_snapshot(cli_snapshot_path, residual_path);
 +      })
 +      .unwrap()
 +      .join()

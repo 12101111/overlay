@@ -1,20 +1,21 @@
 diff --git a/build/config/BUILDCONFIG.gn b/build/config/BUILDCONFIG.gn
-index 4d1ac59..c3e1122 100644
+index 00d3892..580b25a 100644
 --- a/build/config/BUILDCONFIG.gn
 +++ b/build/config/BUILDCONFIG.gn
-@@ -361,7 +361,6 @@ default_compiler_configs = [
+@@ -370,8 +370,6 @@ default_compiler_configs = [
    "//build/config/compiler:no_rtti",
    "//build/config/compiler:no_unresolved_symbols",
    "//build/config/compiler:runtime_library",
 -  "//build/config/compiler:sanitize_c_array_bounds",
+-  "//build/config/compiler:sanitize_return",
    "//build/config/compiler:thin_archive",
    "//build/config/compiler:thinlto_optimize_default",
    "//build/config/compiler:tot_warnings",
 diff --git a/build/config/clang/BUILD.gn b/build/config/clang/BUILD.gn
-index e05032c..3cfdd7d 100644
+index f429120..32ce905 100644
 --- a/build/config/clang/BUILD.gn
 +++ b/build/config/clang/BUILD.gn
-@@ -185,16 +185,17 @@ template("clang_lib") {
+@@ -188,16 +188,17 @@ template("clang_lib") {
        } else if (is_apple) {
          _dir = "darwin"
        } else if (is_linux || is_chromeos) {
@@ -35,7 +36,7 @@ index e05032c..3cfdd7d 100644
          } else if (current_cpu == "riscv64") {
            _dir = "riscv64-unknown-linux-gnu"
          } else if (current_cpu == "ppc64") {
-@@ -231,7 +232,7 @@ template("clang_lib") {
+@@ -234,7 +235,7 @@ template("clang_lib") {
          assert(false)  # Unhandled target platform
        }
  
@@ -45,11 +46,11 @@ index e05032c..3cfdd7d 100644
        libs = [ "$_clang_lib_dir/$_dir/$_lib_file" ]
      }
 diff --git a/build/config/clang/clang.gni b/build/config/clang/clang.gni
-index e49005d..cd94e8d 100644
+index d18dce4..2d96ecc 100644
 --- a/build/config/clang/clang.gni
 +++ b/build/config/clang/clang.gni
-@@ -76,6 +76,7 @@ declare_args() {
-   clang_use_unsafe_buffers_plugin = false
+@@ -79,6 +79,7 @@ declare_args() {
+       clang_use_chrome_plugins && clang_unsafe_buffers_paths != ""
  
    clang_base_path = default_clang_base_path
 +  clang_resource_path = default_clang_base_path
@@ -57,10 +58,10 @@ index e49005d..cd94e8d 100644
    # Specifies whether or not bitcode should be embedded during compilation.
    # This is used for creating a MLGO corpus from Chromium in the non-ThinLTO case.
 diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
-index ff8022f..fdac9f4 100644
+index 1b53cb1..f05d924 100644
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -379,9 +379,6 @@ config("compiler") {
+@@ -380,9 +380,6 @@ config("compiler") {
  
    configs += [
      # See the definitions below.
@@ -70,7 +71,23 @@ index ff8022f..fdac9f4 100644
      ":compiler_codegen",
      ":compiler_deterministic",
      ":clang_warning_suppression",
-@@ -625,13 +622,6 @@ config("compiler") {
+@@ -600,15 +597,6 @@ config("compiler") {
+   if (is_clang) {
+     # Flags for diagnostics.
+     cflags += [ "-fcolor-diagnostics" ]
+-    if (!is_win) {
+-      cflags += [ "-fdiagnostics-show-inlining-chain" ]
+-    } else {
+-      # Combine after https://github.com/llvm/llvm-project/pull/192241
+-      cflags += [ "/clang:-fdiagnostics-show-inlining-chain" ]
+-    }
+-    if (diagnostics_print_source_range_info && !is_win) {
+-      cflags += [ "-fdiagnostics-print-source-range-info" ]
+-    }
+ 
+     # Enable -fmerge-all-constants. This used to be the default in clang
+     # for over a decade. It makes clang non-conforming, but is fairly safe
+@@ -636,13 +624,6 @@ config("compiler") {
        ]
      }
  
@@ -84,7 +101,7 @@ index ff8022f..fdac9f4 100644
      # TODO(hans): Remove this once Clang generates better optimized debug info
      # by default. https://crbug.com/765793
      cflags += [
-@@ -1702,43 +1692,6 @@ config("compiler_deterministic") {
+@@ -1726,43 +1707,6 @@ config("compiler_deterministic") {
      }
    }
  
@@ -128,7 +145,7 @@ index ff8022f..fdac9f4 100644
    # Tells the compiler not to use absolute paths when passing the default
    # paths to the tools it invokes. We don't want this because we don't
    # really need it and it can mess up the RBE cache entries.
-@@ -1771,88 +1724,6 @@ config("compiler_deterministic") {
+@@ -1795,88 +1739,6 @@ config("compiler_deterministic") {
    }
  }
  
@@ -217,8 +234,8 @@ index ff8022f..fdac9f4 100644
  # Controls the usage of a warning suppression mapping (WSM) file to suppress
  # warnings based on the path of the file they come from. It's controlled by the
  # `clang_warning_suppression_file` gn argument , which points to a text file
-@@ -1908,18 +1779,6 @@ config("sanitize_c_array_bounds") {
-   }
+@@ -1926,18 +1788,6 @@ ubsan_hardening("return") {
+   sanitizer = "return"
  }
  
 -config("rustc_revision") {
@@ -236,7 +253,7 @@ index ff8022f..fdac9f4 100644
  config("compiler_arm_fpu") {
    if (current_cpu == "arm" && !is_ios) {
      cflags = [ "-mfpu=neon" ]
-@@ -2398,11 +2257,7 @@ config("chromium_code") {
+@@ -2419,11 +2269,7 @@ config("chromium_code") {
        defines = [ "_HAS_NODISCARD" ]
      }
    } else {
@@ -249,7 +266,7 @@ index ff8022f..fdac9f4 100644
  
      # In Chromium code, we define __STDC_foo_MACROS in order to get the
      # C99 macros on Mac and Linux.
-@@ -2411,32 +2266,6 @@ config("chromium_code") {
+@@ -2432,32 +2278,6 @@ config("chromium_code") {
        "__STDC_FORMAT_MACROS",
      ]
  
@@ -273,7 +290,7 @@ index ff8022f..fdac9f4 100644
 -      # with the sysroot where support is guaranteed. Clang is also required since
 -      # the system gcc is often patched to add _FORTIFY_SOURCE=2 which would conflict
 -      # with our definition.
--      if (use_sysroot && is_clang) {
+-      if (use_sysroot && is_clang && !is_android) {
 -        fortify_level = "3"
 -      }
 -      defines += [ "_FORTIFY_SOURCE=" + fortify_level ]
@@ -282,7 +299,7 @@ index ff8022f..fdac9f4 100644
      if (is_apple) {
        cflags_objc = [ "-Wimplicit-retain-self" ]
        cflags_objcc = [ "-Wimplicit-retain-self" ]
-@@ -2860,7 +2689,8 @@ config("default_stack_frames") {
+@@ -2882,7 +2702,8 @@ config("default_stack_frames") {
  # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/147634a8be0000
  # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/132bc772be0000
  # [2]: https://crrev.com/c/5447532
@@ -292,7 +309,7 @@ index ff8022f..fdac9f4 100644
    if (is_win) {
      # clang-cl's /O2 corresponds to clang's -O3, and really want -O2 for
      # consistency with the other platforms.
-@@ -2909,7 +2739,8 @@ config("optimize") {
+@@ -2931,7 +2752,8 @@ config("optimize") {
  }
  
  # Turn off optimizations.
@@ -302,7 +319,7 @@ index ff8022f..fdac9f4 100644
    if (is_win) {
      cflags = [
        "/Od",  # Disable optimization.
-@@ -2941,10 +2772,11 @@ config("no_optimize") {
+@@ -2963,10 +2785,11 @@ config("no_optimize") {
    }
  }
  
@@ -315,7 +332,7 @@ index ff8022f..fdac9f4 100644
    ldflags = common_optimize_on_ldflags
    if (is_win) {
      # Favor speed over size, /O2 must be before the common flags.
-@@ -2958,6 +2790,7 @@ config("optimize_max") {
+@@ -2980,6 +2803,7 @@ config("optimize_max") {
    rustflags = [ "-Copt-level=3" ]
  }
  
@@ -323,7 +340,7 @@ index ff8022f..fdac9f4 100644
  # This config can be used to override the default settings for per-component
  # and whole-program optimization, optimizing the particular target for speed
  # instead of code size. This config is exactly the same as "optimize_max"
-@@ -2965,7 +2798,7 @@ config("optimize_max") {
+@@ -2987,7 +2811,7 @@ config("optimize_max") {
  #
  # TODO(crbug.com/41259697) - rework how all of these configs are related
  # so that we don't need this disclaimer.
@@ -332,7 +349,7 @@ index ff8022f..fdac9f4 100644
    ldflags = common_optimize_on_ldflags
    if (is_win) {
      # Favor speed over size, /O2 must be before the common flags.
-@@ -2982,7 +2815,8 @@ config("optimize_speed") {
+@@ -3004,7 +2828,8 @@ config("optimize_speed") {
    rustflags = [ "-Copt-level=3" ]
  }
  
@@ -342,7 +359,7 @@ index ff8022f..fdac9f4 100644
    cflags = [ "-O1" ] + common_optimize_on_cflags
    rustflags = [ "-Copt-level=1" ]
    ldflags = common_optimize_on_ldflags
-@@ -3127,7 +2961,8 @@ config("split_dwarf") {
+@@ -3149,7 +2974,8 @@ config("split_dwarf") {
  }
  
  # Full symbols.
@@ -352,7 +369,7 @@ index ff8022f..fdac9f4 100644
    rustflags = []
    configs = []
    if (is_win) {
-@@ -3287,7 +3122,8 @@ config("symbols") {
+@@ -3309,7 +3135,8 @@ config("symbols") {
  # Minimal symbols.
  # This config guarantees to hold symbol for stack trace which are shown to user
  # when crash happens in unittests running on buildbot.
@@ -362,7 +379,7 @@ index ff8022f..fdac9f4 100644
    configs = []
    rustflags = []
    cflags = []
-@@ -3372,7 +3208,8 @@ config("minimal_symbols") {
+@@ -3394,7 +3221,8 @@ config("minimal_symbols") {
  # This configuration contains function names only. That is, the compiler is
  # told to not generate debug information and the linker then just puts function
  # names in the final debug information.

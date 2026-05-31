@@ -10,7 +10,7 @@ PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.92.0
 
-V8_VER=147.4.0
+V8_VER=149.2.0
 STACKER_VER=0.1.15
 TEMPORAL_CAPI="temporal_capi-0.2.3"
 ICU=0.77.0
@@ -87,6 +87,7 @@ CRATES="
 	anstyle-wincon@3.0.2
 	anstyle@1.0.8
 	anyhow@1.0.98
+	approx@0.5.1
 	arbitrary@1.4.1
 	arc-swap@1.7.1
 	arrayvec@0.7.4
@@ -107,16 +108,14 @@ CRATES="
 	atomic-waker@1.1.2
 	auto_impl@1.2.0
 	autocfg@1.3.0
-	aws-lc-rs@1.16.1
-	aws-lc-sys@0.38.0
-	aws-lc-sys@0.39.0
+	aws-lc-rs@1.16.3
+	aws-lc-sys@0.40.0
 	axum-core@0.4.5
 	axum@0.7.5
 	az@1.2.1
 	backtrace@0.3.74
 	base16ct@0.2.0
 	base16ct@1.0.0
-	base32@0.5.1
 	base64-simd@0.8.0
 	base64@0.21.7
 	base64@0.22.1
@@ -150,7 +149,6 @@ CRATES="
 	byteorder@1.5.0
 	bytes-str@0.2.7
 	bytes@1.11.1
-	cache_control@0.2.0
 	calendrical_calculations@0.2.4
 	capacity_builder@0.5.0
 	capacity_builder_macros@0.3.0
@@ -172,7 +170,6 @@ CRATES="
 	clap_builder@4.5.56
 	clap_complete@4.5.65
 	clap_complete_fig@4.5.2
-	clap_derive@4.5.55
 	clap_lex@0.7.4
 	clipboard-win@5.3.0
 	cmake@0.1.57
@@ -234,6 +231,7 @@ CRATES="
 	css_dataset@0.4.1
 	cssparser-macros@0.6.1
 	cssparser@0.35.0
+	cssparser@0.36.0
 	ctr@0.9.2
 	ctutils@0.4.0
 	curve25519-dalek-derive@0.1.1
@@ -249,19 +247,19 @@ CRATES="
 	debug-ignore@1.0.5
 	debugid@0.8.0
 	deno-tower-lsp-macros@0.12.0
-	deno_ast@0.53.1
+	deno_ast@0.53.2
 	deno_core_icudata@0.77.0
-	deno_doc@0.197.0
+	deno_doc@0.199.0
 	deno_error@0.7.1
 	deno_error_macro@0.7.1
-	deno_graph@0.107.1
-	deno_lint@0.83.0
+	deno_graph@0.108.2
+	deno_lint@0.84.1
 	deno_media_type@0.4.0
 	deno_native_certs@0.3.0
 	deno_panic@0.2.0
 	deno_path_util@0.6.4
-	deno_semver@0.9.1
-	deno_task_shell@0.29.0
+	deno_semver@0.10.0
+	deno_task_shell@0.32.0
 	deno_terminal@0.2.3
 	deno_tower_lsp@0.5.0
 	deno_tunnel@0.8.1
@@ -308,13 +306,12 @@ CRATES="
 	dprint-plugin-json@0.21.3
 	dprint-plugin-jupyter@0.2.2
 	dprint-plugin-markdown@0.20.0
-	dprint-plugin-typescript@0.95.15
+	dprint-plugin-typescript@0.96.1
 	dprint-swc-ext@0.26.0
 	dsa@0.6.3
 	dtoa-short@0.3.5
 	dtoa@1.0.10
 	dunce@1.0.5
-	dyn-clone@1.0.17
 	ecb@0.1.2
 	ecdsa@0.16.9
 	ecow@0.2.3
@@ -344,7 +341,6 @@ CRATES="
 	fallible-iterator@0.3.0
 	fallible-streaming-iterator@0.1.9
 	fancy-regex@0.14.0
-	fancy-regex@0.16.2
 	fast-socks5@0.9.6
 	fastbloom@0.14.1
 	faster-hex@0.10.0
@@ -398,6 +394,22 @@ CRATES="
 	gif@0.13.1
 	gimli@0.31.1
 	gl_generator@0.14.0
+	glam@0.14.0
+	glam@0.15.2
+	glam@0.16.0
+	glam@0.17.3
+	glam@0.18.0
+	glam@0.19.0
+	glam@0.20.5
+	glam@0.21.3
+	glam@0.22.0
+	glam@0.23.0
+	glam@0.24.2
+	glam@0.25.0
+	glam@0.27.0
+	glam@0.28.0
+	glam@0.29.3
+	glam@0.30.5
 	glob@0.3.1
 	globset@0.4.14
 	glow@0.16.0
@@ -499,7 +511,6 @@ CRATES="
 	is_executable@1.0.5
 	is_terminal_polyfill@1.70.1
 	itertools@0.10.5
-	itertools@0.13.0
 	itertools@0.14.0
 	itoa@1.0.15
 	ixdtf@0.6.4
@@ -538,7 +549,6 @@ CRATES="
 	libsui@0.12.6
 	libuv-sys-lite@1.48.3
 	libz-sys@1.1.20
-	linked-hash-map@0.5.6
 	linux-raw-sys@0.4.13
 	litemap@0.7.3
 	litemap@0.8.0
@@ -558,6 +568,7 @@ CRATES="
 	match_cfg@0.1.0
 	matchers@0.2.0
 	matchit@0.7.3
+	matrixmultiply@0.3.8
 	md-5@0.10.6
 	md4@0.10.2
 	memchr@2.7.5
@@ -572,8 +583,9 @@ CRATES="
 	mio@0.8.11
 	mio@1.0.3
 	moka@0.12.10
-	monch@0.5.0
+	monch@0.6.0
 	naga@28.0.0
+	nalgebra@0.34.1
 	ndk-sys@0.6.0+11769913
 	netif@0.1.6
 	new_debug_unreachable@1.0.6
@@ -600,16 +612,14 @@ CRATES="
 	ocb3@0.1.0
 	oid-registry@0.6.1
 	once_cell@1.21.3
-	onig@6.5.1
-	onig_sys@69.9.1
 	oorandom@11.1.5
 	opaque-debug@0.3.1
 	open@5.1.2
 	openssl-macros@0.1.1
 	openssl-probe@0.1.5
 	openssl-src@300.5.0+3.5.0
-	openssl-sys@0.9.114
-	openssl@0.10.78
+	openssl-sys@0.9.116
+	openssl@0.10.80
 	opentelemetry-http@0.27.0
 	opentelemetry-otlp@0.27.0
 	opentelemetry-proto@0.27.0
@@ -621,6 +631,7 @@ CRATES="
 	ordered-float@4.6.0
 	os_pipe@1.2.1
 	outref@0.5.1
+	p12@0.6.3
 	p224@0.13.2
 	p256@0.13.2
 	p384@0.13.0
@@ -629,7 +640,6 @@ CRATES="
 	parking@2.2.1
 	parking_lot@0.12.3
 	parking_lot_core@0.9.9
-	password-hash@0.5.0
 	paste@1.0.15
 	path-clean@0.1.0
 	path-dedot@3.1.1
@@ -643,10 +653,14 @@ CRATES="
 	pest_meta@2.7.15
 	petgraph@0.7.1
 	phf@0.11.2
+	phf@0.13.1
 	phf_codegen@0.11.3
 	phf_generator@0.11.2
+	phf_generator@0.13.1
 	phf_macros@0.11.2
+	phf_macros@0.13.1
 	phf_shared@0.11.2
+	phf_shared@0.13.1
 	pin-project-internal@1.1.5
 	pin-project-lite@0.2.14
 	pin-project@1.1.5
@@ -656,7 +670,6 @@ CRATES="
 	pkcs8@0.10.2
 	pkcs8@0.11.0-rc.11
 	pkg-config@0.3.30
-	plist@1.7.4
 	plotters-backend@0.3.7
 	plotters-svg@0.3.7
 	plotters@0.3.7
@@ -683,9 +696,6 @@ CRATES="
 	pulldown-cmark@0.11.2
 	quick-error@1.2.3
 	quick-error@2.0.1
-	quick-junit@0.3.6
-	quick-xml@0.31.0
-	quick-xml@0.38.4
 	quinn-proto@0.11.14
 	quinn-udp@0.5.9
 	quinn@0.11.8
@@ -706,8 +716,10 @@ CRATES="
 	rand_xorshift@0.4.0
 	range-alloc@0.1.3
 	raw-window-handle@0.6.2
+	rawpointer@0.2.1
 	rayon-core@1.13.0
 	rayon@1.11.0
+	rc2@0.8.1
 	redox_syscall@0.4.1
 	redox_syscall@0.5.13
 	redox_users@0.4.5
@@ -748,7 +760,7 @@ CRATES="
 	rustls-tokio-stream@0.8.0
 	rustls-webpki@0.102.8
 	rustls-webpki@0.103.13
-	rustls@0.23.28
+	rustls@0.23.40
 	rustversion@1.0.15
 	rusty-fork@0.3.1
 	rustyline-derive@0.11.1
@@ -756,6 +768,7 @@ CRATES="
 	ryu-js@1.0.1
 	ryu@1.0.17
 	saa@5.5.0
+	safe_arch@0.7.4
 	saffron@0.1.0
 	salsa20@0.10.2
 	same-file@1.0.6
@@ -792,8 +805,6 @@ CRATES="
 	sha3@0.10.8
 	sha3@0.11.0-rc.8
 	sharded-slab@0.1.7
-	shell-escape@0.1.5
-	shell-words@1.1.0
 	shellexpand@3.1.0
 	shlex@1.3.0
 	signal-hook-mio@0.2.4
@@ -801,6 +812,7 @@ CRATES="
 	signal-hook@0.3.17
 	signature@2.2.0
 	signature@3.0.0-rc.10
+	simba@0.9.0
 	simd-adler32@0.3.7
 	simd-json@0.14.0
 	simdutf8@0.1.5
@@ -828,7 +840,6 @@ CRATES="
 	strck@1.0.0
 	string_enum@1.0.2
 	stringcase@0.4.0
-	strip-ansi-escapes@0.2.0
 	strsim@0.11.1
 	strum@0.27.1
 	strum_macros@0.27.1
@@ -865,8 +876,7 @@ CRATES="
 	sync_wrapper@1.0.1
 	synstructure@0.12.6
 	synstructure@0.13.1
-	syntect@5.3.0
-	sys_traits@0.1.27
+	sys_traits@0.1.28
 	sys_traits_macros@0.1.0
 	tagptr@0.2.0
 	tap@1.0.1
@@ -928,7 +938,7 @@ CRATES="
 	try-lock@0.2.5
 	trybuild@1.0.115
 	twox-hash@1.6.3
-	twox-hash@2.1.0
+	twox-hash@2.1.2
 	typed-arena@2.0.2
 	typeid@1.0.3
 	typenum@1.17.0
@@ -956,15 +966,14 @@ CRATES="
 	utf8_iter@1.0.4
 	utf8parse@0.2.1
 	uuid@1.21.0
-	v8@147.4.0
-	v8_valueserializer@0.1.1
+	v8@149.2.0
+	v8_valueserializer@0.1.2
 	valuable@0.1.0
 	value-trait@0.10.0
 	vcpkg@0.2.15
 	version_check@0.9.4
 	vsimd@0.8.0
 	vsock@0.5.1
-	vte@0.11.1
 	vte@0.13.1
 	vte_generate_state_changes@0.1.1
 	wait-timeout@0.2.1
@@ -1002,6 +1011,7 @@ CRATES="
 	which@6.0.1
 	which@8.0.0
 	whoami@1.6.0
+	wide@0.7.33
 	widestring@1.1.0
 	win32job@2.0.3
 	winapi-i686-pc-windows-gnu@0.4.0
@@ -1085,12 +1095,11 @@ CRATES="
 	x25519-dalek@2.0.1
 	x509-parser@0.15.1
 	xattr@1.3.1
-	xdg@2.5.2
 	xml-rs@0.8.20
 	xxhash-rust@0.8.15
-	yaml-rust@0.4.5
 	yaml_parser@0.2.1
 	yansi@1.0.1
+	yasna@0.5.2
 	yoke-derive@0.7.4
 	yoke-derive@0.8.2
 	yoke@0.7.4
@@ -1203,7 +1212,7 @@ src_prepare() {
 	fi
 	eapply "${FILESDIR}/disable_v8_rust.patch"
 	eapply "${FILESDIR}/fix-icu-private-header.patch"
-	eapply "${FILESDIR}/build_from_source-M145.patch"
+	eapply "${FILESDIR}/build_from_source-M149.patch"
 	if use system-icu; then
 		eapply "${FILESDIR}/v8-use-system-libraries.patch"
 		install -Dm755 ${DISTDIR}/deno_129_generate_shim_headers.py tools/generate_shim_headers/generate_shim_headers.py || die

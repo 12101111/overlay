@@ -1,5 +1,5 @@
 diff --git a/build.rs b/build.rs
-index 970e88b..7bb6e5a 100644
+index b377f3a..7cca0c5 100644
 --- a/build.rs
 +++ b/build.rs
 @@ -118,6 +118,7 @@ fn main() {
@@ -10,7 +10,7 @@ index 970e88b..7bb6e5a 100644
    print_prebuilt_src_binding_path();
  
    download_static_lib_binaries();
-@@ -248,10 +249,11 @@ fn build_v8(is_asan: bool) {
+@@ -252,10 +253,11 @@ fn build_v8(is_asan: bool) {
    }
  
    if need_gn_ninja_download() {
@@ -23,7 +23,7 @@ index 970e88b..7bb6e5a 100644
  
    // `#[cfg(...)]` attributes don't work as expected from build.rs -- they refer to the configuration
    // of the host system which the build.rs script will be running on. In short, `cfg!(target_<os/arch>)`
-@@ -314,7 +316,8 @@ fn build_v8(is_asan: bool) {
+@@ -324,7 +326,8 @@ fn build_v8(is_asan: bool) {
      gn_args.push("host_cpu=\"arm64\"".to_string());
    }
  
@@ -33,7 +33,7 @@ index 970e88b..7bb6e5a 100644
      gn_args.push("is_clang=false".into());
      // -gline-tables-only is Clang-only
      gn_args.push("line_tables_only=false".into());
-@@ -323,7 +326,7 @@ fn build_v8(is_asan: bool) {
+@@ -333,7 +336,7 @@ fn build_v8(is_asan: bool) {
      gn_args.push(format!("clang_base_path={clang_base_path:?}"));
      gn_args.push("treat_warnings_as_errors=false".to_string());
    } else {
@@ -42,7 +42,7 @@ index 970e88b..7bb6e5a 100644
      let clang_base_path = clang_download();
      gn_args.push(format!("clang_base_path={clang_base_path:?}"));
  
-@@ -332,7 +335,8 @@ fn build_v8(is_asan: bool) {
+@@ -342,7 +345,8 @@ fn build_v8(is_asan: bool) {
      }
    }
  
@@ -52,9 +52,9 @@ index 970e88b..7bb6e5a 100644
      cc_wrapper(&mut gn_args, Path::new(&p));
    } else if let Ok(p) = which("sccache") {
      cc_wrapper(&mut gn_args, &p);
-@@ -349,26 +353,13 @@ fn build_v8(is_asan: bool) {
-       gn_args.push(arg.to_string());
-     }
+@@ -382,26 +386,13 @@ fn build_v8(is_asan: bool) {
+   if needs_tls_define && !tls_define_injected {
+     gn_args.push(r#"extra_cflags=["-DV8_TLS_USED_IN_LIBRARY"]"#.to_string());
    }
 -  // cross-compilation setup
 -  if target_arch == "aarch64" {
@@ -83,7 +83,7 @@ index 970e88b..7bb6e5a 100644
      let arch = if target_arch == "x86_64" {
        "x64"
      } else if target_arch == "aarch64" {
-@@ -1028,6 +1019,7 @@ type NinjaEnv = Vec<(String, String)>;
+@@ -1097,6 +1088,7 @@ type NinjaEnv = Vec<(String, String)>;
  fn ninja(gn_out_dir: &Path, maybe_env: Option<NinjaEnv>) -> Command {
    let cmd_string = env::var("NINJA").unwrap_or_else(|_| "ninja".to_owned());
    let mut cmd = Command::new(&cmd_string);
@@ -91,7 +91,7 @@ index 970e88b..7bb6e5a 100644
    cmd.arg("-C");
    cmd.arg(gn_out_dir);
    if !cmd_string.ends_with("autoninja")
-@@ -1067,6 +1059,7 @@ fn run_gn_gen(gn_args: &[String]) -> PathBuf {
+@@ -1136,6 +1128,7 @@ fn run_gn_gen(gn_args: &[String]) -> PathBuf {
        .arg(format!("--script-executable={}", python()))
        .arg("gen")
        .arg(&gn_out_dir)
