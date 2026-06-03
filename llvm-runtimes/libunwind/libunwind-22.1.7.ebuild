@@ -17,9 +17,11 @@ IUSE="+clang debug static-libs test"
 REQUIRED_USE="test? ( clang )"
 RESTRICT="!test? ( test )"
 
-RDEPEND="
-	!sys-libs/libunwind
-"
+if [[ ${CATEGORY} != cross* ]] ; then
+	RDEPEND+="
+		!sys-libs/libunwind
+	"
+fi
 DEPEND="
 	llvm-core/llvm:${LLVM_MAJOR}
 "
@@ -173,6 +175,7 @@ multilib_src_configure() {
 	if [[ "${CTARGET}" == *elf* ]]; then
 		mycmakeargs+=(
 			-DLIBUNWIND_ENABLE_SHARED=OFF
+			-DLIBUNWIND_ENABLE_STATIC=ON
 			-DLIBUNWIND_IS_BAREMETAL=ON
 			-DLIBUNWIND_ENABLE_THREADS=OFF
 		)
