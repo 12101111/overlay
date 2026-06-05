@@ -1,4 +1,4 @@
-From 1402c7bac123f53a7caf70e9d9f2955926b64417 Mon Sep 17 00:00:00 2001
+From 01f582b03c867abdfc77a6ee988aa511702843fd Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 10 Mar 2026 19:32:17 +0800
 Subject: [PATCH 11/14] Fix tunnel path
@@ -8,10 +8,10 @@ Subject: [PATCH 11/14] Fix tunnel path
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
-index e390b34f4f6..240f52156d9 100644
+index 994f6c38d99..706ea841a84 100644
 --- a/src/vs/code/node/cli.ts
 +++ b/src/vs/code/node/cli.ts
-@@ -75,7 +75,7 @@ export async function main(argv: string[]): Promise<void> {
+@@ -76,7 +76,7 @@ export async function main(argv: string[]): Promise<void> {
  					const appPath = process.platform === 'darwin'
  						// ./Contents/MacOS/Code => ./Contents/Resources/app/bin/code-tunnel-insiders
  						? join(dirname(dirname(process.execPath)), 'Resources', 'app')

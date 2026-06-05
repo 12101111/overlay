@@ -1,4 +1,4 @@
-From 5b685b499c5c5119dd27ae6393c691c2dba8b0ee Mon Sep 17 00:00:00 2001
+From 68c7409e711e0896d665283d1f47ecb5488bebff Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 10 Mar 2026 22:01:32 +0800
 Subject: [PATCH 10/14] Accpet FLAGS from env
@@ -8,10 +8,10 @@ Subject: [PATCH 10/14] Accpet FLAGS from env
  1 file changed, 11 deletions(-)
 
 diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
-index 4fad23298b0..6c6e1dc3717 100644
+index 2a72ad3e393..90c12a3670c 100644
 --- a/build/npm/postinstall.ts
 +++ b/build/npm/postinstall.ts
-@@ -253,10 +253,6 @@ async function main() {
+@@ -257,10 +257,6 @@ async function main() {
  		if (dir === 'build') {
  			nativeTasks.push(() => {
  				const env: NodeJS.ProcessEnv = { ...process.env };
@@ -22,7 +22,7 @@ index 4fad23298b0..6c6e1dc3717 100644
  				setNpmrcConfig('build', env);
  				return npmInstallAsync('build', { env });
  			});
-@@ -269,17 +265,10 @@ async function main() {
+@@ -273,17 +269,10 @@ async function main() {
  				const env: NodeJS.ProcessEnv = { ...process.env };
  				if (process.env['VSCODE_REMOTE_CC']) {
  					env['CC'] = process.env['VSCODE_REMOTE_CC'];

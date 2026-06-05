@@ -1,34 +1,24 @@
-From 967664ab174137cf4adaa7ee737d9573cc949a0b Mon Sep 17 00:00:00 2001
+From c2d2d3f6bb6227f6b2d5d4735b9c96bae1967586 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 17 May 2026 16:12:22 +0800
+Date: Fri, 5 Jun 2026 21:27:35 +0800
 Subject: [PATCH 13/14] skip npm version check
 
 ---
- build/npm/preinstall.ts | 11 -----------
- 1 file changed, 11 deletions(-)
+ build/npm/preinstall.ts | 1 -
+ 1 file changed, 1 deletion(-)
 
 diff --git a/build/npm/preinstall.ts b/build/npm/preinstall.ts
-index 65b03426cf7..e99f2b043e1 100644
+index 5cd259e4953..2a66376899e 100644
 --- a/build/npm/preinstall.ts
 +++ b/build/npm/preinstall.ts
-@@ -42,17 +42,6 @@ if (process.env.npm_execpath?.includes('yarn')) {
- 	throw new Error();
+@@ -48,7 +48,6 @@ if (npmVersionMatch) {
+ 	const npmMajor = parseInt(npmVersionMatch[1]);
+ 	if (npmMajor >= 12) {
+ 		console.error(`\x1b[1;31m*** Please use npm version < 12.0.0. Currently using v${npmUserAgent}.\x1b[0;0m`);
+-		throw new Error();
+ 	}
  }
  
--const npmUserAgent = process.env.npm_config_user_agent;
--const npmVersionMatch = npmUserAgent?.match(/npm\/(\d+)\.(\d+)\.(\d+)/);
--if (npmVersionMatch) {
--	const npmMajor = parseInt(npmVersionMatch[1]);
--	const npmMinor = parseInt(npmVersionMatch[2]);
--	if (npmMajor > 11 || (npmMajor === 11 && npmMinor >= 2)) {
--		console.error(`\x1b[1;31m*** Please use npm version < 11.2.0. Currently using v${npmUserAgent}.\x1b[0;0m`);
--		throw new Error();
--	}
--}
--
- // Fast path: if nothing changed since last successful install, skip everything.
- // This makes `npm i` near-instant when dependencies haven't changed.
- if (!process.env['VSCODE_FORCE_INSTALL'] && isUpToDate()) {
 -- 
 2.54.0
 

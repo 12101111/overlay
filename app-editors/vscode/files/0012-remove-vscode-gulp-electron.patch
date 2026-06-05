@@ -1,6 +1,6 @@
-From f771ffc65fdc512290869aeb24e6943e04ac4c6b Mon Sep 17 00:00:00 2001
+From 340760b233d7827009e62034fc6ac2cb94f2a037 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 10 May 2026 17:14:23 +0800
+Date: Fri, 5 Jun 2026 21:26:07 +0800
 Subject: [PATCH 12/14] remove @vscode/gulp-electron
 
 ---
@@ -9,19 +9,19 @@ Subject: [PATCH 12/14] remove @vscode/gulp-electron
  2 files changed, 14 deletions(-)
 
 diff --git a/build/gulpfile.scan.ts b/build/gulpfile.scan.ts
-index 2cced2a31ad..ceac3eaacb0 100644
+index e89bde12bd1..e90b20d96db 100644
 --- a/build/gulpfile.scan.ts
 +++ b/build/gulpfile.scan.ts
-@@ -7,8 +7,6 @@ import gulp from 'gulp';
+@@ -7,8 +7,6 @@ import { gulp, filter } from './lib/gulp/facade.ts';
  import * as path from 'path';
- import * as task from './lib/task.ts';
+ import * as task from './lib/gulp/task.ts';
  import * as util from './lib/util.ts';
 -import electron from '@vscode/gulp-electron';
 -import { config } from './lib/electron.ts';
- import filter from 'gulp-filter';
  import * as deps from './lib/dependencies.ts';
  import { existsSync, readdirSync } from 'fs';
-@@ -46,23 +44,13 @@ BUILD_TARGETS.forEach(buildTarget => {
+ 
+@@ -45,23 +43,13 @@ BUILD_TARGETS.forEach(buildTarget => {
  	// removal tasks
  	tasks.push(util.rimraf(destinationExe), util.rimraf(destinationPdb));
  
@@ -46,21 +46,21 @@ index 2cced2a31ad..ceac3eaacb0 100644
  	tasks.push(
  		nodeModules(destinationExe, destinationPdb, platform)
 diff --git a/build/lib/electron.ts b/build/lib/electron.ts
-index 8d4eb0f8844..3c9ac18241b 100644
+index 016c25f7553..ab819e5fee5 100644
 --- a/build/lib/electron.ts
 +++ b/build/lib/electron.ts
 @@ -9,7 +9,6 @@ import vfs from 'vinyl-fs';
- import filter from 'gulp-filter';
+ import { filter, jsonEditor } from './gulp/facade.ts';
  import * as util from './util.ts';
  import { getVersion } from './getVersion.ts';
 -import electron from '@vscode/gulp-electron';
- import json from 'gulp-json-editor';
  
  type DarwinDocumentSuffix = 'document' | 'script' | 'file' | 'source code';
+ type DarwinDocumentType = {
 @@ -222,7 +221,6 @@ function getElectron(arch: string): () => NodeJS.ReadWriteStream {
  
  		return vfs.src('package.json')
- 			.pipe(json({ name: product.nameShort }))
+ 			.pipe(jsonEditor({ name: product.nameShort }))
 -			.pipe(electron(electronOpts))
  			.pipe(filter(['**', '!**/app/package.json']))
  			.pipe(vfs.dest('.build/electron'));

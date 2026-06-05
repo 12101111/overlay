@@ -1,6 +1,6 @@
-From 6a4ca5919f2c179cd5d1d80d18ceb94d9c87bd6b Mon Sep 17 00:00:00 2001
+From 36ca5203c9fa216354063201011e4a7013ad25b2 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 17 May 2026 16:09:35 +0800
+Date: Fri, 5 Jun 2026 21:23:00 +0800
 Subject: [PATCH 05/14] Build without electron
 
 ---
@@ -9,18 +9,18 @@ Subject: [PATCH 05/14] Build without electron
  2 files changed, 11 insertions(+), 9 deletions(-)
 
 diff --git a/build/gulpfile.vscode.ts b/build/gulpfile.vscode.ts
-index a636b48cd5f..86346fd8a0c 100644
+index 88c66de650e..3cef4cc9de5 100644
 --- a/build/gulpfile.vscode.ts
 +++ b/build/gulpfile.vscode.ts
-@@ -11,7 +11,6 @@ import vfs from 'vinyl-fs';
- import rename from 'gulp-rename';
- import replace from 'gulp-replace';
- import filter from 'gulp-filter';
+@@ -8,7 +8,6 @@ import * as fs from 'fs';
+ import * as path from 'path';
+ import es from 'event-stream';
+ import vfs from 'vinyl-fs';
 -import electron from '@vscode/gulp-electron';
- import jsonEditor from 'gulp-json-editor';
  import * as util from './lib/util.ts';
  import { getVersion } from './lib/getVersion.ts';
-@@ -236,6 +235,13 @@ function computeChecksum(filename: string): string {
+ import { readISODate, writeISODate } from './lib/date.ts';
+@@ -233,6 +232,13 @@ function computeChecksum(filename: string): string {
  	return hash;
  }
  
@@ -55,10 +55,10 @@ index a636b48cd5f..86346fd8a0c 100644
  				'**',
  				'!LICENSE',
 diff --git a/build/npm/preinstall.ts b/build/npm/preinstall.ts
-index cd5b63a14ce..65b03426cf7 100644
+index 54a377a65d2..5cd259e4953 100644
 --- a/build/npm/preinstall.ts
 +++ b/build/npm/preinstall.ts
-@@ -116,6 +116,9 @@ function hasSupportedVisualStudioVersion() {
+@@ -115,6 +115,9 @@ function hasSupportedVisualStudioVersion() {
  }
  
  function installHeaders() {
