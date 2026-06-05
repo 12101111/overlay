@@ -128,6 +128,7 @@ RESTRICT="test"
 PATCHES=(
 	"${FILESDIR}"/${PN}-2.1.11-gentoo.patch
 	"${FILESDIR}"/2.4.2-properly_apply_ro_rw_mount_option_to_superblock.patch
+	"${FILESDIR}"/2.4.2-gcc16-earlyclobber-fix.patch
 )
 
 pkg_pretend() {
