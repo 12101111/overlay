@@ -22,7 +22,7 @@ S="${WORKDIR}/goldendict-ng-${PV}"
 LICENSE="GPL-3"
 SLOT="0"
 KEYWORDS="~amd64 ~arm64"
-IUSE="+epwing tts X wayland zim"
+IUSE="+epwing tts X zim"
 # Actual min ver is 6.2
 # FFMPEG Player is not supported for Qt >= 6.8
 # Gentoo MainTree dropped last version of QT6.8 on 2025/07/10
@@ -71,8 +71,7 @@ src_prepare() {
 	rm_loc() { rm -vf "locale/${1}.ts" || die ;}
 	plocale_for_each_disabled_locale rm_loc
 
-	use wayland && eapply "${FILESDIR}/remove-X11.patch"
-	sed -i "6i#include <sstream>" "${S}/src/metadata.cc" || die
+	eapply "${FILESDIR}/remove-X11.patch"
 
 	cmake_src_prepare
 }
