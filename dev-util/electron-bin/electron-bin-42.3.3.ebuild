@@ -32,7 +32,7 @@ RDEPEND="
 	>=x11-libs/libnotify-0.7.8
 	>=dev-libs/nss-3.26
 	app-crypt/gnupg
-	app-accessibility/at-spi2-atk
+	dev-libs/atk
 	x11-libs/libXScrnSaver
 	x11-libs/libXtst
 	app-crypt/libsecret[crypt]
