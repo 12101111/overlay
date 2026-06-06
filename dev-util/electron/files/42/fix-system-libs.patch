@@ -21,12 +21,13 @@ diff --git a/third_party/electron_node/unofficial.gni b/third_party/electron_nod
 index 71e8ac5..1707509 100644
 --- a/third_party/electron_node/unofficial.gni
 +++ b/third_party/electron_node/unofficial.gni
-@@ -150,7 +150,8 @@ template("node_gn_build") {
+@@ -150,7 +150,9 @@ template("node_gn_build") {
    source_set("libnode") {
      configs += [
        ":node_internal_config",
 -      "//build/config/compiler:no_exit_time_destructors"
 +      "//build/config/compiler:no_exit_time_destructors",
++      ":cares",
 +      ":nghttp2"
      ]
      public_configs = [

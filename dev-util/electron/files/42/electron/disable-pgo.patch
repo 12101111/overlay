@@ -1,0 +1,12 @@
+diff --git a/build/args/release.gn b/build/args/release.gn
+index 59326deae7..3663c90bf4 100644
+--- a/build/args/release.gn
++++ b/build/args/release.gn
+@@ -15,5 +15,5 @@ is_component_ffmpeg = true
+ # so this file only needs to point V8's builtins profiling at the Electron
+ # profile. Both are downloaded by gclient hooks; see
+ # build/pgo_profiles/README.md.
+-v8_builtins_profiling_log_file =
+-    "//electron/build/pgo_profiles/electron-v8-builtins.profile"
++#v8_builtins_profiling_log_file =
++#    "//electron/build/pgo_profiles/electron-v8-builtins.profile"

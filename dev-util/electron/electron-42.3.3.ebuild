@@ -7,7 +7,6 @@ GN_MIN_VER=0.2354
 NODE_VER="24.12.0"
 ESBUILD_VER="0.25.1"
 ROLLUP_VER="4.57.1" # currently manual.
-VIRTUALX_REQUIRED="pgo"
 
 CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu he
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
@@ -1298,7 +1297,7 @@ LICENSE+=" Unicode-DFS-2015 Unlicense UoI-NCSA ZLIB libtiff openssl"
 SLOT="${PV%%[.+]*}"
 KEYWORDS="~amd64 ~arm64 ~loong"
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu"
-IUSE="hevc +X custom-cflags ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium headless kerberos +official pax-kernel pgo +proprietary-codecs pulseaudio"
+IUSE="hevc +X custom-cflags ${IUSE_SYSTEM_LIBS} bindist cups debug ffmpeg-chromium headless kerberos +official pax-kernel +proprietary-codecs pulseaudio"
 IUSE+=" +screencast selinux +vaapi +wayland cpu_flags_ppc_vsx3"
 RESTRICT="
 	!bindist? ( bindist )
@@ -1471,10 +1470,9 @@ pre_build_checks() {
 	local extra_disk=1 # Always include a little extra space
 	local memory=4
 	tc-is-cross-compiler && extra_disk=$((extra_disk * 2))
-	if tc-is-lto || use pgo; then
+	if tc-is-lto; then
 		memory=$((memory * 2 + 1))
 		tc-is-cross-compiler && extra_disk=$((extra_disk * 2)) # Double the requirements
-		use pgo && extra_disk=$((extra_disk + 4))
 	fi
 	if is-flagq '-g?(gdb)?([1-9])'; then
 		if use custom-cflags; then
@@ -1560,7 +1558,6 @@ pkg_setup() {
 		fi
 
 		if tc-is-cross-compiler; then
-			use pgo && die "The pgo USE flag cannot be used when cross-compiling"
 			CPP="${CBUILD}-clang++-${LLVM_SLOT} -E"
 		fi
 
@@ -1681,8 +1678,6 @@ src_prepare() {
 	ln -s "${S}" "${WORKDIR}/src" || die
 	mv "${WORKDIR}/${NODE_P}/" "${NODE_S}/" || die
 	mv "${WORKDIR}/${P}" "${S}/electron" || die
-
-	# eapply "${FILESDIR}/${SLOT}/chromium/"
 
 	if use elibc_musl; then
 		eapply "${FILESDIR}/${SLOT}/musl"
@@ -1821,6 +1816,9 @@ EOF
 			einfo "Skip patches for ${repopath}"
 		fi
 	done
+
+	cd "${S}"/v8 || die
+	eapply "${FILESDIR}/${SLOT}/nullptr_t_fix.patch"
 
 	cd "${S}" || die
 	eapply "${FILESDIR}/${SLOT}/fix-system-libs.patch"
@@ -2589,11 +2587,7 @@ src_configure() {
 		myconf_gn+=( "symbol_level=0" )
 	fi
 
-	if use pgo; then
-		myconf_gn+=( "chrome_pgo_phase=2" )
-	else
-		myconf_gn+=( "chrome_pgo_phase=0" )
-	fi
+	myconf_gn+=( "chrome_pgo_phase=0" )
 
 	# Odds and ends
 
@@ -2683,11 +2677,6 @@ src_compile() {
 				pax-mark m "out/Release/${x}"
 			fi
 		done
-	fi
-
-	#Fix node build error: https://github.com/webpack/webpack/issues/14532#issuecomment-947012063
-	if has_version ">=dev-libs/openssl-3.0.0"; then
-		export NODE_OPTIONS=--openssl-legacy-provider
 	fi
 
 	# Even though ninja autodetects number of CPUs, we respect
