@@ -3371,6 +3371,7 @@ src_prepare() {
 	done
 	popd >/dev/null || die
 
+	sed -i '/tree-sitter"/d' build/package.json || die
 	# GIT dependency can't fetch via cache
 	cp "${DISTDIR}/css-parser-${CSS_PARSER_COMMIT}.tar.gz" "${TMPDIR}/css-parser.tgz"
 	sed -i "s|\"@emmetio/css-parser\": \"ramya-rao-a/css-parser#vscode\",|\"@emmetio/css-parser\": \"file:/${TMPDIR}/css-parser.tgz\",|" \
@@ -3424,7 +3425,7 @@ src_install() {
 	if use system-ripgrep; then
 		# old path with asar enabled
 		#local ripgrep_path="${ED}${vscode_path}/resources/app/node_modules.asar.unpacked/@vscode/ripgrep/bin/rg"
-		local ripgrep_path="${ED}${vscode_path}/resources/app/node_modules/@vscode/ripgrep/bin/rg"
+		local ripgrep_path="${ED}${vscode_path}/resources/app/node_modules/@vscode/ripgrep-universal/bin/linux-$(get_arch)/rg"
 		rm "${ripgrep_path}" || die
 		ln -s /usr/bin/rg "${ripgrep_path}" || die
 	fi
