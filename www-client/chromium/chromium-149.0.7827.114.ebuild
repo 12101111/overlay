@@ -23,11 +23,11 @@ EAPI=8
 # using an external CI system that we have some control over, in case
 # issues pop up again with official tarball generation.
 
-GN_MIN_VER=0.2354
+GN_MIN_VER=0.2374
 # chromium-tools/get-chromium-toolchain-strings.py (or just use Chromicler)
-TEST_FONT="a28b222b79851716f8358d2800157d9ffe117b3545031ae51f69b7e1e1b9a969"
-BUNDLED_CLANG_VER="llvmorg-23-init-5669-g8a0be0bc-4"
-BUNDLED_RUST_VER="6f54d591c3116ee7f8ce9321ddeca286810cc142-7"
+TEST_FONT="9c07d19d9c5ee1ff94f717e6fb17e0c8c354e6f9"
+BUNDLED_CLANG_VER="llvmorg-23-init-10931-g20b6ec66-8"
+BUNDLED_RUST_VER="4c4205163abcbd08948b3efab796c543ba1ea687-2"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
 NODE_VER="24.12.0"
 ESBUILD_VER="0.25.1"
@@ -39,7 +39,7 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
 LLVM_COMPAT=( 21 22 )
-PYTHON_COMPAT=( python3_{11..13} )
+PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.91.0
 RUST_NEEDS_LLVM="yes please"
@@ -53,8 +53,8 @@ inherit rust-toolchain
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
 PPC64_HASH="a85b64f07b489b8c6fdb13ecf79c16c56c560fc6"
-PATCH_V="${PV%%\.*}-3"
-COPIUM_COMMIT="fe1caafa06f27542c18a881348f78e984e2d9fe2"
+PATCH_V="${PV%%\.*}-2"
+COPIUM_COMMIT="b00f26bb5e0781020da5f830981472a142c6baf1"
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
@@ -155,7 +155,6 @@ COMMON_SNAPSHOT_DEPEND="
 		wayland? (
 			dev-libs/libffi:=
 			dev-libs/wayland:=
-			screencast? ( media-video/pipewire:= )
 		)
 	)
 "
@@ -178,6 +177,7 @@ COMMON_DEPEND="
 		cups? ( >=net-print/cups-1.3.11:= )
 		qt6? ( dev-qt/qtbase:6[gui,widgets] )
 		X? ( ${COMMON_X_DEPEND} )
+		wayland? ( screencast? ( media-video/pipewire:= ) )
 	)
 	elibc_musl? (
 		sys-libs/musl-legacy-compat
@@ -202,8 +202,10 @@ RDEPEND="${COMMON_DEPEND}
 		ffmpeg-chromium? ( media-video/ffmpeg-chromium:${PV%%\.*} )
 	)
 "
+# For M149+ pipewire is a mandatory build-time dependency, but it's optional at runtime for most configurations.
 DEPEND="${COMMON_DEPEND}
 	!headless? (
+		media-video/pipewire
 		gtk4? ( gui-libs/gtk:4[X?,wayland?] )
 		!gtk4? ( x11-libs/gtk+:3[X?,wayland?] )
 	)
@@ -576,6 +578,7 @@ src_prepare() {
 		# Copium patches go here.
 		PATCHES+=(
 			"${WORKDIR}/copium/cr143-libsync-__BEGIN_DECLS.patch"
+			"${WORKDIR}/copium/cr149-unbundle-minizip-undo-unicode.patch"
 		)
 
 		# Automate conditional application of chromium-patches
@@ -606,7 +609,8 @@ src_prepare() {
 			[[ "${category_name}" == "common" ]] && continue
 
 			# Unconditional patches for this category
-			PATCHES+=( "${category}"*.patch )
+			local category_patches=( "${category}"*.patch )
+			[[ ${#category_patches[@]} -gt 0 ]] && PATCHES+=( "${category}" )
 
 			# Version-constrained subdirectories (e.g., llvm/lt-23/)
 			for constraint_dir in "${category}"*/; do
@@ -614,7 +618,7 @@ src_prepare() {
 				dir_name="${dir_name##*/}"
 				if [[ "${dir_name}" =~ ^lt-(.*)$ && -v slot_map[${category_name}] ]]; then
 					ver_test "${slot_map[${category_name}]}" -lt "${BASH_REMATCH[1]}" &&
-						PATCHES+=( "${constraint_dir}"*.patch )
+						PATCHES+=( "${constraint_dir}" )
 				fi
 			done
 		done
@@ -820,6 +824,7 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/mitt
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/parsel-js
 		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/rxjs
+		third_party/devtools-frontend/src/front_end/third_party/puppeteer/package/lib/esm/third_party/urlpattern-polyfill
 		third_party/devtools-frontend/src/front_end/third_party/source-map-scopes-codec
 		third_party/devtools-frontend/src/front_end/third_party/third-party-web
 		third_party/devtools-frontend/src/front_end/third_party/vscode.web-custom-data
@@ -853,8 +858,6 @@ src_prepare() {
 		third_party/gperf # We symlink system gperf, but this will purge the symlink since we tidy up afterwards.
 		third_party/highway
 		third_party/hunspell
-		third_party/ink_stroke_modeler/src/ink_stroke_modeler
-		third_party/ink_stroke_modeler/src/ink_stroke_modeler/internal
 		third_party/ink/src/ink/brush
 		third_party/ink/src/ink/color
 		third_party/ink/src/ink/geometry
@@ -1233,18 +1236,21 @@ chromium_configure() {
 			"use_clang_modules=false" # M141 enables this for the linux platform by default.
 			"use_lld=true"
 			'custom_toolchain="//build/toolchain/linux/unbundle:default"'
-			# From M127 we need to provide a location for libclang.
-			# We patch this in for gentoo - see chromium-*-bindgen-custom-toolchain.patch
-			# rust_bindgen_root = directory with `bin/bindgen` beneath it.
-			# We don't need to set 'clang_base_path' for anything in our build
-			# and it defaults to the google toolchain location. Instead provide a location
-			# to where system clang lives so that bindgen can find system headers (e.g. stddef.h)
+			# From M127 we need to provide a location for libclang and the clang resource dir so that bindgen can find them
 			"bindgen_libclang_path=\"$(get_llvm_prefix)/$(get_libdir)\""
+			"bindgen_clang_resource_dir=\"${EPREFIX}/usr/lib/clang/${LLVM_SLOT}/include\""
+			"bindgen_extra_clang_args=[\"-I${EPREFIX}/usr/lib/clang/${LLVM_SLOT}/include\"]"
 			"clang_base_path=\"${EPREFIX}/usr/lib/clang/${LLVM_SLOT}/\""
 			"rust_bindgen_root=\"${EPREFIX}/usr/\""
 			"rust_sysroot_absolute=\"$(get_rust_prefix)\""
 			"rustc_version=\"${RUST_SLOT}\""
 		)
+
+		if [[ ${LLVM_SLOT} -lt 23 ]]; then
+			# Workaround for -fsanitize-ignore-for-ubsan-feature (added in LLVM 23)
+			myconf_gn+=( 'clang_has_ubsan_feature_ignore=false' )
+		fi
+
 		use elibc_musl && myconf_gn+=( "rust_abi_target=\"$(rust_abi)\"" )
 
 		if ! tc-is-cross-compiler; then
@@ -1408,6 +1414,8 @@ chromium_configure() {
 			"ozone_platform_x11=$(usex X true false)"
 			"ozone_platform=\"$(usex wayland wayland x11)\""
 			"rtc_use_pipewire=$(usex screencast true false)"
+			# As above - link directly instead of dlopening
+			"rtc_link_pipewire=$(usex screencast true false)"
 			"use_cups=$(usex cups true false)"
 			"use_kerberos=$(usex kerberos true false)"
 			"use_pulseaudio=$(usex pulseaudio true false)"
@@ -1632,8 +1640,6 @@ src_test() {
 		StackTraceDeathTest.StackDumpSignalHandlerIsMallocFree
 		TestLauncherTools.TruncateSnippetFocusedMatchesFatalMessagesTest
 		ThreadPoolEnvironmentConfig.CanUseBackgroundPriorityForWorker
-		# M148 Beta
-		RunUntilTestWithMockTime.ConditionOnlyObservedIfWorkIsDone
 	)
 	local test_filter="-$(IFS=:; printf '%s' "${skip_tests[*]}")"
 	# test-launcher-bot-mode enables parallelism and plain output
