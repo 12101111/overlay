@@ -1,5 +1,5 @@
 diff --git a/build/package-lock.json b/build/package-lock.json
-index 76690882a86..221531ef4dc 100644
+index 12162d6054f..186ceeea397 100644
 --- a/build/package-lock.json
 +++ b/build/package-lock.json
 @@ -63,7 +63,6 @@
@@ -9,8 +9,8 @@ index 76690882a86..221531ef4dc 100644
 -        "tree-sitter": "^0.22.4",
          "vscode-universal-bundler": "^0.1.3",
          "workerpool": "^6.4.0",
-         "yauzl": "^2.10.0",
-@@ -4793,8 +4792,8 @@
+         "yauzl": "^3.3.1",
+@@ -4851,8 +4850,8 @@
        "version": "4.8.4",
        "resolved": "https://registry.npmjs.org/node-gyp-build/-/node-gyp-build-4.8.4.tgz",
        "integrity": "sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==",
@@ -20,7 +20,7 @@ index 76690882a86..221531ef4dc 100644
        "bin": {
          "node-gyp-build": "bin.js",
          "node-gyp-build-optional": "optional.js",
-@@ -6445,18 +6444,6 @@
+@@ -6503,18 +6502,6 @@
          "node": ">=8.0"
        }
      },
@@ -39,7 +39,7 @@ index 76690882a86..221531ef4dc 100644
      "node_modules/tree-sitter-javascript": {
        "version": "0.23.1",
        "resolved": "https://registry.npmjs.org/tree-sitter-javascript/-/tree-sitter-javascript-0.23.1.tgz",
-@@ -6518,16 +6505,6 @@
+@@ -6576,16 +6563,6 @@
          "node": "^18 || ^20 || >= 21"
        }
      },
@@ -56,31 +56,3 @@ index 76690882a86..221531ef4dc 100644
      "node_modules/tslib": {
        "version": "2.8.1",
        "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
-diff --git a/package-lock.json b/package-lock.json
-index 68f234332b8..a27f2f94f32 100644
---- a/package-lock.json
-+++ b/package-lock.json
-@@ -17512,6 +17512,9 @@
-         "nan": "^2.23.0"
-       }
-     },
-+    "node_modules/ssh2/node_modules/cpu-features": {
-+      "optional": true
-+    },
-     "node_modules/stable": {
-       "version": "0.1.8",
-       "resolved": "https://registry.npmjs.org/stable/-/stable-0.1.8.tgz",
-diff --git a/remote/package-lock.json b/remote/package-lock.json
-index aec01221808..7234469b53c 100644
---- a/remote/package-lock.json
-+++ b/remote/package-lock.json
-@@ -1566,6 +1566,9 @@
-         "nan": "^2.23.0"
-       }
-     },
-+    "node_modules/ssh2/node_modules/cpu-features": {
-+      "optional": true
-+    },
-     "node_modules/string_decoder": {
-       "version": "1.3.0",
-       "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-1.3.0.tgz",

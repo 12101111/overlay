@@ -1,4 +1,4 @@
-From c2d2d3f6bb6227f6b2d5d4735b9c96bae1967586 Mon Sep 17 00:00:00 2001
+From ca310e4c51193eb2654cc734ffc427ac0f47eba8 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 5 Jun 2026 21:27:35 +0800
 Subject: [PATCH 13/14] skip npm version check
