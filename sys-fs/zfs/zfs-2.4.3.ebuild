@@ -10,7 +10,7 @@ EAPI=8
 
 DISTUTILS_OPTIONAL=1
 DISTUTILS_USE_PEP517=setuptools
-PYTHON_COMPAT=( python3_{11..15} )
+PYTHON_COMPAT=( python3_{12..15} )
 
 MODULES_INITRAMFS_IUSE=+initramfs
 MODULES_OPTIONAL_IUSE=+modules
@@ -81,17 +81,6 @@ BDEPEND="
 	)
 "
 
-if [[ ${PV} != "9999" ]] ; then
-	BDEPEND+=" verify-sig? ( sec-keys/openpgp-keys-openzfs )"
-
-	IUSE+=" +dist-kernel-cap"
-	RDEPEND="
-		dist-kernel-cap? ( dist-kernel? (
-			<virtual/dist-kernel-${ZFS_KERNEL_DEP}
-		) )
-	"
-fi
-
 # awk is used for some scripts, completions, and the Dracut module
 RDEPEND="
 	${DEPEND}
@@ -117,6 +106,17 @@ RDEPEND="
 	!<sys-fs/zfs-kmod-2.4.0_rc2-r1
 "
 
+if [[ ${PV} != "9999" ]] ; then
+	BDEPEND+=" verify-sig? ( sec-keys/openpgp-keys-openzfs )"
+
+	IUSE+=" +dist-kernel-cap"
+	RDEPEND+="
+		dist-kernel-cap? ( dist-kernel? (
+			<virtual/dist-kernel-${ZFS_KERNEL_DEP}
+		) )
+	"
+fi
+
 REQUIRED_USE="
 	!minimal? ( ${PYTHON_REQUIRED_USE} )
 	python? ( !minimal )
@@ -127,8 +127,6 @@ RESTRICT="test"
 
 PATCHES=(
 	"${FILESDIR}"/${PN}-2.1.11-gentoo.patch
-	"${FILESDIR}"/2.4.2-properly_apply_ro_rw_mount_option_to_superblock.patch
-	"${FILESDIR}"/2.4.2-gcc16-earlyclobber-fix.patch
 )
 
 pkg_pretend() {
