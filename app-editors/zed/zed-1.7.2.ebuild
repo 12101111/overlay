@@ -29,8 +29,8 @@ declare -A GIT_CRATES=(
 	[merman-render]='https://github.com/zed-industries/merman;06094471f97acb10d0eebf8b92bac19ba2928eea;merman-%commit%/crates/merman-render'
 	[merman]='https://github.com/zed-industries/merman;06094471f97acb10d0eebf8b92bac19ba2928eea;merman-%commit%/crates/merman'
 	[naga]='https://github.com/zed-industries/wgpu;357a0c56e0070480ad9daea5d2eaa83150b79e88;wgpu-%commit%/naga'
-	[notify-types]='https://github.com/zed-industries/notify;6566ae63331ffd1f2025b18dc00c3049fb8588c9;notify-%commit%/notify-types'
-	[notify]='https://github.com/zed-industries/notify;6566ae63331ffd1f2025b18dc00c3049fb8588c9;notify-%commit%/notify'
+	[notify-types]='https://github.com/zed-industries/notify;faecbc33db4f59313e5225ef766bfd9e54a54cfd;notify-%commit%/notify-types'
+	[notify]='https://github.com/zed-industries/notify;faecbc33db4f59313e5225ef766bfd9e54a54cfd;notify-%commit%/notify'
 	[nvim-rs]='https://github.com/KillTheMule/nvim-rs;764dd270c642f77f10f3e19d05cc178a6cbe69f3;nvim-rs-%commit%'
 	[pet-conda]='https://github.com/microsoft/python-environment-tools;9e61a22af989fe54937bf07c9f9cff1bc53d9056;python-environment-tools-%commit%/crates/pet-conda'
 	[pet-core]='https://github.com/microsoft/python-environment-tools;9e61a22af989fe54937bf07c9f9cff1bc53d9056;python-environment-tools-%commit%/crates/pet-core'
@@ -119,8 +119,8 @@ LICENSE="GPL-3+"
 LICENSE+=" BSD"
 # Dependent crate licenses
 LICENSE+="
-	Apache-2.0 Apache-2.0-with-LLVM-exceptions BSD-2 BSD CC0-1.0 ISC
-	LGPL-3 MIT MIT-0 MPL-2.0 UoI-NCSA Unicode-3.0 ZLIB BZIP2
+	Apache-2.0 Apache-2.0-with-LLVM-exceptions BSD-2 BSD Boost-1.0
+	CC0-1.0 ISC LGPL-3 MIT MIT-0 MPL-2.0 UoI-NCSA Unicode-3.0 ZLIB BZIP2
 "
 IUSE="+collab"
 SLOT="0"
@@ -219,10 +219,10 @@ src_prepare() {
 	local WEBRTC_SYS_GIT="webrtc-sys = { git = \"https://github.com/zed-industries/livekit-rust-sdks\", rev = \"${LIVEKIT_COMMIT}\""
 	local WEBRTC_SYS_PATH="webrtc-sys = \\{ path = \"${WORKDIR}/livekit-rust-sdks-${LIVEKIT_COMMIT}/webrtc-sys\""
 
-	local NOTIFY_COMMIT="6566ae63331ffd1f2025b18dc00c3049fb8588c9"
-	local NOTIFY_GIT="notify = { git = \"https://github.com/zed-industries/notify.git\", rev = \"${NOTIFY_COMMIT}\""
+	local NOTIFY_COMMIT="faecbc33db4f59313e5225ef766bfd9e54a54cfd"
+	local NOTIFY_GIT="notify = { git = \"https://github.com/zed-industries/notify\", rev = \"${NOTIFY_COMMIT}\""
 	local NOTIFY_PATH="notify = \\{ path = \"${WORKDIR}/notify-${NOTIFY_COMMIT}/notify\""
-	local NOTIFY_TYPES_GIT="notify-types = { git = \"https://github.com/zed-industries/notify.git\", rev = \"${NOTIFY_COMMIT}\""
+	local NOTIFY_TYPES_GIT="notify-types = { git = \"https://github.com/zed-industries/notify\", rev = \"${NOTIFY_COMMIT}\""
 	local NOTIFY_TYPES_PATH="notify-types = \\{ path = \"${WORKDIR}/notify-${NOTIFY_COMMIT}/notify-types\""
 
 	local WIN_CAP_COMMIT="f0d6c1b6691db75461b732f6d5ff56eed002eeb9"
