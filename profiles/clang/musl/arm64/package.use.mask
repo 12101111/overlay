@@ -1,3 +1,0 @@
-# Only works on amd64
-www-client/chromium pgo
-dev-util/electron pgo
