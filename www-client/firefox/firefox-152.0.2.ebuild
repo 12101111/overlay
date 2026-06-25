@@ -804,9 +804,10 @@ src_configure() {
 		mozconfig_add_options_ac '' --enable-sandbox
 	fi
 
-	# riscv-related options, bgo#947337, bgo#947338
+	# riscv-related options, bgo#947337, bgo#947338, bgo#977845
 	if use riscv ; then
 		mozconfig_add_options_ac 'Disable webrtc for RISC-V' --disable-webrtc
+		mozconfig_add_options_ac 'Disable JIT for RISC-V' --disable-jit
 	fi
 
 	if [[ -s "${S}/api-google.key" ]] ; then
