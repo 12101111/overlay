@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-152-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-152-patches-02.tar.xz"
 
 LLVM_COMPAT=( 21 22 )
 
@@ -566,7 +566,6 @@ src_prepare() {
 	# Workaround for bgo#915651 and bmo#1988166 on musl
 	if use elibc_glibc ; then
 		rm -v "${WORKDIR}"/firefox-patches/*bgo-748849-RUST_TARGET_override.patch || die
-		rm -v "${WORKDIR}"/firefox-patches/*bmo-1988166-musl-remove-nonexisting-system-header-req.patch || die
 		rm -v "${WORKDIR}"/firefox-patches/*bgo-967694-musl-prctrl-exception-on-musl.patch || die
 	fi
 	rm -v "${WORKDIR}"/firefox-patches/*bgo-940031-wasm-support.patch || die
