@@ -3,7 +3,7 @@
 
 EAPI=8
 
-PYTHON_COMPAT=( python3_{11..14} )
+PYTHON_COMPAT=( python3_{12..14} )
 LLVM_COMPAT=( {18..22} )
 
 inherit python-any-r1 llvm-r2
@@ -11,7 +11,7 @@ inherit python-any-r1 llvm-r2
 DESCRIPTION="framework for Verilog RTL synthesis"
 HOMEPAGE="https://yosyshq.net/yosys/"
 SRC_URI="
-	https://github.com/YosysHQ/${PN}/releases/download/v${PV}/yosys.tar.gz -> ${P}.tar.gz
+	https://github.com/YosysHQ/${PN}/releases/download/v${PV}/yosys-src.tar.gz -> ${P}.tar.gz
 "
 S="${WORKDIR}"
 
@@ -38,19 +38,13 @@ BDEPEND="
 	virtual/pkgconfig
 "
 
-src_prepare() {
-	default
-
-	# Fix execute permissions and add shebang for Python scripts
-	local script
-	while IFS= read -r -d '' script; do
-		chmod +x "${script}" || die
-		# Add shebang if missing
-		if ! head -n 1 "${script}" | grep -q '^#!'; then
-			sed -i '1i#!/usr/bin/env python3' "${script}" || die
-		fi
-	done < <(find . -name "*.py" -print0)
-
+pkg_setup() {
+	# llvm-r2 and python-any-r1 both export pkg_setup and llvm-r2 wins,
+	# leaving PYTHON unset, so call python_setup ourselves.  An empty
+	# PYTHON_EXECUTABLE makes the Makefile run helper scripts via their env
+	# python3 shebang, which breaks with python-exec[-native-symlinks].
+	llvm-r2_pkg_setup
+	python_setup
 }
 
 src_configure() {
@@ -63,4 +57,12 @@ src_configure() {
 	__EOF__
 
 	default
+}
+
+src_install() {
+	default
+
+	# yosys-smtbmc and yosys-witness keep an env python3 shebang that also
+	# breaks under python-exec[-native-symlinks]; retarget them at EPYTHON.
+	python_fix_shebang "${ED}"/usr/bin/yosys-smtbmc "${ED}"/usr/bin/yosys-witness
 }
