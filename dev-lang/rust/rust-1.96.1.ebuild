@@ -6,7 +6,7 @@ EAPI=8
 # Bump notes: https://wiki.gentoo.org/wiki/Project:Rust/Rust_bump
 
 LLVM_COMPAT=( 22 )
-PYTHON_COMPAT=( python3_{11..14} )
+PYTHON_COMPAT=( python3_{12..14} )
 
 # Patches are kept in rust-patches.git, see its README.rst for the versioning
 # scheme.
@@ -15,7 +15,7 @@ PYTHON_COMPAT=( python3_{11..14} )
 # in the ebuild for changes that don't require a revbump.
 #
 # Uncomment this line when the ebuild needs a patchset update but no revbump.
-RUST_PATCH_VER=1.95.0
+# RUST_PATCH_VER=${PV}-1
 
 RUST_MAX_VER=${PV%%_*}
 RUST_PV=${PV%%_p*}
@@ -24,7 +24,7 @@ RUST_P=${PN}-${RUST_PV}
 
 if [[ ${PV} == *9999* ]]; then
 	# Update this as new `beta` releases come out.
-	RUST_MIN_VER="1.94.0"
+	RUST_MIN_VER="1.97.0"
 elif [[ ${PV} == *beta* ]]; then
 	RUST_MIN_VER="$(ver_cut 1).$(($(ver_cut 2) - 1)).0"
 else
@@ -364,11 +364,9 @@ src_prepare() {
 	# then cut a new tag / tarball. Don't add patches to ${FILESDIR}
 	PATCHES=(
 		"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"
-		"${FILESDIR}/1.96.0-compiler-musl-dynamic-linking.patch"
 		"${FILESDIR}/rust-1.92.0-disable-link-self-contained.patch"
 		"${FILESDIR}/rust-1.92.0-dont-install-self-contained.patch"
 	)
-	rm "${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"1.94.0-compiler-musl-dynamic-linking.patch
 
 	if use lto && tc-is-clang && ! tc-ld-is-lld && ! tc-ld-is-mold; then
 		export RUSTFLAGS+=" -C link-arg=-fuse-ld=lld"
@@ -380,9 +378,61 @@ src_prepare() {
 src_configure() {
 	if tc-is-cross-compiler; then
 		export PKG_CONFIG_ALLOW_CROSS=1
-		export PKG_CONFIG_PATH="${ESYSROOT}/usr/$(get_libdir)/pkgconfig"
-		export OPENSSL_INCLUDE_DIR="${ESYSROOT}/usr/include"
-		export OPENSSL_LIB_DIR="${ESYSROOT}/usr/$(get_libdir)"
+
+		local rust_host_triple="$(rust_abi "${CHOST}")"
+
+		# https://docs.rs/pkg-config/latest/pkg_config/#cross-compilation
+		local pcvar
+		for pcvar in PKG_CONFIG_{PATH,LIBDIR} ; do
+			pcvar="${pcvar}_${rust_host_triple//-/_}"
+
+			[[ -n ${!pcvar} ]] && continue
+
+			case ${pcvar} in
+				*PKG_CONFIG_PATH*)
+					printf -v "${pcvar}" "${ESYSROOT}/usr/$(get_libdir)/pkgconfig"
+					;;
+				*PKG_CONFIG_LIBDIR*)
+					printf -v "${pcvar}" "${ESYSROOT}/usr/$(get_libdir)"
+					;;
+				*)
+					continue
+					;;
+			esac
+
+			export "${pcvar}"
+		done
+
+		# https://docs.rs/openssl/latest/openssl/#manual
+		local osslvar
+		for osslvar in OPENSSL_{INCLUDE_,LIB_,}DIR ; do
+			osslvar="${rust_host_triple}_${osslvar}"
+			osslvar="${osslvar^^}"
+			osslvar="${osslvar//-/_}"
+
+			[[ -n ${!osslvar} ]] && continue
+
+			case ${osslvar} in
+				*OPENSSL_DIR*)
+					printf -v "${osslvar}" "${ESYSROOT}/usr"
+					;;
+				*OPENSSL_INCLUDE_DIR*)
+					printf -v "${osslvar}" "${ESYSROOT}/usr/include"
+					;;
+				*OPENSSL_LIB_DIR*)
+					printf -v "${osslvar}" "${ESYSROOT}/usr/$(get_libdir)"
+					;;
+				*)
+					continue
+					;;
+			esac
+
+			export "${osslvar}"
+		done
+
+		# https://issues.chromium.org/issues/357917328
+		# https://github.com/rust-lang/libz-sys/blob/1.1.18/build.rs#L25
+		export LIBZ_SYS_STATIC=1
 	fi
 
 	# Avoid bundled copies of libraries
