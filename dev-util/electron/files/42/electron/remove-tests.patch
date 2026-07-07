@@ -78,3 +78,343 @@ index c64b4c8419..88b118654b 100644
 -   v8::FunctionTemplate::NewWithCFunctionOverloads(
 -       isolate, ApiObjectChecker::SlowCallback, Local<v8::Value>(),
 -       v8::Local<v8::Signature>(), 1, v8::ConstructorBehavior::kAllow,
+diff --git a/patches/chromium/cherry-pick-dbe9c63eb518.patch b/patches/chromium/cherry-pick-dbe9c63eb518.patch
+index df825285a2..ca827f8d7c 100644
+--- a/patches/chromium/cherry-pick-dbe9c63eb518.patch
++++ b/patches/chromium/cherry-pick-dbe9c63eb518.patch
+@@ -250,224 +250,3 @@ index 381f92b90579f94851bd2bde205a68b7846848fc..be5fa54793edc1f71d1464e91f8e1dd4
+    } else if (element->IsElementImage()) {
+      if (const auto& record = element->GetAsElementImage()->PaintRecord()) {
+        child_paint_record = *record;
+-diff --git a/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/draw-element-different-canvas.html b/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/draw-element-different-canvas.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..90edf30999864fe0507910b8ba075ec7bae174ed
+---- /dev/null
+-+++ b/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/draw-element-different-canvas.html
+-@@ -0,0 +1,46 @@
+-+<!DOCTYPE HTML>
+-+<title>Prevent drawing Elements into different canvases</title>
+-+<script src='/resources/testharness.js'></script>
+-+<script src='/resources/testharnessreport.js'></script>
+-+<script src="/wpt_internal/resources/canvas-draw-element/waitForCanvasPaint.js"></script>
+-+<style>
+-+  #child1, #child2 {
+-+    width: 100px;
+-+    height: 100px;
+-+    background: green;
+-+  }
+-+</style>
+-+<canvas id="canvas1" width="200" height="200" layoutsubtree>
+-+  <div id="child1"></div>
+-+</canvas>
+-+<canvas id="canvas2" width="200" height="200" layoutsubtree>
+-+  <div id="child2"></div>
+-+</canvas>
+-+
+-+<script>
+-+  'use strict';
+-+
+-+  promise_test(async t => {
+-+    await waitForCanvasPaint(canvas1);
+-+
+-+    const ctx2 = canvas2.getContext('2d');
+-+
+-+    assert_throws_dom('InvalidStateError', () => {
+-+      ctx2.drawElementImage(child1, 0, 0);
+-+    }, 'Drawing an Element from a different canvas must throw InvalidStateError');
+-+
+-+    assert_throws_dom('InvalidStateError', () => {
+-+      canvas2.getElementTransform(child1, new DOMMatrix());
+-+    }, 'Getting transform for an Element from a different canvas must throw InvalidStateError');
+-+
+-+    assert_throws_dom('InvalidStateError', () => {
+-+      let standaloneCtx = new OffscreenCanvas(200, 200).getContext('2d');
+-+      standaloneCtx.drawElementImage(child1, 0, 0);
+-+    }, 'Drawing an Element into a standalone OffscreenCanvas must throw InvalidStateError');
+-+
+-+    assert_throws_dom('InvalidStateError', () => {
+-+      let standalone = new OffscreenCanvas(200, 200);
+-+      standalone.getElementTransform(child1, new DOMMatrix());
+-+    }, 'Getting transform for an Element from a standalone OffscreenCanvas must throw InvalidStateError');
+-+  }, 'Prevent drawing Element into a different canvas');
+-+</script>
+-diff --git a/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/draw-element-image-different-canvas.html b/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/draw-element-image-different-canvas.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..e33c1abd166705942ce4c609d636d526d8a57760
+---- /dev/null
+-+++ b/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/draw-element-image-different-canvas.html
+-@@ -0,0 +1,124 @@
+-+<!DOCTYPE HTML>
+-+<title>Prevent drawing ElementImages into different canvases</title>
+-+<script src='/resources/testharness.js'></script>
+-+<script src='/resources/testharnessreport.js'></script>
+-+<script src="/wpt_internal/resources/canvas-draw-element/waitForCanvasPaint.js"></script>
+-+<style>
+-+  #child1, #child2 {
+-+    width: 100px;
+-+    height: 100px;
+-+    background: green;
+-+  }
+-+</style>
+-+<canvas id="canvas1" width="200" height="200" layoutsubtree>
+-+  <div id="child1"></div>
+-+</canvas>
+-+<canvas id="canvas2" width="200" height="200" layoutsubtree>
+-+  <div id="child2"></div>
+-+</canvas>
+-+<canvas id="canvas3" width="200" height="200" layoutsubtree></canvas>
+-+
+-+<script>
+-+  'use strict';
+-+
+-+  promise_test(async t => {
+-+    await waitForCanvasPaint(canvas1);
+-+
+-+    const elementImage1 = canvas1.captureElementImage(child1);
+-+    const ctx2 = canvas2.getContext('2d');
+-+
+-+    assert_throws_dom('InvalidStateError', () => {
+-+      ctx2.drawElementImage(elementImage1, 0, 0);
+-+    }, 'Drawing an ElementImage into a different canvas must throw InvalidStateError');
+-+
+-+    assert_throws_dom('InvalidStateError', () => {
+-+      canvas2.getElementTransform(elementImage1, new DOMMatrix());
+-+    }, 'Getting transform for an ElementImage from a different canvas must throw InvalidStateError');
+-+
+-+    assert_throws_dom('InvalidStateError', () => {
+-+      let standaloneCtx = new OffscreenCanvas(200, 200).getContext('2d');
+-+      standaloneCtx.drawElementImage(elementImage1, 0, 0);
+-+    }, 'Drawing an ElementImage into a standalone OffscreenCanvas must throw InvalidStateError');
+-+
+-+    assert_throws_dom('InvalidStateError', () => {
+-+      let standalone = new OffscreenCanvas(200, 200);
+-+      standalone.getElementTransform(elementImage1, new DOMMatrix());
+-+    }, 'Getting transform for an ElementImage from a standalone OffscreenCanvas must throw InvalidStateError');
+-+  }, 'Prevent drawing ElementImage into a different canvas on main thread');
+-+
+-+  const workerCode = `
+-+    let canvas2, ctx1, ctx2;
+-+    self.onmessage = function(e) {
+-+      if (e.data.canvas1) {
+-+        ctx1 = e.data.canvas1.getContext('2d');
+-+      }
+-+      if (e.data.canvas2) {
+-+        canvas2 = e.data.canvas2;
+-+        ctx2 = canvas2.getContext('2d');
+-+      }
+-+      if (e.data.elementImage1) {
+-+        let results = {};
+-+
+-+        try {
+-+          ctx2.drawElementImage(e.data.elementImage1, 0, 0);
+-+          results.drawError = 'success';
+-+        } catch (e) {
+-+          results.drawError = e.name;
+-+        }
+-+
+-+        try {
+-+          canvas2.getElementTransform(e.data.elementImage1, new DOMMatrix());
+-+          results.transformError = 'success';
+-+        } catch (e) {
+-+          results.transformError = e.name;
+-+        }
+-+
+-+        try {
+-+          let standaloneCtx = new OffscreenCanvas(200, 200).getContext('2d');
+-+          standaloneCtx.drawElementImage(e.data.elementImage1, 0, 0);
+-+          results.standaloneDrawError = 'success';
+-+        } catch (e) {
+-+          results.standaloneDrawError = e.name;
+-+        }
+-+
+-+        try {
+-+          let standalone = new OffscreenCanvas(200, 200);
+-+          standalone.getElementTransform(e.data.elementImage1, new DOMMatrix());
+-+          results.standaloneTransformError = 'success';
+-+        } catch (e) {
+-+          results.standaloneTransformError = e.name;
+-+        }
+-+
+-+        self.postMessage(results);
+-+      }
+-+    };
+-+  `;
+-+
+-+  promise_test(async t => {
+-+    await waitForCanvasPaint(canvas1);
+-+
+-+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+-+    const worker = new Worker(URL.createObjectURL(blob));
+-+
+-+    const offscreen1 = canvas1.transferControlToOffscreen();
+-+    const offscreen2 = canvas3.transferControlToOffscreen();
+-+
+-+    worker.postMessage({ canvas1: offscreen1 }, [offscreen1]);
+-+    worker.postMessage({ canvas2: offscreen2 }, [offscreen2]);
+-+
+-+    const response_promise = new Promise(resolve => {
+-+      worker.onmessage = t.step_func(msg => {
+-+        resolve(msg.data);
+-+      });
+-+    });
+-+
+-+    const elementImage1 = canvas1.captureElementImage(child1);
+-+    worker.postMessage({ elementImage1: elementImage1 }, [elementImage1]);
+-+
+-+    const result = await response_promise;
+-+    assert_equals(result.drawError, 'InvalidStateError', 'Drawing an ElementImage into a different canvas must throw InvalidStateError');
+-+    assert_equals(result.transformError, 'InvalidStateError', 'Getting the transform for an ElementImage from a different canvas must throw InvalidStateError');
+-+    assert_equals(result.standaloneDrawError, 'InvalidStateError', 'Drawing an ElementImage into a standalone OffscreenCanvas must throw InvalidStateError');
+-+    assert_equals(result.standaloneTransformError, 'InvalidStateError', 'Getting the transform for an ElementImage from a standalone OffscreenCanvas must throw InvalidStateError');
+-+  }, 'Prevent drawing ElementImage into a different canvas in a worker thread');
+-+</script>
+-diff --git a/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/error-conditions.html b/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/error-conditions.html
+-index e7b45d8fed28c4d3a3e8469e41064978e6fbc76f..766b4e1d8fec454e883366bb2191d14744c9fc5f 100644
+---- a/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/error-conditions.html
+-+++ b/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/error-conditions.html
+-@@ -32,7 +32,7 @@ promise_test(async () => {
+-   await new Promise(requestAnimationFrame);
+-   await new Promise(setTimeout);
+- 
+--  assert_throws_js(TypeError,
+-+  assert_throws_dom("InvalidStateError",
+-     () => canvas.getContext("2d").drawElementImage(grandchild, 20, 30),
+-     "Can't draw non-direct children.");
+- 
+-@@ -68,10 +68,10 @@ promise_test(async () => {
+-     "Can't get element transform if layoutsubtree is not specified.");
+- 
+-   // Also test wrong children exceptions
+--  assert_throws_js(TypeError,
+-+  assert_throws_dom("InvalidStateError",
+-     () => canvas.captureElementImage(grandchild),
+-     "Can't capture non-direct children.");
+--  assert_throws_js(TypeError,
+-+  assert_throws_dom("InvalidStateError",
+-     () => canvas.getElementTransform(grandchild, new DOMMatrix()),
+-     "Can't get transform for non-direct children.");
+- });
+-diff --git a/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/offscreenCanvas-drawElementImage.html b/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/offscreenCanvas-drawElementImage.html
+-index 1a31c2b8889cd9b6578bd1f0ef8283792505b48e..eece7a89eceddb8e9bf8e6481536e26bd28ff2de 100644
+---- a/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/offscreenCanvas-drawElementImage.html
+-+++ b/third_party/blink/web_tests/wpt_internal/html/canvas/drawElementImage/offscreenCanvas-drawElementImage.html
+-@@ -29,7 +29,7 @@ promise_test(async t => {
+-   assert_equals(elementImage.width, 100);
+-   assert_equals(elementImage.height, 100);
+- 
+--  const offscreen = new OffscreenCanvas(200, 200);
+-+  const offscreen = canvas.transferControlToOffscreen();
+-   const offscreenContext = offscreen.getContext('2d');
+-   let draw_transform = offscreenContext.drawElementImage(elementImage, 0, 0);
+-   assert_array_equals(
+diff --git a/patches/chromium/cherry-pick-b6089ec4b04e.patch b/patches/chromium/cherry-pick-b6089ec4b04e.patch
+index 920ca321e3..12cd01da0e 100644
+--- a/patches/chromium/cherry-pick-b6089ec4b04e.patch
++++ b/patches/chromium/cherry-pick-b6089ec4b04e.patch
+@@ -53,23 +53,3 @@ index d07cca20895d7b9030bf861d0d4c570f4135cfe2..22e073ca3ce4676ae95d66eadf9f3f7a
+    String cssText() const final;
+    void Reattach(StyleRuleBase*) final;
+  
+-diff --git a/third_party/blink/web_tests/external/wpt/css/css-anchor-position/at-position-try-cssom.html b/third_party/blink/web_tests/external/wpt/css/css-anchor-position/at-position-try-cssom.html
+-index 126b9fa81a76d48a3a915d0ae4e03f27c161bc76..f15fa7620dc413b78dd8faf31ed706b15c1ccf0e 100644
+---- a/third_party/blink/web_tests/external/wpt/css/css-anchor-position/at-position-try-cssom.html
+-+++ b/third_party/blink/web_tests/external/wpt/css/css-anchor-position/at-position-try-cssom.html
+-@@ -29,6 +29,15 @@ test(t => {
+-   assert_equals(positionTryRule.style.left, 'anchor(right)');
+- }, 'CSSPositionTryRule attribute values');
+- 
+-+test(t => {
+-+  const style = createStyle(
+-+      t, '@position-try --\\{ {}');
+-+  const positionTryRule = style.sheet.cssRules[0];
+-+  assert_true(positionTryRule instanceof CSSPositionTryRule);
+-+  assert_equals(positionTryRule.name, '--\\{');
+-+  assert_equals(positionTryRule.cssText, '@position-try --\\{ { }');
+-+}, 'CSSPositionTryRule escaped ident name');
+-+
+- test(t => {
+-   const style = createStyle(t, `
+-     @position-try --pf { top: anchor(top); left: 0; }
+diff --git a/patches/chromium/cherry-pick-9dbc49293717.patch b/patches/chromium/cherry-pick-9dbc49293717.patch
+index 13133ae27e..69bdda4366 100644
+--- a/patches/chromium/cherry-pick-9dbc49293717.patch
++++ b/patches/chromium/cherry-pick-9dbc49293717.patch
+@@ -49,59 +49,3 @@ index 3dbb9a754ef613cdecfbefcb1d4b23545d58280c..3344d21f30b9a03afa576b04fdfb6145
+    if (is_reversed_) {
+      result.Append(')');
+    }
+-diff --git a/third_party/blink/web_tests/external/wpt/css/css-content/parsing/content-valid.html b/third_party/blink/web_tests/external/wpt/css/css-content/parsing/content-valid.html
+-index 097bf66f62b2151eedf33bc94616110ad77bb71d..80bb54f8dcb35e6dfcf7e30c475e0d30555dedde 100644
+---- a/third_party/blink/web_tests/external/wpt/css/css-content/parsing/content-valid.html
+-+++ b/third_party/blink/web_tests/external/wpt/css/css-content/parsing/content-valid.html
+-@@ -47,6 +47,9 @@ test_valid_value_combinations("content", `counters(counter-name, ".") "potato"`)
+- test_valid_value_combinations("content", `"(" counters(counter-name, ".", counter-style) ")"`);
+- test_valid_value_combinations("content", `open-quote "hello" "world" close-quote`);
+- test_valid_value_combinations("content", `url("picture.svg") "hello"`);
+-+
+-+test_valid_value_combinations("content", "counter(\\})");
+-+test_valid_value_combinations("content", `counters(\\}, ".")`);
+- </script>
+- </body>
+- </html>
+-diff --git a/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-increment-valid.html b/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-increment-valid.html
+-index c77fd74ac769f0fcbf742cc8700f937f48723725..557290f87005e84f77c0bb31902c95502a84809b 100644
+---- a/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-increment-valid.html
+-+++ b/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-increment-valid.html
+-@@ -18,6 +18,9 @@ test_valid_value('counter-increment', 'first -1 second third 99', 'first -1 seco
+- test_valid_value('counter-increment', 'section calc(1)');
+- test_valid_value('counter-increment', 'section calc(-2.5)');
+- test_valid_value('counter-increment', 'section calc(10 + (5 * sign(2cqw - 10px)))');
+-+test_valid_value('counter-increment', 'a 1 b 2 c 3 d 4 e 5');
+-+test_valid_value('counter-increment', 'a 1 b 2 c 3 a 4 b 5');
+-+test_valid_value('counter-increment', 'a\\ 8 9');
+- </script>
+- </body>
+- </html>
+-diff --git a/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-reset-valid.html b/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-reset-valid.html
+-index b74ce160c7cd2fe0ce786763a25577c1db5e1632..55c9f5e4e394804e73d1f3ed81314fddcd41eaa3 100644
+---- a/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-reset-valid.html
+-+++ b/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-reset-valid.html
+-@@ -24,6 +24,9 @@ test_valid_value('counter-reset', 'reversed(first) -1 reversed(second) third 99'
+- test_valid_value('counter-reset', 'section calc(1)');
+- test_valid_value('counter-reset', 'section calc(-2.5)');
+- test_valid_value('counter-reset', 'section calc(10 + (5 * sign(2cqw - 10px)))');
+-+test_valid_value('counter-reset', 'a 1 b 2 c 3 d 4 e 5');
+-+test_valid_value('counter-reset', 'a 1 b 2 c 3 a 4 b 5');
+-+test_valid_value('counter-reset', 'a\\ 8 9');
+- </script>
+- </body>
+- </html>
+-diff --git a/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-set-valid.html b/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-set-valid.html
+-index 96cb71e398c683c33d2fa7af762d1fd1780eb3f8..e985fcae149fa676f9677770136c74e157dadd88 100644
+---- a/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-set-valid.html
+-+++ b/third_party/blink/web_tests/external/wpt/css/css-lists/parsing/counter-set-valid.html
+-@@ -18,6 +18,9 @@ test_valid_value('counter-set', 'first -1 second third 99', 'first -1 second 0 t
+- test_valid_value('counter-set', 'section calc(1)');
+- test_valid_value('counter-set', 'section calc(-2.5)');
+- test_valid_value('counter-set', 'section calc(10 + (5 * sign(2cqw - 10px)))');
+-+test_valid_value('counter-set', 'a 1 b 2 c 3 d 4 e 5');
+-+test_valid_value('counter-set', 'a 1 b 2 c 3 a 4 b 5');
+-+test_valid_value('counter-set', 'a\\ 8 9');
+- </script>
+- </body>
+- </html>
+diff --git a/patches/chromium/cherry-pick-1f1aba87c6f3.patch b/patches/chromium/cherry-pick-1f1aba87c6f3.patch
+index a3c390cf2a..78a9525eb7 100644
+--- a/patches/chromium/cherry-pick-1f1aba87c6f3.patch
++++ b/patches/chromium/cherry-pick-1f1aba87c6f3.patch
+@@ -91,14 +91,3 @@ index 29bd8402482b337a0dcc7dcfa967c3f598b6d131..84ba93981cd82dc4e4b334f8c21e7a4b
+      case kCustomMedia:
+        return MakeGarbageCollected<StyleRuleCustomMedia>(
+            To<StyleRuleCustomMedia>(*this));
+-diff --git a/third_party/blink/web_tests/external/wpt/css/css-anchor-position/position-try-rule-caching-002-expected.txt b/third_party/blink/web_tests/external/wpt/css/css-anchor-position/position-try-rule-caching-002-expected.txt
+-deleted file mode 100644
+-index ff7e84a2135fba467f6cca264fda7ba908aeb4c3..0000000000000000000000000000000000000000
+---- a/third_party/blink/web_tests/external/wpt/css/css-anchor-position/position-try-rule-caching-002-expected.txt
+-+++ /dev/null
+-@@ -1,5 +0,0 @@
+--This is a testharness.js-based test.
+--[FAIL] Modifying one sheet containing @position-try rule doesn't affect another sheet
+--  assert_equals: expected "right top" but got "right bottom"
+--Harness: the test ran to completion.
+--

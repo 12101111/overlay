@@ -1,0 +1,140 @@
+From 903d8fa387cf0529ba5ac2b6865cab73f78eeba0 Mon Sep 17 00:00:00 2001
+From: Tom Anderson <thomasanderson@chromium.org>
+Date: Tue, 16 Jun 2026 10:11:04 -0700
+Subject: [PATCH] [M148] [Ozone/X11] Fix UAF in DispatchUiEvent during
+ synchronous destruction
+
+Original change's description:
+> [Ozone/X11] Fix UAF in DispatchUiEvent during synchronous destruction
+>
+> A potential Use-After-Free (UAF) vulnerability was identified in
+> X11Window::DispatchUiEvent. Synchronous destruction of the X11Window
+> object during HandleEvent processing (e.g., due to activation changes)
+> could leave DispatchUiEvent with a dangling 'this' pointer.
+>
+> This CL adds a base::WeakPtr liveness check after HandleEvent to
+> prevent further member accesses if the window is destroyed.
+>
+> Fixed: 513006660
+> Change-Id: I4987be20f8288ff8215aebcce789529b056fe2e0
+> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/7848608
+> Commit-Queue: Thomas Anderson <thomasanderson@chromium.org>
+> Reviewed-by: Lei Zhang <thestig@chromium.org>
+> Cr-Commit-Position: refs/heads/main@{#1630706}
+
+(cherry picked from commit ddb1091e16399f030e5720a906ef5ac58c0747a8)
+
+Bug: 514927056,513006660
+Change-Id: I4987be20f8288ff8215aebcce789529b056fe2e0
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/7929607
+Reviewed-by: Lei Zhang <thestig@chromium.org>
+Auto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>
+Commit-Queue: Thomas Anderson <thomasanderson@chromium.org>
+Commit-Queue: Lei Zhang <thestig@chromium.org>
+Reviewed-by: Thomas Anderson <thomasanderson@chromium.org>
+Cr-Commit-Position: refs/branch-heads/7778@{#4361}
+Cr-Branched-From: 77f495ee216d4c3cc784d33658bad4778c0680ee-refs/heads/main@{#1610480}
+---
+ .../platform/x11/test/x11_window_unittest.cc  | 49 +++++++++++++++++++
+ ui/ozone/platform/x11/x11_window.cc           |  4 ++
+ ui/ozone/platform/x11/x11_window.h            |  4 +-
+ 3 files changed, 56 insertions(+), 1 deletion(-)
+
+diff --git a/ui/ozone/platform/x11/test/x11_window_unittest.cc b/ui/ozone/platform/x11/test/x11_window_unittest.cc
+index 7e760b8f2e1863..2b51bc079d729b 100644
+--- a/ui/ozone/platform/x11/test/x11_window_unittest.cc
++++ b/ui/ozone/platform/x11/test/x11_window_unittest.cc
+@@ -189,6 +189,24 @@ class TestScreen : public display::ScreenBase {
+   }
+ };
+ 
++class DestructionWindowDelegate : public TestPlatformWindowDelegate {
++ public:
++  DestructionWindowDelegate() = default;
++  ~DestructionWindowDelegate() override = default;
++
++  void set_window(std::unique_ptr<X11Window> window) {
++    window_ = std::move(window);
++  }
++
++  void OnActivationChanged(bool active) override {
++    // Synchronously destroy the window.
++    window_.reset();
++  }
++
++ private:
++  std::unique_ptr<X11Window> window_;
++};
++
+ // Returns the list of rectangles which describe |window|'s bounding region via
+ // the X shape extension.
+ std::vector<gfx::Rect> GetShapeRects(x11::Window window) {
+@@ -521,4 +539,35 @@ TEST_F(X11WindowTest,
+   EXPECT_EQ(delegate.state(), PlatformWindowState::kNormal);
+ }
+ 
++// Tests that synchronous destruction of the window during event dispatching
++// does not cause a UAF.
++TEST_F(X11WindowTest, SynchronousDestructionDuringEventDispatch) {
++  auto delegate = std::make_unique<DestructionWindowDelegate>();
++  constexpr gfx::Rect bounds(10, 10, 100, 100);
++  auto window = CreateX11Window(delegate.get(), bounds, nullptr);
++  X11Window* window_ptr = window.get();
++  delegate->set_window(std::move(window));
++
++  // Create a CrossingEvent (EnterNotify) that will trigger OnActivationChanged.
++  x11::CrossingEvent enter_event;
++  enter_event.opcode = x11::CrossingEvent::EnterNotify;
++  enter_event.event = static_cast<x11::Window>(delegate->widget());
++  enter_event.root = x11::Connection::Get()->default_root();
++  enter_event.same_screen_focus = 1;  // CROSSING_FLAG_FOCUS
++  enter_event.mode = x11::NotifyMode::Normal;
++  enter_event.detail = x11::NotifyDetail::Ancestor;
++
++  x11::Event xev(false, std::move(enter_event));
++
++  MouseEvent mouse_event(ui::EventType::kMouseEntered, gfx::Point(),
++                         gfx::Point(), base::TimeTicks(), 0, 0);
++
++  // This should trigger HandleEvent, which triggers OnCrossingEvent,
++  // which triggers AfterActivationStateChanged, which triggers
++  // OnActivationChanged(true), which destroys the window.
++  // DispatchUiEvent will then continue and should return safely due to the
++  // liveness check.
++  window_ptr->DispatchUiEvent(&mouse_event, xev);
++}
++
+ }  // namespace ui
+diff --git a/ui/ozone/platform/x11/x11_window.cc b/ui/ozone/platform/x11/x11_window.cc
+index 7af34829238f62..c4cf8358385546 100644
+--- a/ui/ozone/platform/x11/x11_window.cc
++++ b/ui/ozone/platform/x11/x11_window.cc
+@@ -1378,7 +1378,11 @@ void X11Window::DispatchUiEvent(ui::Event* event, const x11::Event& xev) {
+   DCHECK(window_manager);
+ 
+   // Process X11-specific bits
++  auto weak_this = weak_ptr_factory_.GetWeakPtr();
+   HandleEvent(xev);
++  if (!weak_this) {
++    return;
++  }
+ 
+   x11::Event last_xev;
+   std::unique_ptr<ui::Event> last_motion;
+diff --git a/ui/ozone/platform/x11/x11_window.h b/ui/ozone/platform/x11/x11_window.h
+index f744189f0aa26d..f6855d35f0f024 100644
+--- a/ui/ozone/platform/x11/x11_window.h
++++ b/ui/ozone/platform/x11/x11_window.h
+@@ -169,9 +169,11 @@ class X11Window : public PlatformWindow,
+ 
+  private:
+   FRIEND_TEST_ALL_PREFIXES(X11WindowTest, Shape);
+-  FRIEND_TEST_ALL_PREFIXES(X11WindowTest, WindowManagerTogglesFullscreen);
++  FRIEND_TEST_ALL_PREFIXES(X11WindowTest,
++                           SynchronousDestructionDuringEventDispatch);
+   FRIEND_TEST_ALL_PREFIXES(X11WindowTest,
+                            ToggleMinimizePropogateToPlatformWindowDelegate);
++  FRIEND_TEST_ALL_PREFIXES(X11WindowTest, WindowManagerTogglesFullscreen);
+ 
+   void UpdateDecorationInsets();
+ 
