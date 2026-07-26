@@ -82,7 +82,7 @@ src_prepare() {
 	if use elibc_musl; then
 		eapply "${FILESDIR}"/0001-cmd-link-prefer-musl-s-over-glibc-s-ld.so-during-dyn.patch
 	fi
-  default
+  	default
 }
 
 src_compile() {
