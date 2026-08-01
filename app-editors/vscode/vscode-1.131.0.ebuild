@@ -3249,6 +3249,8 @@ src_prepare() {
 	# use offline cache
 	npm config set offline true || die
 
+	use elibc_musl && eapply "${FILESDIR}/copilot-musl.patch"
+
 	# move ripgrep tarball to cache directory
 	# https://github.com/microsoft/vscode-ripgrep/blob/master/lib/download.js#L14
 	pushd "${WORKDIR}" >/dev/null || die

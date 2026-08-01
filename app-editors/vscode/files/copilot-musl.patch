@@ -1,0 +1,28 @@
+diff --git a/build/lib/copilot.ts b/build/lib/copilot.ts
+index 9ec67047ef0..dc2b53c8670 100644
+--- a/build/lib/copilot.ts
++++ b/build/lib/copilot.ts
+@@ -78,7 +78,7 @@ function toCopilotTgrepPlatformArch(platform: string, arch: string): string {
+ }
+ 
+ function toCopilotPackagePlatformArch(platform: string, arch: string): string {
+-	if (platform === 'alpine') {
++	if (platform === 'linux') {
+ 		return `linuxmusl-${arch}`;
+ 	}
+ 	if (arch === 'alpine') {
+diff --git a/build/lib/osProxyResolver.ts b/build/lib/osProxyResolver.ts
+index f75b3534314..81312970edf 100644
+--- a/build/lib/osProxyResolver.ts
++++ b/build/lib/osProxyResolver.ts
+@@ -20,8 +20,8 @@ function toOSProxyResolverPlatform(platform: string, arch: string): string | und
+ 			switch (arch) {
+ 				case 'arm':
+ 				case 'armhf': return 'linux-arm-gnueabihf';
+-				case 'arm64': return 'linux-arm64-gnu';
+-				case 'x64': return 'linux-x64-gnu';
++				case 'arm64': return 'linux-arm64-musl';
++				case 'x64': return 'linux-x64-musl';
+ 			}
+ 			return undefined;
+ 		case 'win32':
