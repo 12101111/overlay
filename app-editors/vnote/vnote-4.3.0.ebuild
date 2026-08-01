@@ -13,7 +13,7 @@ EGIT_COMMIT="v${PV}"
 KEYWORDS="~amd64"
 
 LICENSE="MIT"
-SLOT="3"
+SLOT="4"
 
 DEPEND="
 	dev-qt/qtbase:6[X,cups,gui,network,sql,widgets]
@@ -21,10 +21,10 @@ DEPEND="
 	dev-qt/qtwebchannel:6
 	dev-qt/qtwebengine:6
 	dev-qt/qtsvg:6
+	dev-libs/qtkeychain:=
 "
 RDEPEND="${DEPEND}"
-
-PATCHES=( "${FILESDIR}/fix-cmake.patch" )
+PATCHES=( "${FILESDIR}/fix-crash.patch" )
 
 src_prepare() {
 	sed -i -e "s|VNote|vnote|g" CMakeLists.txt || die
@@ -32,6 +32,7 @@ src_prepare() {
 		 libs/vtextedit/libs/syntax-highlighting/CMakeLists.txt || die
 	sed -i -e "s|add_library(qhotkey|add_library(qhotkey STATIC|g" \
 		libs/QHotkey/CMakeLists.txt || die
+	sed -i -e "s|keychain.h|qt6keychain/keychain.h|g" src/core/services/synccredentialsstore.cpp || die
 	cmake_src_prepare
 }
 
