@@ -1,40 +1,48 @@
 diff --git a/Cargo.lock b/Cargo.lock
-index 10a5d0070..988a357b9 100644
+index 640923eb0c..11cbd8531c 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
-@@ -6587,7 +6587,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
- checksum = "133c182a6a2c87864fe97778797e46c7e999672690dc9fa3ee8e241aa4a9c13f"
+@@ -6599,7 +6599,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "f6c19a05435c21ac299d71b6a9c13db3e3f47c520517d58990a462a1397a61db"
  dependencies = [
   "bindgen 0.72.1",
 - "cc",
   "pkg-config",
   "vcpkg",
  ]
+@@ -9596,6 +9595,7 @@ version = "0.5.5"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+ checksum = "dc3efc0da82635d7e1ced0053bbbfa8c7ab9645d0bf36ceb4f7127bb85315d75"
+ dependencies = [
++ "bindgen 0.72.1",
+  "cc",
+  "js-sys",
+  "rsqlite-vfs",
 diff --git a/Cargo.toml b/Cargo.toml
-index 2fb552305..f2877147f 100644
+index ade71b26c4..25188d5411 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -275,7 +275,7 @@ rayon = "1.11.0"
- regex = "^1.7.0"
- reqwest = { version = "=0.12.5", default-features = false, features = ["rustls-tls", "stream", "gzip", "brotli", "socks", "json", "http2"] } # pinned because of https://github.com/seanmonstar/reqwest/pull/1955
+@@ -292,7 +292,7 @@ reqwest = { version = "=0.12.5", default-features = false, features = ["rustls-t
+ # already depends on `zstd`, and modern RPM tooling reads zstd payloads.
+ rpm = { version = "0.25.1", default-features = false, features = ["payload", "zstd-compression"] }
  rstest = "0"
--rusqlite = { version = "0.37.0", features = ["unlock_notify", "bundled", "session", "modern_sqlite", "limits", "backup"] } # "modern_sqlite": need sqlite >= 3.49.0 for some db configs
-+rusqlite = { version = "0.37.0", features = ["unlock_notify", "buildtime_bindgen", "session", "modern_sqlite", "limits", "backup"] } # "modern_sqlite": need sqlite >= 3.49.0 for some db configs
+-rusqlite = { version = "0.40.0", features = ["unlock_notify", "bundled", "session", "modern_sqlite", "limits", "backup", "fallible_uint"] } # "modern_sqlite": need sqlite >= 3.49.0 for some db configs; "fallible_uint": ToSql for u64/usize (needed when crates like deno_cache are published/built standalone, not just feature-unified via denokv_sqlite)
++rusqlite = { version = "0.40.0", features = ["unlock_notify", "buildtime_bindgen", "session", "modern_sqlite", "limits", "backup", "fallible_uint"] } # "modern_sqlite": need sqlite >= 3.49.0 for some db configs; "fallible_uint": ToSql for u64/usize (needed when crates like deno_cache are published/built standalone, not just feature-unified via denokv_sqlite)
  rustls = { version = "=0.23.40", default-features = false, features = ["logging", "std", "tls12", "aws_lc_rs"] }
  rustls-pemfile = "2"
  rustls-tokio-stream = "=0.8.0"
-@@ -375,7 +375,7 @@ text-size = "=1.1.1"
- text_lines = "=0.6.0"
+@@ -389,7 +389,7 @@ text_lines = "=0.6.0"
  unicode-normalization = "0.1"
  unicode-width = "0.1.3"
+ yaml_parser = "=0.2.1"
 -zstd = "=0.13.2"
 +zstd = { version = "=0.13.2", features = ["pkg-config"]}
  
  # crypto
  aead-gcm-stream = "0.4"
-@@ -425,7 +425,7 @@ x509-parser = "0.15.0"
- cranelift = "0.116"
- cranelift-native = "0.116"
+@@ -442,7 +442,7 @@ x509-parser = "0.15.0"
+ cranelift = "0.117"
+ cranelift-native = "0.117"
  dlopen2 = "0.6.1"
 -libffi = "=5.1.0"
 +libffi = { version="=5.1.0",features=["system"]}

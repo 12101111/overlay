@@ -3,14 +3,14 @@
 
 EAPI=8
 
-GN_MIN_VER=0.2318
-LLVM_COMPAT=( 21 22 )
+GN_MIN_VER=0.2374
+LLVM_COMPAT=( 22 )
 RUST_NEEDS_LLVM=1
 PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
-RUST_MIN_VER=1.92.0
+RUST_MIN_VER=1.95.0
 
-V8_VER=149.2.0
+V8_VER=150.2.0
 STACKER_VER=0.1.15
 TEMPORAL_CAPI="temporal_capi-0.2.3"
 ICU=0.77.0
@@ -90,6 +90,8 @@ CRATES="
 	approx@0.5.1
 	arbitrary@1.4.1
 	arc-swap@1.7.1
+	argon2@0.6.0-rc.8
+	arrayref@0.3.9
 	arrayvec@0.7.4
 	ascii@1.1.0
 	ash@0.38.0+1.3.281
@@ -111,16 +113,15 @@ CRATES="
 	autocfg@1.3.0
 	aws-lc-rs@1.16.3
 	aws-lc-sys@0.40.0
-	axum-core@0.4.5
-	axum@0.7.5
 	az@1.2.1
+	backhand@0.25.1
 	backtrace@0.3.74
 	base16ct@0.2.0
 	base16ct@1.0.0
 	base64-simd@0.8.0
 	base64@0.21.7
 	base64@0.22.1
-	base64ct@1.6.0
+	base64ct@1.8.3
 	bencher@0.1.5
 	better_scoped_tls@1.0.1
 	bincode@1.3.3
@@ -128,15 +129,18 @@ CRATES="
 	bindgen@0.71.1
 	bindgen@0.72.1
 	bit-set@0.8.0
+	bit-set@0.9.1
 	bit-vec@0.8.0
+	bit-vec@0.9.1
 	bitflags@1.3.2
 	bitflags@2.9.3
 	bitvec@1.0.1
 	blake2@0.10.6
+	blake2@0.11.0-rc.6
 	block-buffer@0.10.4
 	block-buffer@0.12.0
 	block-padding@0.3.3
-	block@0.1.6
+	block2@0.6.2
 	borrow-or-share@0.2.4
 	boxed_error@0.2.3
 	brotli-decompressor@4.0.1
@@ -150,6 +154,8 @@ CRATES="
 	byteorder@1.5.0
 	bytes-str@0.2.7
 	bytes@1.11.1
+	bzip2@0.6.1
+	cab@0.6.0
 	calendrical_calculations@0.2.4
 	capacity_builder@0.5.0
 	capacity_builder_macros@0.3.0
@@ -158,7 +164,9 @@ CRATES="
 	castaway@0.2.3
 	cbc@0.1.2
 	cc@1.2.56
+	cdivsufsort@2.0.0
 	cexpr@0.6.0
+	cfb@0.14.0
 	cfg-if@1.0.3
 	cfg_aliases@0.2.1
 	chrono@0.4.42
@@ -174,8 +182,8 @@ CRATES="
 	clap_lex@0.7.4
 	clipboard-win@5.3.0
 	cmake@0.1.57
-	cmov@0.5.2
-	codespan-reporting@0.12.0
+	cmov@0.5.4
+	codespan-reporting@0.13.1
 	color-print-proc-macro@0.3.5
 	color-print@0.3.5
 	color_quant@1.1.0
@@ -186,6 +194,7 @@ CRATES="
 	condtype@1.3.0
 	console@0.15.11
 	console_static_text@0.8.3
+	const-hex@1.19.1
 	const-oid@0.10.2
 	const-oid@0.9.6
 	convert_case@0.4.0
@@ -193,24 +202,25 @@ CRATES="
 	core-foundation-sys@0.8.6
 	core-foundation@0.10.1
 	core-foundation@0.9.4
-	core-graphics-types@0.2.0
 	core_maths@0.1.1
 	countme@3.0.1
 	cpubits@0.1.0
 	cpufeatures@0.2.12
 	cpufeatures@0.3.0
-	cranelift-bforest@0.116.1
-	cranelift-bitset@0.116.1
-	cranelift-codegen-meta@0.116.1
-	cranelift-codegen-shared@0.116.1
-	cranelift-codegen@0.116.1
-	cranelift-control@0.116.1
-	cranelift-entity@0.116.1
-	cranelift-frontend@0.116.1
-	cranelift-isle@0.116.1
-	cranelift-module@0.116.1
-	cranelift-native@0.116.1
-	cranelift@0.116.1
+	cranelift-assembler-x64-meta@0.117.2
+	cranelift-assembler-x64@0.117.2
+	cranelift-bforest@0.117.2
+	cranelift-bitset@0.117.2
+	cranelift-codegen-meta@0.117.2
+	cranelift-codegen-shared@0.117.2
+	cranelift-codegen@0.117.2
+	cranelift-control@0.117.2
+	cranelift-entity@0.117.2
+	cranelift-frontend@0.117.2
+	cranelift-isle@0.117.2
+	cranelift-module@0.117.2
+	cranelift-native@0.117.2
+	cranelift@0.117.2
 	crc32fast@1.4.2
 	criterion-plot@0.5.0
 	criterion@0.5.1
@@ -227,7 +237,6 @@ CRATES="
 	crypto-bigint@0.7.0-rc.28
 	crypto-common@0.1.6
 	crypto-common@0.2.1
-	css_dataset@0.4.1
 	cssparser-macros@0.6.1
 	cssparser@0.36.0
 	ctr@0.9.2
@@ -235,37 +244,41 @@ CRATES="
 	curve25519-dalek-derive@0.1.1
 	curve25519-dalek@4.1.3
 	darling@0.20.10
+	darling@0.21.3
 	darling_core@0.20.10
+	darling_core@0.21.3
 	darling_macro@0.20.10
+	darling_macro@0.21.3
 	dashmap@5.5.3
 	data-encoding@2.5.0
 	data-url@0.3.1
 	dbus-secret-service@4.0.3
 	dbus@0.9.7
-	debug-ignore@1.0.5
 	debugid@0.8.0
+	deku@0.20.3
+	deku_derive@0.20.3
 	deno-tower-lsp-macros@0.12.0
-	deno_ast@0.53.2
+	deno_ast@0.53.3
 	deno_core_icudata@0.77.0
-	deno_doc@0.199.0
+	deno_doc@0.202.0
 	deno_error@0.7.1
 	deno_error_macro@0.7.1
-	deno_graph@0.108.2
+	deno_graph@0.110.1
 	deno_lint@0.84.1
 	deno_media_type@0.4.0
 	deno_native_certs@0.3.0
 	deno_panic@0.2.0
 	deno_path_util@0.6.4
-	deno_semver@0.10.0
+	deno_semver@0.10.1
 	deno_task_shell@0.33.0
 	deno_terminal@0.2.3
 	deno_tower_lsp@0.5.0
 	deno_tunnel@0.8.1
 	deno_unsync@0.4.4
 	deno_whoami@0.1.0
-	denokv_proto@0.13.0
-	denokv_remote@0.13.0
-	denokv_sqlite@0.13.0
+	denokv_proto@0.14.0
+	denokv_remote@0.14.0
+	denokv_sqlite@0.14.0
 	der-parser@8.2.0
 	der@0.7.9
 	der@0.8.0
@@ -287,9 +300,11 @@ CRATES="
 	diplomat-runtime@0.15.1
 	diplomat@0.15.0
 	diplomat_core@0.15.0
+	dispatch2@0.3.1
 	displaydoc@0.2.4
 	divan-macros@0.1.21
 	divan@0.1.21
+	dlib@0.5.3
 	dlopen2@0.6.1
 	dlopen2_derive@0.4.0
 	document-features@0.2.10
@@ -311,7 +326,6 @@ CRATES="
 	ed25519@2.2.3
 	ed448-goldilocks@0.14.0-pre.10
 	ed448@0.5.0-rc.5
-	editpe@0.1.0
 	either@1.10.0
 	elliptic-curve@0.13.8
 	elliptic-curve@0.14.0-rc.28
@@ -320,7 +334,10 @@ CRATES="
 	endian-type@0.1.2
 	entities@1.0.1
 	enum-as-inner@0.6.0
+	enum-display-derive@0.1.1
+	enum-primitive-derive@0.3.0
 	env_filter@0.1.3
+	env_home@0.1.0
 	env_logger@0.11.6
 	equivalent@1.0.1
 	errno@0.3.10
@@ -329,7 +346,6 @@ CRATES="
 	esbuild_client@0.7.1
 	fallible-iterator@0.3.0
 	fallible-streaming-iterator@0.1.9
-	fancy-regex@0.14.0
 	fast-socks5@0.9.6
 	fastbloom@0.14.1
 	faster-hex@0.10.0
@@ -343,6 +359,8 @@ CRATES="
 	file_test_runner@0.12.1
 	filetime@0.2.23
 	find-msvc-tools@0.1.9
+	fips203@0.4.3
+	fips205@0.4.1
 	flate2@1.0.35
 	fluent-uri@0.4.1
 	fnv@1.0.7
@@ -380,25 +398,9 @@ CRATES="
 	gif@0.13.1
 	gimli@0.31.1
 	gl_generator@0.14.0
-	glam@0.14.0
-	glam@0.15.2
-	glam@0.16.0
-	glam@0.17.3
-	glam@0.18.0
-	glam@0.19.0
-	glam@0.20.5
-	glam@0.21.3
-	glam@0.22.0
-	glam@0.23.0
-	glam@0.24.2
-	glam@0.25.0
-	glam@0.27.0
-	glam@0.28.0
-	glam@0.29.3
-	glam@0.30.5
 	glob@0.3.1
 	globset@0.4.14
-	glow@0.16.0
+	glow@0.17.0
 	glutin_wgl_sys@0.6.1
 	gpu-allocator@0.28.0
 	gpu-descriptor-types@0.2.0
@@ -410,11 +412,11 @@ CRATES="
 	handlebars@6.1.0
 	hash2curve@0.14.0-rc.10
 	hash32@0.3.1
-	hashbrown@0.12.3
 	hashbrown@0.14.5
 	hashbrown@0.15.5
-	hashbrown@0.16.0
-	hashlink@0.10.0
+	hashbrown@0.16.1
+	hashbrown@0.17.1
+	hashlink@0.12.0
 	hashlink@0.8.4
 	hdrhistogram@7.5.4
 	heapless@0.8.0
@@ -439,7 +441,6 @@ CRATES="
 	http@1.4.0
 	httparse@1.10.0
 	httpdate@1.0.3
-	humantime@2.1.0
 	hybrid-array@0.4.7
 	hyper-rustls@0.27.2
 	hyper-timeout@0.5.2
@@ -474,7 +475,6 @@ CRATES="
 	image@0.25.4
 	imara-diff@0.2.0
 	import_map@0.25.0
-	indexmap@1.9.3
 	indexmap@2.12.0
 	inotify-sys@0.1.5
 	inotify@0.11.1
@@ -496,7 +496,7 @@ CRATES="
 	ixdtf@0.6.4
 	jni-sys@0.3.0
 	jobserver@0.1.32
-	js-sys@0.3.77
+	js-sys@0.3.99
 	jsonc-parser@0.32.1
 	junction@1.2.0
 	k256@0.13.3
@@ -507,12 +507,18 @@ CRATES="
 	khronos_api@3.1.0
 	kqueue-sys@1.0.4
 	kqueue@1.1.1
+	laufey@0.5.0
+	lax-core@0.1.2
+	lax-css@0.2.4
+	lax-markup@0.2.5
+	lax-sql@0.2.1
 	lazy-regex-proc_macros@3.1.0
 	lazy-regex@3.1.0
 	lazy_static@1.5.0
 	lcms2-sys@4.0.5
 	lcms2@6.1.0
 	leb128fmt@0.1.0
+	libbz2-rs-sys@0.2.5
 	libc@0.2.186
 	libdbus-sys@0.2.5
 	libdeflate-sys@1.25.2
@@ -521,10 +527,12 @@ CRATES="
 	libffi@5.1.0
 	libloading@0.7.4
 	libloading@0.8.5
+	liblzma-sys@0.4.6
+	liblzma@0.4.6
 	libm@0.2.8
 	libnghttp2@1.68.0
-	libsqlite3-sys@0.35.0
-	libsui@0.12.6
+	libsqlite3-sys@0.38.1
+	libsui@0.16.4
 	libuv-sys-lite@1.48.3
 	libz-sys@1.1.20
 	linux-raw-sys@0.12.1
@@ -534,25 +542,20 @@ CRATES="
 	litrs@0.4.1
 	lock_api@0.4.11
 	locked-tripwire@0.1.1
-	log@0.4.28
+	log@0.4.32
 	loom@0.7.2
 	lru-slab@0.1.2
 	ls-types@0.0.3
+	lzxd@0.2.6
 	macro_rules_attribute-proc_macro@0.2.2
 	macro_rules_attribute@0.2.2
-	malloc_buf@0.0.6
-	malva@0.15.2
-	markup_fmt@0.27.3
 	match_cfg@0.1.0
 	matchers@0.2.0
-	matchit@0.7.3
-	matrixmultiply@0.3.8
 	md-5@0.10.6
 	md4@0.10.2
 	memchr@2.8.1
 	memmap2@0.9.5
 	memoffset@0.9.1
-	metal@0.33.0
 	mime@0.3.17
 	minimal-lexical@0.2.1
 	miniz_oxide@0.7.2
@@ -561,16 +564,17 @@ CRATES="
 	mio@1.0.3
 	moka@0.12.10
 	monch@0.6.0
-	naga@28.0.0
-	nalgebra@0.34.1
+	msi@0.10.0
+	naga@29.0.3
 	ndk-sys@0.6.0+11769913
 	netif@0.1.6
 	new_debug_unreachable@1.0.6
 	nibble_vec@0.1.0
 	nix@0.29.0
 	nix@0.30.1
-	nom@5.1.3
+	no_std_io2@0.9.4
 	nom@7.1.3
+	nom@8.0.0
 	notify-types@2.1.0
 	notify@8.2.0
 	nu-ansi-term@0.50.1
@@ -578,13 +582,19 @@ CRATES="
 	num-bigint@0.4.6
 	num-complex@0.4.6
 	num-conv@0.2.0
+	num-derive@0.4.2
 	num-integer@0.1.46
 	num-iter@0.1.44
 	num-rational@0.4.2
 	num-traits@0.2.19
 	num@0.4.2
 	num_cpus@1.16.0
-	objc@0.2.7
+	objc2-core-foundation@0.3.2
+	objc2-encode@4.1.0
+	objc2-foundation@0.3.2
+	objc2-metal@0.3.2
+	objc2-quartz-core@0.3.2
+	objc2@0.6.4
 	object@0.36.3
 	ocb3@0.1.0
 	oid-registry@0.6.1
@@ -597,13 +607,12 @@ CRATES="
 	openssl-src@300.5.0+3.5.0
 	openssl-sys@0.9.116
 	openssl@0.10.80
-	opentelemetry-http@0.27.0
-	opentelemetry-otlp@0.27.0
-	opentelemetry-proto@0.27.0
-	opentelemetry-semantic-conventions@0.27.0
-	opentelemetry@0.27.0
-	opentelemetry_sdk@0.27.1
-	ordered-float@2.10.1
+	opentelemetry-http@0.32.0
+	opentelemetry-otlp@0.32.0
+	opentelemetry-proto@0.32.0
+	opentelemetry-semantic-conventions@0.32.1
+	opentelemetry@0.32.0
+	opentelemetry_sdk@0.32.1
 	ordered-float@4.6.0
 	os_pipe@1.2.1
 	outref@0.5.1
@@ -616,6 +625,7 @@ CRATES="
 	parking@2.2.1
 	parking_lot@0.12.3
 	parking_lot_core@0.9.9
+	password-hash@0.6.1
 	paste@1.0.15
 	path-clean@0.1.0
 	path-dedot@3.1.1
@@ -627,6 +637,7 @@ CRATES="
 	pest_derive@2.7.15
 	pest_generator@2.7.15
 	pest_meta@2.7.15
+	phc@0.6.1
 	phf@0.11.2
 	phf@0.13.1
 	phf_generator@0.11.2
@@ -644,6 +655,7 @@ CRATES="
 	pkcs8@0.10.2
 	pkcs8@0.11.0-rc.11
 	pkg-config@0.3.30
+	plist@1.9.0
 	plotters-backend@0.3.7
 	plotters-svg@0.3.7
 	plotters@0.3.7
@@ -664,12 +676,15 @@ CRATES="
 	proc-macro2@1.0.101
 	profiling@1.0.15
 	proptest@1.9.0
-	prost-derive@0.13.3
-	prost@0.13.3
+	prost-derive@0.14.4
+	prost-types@0.14.4
+	prost@0.14.4
 	psm@0.1.21
 	pulldown-cmark@0.11.2
+	qbsdiff@1.4.4
 	quick-error@1.2.3
 	quick-error@2.0.1
+	quick-xml@0.39.4
 	quinn-proto@0.11.14
 	quinn-udp@0.5.9
 	quinn@0.11.8
@@ -677,8 +692,6 @@ CRATES="
 	r-efi@5.3.0
 	radium@0.7.0
 	radix_trie@0.2.1
-	raffia@0.12.2
-	raffia_macro@0.2.0
 	rand@0.8.5
 	rand@0.9.2
 	rand_chacha@0.3.1
@@ -689,7 +702,7 @@ CRATES="
 	rand_xorshift@0.4.0
 	range-alloc@0.1.3
 	raw-window-handle@0.6.2
-	rawpointer@0.2.1
+	raw-window-metal@1.1.0
 	rayon-core@1.13.0
 	rayon@1.11.0
 	rc2@0.8.1
@@ -712,10 +725,13 @@ CRATES="
 	rmp@0.8.14
 	ron@0.12.0
 	rowan@0.15.15
+	rpm-version@0.5.0
+	rpm@0.25.1
 	rsa@0.9.10
+	rsqlite-vfs@0.1.1
 	rstest@0.22.0
 	rstest_macros@0.22.0
-	rusqlite@0.37.0
+	rusqlite@0.40.1
 	rustc-demangle@0.1.24
 	rustc-hash@1.1.0
 	rustc-hash@2.1.1
@@ -729,18 +745,17 @@ CRATES="
 	rustls-pemfile@2.1.2
 	rustls-pki-types@1.12.0
 	rustls-tokio-stream@0.8.0
-	rustls-webpki@0.102.8
 	rustls-webpki@0.103.13
 	rustls@0.23.40
-	rustversion@1.0.15
+	rustversion@1.0.22
 	rusty-fork@0.3.1
 	rustyline-derive@0.11.1
 	rustyline@17.0.0
 	ryu-js@1.0.1
 	ryu@1.0.17
 	saa@5.6.0
+	sacabase@2.0.0
 	safe_arch@0.7.4
-	saffron@0.1.0
 	salsa20@0.10.2
 	same-file@1.0.6
 	scc@3.7.1
@@ -756,7 +771,6 @@ CRATES="
 	security-framework@3.3.0
 	semver@1.0.25
 	seq-macro@0.3.6
-	serde-value@0.7.0
 	serde-wasm-bindgen@0.5.0
 	serde@1.0.228
 	serde_bytes@0.11.14
@@ -769,6 +783,7 @@ CRATES="
 	serdect@0.2.0
 	serdect@0.4.2
 	sha1@0.10.6
+	sha1_smol@1.0.1
 	sha2@0.10.8
 	sha3@0.10.8
 	sha3@0.11.0-rc.8
@@ -779,7 +794,6 @@ CRATES="
 	signal-hook@0.3.17
 	signature@2.2.0
 	signature@3.0.0-rc.10
-	simba@0.9.0
 	simd-adler32@0.3.7
 	simdutf8@0.1.5
 	similar@2.7.0
@@ -793,13 +807,14 @@ CRATES="
 	smartstring@1.0.1
 	socket2@0.5.5
 	socket2@0.6.4
+	solana-nohash-hasher@0.2.1
 	sourcemap@9.2.0
 	spin@0.9.8
-	spirv@0.3.0+sdk-1.3.268.0
+	spirv@0.4.0+sdk-1.4.341.0
 	spki@0.7.3
 	spki@0.8.0-rc.4
 	sptr@0.3.2
-	sqlformat@0.3.5
+	sqlite-wasm-rs@0.5.5
 	stable_deref_trait@1.2.0
 	stacker@0.1.15
 	static_assertions@1.1.0
@@ -810,6 +825,7 @@ CRATES="
 	strum@0.27.1
 	strum_macros@0.27.1
 	subtle@2.6.1
+	suffix_array@0.5.0
 	swc_allocator@4.0.1
 	swc_atoms@9.0.0
 	swc_common@17.0.1
@@ -837,7 +853,7 @@ CRATES="
 	syn-match@0.3.1
 	syn@1.0.109
 	syn@2.0.117
-	sync_wrapper@1.0.1
+	sync_wrapper@1.0.2
 	synstructure@0.12.6
 	synstructure@0.13.1
 	sys_traits@0.1.28
@@ -865,8 +881,8 @@ CRATES="
 	time-macros@0.2.27
 	time@0.3.47
 	timezone_provider@0.2.3
+	tiny-keccak@2.0.2
 	tiny_pretty@0.2.0
-	tiny_pretty@0.4.2
 	tinystr@0.7.6
 	tinystr@0.8.3
 	tinytemplate@1.2.1
@@ -887,18 +903,18 @@ CRATES="
 	toml_edit@0.23.5
 	toml_parser@1.0.9+spec-1.1.0
 	toml_writer@1.0.6+spec-1.1.0
-	tonic@0.12.3
-	tower-http@0.6.1
+	tonic-prost@0.14.6
+	tonic-types@0.14.6
+	tonic@0.14.6
 	tower-layer@0.3.3
 	tower-service@0.3.3
-	tower@0.4.13
 	tower@0.5.2
-	tracing-attributes@0.1.28
-	tracing-core@0.1.33
+	tracing-attributes@0.1.31
+	tracing-core@0.1.36
 	tracing-log@0.2.0
-	tracing-opentelemetry@0.28.0
-	tracing-subscriber@0.3.20
-	tracing@0.1.41
+	tracing-opentelemetry@0.33.0
+	tracing-subscriber@0.3.23
+	tracing@0.1.44
 	triomphe@0.1.13
 	try-lock@0.2.5
 	trybuild@1.0.115
@@ -910,7 +926,7 @@ CRATES="
 	ucd-trie@0.1.6
 	unarray@0.1.4
 	unicase@2.7.0
-	unicode-id-start@1.2.0
+	unicode-id-start@1.4.0
 	unicode-ident@1.0.12
 	unicode-normalization@0.1.23
 	unicode-segmentation@1.11.0
@@ -931,7 +947,7 @@ CRATES="
 	utf8_iter@1.0.4
 	utf8parse@0.2.1
 	uuid@1.21.0
-	v8@149.2.0
+	v8@150.2.0
 	v8_valueserializer@0.1.2
 	valuable@0.1.0
 	vcpkg@0.2.15
@@ -948,30 +964,30 @@ CRATES="
 	wasip2@1.0.2+wasi-0.2.9
 	wasip3@0.4.0+wasi-0.3.0-rc-2026-01-06
 	wasite@0.1.0
-	wasm-bindgen-backend@0.2.100
 	wasm-bindgen-futures@0.4.42
-	wasm-bindgen-macro-support@0.2.100
-	wasm-bindgen-macro@0.2.100
-	wasm-bindgen-shared@0.2.100
-	wasm-bindgen@0.2.100
+	wasm-bindgen-macro-support@0.2.122
+	wasm-bindgen-macro@0.2.122
+	wasm-bindgen-shared@0.2.122
+	wasm-bindgen@0.2.122
 	wasm-encoder@0.244.0
 	wasm-metadata@0.244.0
 	wasm-streams@0.4.0
 	wasm_dep_analyzer@0.4.0
 	wasmparser@0.244.0
-	weak-table@0.3.2
-	web-sys@0.3.77
+	wayland-sys@0.31.11
+	web-sys@0.3.99
 	web-time@1.1.0
 	web-transport-proto@0.2.7
 	webpki-root-certs@0.26.6
 	webpki-roots@0.26.1
 	weezl@0.1.8
-	wgpu-core-deps-apple@28.0.0
-	wgpu-core-deps-emscripten@28.0.0
-	wgpu-core-deps-windows-linux-android@28.0.0
-	wgpu-core@28.0.0
-	wgpu-hal@28.0.0
-	wgpu-types@28.0.0
+	wgpu-core-deps-apple@29.0.3
+	wgpu-core-deps-emscripten@29.0.3
+	wgpu-core-deps-windows-linux-android@29.0.3
+	wgpu-core@29.0.1
+	wgpu-hal@29.0.3
+	wgpu-naga-bridge@29.0.3
+	wgpu-types@29.0.1
 	which@6.0.1
 	which@8.0.0
 	whoami@1.6.0
@@ -1119,6 +1135,10 @@ REQUIRED_USE="?? ( libcxx system-icu )"
 BDEPEND="
 	>=dev-build/gn-${GN_MIN_VER}
 	app-alternatives/ninja
+	|| (
+		$(llvm_gen_dep 'llvm-core/lld:${LLVM_SLOT}')
+		>=sys-devel/mold-2.41.0
+	)
 "
 DEPEND="
 	>=dev-libs/libffi-3.4.4
@@ -1178,7 +1198,7 @@ src_prepare() {
 	fi
 	eapply "${FILESDIR}/disable_v8_rust.patch"
 	eapply "${FILESDIR}/fix-icu-private-header.patch"
-	eapply "${FILESDIR}/build_from_source-M149.patch"
+	eapply "${FILESDIR}/build_from_source-M150.patch"
 	if use system-icu; then
 		eapply "${FILESDIR}/v8-use-system-libraries.patch"
 		install -Dm755 ${DISTDIR}/deno_129_generate_shim_headers.py tools/generate_shim_headers/generate_shim_headers.py || die
@@ -1189,6 +1209,9 @@ src_prepare() {
 		eapply "${FILESDIR}/v8-use-system-libraries-non-icu.patch"
 	fi
 	eapply "${FILESDIR}/v8-compiler.patch"
+	eapply "${FILESDIR}/cr150-ar-unbundle.patch"
+	eapply "${FILESDIR}/cr150-mold-unbundle.patch"
+	eapply "${FILESDIR}/cr149-ubsan-feature.patch"
 	if [[ -z "${CXXSTDLIB}" ]]; then
 		if [[ $(tc-get-cxx-stdlib) == libc++ ]]; then
 			export CXXSTDLIB=c++
@@ -1236,21 +1259,45 @@ src_configure() {
 		die "deno require CC=clang CXX=clang++"
 	fi
 
-	local myconf_gn="is_clang=true use_gold=false use_sysroot=false v8_builtins_profiling_log_file=\"\""
-	myconf_gn+="  use_custom_libcxx=$(usex libcxx true false)"
-	myconf_gn+=" custom_toolchain=\"//build/toolchain/linux/unbundle:default\""
-	myconf_gn+=" host_toolchain=\"//build/toolchain/linux/unbundle:default\""
-	myconf_gn+=" v8_snapshot_toolchain=\"//build/toolchain/linux/unbundle:default\""
-	myconf_gn+=" clang_base_path=\"$(get_llvm_prefix)\""
-	myconf_gn+=" clang_resource_path=\"$(realpath $($CC --print-resource-dir))\""
-	myconf_gn+=" bindgen_libclang_path=\"$(get_llvm_prefix)/$(get_libdir)\""
-	myconf_gn+=" rust_bindgen_root=\"${EPREFIX}/usr/\""
-	myconf_gn+=" rust_sysroot_absolute=\"$(get_rust_prefix)\""
-	myconf_gn+=" rustc_version=\"${RUST_SLOT}\""
-	use elibc_musl && myconf_gn+=" rust_abi_target=\"$(rust_abi)\""
-	myconf_gn+=" fatal_linker_warnings=false treat_warnings_as_errors=false"
-	myconf_gn+=" system_zlib=true icu_use_data_file=false"
-	export GN_ARGS="${myconf_gn}"
+	# Start building our GN options
+	local myconf_gn=() # Tip: strings must be quoted, bools or numbers are fine
+
+	local myconf_gn+=(
+		"is_clang=true"
+		"clang_use_chrome_plugins=false"
+		"use_clang_modules=false"
+		"use_sysroot=false"
+		"v8_builtins_profiling_log_file=\"\""
+		"use_custom_libcxx=$(usex libcxx true false)"
+		"custom_toolchain=\"//build/toolchain/linux/unbundle:default\""
+		"host_toolchain=\"//build/toolchain/linux/unbundle:default\""
+		"v8_snapshot_toolchain=\"//build/toolchain/linux/unbundle:default\""
+		"clang_base_path=\"$(get_llvm_prefix)\""
+		"clang_resource_path=\"$(realpath $($CC --print-resource-dir))\""
+		"bindgen_libclang_path=\"$(get_llvm_prefix)/$(get_libdir)\""
+		"rust_bindgen_root=\"${EPREFIX}/usr/\""
+		"rust_sysroot_absolute=\"$(get_rust_prefix)\""
+		"rustc_version=\"${RUST_SLOT}\""
+		"fatal_linker_warnings=false treat_warnings_as_errors=false"
+		"system_zlib=true icu_use_data_file=false"
+	)
+	if tc-ld-is-mold; then
+		myconf_gn+=(
+			"use_mold=true"
+			"use_lld=false"
+			"linker_path=\"${EPREFIX}/usr/bin/mold\""
+		)
+	else
+		myconf_gn+=( "use_lld=true" )
+	fi
+
+	if [[ ${LLVM_SLOT} -lt 23 ]]; then
+		# Workaround for -fsanitize-ignore-for-ubsan-feature (added in LLVM 23)
+		myconf_gn+=( 'clang_has_ubsan_feature_ignore=false' )
+	fi
+	use elibc_musl && myconf_gn+=( "rust_abi_target=\"$(rust_abi)\"" )
+
+	export GN_ARGS="${myconf_gn[*]}${EXTRA_GN:+ ${EXTRA_GN}}"
 	cargo_src_configure --no-default-features
 }
 

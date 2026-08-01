@@ -1,0 +1,71 @@
+From 2d4c05c3859c7e26264ff39a745acf36c07c3701 Mon Sep 17 00:00:00 2001
+From: Matt Jolly <kangie@gentoo.org>
+Date: Fri, 12 Jun 2026 19:59:10 +1000
+Subject: [PATCH] cr150 enable mold with unbundle toolchain
+
+Signed-off-by: Matt Jolly <kangie@gentoo.org>
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -760,7 +760,7 @@ config("compiler") {
+   # [0]: https://pinpoint-dot-chromeperf.appspot.com/job/15efb0313e0000
+   # [1]: https://pinpoint-dot-chromeperf.appspot.com/job/157f0b42be0000
+   if (!is_debug && use_thin_lto && is_a_target_toolchain) {
+-    assert(use_lld, "LTO is only supported with lld")
++    assert(use_lld || use_mold, "LTO is only supported with lld or mold")
+ 
+     cflags += [
+       "-flto=thin",
+--- a/build/config/compiler/compiler.gni
++++ b/build/config/compiler/compiler.gni
+@@ -52,17 +52,29 @@ if (!is_win && !is_mac && !is_ios) {
+         !is_official_build &&
+         # TODO(40208899): Enable more broadly.
+         target_os == "android" &&
+-        (current_cpu == "x64" || current_cpu == "arm64")
++        (current_cpu == "x64" || current_cpu == "arm64" ||
++         current_cpu == "x86")
++
++    # Optional path to a linker binary (for example, a local mold binary).
++    # If non-empty, this takes precedence over normal linker selection below.
++    # Leave empty to keep regular ld/lld behavior.
++    linker_path = ""
+   }
+ }
+ 
+ if (!defined(use_mold)) {
+   use_mold = false
++}
++if (!defined(linker_path)) {
+   linker_path = ""
+-} else if (use_mold) {
+-  linker_path = "//buildtools/third_party/mold/cipd/mold"
+-} else {
+-  linker_path = experimental_linker_path
++}
++
++if (linker_path == "") {
++  if (use_mold) {
++    linker_path = "//buildtools/third_party/mold/cipd/mold"
++  } else {
++    linker_path = experimental_linker_path
++  }
+ }
+ 
+ declare_args() {
+--- a/build/toolchain/android/BUILD.gn
++++ b/build/toolchain/android/BUILD.gn
+@@ -35,8 +35,12 @@ template("android_clang_toolchain") {
+     # generate_linker_map=true.
+     enable_linker_map = true
+ 
+-    use_mold_separate_debug_file = true
+-    strip = rebase_path("$clang_base_path/bin/llvm-strip", root_build_dir)
++    # Mold emits the split debug file directly. Other linkers still rely on a
++    # separate strip step, including explicit linker_path overrides that do not
++    # go through use_lld.
++    if (!use_mold) {
++      strip = rebase_path("$clang_base_path/bin/llvm-strip", root_build_dir)
++    }
+ 
+     use_unstripped_as_runtime_outputs = android_unstripped_runtime_outputs
+ 

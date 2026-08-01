@@ -1,8 +1,8 @@
 diff --git a/cli/snapshot/build.rs b/cli/snapshot/build.rs
-index 1fec6875a..0757cdcdc 100644
+index 5006772a26..05567e2fca 100644
 --- a/cli/snapshot/build.rs
 +++ b/cli/snapshot/build.rs
-@@ -12,11 +12,19 @@ fn main() {
+@@ -13,11 +13,19 @@ fn main() {
    }
    #[cfg(not(feature = "disable"))]
    {

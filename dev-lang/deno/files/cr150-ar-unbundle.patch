@@ -1,0 +1,47 @@
+From cd2d41f241708ae1169f3cd2350c1d04b8eaadc9 Mon Sep 17 00:00:00 2001
+From: Matt Jolly <kangie@gentoo.org>
+Date: Fri, 15 May 2026 17:37:30 +1000
+Subject: [PATCH] build/toolchain: handle PATH-resolved ar in gcc_toolchain
+
+The unbundled Linux toolchain sets `ar` from the environment and commonly
+uses a bare executable name such as `ar` or `llvm-ar`.
+
+After adding `ar` as an input to the `alink` tool, gcc_toolchain.gni
+started calling:
+
+  get_path_info(rebase_path(ar, ".", root_out_dir), "abspath")
+
+This fails for bare executable names with:
+
+  Empty directory path.
+
+Only add `ar` to `inputs` when it is path-like, preserving explicit tool
+dependencies for path-valued archivers while keeping PATH-resolved values
+working for unbundled toolchains.
+
+Signed-off-by: Matt Jolly <kangie@gentoo.org>
+---
+ build/toolchain/gcc_toolchain.gni | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/build/toolchain/gcc_toolchain.gni b/build/toolchain/gcc_toolchain.gni
+index 1cd76b78ec93a..36adfd542323e 100644
+--- a/build/toolchain/gcc_toolchain.gni
++++ b/build/toolchain/gcc_toolchain.gni
+@@ -401,8 +401,11 @@ template("single_gcc_toolchain") {
+         command = "cmd /s /c \"\"$python_path\" $tool_wrapper_path delete-file {{output}} && $command\""
+       } else {
+         command = "rm -f {{output}} && $command"
+-        inputs =
+-            [ get_path_info(rebase_path(ar, ".", root_out_dir), "abspath") ]
++        # Only rebase the path for pathlike values - unbundle toolchain may provide `AR=ar`
++        if (string_replace(ar, "/", "") != ar) {
++          inputs =
++              [ get_path_info(rebase_path(ar, ".", root_out_dir), "abspath") ]
++        }
+       }
+ 
+       # Almost all targets build with //build/config/compiler:thin_archive which
+-- 
+2.53.0
+
