@@ -1,7 +1,7 @@
-From 6412d2e81d6b49df1359176f3e7437f6d2f6fa9d Mon Sep 17 00:00:00 2001
+From 28078805be1fd0bfcb77cf6470bdedc849e90078 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 10 May 2026 17:13:35 +0800
-Subject: [PATCH 03/14] Don't run npm install for test
+Subject: [PATCH 03/12] Don't run npm install for test
 
 ---
  build/npm/dirs.ts        | 9 ---------
@@ -29,7 +29,7 @@ index 289a469754a..d4e3fffaaaa 100644
  
  if (existsSync(`${import.meta.dirname}/../../.build/distro/npm`)) {
 diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
-index 0d00ac39261..2a72ad3e393 100644
+index 0dd0b514ecf..795da524abe 100644
 --- a/build/npm/postinstall.ts
 +++ b/build/npm/postinstall.ts
 @@ -240,8 +240,6 @@ async function runWithConcurrency(tasks: (() => Promise<void>)[], concurrency: n
@@ -52,5 +52,5 @@ index 0d00ac39261..2a72ad3e393 100644
  	fs.writeFileSync(stateContentsFile, JSON.stringify(computeContents()));
  
 -- 
-2.54.0
+2.55.0
 

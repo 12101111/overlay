@@ -1,7 +1,7 @@
-From 1f127789a5755b51062b81099b02268d94b6f9aa Mon Sep 17 00:00:00 2001
+From 6b042e7b8144c54d3da3ffe0267b2784bb3a5593 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 10 Mar 2026 19:32:17 +0800
-Subject: [PATCH 11/14] Fix tunnel path
+Subject: [PATCH 11/12] Fix tunnel path
 
 ---
  src/vs/code/node/cli.ts | 2 +-
@@ -21,5 +21,5 @@ index 994f6c38d99..706ea841a84 100644
  					tunnelProcess = spawn(tunnelCommand, [subcommand, ...tunnelArgs], { cwd: cwd(), stdio, env });
  				}
 -- 
-2.54.0
+2.55.0
 

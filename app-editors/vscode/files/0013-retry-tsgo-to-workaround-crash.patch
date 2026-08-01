@@ -1,34 +1,34 @@
-From 31ac7c49d80b127f0e77d22176d3fd7220e01986 Mon Sep 17 00:00:00 2001
+From 58112e432b9f38260c7577c5837047daf663e6ce Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 17 May 2026 16:13:10 +0800
-Subject: [PATCH 14/14] retry tsgo to workaround crash
+Date: Sun, 2 Aug 2026 02:47:00 +0800
+Subject: [PATCH 13/13] retry tsgo to workaround crash
 
 ---
- build/lib/tsgo.ts | 72 ++++++++++++++++++++++++++---------------------
- 1 file changed, 40 insertions(+), 32 deletions(-)
+ build/lib/tsgo.ts | 68 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 37 insertions(+), 31 deletions(-)
 
 diff --git a/build/lib/tsgo.ts b/build/lib/tsgo.ts
-index ff42fa6e88e..eb3a0caad8a 100644
+index 7c48e299981..885e3301cb0 100644
 --- a/build/lib/tsgo.ts
 +++ b/build/lib/tsgo.ts
-@@ -30,45 +30,53 @@ export function spawnTsgo(projectPath: string, config: { taskName: string; noEmi
+@@ -40,44 +40,50 @@ export function spawnTsgo(projectPath: string, config: { taskName: string; noEmi
  	} else {
  		args.push('--sourceMap', '--inlineSources');
  	}
--	const child = cp.spawn(npx, args, {
+-	const child = cp.spawn(process.execPath, args, {
 -		cwd: root,
--		stdio: ['ignore', 'pipe', 'pipe'],
--		shell: true
+-		stdio: ['ignore', 'pipe', 'pipe']
 -	});
++	function attempt(retriesLeft: number): Promise<void> {
++		const child = cp.spawn(process.execPath, args, {
++			cwd: root,
++			stdio: ['ignore', 'pipe', 'pipe']
++		});
  
 -	let stdoutData = '';
 -	let stderrData = '';
-+	function attempt(retriesLeft: number): Promise<void> {
-+		const child = cp.spawn(npx, args, {
-+			cwd: root,
-+			stdio: ['ignore', 'pipe', 'pipe'],
-+			shell: true
-+		});
++		let stdoutData = '';
++		let stderrData = '';
  
 -	child.stdout?.on('data', (data: Buffer) => {
 -		stdoutData += data.toString();
@@ -36,8 +36,12 @@ index ff42fa6e88e..eb3a0caad8a 100644
 -	child.stderr?.on('data', (data: Buffer) => {
 -		stderrData += data.toString();
 -	});
-+		let stdoutData = '';
-+		let stderrData = '';
++		child.stdout?.on('data', (data: Buffer) => {
++			stdoutData += data.toString();
++		});
++		child.stderr?.on('data', (data: Buffer) => {
++			stderrData += data.toString();
++		});
  
 -	return new Promise<void>((resolve, reject) => {
 -		child.on('exit', code => {
@@ -48,14 +52,6 @@ index ff42fa6e88e..eb3a0caad8a 100644
 -				.map(line => line.replace(timestampRegex, ''))
 -				.filter(line => line.length > 0)
 -				.filter(line => !/Starting compilation|File change detected|Compilation complete/i.test(line));
-+		child.stdout?.on('data', (data: Buffer) => {
-+			stdoutData += data.toString();
-+		});
-+		child.stderr?.on('data', (data: Buffer) => {
-+			stderrData += data.toString();
-+		});
- 
--			runReporter(lines.join('\n'));
 +		return new Promise<void>((resolve, reject) => {
 +			child.on('exit', code => {
 +				const allOutput = stdoutData + '\n' + stderrData;
@@ -66,14 +62,15 @@ index ff42fa6e88e..eb3a0caad8a 100644
 +					.filter(line => line.length > 0)
 +					.filter(line => !/Starting compilation|File change detected|Compilation complete/i.test(line));
  
+-			runReporter(lines.join('\n'));
++				runReporter(lines.join('\n'));
+ 
 -			if (code === 0) {
 -				Promise.resolve(onComplete?.()).then(() => resolve(), reject);
 -			} else {
 -				reject(new Error(`tsgo exited with code ${code ?? 'unknown'}`));
 -			}
 -		});
-+				runReporter(lines.join('\n'));
-+
 +				if (code === 0) {
 +					Promise.resolve(onComplete?.()).then(() => resolve(), reject);
 +				} else if (retriesLeft > 0) {
@@ -92,11 +89,10 @@ index ff42fa6e88e..eb3a0caad8a 100644
  		});
 -	});
 +	}
-+
 +	return attempt(5);
  }
  
  export function createTsgoStream(projectPath: string, config: { taskName: string; noEmit?: boolean }, onComplete?: () => Promise<void> | void): NodeJS.ReadWriteStream {
 -- 
-2.54.0
+2.55.0
 

@@ -1,14 +1,14 @@
-From e09021bc90b44ce16522b33fd1089a024bf83b86 Mon Sep 17 00:00:00 2001
+From eb2836a773bf25368f52beeced248bca2c7baf24 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 9 Oct 2020 09:52:23 +0800
-Subject: [PATCH 04/14] update product.json
+Subject: [PATCH 04/12] update product.json
 
 ---
  product.json | 12 ++++++++++++
  1 file changed, 12 insertions(+)
 
 diff --git a/product.json b/product.json
-index e7f7e936cdb..3de5eb349c5 100644
+index 15f5796e3ac..b02b747f1c4 100644
 --- a/product.json
 +++ b/product.json
 @@ -1,4 +1,16 @@
@@ -29,5 +29,5 @@ index e7f7e936cdb..3de5eb349c5 100644
  	"nameLong": "Code - OSS",
  	"applicationName": "code-oss",
 -- 
-2.54.0
+2.55.0
 

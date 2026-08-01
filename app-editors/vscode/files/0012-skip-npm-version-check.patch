@@ -1,7 +1,7 @@
-From ca310e4c51193eb2654cc734ffc427ac0f47eba8 Mon Sep 17 00:00:00 2001
+From c99927f068ffac0f54c827420b0108387674a6ba Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 5 Jun 2026 21:27:35 +0800
-Subject: [PATCH 13/14] skip npm version check
+Subject: [PATCH 12/12] skip npm version check
 
 ---
  build/npm/preinstall.ts | 1 -
@@ -20,5 +20,5 @@ index 5cd259e4953..2a66376899e 100644
  }
  
 -- 
-2.54.0
+2.55.0
 
