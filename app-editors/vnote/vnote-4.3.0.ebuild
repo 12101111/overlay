@@ -33,6 +33,7 @@ src_prepare() {
 	sed -i -e "s|add_library(qhotkey|add_library(qhotkey STATIC|g" \
 		libs/QHotkey/CMakeLists.txt || die
 	sed -i -e "s|keychain.h|qt6keychain/keychain.h|g" src/core/services/synccredentialsstore.cpp || die
+	sed -i -e "s|add_subdirectory(cmark)|add_subdirectory(cmark EXCLUDE_FROM_ALL)|g" libs/vtextedit/libs/CMakeLists.txt || die
 	cmake_src_prepare
 }
 
