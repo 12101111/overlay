@@ -95,14 +95,6 @@ EOF
 	insinto "${node_headers}"
 	doins -r node_headers/include/node
 	rm -rf "${ED}/${install_dir}/node_headers"
-	# set up a symlink structure that npm expects..
-	dodir "${node_headers}"/node/deps/{v8,uv}
-	dodir "${node_headers}"/node/include
-	dosym . "${node_headers}"/node/src
-	dosym .. "${node_headers}"/node/include/node
-	for var in deps/{uv,v8}/include; do
-		dosym ../.. "${node_headers}"/node/${var}
-	done
 
 	dosym "${install_dir}/electron" "/usr/bin/electron${install_suffix}"
 }
