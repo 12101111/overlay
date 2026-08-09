@@ -27,7 +27,7 @@ inherit rust-toolchain
 # find least version of available snapshot using files/url.sh
 CHROMIUM_VERSION="148.0.7778.263"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="24.18.0"
+NODE_VERSION="24.18.1"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
