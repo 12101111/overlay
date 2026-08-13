@@ -24,7 +24,6 @@ DEPEND="
 	dev-libs/qtkeychain:=
 "
 RDEPEND="${DEPEND}"
-PATCHES=( "${FILESDIR}/fix-crash.patch" )
 
 src_prepare() {
 	sed -i -e "s|VNote|vnote|g" CMakeLists.txt || die
