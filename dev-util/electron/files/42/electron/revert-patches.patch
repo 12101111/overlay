@@ -422,3 +422,26 @@ index 75fadb40be..057a2d470b 100644
  feat_add_uv_loop_interrupt_on_io_change_option_to_uv_loop_configure.patch
  support_v8_sandboxed_pointers.patch
  build_ensure_native_module_compilation_fails_if_not_using_a_new.patch
+diff --git a/patches/angle/.patches b/patches/angle/.patches
+index 285f1bfe86..f549520b22 100644
+--- a/patches/angle/.patches
++++ b/patches/angle/.patches
+@@ -25,4 +25,3 @@ cherry-pick-77ada6da2427.patch
+ cherry-pick-51afe011d316.patch
+ cherry-pick-4a0e6eecaa9a.patch
+ cherry-pick-764bb891d3b8.patch
+-cherry-pick-b8352abce038.patch
+diff --git a/patches/chromium/.patches b/patches/chromium/.patches
+index 89992b1df8..05ceb7c635 100644
+--- a/patches/chromium/.patches
++++ b/patches/chromium/.patches
+@@ -245,9 +245,7 @@ cherry-pick-c17110d74d39.patch
+ cherry-pick-6fb5bf539857.patch
+ cherry-pick-3e0f4f798a6b.patch
+ cherry-pick-5c2010f1a7ea.patch
+-cherry-pick-afcbd943b2ea.patch
+ cherry-pick-cd7d046effc5.patch
+-cherry-pick-7f40995cc185.patch
+ cherry-pick-36e3c8b0d681.patch
+ cherry-pick-5dc7ba4f4e47.patch
+ cherry-pick-91a2334cbf47.patch

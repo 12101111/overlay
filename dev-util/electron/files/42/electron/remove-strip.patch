@@ -51,3 +51,72 @@ index 8bbc3ce169..a4877abd93 100644
    strip_binary("strip_libvk_swiftshader_shlib") {
      binary_input = "$root_out_dir/libvk_swiftshader.so"
      symbol_output = "$root_out_dir/debug/libvk_swiftshader.so.debug"
+diff --git a/patches/v8/cherry-pick-383120c3acd3.patch b/patches/v8/cherry-pick-383120c3acd3.patch
+index 9a4bfcc202..98761c4173 100644
+--- a/patches/v8/cherry-pick-383120c3acd3.patch
++++ b/patches/v8/cherry-pick-383120c3acd3.patch
+@@ -38,64 +38,3 @@ index 0165da42e98b9634fa697a67493e3170ead42955..f7cb50a778a255f25177164a29dd9519
+    try {
+      StringToSlice(s1) otherwise FirstOneByte, FirstTwoByte;
+    } label FirstOneByte(s1Slice: ConstSlice<char8>) {
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index bc70cc54b284ffc2bdd280ced5f41f61f35080f0..cbf2e4dfe98579ef9ecaeb3a736aafe2903cbd24 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -2565,6 +2565,7 @@
+-   'regress/wasm/regress-483269968': [SKIP],
+-   'compiler/regress-347724915': [SKIP],
+-   'regress/regress-crbug-418520151': [SKIP],
+-+  'regress/regress-535000102': [SKIP],
+- 
+-   # TODO(v8:14581): Re-enable this test once TransitionElementsKindOrCheckMap is
+-   # supported by the Maglev->Turboshaft graph builder.
+-diff --git a/test/mjsunit/regress/regress-535000102.js b/test/mjsunit/regress/regress-535000102.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..b7584bc6b4a9c800c37c5028a712d29563af25b3
+---- /dev/null
+-+++ b/test/mjsunit/regress/regress-535000102.js
+-@@ -0,0 +1,43 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --allow-natives-syntax --expose-gc --expose-externalize-string
+-+// Flags: --gc-global
+-+
+-+// String.prototype.indexOf takes a slice of the receiver before flattening the
+-+// search string. A slice into an external string is a raw pointer that doesn't
+-+// keep the string alive, so the allocation done while flattening the search
+-+// string could collect the receiver and free its resource.
+-+//
+-+// External strings are only disposed by major GCs, so the flattening allocation
+-+// has to hit one. --gc-global just makes that deterministic; the bug also
+-+// reproduces under ordinary old space pressure.
+-+
+-+let subject = null;
+-+
+-+function makeExternal(s) {
+-+  const str = createExternalizableString(s);
+-+  externalizeString(str, true);
+-+  return str;
+-+}
+-+
+-+function indexOfAndDropSubject(search) {
+-+  const s = subject;
+-+  subject = null;
+-+  // Make the allocation that flattens {search} trigger a GC.
+-+  %SimulateNewspaceFull();
+-+  return s.indexOf(search);
+-+}
+-+
+-+%PrepareFunctionForOptimization(indexOfAndDropSubject);
+-+for (let i = 0; i < 3; i++) {
+-+  subject = makeExternal('a'.repeat(64));
+-+  indexOfAndDropSubject('b' + 'c');
+-+}
+-+%OptimizeFunctionOnNextCall(indexOfAndDropSubject);
+-+
+-+subject = makeExternal('A'.repeat(20 * 1024));
+-+// A cons string, so that indexOf has to flatten it.
+-+const search = 'B'.repeat(1024) + 'C'.repeat(1024);
+-+assertEquals(-1, indexOfAndDropSubject(search));

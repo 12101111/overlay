@@ -629,3 +629,608 @@ index 5d1c9237c6..376f3c02e8 100644
 -+  [5, 14, 20],
 - ]
 - 
+diff --git a/patches/v8/cherry-pick-2ef100a053c5.patch b/patches/v8/cherry-pick-2ef100a053c5.patch
+index 37a7309a9c..6fecf22cab 100644
+--- a/patches/v8/cherry-pick-2ef100a053c5.patch
++++ b/patches/v8/cherry-pick-2ef100a053c5.patch
+@@ -41,73 +41,3 @@ index 52b846bf6014e68a085d4549d6ef1460371804a8..f564d18d552ec9da14dd6dab92e69a24
+  // Process the module header.
+  bool AsyncStreamingProcessor::ProcessModuleHeader(
+      base::Vector<const uint8_t> bytes) {
+-diff --git a/test/unittests/wasm/streaming-decoder-unittest.cc b/test/unittests/wasm/streaming-decoder-unittest.cc
+-index 26494f8be4cec4b05f16722b7eddcd73486fbf77..8177a1ad3689b264da9de7e8f3cd8b060d9e61f8 100644
+---- a/test/unittests/wasm/streaming-decoder-unittest.cc
+-+++ b/test/unittests/wasm/streaming-decoder-unittest.cc
+-@@ -2,16 +2,13 @@
+- // Use of this source code is governed by a BSD-style license that can be
+- // found in the LICENSE file.
+- 
+--#include "test/unittests/test-utils.h"
+--
+--#include "src/objects/objects-inl.h"
+--
+--#include "src/wasm/module-decoder.h"
+- #include "src/wasm/streaming-decoder.h"
+- 
+--#include "src/objects/descriptor-array.h"
+--#include "src/objects/dictionary.h"
+-+#include "src/wasm/module-decoder.h"
+-+#include "src/wasm/wasm-engine.h"
+-+#include "test/common/flag-utils.h"
+- #include "test/common/wasm/wasm-macro-gen.h"
+-+#include "test/unittests/test-utils.h"
+- 
+- namespace v8 {
+- namespace internal {
+-@@ -661,6 +658,44 @@ TEST_F(WasmStreamingDecoderTest, InvalidSectionCode) {
+-   ExpectFailure(base::ArrayVector(data));
+- }
+- 
+-+class EmptyResolver : public CompilationResultResolver {
+-+ public:
+-+  void OnCompilationSucceeded(DirectHandle<WasmModuleObject> module) override {}
+-+  void OnCompilationFailed(DirectHandle<JSAny> error_reason) override {}
+-+};
+-+
+-+using WasmStreamingCompilationTest = TestWithNativeContext;
+-+
+-+TEST_F(WasmStreamingCompilationTest, ContextDisposeDuringValidation) {
+-+  FlagScope<bool> async_compilation(&v8_flags.wasm_async_compilation, true);
+-+  FlagScope<bool> lazy_compilation(&v8_flags.wasm_lazy_compilation, true);
+-+
+-+  std::shared_ptr<EmptyResolver> resolver = std::make_shared<EmptyResolver>();
+-+  WasmEnabledFeatures features = WasmEnabledFeatures::FromIsolate(isolate());
+-+
+-+  std::shared_ptr<StreamingDecoder> stream =
+-+      GetWasmEngine()->StartStreamingCompilation(
+-+          features, CompileTimeImports{}, "WebAssembly.compileStreaming()",
+-+          resolver);
+-+  stream->InitializeIsolateSpecificInfo(isolate());
+-+
+-+  const uint8_t data[] = {
+-+      0x00, 0x61, 0x73, 0x6d,  // wasm magic
+-+      0x01, 0x00, 0x00, 0x00,  // wasm version
+-+      0x01, 0x04,              // Type section, length: 4
+-+      0x01, 0x60, 0x00, 0x00,  // One type, signature, no params, no results
+-+      0x03, 0x02,              // Function section, length: 2
+-+      0x01, 0x00,              // One function, type $sig0
+-+      0x0a, 0x04,              // Code section, length: 4
+-+      0x01, 0x02, 0x00, 0x0b,  // One function, length: 2, unreachable, end
+-+  };
+-+
+-+  stream->OnBytesReceived(base::VectorOf(data));
+-+
+-+  // Dispose context. This triggered crbug.com/523030583 before the fix.
+-+  v8_isolate()->ContextDisposedNotification(ContextDependants::kNoDependants);
+-+}
+-+
+- }  // namespace wasm
+- }  // namespace internal
+- }  // namespace v8
+diff --git a/patches/v8/cherry-pick-2c3e7f7d4d65.patch b/patches/v8/cherry-pick-2c3e7f7d4d65.patch
+index 380794fd63..4233733e1d 100644
+--- a/patches/v8/cherry-pick-2c3e7f7d4d65.patch
++++ b/patches/v8/cherry-pick-2c3e7f7d4d65.patch
+@@ -51,98 +51,3 @@ index e52364d80af4055002a0f0bc567b703f20538457..9f4209c8f5d8e29b4682720e2f8a0a58
+  }
+  
+  // If lr_status is kLRHasBeenSaved, lr will be clobbered.
+-diff --git a/test/mjsunit/regress/wasm/regress-530663440.js b/test/mjsunit/regress/wasm/regress-530663440.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..6e6742385a23080c5eef9a4e806d2ac263292cff
+---- /dev/null
+-+++ b/test/mjsunit/regress/wasm/regress-530663440.js
+-@@ -0,0 +1,36 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --expose-gc
+-+
+-+d8.file.execute('test/mjsunit/wasm/wasm-module-builder.js');
+-+
+-+const builder = new WasmModuleBuilder();
+-+const arrT = builder.addArray(kWasmAnyRef);
+-+
+-+let fill_sig = makeSig(
+-+    [kWasmI32, kWasmI32, kWasmI32, kWasmI32, wasmRefType(arrT), kWasmAnyRef],
+-+    []);
+-+builder.addFunction('fill', fill_sig).exportFunc().addBody([
+-+    kExprLocalGet, 4,
+-+    kExprLocalGet, 0,
+-+    kExprI32Eqz,
+-+    kExprLocalGet, 5,
+-+    kExprI32Const, 1,
+-+    kGCPrefix, kExprArrayFill, arrT,
+-+  ]);
+-+
+-+builder.addFunction('mkarr', makeSig([kWasmI32], [kWasmAnyRef])).exportFunc()
+-+  .addBody([
+-+    kExprLocalGet, 0,
+-+    kGCPrefix, kExprArrayNewDefault, arrT,
+-+  ]);
+-+
+-+const instance = builder.instantiate();
+-+
+-+const arr = instance.exports.mkarr(4);
+-+gc();  // Promote {arr} to old space.
+-+gc();
+-+
+-+instance.exports.fill(1, 0, 0, 0, arr, {});
+-diff --git a/test/unittests/assembler/macro-assembler-arm64-unittest.cc b/test/unittests/assembler/macro-assembler-arm64-unittest.cc
+-index 9ae126cba5ea9f57c74ecc55fe72e9f53e8b9e61..ce1ed02d16727d61046007616b9b50b8bb13c836 100644
+---- a/test/unittests/assembler/macro-assembler-arm64-unittest.cc
+-+++ b/test/unittests/assembler/macro-assembler-arm64-unittest.cc
+-@@ -141,25 +141,33 @@ struct MoveObjectAndSlotTestCase {
+-   Register dst_slot;
+-   Register object;
+-   Register offset_register = no_reg;
+-+  Extend offset_extend = NO_EXTEND;
+- };
+- 
+- const MoveObjectAndSlotTestCase kMoveObjectAndSlotTestCases[] = {
+-     {"no overlap", x0, x1, x2},
+-     {"no overlap", x0, x1, x2, x3},
+-+    {"no overlap", x0, x1, x2, w3, UXTW},
+- 
+-     {"object == dst_object", x2, x1, x2},
+-     {"object == dst_object", x2, x1, x2, x3},
+-+    {"object == dst_object", x2, x1, x2, w3, UXTW},
+- 
+-     {"object == dst_slot", x1, x2, x2},
+-     {"object == dst_slot", x1, x2, x2, x3},
+-+    {"object == dst_slot", x1, x2, x2, w3, UXTW},
+- 
+-     {"offset == dst_object", x0, x1, x2, x0},
+-+    {"offset == dst_object", x0, x1, x2, w0, UXTW},
+- 
+-     {"offset == dst_object && object == dst_slot", x0, x1, x1, x0},
+-+    {"offset == dst_object && object == dst_slot", x0, x1, x1, w0, UXTW},
+- 
+-     {"offset == dst_slot", x0, x1, x2, x1},
+-+    {"offset == dst_slot", x0, x1, x2, w1, UXTW},
+- 
+--    {"offset == dst_slot && object == dst_object", x0, x1, x0, x1}};
+-+    {"offset == dst_slot && object == dst_object", x0, x1, x0, x1},
+-+    {"offset == dst_slot && object == dst_object", x0, x1, x0, w1, UXTW}};
+- 
+- // Make sure we include offsets that cannot be encoded in an add instruction.
+- const int kOffsets[] = {0, 42, kMaxRegularHeapObjectSize, 0x101001};
+-@@ -194,7 +202,12 @@ TEST_P(MacroAssemblerTestMoveObjectAndSlot, MoveObjectAndSlot) {
+-         offset_operand = Operand(offset);
+-       } else {
+-         __ Mov(test_case.offset_register, Operand(offset));
+--        offset_operand = Operand(test_case.offset_register);
+-+        if (test_case.offset_extend == NO_EXTEND) {
+-+          offset_operand = Operand(test_case.offset_register);
+-+        } else {
+-+          offset_operand =
+-+              Operand(test_case.offset_register, test_case.offset_extend);
+-+        }
+-       }
+- 
+-       std::stringstream comment;
+diff --git a/patches/v8/cherry-pick-2a21c7560310.patch b/patches/v8/cherry-pick-2a21c7560310.patch
+index 89e71743c9..e3aaba24d7 100644
+--- a/patches/v8/cherry-pick-2a21c7560310.patch
++++ b/patches/v8/cherry-pick-2a21c7560310.patch
+@@ -67,29 +67,3 @@ index eee29e77e16ae96b25b3769bc185cd3980f75dee..a448a4e50682811ac82956690005ffa7
+  };
+  
+  template <typename Types>
+-diff --git a/test/mjsunit/regress/regress-526380803-1.js b/test/mjsunit/regress/regress-526380803-1.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..c4662fca70721548ef42674ce557d6e61b8da5fe
+---- /dev/null
+-+++ b/test/mjsunit/regress/regress-526380803-1.js
+-@@ -0,0 +1,5 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+assertThrows(() => eval("let[class x{...x}]"), SyntaxError);
+-diff --git a/test/mjsunit/regress/regress-526380803-2.js b/test/mjsunit/regress/regress-526380803-2.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..bcede54c978e3bc81d29f4b78ccb24f15adba691
+---- /dev/null
+-+++ b/test/mjsunit/regress/regress-526380803-2.js
+-@@ -0,0 +1,9 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+function testScopeResolutionInPatternDefault() {
+-+  let [c = class A { field = x; }, x] = [undefined, 42];
+-+  assertEquals(42, new c().field);
+-+}
+-+testScopeResolutionInPatternDefault();
+diff --git a/patches/v8/cherry-pick-9068d5fc068f.patch b/patches/v8/cherry-pick-9068d5fc068f.patch
+index 5e7ec6bc16..92611ace6c 100644
+--- a/patches/v8/cherry-pick-9068d5fc068f.patch
++++ b/patches/v8/cherry-pick-9068d5fc068f.patch
+@@ -25,34 +25,3 @@ index cbca8d02b652548ccb484b1beedc20163430a847..a523d0b340beefd4a1d9263ec6f691e9
+          node_info->possible_maps().size() == 1) {
+        compiler::MapRef old_map = node_info->possible_maps().at(0);
+        auto MaybeAliases = [&](compiler::MapRef map) -> bool {
+-diff --git a/test/mjsunit/turbolev/regress-528501127.js b/test/mjsunit/turbolev/regress-528501127.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..8a8e17d1b8a8e3c210f9828a57d09d42f64281a1
+---- /dev/null
+-+++ b/test/mjsunit/turbolev/regress-528501127.js
+-@@ -0,0 +1,25 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --allow-natives-syntax --turbolev
+-+
+-+function f(a, b) {
+-+  let tr = (a.w * 1.5) | 0;
+-+  a.x = 1.1;
+-+  let t1 = b.x;
+-+  a.y = 2.2;
+-+  let t2 = b.x;
+-+  b.z = 3.3;
+-+  return tr + t1 + t2;
+-+}
+-+%PrepareFunctionForOptimization(f);
+-+{ let a = {w: 0.5}; let b = {w: 0.5}; b.x = 1.1; f(a, b); }
+-+%OptimizeFunctionOnNextCall(f);
+-+{ let a = {w: 0.5}; let b = {w: 0.5}; b.x = 1.1; f(a, b); }
+-+
+-+let o = {w: 0.5};
+-+f(o, o);
+-+assertEquals("w,x,y,z", Object.keys(o).join(","));
+-+assertEquals(2.2, o.y);
+-+assertEquals(3.3, o.z);
+diff --git a/patches/v8/cherry-pick-a90507bd38f7.patch b/patches/v8/cherry-pick-a90507bd38f7.patch
+index 44bbfb86f1..8d64693b5e 100644
+--- a/patches/v8/cherry-pick-a90507bd38f7.patch
++++ b/patches/v8/cherry-pick-a90507bd38f7.patch
+@@ -49,56 +49,3 @@ index bf7567821a52d886bb8f1aa8ca8a3ae989c33b78..28414c1b899691cd61ee06fb737ec5c7
+            if (InputIs(node, Type::NumberOrOddball())) {
+              VisitUnop<T>(node, UseInfo::TruncatingWord32(),
+                           MachineRepresentation::kWord32);
+-diff --git a/test/mjsunit/regress/regress-531503216.js b/test/mjsunit/regress/regress-531503216.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..2730be29dfeb3919a8574b154e41b96fa084ec8d
+---- /dev/null
+-+++ b/test/mjsunit/regress/regress-531503216.js
+-@@ -0,0 +1,47 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --allow-natives-syntax
+-+
+-+// When a PlainPrimitiveToNumber result feeds an additive-safe-integer add whose
+-+// result is truncated to word32, the conversion must keep the safe-integer
+-+// check: ToNumber(undefined) is NaN, so (NaN + C) | 0 must be 0. Truncating
+-+// undefined straight to word32 0 would drop the check and forge an integer.
+-+const C = 0x40101000;
+-+const TK = -0x40101000;
+-+
+-+function f(route, stop) {
+-+  let n = +(route ? TK : undefined);
+-+  if (stop) return 0;
+-+  return (n + C) | 0;
+-+}
+-+
+-+%PrepareFunctionForOptimization(f);
+-+// Warm the ToNumber with undefined once, returning before the add so the add
+-+// only ever sees in-range integers and keeps its additive-safe-integer type.
+-+f(false, true);
+-+for (let i = 0; i < 200; i++) f(true, false);
+-+%OptimizeFunctionOnNextCall(f);
+-+
+-+// undefined now flows into the add: the result must be 0, not a forged integer.
+-+assertEquals(0, f(false, false));
+-+
+-+// Same invariant for the sibling JSToNumber lowering: an effectful ToNumber
+-+// (object with valueOf) that yields NaN must keep the safe-integer check too.
+-+let vv = TK;
+-+const obj = { valueOf() { return vv; } };
+-+
+-+function g(route, stop) {
+-+  let n = +(route ? TK : obj);
+-+  if (stop) return 0;
+-+  return (n + C) | 0;
+-+}
+-+
+-+%PrepareFunctionForOptimization(g);
+-+g(false, true);
+-+for (let i = 0; i < 200; i++) g(true, false);
+-+%OptimizeFunctionOnNextCall(g);
+-+
+-+vv = NaN;
+-+assertEquals(0, g(false, false));
+diff --git a/patches/v8/cherry-pick-b9013994f341.patch b/patches/v8/cherry-pick-b9013994f341.patch
+index a058d53534..6bcf672dbb 100644
+--- a/patches/v8/cherry-pick-b9013994f341.patch
++++ b/patches/v8/cherry-pick-b9013994f341.patch
+@@ -40,91 +40,3 @@ index 72cd9f27c0f1c93206671ffc07e999a69bde7d30..b53c8ee7d8fc9947b2306a9610a31cba
+    }
+  
+    // Load the [[NextIndex]] from the {iterator}.
+-diff --git a/test/mjsunit/maglev/regress-523884658.js b/test/mjsunit/maglev/regress-523884658.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..41d7cd2deae685b80cfce66d4af0a4a1fed3bfb9
+---- /dev/null
+-+++ b/test/mjsunit/maglev/regress-523884658.js
+-@@ -0,0 +1,82 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --allow-natives-syntax --maglev
+-+
+-+let transition = false;
+-+let tagged_value;
+-+let double_value;
+-+
+-+function tagged_reflect() {
+-+  const a = eval('tagged_inner.arguments');
+-+  if (transition) {
+-+    a[1][0] = tagged_value;
+-+    a[1][1] = tagged_value;
+-+  } else {
+-+    a[1][0] = 3.3;
+-+    a[1][1] = 3.3;
+-+  }
+-+}
+-+
+-+function tagged_next(iterator) {
+-+  return iterator.next().value;
+-+}
+-+
+-+function tagged_inner(iterator, array) {
+-+  tagged_reflect();
+-+  return tagged_next(iterator);
+-+}
+-+
+-+function tagged_outer() {
+-+  const array = [1.1, 2.2];
+-+  const iterator = array.values();
+-+  return tagged_inner(iterator, array);
+-+}
+-+
+-+function double_reflect() {
+-+  const a = eval('double_inner.arguments');
+-+  if (transition) {
+-+    a[1][0] = double_value;
+-+    a[1][1] = double_value;
+-+  } else {
+-+    a[1][0] = 3;
+-+    a[1][1] = 3;
+-+  }
+-+}
+-+
+-+function double_next(iterator) {
+-+  return iterator.next().value;
+-+}
+-+
+-+function double_inner(iterator, array) {
+-+  double_reflect();
+-+  return double_next(iterator);
+-+}
+-+
+-+function double_outer() {
+-+  const array = [1, 2];
+-+  const iterator = array.values();
+-+  return double_inner(iterator, array);
+-+}
+-+
+-+const marker = {};
+-+tagged_value = marker;
+-+double_value = 1.5;
+-+
+-+for (const f of [tagged_reflect, tagged_next, tagged_inner, tagged_outer,
+-+                 double_reflect, double_next, double_inner, double_outer]) {
+-+  %PrepareFunctionForOptimization(f);
+-+}
+-+
+-+tagged_outer();
+-+tagged_outer();
+-+double_outer();
+-+double_outer();
+-+
+-+%OptimizeMaglevOnNextCall(tagged_outer);
+-+%OptimizeMaglevOnNextCall(double_outer);
+-+
+-+transition = true;
+-+assertSame(marker, tagged_outer());
+-+assertEquals(1.5, double_outer());
+diff --git a/patches/v8/cherry-pick-c3ea7757b190.patch b/patches/v8/cherry-pick-c3ea7757b190.patch
+index 4c5a0930b1..03ef512ce0 100644
+--- a/patches/v8/cherry-pick-c3ea7757b190.patch
++++ b/patches/v8/cherry-pick-c3ea7757b190.patch
+@@ -77,75 +77,3 @@ index 3a92926d03b3aec18f4d7398c5fdbd1d69dc0d61..d6add8752784eb31b59402fab66db251
+      CHECK(current_jump_tables_.is_valid());
+    }
+  
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index cbf2e4dfe98579ef9ecaeb3a736aafe2903cbd24..9dd7aa47dc87da0c144f76edbb9694e38ead0596 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -256,6 +256,9 @@
+-   # Disabled since v8_flags.always_use_string_forwarding_table is now READONLY.
+-   'string-forwarding-table': [SKIP],
+- 
+-+  # Requires a large --wasm-max-code-space-size-mb.
+-+  'regress/wasm/regress-538378084': [PASS, ['arch not in (x64, ia32) or no_simd_hardware', SKIP]],
+-+
+-   # Slow tests in the lower_limits_mode.
+-   # The lower limits makes EphemeronHashTables more inefficient by making hashes
+-   # collide more. This tests adds many objects to a WeakMap and that is very
+-diff --git a/test/mjsunit/regress/wasm/regress-538378084.js b/test/mjsunit/regress/wasm/regress-538378084.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..30253655ff5630ac146b4588222195586e4ab661
+---- /dev/null
+-+++ b/test/mjsunit/regress/wasm/regress-538378084.js
+-@@ -0,0 +1,52 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --allow-natives-syntax --wasm-max-code-space-size-mb=456 --expose-gc
+-+
+-+d8.file.execute('test/mjsunit/wasm/wasm-module-builder.js');
+-+
+-+const kMaxReservation = 838912;
+-+
+-+const instr = SimdInstr(kExprI32x4TruncSatF64x2UZero);
+-+const chain = n => {
+-+  const b = [kExprLocalGet, 0, ...SimdInstr(kExprI32x4Splat)];
+-+  for (let i = 0; i < n; i++) b.push(...instr);
+-+  b.push(...SimdInstr(kExprI32x4ExtractLane), 0);
+-+  return b;
+-+};
+-+
+-+const builder = new WasmModuleBuilder();
+-+let chain_6k = chain(6000);
+-+builder.addFunction('big', kSig_i_i).addBody(chain(18300)).exportFunc();
+-+builder.addFunction('small', kSig_i_i).addBody(chain_6k).exportFunc();
+-+// Never called, so never compiled. These only inflate the initial reservation,
+-+// via EstimateNativeModuleCodeSize = 3*body+24 per declared function, which is
+-+// where the free slack for {small} comes from.
+-+for (let i = 0; i < 24; i++) {
+-+  builder.addFunction('pad' + i, kSig_i_i).addBody(chain_6k).exportFunc();
+-+}
+-+const wire = builder.toBuffer();
+-+
+-+// Only 'big' is tiered up, so only it serializes as real code; everything else
+-+// stays a 1-byte marker and is compiled after deserialization.
+-+let module = new WebAssembly.Module(wire);
+-+let inst0 = new WebAssembly.Instance(module);
+-+inst0.exports.big(3);
+-+%WasmTierUpFunction(inst0.exports.big);
+-+const blob = d8.wasm.serializeModule(module);
+-+// We want to achieve blob.byteLength > kMaxReservation here, but can't
+-+// assert it because in the no-AVX configuration the generated code is smaller.
+-+// That's fine, the default config provides enough coverage.
+-+
+-+// This is load bearing for some reason.
+-+print("" + blob.byteLength);
+-+
+-+// Clear the NativeModuleCache to force real deserialization.
+-+module = null; inst0 = null;
+-+gc();
+-+
+-+const inst = new WebAssembly.Instance(d8.wasm.deserializeModule(blob, wire));
+-+assertEquals(0, inst.exports.big(3));
+-+assertEquals(0, inst.exports.small(5));
+-+assertEquals(0, inst.exports.big(3));
+diff --git a/patches/v8/cherry-pick-d6a92ca48587.patch b/patches/v8/cherry-pick-d6a92ca48587.patch
+index c232ecdef6..ce37684a70 100644
+--- a/patches/v8/cherry-pick-d6a92ca48587.patch
++++ b/patches/v8/cherry-pick-d6a92ca48587.patch
+@@ -100,71 +100,3 @@ index 5f339731d3bab45b6dc028711bbccdc48686e290..aa71cea3640f3d25418154613d3aeb01
+    IndirectHandle<JSFunction> function() const;
+    MaybeIndirectHandle<Code> code() const;
+    BytecodeOffset osr_offset() const;
+-diff --git a/test/mjsunit/maglev/regress-536945254.js b/test/mjsunit/maglev/regress-536945254.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..522bcfd8ff2f20a9932803b38825c71ce0bc8733
+---- /dev/null
+-+++ b/test/mjsunit/maglev/regress-536945254.js
+-@@ -0,0 +1,62 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --allow-natives-syntax --maglev --no-turbofan
+-+
+-+// Keeps `count` Int32 and Float64 values live at once, so Maglev needs roughly
+-+// two stack slots per value while the bytecode stays small.
+-+function buildWideFrame(count, osr) {
+-+  let preload = '';
+-+  let integerFold = '';
+-+  let doubleFold = '';
+-+  for (let i = 0; i < count; ++i) {
+-+    preload += `0.5 + (input ^ ${i});`;
+-+    integerFold += `integer ^= (input ^ ${i});`;
+-+    doubleFold += `double += (input ^ ${i});`;
+-+  }
+-+  return Function(`
+-+    return function wide(input) {
+-+      input |= 0;
+-+      let result = 0;
+-+      for (let iteration = 0; iteration < 20; ++iteration) {
+-+        ${osr ? 'if (iteration === 5) %OptimizeOsr();' : ''}
+-+        ${preload}
+-+        let integer = 0;
+-+        ${integerFold}
+-+        let double = 0.5;
+-+        ${doubleFold}
+-+        result = (integer + double) | 0;
+-+      }
+-+      return result;
+-+    };
+-+  `)();
+-+}
+-+
+-+// ~750 stack slots, ~16KB of bytecode.
+-+const kWideValueCount = 400;
+-+
+-+const wide = buildWideFrame(kWideValueCount, false);
+-+%PrepareFunctionForOptimization(wide);
+-+const expected = wide(1);
+-+%OptimizeMaglevOnNextCall(wide);
+-+assertEquals(expected, wide(1));
+-+assertFalse(isOptimized(wide));
+-+
+-+const wideOsr = buildWideFrame(kWideValueCount, true);
+-+%PrepareFunctionForOptimization(wideOsr);
+-+assertEquals(expected, wideOsr(1));
+-+
+-+// One live value, but more bytecode than Maglev is willing to compile.
+-+function buildLongBytecode(count) {
+-+  let body = '';
+-+  for (let i = 0; i < count; ++i) body += `sum += ${i};`;
+-+  return Function(`return function long(sum) { ${body} return sum; };`)();
+-+}
+-+
+-+const long = buildLongBytecode(12000);
+-+%PrepareFunctionForOptimization(long);
+-+const expectedLong = long(0);
+-+%OptimizeMaglevOnNextCall(long);
+-+assertEquals(expectedLong, long(0));
+-+assertFalse(isOptimized(long));
+diff --git a/patches/v8/maglev_fix_scope_tracking_at_dead_merge_points_in_resumable.patch b/patches/v8/maglev_fix_scope_tracking_at_dead_merge_points_in_resumable.patch
+index 3e2ebd5e16..4fd13031b3 100644
+--- a/patches/v8/maglev_fix_scope_tracking_at_dead_merge_points_in_resumable.patch
++++ b/patches/v8/maglev_fix_scope_tracking_at_dead_merge_points_in_resumable.patch
+@@ -40,33 +40,3 @@ index b53c8ee7d8fc9947b2306a9610a31cba0f8b109b..ae8ed4e0c9550605d8362eb668fab788
+        auto it = dead_scope_infos_.find(current_offset);
+        if (it != dead_scope_infos_.end()) {
+          SetCurrentScopeInfo(it->second);
+-diff --git a/test/mjsunit/maglev/regress-501676158.js b/test/mjsunit/maglev/regress-501676158.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..a48cf6344192d23cd2a64d97dfbc9708bfbf410c
+---- /dev/null
+-+++ b/test/mjsunit/maglev/regress-501676158.js
+-@@ -0,0 +1,24 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --allow-natives-syntax --maglev --no-turbofan
+-+
+-+async function __f_0() {
+-+  try {
+-+    return __f_15;
+-+    function __f_2() {
+-+      return __f_2;
+-+    }
+-+  } catch (__v_3) {
+-+      await 0;
+-+  }
+-+}
+-+%PrepareFunctionForOptimization(__f_0);
+-+try {
+-+  __f_0();
+-+} catch (e) {}
+-+%OptimizeMaglevOnNextCall(__f_0);
+-+try {
+-+  __f_0();
+-+} catch (e) {}
