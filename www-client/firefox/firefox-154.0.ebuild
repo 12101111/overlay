@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-153-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-154-patches-01.tar.xz"
 
 LLVM_COMPAT=( 21 22 )
 
@@ -67,10 +67,10 @@ KEYWORDS="~amd64 ~arm64 ~loong ~ppc64 ~riscv ~x86"
 
 IUSE="+clang dbus debug eme-free hardened hwaccel jack libproxy pgo pulseaudio selinux sndio"
 IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent +system-libvpx"
-IUSE+=" system-pipewire system-png +system-webp test valgrind wayland wifi +X"
+IUSE+=" system-pipewire system-png +system-webp test wayland wifi +X"
 
 # Firefox-only IUSE
-IUSE+=" +gmp-autoupdate gnome-shell jpegxl +jumbo-build openh264 +telemetry wasm-sandbox"
+IUSE+=" +gmp-autoupdate gnome-shell jpegxl +jumbo-build openh264 +telemetry valgrind wasm-sandbox"
 
 REQUIRED_USE="|| ( X wayland )
 	debug? ( !system-av1 )
@@ -117,7 +117,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	>=app-accessibility/at-spi2-core-2.46.0:2
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.125
+	>=dev-libs/nss-3.126
 	>=dev-libs/nspr-4.39
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -201,13 +201,12 @@ DEPEND="${COMMON_DEPEND}
 
 # ESR and rapid dependencies.
 if [[ -n ${MOZ_ESR} ]] ; then
-	RDEPEND+=" !www-client/firefox:rapid"
+	RDEPEND+=" !www-client/firefox:rapid
+				~www-client/firefox-l10n-${PV}:0/esr"
 else
-	RDEPEND+=" !www-client/firefox:esr"
+	RDEPEND+=" !www-client/firefox:esr
+				~www-client/firefox-l10n-${PV}:0/rapid"
 fi
-
-# Firefox-only RDEPEND
-RDEPEND+=" ~www-client/firefox-l10n-${PV}"
 
 # Allow MOZ_GMP_PLUGIN_LIST to be set in an eclass or
 # overridden in the enviromnent (advanced hackers only)
@@ -369,40 +368,8 @@ pkg_pretend() {
 		# Ensure we have enough disk space to compile
 		if use pgo || use debug ; then
 			CHECKREQS_DISK_BUILD="18700M"
-
-			if ! use clang ; then
-				if tc-is-gcc && ver_test "$(gcc-major-version)" -eq 15 && has_version -b "<sys-devel/gcc-15.2.1_p20251108-r1:15"; then
-					eerror "<gcc-15.2.1_p20251108-r1:15 and pgo detected. Firefox-145.0 can not be compiled"
-					eerror "with this GCC, when also enabling pgo."
-					eerror "See bug https://gcc.gnu.org/PR122620"
-					eerror ""
-					eerror "Your options are:"
-					eerror " 1) upgrade GCC to >=15.2.1_p20251108-r1 - note that even with the 16.0"
-					eerror "    releases, make sure the patch set is equal or newer than 16.0.0_p20251109-r1,"
-					eerror "    or use the \"trunk\" version,"
-					eerror " 2) compile Firefox with Clang by enabling the \"clang\" USE flag, or"
-					eerror " 3) disable pgo when compiling with GCC for now."
-					die "Firefox-${PV} with gcc+pgo cannot be compiled with the detected gcc version: $(gcc-fullversion)"
-				fi
-			fi
 		elif tc-is-lto ; then
 			CHECKREQS_DISK_BUILD="10900M"
-
-			if ! use clang ; then
-				if tc-is-gcc && ver_test "$(gcc-major-version)" -eq 15 && has_version -b "<sys-devel/gcc-15.2.1_p20251108-r1:15"; then
-					eerror "<gcc-15.2.1_p20251108-r1:15 and lto detected. Firefox-145.0 can not be compiled"
-					eerror "with this GCC, when also enabling lto."
-					eerror "See bug https://gcc.gnu.org/PR122620"
-					eerror ""
-					eerror "Your options are:"
-					eerror " 1) upgrade GCC to >=15.2.1_p20251108-r1 - note that even with the 16.0"
-					eerror "    releases, make sure the patch set is equal or newer than 16.0.0_p20251109-r1,"
-					eerror "    or use the \"trunk\" version,"
-					eerror " 2) compile Firefox with Clang by enabling the \"clang\" USE flag, or"
-					eerror " 3) disable lto when compiling with GCC for now."
-					die "Firefox-${PV} with gcc+lto cannot be compiled with the detected gcc version: $(gcc-fullversion)"
-				fi
-			fi
 		else
 			CHECKREQS_DISK_BUILD="9700M"
 		fi
@@ -422,43 +389,11 @@ pkg_setup() {
 			use_lto=yes
 			# LTO is handled via configure
 			filter-lto
-
-			if ! use clang ; then
-				if tc-is-gcc && ver_test "$(gcc-major-version)" -eq 15 && has_version -b "<sys-devel/gcc-15.2.1_p20251108-r1:15"; then
-					eerror "<gcc-15.2.1_p20251108-r1:15 and pgo detected. Firefox-145.0 can not be compiled"
-					eerror "with this GCC, when also enabling lto."
-					eerror "See bug https://gcc.gnu.org/PR122620"
-					eerror ""
-					eerror "Your options are:"
-					eerror " 1) upgrade GCC to >=15.2.1_p20251108-r1 - note that even with the 16.0"
-					eerror "    releases, make sure the patch set is equal or newer than 16.0.0_p20251109-r1,"
-					eerror "    or use the \"trunk\" version,"
-					eerror " 2) compile Firefox with Clang by enabling the \"clang\" USE flag, or"
-					eerror " 3) disable lto when compiling with GCC for now."
-					die "Firefox-${PV} with gcc+lto cannot be compiled with the detected gcc version: $(gcc-fullversion)"
-				fi
-			fi
 		fi
 
 		if use pgo ; then
 			if ! has userpriv ${FEATURES} ; then
 				eerror "Building ${PN} with USE=pgo and FEATURES=-userpriv is not supported!"
-			fi
-
-			if ! use clang ; then
-				if tc-is-gcc && ver_test "$(gcc-major-version)" -eq 15 && has_version -b "<sys-devel/gcc-15.2.1_p20251108-r1:15"; then
-					eerror "<gcc-15.2.1_p20251108-r1:15 and lto detected. Firefox-145.0 can not be compiled"
-					eerror "with this GCC, when also enabling pgo."
-					eerror "See bug https://gcc.gnu.org/PR122620"
-					eerror ""
-					eerror "Your options are:"
-					eerror " 1) upgrade GCC to >=15.2.1_p20251108-r1 - note that even with the 16.0"
-					eerror "    releases, make sure the patch set is equal or newer than 16.0.0_p20251109-r1,"
-					eerror "    or use the \"trunk\" version,"
-					eerror " 2) compile Firefox with Clang by enabling the \"clang\" USE flag, or"
-					eerror " 3) disable pgo when compiling with GCC for now."
-					die "Firefox-${PV} with gcc+pgo cannot be compiled with the detected gcc version: $(gcc-fullversion)"
-				fi
 			fi
 		fi
 
@@ -632,9 +567,6 @@ src_prepare() {
 
 	# Clear checksums from cargo crates we've manually patched.
 	# moz_clear_vendor_checksums xyz
-	# glslopt: bgo#969412
-	moz_clear_vendor_checksums glslopt
-	moz_clear_vendor_checksums encoding_rs
 
 	# Respect choice for "jumbo-build"
 	# Changing the value for FILES_PER_UNIFIED_FILE may not work, see #905431
@@ -797,8 +729,6 @@ src_configure() {
 	# bug 833001, bug 903411#c8
 	if use loong || use ppc64 || use riscv; then
 		mozconfig_add_options_ac '' --disable-sandbox
-	elif use valgrind; then
-		mozconfig_add_options_ac 'valgrind requirement' --disable-sandbox
 	else
 		mozconfig_add_options_ac '' --enable-sandbox
 	fi
@@ -807,6 +737,15 @@ src_configure() {
 	if use riscv ; then
 		mozconfig_add_options_ac 'Disable webrtc for RISC-V' --disable-webrtc
 		mozconfig_add_options_ac 'Disable JIT for RISC-V' --disable-jit
+	fi
+
+	mozconfig_use_enable valgrind
+
+	if use valgrind ; then
+		mozconfig_add_options_ac 'valgrind requirement' --disable-sandbox
+		mozconfig_add_options_ac 'valgrind requirement' --disable-jemalloc
+
+		sed -i -e 's/--enable-optimize=-O[0-9s]/--enable-optimize="-g -O2"/' .mozconfig || die
 	fi
 
 	if [[ -s "${S}/api-google.key" ]] ; then
@@ -857,7 +796,6 @@ src_configure() {
 
 	mozconfig_use_enable dbus
 	mozconfig_use_enable libproxy
-	mozconfig_use_enable valgrind
 
 	use eme-free && mozconfig_add_options_ac '+eme-free' --disable-eme
 
@@ -1020,10 +958,6 @@ src_configure() {
 		mozconfig_add_options_ac '!elibc_glibc' --disable-jemalloc
 	fi
 
-	if use valgrind; then
-		mozconfig_add_options_ac 'valgrind requirement' --disable-jemalloc
-	fi
-
 	# System-av1 fix
 	use system-av1 && append-ldflags "-Wl,--undefined-version"
 
@@ -1085,10 +1019,6 @@ src_configure() {
 	done
 	echo "=========================================================="
 	echo
-
-	if use valgrind; then
-		sed -i -e 's/--enable-optimize=-O[0-9s]/--enable-optimize="-g -O2"/' .mozconfig || die
-	fi
 
 	./mach configure || die
 }
@@ -1187,7 +1117,7 @@ src_install() {
 
 	# Force hwaccel prefs if USE=hwaccel is enabled
 	if use hwaccel ; then
-		cat "${FILESDIR}"/gentoo-hwaccel-prefs.js-r2 \
+		cat "${FILESDIR}"/gentoo-hwaccel-prefs.js-r3 \
 		>>"${GENTOO_PREFS}" \
 		|| die "failed to add prefs to force hardware-accelerated rendering to all-gentoo.js"
 
@@ -1342,15 +1272,6 @@ pkg_postinst() {
 			elog "\t ${plugin}"
 		done
 		elog
-	fi
-
-	# bug 835078
-	# might work fine with vulkan, starting in 152.0?
-	if use hwaccel && has_version "x11-drivers/xf86-video-nouveau"; then
-		ewarn "You have nouveau drivers installed in your system and 'hwaccel' "
-		ewarn "enabled for Firefox. Nouveau / your GPU might not support the "
-		ewarn "required EGL, so either disable 'hwaccel' or try the workaround "
-		ewarn "explained in https://bugs.gentoo.org/835078#c5 if Firefox crashes."
 	fi
 
 	readme.gentoo_print_elog
