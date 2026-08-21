@@ -561,6 +561,10 @@ src_prepare() {
 		eapply "${FILESDIR}/cross-pgo.patch"
 	fi
 
+	if use clang && ( has_version "llvm-core/clang-common[default-libcxx]" || is-flagq --stdlib=libc++ ); then
+		eapply "${FILESDIR}/libcxx.patch"
+	fi
+
 	einfo "Removing pre-built binaries ..."
 
 	find "${S}"/third_party -type f \( -name '*.so' -o -name '*.o' \) -print -delete || die
