@@ -29,7 +29,7 @@ TEST_FONT="9c07d19d9c5ee1ff94f717e6fb17e0c8c354e6f9"
 BUNDLED_CLANG_VER="llvmorg-23-init-19482-g53d18800-1"
 BUNDLED_RUST_VER="b998449636a48e2c4a362809085b600a0174e1f2-2"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
-NODE_VER="24.16.0-r1"
+NODE_VER="24.12.0"
 GO_MIN_VER="1.25.0"
 ESBUILD_VER="0.25.1"
 ROLLUP_VER="4.57.1" # currently manual.
@@ -89,7 +89,7 @@ LICENSE+=" Unicode-DFS-2015 Unlicense UoI-NCSA ZLIB libtiff openssl"
 LICENSE+=" rar? ( unRAR )"
 
 SLOT="stable"
-KEYWORDS="~amd64 ~arm64 ~ppc64"
+KEYWORDS="~amd64 ~arm64"
 
 IUSE_SYSTEM_LIBS="+system-harfbuzz +system-icu +system-zstd"
 IUSE="hevc +X ${IUSE_SYSTEM_LIBS} bindist bundled-toolchain cups debug ffmpeg-chromium gtk4 +hangouts headless kerberos +official pax-kernel pgo"
@@ -223,13 +223,10 @@ BDEPEND="
 	!bundled-toolchain? ( $(llvm_gen_dep '
 		llvm-core/clang:${LLVM_SLOT}
 		llvm-core/llvm:${LLVM_SLOT}
+		llvm-core/lld:${LLVM_SLOT}
 		official? (
 			!ppc64? ( llvm-runtimes/compiler-rt-sanitizers:${LLVM_SLOT}[cfi] )
 		) ')
-		|| (
-			$(llvm_gen_dep 'llvm-core/lld:${LLVM_SLOT}')
-			>=sys-devel/mold-2.41.0
-		)
 		${RUST_DEPEND}
 	)
 	pgo? (
@@ -1222,7 +1219,9 @@ chromium_configure() {
 		# 949123: Several multimedia components explicitly build with specific CFLAGS and
 		# use runtime detection to enable optimisations; unfortunately any of our CFLAGS are suffixed
 		# to the end of the command line, which causes build failures.
-		use arm64 && filter-flags "-march*" "-mtune*" "-mcpu*"
+		# Since M150 `skia` will begin breaking for x86_64 due to compilation of `avx512` code paths;
+		# we need to filter these for all arches.
+		filter-flags "-march*" "-mtune*" "-mcpu*"
 
 		# The linked text section of Chromium won't fit within limits of the
 		# default normal code model.
@@ -1667,6 +1666,57 @@ src_test() {
 		'CriticalProcessAndThreadSpotChecks/HangWatcherAnyCriticalThreadTests.*'
 		'LazyThreadPoolTaskRunnerEnvironmentTest.*' # M142
 		'ToolsSanityTest.BadVirtualCall*'
+		# Since 151.0.7922.137
+		'CheckDeathTest.*'
+		'EnumSetDeathTest.*'
+		'OptionalRefDeathTest.*'
+		'RawRefDeathTest.*'
+		'AlternateTestParams/PartitionAllocDeathTest.CheckTriggered*'
+		'CallbackHelpersTest.*'
+		'SafeRefTest.*'
+		'SpanTest.*'
+		'WeakValueTableTest.*'
+		'PlatformSharedMemoryRegionTest.*'
+		'RefCountedOverflowTest.*'
+		'SingleThreadTaskRunnerCurrentDefaultHandleTest.*'
+		'TestFutureDeathTest.*'
+		'WeakPtrDeathTest.*'
+		'SafeRefDeathTest.*'
+		'LinkedListDeathTest.*'
+		'BindDeathTest.*'
+		'ReallocProtectedIteratorDeathTest.*'
+		'PASpanTest.*'
+		'BackupRefPtrTest.*'
+		'All/Base64Test.Overflow*'
+		'ValuesTest.*'
+		'TaskEnvironmentTest.*'
+		'CheckedObserverListTest.*'
+		'MemoryConsumerRegistryTest.*'
+		ProtectedMemoryDeathTest.FailsIfDefinedOutsideOfProtectMemoryRegion
+		StructuredSharedMemoryDeathTest.DuplicateRegion
+		CheckedContiguousIteratorDeathTest.OutOfBounds
+		HeapArrayDeathTest.TakeFirstWithOverSize
+		CallbackDeathTest.RunNullCallbackChecks
+		ObserverListThreadSafeDeathTest.CrossThreadRemovalRestricted
+		SequencedTaskRunnerCurrentDefaultHandleDeathTest.OverrideWithNull
+		TestFutureWithoutTaskEnvironmentDeathTest.WaitShouldDcheckWithoutTaskEnvironment
+		ScopedThreadPriorityDeathTest.NoRealTime
+		ReallocProtectedIteratorDeathTest.StringReallocCrashes
+		BarrierCallbackTest.ErrorToCallCallbackWithZeroCallbacks
+		BarrierClosureTest.ChecksIfCalledForZeroClosures
+		SupportsUserDataTest.ReentrantSetUserDataDuringRemoval
+		TimeBase.AddSubInfinities
+		LibcppHardeningTest.Assertions
+		IDMapTest.RemovedValueHandling
+		MultiMemoryConsumerTest.DuplicateInterventionsCheck
+		PersistentMemoryAllocatorTest.DelayedAllocationTest
+		SequenceCheckerTest.MoveOffSequenceBanned
+		ThreadCheckerTest.MoveOffThreadBanned
+		TokenType.TokenFromNullUnguessableToken
+		ZipTest.CheckForIterationPastTheEnd
+		MemoryConsumerTraitsTest.ActiveConsumerWithPassiveTraitsFails
+		SingleThreadTaskRunnerMainThreadDefaultHandleTest.Basic
+
 		# requires en-us locale
 		SysStrings.SysNativeMBAndWide
 		SysStrings.SysNativeMBToWide
