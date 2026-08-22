@@ -15,7 +15,7 @@ PYTHON_COMPAT=( python3_{12..14} )
 # in the ebuild for changes that don't require a revbump.
 #
 # Uncomment this line when the ebuild needs a patchset update but no revbump.
-# RUST_PATCH_VER=${PV}-1
+RUST_PATCH_VER=1.97.1 #${PV}-1
 
 RUST_MAX_VER=${PV%%_*}
 RUST_PV=${PV%%_p*}
@@ -45,6 +45,7 @@ elif [[ ${PV} == *beta* ]]; then
 	MY_P="rustc-beta"
 	SRC_URI="
 		https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz -> rustc-${RUST_PV}-src.tar.xz
+		https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
 		verify-sig? (
 			https://static.rust-lang.org/dist/${BETA_SNAPSHOT}/rustc-beta-src.tar.xz.asc
 				-> rustc-${RUST_PV}-src.tar.xz.asc
@@ -98,7 +99,7 @@ ALL_RUST_SYSROOTS=( "${ALL_RUST_SYSROOTS[@]/#/rust_sysroots_}" )
 LICENSE="|| ( MIT Apache-2.0 ) BSD BSD-1 BSD-2 BSD-4"
 SLOT="${PV%%_*}" # Beta releases get to share the same SLOT as the eventual stable
 
-IUSE="big-endian +clippy cpu_flags_x86_sse2 debug dist +doc llvm-libunwind llvm-tools lto"
+IUSE="big-endian +clippy cpu_flags_x86_sse2 debug dist doc llvm-libunwind llvm-tools lto"
 IUSE+=" +rustfmt rust-analyzer rust-src +system-llvm sanitizers test"
 IUSE+=" ${ALL_LLVM_TARGETS[*]} ${ALL_RUST_SYSROOTS[*]}"
 
@@ -362,7 +363,7 @@ src_prepare() {
 	# Commit patches to the appropriate branch in proj/rust-patches.git
 	# then cut a new tag / tarball. Don't add patches to ${FILESDIR}
 	PATCHES=(
-		"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"
+		"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/1.89.0-compiler-link-with-system-libs-unconditionally.patch"
 		"${FILESDIR}/1.98.0-compiler-musl-dynamic-linking.patch"
 		"${FILESDIR}/rust-1.92.0-disable-link-self-contained.patch"
 		"${FILESDIR}/rust-1.92.0-dont-install-self-contained.patch"
@@ -853,7 +854,9 @@ src_install() {
 	# bash-completion files are installed by dev-lang/rust-common instead
 	# bug #689562, #689160.
 	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/bash_completion.d/cargo" || die
-	rmdir -v "${ED}/usr/lib/${PN}/${SLOT}/etc/bash_completion.d" || die
+	# remove target-spec-json-schema.json, build-std is nightly only
+	rm -v "${ED}/usr/lib/${PN}/${SLOT}/etc/target-spec-json-schema.json" || die
+	rmdir -v "${ED}/usr/lib/${PN}/${SLOT}"/etc{/bash_completion.d,} || die
 
 	local symlinks=(
 		cargo
