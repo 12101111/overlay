@@ -53,16 +53,16 @@ CRATES="
 	unicode-width@0.2.2
 	utf8parse@0.2.2
 	wasi-preview1-component-adapter-provider@46.0.1
-	wasm-encoder@0.255.0
-	wasm-metadata@0.255.0
-	wasmparser@0.255.0
-	wast@255.0.0
-	wat@1.255.0
+	wasm-encoder@0.257.0
+	wasm-metadata@0.257.0
+	wasmparser@0.257.0
+	wast@257.0.0
+	wat@1.257.0
 	windows-link@0.2.1
 	windows-sys@0.61.2
 	winsplit@0.1.0
-	wit-component@0.255.0
-	wit-parser@0.255.0
+	wit-component@0.257.0
+	wit-parser@0.257.0
 	zmij@1.0.21
 "
 
