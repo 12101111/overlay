@@ -1,12 +1,12 @@
 diff --git a/build.rs b/build.rs
-index 719db89..558ef06 100644
+index 01cd99c..8e946ff 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -276,6 +276,7 @@ fn build_v8(is_asan: bool) {
-     "use_custom_libcxx={}",
-     env::var("CARGO_FEATURE_USE_CUSTOM_LIBCXX").is_ok()
-   ));
+@@ -354,6 +354,7 @@ fn build_v8(is_asan: bool) {
+   if cfg!(target_os = "macos") && cfg!(target_arch = "aarch64") {
+     gn_args.push("host_cpu=\"arm64\"".to_string());
+   }
 +  println!("cargo:rustc-link-lib=atomic");
  
-   let extra_args = {
-     if env::var("CARGO_FEATURE_V8_ENABLE_SANDBOX").is_ok() {
+   if true {
+   } else if env::var_os("DISABLE_CLANG").is_some() {

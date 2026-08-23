@@ -2,13 +2,10 @@ diff --git a/build.rs b/build.rs
 index 970e88b..b7db6e4 100644
 --- a/build.rs
 +++ b/build.rs
-@@ -810,6 +810,13 @@ fn print_link_flags() {
+@@ -810,6 +810,10 @@ fn print_link_flags() {
        println!("cargo:rustc-link-lib=dylib=msvcprt");
      }
    }
-+  // Link with system-provided zlib.
-+  println!("cargo:rustc-link-lib=z");
-+
 +  // Link with system-provided ICU libraries.
 +  println!("cargo:rustc-link-lib=icui18n");
 +  println!("cargo:rustc-link-lib=icuuc");

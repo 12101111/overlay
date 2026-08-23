@@ -10,7 +10,7 @@ PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
 RUST_MIN_VER=1.95.0
 
-V8_VER=150.2.0
+V8_VER=150.4.0
 STACKER_VER=0.1.15
 TEMPORAL_CAPI="temporal_capi-0.2.3"
 ICU=0.77.0
@@ -169,6 +169,7 @@ CRATES="
 	cfb@0.14.0
 	cfg-if@1.0.3
 	cfg_aliases@0.2.1
+	chacha20@0.10.1
 	chrono@0.4.42
 	ciborium-io@0.2.2
 	ciborium-ll@0.2.2
@@ -267,10 +268,10 @@ CRATES="
 	deno_lint@0.84.1
 	deno_media_type@0.4.0
 	deno_native_certs@0.3.0
-	deno_panic@0.2.0
+	deno_panic@0.2.1
 	deno_path_util@0.6.4
 	deno_semver@0.10.1
-	deno_task_shell@0.33.0
+	deno_task_shell@0.33.3
 	deno_terminal@0.2.3
 	deno_tower_lsp@0.5.0
 	deno_tunnel@0.8.1
@@ -343,11 +344,11 @@ CRATES="
 	errno@0.3.10
 	error-code@3.2.0
 	error_reporter@1.0.0
-	esbuild_client@0.7.1
+	esbuild_client@0.7.2
 	fallible-iterator@0.3.0
 	fallible-streaming-iterator@0.1.9
 	fast-socks5@0.9.6
-	fastbloom@0.14.1
+	fastbloom@0.17.0
 	faster-hex@0.10.0
 	fastrand@2.3.0
 	fastwebsockets@0.10.0
@@ -448,6 +449,8 @@ CRATES="
 	hyper@1.6.0
 	icu_calendar@2.2.1
 	icu_calendar_data@2.2.0
+	icu_collator@2.2.1
+	icu_collator_data@2.2.0
 	icu_collections@1.5.0
 	icu_collections@2.2.0
 	icu_locale@2.2.0
@@ -457,7 +460,9 @@ CRATES="
 	icu_locid_transform@1.5.0
 	icu_locid_transform_data@1.5.0
 	icu_normalizer@1.5.0
+	icu_normalizer@2.2.0
 	icu_normalizer_data@1.5.0
+	icu_normalizer_data@2.2.0
 	icu_properties@1.5.1
 	icu_properties@2.2.0
 	icu_properties_data@1.5.0
@@ -507,11 +512,11 @@ CRATES="
 	khronos_api@3.1.0
 	kqueue-sys@1.0.4
 	kqueue@1.1.1
-	laufey@0.5.0
-	lax-core@0.1.2
-	lax-css@0.2.4
-	lax-markup@0.2.5
-	lax-sql@0.2.1
+	laufey@0.6.1
+	lax-core@0.3.0
+	lax-css@0.3.0
+	lax-markup@0.3.2
+	lax-sql@0.3.0
 	lazy-regex-proc_macros@3.1.0
 	lazy-regex@3.1.0
 	lazy_static@1.5.0
@@ -662,7 +667,7 @@ CRATES="
 	png@0.17.13
 	polling@3.11.0
 	polyval@0.6.2
-	portable-atomic@1.10.0
+	portable-atomic@1.14.0
 	potential_utf@0.1.3
 	powerfmt@0.2.0
 	ppv-lite86@0.2.17
@@ -685,13 +690,14 @@ CRATES="
 	quick-error@1.2.3
 	quick-error@2.0.1
 	quick-xml@0.39.4
-	quinn-proto@0.11.14
+	quinn-proto@0.11.16
 	quinn-udp@0.5.9
 	quinn@0.11.8
 	quote@1.0.45
 	r-efi@5.3.0
 	radium@0.7.0
 	radix_trie@0.2.1
+	rand@0.10.2
 	rand@0.8.5
 	rand@0.9.2
 	rand_chacha@0.3.1
@@ -699,6 +705,7 @@ CRATES="
 	rand_core@0.10.0
 	rand_core@0.6.4
 	rand_core@0.9.3
+	rand_pcg@0.10.2
 	rand_xorshift@0.4.0
 	range-alloc@0.1.3
 	raw-window-handle@0.6.2
@@ -926,6 +933,7 @@ CRATES="
 	ucd-trie@0.1.6
 	unarray@0.1.4
 	unicase@2.7.0
+	unicode-general-category@1.1.0
 	unicode-id-start@1.4.0
 	unicode-ident@1.0.12
 	unicode-normalization@0.1.23
@@ -947,8 +955,9 @@ CRATES="
 	utf8_iter@1.0.4
 	utf8parse@0.2.1
 	uuid@1.21.0
-	v8@150.2.0
+	v8@150.4.0
 	v8_valueserializer@0.1.2
+	v8x@149.4.0-rc.4
 	valuable@0.1.0
 	vcpkg@0.2.15
 	version_check@0.9.4
@@ -1142,7 +1151,6 @@ BDEPEND="
 "
 DEPEND="
 	>=dev-libs/libffi-3.4.4
-	>=sys-libs/zlib-1.3
 	>=app-arch/zstd-1.5.5
 	dev-db/sqlite:3
 	>=dev-libs/icu-74.2:=
@@ -1206,7 +1214,7 @@ src_prepare() {
 	else
 		mkdir -p "${WORKDIR}/v8/third_party/icu/common"
 		ln -s "${ECARGO_VENDOR}"/deno_core_icudata-${ICU}/src/icudtl.dat "${WORKDIR}/v8/third_party/icu/common"
-		eapply "${FILESDIR}/v8-use-system-libraries-non-icu.patch"
+		# https://github.com/denoland/deno/pull/34279
 	fi
 	eapply "${FILESDIR}/v8-compiler.patch"
 	eapply "${FILESDIR}/cr150-ar-unbundle.patch"
@@ -1237,11 +1245,11 @@ src_prepare() {
 		eapply "${FILESDIR}/fix-musl.patch"
 	fi
 	eapply "${FILESDIR}/use-system-libraries.patch"
-	if use system-icu; then
-		sed -i -E 's/(deno_core = \{ version = "[^"]*", path = "\.\/libs\/core")/\1, default-features = false, features = ["reactor-tokio"]/; s/ \}$/ }/' Cargo.toml || die
-	else
-		sed -i -E 's/(deno_core = \{ version = "[^"]*", path = "\.\/libs\/core")/\1, default-features = false, features = ["include_icu_data", "reactor-tokio"]/; s/ \}$/ }/' Cargo.toml || die
-	fi
+	# if use system-icu; then
+	# 	sed -i -E 's/(deno_core = \{ version = "[^"]*", path = "\.\/libs\/core")/\1, default-features = false, features = ["reactor-tokio"]/; s/ \}$/ }/' Cargo.toml || die
+	# else
+	# 	sed -i -E 's/(deno_core = \{ version = "[^"]*", path = "\.\/libs\/core")/\1, default-features = false, features = ["include_icu_data", "reactor-tokio"]/; s/ \}$/ }/' Cargo.toml || die
+	# fi
 	popd >/dev/null || die
 
 	default
@@ -1279,7 +1287,7 @@ src_configure() {
 		"rust_sysroot_absolute=\"$(get_rust_prefix)\""
 		"rustc_version=\"${RUST_SLOT}\""
 		"fatal_linker_warnings=false treat_warnings_as_errors=false"
-		"system_zlib=true icu_use_data_file=false"
+		"icu_use_data_file=false"
 	)
 	if tc-ld-is-mold; then
 		myconf_gn+=(
@@ -1298,7 +1306,7 @@ src_configure() {
 	use elibc_musl && myconf_gn+=( "rust_abi_target=\"$(rust_abi)\"" )
 
 	export GN_ARGS="${myconf_gn[*]}${EXTRA_GN:+ ${EXTRA_GN}}"
-	cargo_src_configure --no-default-features
+	cargo_src_configure --no-default-features --features v8
 }
 
 src_compile() {
