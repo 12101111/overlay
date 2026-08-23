@@ -507,6 +507,10 @@ src_prepare() {
 
 	eapply "${WORKDIR}/firefox-patches"
 
+	if ver_test ${RUST_SLOT} -ge "1.98.0"; then
+		eapply "${FILESDIR}/rust-1.98.0.patch"
+	fi
+
 	# Allow user to apply any additional patches without modifing ebuild
 	eapply_user
 
