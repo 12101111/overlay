@@ -1,0 +1,13 @@
+diff --git a/build/lib/copilot.ts b/build/lib/copilot.ts
+index 3d9cfbe2adf..7e8aadd7e62 100644
+--- a/build/lib/copilot.ts
++++ b/build/lib/copilot.ts
+@@ -355,7 +355,7 @@ function resolveVersionMatchedCopilotPlatformPackage(copilotPackagePlatformArch:
+ 	const packageName = `@github/copilot-${copilotPackagePlatformArch}`;
+ 
+ 	const appRootDir = path.join(appNodeModulesDir, '@github', `copilot-${copilotPackagePlatformArch}`);
+-	if (readOptionalPackageVersion(appRootDir) === extVersion) {
++	if (readOptionalPackageVersion(appRootDir) === extVersion || true) {
+ 		return { dir: appRootDir, cleanup: noop };
+ 	}
+ 
