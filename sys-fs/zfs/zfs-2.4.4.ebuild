@@ -21,7 +21,7 @@ inherit linux-mod-r1 multiprocessing pam systemd udev usr-ldscript
 DESCRIPTION="Linux kernel module and userland utilities for ZFS"
 HOMEPAGE="https://github.com/openzfs/zfs"
 
-MODULES_KERNEL_MAX=7.0
+MODULES_KERNEL_MAX=7.2
 MODULES_KERNEL_MIN=4.18
 
 if [[ ${PV} == "9999" ]]; then
@@ -224,6 +224,9 @@ src_prepare() {
 
 	# Run unconditionally (bug #792627)
 	eautoreconf
+
+	# strip forced -Werror, #904378
+	sed -i '/BUILD_FREEBSD_TRUE/s/-Werror //g' Makefile.in || die
 
 	if [[ ${PV} != "9999" ]]; then
 		# Set revision number
