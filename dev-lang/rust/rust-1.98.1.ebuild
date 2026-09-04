@@ -6,7 +6,7 @@ EAPI=8
 # Bump notes: https://wiki.gentoo.org/wiki/Project:Rust/Rust_bump
 
 LLVM_COMPAT=( 22 )
-PYTHON_COMPAT=( python3_{12..14} )
+PYTHON_COMPAT=( python3_{12..15} )
 
 # Patches are kept in rust-patches.git, see its README.rst for the versioning
 # scheme.
@@ -15,7 +15,7 @@ PYTHON_COMPAT=( python3_{12..14} )
 # in the ebuild for changes that don't require a revbump.
 #
 # Uncomment this line when the ebuild needs a patchset update but no revbump.
-RUST_PATCH_VER=1.97.1 #${PV}-1
+# RUST_PATCH_VER=${PV}-1
 
 RUST_MAX_VER=${PV%%_*}
 RUST_PV=${PV%%_p*}
@@ -272,6 +272,17 @@ pkg_setup() {
 	pre_build_checks
 	python-any-r1_pkg_setup
 
+	if ! [[ -v _RUST_LLVM_MAP[${SLOT}] ]] ; then
+		die "${SLOT} is missing from rust.eclass's RUST_LLVM_MAP! Please fix the eclass."
+	fi
+	local found_slot i
+	for (( i = 0; i < ${#_RUST_SLOTS_ORDERED[@]} ; i++ )) ; do
+		[[ ${_RUST_SLOTS_ORDERED[i]} == ${SLOT} ]] && found_slot=1
+	done
+	if ! [[ -v found_slot ]] ; then
+		die "${SLOT} is missing from rust.eclass's _RUST_SLOTS_ORDERED! Please fix the eclass."
+	fi
+
 	export LIBGIT2_NO_PKG_CONFIG=1 #749381
 	if tc-is-cross-compiler; then
 		use system-llvm && die "USE=system-llvm not allowed when cross-compiling"
@@ -363,8 +374,7 @@ src_prepare() {
 	# Commit patches to the appropriate branch in proj/rust-patches.git
 	# then cut a new tag / tarball. Don't add patches to ${FILESDIR}
 	PATCHES=(
-		"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/1.89.0-compiler-link-with-system-libs-unconditionally.patch"
-		"${FILESDIR}/1.98.0-compiler-musl-dynamic-linking.patch"
+		"${WORKDIR}/rust-patches-${RUST_PATCH_VER}/"
 		"${FILESDIR}/rust-1.92.0-disable-link-self-contained.patch"
 		"${FILESDIR}/rust-1.92.0-dont-install-self-contained.patch"
 	)
