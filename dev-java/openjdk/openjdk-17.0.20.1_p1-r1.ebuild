@@ -65,15 +65,6 @@ COMMON_DEPEND="
 	media-libs/libpng:0=
 	media-libs/lcms:2=
 	virtual/zlib:=
-	media-libs/libjpeg-turbo:0=
-	systemtap? ( dev-debug/systemtap )
-"
-
-# Many libs are required to build, but not to run, make is possible to remove
-# by listing conditionally in RDEPEND unconditionally in DEPEND
-RDEPEND="
-	${COMMON_DEPEND}
-	>=sys-apps/baselayout-java-0.1.0-r1
 	!headless-awt? (
 		x11-libs/libX11
 		x11-libs/libXext
@@ -83,6 +74,15 @@ RDEPEND="
 		x11-libs/libXt
 		x11-libs/libXtst
 	)
+	media-libs/libjpeg-turbo:0=
+	systemtap? ( dev-debug/systemtap )
+"
+
+# Many libs are required to build, but not to run, make is possible to remove
+# by listing conditionally in RDEPEND unconditionally in DEPEND
+RDEPEND="
+	${COMMON_DEPEND}
+	>=sys-apps/baselayout-java-0.1.0-r1
 	alsa? ( media-libs/alsa-lib )
 	cups? ( net-print/cups )
 	selinux? ( sec-policy/selinux-java )
@@ -93,14 +93,7 @@ DEPEND="
 	app-arch/zip
 	media-libs/alsa-lib
 	net-print/cups
-	x11-base/xorg-proto
-	x11-libs/libX11
-	x11-libs/libXext
-	x11-libs/libXi
-	x11-libs/libXrandr
-	x11-libs/libXrender
-	x11-libs/libXt
-	x11-libs/libXtst
+	!headless-awt? ( x11-base/xorg-proto )
 	system-bootstrap? (
 		|| (
 			dev-java/openjdk-bin:${SLOT}
@@ -110,7 +103,8 @@ DEPEND="
 "
 
 PATCHES=(
-	"${FILESDIR}/openjdk-17.0.16_p8-lto-memory.patch"
+	"${FILESDIR}"/openjdk-17.0.16_p8-lto-memory.patch
+	"${FILESDIR}"/openjdk-17.0.20.1_p1-headless.patch
 )
 
 # The space required to build varies wildly depending on USE flags,
