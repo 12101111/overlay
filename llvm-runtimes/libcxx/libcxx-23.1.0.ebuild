@@ -43,7 +43,10 @@ BDEPEND="
 	)
 "
 
-PATCHES=( "${FILESDIR}/llvm-undo-part-of-194317.patch" )
+PATCHES=( 
+	"${FILESDIR}/0001-fix-llvm-pr184373.patch"
+	"${FILESDIR}/0002-llvm-undo-part-of-194317.patch"
+)
 
 LLVM_COMPONENTS=(
 	runtimes libcxx{,abi} libc llvm/{cmake,utils} cmake
