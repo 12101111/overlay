@@ -187,6 +187,10 @@ multilib_src_configure() {
 			-DCMAKE_CXX_COMPILER_WORKS=1
 		)
 	fi
+	if use kernel_Darwin; then
+		# For Darwin it ships libc++ in system by default, conflicting prefix
+		mycmakeargs+=( -DLIBCXX_ABI_NAMESPACE=__gentoo1 )
+	fi
 	if [[ ${CHOST} == *-mingw* ]]; then
 		mycmakeargs+=(
 			-DLIBCXXABI_USE_COMPILER_RT=ON
