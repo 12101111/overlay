@@ -45,6 +45,11 @@ PATCHES=(
 	"${FILESDIR}"/${P}-cmake4-compat.patch
 )
 
+src_prepare() {
+	sed -i 's/-Werror=unused/-Wunused/' CMakeLists.txt || die
+	cmake_src_prepare
+}
+
 pkg_setup() {
 	# llvm-r2 and python-any-r1 both export pkg_setup and llvm-r2 wins,
 	# leaving PYTHON unset, so call python_setup ourselves.
