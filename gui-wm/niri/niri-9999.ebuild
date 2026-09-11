@@ -6,8 +6,8 @@ EAPI=8
 CRATES="
 "
 
-LLVM_COMPAT=( {19..21} )
-RUST_MIN_VER="1.85.0"
+LLVM_COMPAT=( {19..23} )
+RUST_MIN_VER="1.87.0"
 
 inherit cargo llvm-r2 optfeature shell-completion systemd
 
@@ -84,7 +84,10 @@ src_unpack() {
 }
 
 src_prepare() {
-	sed -i 's/git = "[^ ]*"/version = "*"/' Cargo.toml || die
+	sed -i \
+		-e 's/git = "[^ ]*"/version = "*"/' \
+		-e '/rev =/d' \
+		Cargo.toml || die
 	# niri-session doesn't work on OpenRC
 	if ! use systemd; then
 		local cmd="niri --session"
@@ -131,8 +134,7 @@ src_install() {
 src_test() {
 	# tests create a wayland socket in the xdg runtime dir
 	local -x XDG_RUNTIME_DIR="${T}/xdg"
-	mkdir "${XDG_RUNTIME_DIR}" || die
-	chmod 0700 "${XDG_RUNTIME_DIR}" || die
+	mkdir --mode=0700 "${XDG_RUNTIME_DIR}" || die
 
 	# bug 950626
 	# https://yalter.github.io/niri/Packaging-niri.html#running-tests
