@@ -260,6 +260,8 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
+		"${FILESDIR}/261-gcc-bpf.patch"
+		"${FILESDIR}/systemd-261-lxml-6.1.3.patch"
 	)
 
 	if ! use vanilla; then
