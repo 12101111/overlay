@@ -1,0 +1,97 @@
+diff --git a/shell/app/environ_linux.cc b/shell/app/environ_linux.cc
+index 1ecf05a642..2c9241677d 100644
+--- a/shell/app/environ_linux.cc
++++ b/shell/app/environ_linux.cc
+@@ -39,7 +39,6 @@
+ 
+ #include <dlfcn.h>
+ #include <errno.h>
+-#include <gnu/libc-version.h>
+ #include <pthread.h>
+ #include <search.h>
+ #include <stdio.h>
+@@ -47,6 +46,10 @@
+ #include <string.h>
+ #include <unistd.h>
+ 
++#if defined(__GLIBC__)
++#include <gnu/libc-version.h>
++#endif
++
+ #include <algorithm>
+ 
+ #include "base/memory/raw_ptr_exclusion.h"
+@@ -66,6 +69,7 @@ struct GlibcFunctions {
+ };
+ 
+ const GlibcFunctions* GetGlibcFunctionsIfSafe() {
++#if defined(__GLIBC__)
+   static const GlibcFunctions* const functions = []() -> GlibcFunctions* {
+     int major = 0;
+     int minor = 0;
+@@ -85,6 +89,9 @@ const GlibcFunctions* GetGlibcFunctionsIfSafe() {
+     return &glibc;
+   }();
+   return functions;
++#else
++  return nullptr;
++#endif
+ }
+ 
+ pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
+@@ -239,11 +246,18 @@ void RemoveEntries(const char* name, size_t name_len) {
+ 
+ }  // namespace
+ 
++#if defined(__GLIBC__)
++#define ENVIRON_NOEXCEPT noexcept
++#else
++#define ENVIRON_NOEXCEPT
++#endif
++
+ extern "C" {
+ 
+ __attribute__((visibility("default"))) int setenv(const char* name,
+                                                   const char* value,
+-                                                  int replace) noexcept {
++                                                  int replace)
++    ENVIRON_NOEXCEPT {
+   if (const GlibcFunctions* glibc = GetGlibcFunctionsIfSafe()) {
+     return glibc->setenv(name, value, replace);
+   }
+@@ -274,7 +288,8 @@ __attribute__((visibility("default"))) int setenv(const char* name,
+   return 0;
+ }
+ 
+-__attribute__((visibility("default"))) int unsetenv(const char* name) noexcept {
++__attribute__((visibility("default"))) int unsetenv(const char* name)
++    ENVIRON_NOEXCEPT {
+   if (const GlibcFunctions* glibc = GetGlibcFunctionsIfSafe()) {
+     return glibc->unsetenv(name);
+   }
+@@ -287,7 +302,8 @@ __attribute__((visibility("default"))) int unsetenv(const char* name) noexcept {
+   return 0;
+ }
+ 
+-__attribute__((visibility("default"))) int putenv(char* string) noexcept {
++__attribute__((visibility("default"))) int putenv(char* string)
++    ENVIRON_NOEXCEPT {
+   if (const GlibcFunctions* glibc = GetGlibcFunctionsIfSafe()) {
+     return glibc->putenv(string);
+   }
+@@ -310,7 +326,7 @@ __attribute__((visibility("default"))) int putenv(char* string) noexcept {
+   return 0;
+ }
+ 
+-__attribute__((visibility("default"))) int clearenv() noexcept {
++__attribute__((visibility("default"))) int clearenv() ENVIRON_NOEXCEPT {
+   if (const GlibcFunctions* glibc = GetGlibcFunctionsIfSafe()) {
+     return glibc->clearenv();
+   }
+@@ -322,4 +338,6 @@ __attribute__((visibility("default"))) int clearenv() noexcept {
+ 
+ }  // extern "C"
+ 
++#undef ENVIRON_NOEXCEPT
++
+ #endif  // !defined(MEMORY_SANITIZER)

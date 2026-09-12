@@ -1,0 +1,34 @@
+diff --git a/patches/angle/.patches b/patches/angle/.patches
+index 5a50e2575b..3013e32dc8 100644
+--- a/patches/angle/.patches
++++ b/patches/angle/.patches
+@@ -25,16 +25,12 @@ cherry-pick-77ada6da2427.patch
+ cherry-pick-51afe011d316.patch
+ cherry-pick-4a0e6eecaa9a.patch
+ cherry-pick-764bb891d3b8.patch
+-cherry-pick-b8352abce038.patch
+ cherry-pick-c5bf49e78850.patch
+ cherry-pick-9ff9cd9a543b.patch
+ hlsl_fix_name_collision_between_globals_and_locals.patch
+-gl_workaround_split_pbo_uploads_to_2d_textures_level_0.patch
+ apply_shader_variable_size_checks_to_compute.patch
+ verify_all_cube_faces_when_checking_for_enabled_levels.patch
+-reland_gl_limit_declared_vertex_output_varying_components.patch
+ vulkan_fix_blitting_into_3d_images.patch
+-gl_work_around_bug_with_complex_expr_in_struct_constructor.patch
+ translator_disallow_gl_clip_culldistance_declaration_after_use.patch
+ translator_fix_gl_fragdata_index_check_when_dual-src_blending.patch
+ translator_check_gl_fragdata_passed_to_function.patch
+@@ -46,7 +42,6 @@ translator_disallow_gl_clip_culldistance_whole-array_use_w_o.patch
+ translator_handle_comma_and_ternary_for_array_checks.patch
+ unset_active_textures_on_program_relink.patch
+ d3d11_fix_buffer-overflow_during_robust_texture_initialization.patch
+-m151_gl_workaround_flush_queries_before_deleting_or_unbinding.patch
+ cherry-pick-1c82f3a0bd18.patch
+ cherry-pick-3dc586d1786f.patch
+ cherry-pick-31151bbc3505.patch
+@@ -56,4 +51,3 @@ cherry-pick-2251af425547.patch
+ cherry-pick-059d08299b2d.patch
+ cherry-pick-6ad7289cedd5.patch
+ cherry-pick-520da581bdb5.patch
+-cherry-pick-921d48815f19.patch

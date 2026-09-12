@@ -1234,3 +1234,1270 @@ index 3e2ebd5e16..4fd13031b3 100644
 -+try {
 -+  __f_0();
 -+} catch (e) {}
+diff --git a/patches/chromium/m150_expose_trustedtypespolicy_createparseroptions_only_on_window.patch b/patches/chromium/m150_expose_trustedtypespolicy_createparseroptions_only_on_window.patch
+index 7854be5073..101fee0457 100644
+--- a/patches/chromium/m150_expose_trustedtypespolicy_createparseroptions_only_on_window.patch
++++ b/patches/chromium/m150_expose_trustedtypespolicy_createparseroptions_only_on_window.patch
+@@ -38,39 +38,3 @@ index fb52e404beb615eba89145c495bc590335edcfc7..5298e887b879496d5bfef116bb755ec5
+ -    [RaisesException, RuntimeEnabled=TrustedTypesCreateParserOptions] TrustedParserOptions createParserOptions(SetHTMLUnsafeOptions input);
+ +    [RaisesException, RuntimeEnabled=TrustedTypesCreateParserOptions, Exposed=Window] TrustedParserOptions createParserOptions(SetHTMLUnsafeOptions input);
+  };
+-diff --git a/third_party/blink/web_tests/http/tests/serviceworker/webexposed/global-interface-listing-service-worker-expected.txt b/third_party/blink/web_tests/http/tests/serviceworker/webexposed/global-interface-listing-service-worker-expected.txt
+-index 7bcb7a1a7738c3b6307c6319d107f6999565ae65..f83213a38ba43a9aab4959e2b7fd07469bbffb91 100644
+---- a/third_party/blink/web_tests/http/tests/serviceworker/webexposed/global-interface-listing-service-worker-expected.txt
+-+++ b/third_party/blink/web_tests/http/tests/serviceworker/webexposed/global-interface-listing-service-worker-expected.txt
+-@@ -2084,7 +2084,6 @@ interface TrustedTypePolicy
+-     getter name
+-     method constructor
+-     method createHTML
+--    method createParserOptions
+-     method createScript
+-     method createScriptURL
+- interface TrustedTypePolicyFactory
+-diff --git a/third_party/blink/web_tests/webexposed/global-interface-listing-dedicated-worker-expected.txt b/third_party/blink/web_tests/webexposed/global-interface-listing-dedicated-worker-expected.txt
+-index a2268556018b80df1e0ef426597e39ab7529b225..42be1eef5d2bfe38c88ae9703f2e3aa399260189 100644
+---- a/third_party/blink/web_tests/webexposed/global-interface-listing-dedicated-worker-expected.txt
+-+++ b/third_party/blink/web_tests/webexposed/global-interface-listing-dedicated-worker-expected.txt
+-@@ -2279,7 +2279,6 @@ Starting worker: resources/global-interface-listing-worker.js
+- [Worker]     getter name
+- [Worker]     method constructor
+- [Worker]     method createHTML
+--[Worker]     method createParserOptions
+- [Worker]     method createScript
+- [Worker]     method createScriptURL
+- [Worker] interface TrustedTypePolicyFactory
+-diff --git a/third_party/blink/web_tests/webexposed/global-interface-listing-shared-worker-expected.txt b/third_party/blink/web_tests/webexposed/global-interface-listing-shared-worker-expected.txt
+-index 222a45e478e3871987bd3c903a76eb9bdc49ed1c..b13f1b21d32e2d39bf09cc432add3022675ed763 100644
+---- a/third_party/blink/web_tests/webexposed/global-interface-listing-shared-worker-expected.txt
+-+++ b/third_party/blink/web_tests/webexposed/global-interface-listing-shared-worker-expected.txt
+-@@ -1986,7 +1986,6 @@ Starting worker: resources/global-interface-listing-worker.js
+- [Worker]     getter name
+- [Worker]     method constructor
+- [Worker]     method createHTML
+--[Worker]     method createParserOptions
+- [Worker]     method createScript
+- [Worker]     method createScriptURL
+- [Worker] interface TrustedTypePolicyFactory
+diff --git a/patches/v8/cherry-pick-b74028b55c.patch b/patches/v8/cherry-pick-b74028b55c.patch
+index 89ebc988c7..73950d3f68 100644
+--- a/patches/v8/cherry-pick-b74028b55c.patch
++++ b/patches/v8/cherry-pick-b74028b55c.patch
+@@ -137,89 +137,3 @@ index 4aad930711f6073e321047ea18a8184c7b8654e6..5b014f18eb2f058356388ec995b73b07
+    } else {
+      SerializeExternalStringAsSequentialString();
+    }
+-diff --git a/test/cctest/test-serialize.cc b/test/cctest/test-serialize.cc
+-index cdd464c173608f9775d11417d7ecca6c9b5508c9..0dc436a29badd1291b0bd73e177446bcdf6fac93 100644
+---- a/test/cctest/test-serialize.cc
+-+++ b/test/cctest/test-serialize.cc
+-@@ -2809,6 +2809,81 @@ TEST(CodeSerializerExternalString) {
+-   delete cache;
+- }
+- 
+-+namespace {
+-+
+-+// The addresses of these resources are registered as API external references
+-+// below, so that ObjectSerializer::SerializeExternalString() takes the "known
+-+// resource" path for the strings backed by them. This is the state an embedder
+-+// ends up in when it externalizes strings it also hands to the compiler, e.g.
+-+// builtin module sources that are later turned into a code cache.
+-+constexpr char kExternalCodeCacheSource[] =
+-+    "function f() { return 'abc'; }; f() + 'def';";
+-+constexpr char kExternalCodeCacheName[] = "external-script-name";
+-+
+-+SerializerOneByteResource external_code_cache_source_resource(
+-+    kExternalCodeCacheSource, sizeof(kExternalCodeCacheSource) - 1);
+-+SerializerOneByteResource external_code_cache_name_resource(
+-+    kExternalCodeCacheName, sizeof(kExternalCodeCacheName) - 1);
+-+
+-+const intptr_t external_code_cache_references[] = {
+-+    reinterpret_cast<intptr_t>(&external_code_cache_source_resource),
+-+    reinterpret_cast<intptr_t>(&external_code_cache_name_resource), 0};
+-+
+-+}  // namespace
+-+
+-+// Serializing a live cached ExternalString must leave its resource_data_
+-+// (cached data pointer) external pointer handle intact, so that reads of the
+-+// string's characters from generated code keep working afterwards.
+-+UNINITIALIZED_TEST(CodeSerializerExternalStringResourceDataRestored) {
+-+  v8::Isolate::CreateParams create_params;
+-+  create_params.array_buffer_allocator = CcTest::array_buffer_allocator();
+-+  create_params.external_references = external_code_cache_references;
+-+  v8::Isolate* isolate = v8::Isolate::New(create_params);
+-+  {
+-+    v8::Isolate::Scope isolate_scope(isolate);
+-+    v8::HandleScope scope(isolate);
+-+    v8::Local<v8::Context> context = v8::Context::New(isolate);
+-+    v8::Context::Scope context_scope(context);
+-+
+-+    v8::Local<v8::String> source_string =
+-+        v8::String::NewExternalOneByte(isolate,
+-+                                       &external_code_cache_source_resource)
+-+            .ToLocalChecked();
+-+    v8::Local<v8::String> name_string =
+-+        v8::String::NewExternalOneByte(isolate,
+-+                                       &external_code_cache_name_resource)
+-+            .ToLocalChecked();
+-+    // Only cached external strings have a resource_data_ field.
+-+    CHECK(!Cast<ExternalString>(*Utils::OpenDirectHandle(*source_string))
+-+               ->is_uncached());
+-+    CHECK(!Cast<ExternalString>(*Utils::OpenDirectHandle(*name_string))
+-+               ->is_uncached());
+-+
+-+    v8::ScriptCompiler::Source source(source_string, {name_string});
+-+    v8::Local<v8::UnboundScript> script =
+-+        v8::ScriptCompiler::CompileUnboundScript(
+-+            isolate, &source, v8::ScriptCompiler::kEagerCompile)
+-+            .ToLocalChecked();
+-+
+-+    // Serializes the script name in every build, and additionally the script
+-+    // source in DEBUG builds - CodeSerializer::Serialize() only attaches the
+-+    // source instead of serializing it when DEBUG is not defined. Both strings
+-+    // stay live in this isolate afterwards.
+-+    std::unique_ptr<v8::ScriptCompiler::CachedData> cache(
+-+        v8::ScriptCompiler::CreateCodeCache(script));
+-+    CHECK(cache);
+-+
+-+    // Read the character data of both strings from generated code.
+-+    v8::Local<v8::Object> global = context->Global();
+-+    CHECK(global->Set(context, v8_str("source"), source_string).FromJust());
+-+    CHECK(global->Set(context, v8_str("name"), name_string).FromJust());
+-+    ExpectTrue("source.startsWith('function f()')");
+-+    ExpectTrue("source.indexOf('def') > 0");
+-+    ExpectTrue("name.startsWith('external-script')");
+-+  }
+-+  isolate->Dispose();
+-+}
+-+
+- TEST(CodeSerializerLargeExternalString) {
+-   LocalContext context;
+-   Isolate* isolate = CcTest::i_isolate();
+diff --git a/patches/chromium/m152_fix_incorrectly_copying_row_padding_in_command_buffer_clients.patch b/patches/chromium/m152_fix_incorrectly_copying_row_padding_in_command_buffer_clients.patch
+index 30cf734f93..3fb6174956 100644
+--- a/patches/chromium/m152_fix_incorrectly_copying_row_padding_in_command_buffer_clients.patch
++++ b/patches/chromium/m152_fix_incorrectly_copying_row_padding_in_command_buffer_clients.patch
+@@ -58,89 +58,6 @@ Bot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.g
+ Cr-Commit-Position: refs/branch-heads/7977@{#1854}
+ Cr-Branched-From: b7fe14017379ddffae396d944fb8b59a5896c261-refs/heads/main@{#1669021}
+ 
+-diff --git a/content/test/data/gpu/webcodecs/copyTo.html b/content/test/data/gpu/webcodecs/copyTo.html
+-index af001e9f045cc85eb9111adaecd2b0e0d9fdbfee..674232db4a25d3b8bd8f6848918d322c5c8037eb 100644
+---- a/content/test/data/gpu/webcodecs/copyTo.html
+-+++ b/content/test/data/gpu/webcodecs/copyTo.html
+-@@ -177,6 +177,78 @@ Take frames coming from various sources and read them using copyTo().
+-       worker.terminate();
+-     }
+- 
+-+    // Test that padding bytes (stride/offset padding) are not overwritten.
+-+    {
+-+      const PAD = 0xAA;
+-+      const options = {
+-+        layout: [
+-+          {offset: 5, stride: frame.displayWidth * 4 + 16}, // plenty of padding
+-+        ],
+-+      };
+-+      if (frame.format === 'I420' || frame.format === 'I420A') {
+-+        options.layout = [
+-+          {offset: 5, stride: frame.displayWidth + 16},
+-+          {offset: (frame.displayWidth + 16) * frame.displayHeight + 10, stride: frame.displayWidth / 2 + 16},
+-+          {offset: (frame.displayWidth + 16) * frame.displayHeight + (frame.displayWidth / 2 + 16) * (frame.displayHeight / 2) + 20, stride: frame.displayWidth / 2 + 16},
+-+        ];
+-+        if (frame.format === 'I420A') {
+-+          options.layout.push({
+-+            offset: (frame.displayWidth + 16) * frame.displayHeight + (frame.displayWidth / 2 + 16) * (frame.displayHeight / 2) * 2 + 30,
+-+            stride: frame.displayWidth + 16
+-+          });
+-+        }
+-+      } else if (frame.format === 'NV12') {
+-+        options.layout = [
+-+          {offset: 5, stride: frame.displayWidth + 16},
+-+          {offset: (frame.displayWidth + 16) * frame.displayHeight + 10, stride: frame.displayWidth + 16},
+-+        ];
+-+      }
+-+
+-+      let size_with_padding = frame.allocationSize(options);
+-+      let buf = new ArrayBuffer(size_with_padding);
+-+      let view = new Uint8Array(buf);
+-+      view.fill(PAD);
+-+
+-+      let layout = await frame.copyTo(buf, options);
+-+
+-+      // Verify that the layout matches what we specified
+-+      for (let plane = 0; plane < layout.length; plane++) {
+-+        TEST.assert(layout[plane].offset === options.layout[plane].offset, "offset mismatch");
+-+        TEST.assert(layout[plane].stride === options.layout[plane].stride, "stride mismatch");
+-+      }
+-+
+-+      // We want to verify that the bytes between rows (the padding bytes) are untouched (still PAD).
+-+      for (let plane = 0; plane < layout.length; plane++) {
+-+        let plane_offset = layout[plane].offset;
+-+        let stride = layout[plane].stride;
+-+        let plane_height = frame.displayHeight;
+-+        let plane_width = frame.displayWidth;
+-+        if (plane > 0 && (frame.format === 'I420' || frame.format === 'I420A' || frame.format === 'NV12')) {
+-+          plane_height /= 2;
+-+          if (frame.format === 'I420' || frame.format === 'I420A') {
+-+            plane_width /= 2;
+-+          }
+-+        }
+-+        let bytes_per_pixel = 1;
+-+        if (frame.format === 'RGBA' || frame.format === 'RGBX' || frame.format === 'BGRA' || frame.format === 'BGRX') {
+-+          bytes_per_pixel = 4;
+-+        } else if (frame.format === 'NV12' && plane === 1) {
+-+          bytes_per_pixel = 2; // UV interleaved
+-+        }
+-+
+-+        let row_bytes = plane_width * bytes_per_pixel;
+-+        for (let y = 0; y < plane_height; ++y) {
+-+          let row_start = plane_offset + y * stride;
+-+          for (let x = row_bytes; x < stride; ++x) {
+-+            let pad_idx = row_start + x;
+-+            if (pad_idx < size_with_padding) {
+-+              TEST.assert(view[pad_idx] === PAD, `Padding byte overwritten at index ${pad_idx} for plane ${plane}, row ${y}, x ${x}. Expected ${PAD}, got ${view[pad_idx]}`);
+-+            }
+-+          }
+-+        }
+-+      }
+-+    }
+-+
+-     // Validate pixels
+-     if (!arg.validate_camera_frames && source_type == 'camera') {
+-       TEST.log("Skip copyTo result validation");
+ diff --git a/gpu/command_buffer/client/gles2_implementation.cc b/gpu/command_buffer/client/gles2_implementation.cc
+ index 0005699cd4c189e486eaad871ce9866b46ec339c..8c55bd8e72cdcf0b7ee47019d90412a78eb32a4c 100644
+ --- a/gpu/command_buffer/client/gles2_implementation.cc
+@@ -768,120 +685,3 @@ index a5c0f1482886f4c496c436b9981506f49949f75c..009fcd2cc56142e34c0690de7cec6cfd
+  #include "gpu/command_buffer/client/raster_implementation_unittest_autogen.h"
+  
+  }  // namespace raster
+-diff --git a/third_party/blink/web_tests/external/wpt/webcodecs/videoFrame-copyTo.any.js b/third_party/blink/web_tests/external/wpt/webcodecs/videoFrame-copyTo.any.js
+-index 7cd3c3f73cdd1e6b125a10526ce97051bf0426ab..8b8a7cd555c105922edebe5db97629e64fd1c834 100644
+---- a/third_party/blink/web_tests/external/wpt/webcodecs/videoFrame-copyTo.any.js
+-+++ b/third_party/blink/web_tests/external/wpt/webcodecs/videoFrame-copyTo.any.js
+-@@ -188,18 +188,7 @@ promise_test(async t => {
+- }, 'Test I420A stride and offset work.');
+- 
+- promise_test(async t => {
+--  const init = {
+--    format: 'NV12',
+--    timestamp: 0,
+--    codedWidth: 4,
+--    codedHeight: 2,
+--  };
+--  const buf = new Uint8Array([
+--    1, 2, 3, 4,   // y
+--    5, 6, 7, 8,
+--    9, 10, 11, 12 // uv
+--  ]);
+--  const frame = new VideoFrame(buf, init);
+-+  const frame = makeNV12_4x2();
+-   const options = {
+-       layout: [
+-           {offset: 4, stride: 4},
+-@@ -365,3 +354,92 @@ promise_test(async t => {
+- 
+-   assert_array_equals(copied_data, packed_data, `Copied frame data incorrect.`);
+- }, 'copyTo from byte data with non-default visibleRect');
+-+
+-+promise_test(async t => {
+-+  const i420_4x4 = new Uint8Array([
+-+    1,  2,  3,  4,   // y y y y
+-+    5,  6,  7,  8,   // y y y y
+-+    9,  10, 11, 12,  // y y y y
+-+    13, 14, 15, 16,  // y y y y
+-+    17, 18,          // u u
+-+    19, 20,          // u u
+-+    21, 22,          // v v
+-+    23, 24,          // v v
+-+  ]);
+-+  const frame = new VideoFrame(i420_4x4, {
+-+    format: 'I420',
+-+    timestamp: 0,
+-+    codedWidth: 4,
+-+    codedHeight: 4,
+-+  });
+-+
+-+  const options = {
+-+    layout: [
+-+      {offset: 15, stride: 5},
+-+      {offset: 1, stride: 3},
+-+      {offset: 8, stride: 3},
+-+    ],
+-+  };
+-+  const PAD = 0xAA;  // Distinct padding value so we can check for it later
+-+  const expectedData = new Uint8Array([
+-+    PAD,                    // unused
+-+    17,  18, PAD,           // u u
+-+    19,  20, PAD,           // u u
+-+    PAD,                    // unused
+-+    21,  22, PAD,           // v v
+-+    23,  24, PAD,           // v v
+-+    PAD,                    // unused
+-+    1,   2,  3,   4,  PAD,  // y y y y
+-+    5,   6,  7,   8,  PAD,  // y y y y
+-+    9,   10, 11,  12, PAD,  // y y y y
+-+    13,  14, 15,  16, PAD,  // y y y y
+-+  ]);
+-+  const size = frame.allocationSize(options);
+-+  assert_equals(size, expectedData.length, 'allocationSize()');
+-+  const data = new Uint8Array(size);
+-+  data.fill(PAD);  // Initialize array with PAD before copying into it
+-+  const layout = await frame.copyTo(data, options);
+-+  assert_layout_equals(layout, options.layout);
+-+  assert_buffer_equals(data, expectedData);
+-+}, 'Test I420 copyTo does not modify destination stride/offset padding bytes.');
+-+
+-+promise_test(async t => {
+-+  const W = 4;
+-+  const H = 4;
+-+  const src = new OffscreenCanvas(W, H);
+-+  const g = src.getContext('2d');
+-+  g.fillStyle = '#00ff00';
+-+  g.fillRect(0, 0, W, H);  // Fill 4x4 source image with all green
+-+
+-+  const frame = new VideoFrame(src, {timestamp: 0});
+-+
+-+  const offset = 5;
+-+  const stride = 20;
+-+  const options = {
+-+    layout: [
+-+      {offset, stride},
+-+    ],
+-+  };
+-+  const PAD = 0xAA;  // Distinct padding value so we can check for it later
+-+
+-+  const size = frame.allocationSize(options);
+-+  assert_equals(size, offset + stride * H, 'allocationSize()');
+-+
+-+  const expectedData = new Uint8Array(size);
+-+  expectedData.fill(PAD);
+-+  for (let y = 0; y < H; ++y) {
+-+    for (let x = 0; x < W; ++x) {
+-+      expectedData[offset + y * stride + x * 4 + 0] = 0;    // R
+-+      expectedData[offset + y * stride + x * 4 + 1] = 255;  // G
+-+      expectedData[offset + y * stride + x * 4 + 2] = 0;    // B
+-+      expectedData[offset + y * stride + x * 4 + 3] = 255;  // A
+-+    }
+-+  }
+-+
+-+  const data = new Uint8Array(size);
+-+  data.fill(PAD);  // Initialize array with PAD before copying into it
+-+  const layout = await frame.copyTo(data, options);
+-+  assert_layout_equals(layout, options.layout);
+-+  assert_buffer_equals(data, expectedData);
+-+  frame.close();
+-+}, 'Test texture-backed RGBA copyTo does not modify destination stride/offset padding bytes.');
+diff --git a/patches/v8/cherry-pick-00f6e83402.patch b/patches/v8/cherry-pick-00f6e83402.patch
+index 97af5a50f1..983a60a463 100644
+--- a/patches/v8/cherry-pick-00f6e83402.patch
++++ b/patches/v8/cherry-pick-00f6e83402.patch
+@@ -64,124 +64,3 @@ index 886b866db468e46a84b3f601158a4bfd757bef30..a4853ffa2c1a43c81cc55ce5dbebe498
+  
+    void PrintInternal(std::ostream& os);
+  
+-diff --git a/test/cctest/test-transitions.cc b/test/cctest/test-transitions.cc
+-index 043d3d1ded503e9c9951b58b7afce0a9b2286b13..f6ed75f8b98f729f9d69016f9863e661486fadda 100644
+---- a/test/cctest/test-transitions.cc
+-+++ b/test/cctest/test-transitions.cc
+-@@ -464,5 +464,116 @@ UNINITIALIZED_TEST(TransitionArray_InsertToBinarySearchSizeAfterRehashing) {
+-   FreeCurrentEmbeddedBlob();
+- }
+- 
+-+UNINITIALIZED_TEST(TransitionArray_RehashNoDuplicatesWithinLinearSearchSize) {
+-+  v8_flags.rehash_snapshot = true;
+-+  v8_flags.hash_seed = 42;
+-+  v8_flags.allow_natives_syntax = true;
+-+  DisableEmbeddedBlobRefcounting();
+-+  v8::StartupData blob;
+-+  // Stay within linear search size.
+-+  constexpr int initial_size = TransitionArray::kMaxElementsForLinearSearch / 2;
+-+
+-+  {
+-+    v8::Isolate::CreateParams testing_params;
+-+    testing_params.array_buffer_allocator = CcTest::array_buffer_allocator();
+-+    v8::SnapshotCreator creator(testing_params);
+-+    v8::Isolate* isolate = creator.GetIsolate();
+-+    {
+-+      v8::HandleScope handle_scope(isolate);
+-+      v8::Local<v8::Context> context = v8::Context::New(isolate);
+-+      v8::Context::Scope context_scope(context);
+-+      Isolate* i_isolate = reinterpret_cast<Isolate*>(isolate);
+-+      v8::Local<v8::Object> obj = v8::Object::New(isolate);
+-+      DirectHandle<Map> first_map =
+-+          direct_handle(v8::Utils::OpenDirectHandle(*obj)->map(), i_isolate);
+-+
+-+      {
+-+        TestTransitionsAccessor transitions(i_isolate, first_map);
+-+        CHECK_EQ(0, transitions.NumberOfTransitions());
+-+      }
+-+
+-+      // Insert transitions that will be rehashed on deserialization.
+-+      v8::Local<v8::Value> null_value = v8::Null(isolate);
+-+      v8::LocalVector<v8::Value> objects(isolate);
+-+      for (int i = 0; i < initial_size; i++) {
+-+        std::string prop_name = "prop_" + std::to_string(i);
+-+        v8::Local<v8::String> name =
+-+            v8::String::NewFromUtf8(isolate, prop_name.c_str(),
+-+                                    v8::NewStringType::kNormal)
+-+                .ToLocalChecked();
+-+        v8::Local<v8::Object> new_obj = v8::Object::New(isolate);
+-+        new_obj->Set(context, name, null_value).Check();
+-+        objects.push_back(new_obj);
+-+      }
+-+      context->Global()
+-+          ->Set(context, v8_str("objects_for_transitions"),
+-+                v8::Array::New(isolate, objects.data(), objects.size()))
+-+          .Check();
+-+
+-+      creator.SetDefaultContext(context);
+-+
+-+      TestTransitionsAccessor transitions(i_isolate, first_map);
+-+      CHECK_EQ(initial_size, transitions.NumberOfTransitions());
+-+    }
+-+    blob =
+-+        creator.CreateBlob(v8::SnapshotCreator::FunctionCodeHandling::kClear);
+-+    CHECK(blob.CanBeRehashed());
+-+  }
+-+
+-+  // Deserialize with a different hash seed to trigger rehashing.
+-+  v8_flags.hash_seed = 1337;
+-+  v8::Isolate::CreateParams testing_params;
+-+  testing_params.array_buffer_allocator = CcTest::array_buffer_allocator();
+-+  testing_params.snapshot_blob = &blob;
+-+  v8::Isolate* isolate = v8::Isolate::New(testing_params);
+-+  {
+-+    v8::Isolate::Scope isolate_scope(isolate);
+-+    CHECK_EQ(static_cast<uint64_t>(1337),
+-+             HashSeed(reinterpret_cast<Isolate*>(isolate)).seed());
+-+    v8::HandleScope handle_scope(isolate);
+-+    v8::Local<v8::Context> context = v8::Context::New(isolate);
+-+    CHECK(!context.IsEmpty());
+-+    v8::Context::Scope context_scope(context);
+-+
+-+    Isolate* i_isolate = reinterpret_cast<Isolate*>(isolate);
+-+    v8::Local<v8::Object> obj = v8::Object::New(isolate);
+-+    DirectHandle<Map> first_map =
+-+        direct_handle(v8::Utils::OpenDirectHandle(*obj)->map(), i_isolate);
+-+
+-+    // Collect existing transition keys from the rehashed array.
+-+    Handle<String> keys[initial_size];
+-+    {
+-+      TestTransitionsAccessor transitions(i_isolate, first_map);
+-+      CHECK_EQ(initial_size, transitions.NumberOfTransitions());
+-+      for (int i = 0; i < initial_size; i++) {
+-+        keys[i] = handle(Cast<String>(transitions.GetKey(i)), i_isolate);
+-+      }
+-+    }
+-+
+-+    // For each existing transition, create a fresh map and re-insert it with
+-+    // the same field name.
+-+    for (int i = 0; i < initial_size; i++) {
+-+      Handle<Map> new_map =
+-+          Map::CopyWithField(i_isolate, first_map, keys[i],
+-+                             FieldType::Any(i_isolate), NONE,
+-+                             PropertyConstness::kMutable,
+-+                             Representation::Tagged(), OMIT_TRANSITION)
+-+              .ToHandleChecked();
+-+      TransitionsAccessor::Insert(i_isolate, first_map, keys[i], new_map,
+-+                                  PROPERTY_TRANSITION);
+-+    }
+-+
+-+    // Verify no duplicates were created.
+-+    {
+-+      TestTransitionsAccessor transitions(i_isolate, first_map);
+-+      CHECK_EQ(initial_size, transitions.NumberOfTransitions());
+-+    }
+-+  }
+-+
+-+  isolate->Dispose();
+-+  delete[] blob.data;
+-+  FreeCurrentEmbeddedBlob();
+-+}
+-+
+- }  // namespace internal
+- }  // namespace v8
+diff --git a/patches/chromium/m152_gpu_add_flush_queries_before_deleting_or_unbinding_fbo.patch b/patches/chromium/m152_gpu_add_flush_queries_before_deleting_or_unbinding_fbo.patch
+index b682b251cf..df50a9d1ef 100644
+--- a/patches/chromium/m152_gpu_add_flush_queries_before_deleting_or_unbinding_fbo.patch
++++ b/patches/chromium/m152_gpu_add_flush_queries_before_deleting_or_unbinding_fbo.patch
+@@ -230,17 +230,6 @@ diff --git a/gpu/config/gpu_driver_bug_list.json b/gpu/config/gpu_driver_bug_lis
+ index 5e9d29dcfada369093d4fe8b14563b1abb9a5928..4decfacd48cd6b3bcd417b3795439486c1319f64 100644
+ --- a/gpu/config/gpu_driver_bug_list.json
+ +++ b/gpu/config/gpu_driver_bug_list.json
+-@@ -3801,7 +3801,9 @@
+-     },
+-     {
+-       "id": 487,
+--      "cr_bugs": [499602793],
+-+      "cr_bugs": [
+-+        499602793
+-+      ],
+-       "description": "Reattach texture to FBO after layer count increase on PowerVR GPUs.",
+-       "os": {
+-         "type": "android"
+ @@ -3834,6 +3836,15 @@
+        "features": [
+          "limit_output_varyings_at_compile_time"
+diff --git a/patches/v8/cherry-pick-8120dd10e82d.patch b/patches/v8/cherry-pick-8120dd10e82d.patch
+index 8437f40cbf..c71de5f618 100644
+--- a/patches/v8/cherry-pick-8120dd10e82d.patch
++++ b/patches/v8/cherry-pick-8120dd10e82d.patch
+@@ -110,100 +110,3 @@ index 8214b0e2fa288595358cd2af6a2545684266b803..7b17f0cec9c2e640f8f0efb24841780b
+    inline InternalIndex descriptor_number() const;
+    inline InternalIndex dictionary_entry() const;
+  
+-diff --git a/test/cctest/heap/test-heap.cc b/test/cctest/heap/test-heap.cc
+-index bee43e6102eeaa50b0b065f951bc7498636fb785..30d026961a22d15b6d6037efeb0094f463bf2366 100644
+---- a/test/cctest/heap/test-heap.cc
+-+++ b/test/cctest/heap/test-heap.cc
+-@@ -3798,39 +3798,13 @@ UNINITIALIZED_TEST(ReleaseStackTraceData) {
+-         "} catch (e) {                "
+-         "  error = e;                 "
+-         "}                            ";
+--    static const char* source3 =
+--        "var error = null;            "
+--        /* Normal Error */
+--        "try {                        "
+--        /* as prototype */
+--        "  throw new Error();         "
+--        "} catch (e) {                "
+--        "  error = {};                "
+--        "  error.__proto__ = e;       "
+--        "}                            ";
+--    static const char* source4 =
+--        "var error = null;            "
+--        /* Stack overflow */
+--        "try {                        "
+--        /* as prototype   */
+--        "  (function f() { f(); })(); "
+--        "} catch (e) {                "
+--        "  error = {};                "
+--        "  error.__proto__ = e;       "
+--        "}                            ";
+-     static const char* getter = "error.stack";
+-     static const char* setter = "error.stack = 0";
+- 
+-     ReleaseStackTraceDataTest(isolate, source1, setter);
+-     ReleaseStackTraceDataTest(isolate, source2, setter);
+--    // We do not test source3 and source4 with setter, since the setter is
+--    // supposed to (untypically) write to the receiver, not the holder.  This is
+--    // to emulate the behavior of a data property.
+--
+-     ReleaseStackTraceDataTest(isolate, source1, getter);
+-     ReleaseStackTraceDataTest(isolate, source2, getter);
+--    ReleaseStackTraceDataTest(isolate, source3, getter);
+--    ReleaseStackTraceDataTest(isolate, source4, getter);
+-   }
+-   isolate->Dispose();
+- }
+-diff --git a/test/cctest/test-api-stack-traces.cc b/test/cctest/test-api-stack-traces.cc
+-index 99012b8b744036f7c5515d103b8ef268f8de1354..4095af193595058153b7517b0310c7d0a32e6469 100644
+---- a/test/cctest/test-api-stack-traces.cc
+-+++ b/test/cctest/test-api-stack-traces.cc
+-@@ -670,7 +670,7 @@ TEST(RethrowBogusErrorStackTrace) {
+-   v8::HandleScope scope(isolate);
+-   const char* source =
+-       "var e = {__proto__: new Error()} \n"
+--      "throw e;                         \n";
+-+      "throw e.__proto__;               \n";
+-   isolate->AddMessageListener(RethrowBogusErrorStackTraceHandler);
+-   isolate->SetCaptureStackTraceForUncaughtExceptions(true);
+-   CompileRun(source);
+-diff --git a/test/mjsunit/stack-traces-overflow.js b/test/mjsunit/stack-traces-overflow.js
+-index cd690752d3dc61f96726b09c09d393bc715e2d2b..60dc034f0077a923cc4d5e641eae440c896dd9f0 100644
+---- a/test/mjsunit/stack-traces-overflow.js
+-+++ b/test/mjsunit/stack-traces-overflow.js
+-@@ -76,35 +76,6 @@ try {
+- }
+- 
+- 
+--// Check setting/getting stack property on the prototype chain.
+--function testErrorPrototype(prototype) {
+--  var object = {};
+--  object.__proto__ = prototype;
+--  // Setting stack property overwrites prototype.stack value.
+--  object.stack = "123";
+--  assertEquals(prototype.stack, object.stack);
+--  assertEquals("123", object.stack);
+--}
+--
+--try {
+--  rec1(0);
+--} catch (e) {
+--  e.stack;
+--  testErrorPrototype(e);
+--}
+--
+--try {
+--  rec1(0);
+--} catch (e) {
+--  testErrorPrototype(e);
+--}
+--
+--try {
+--  throw new Error();
+--} catch (e) {
+--  testErrorPrototype(e);
+--}
+--
+- Error.stackTraceLimit = 3;
+- try {
+-   rec1(0);
+diff --git a/patches/angle/vulkan_fix_blitting_into_3d_images.patch b/patches/angle/vulkan_fix_blitting_into_3d_images.patch
+index 62b4ed502b..bbadf7d779 100644
+--- a/patches/angle/vulkan_fix_blitting_into_3d_images.patch
++++ b/patches/angle/vulkan_fix_blitting_into_3d_images.patch
+@@ -104,506 +104,3 @@ index d77dfebdaa671fc2ac5c2dc2e1331f83159f45a7..4367c17409afbb265fa96550402e9bee
+  480069042 PIXEL10 VULKAN : GLSLTest_ES31.ArrayOfArrayOfSamplerDynamicIndexEXT/* = SKIP
+  480069042 PIXEL10 VULKAN : GLSLTest_ES31.ArrayOfArrayOfSamplerDynamicIndexOES/* = SKIP
+  480069042 PIXEL10 VULKAN : GLSLTest_ES31.ArrayOfArrayOfSamplerInStructDynamicIndex/* = SKIP
+-diff --git a/src/tests/gl_tests/FramebufferTest.cpp b/src/tests/gl_tests/FramebufferTest.cpp
+-index 5bde9e485f8f2de6d84721eceb17d5958a34d3b9..619ac8a95d9dc6c0329e766e5bae45d456fa26ea 100644
+---- a/src/tests/gl_tests/FramebufferTest.cpp
+-+++ b/src/tests/gl_tests/FramebufferTest.cpp
+-@@ -3492,7 +3492,7 @@ TEST_P(FramebufferTest_ES31, BasicDrawToYFlippedFBO)
+- // Test resolving a multisampled texture with blit
+- TEST_P(FramebufferTest_ES31, MultisampleResolveWithBlit)
+- {
+--    constexpr int kSize = 16;
+-+    constexpr uint32_t kSize = 16;
+-     glViewport(0, 0, kSize, kSize);
+- 
+-     GLFramebuffer msaaFBO;
+-@@ -3534,6 +3534,274 @@ TEST_P(FramebufferTest_ES31, MultisampleResolveWithBlit)
+-                       255, 1.0);
+- }
+- 
+-+// Test resolving a multisampled texture with blit into a 3D texture.
+-+TEST_P(FramebufferTest_ES31, MultisampleResolveWithBlitInto3DTexture)
+-+{
+-+    constexpr uint32_t kSize      = 16;
+-+    constexpr uint32_t kBlitSlice = 11;
+-+    glViewport(0, 0, kSize, kSize);
+-+
+-+    GLFramebuffer msaaFBO;
+-+    glBindFramebuffer(GL_FRAMEBUFFER, msaaFBO);
+-+
+-+    GLTexture texture;
+-+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
+-+    glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA8, kSize, kSize, false);
+-+    ASSERT_GL_NO_ERROR();
+-+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, texture,
+-+                           0);
+-+    ASSERT_GL_FRAMEBUFFER_COMPLETE(GL_FRAMEBUFFER);
+-+
+-+    ANGLE_GL_PROGRAM(gradientProgram, essl31_shaders::vs::Passthrough(),
+-+                     essl31_shaders::fs::RedGreenGradient());
+-+    drawQuad(gradientProgram, essl31_shaders::PositionAttrib(), 0.5f, 1.0f, true);
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Create another FBO to resolve the multisample buffer into.  Use a 3D texture.
+-+    GLTexture resolveTexture;
+-+    GLFramebuffer resolveFBO;
+-+    glBindTexture(GL_TEXTURE_3D, resolveTexture);
+-+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, kSize, kSize, kSize, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+-+                 nullptr);
+-+    glBindFramebuffer(GL_FRAMEBUFFER, resolveFBO);
+-+    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, resolveTexture, 0, kBlitSlice);
+-+    ASSERT_GL_FRAMEBUFFER_COMPLETE(GL_FRAMEBUFFER);
+-+
+-+    glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFBO);
+-+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolveFBO);
+-+    glBlitFramebuffer(0, 0, kSize, kSize, 0, 0, kSize, kSize, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFBO);
+-+    constexpr uint8_t kHalfPixelGradient = 256 / kSize / 2;
+-+    EXPECT_PIXEL_NEAR(0, 0, kHalfPixelGradient, kHalfPixelGradient, 0, 255, 1.0);
+-+    EXPECT_PIXEL_NEAR(kSize - 1, 0, 255 - kHalfPixelGradient, kHalfPixelGradient, 0, 255, 1.0);
+-+    EXPECT_PIXEL_NEAR(0, kSize - 1, kHalfPixelGradient, 255 - kHalfPixelGradient, 0, 255, 1.0);
+-+    EXPECT_PIXEL_NEAR(kSize - 1, kSize - 1, 255 - kHalfPixelGradient, 255 - kHalfPixelGradient, 0,
+-+                      255, 1.0);
+-+}
+-+
+-+// Test resolving a multisampled texture with blit into multiple textures, including 3D textures.
+-+TEST_P(FramebufferTest_ES31, MultisampleResolveWithBlitIntoMixedTextures)
+-+{
+-+    constexpr uint32_t kSize      = 16;
+-+    constexpr uint32_t kBlitSlice = 11;
+-+    glViewport(0, 0, kSize, kSize);
+-+
+-+    GLFramebuffer msaaFBO;
+-+    glBindFramebuffer(GL_FRAMEBUFFER, msaaFBO);
+-+
+-+    GLTexture texture;
+-+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
+-+    glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA8, kSize, kSize, false);
+-+    ASSERT_GL_NO_ERROR();
+-+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, texture,
+-+                           0);
+-+    ASSERT_GL_FRAMEBUFFER_COMPLETE(GL_FRAMEBUFFER);
+-+
+-+    ANGLE_GL_PROGRAM(gradientProgram, essl31_shaders::vs::Passthrough(),
+-+                     essl31_shaders::fs::RedGreenGradient());
+-+    drawQuad(gradientProgram, essl31_shaders::PositionAttrib(), 0.5f, 1.0f, true);
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Create another FBO to resolve the multisample buffer into.  Use a 3D texture for some
+-+    // attachments.
+-+    GLFramebuffer resolveFBO;
+-+    glBindFramebuffer(GL_FRAMEBUFFER, resolveFBO);
+-+    std::array<GLTexture, 4> resolveTexture;
+-+    for (size_t i = 0; i < resolveTexture.size(); ++i)
+-+    {
+-+        if (i % 2 == 0)
+-+        {
+-+            glBindTexture(GL_TEXTURE_3D, resolveTexture[i]);
+-+            glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, kSize, kSize, kSize, 0, GL_RGBA,
+-+                         GL_UNSIGNED_BYTE, nullptr);
+-+            glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, resolveTexture[i],
+-+                                      0, kBlitSlice);
+-+        }
+-+        else
+-+        {
+-+            glBindTexture(GL_TEXTURE_2D, resolveTexture[i]);
+-+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, kSize, kSize, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+-+                         nullptr);
+-+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D,
+-+                                   resolveTexture[i], 0);
+-+        }
+-+    }
+-+    constexpr std::array<GLenum, 4> kDrawBuffers = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+-+                                                    GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+-+    glDrawBuffers(4, kDrawBuffers.data());
+-+    ASSERT_GL_FRAMEBUFFER_COMPLETE(GL_FRAMEBUFFER);
+-+
+-+    glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFBO);
+-+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolveFBO);
+-+    glBlitFramebuffer(0, 0, kSize, kSize, 0, 0, kSize, kSize, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFBO);
+-+    constexpr uint8_t kHalfPixelGradient = 256 / kSize / 2;
+-+    for (size_t i = 0; i < resolveTexture.size(); ++i)
+-+    {
+-+        glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+-+        EXPECT_PIXEL_NEAR(0, 0, kHalfPixelGradient, kHalfPixelGradient, 0, 255, 1.0);
+-+        EXPECT_PIXEL_NEAR(kSize - 1, 0, 255 - kHalfPixelGradient, kHalfPixelGradient, 0, 255, 1.0);
+-+        EXPECT_PIXEL_NEAR(0, kSize - 1, kHalfPixelGradient, 255 - kHalfPixelGradient, 0, 255, 1.0);
+-+        EXPECT_PIXEL_NEAR(kSize - 1, kSize - 1, 255 - kHalfPixelGradient, 255 - kHalfPixelGradient,
+-+                          0, 255, 1.0);
+-+    }
+-+}
+-+
+-+// Test resolving a multisampled texture with blit into multiple textures, including 3D textures,
+-+// after the render pass is closed.
+-+TEST_P(FramebufferTest_ES31, MultisampleResolveWithBlitIntoMixedTexturesAfterFinish)
+-+{
+-+    constexpr uint32_t kSize      = 16;
+-+    constexpr uint32_t kBlitSlice = 11;
+-+    glViewport(0, 0, kSize, kSize);
+-+
+-+    GLFramebuffer msaaFBO;
+-+    glBindFramebuffer(GL_FRAMEBUFFER, msaaFBO);
+-+
+-+    GLTexture texture;
+-+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, texture);
+-+    glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGBA8, kSize, kSize, false);
+-+    ASSERT_GL_NO_ERROR();
+-+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, texture,
+-+                           0);
+-+    ASSERT_GL_FRAMEBUFFER_COMPLETE(GL_FRAMEBUFFER);
+-+
+-+    ANGLE_GL_PROGRAM(gradientProgram, essl31_shaders::vs::Passthrough(),
+-+                     essl31_shaders::fs::RedGreenGradient());
+-+    drawQuad(gradientProgram, essl31_shaders::PositionAttrib(), 0.5f, 1.0f, true);
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Close the render pass.  In the Vulkan backend, this disallows directly resolving into the
+-+    // destination with a render pass resolve attachment.
+-+    glFinish();
+-+
+-+    // Create another FBO to resolve the multisample buffer into.  Use a 3D texture for some
+-+    // attachments.
+-+    GLFramebuffer resolveFBO;
+-+    glBindFramebuffer(GL_FRAMEBUFFER, resolveFBO);
+-+    std::array<GLTexture, 4> resolveTexture;
+-+    for (size_t i = 0; i < resolveTexture.size(); ++i)
+-+    {
+-+        if (i % 2 == 1)
+-+        {
+-+            glBindTexture(GL_TEXTURE_3D, resolveTexture[i]);
+-+            glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, kSize, kSize, kSize, 0, GL_RGBA,
+-+                         GL_UNSIGNED_BYTE, nullptr);
+-+            glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, resolveTexture[i],
+-+                                      0, kBlitSlice);
+-+        }
+-+        else
+-+        {
+-+            glBindTexture(GL_TEXTURE_2D, resolveTexture[i]);
+-+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, kSize, kSize, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+-+                         nullptr);
+-+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D,
+-+                                   resolveTexture[i], 0);
+-+        }
+-+    }
+-+    constexpr std::array<GLenum, 4> kDrawBuffers = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+-+                                                    GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+-+    glDrawBuffers(4, kDrawBuffers.data());
+-+    ASSERT_GL_FRAMEBUFFER_COMPLETE(GL_FRAMEBUFFER);
+-+
+-+    glBindFramebuffer(GL_READ_FRAMEBUFFER, msaaFBO);
+-+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolveFBO);
+-+    glBlitFramebuffer(0, 0, kSize, kSize, 0, 0, kSize, kSize, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFBO);
+-+    constexpr uint8_t kHalfPixelGradient = 256 / kSize / 2;
+-+    for (size_t i = 0; i < resolveTexture.size(); ++i)
+-+    {
+-+        glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+-+        EXPECT_PIXEL_NEAR(0, 0, kHalfPixelGradient, kHalfPixelGradient, 0, 255, 1.0);
+-+        EXPECT_PIXEL_NEAR(kSize - 1, 0, 255 - kHalfPixelGradient, kHalfPixelGradient, 0, 255, 1.0);
+-+        EXPECT_PIXEL_NEAR(0, kSize - 1, kHalfPixelGradient, 255 - kHalfPixelGradient, 0, 255, 1.0);
+-+        EXPECT_PIXEL_NEAR(kSize - 1, kSize - 1, 255 - kHalfPixelGradient, 255 - kHalfPixelGradient,
+-+                          0, 255, 1.0);
+-+    }
+-+}
+-+
+-+class FramebufferTest_ES31_MSAA : public FramebufferTest_ES31
+-+{
+-+  protected:
+-+    FramebufferTest_ES31_MSAA()
+-+    {
+-+        setConfigRedBits(8);
+-+        setConfigGreenBits(8);
+-+        setConfigBlueBits(8);
+-+        setConfigAlphaBits(8);
+-+        setSamples(4);
+-+        setMultisampleEnabled(true);
+-+    }
+-+};
+-+
+-+// Test resolving a multisampled texture with blit into multiple textures, including 3D textures,,
+-+// using the default framebuffer as src.  With pre-rotation, this forces the Vulkan backend to take
+-+// a draw-based path.
+-+TEST_P(FramebufferTest_ES31_MSAA, MultisampleResolveWithBlitIntoMixedTextures)
+-+{
+-+    const int w                   = getWindowWidth();
+-+    const int h                   = getWindowHeight();
+-+    constexpr uint32_t kDepth     = 16;
+-+    constexpr uint32_t kBlitSlice = 11;
+-+
+-+    ANGLE_GL_PROGRAM(gradientProgram, essl31_shaders::vs::Passthrough(),
+-+                     essl31_shaders::fs::RedGreenGradient());
+-+    drawQuad(gradientProgram, essl31_shaders::PositionAttrib(), 0.5f, 1.0f, true);
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Create another FBO to resolve the multisample buffer into.  Use a 3D texture for some
+-+    // attachments.
+-+    GLFramebuffer resolveFBO;
+-+    glBindFramebuffer(GL_FRAMEBUFFER, resolveFBO);
+-+    std::array<GLTexture, 4> resolveTexture;
+-+    for (size_t i = 0; i < resolveTexture.size(); ++i)
+-+    {
+-+        if (i % 2 == 0)
+-+        {
+-+            glBindTexture(GL_TEXTURE_3D, resolveTexture[i]);
+-+            glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, kDepth, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+-+                         nullptr);
+-+            glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, resolveTexture[i],
+-+                                      0, kBlitSlice);
+-+        }
+-+        else
+-+        {
+-+            glBindTexture(GL_TEXTURE_2D, resolveTexture[i]);
+-+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+-+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D,
+-+                                   resolveTexture[i], 0);
+-+        }
+-+    }
+-+    constexpr std::array<GLenum, 4> kDrawBuffers = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+-+                                                    GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
+-+    glDrawBuffers(4, kDrawBuffers.data());
+-+    ASSERT_GL_FRAMEBUFFER_COMPLETE(GL_FRAMEBUFFER);
+-+
+-+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+-+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, resolveFBO);
+-+    glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFBO);
+-+    const uint8_t kHalfPixelGradientW = 256 / w / 2;
+-+    const uint8_t kHalfPixelGradientH = 256 / h / 2;
+-+    for (size_t i = 0; i < resolveTexture.size(); ++i)
+-+    {
+-+        glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+-+        EXPECT_PIXEL_NEAR(0, 0, kHalfPixelGradientW, kHalfPixelGradientH, 0, 255, 1.0);
+-+        EXPECT_PIXEL_NEAR(w - 1, 0, 255 - kHalfPixelGradientW, kHalfPixelGradientH, 0, 255, 1.0);
+-+        EXPECT_PIXEL_NEAR(0, h - 1, kHalfPixelGradientW, 255 - kHalfPixelGradientH, 0, 255, 1.0);
+-+        EXPECT_PIXEL_NEAR(w - 1, h - 1, 255 - kHalfPixelGradientW, 255 - kHalfPixelGradientH, 0,
+-+                          255, 1.0);
+-+    }
+-+}
+-+
+- // Test clearing a 2D multisample texture defined using glTexStorage2DMultisample().
+- TEST_P(FramebufferTest_ES31, ClearTextureEXT2DMS)
+- {
+-@@ -3968,6 +4236,160 @@ TEST_P(FramebufferTest_ES31, ClearTextureEXT2DMSStencil)
+-     EXPECT_PIXEL_RECT_EQ(0, 0, 16, 16, GLColor::blue);
+- }
+- 
+-+// Test sampling from a multisampled stencil texture.
+-+// This is based on KHR-GLES31.core.texture_stencil8.multisample
+-+TEST_P(FramebufferTest_ES31_MSAA, MultisampleStencilSampling)
+-+{
+-+    ANGLE_SKIP_TEST_IF(!IsGLExtensionEnabled("GL_OES_texture_stencil8"));
+-+    ANGLE_SKIP_TEST_IF(!IsGLExtensionEnabled("GL_OES_texture_storage_multisample_2d_array"));
+-+
+-+    constexpr GLsizei kWidth   = 2;
+-+    constexpr GLsizei kHeight  = 2;
+-+    constexpr GLsizei kLayers  = 2;
+-+    constexpr GLsizei kSamples = 4;
+-+
+-+    // 1. Create and populate 2D MS stencil texture
+-+    GLTexture msaaStencilTex;
+-+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaStencilTex);
+-+    glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, kSamples, GL_STENCIL_INDEX8, kWidth,
+-+                              kHeight, GL_TRUE);
+-+
+-+    GLFramebuffer fbo;
+-+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+-+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE,
+-+                           msaaStencilTex, 0);
+-+    ASSERT_GL_FRAMEBUFFER_COMPLETE(GL_FRAMEBUFFER);
+-+
+-+    glEnable(GL_STENCIL_TEST);
+-+    glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+-+    glEnable(GL_SAMPLE_MASK);
+-+    glViewport(0, 0, kWidth, kHeight);
+-+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+-+
+-+    ANGLE_GL_PROGRAM(drawStencilProg, essl31_shaders::vs::Passthrough(), essl31_shaders::fs::Red());
+-+
+-+    const GLubyte stencilRefs[4] = {64, 128, 192, 255};
+-+    for (int s = 0; s < kSamples; ++s)
+-+    {
+-+        glSampleMaski(0, 1 << s);
+-+        glStencilFunc(GL_ALWAYS, stencilRefs[s], 0xFF);
+-+        drawQuad(drawStencilProg, essl31_shaders::PositionAttrib(), 0.0f);
+-+    }
+-+
+-+    // 2. Create and populate 2D MS Array stencil texture
+-+    GLTexture msaaStencilArrayTex;
+-+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY_OES, msaaStencilArrayTex);
+-+    glTexStorage3DMultisampleOES(GL_TEXTURE_2D_MULTISAMPLE_ARRAY_OES, kSamples, GL_STENCIL_INDEX8,
+-+                                 kWidth, kHeight, kLayers, GL_TRUE);
+-+
+-+    // Populate Layer 0
+-+    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, msaaStencilArrayTex, 0, 0);
+-+    const GLubyte stencilRefs0[4] = {10, 20, 30, 40};
+-+    for (int s = 0; s < kSamples; ++s)
+-+    {
+-+        glSampleMaski(0, 1 << s);
+-+        glStencilFunc(GL_ALWAYS, stencilRefs0[s], 0xFF);
+-+        drawQuad(drawStencilProg, essl31_shaders::PositionAttrib(), 0.0f);
+-+    }
+-+
+-+    // Populate Layer 1
+-+    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, msaaStencilArrayTex, 0, 1);
+-+    const GLubyte stencilRefs1[4] = {50, 100, 150, 200};
+-+    for (int s = 0; s < kSamples; ++s)
+-+    {
+-+        glSampleMaski(0, 1 << s);
+-+        glStencilFunc(GL_ALWAYS, stencilRefs1[s], 0xFF);
+-+        drawQuad(drawStencilProg, essl31_shaders::PositionAttrib(), 0.0f);
+-+    }
+-+
+-+    glDisable(GL_SAMPLE_MASK);
+-+    glDisable(GL_STENCIL_TEST);
+-+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // 3. Set up sampling shader
+-+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+-+
+-+    const char kFS[] = R"(#version 310 es
+-+#extension GL_OES_texture_storage_multisample_2d_array : require
+-+precision highp float;
+-+uniform lowp usampler2DMS stencilTex;
+-+uniform lowp usampler2DMSArray stencilTexArray;
+-+uniform int useArray;
+-+out vec4 fragColor;
+-+void main()
+-+{
+-+    if (useArray == 0)
+-+    {
+-+        uint s0 = texelFetch(stencilTex, ivec2(0), 0).r;
+-+        uint s1 = texelFetch(stencilTex, ivec2(0), 1).r;
+-+        uint s2 = texelFetch(stencilTex, ivec2(0), 2).r;
+-+        uint s3 = texelFetch(stencilTex, ivec2(0), 3).r;
+-+        // Make sure incomplete texture is black
+-+        uint s3_l0 = texelFetch(stencilTexArray, ivec3(0, 0, 0), 3).r;
+-+        uint s0_l1 = texelFetch(stencilTexArray, ivec3(0, 0, 1), 0).r;
+-+        if (s0 == 64u && s1 == 128u && s2 == 192u && s3 == 255u && s3_l0 == 0u && s0_l1 == 0u)
+-+        {
+-+            fragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green
+-+        }
+-+        else
+-+        {
+-+            fragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red
+-+        }
+-+    }
+-+    else
+-+    {
+-+        uint s0_l0 = texelFetch(stencilTexArray, ivec3(0, 0, 0), 0).r;
+-+        uint s1_l0 = texelFetch(stencilTexArray, ivec3(0, 0, 0), 1).r;
+-+        uint s2_l0 = texelFetch(stencilTexArray, ivec3(0, 0, 0), 2).r;
+-+        uint s3_l0 = texelFetch(stencilTexArray, ivec3(0, 0, 0), 3).r;
+-+        uint s0_l1 = texelFetch(stencilTexArray, ivec3(0, 0, 1), 0).r;
+-+        uint s1_l1 = texelFetch(stencilTexArray, ivec3(0, 0, 1), 1).r;
+-+        uint s2_l1 = texelFetch(stencilTexArray, ivec3(0, 0, 1), 2).r;
+-+        uint s3_l1 = texelFetch(stencilTexArray, ivec3(0, 0, 1), 3).r;
+-+        if (s0_l0 == 10u && s1_l0 == 20u && s2_l0 == 30u && s3_l0 == 40u &&
+-+            s0_l1 == 50u && s1_l1 == 100u && s2_l1 == 150u && s3_l1 == 200u)
+-+        {
+-+            fragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green
+-+        }
+-+        else
+-+        {
+-+            fragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red
+-+        }
+-+    }
+-+})";
+-+
+-+    ANGLE_GL_PROGRAM(sampleProg, essl31_shaders::vs::Passthrough(), kFS);
+-+    glUseProgram(sampleProg);
+-+    GLint useArrayLoc = glGetUniformLocation(sampleProg, "useArray");
+-+    glUniform1i(glGetUniformLocation(sampleProg, "stencilTex"), 0);
+-+    glUniform1i(glGetUniformLocation(sampleProg, "stencilTexArray"), 1);
+-+
+-+    glViewport(0, 0, 1, 1);
+-+
+-+    // Draw 1: Test 2D MS stencil sampling (unit 0 bound, unit 1 unbound).
+-+    // This triggers incomplete texture generation for GL_TEXTURE_2D_MULTISAMPLE_ARRAY (unit 1).
+-+    glUniform1i(useArrayLoc, 0);
+-+    glActiveTexture(GL_TEXTURE0);
+-+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, msaaStencilTex);
+-+    glActiveTexture(GL_TEXTURE1);
+-+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY_OES, 0);
+-+    drawQuad(sampleProg, essl31_shaders::PositionAttrib(), 0.0f);
+-+    ASSERT_GL_NO_ERROR();
+-+    EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::green);
+-+
+-+    // Draw 2: Test 2D MS Array stencil sampling (unit 0 unbound, unit 1 bound).
+-+    // This triggers incomplete texture generation for GL_TEXTURE_2D_MULTISAMPLE (unit 0).
+-+    glUniform1i(useArrayLoc, 1);
+-+    glActiveTexture(GL_TEXTURE0);
+-+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+-+    glActiveTexture(GL_TEXTURE1);
+-+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE_ARRAY_OES, msaaStencilArrayTex);
+-+    drawQuad(sampleProg, essl31_shaders::PositionAttrib(), 0.0f);
+-+    ASSERT_GL_NO_ERROR();
+-+    EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::green);
+-+}
+-+
+- // Test resolving a multisampled texture with blit to a different format
+- TEST_P(FramebufferTest_ES31, MultisampleResolveWithBlitDifferentFormats)
+- {
+-@@ -10037,6 +10459,44 @@ TEST_P(FramebufferTest_ES3FBOReattachmentWorkaround, TexImage2DToTexStorage2DUnb
+-     runTexImage2DToTexStorage2DTest(false);
+- }
+- 
+-+ANGLE_INSTANTIATE_TEST_ES2_AND(AddMockTextureNoRenderTargetTest,
+-+                               ES2_D3D11().enable(Feature::AddMockTextureNoRenderTarget));
+-+
+-+ANGLE_INSTANTIATE_TEST_ES2_AND(FramebufferTest,
+-+                               ES2_VULKAN().disable(Feature::PreferDynamicRendering));
+-+ANGLE_INSTANTIATE_TEST_ES2_AND(FramebufferExtensionsTest,
+-+                               ES2_VULKAN().disable(Feature::PreferDynamicRendering));
+-+ANGLE_INSTANTIATE_TEST_ES2_AND_ES3_AND(FramebufferFormatsTest,
+-+                                       ES2_VULKAN().disable(Feature::PreferDynamicRendering));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(FramebufferTest_ES3);
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(FramebufferTest_ES3,
+-+                               ES3_VULKAN().enable(Feature::EmulatedPrerotation90),
+-+                               ES3_VULKAN().enable(Feature::EmulatedPrerotation180),
+-+                               ES3_VULKAN().enable(Feature::EmulatedPrerotation270),
+-+                               ES3_VULKAN().disable(Feature::PreferDynamicRendering));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(FramebufferTest_ES3_WebGPU);
+-+ANGLE_INSTANTIATE_TEST(FramebufferTest_ES3_WebGPU, ES3_WEBGPU());
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(FramebufferTest_ES3Metal);
+-+ANGLE_INSTANTIATE_TEST(FramebufferTest_ES3Metal,
+-+                       ES3_METAL().enable(Feature::LimitMaxColorTargetBitsForTesting));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(FramebufferTest_ES31);
+-+ANGLE_INSTANTIATE_TEST_ES31_AND(FramebufferTest_ES31,
+-+                                ES31_VULKAN().disable(Feature::SupportsImagelessFramebuffer),
+-+                                ES31_VULKAN().disable(Feature::PreferDynamicRendering),
+-+                                ES31_VULKAN()
+-+                                    .disable(Feature::PreferDynamicRendering)
+-+                                    .disable(Feature::SupportsImagelessFramebuffer));
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(
+-+    FramebufferTestWithFormatFallback,
+-+    ES3_VULKAN().disable(Feature::PreferDynamicRendering),
+-+    ES3_VULKAN_SWIFTSHADER().enable(Feature::ForceRenderableFallbackFormat));
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(DefaultFramebufferTest,
+-+                               ES3_VULKAN().disable(Feature::PreferDynamicRendering));
+-+
+- GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(FramebufferTest_ES3FBOReattachmentWorkaround);
+- ANGLE_INSTANTIATE_TEST_ES3_AND(
+-     FramebufferTest_ES3FBOReattachmentWorkaround,
+-@@ -10044,3 +10504,8 @@ ANGLE_INSTANTIATE_TEST_ES3_AND(
+-     ES3_OPENGL().disable(Feature::ReattachFboDepthStencilOnReallocation),
+-     ES3_OPENGLES().enable(Feature::ReattachFboDepthStencilOnReallocation),
+-     ES3_OPENGLES().disable(Feature::ReattachFboDepthStencilOnReallocation));
+-+
+-+ANGLE_INSTANTIATE_TEST_ES31_AND(FramebufferTest_ES31_MSAA,
+-+                                ES31_VULKAN().enable(Feature::EmulatedPrerotation90),
+-+                                ES31_VULKAN().enable(Feature::EmulatedPrerotation180),
+-+                                ES31_VULKAN().enable(Feature::EmulatedPrerotation270));
+diff --git a/patches/v8/cherry-pick-303a64b51072.patch b/patches/v8/cherry-pick-303a64b51072.patch
+index 68b30b0cbb..0bac27091b 100644
+--- a/patches/v8/cherry-pick-303a64b51072.patch
++++ b/patches/v8/cherry-pick-303a64b51072.patch
+@@ -41,40 +41,3 @@ index ba969a0acbb15acc07cd1d9d174245d4a4e01c78..4ae55363edb751e95308fe3880e4c1e7
+    }
+  
+    Label if_isunicode(this), out(this);
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index 9dd7aa47dc87da0c144f76edbb9694e38ead0596..27f78d6c5eedb21adb58cf7fe197484095113f17 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -85,6 +85,9 @@
+-   # Ensures that %VerifyGetJSBuiltinState() machinery works as expected.
+-   'regress/regress-435630464-verification-failure': [['mode == release', SKIP], ['mode != release', FAIL]],
+- 
+-+  # https://crbug.com/532595489
+-+  'regress/regress-532595489': [FAIL, CRASH, NO_VARIANTS, ['not pointer_compression', SKIP]],
+-+
+-   ##############################################################################
+-   # Tests where variants make no sense.
+-   'd8/enable-tracing': [PASS, NO_VARIANTS],
+-diff --git a/test/mjsunit/regress/regress-532595489.js b/test/mjsunit/regress/regress-532595489.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..c80f7e089bc6c0a2d00d742165e47378ffe398a6
+---- /dev/null
+-+++ b/test/mjsunit/regress/regress-532595489.js
+-@@ -0,0 +1,17 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+const re = /(?:)/;
+-+
+-+function Species() {
+-+  return re;
+-+}
+-+
+-+const pseudo_re = {
+-+  flags: 'g',
+-+  lastIndex: 1073741823,
+-+  constructor: { [Symbol.species]: Species },
+-+};
+-+
+-+RegExp.prototype[Symbol.matchAll].call(pseudo_re, '').next();
+diff --git a/patches/angle/hlsl_fix_name_collision_between_parameters_and_locals.patch b/patches/angle/hlsl_fix_name_collision_between_parameters_and_locals.patch
+index e1d95c2d32..62554a0925 100644
+--- a/patches/angle/hlsl_fix_name_collision_between_parameters_and_locals.patch
++++ b/patches/angle/hlsl_fix_name_collision_between_parameters_and_locals.patch
+@@ -97,54 +97,3 @@ index 96ca73f980262ea485b3ee535a00f835df5714c0..c1e7b38908a4929dc7f563bf43d05cf9
+      {
+          return Decorate(variable.name()) + str(variable.uniqueId().get());
+      }
+-diff --git a/src/tests/gl_tests/GLSLTest.cpp b/src/tests/gl_tests/GLSLTest.cpp
+-index 5fa71f54212d7499213f6141c875e7ae89ea36eb..339dcbf20e57588cbd23b3330ca706a68bd2aaf1 100644
+---- a/src/tests/gl_tests/GLSLTest.cpp
+-+++ b/src/tests/gl_tests/GLSLTest.cpp
+-@@ -23330,8 +23330,6 @@ void main()
+-            << R"(;
+-   gl_FragColor = vec4(a);
+- })";
+--        std::cout << fs.str() << "\n";
+--
+-         ANGLE_GL_PROGRAM(program, essl1_shaders::vs::Simple(), fs.str().c_str());
+-         drawQuad(program, essl1_shaders::PositionAttrib(), 0.5f);
+-         EXPECT_PIXEL_COLOR_NEAR(0, 0, GLColor(127, 127, 127, 127), 1);
+-@@ -23339,6 +23337,37 @@ void main()
+-     }
+- }
+- 
+-+// Regression test for a bug in the HLSL generator where the function parameter names could collide
+-+// with local variable names.  In particular, the local variables were suffixed with the symbol id,
+-+// starting from 3000 (kFirstUserDefinedSymbolId) but the function parameters weren't.
+-+TEST_P(GLSLTest_ES3, HLSLParameterNameCollisionWithLocalVar)
+-+{
+-+    // At the time this regression test was written, the ID of the local variable was 3003.  Try a
+-+    // few IDs starting at kFirstUserDefinedSymbolId so the test is not sensitive to small
+-+    // variations in the ID.
+-+    for (uint32_t id = 3000; id < 3010; ++id)
+-+    {
+-+        std::ostringstream fs;
+-+        fs << R"(precision highp float;
+-+float f(float _a)"
+-+           << id << R"()
+-+{
+-+    float a;
+-+    a = _a)"
+-+           << id << R"( + 0.5;
+-+    return a;
+-+}
+-+void main()
+-+{
+-+  gl_FragColor = vec4(f(0.2));
+-+})";
+-+        ANGLE_GL_PROGRAM(program, essl1_shaders::vs::Simple(), fs.str().c_str());
+-+        drawQuad(program, essl1_shaders::PositionAttrib(), 0.5f);
+-+        EXPECT_PIXEL_COLOR_NEAR(0, 0, GLColor(178, 178, 178, 178), 1);
+-+        ASSERT_GL_NO_ERROR();
+-+    }
+-+}
+-+
+- class GLSLTestPassthrough : public GLSLTest
+- {};
+- 
+diff --git a/patches/angle/translator_fix_gl_fragdata_clamp_without_ext_draw_buffers.patch b/patches/angle/translator_fix_gl_fragdata_clamp_without_ext_draw_buffers.patch
+index b9b9f90a18..defd6ad803 100644
+--- a/patches/angle/translator_fix_gl_fragdata_clamp_without_ext_draw_buffers.patch
++++ b/patches/angle/translator_fix_gl_fragdata_clamp_without_ext_draw_buffers.patch
+@@ -162,38 +162,3 @@ index 28bccb9371b995c6eb55a37a00139feb83cd22fc..d7cfb6ae52bb714ba6a8410cdbd1c6d3
+ +537814733 MAC METAL : WebGLGLSLTest.FragDataIndexClampWithoutDrawBuffers/* = SKIP
+ +537235694 PIXEL10 GLES : WebGLGLSLTest.FragDataIndexClampWithoutDrawBuffers/* = SKIP
+ +42267100 WGPU : WebGLGLSLTest.FragDataIndexClampWithoutDrawBuffers/* = SKIP
+-diff --git a/src/tests/gl_tests/GLSLTest.cpp b/src/tests/gl_tests/GLSLTest.cpp
+-index 339dcbf20e57588cbd23b3330ca706a68bd2aaf1..e8fb1556153eb12cadf1118d3add3474d0fd01c9 100644
+---- a/src/tests/gl_tests/GLSLTest.cpp
+-+++ b/src/tests/gl_tests/GLSLTest.cpp
+-@@ -23569,6 +23569,30 @@ void main()
+-     drawQuad(program, essl3_shaders::PositionAttrib(), 0.5f);
+-     EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::white);
+- }
+-+
+-+// Test that indirect indices to gl_FragData get clamped to the right bounds when
+-+// GL_EXT_draw_buffers is not enabled.
+-+//
+-+// The same test for ES3 is not needed, because unlike gl_FragData in ESSL 100, it's not allowed to
+-+// index a fragment output variable with a non-constant index in ESSL 300+.
+-+TEST_P(WebGLGLSLTest, FragDataIndexClampWithoutDrawBuffers)
+-+{
+-+    constexpr char kFS[] = R"(precision mediump float;
+-+void main() {
+-+    // GL_EXT_draw_buffers is not enabled, which means only one output is valid.  Make sure all the
+-+    // following writes in the loop end up writing to gl_FragData[0].
+-+    gl_FragData[0] = vec4(1, 0, 0, 1);
+-+    for (int i = 0; i < 8; i++) {
+-+        gl_FragData[i] += vec4(-0.1, 0.05, 0.0, 0.0);
+-+    }
+-+})";
+-+
+-+    ANGLE_GL_PROGRAM(program, essl1_shaders::vs::Simple(), kFS);
+-+    drawQuad(program, essl1_shaders::PositionAttrib(), 0.5f, 1.0f, true);
+-+    EXPECT_PIXEL_COLOR_NEAR(0, 0, GLColor(51, 102, 0, 255), 1);
+-+    ASSERT_GL_NO_ERROR();
+-+}
+-+
+- }  // anonymous namespace
+- 
+- ANGLE_INSTANTIATE_TEST_ES2_AND_ES3_AND_ES31_AND_ES32(

@@ -21,10 +21,10 @@ diff --git a/third_party/electron_node/unofficial.gni b/third_party/electron_nod
 index 71e8ac5..1707509 100644
 --- a/third_party/electron_node/unofficial.gni
 +++ b/third_party/electron_node/unofficial.gni
-@@ -150,7 +150,9 @@ template("node_gn_build") {
-   source_set("libnode") {
+@@ -166,7 +166,9 @@ template("node_gn_build") {
      configs += [
        ":node_internal_config",
+       "$node_v8_path:v8_tracing_config",
 -      "//build/config/compiler:no_exit_time_destructors"
 +      "//build/config/compiler:no_exit_time_destructors",
 +      ":cares",
@@ -32,7 +32,7 @@ index 71e8ac5..1707509 100644
      ]
      public_configs = [
        ":node_external_config",
-@@ -166,12 +167,10 @@ template("node_gn_build") {
+@@ -187,12 +189,10 @@ template("node_gn_build") {
      ]
      deps = [
        ":run_node_js2c",
@@ -45,7 +45,7 @@ index 71e8ac5..1707509 100644
        "deps/postject",
        "deps/uvwasi",
        "//third_party/zlib",
-@@ -257,19 +256,6 @@ template("node_gn_build") {
+@@ -279,19 +279,6 @@ template("node_gn_build") {
        sources += node_inspector.node_inspector_sources +
                   node_inspector.node_inspector_generated_sources
      }
