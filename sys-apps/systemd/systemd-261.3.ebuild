@@ -25,7 +25,7 @@ else
 fi
 
 inherit branding flag-o-matic linux-info meson-multilib optfeature pam python-single-r1
-inherit secureboot shell-completion systemd toolchain-funcs udev
+inherit secureboot shell-completion systemd toolchain-funcs udev xdg-utils
 
 DESCRIPTION="System and service manager for Linux"
 HOMEPAGE="https://systemd.io/"
@@ -261,7 +261,6 @@ src_unpack() {
 src_prepare() {
 	local PATCHES=(
 		"${FILESDIR}/261-gcc-bpf.patch"
-		"${FILESDIR}/systemd-261-lxml-6.1.3.patch"
 	)
 
 	if ! use vanilla; then
@@ -551,6 +550,7 @@ pkg_preinst() {
 }
 
 pkg_postinst() {
+	xdg_mimeinfo_database_update
 	systemd_update_catalog
 
 	# Keep this here in case the database format changes so it gets updated
@@ -613,4 +613,8 @@ pkg_prerm() {
 	if [[ ! ${REPLACED_BY_VERSION} ]]; then
 		rm -f -v "${EROOT}"/var/lib/systemd/catalog/database
 	fi
+}
+
+pkg_postrm() {
+	xdg_mimeinfo_database_update
 }
