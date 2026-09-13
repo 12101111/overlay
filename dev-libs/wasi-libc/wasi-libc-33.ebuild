@@ -48,17 +48,17 @@ src_configure() {
 	STRIP=llvm-strip
 	einfo "Compile using $(which $CC)"
 	tc-export CC CXX AR NM RANLIB STRIP
-	
+
 	# don't work with PIC or shared libraries
 	filter-lto
 	filter-flags '-mcpu*' '-march*' '-mtune*'
-	
+
 	local mycmakeargs=(
 		-DCMAKE_C_COMPILER_WORKS=ON
 		# CMake detects this based on `CMAKE_C_COMPILER` alone and when that compiler
-  		# is just a bare "clang" installation then it can mistakenly deduce that this
-  		# feature is supported when it's not actually supported for WASI targets.
-  		# Currently `wasm-ld` does not support the linker flag for this.
+		# is just a bare "clang" installation then it can mistakenly deduce that this
+		# feature is supported when it's not actually supported for WASI targets.
+		# Currently `wasm-ld` does not support the linker flag for this.
 		-DCMAKE_C_LINKER_DEPFILE_SUPPORTED=OFF
 		-DTARGET_TRIPLE=${CTARGET}
 		-DMALLOC=$(usex emmalloc emmalloc dlmalloc)
@@ -69,12 +69,12 @@ src_configure() {
 		-DWASI_SDK_VERSION="${PV}"
 	)
 	if [[ ${CTARGET} == *p[23]* ]]; then
-	    # Always enable `-fPIC` for the `wasm32-wasip2` and `wasm32-wasip3` targets.
-    	# This makes `libc.a` more flexible and usable in dynamic linking situations.
+		# Always enable `-fPIC` for the `wasm32-wasip2` and `wasm32-wasip3` targets.
+		# This makes `libc.a` more flexible and usable in dynamic linking situations.
 		append-cflags -fPIC
 	fi
 	if [[ ${CTARGET} == wasm32-wasi* ]]; then
-	  	# The `wasm32-wasi` target is deprecated in clang, so ignore the deprecation warnings for now.
+		# The `wasm32-wasi` target is deprecated in clang, so ignore the deprecation warnings for now.
 		append-cflags -Wno-deprecated
 	fi
 	cmake_src_configure
