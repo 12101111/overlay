@@ -117,6 +117,7 @@ multilib_src_configure() {
 		-DLIBOMP_OMPT_SUPPORT=$(usex ompt)
 		-DLIBOMP_FORTRAN_MODULES=$(usex fortran)
 		-DLLVM_DEFAULT_TARGET_TRIPLE="${CHOST}"
+		-DRUNTIMES_INSTALL_RESOURCE_PATH="${EPREFIX}/usr/lib/clang/${LLVM_MAJOR}"
 
 		# do not install libgomp.so & libiomp5.so aliases
 		-DLIBOMP_INSTALL_ALIASES=OFF
