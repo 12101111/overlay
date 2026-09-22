@@ -22,6 +22,7 @@ DEPEND="
 	dev-qt/qtwebengine:6
 	dev-qt/qtsvg:6
 	dev-libs/qtkeychain:=
+	>=dev-libs/libgit2-1.9.2
 "
 RDEPEND="${DEPEND}"
 
@@ -33,6 +34,9 @@ src_prepare() {
 		libs/QHotkey/CMakeLists.txt || die
 	sed -i -e "s|keychain.h|qt6keychain/keychain.h|g" src/core/services/synccredentialsstore.cpp || die
 	sed -i -e "s|add_subdirectory(cmark)|add_subdirectory(cmark EXCLUDE_FROM_ALL)|g" libs/vtextedit/libs/CMakeLists.txt || die
+	pushd "${S}/libs/vxcore" > /dev/null || die
+	eapply "${FILESDIR}/unbundle-libgit2.patch"
+	popd > /dev/null || die
 	cmake_src_prepare
 }
 

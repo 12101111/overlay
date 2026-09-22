@@ -1,0 +1,184 @@
+diff --git a/src/sync/git/git_handles.h b/src/sync/git/git_handles.h
+index 1313756..59ee698 100644
+--- a/src/sync/git/git_handles.h
++++ b/src/sync/git/git_handles.h
+@@ -2,6 +2,15 @@
+ #define VXCORE_SYNC_GIT_GIT_HANDLES_H
+ 
+ #include <git2.h>
++// libgit2 >= 1.8 moved git_error_clear() out of <git2/errors.h> into the
++// "advanced" <git2/sys/errors.h>; older versions (e.g. the bundled 1.7.x)
++// declare it in <git2/errors.h> and ship no sys/errors.h at all. Pull in the
++// sys header when it exists so git_error_clear() resolves against either.
++#if defined(__has_include)
++#  if __has_include(<git2/sys/errors.h>)
++#    include <git2/sys/errors.h>
++#  endif
++#endif
+ 
+ #include <memory>
+ 
+diff --git a/third_party/CMakeLists.txt b/third_party/CMakeLists.txt
+index 55ba6e9..1a7ef38 100644
+--- a/third_party/CMakeLists.txt
++++ b/third_party/CMakeLists.txt
+@@ -18,62 +18,102 @@ if(NOT TARGET cmark)
+   endif()
+ endif()
+ 
+-# libgit2 — git submodule, statically linked, HTTPS only (no SSH).
+-# Cache overrides MUST be set BEFORE add_subdirectory so libgit2's CMake sees them.
+-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+-set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+-set(BUILD_CLI OFF CACHE BOOL "" FORCE)
+-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+-set(USE_SSH OFF CACHE BOOL "" FORCE)
+-# Use the system zlib on Apple. The bundled deps/zlib/zutil.h defines
+-# `fdopen(fd,mode) NULL` when fdopen is not already a macro, which collides
+-# with the Xcode 16.4 SDK's function-like-macro declaration of fdopen in
+-# <_stdio.h> and breaks the build. macOS always ships /usr/lib/libz.dylib,
+-# so falling back to the system zlib is the same path every other macOS
+-# project (Homebrew libgit2, Git for macOS, ripgrep, ...) takes.
+-if(APPLE)
+-  set(USE_BUNDLED_ZLIB OFF CACHE BOOL "" FORCE)
+-else()
+-  set(USE_BUNDLED_ZLIB ON CACHE BOOL "" FORCE)
+-endif()
+-set(REGEX_BACKEND "builtin" CACHE STRING "" FORCE)
+-if(WIN32)
+-  set(USE_HTTPS "WinHTTP" CACHE STRING "" FORCE)
+-elseif(APPLE)
+-  set(USE_HTTPS "SecureTransport" CACHE STRING "" FORCE)
+-else()
+-  set(USE_HTTPS "OpenSSL" CACHE STRING "" FORCE)
+-endif()
+-# Force libgit2 to use the SAME CRT as the consuming app (/MD or /MDd) to avoid
+-# D9025 warnings AND ABI mismatch between libgit2 (release CRT) and the rest of
+-# the app (debug CRT in Debug builds — caused std::string layout disagreement
+-# and _RTC_StackFailure crashes on first log call). Generator expression:
+-# MultiThreadedDLL in Release, MultiThreadedDebugDLL in Debug.
+-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
+-# Suppress all warnings from libgit2 internal targets (C5287 etc.) by
+-# injecting /w (MSVC) or -w (GCC/Clang) into the C/CXX flags for this scope.
+-set(_saved_c_flags "${CMAKE_C_FLAGS}")
+-set(_saved_cxx_flags "${CMAKE_CXX_FLAGS}")
+-if(MSVC)
+-  string(APPEND CMAKE_C_FLAGS " /w")
+-  string(APPEND CMAKE_CXX_FLAGS " /w")
+-else()
+-  string(APPEND CMAKE_C_FLAGS " -w")
+-  string(APPEND CMAKE_CXX_FLAGS " -w")
++# libgit2 — prefer the SYSTEM shared library over the bundled static copy.
++#
++# The vendored build under libgit2/ compiles its own deps/zlib and exports its
++# symbols globally when linked statically, which collides with the system zlib
++# already loaded into the same process (duplicate inflate/deflate symbols).
++# Linking the system libgit2.so keeps exactly one zlib in the process.
++#
++# The wrapper target keeps the historical "libgit2package" name so downstream
++# consumers (vxcore, tests) need no link-line changes.
++#
++# Set -DVXCORE_USE_BUNDLED_LIBGIT2=ON to force the vendored static build.
++option(VXCORE_USE_BUNDLED_LIBGIT2 "Build the vendored libgit2 instead of linking the system one" OFF)
++
++if(NOT VXCORE_USE_BUNDLED_LIBGIT2)
++  # CMake package first (dev-libs/libgit2 installs libgit2Config.cmake with the
++  # imported target libgit2::libgit2package), pkg-config as a fallback for
++  # systems that only ship libgit2.pc.
++  find_package(libgit2 QUIET CONFIG)
++  if(libgit2_FOUND)
++    add_library(libgit2package INTERFACE)
++    target_link_libraries(libgit2package INTERFACE libgit2::libgit2package)
++    message(STATUS "vxcore: using system libgit2 ${libgit2_VERSION} (CMake package)")
++  else()
++    find_package(PkgConfig QUIET)
++    if(PkgConfig_FOUND)
++      pkg_check_modules(SYSTEM_LIBGIT2 QUIET IMPORTED_TARGET libgit2)
++    endif()
++    if(TARGET PkgConfig::SYSTEM_LIBGIT2)
++      add_library(libgit2package INTERFACE)
++      target_link_libraries(libgit2package INTERFACE PkgConfig::SYSTEM_LIBGIT2)
++      message(STATUS "vxcore: using system libgit2 ${SYSTEM_LIBGIT2_VERSION} (pkg-config)")
++    else()
++      message(STATUS "vxcore: system libgit2 not found, falling back to the bundled copy")
++      set(VXCORE_USE_BUNDLED_LIBGIT2 ON)
++    endif()
++  endif()
+ endif()
+-add_subdirectory(libgit2 EXCLUDE_FROM_ALL)
+-set(CMAKE_C_FLAGS "${_saved_c_flags}")
+-set(CMAKE_CXX_FLAGS "${_saved_cxx_flags}")
+-# libgit2 v1.7 names its public static-library target "libgit2package"; expose
+-# its public include directory as an INTERFACE usage requirement so downstream
+-# consumers (vxcore + the spike test) only need to link against the target.
+-target_include_directories(libgit2package INTERFACE
+-  ${CMAKE_CURRENT_SOURCE_DIR}/libgit2/include
+-)
+-# Suppress warnings for third-party code so vxcore's strict warning levels
+-# (/W4 on MSVC, -Wall -Wextra -Wpedantic on GCC/Clang) don't drown the build.
+-if(MSVC)
+-  target_compile_options(libgit2package PRIVATE /W0)
+-else()
+-  target_compile_options(libgit2package PRIVATE -w)
++
++if(VXCORE_USE_BUNDLED_LIBGIT2)
++  # Bundled fallback — git submodule, statically linked, HTTPS only (no SSH).
++  # Cache overrides MUST be set BEFORE add_subdirectory so libgit2's CMake sees them.
++  set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
++  set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
++  set(BUILD_CLI OFF CACHE BOOL "" FORCE)
++  set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
++  set(USE_SSH OFF CACHE BOOL "" FORCE)
++  # Use the system zlib on Apple. The bundled deps/zlib/zutil.h defines
++  # `fdopen(fd,mode) NULL` when fdopen is not already a macro, which collides
++  # with the Xcode 16.4 SDK's function-like-macro declaration of fdopen in
++  # <_stdio.h> and breaks the build. macOS always ships /usr/lib/libz.dylib,
++  # so falling back to the system zlib is the same path every other macOS
++  # project (Homebrew libgit2, Git for macOS, ripgrep, ...) takes.
++  if(APPLE)
++    set(USE_BUNDLED_ZLIB OFF CACHE BOOL "" FORCE)
++  else()
++    set(USE_BUNDLED_ZLIB ON CACHE BOOL "" FORCE)
++  endif()
++  set(REGEX_BACKEND "builtin" CACHE STRING "" FORCE)
++  if(WIN32)
++    set(USE_HTTPS "WinHTTP" CACHE STRING "" FORCE)
++  elseif(APPLE)
++    set(USE_HTTPS "SecureTransport" CACHE STRING "" FORCE)
++  else()
++    set(USE_HTTPS "OpenSSL" CACHE STRING "" FORCE)
++  endif()
++  # Force libgit2 to use the SAME CRT as the consuming app (/MD or /MDd) to avoid
++  # D9025 warnings AND ABI mismatch between libgit2 (release CRT) and the rest of
++  # the app (debug CRT in Debug builds — caused std::string layout disagreement
++  # and _RTC_StackFailure crashes on first log call). Generator expression:
++  # MultiThreadedDLL in Release, MultiThreadedDebugDLL in Debug.
++  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
++  # Suppress all warnings from libgit2 internal targets (C5287 etc.) by
++  # injecting /w (MSVC) or -w (GCC/Clang) into the C/CXX flags for this scope.
++  set(_saved_c_flags "${CMAKE_C_FLAGS}")
++  set(_saved_cxx_flags "${CMAKE_CXX_FLAGS}")
++  if(MSVC)
++    string(APPEND CMAKE_C_FLAGS " /w")
++    string(APPEND CMAKE_CXX_FLAGS " /w")
++  else()
++    string(APPEND CMAKE_C_FLAGS " -w")
++    string(APPEND CMAKE_CXX_FLAGS " -w")
++  endif()
++  add_subdirectory(libgit2 EXCLUDE_FROM_ALL)
++  set(CMAKE_C_FLAGS "${_saved_c_flags}")
++  set(CMAKE_CXX_FLAGS "${_saved_cxx_flags}")
++  # libgit2 v1.7 names its public static-library target "libgit2package"; expose
++  # its public include directory as an INTERFACE usage requirement so downstream
++  # consumers (vxcore + the spike test) only need to link against the target.
++  target_include_directories(libgit2package INTERFACE
++    ${CMAKE_CURRENT_SOURCE_DIR}/libgit2/include
++  )
++  # Suppress warnings for third-party code so vxcore's strict warning levels
++  # (/W4 on MSVC, -Wall -Wextra -Wpedantic on GCC/Clang) don't drown the build.
++  if(MSVC)
++    target_compile_options(libgit2package PRIVATE /W0)
++  else()
++    target_compile_options(libgit2package PRIVATE -w)
++  endif()
+ endif()
