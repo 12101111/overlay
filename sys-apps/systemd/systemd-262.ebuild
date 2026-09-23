@@ -2,6 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
+
 PYTHON_COMPAT=( python3_{12..14} )
 
 # Avoid QA warnings
@@ -260,7 +261,6 @@ src_unpack() {
 
 src_prepare() {
 	local PATCHES=(
-		"${FILESDIR}/261-gcc-bpf.patch"
 	)
 
 	if ! use vanilla; then
