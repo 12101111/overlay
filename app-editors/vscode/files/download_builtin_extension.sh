@@ -4,7 +4,7 @@
 declare -A BUILTINEXTS=(
 ["js-debug-companion"]="1.1.3"
 ["js-debug"]="1.102.0"
-["vscode-js-profile-table"]="1.0.10"
+["vscode-js-profile-table"]="1.0.11"
 )
 
 DISTDIR=$(portageq envvar DISTDIR)

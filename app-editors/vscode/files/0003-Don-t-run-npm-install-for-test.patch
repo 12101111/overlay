@@ -1,18 +1,18 @@
-From 28078805be1fd0bfcb77cf6470bdedc849e90078 Mon Sep 17 00:00:00 2001
+From f4ef942809380bfc636382c40a44ebb9ca3f056d Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 10 May 2026 17:13:35 +0800
-Subject: [PATCH 03/12] Don't run npm install for test
+Date: Tue, 22 Sep 2026 23:00:12 +0800
+Subject: [PATCH 03/13] Don't run npm install for test
 
 ---
- build/npm/dirs.ts        | 9 ---------
- build/npm/postinstall.ts | 5 -----
- 2 files changed, 14 deletions(-)
+ build/npm/dirs.ts        | 10 ----------
+ build/npm/postinstall.ts |  5 -----
+ 2 files changed, 15 deletions(-)
 
 diff --git a/build/npm/dirs.ts b/build/npm/dirs.ts
-index 289a469754a..d4e3fffaaaa 100644
+index 7bc33635f86..d4e3fffaaaa 100644
 --- a/build/npm/dirs.ts
 +++ b/build/npm/dirs.ts
-@@ -55,15 +55,6 @@ export const dirs = [
+@@ -55,16 +55,6 @@ export const dirs = [
  	'extensions/vscode-test-resolver',
  	'remote',
  	'remote/web',
@@ -20,6 +20,7 @@ index 289a469754a..d4e3fffaaaa 100644
 -	'test/integration/browser',
 -	'test/monaco',
 -	'test/smoke',
+-	'test/scenario',
 -	'test/mcp',
 -	'.vscode/extensions/vscode-selfhost-import-aid',
 -	'.vscode/extensions/vscode-selfhost-test-provider',
@@ -29,11 +30,11 @@ index 289a469754a..d4e3fffaaaa 100644
  
  if (existsSync(`${import.meta.dirname}/../../.build/distro/npm`)) {
 diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
-index 0dd0b514ecf..795da524abe 100644
+index 774df8476dc..cf7c579dfbb 100644
 --- a/build/npm/postinstall.ts
 +++ b/build/npm/postinstall.ts
-@@ -240,8 +240,6 @@ async function runWithConcurrency(tasks: (() => Promise<void>)[], concurrency: n
- async function main() {
+@@ -243,8 +243,6 @@ async function main() {
+ 
  	if (!process.env['VSCODE_FORCE_INSTALL'] && isUpToDate()) {
  		log('.', 'All dependencies up to date, skipping postinstall.');
 -		child_process.execSync('git config pull.rebase merges');
@@ -41,7 +42,7 @@ index 0dd0b514ecf..795da524abe 100644
  		return;
  	}
  
-@@ -313,9 +311,6 @@ async function main() {
+@@ -316,9 +314,6 @@ async function main() {
  	log('.', `Running ${parallelTasks.length} npm installs with concurrency ${concurrency}...`);
  	await runWithConcurrency(parallelTasks, concurrency);
  
