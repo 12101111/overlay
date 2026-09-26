@@ -1,0 +1,2763 @@
+diff --git a/patches/v8/cherry-pick-b74028b55c.patch b/patches/v8/cherry-pick-b74028b55c.patch
+index c73a756717..c954fbd92e 100644
+--- a/patches/v8/cherry-pick-b74028b55c.patch
++++ b/patches/v8/cherry-pick-b74028b55c.patch
+@@ -137,89 +137,3 @@ index c21a0814000bd3ca3630856ca894796194afe86d..c05bd6462c8ef9681f4905d33a3f8e78
+    } else {
+      SerializeExternalStringAsSequentialString();
+    }
+-diff --git a/test/cctest/test-serialize.cc b/test/cctest/test-serialize.cc
+-index 9536bec3c5ae0ad13b92213693b87e513dc0012a..a2d2904e4944085e34152d4bc6400e4fed4cd987 100644
+---- a/test/cctest/test-serialize.cc
+-+++ b/test/cctest/test-serialize.cc
+-@@ -2809,6 +2809,81 @@ TEST(CodeSerializerExternalString) {
+-   delete cache;
+- }
+- 
+-+namespace {
+-+
+-+// The addresses of these resources are registered as API external references
+-+// below, so that ObjectSerializer::SerializeExternalString() takes the "known
+-+// resource" path for the strings backed by them. This is the state an embedder
+-+// ends up in when it externalizes strings it also hands to the compiler, e.g.
+-+// builtin module sources that are later turned into a code cache.
+-+constexpr char kExternalCodeCacheSource[] =
+-+    "function f() { return 'abc'; }; f() + 'def';";
+-+constexpr char kExternalCodeCacheName[] = "external-script-name";
+-+
+-+SerializerOneByteResource external_code_cache_source_resource(
+-+    kExternalCodeCacheSource, sizeof(kExternalCodeCacheSource) - 1);
+-+SerializerOneByteResource external_code_cache_name_resource(
+-+    kExternalCodeCacheName, sizeof(kExternalCodeCacheName) - 1);
+-+
+-+const intptr_t external_code_cache_references[] = {
+-+    reinterpret_cast<intptr_t>(&external_code_cache_source_resource),
+-+    reinterpret_cast<intptr_t>(&external_code_cache_name_resource), 0};
+-+
+-+}  // namespace
+-+
+-+// Serializing a live cached ExternalString must leave its resource_data_
+-+// (cached data pointer) external pointer handle intact, so that reads of the
+-+// string's characters from generated code keep working afterwards.
+-+UNINITIALIZED_TEST(CodeSerializerExternalStringResourceDataRestored) {
+-+  v8::Isolate::CreateParams create_params;
+-+  create_params.array_buffer_allocator = CcTest::array_buffer_allocator();
+-+  create_params.external_references = external_code_cache_references;
+-+  v8::Isolate* isolate = v8::Isolate::New(create_params);
+-+  {
+-+    v8::Isolate::Scope isolate_scope(isolate);
+-+    v8::HandleScope scope(isolate);
+-+    v8::Local<v8::Context> context = v8::Context::New(isolate);
+-+    v8::Context::Scope context_scope(context);
+-+
+-+    v8::Local<v8::String> source_string =
+-+        v8::String::NewExternalOneByte(isolate,
+-+                                       &external_code_cache_source_resource)
+-+            .ToLocalChecked();
+-+    v8::Local<v8::String> name_string =
+-+        v8::String::NewExternalOneByte(isolate,
+-+                                       &external_code_cache_name_resource)
+-+            .ToLocalChecked();
+-+    // Only cached external strings have a resource_data_ field.
+-+    CHECK(!Cast<ExternalString>(*Utils::OpenDirectHandle(*source_string))
+-+               ->is_uncached());
+-+    CHECK(!Cast<ExternalString>(*Utils::OpenDirectHandle(*name_string))
+-+               ->is_uncached());
+-+
+-+    v8::ScriptCompiler::Source source(source_string, {name_string});
+-+    v8::Local<v8::UnboundScript> script =
+-+        v8::ScriptCompiler::CompileUnboundScript(
+-+            isolate, &source, v8::ScriptCompiler::kEagerCompile)
+-+            .ToLocalChecked();
+-+
+-+    // Serializes the script name in every build, and additionally the script
+-+    // source in DEBUG builds - CodeSerializer::Serialize() only attaches the
+-+    // source instead of serializing it when DEBUG is not defined. Both strings
+-+    // stay live in this isolate afterwards.
+-+    std::unique_ptr<v8::ScriptCompiler::CachedData> cache(
+-+        v8::ScriptCompiler::CreateCodeCache(script));
+-+    CHECK(cache);
+-+
+-+    // Read the character data of both strings from generated code.
+-+    v8::Local<v8::Object> global = context->Global();
+-+    CHECK(global->Set(context, v8_str("source"), source_string).FromJust());
+-+    CHECK(global->Set(context, v8_str("name"), name_string).FromJust());
+-+    ExpectTrue("source.startsWith('function f()')");
+-+    ExpectTrue("source.indexOf('def') > 0");
+-+    ExpectTrue("name.startsWith('external-script')");
+-+  }
+-+  isolate->Dispose();
+-+}
+-+
+- TEST(CodeSerializerLargeExternalString) {
+-   LocalContext context;
+-   Isolate* isolate = CcTest::i_isolate();
+diff --git a/patches/chromium/cherry-pick-0ac1a9c535c6.patch b/patches/chromium/cherry-pick-0ac1a9c535c6.patch
+index cf123614d1..ef02dcd7b0 100644
+--- a/patches/chromium/cherry-pick-0ac1a9c535c6.patch
++++ b/patches/chromium/cherry-pick-0ac1a9c535c6.patch
+@@ -97,87 +97,3 @@ index 1fb53d4d2af3d5de29ed59d0073c28b602407ac3..8f5fc8f8d6f81543ac144df3b3102224
+  
+   protected:
+    Member<InspectorOverlayAgent> overlay_;
+-diff --git a/third_party/blink/web_tests/inspector-protocol/overlay/overlay-paused-resume-disconnect-expected.txt b/third_party/blink/web_tests/inspector-protocol/overlay/overlay-paused-resume-disconnect-expected.txt
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..d4ece75a6d9266c3b5519e5a09128f9fe6765b59
+---- /dev/null
+-+++ b/third_party/blink/web_tests/inspector-protocol/overlay/overlay-paused-resume-disconnect-expected.txt
+-@@ -0,0 +1,8 @@
+-+Verifies that clearing inspect tool and disconnecting session after sending resume/stepOver in overlay does not cause use-after-free.
+-+Testing resume:
+-+Paused on debugger statement.
+-+Cleared inspect tool and disconnected session after resume.
+-+Testing stepOver:
+-+Paused on debugger statement.
+-+Cleared inspect tool and disconnected session after stepOver.
+-+
+-diff --git a/third_party/blink/web_tests/inspector-protocol/overlay/overlay-paused-resume-disconnect.js b/third_party/blink/web_tests/inspector-protocol/overlay/overlay-paused-resume-disconnect.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..ef6edcbb4a52c31b38a3105d6032f97e2eb77dde
+---- /dev/null
+-+++ b/third_party/blink/web_tests/inspector-protocol/overlay/overlay-paused-resume-disconnect.js
+-@@ -0,0 +1,64 @@
+-+(async function(/** @type {import('test_runner').TestRunner} */ testRunner) {
+-+  const {page, session, dp} = await testRunner.startHTML(
+-+      `
+-+    <!DOCTYPE html>
+-+    <script>
+-+      function pause() {
+-+        debugger;
+-+      }
+-+    </script>
+-+  `,
+-+      'Verifies that clearing inspect tool and disconnecting session after sending resume/stepOver in overlay does not cause use-after-free.');
+-+
+-+  testRunner.log('Testing resume:');
+-+  await dp.DOM.enable();
+-+  await dp.Overlay.enable();
+-+  await dp.Debugger.enable();
+-+
+-+  dp.Runtime.evaluate({expression: 'pause()'});
+-+  await dp.Debugger.oncePaused();
+-+  await dp.Overlay.setPausedInDebuggerMessage(
+-+      {message: 'Paused on debugger statement'});
+-+  testRunner.log('Paused on debugger statement.');
+-+
+-+  // Trigger 'resume' action via overlay host (posts ExecuteOnV8Session task)
+-+  // and immediately clear inspect tool and disconnect before the posted task
+-+  // executes.
+-+  session.evaluate(() => {
+-+    internals.evaluateInInspectorOverlay(`(function () {
+-+      window.InspectorOverlayHost.send('resume');
+-+    })()`);
+-+  });
+-+  dp.Overlay.setPausedInDebuggerMessage({});
+-+  await session.disconnect();
+-+  testRunner.log('Cleared inspect tool and disconnected session after resume.');
+-+
+-+  testRunner.log('Testing stepOver:');
+-+  const session2 = await page.createSession();
+-+  const dp2 = session2.protocol;
+-+
+-+  await dp2.DOM.enable();
+-+  await dp2.Overlay.enable();
+-+  await dp2.Debugger.enable();
+-+
+-+  dp2.Runtime.evaluate({expression: 'pause()'});
+-+  await dp2.Debugger.oncePaused();
+-+  await dp2.Overlay.setPausedInDebuggerMessage(
+-+      {message: 'Paused on debugger statement'});
+-+  testRunner.log('Paused on debugger statement.');
+-+
+-+  // Trigger 'stepOver' action via overlay host (posts ExecuteOnV8Session task)
+-+  // and immediately clear inspect tool and disconnect before the posted task
+-+  // executes.
+-+  session2.evaluate(() => {
+-+    internals.evaluateInInspectorOverlay(`(function () {
+-+      window.InspectorOverlayHost.send('stepOver');
+-+    })()`);
+-+  });
+-+  dp2.Overlay.setPausedInDebuggerMessage({});
+-+  await session2.disconnect();
+-+  testRunner.log(
+-+      'Cleared inspect tool and disconnected session after stepOver.');
+-+
+-+  testRunner.completeTest();
+-+});
+diff --git a/patches/chromium/cherry-pick-3c3b9747e9c2.patch b/patches/chromium/cherry-pick-3c3b9747e9c2.patch
+index 171e5b08d2..a373bb73f6 100644
+--- a/patches/chromium/cherry-pick-3c3b9747e9c2.patch
++++ b/patches/chromium/cherry-pick-3c3b9747e9c2.patch
+@@ -58,292 +58,3 @@ index 5aa78ab1c30d636dee5a4d105f1f273b9cc38980..1c0f5a2deb52fcf38c8a7d887f1026a2
+      }
+    }
+  }
+-diff --git a/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-in-iframe-ignored.tentative.https.sub.html b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-in-iframe-ignored.tentative.https.sub.html
+-index 5dc64d562baf1914e71b26d7931f15469c088d82..8558f9f4834938a5114b4429809ecd025d2d8e1d 100644
+---- a/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-in-iframe-ignored.tentative.https.sub.html
+-+++ b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-in-iframe-ignored.tentative.https.sub.html
+-@@ -9,19 +9,15 @@
+- </head>
+- 
+- <body>
+--  <iframe id="iframe" src="support/subframe-cross-origin-background-image.https.sub.html"></iframe>
+-   <canvas id="canvas" width="300" height="150" layoutsubtree>
+--    <div id="child"></div>
+-+    <div id="child">
+-+      <iframe id="iframe" src="support/subframe-cross-origin-background-image.https.sub.html"></iframe>
+-+    </div>
+-   </canvas>
+- 
+-   <script>
+-   window.onload = () => {
+-     promise_test(async function(t) {
+--      await waitForCanvasPaint(canvas);
+--
+--      // Atomically move the iframe into the canvas.
+--      child.moveBefore(iframe, null);
+--
+-       await waitForCanvasPaint(canvas);
+-       const context = canvas.getContext("2d");
+-       context.drawElementImage(child, 0, 0);
+-diff --git a/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-in-iframe-moved-ignored.tentative.https.sub.html b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-in-iframe-moved-ignored.tentative.https.sub.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..0c97599940b82d05f033010c4d5bcdf8f5ab93a4
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-in-iframe-moved-ignored.tentative.https.sub.html
+-@@ -0,0 +1,36 @@
+-+<!DOCTYPE HTML>
+-+<html>
+-+<head>
+-+  <title>drawElementImage does not draw cross-origin background images when moved under canvas</title>
+-+  <script src='/resources/testharness.js'></script>
+-+  <script src='/resources/testharnessreport.js'></script>
+-+  <script src='/html/canvas/resources/canvas-tests.js'></script>
+-+  <script src="/html/canvas/resources/wait-for-canvas-paint.js"></script>
+-+</head>
+-+
+-+<body>
+-+  <iframe id="iframe" src="support/subframe-cross-origin-background-image.https.sub.html"></iframe>
+-+  <canvas id="canvas" width="300" height="150" layoutsubtree>
+-+    <div id="child"></div>
+-+  </canvas>
+-+
+-+  <script>
+-+  window.onload = () => {
+-+    promise_test(async function(t) {
+-+      await waitForCanvasPaint(canvas);
+-+
+-+      // Atomically move the iframe into the canvas.
+-+      child.moveBefore(iframe, null);
+-+
+-+      await waitForCanvasPaint(canvas);
+-+      const context = canvas.getContext("2d");
+-+      context.drawElementImage(child, 0, 0);
+-+      const imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+-+      let pixel = _getPixelFromImageData(imgData, 50, 50);
+-+      assert_array_equals(pixel, [0, 128, 0, 255],
+-+                          "Cross-origin background image in iframe should not draw");
+-+    });
+-+  };
+-+  </script>
+-+</body>
+-+</html>
+-diff --git a/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-body-in-iframe-ignored.tentative.https.sub.html b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-body-in-iframe-ignored.tentative.https.sub.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..10c95a6c0cf005bae1df709296d645a84577287f
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-body-in-iframe-ignored.tentative.https.sub.html
+-@@ -0,0 +1,32 @@
+-+<!DOCTYPE HTML>
+-+<html>
+-+<head>
+-+  <title>drawElementImage does not draw cross-origin background images on the body</title>
+-+  <script src='/resources/testharness.js'></script>
+-+  <script src='/resources/testharnessreport.js'></script>
+-+  <script src='/html/canvas/resources/canvas-tests.js'></script>
+-+  <script src="/html/canvas/resources/wait-for-canvas-paint.js"></script>
+-+</head>
+-+
+-+<body>
+-+  <canvas id="canvas" width="300" height="150" layoutsubtree>
+-+    <div id="child">
+-+      <iframe id="iframe" src="support/subframe-cross-origin-background-image-on-body.https.sub.html"></iframe>
+-+    </div>
+-+  </canvas>
+-+
+-+  <script>
+-+  window.onload = () => {
+-+    promise_test(async function(t) {
+-+      await waitForCanvasPaint(canvas);
+-+      const context = canvas.getContext("2d");
+-+      context.drawElementImage(child, 0, 0);
+-+      const imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+-+      let pixel = _getPixelFromImageData(imgData, 50, 50);
+-+      assert_array_equals(pixel, [0, 128, 0, 255],
+-+                          "Cross-origin background image in iframe should not draw");
+-+    });
+-+  };
+-+  </script>
+-+</body>
+-+</html>
+-diff --git a/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-body-in-iframe-moved-ignored.tentative.https.sub.html b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-body-in-iframe-moved-ignored.tentative.https.sub.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..6ea6f56b2f2b5572f9d1467e1d6e93f7d38008a2
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-body-in-iframe-moved-ignored.tentative.https.sub.html
+-@@ -0,0 +1,36 @@
+-+<!DOCTYPE HTML>
+-+<html>
+-+<head>
+-+  <title>drawElementImage does not draw cross-origin background images on the body when moved under canvas</title>
+-+  <script src='/resources/testharness.js'></script>
+-+  <script src='/resources/testharnessreport.js'></script>
+-+  <script src='/html/canvas/resources/canvas-tests.js'></script>
+-+  <script src="/html/canvas/resources/wait-for-canvas-paint.js"></script>
+-+</head>
+-+
+-+<body>
+-+  <iframe id="iframe" src="support/subframe-cross-origin-background-image-on-body.https.sub.html"></iframe>
+-+  <canvas id="canvas" width="300" height="150" layoutsubtree>
+-+    <div id="child"></div>
+-+  </canvas>
+-+
+-+  <script>
+-+  window.onload = () => {
+-+    promise_test(async function(t) {
+-+      await waitForCanvasPaint(canvas);
+-+
+-+      // Atomically move the iframe into the canvas.
+-+      child.moveBefore(iframe, null);
+-+
+-+      await waitForCanvasPaint(canvas);
+-+      const context = canvas.getContext("2d");
+-+      context.drawElementImage(child, 0, 0);
+-+      const imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+-+      let pixel = _getPixelFromImageData(imgData, 50, 50);
+-+      assert_array_equals(pixel, [0, 128, 0, 255],
+-+                          "Cross-origin background image in iframe should not draw");
+-+    });
+-+  };
+-+  </script>
+-+</body>
+-+</html>
+-diff --git a/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-html-in-iframe-ignored.tentative.https.sub.html b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-html-in-iframe-ignored.tentative.https.sub.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..eda61db967bbbc41cb7886317ed05c1f823dcb97
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-html-in-iframe-ignored.tentative.https.sub.html
+-@@ -0,0 +1,32 @@
+-+<!DOCTYPE HTML>
+-+<html>
+-+<head>
+-+  <title>drawElementImage does not draw cross-origin background images on the body</title>
+-+  <script src='/resources/testharness.js'></script>
+-+  <script src='/resources/testharnessreport.js'></script>
+-+  <script src='/html/canvas/resources/canvas-tests.js'></script>
+-+  <script src="/html/canvas/resources/wait-for-canvas-paint.js"></script>
+-+</head>
+-+
+-+<body>
+-+  <canvas id="canvas" width="300" height="150" layoutsubtree>
+-+    <div id="child">
+-+      <iframe id="iframe" src="support/subframe-cross-origin-background-image-on-html.https.sub.html"></iframe>
+-+    </div>
+-+  </canvas>
+-+
+-+  <script>
+-+  window.onload = () => {
+-+    promise_test(async function(t) {
+-+      await waitForCanvasPaint(canvas);
+-+      const context = canvas.getContext("2d");
+-+      context.drawElementImage(child, 0, 0);
+-+      const imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+-+      let pixel = _getPixelFromImageData(imgData, 50, 50);
+-+      assert_array_equals(pixel, [0, 128, 0, 255],
+-+                          "Cross-origin background image in iframe should not draw");
+-+    });
+-+  };
+-+  </script>
+-+</body>
+-+</html>
+-diff --git a/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-html-in-iframe-moved-ignored.tentative.https.sub.html b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-html-in-iframe-moved-ignored.tentative.https.sub.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..27e79063fa27bb30e7520ebc96cfcfff74b29c84
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/background-image-on-html-in-iframe-moved-ignored.tentative.https.sub.html
+-@@ -0,0 +1,36 @@
+-+<!DOCTYPE HTML>
+-+<html>
+-+<head>
+-+  <title>drawElementImage does not draw cross-origin background images on the body</title>
+-+  <script src='/resources/testharness.js'></script>
+-+  <script src='/resources/testharnessreport.js'></script>
+-+  <script src='/html/canvas/resources/canvas-tests.js'></script>
+-+  <script src="/html/canvas/resources/wait-for-canvas-paint.js"></script>
+-+</head>
+-+
+-+<body>
+-+  <iframe id="iframe" src="support/subframe-cross-origin-background-image-on-html.https.sub.html"></iframe>
+-+  <canvas id="canvas" width="300" height="150" layoutsubtree>
+-+    <div id="child"></div>
+-+  </canvas>
+-+
+-+  <script>
+-+  window.onload = () => {
+-+    promise_test(async function(t) {
+-+      await waitForCanvasPaint(canvas);
+-+
+-+      // Atomically move the iframe into the canvas.
+-+      child.moveBefore(iframe, null);
+-+
+-+      await waitForCanvasPaint(canvas);
+-+      const context = canvas.getContext("2d");
+-+      context.drawElementImage(child, 0, 0);
+-+      const imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+-+      let pixel = _getPixelFromImageData(imgData, 50, 50);
+-+      assert_array_equals(pixel, [0, 128, 0, 255],
+-+                          "Cross-origin background image in iframe should not draw");
+-+    });
+-+  };
+-+  </script>
+-+</body>
+-+</html>
+-diff --git a/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/support/subframe-cross-origin-background-image-on-body.https.sub.html b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/support/subframe-cross-origin-background-image-on-body.https.sub.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..377692a43cbccb139810ac2b4a470dc7bee8f0b2
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/support/subframe-cross-origin-background-image-on-body.https.sub.html
+-@@ -0,0 +1,24 @@
+-+<!DOCTYPE HTML>
+-+<html>
+-+<head>
+-+  <title>subframe with cross-origin background image on the body</title>
+-+  <style>
+-+  body {
+-+    background-image: url("https://{{hosts[alt][www]}}:{{ports[https][0]}}/images/red-100x100.png");
+-+    background-repeat: repeat-x repeat-y;
+-+    background-color: rgb(0 128 0);
+-+  }
+-+  div {
+-+    position: absolute;
+-+    left: 0px;
+-+    top: 0px;
+-+    width: 100px;
+-+    height: 100px;
+-+    background: transparent;
+-+  }
+-+  </style>
+-+</head>
+-+
+-+<body><div></div></body>
+-+
+-+</html>
+-diff --git a/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/support/subframe-cross-origin-background-image-on-html.https.sub.html b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/support/subframe-cross-origin-background-image-on-html.https.sub.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..cf24f0264b202fc4de732e598eba3eb315ee5ad4
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/support/subframe-cross-origin-background-image-on-html.https.sub.html
+-@@ -0,0 +1,24 @@
+-+<!DOCTYPE HTML>
+-+<html>
+-+<head>
+-+  <title>subframe with cross-origin background image on the html element</title>
+-+  <style>
+-+  html {
+-+    background-image: url("https://{{hosts[alt][www]}}:{{ports[https][0]}}/images/red-100x100.png");
+-+    background-repeat: repeat-x repeat-y;
+-+    background-color: rgb(0 128 0);
+-+  }
+-+  div {
+-+    position: absolute;
+-+    left: 0px;
+-+    top: 0px;
+-+    width: 100px;
+-+    height: 100px;
+-+    background: transparent;
+-+  }
+-+  </style>
+-+</head>
+-+
+-+<body><div></div></body>
+-+
+-+</html>
+diff --git a/patches/chromium/cherry-pick-76d750b58133.patch b/patches/chromium/cherry-pick-76d750b58133.patch
+index 365848c3d9..2af5d2c046 100644
+--- a/patches/chromium/cherry-pick-76d750b58133.patch
++++ b/patches/chromium/cherry-pick-76d750b58133.patch
+@@ -54,75 +54,3 @@ index f051aaf1c55ed686d6652c4b32622532f0692487..b6f859e1d12b96396a26855fffc137f0
+        AutoAttach(source, host.get(), false);
+      }
+    }
+-diff --git a/third_party/blink/web_tests/http/tests/inspector-protocol/target/auto-attach-related-hidden-targets-detach-expected.txt b/third_party/blink/web_tests/http/tests/inspector-protocol/target/auto-attach-related-hidden-targets-detach-expected.txt
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..35bd945594bff69e35e2cad2ad5ecb6846c298fb
+---- /dev/null
+-+++ b/third_party/blink/web_tests/http/tests/inspector-protocol/target/auto-attach-related-hidden-targets-detach-expected.txt
+-@@ -0,0 +1,4 @@
+-+Tests that navigating a page with an auto-attached iframe and hidden targets detaches cleanly without crashing.
+-+iframe session detached
+-+SUCCESS: Navigated and detached without crash
+-+
+-diff --git a/third_party/blink/web_tests/http/tests/inspector-protocol/target/auto-attach-related-hidden-targets-detach.js b/third_party/blink/web_tests/http/tests/inspector-protocol/target/auto-attach-related-hidden-targets-detach.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..fd3cfec4bf7e7b30d670ed7cb4dfcadd7475bf14
+---- /dev/null
+-+++ b/third_party/blink/web_tests/http/tests/inspector-protocol/target/auto-attach-related-hidden-targets-detach.js
+-@@ -0,0 +1,56 @@
+-+// Copyright 2026 The Chromium Authors
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+(async function(/** @type {import('test_runner').TestRunner} */ testRunner) {
+-+  testRunner.log('Tests that navigating a page with an auto-attached iframe and hidden targets detaches cleanly without crashing.');
+-+  const bp = testRunner.browserP();
+-+
+-+  const page = await testRunner.createPage();
+-+  const pageSession = await page.createSession();
+-+
+-+  // Auto-attach related targets for the page.
+-+  await bp.Target.autoAttachRelated({
+-+    targetId: page.targetId(),
+-+    waitForDebuggerOnStart: false,
+-+  });
+-+
+-+  // Create an OOPIF.
+-+  const [attached] = await Promise.all([
+-+    bp.Target.onceAttachedToTarget(),
+-+    pageSession.evaluate(() => {
+-+      const iframe = document.createElement('iframe');
+-+      iframe.src = 'http://devtools.oopif.test:8080/inspector-protocol/resources/iframe.html';
+-+      document.body.appendChild(iframe);
+-+    }),
+-+  ]);
+-+  const iframeSession = testRunner.createSessionFor(attached.params.sessionId);
+-+
+-+  // Create hidden targets under the iframe session and auto-attach them.
+-+  const kHiddenTargetCount = 20;
+-+  for (let i = 0; i < kHiddenTargetCount; ++i) {
+-+    const {result: hiddenTarget} =
+-+        await iframeSession.protocol.Target.createTarget({
+-+          url: 'about:blank',
+-+          hidden: true,
+-+        });
+-+    await bp.Target.autoAttachRelated({
+-+      targetId: hiddenTarget.targetId,
+-+      waitForDebuggerOnStart: false,
+-+    });
+-+  }
+-+
+-+  // Cross-site navigation detaches the iframe and disposes its hidden targets.
+-+  await page.navigate('http://devtools.oopif-b.test:8080/inspector-protocol/resources/iframe.html');
+-+
+-+  // Assert that iframeSession was cleanly detached.
+-+  const evalResult = await iframeSession.protocol.Runtime.evaluate({expression: '1 + 1'});
+-+  if (evalResult.error) {
+-+    testRunner.log('iframe session detached');
+-+  } else {
+-+    testRunner.log('ERROR: iframe session should be detached but it was not');
+-+  }
+-+
+-+  testRunner.log('SUCCESS: Navigated and detached without crash');
+-+  testRunner.completeTest();
+-+});
+diff --git a/patches/chromium/cherry-pick-8984e9c2ced8.patch b/patches/chromium/cherry-pick-8984e9c2ced8.patch
+index b6f39193d1..645c97e556 100644
+--- a/patches/chromium/cherry-pick-8984e9c2ced8.patch
++++ b/patches/chromium/cherry-pick-8984e9c2ced8.patch
+@@ -88,88 +88,3 @@ index f303c9654ba9963552414c17a2d97dec01e507e3..9496f60a4f520cae2a58e0e9aeab8317
+      return IDBKey::CreateBinary(
+          base::MakeRefCounted<base::RefCountedData<Vector<char>>>(
+              Vector<char>(base::as_chars(view->ByteSpan()))));
+-diff --git a/third_party/blink/web_tests/external/wpt/IndexedDB/sharedarraybuffer-key.https.html b/third_party/blink/web_tests/external/wpt/IndexedDB/sharedarraybuffer-key.https.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..9de6a6f0a850c3fb9dba324647234c1d95f38024
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/IndexedDB/sharedarraybuffer-key.https.html
+-@@ -0,0 +1,71 @@
+-+<!DOCTYPE html>
+-+<title>IndexedDB: SharedArrayBuffer keys</title>
+-+<script src="/resources/testharness.js"></script>
+-+<script src="/resources/testharnessreport.js"></script>
+-+<script src="resources/support.js"></script>
+-+<script>
+-+'use strict';
+-+
+-+const key_data = [1, 2, 3, 4];
+-+
+-+function create_object_store(t, db) {
+-+  db.createObjectStore('store');
+-+}
+-+
+-+function create_shared_buffer() {
+-+  const buffer = new SharedArrayBuffer(key_data.length);
+-+  const view = new Uint8Array(buffer);
+-+  view.set(key_data);
+-+  return {buffer, view};
+-+}
+-+
+-+function put_and_validate_key(t, db, key, view_on_sab, key_copy) {
+-+  assert_true(
+-+      self.crossOriginIsolated, 'The page should be cross-origin isolated');
+-+
+-+  // Put the SAB-backed key in the store.
+-+  const tx = db.transaction('store', 'readwrite');
+-+  const store = tx.objectStore('store');
+-+  const put_request = store.put('value', key);
+-+  put_request.onerror = t.unreached_func('put should succeed');
+-+
+-+  // Modifying the SAB after put should have no effect.
+-+  view_on_sab.fill(0);
+-+
+-+  // Reading the record back out of the key should work.
+-+  const get_request = store.get(key_copy);
+-+  get_request.onerror = t.unreached_func('get should succeed');
+-+  get_request.onsuccess = t.step_func(() => {
+-+    assert_equals(get_request.result, 'value');
+-+  });
+-+
+-+  tx.oncomplete = t.step_func_done();
+-+}
+-+
+-+indexeddb_test(
+-+    create_object_store,
+-+    (t, db) => {
+-+      const {buffer, view} = create_shared_buffer();
+-+      put_and_validate_key(
+-+          t, db, buffer, view, new Uint8Array(key_data));
+-+    },
+-+    'A SharedArrayBuffer can be used as an IndexedDB key');
+-+
+-+indexeddb_test(
+-+    create_object_store,
+-+    (t, db) => {
+-+      const {view} = create_shared_buffer();
+-+      put_and_validate_key(
+-+          t, db, view, view, new Uint8Array(key_data));
+-+    },
+-+    'A SharedArrayBuffer-backed view can be used as an IndexedDB key');
+-+
+-+indexeddb_test(
+-+    create_object_store,
+-+    (t, db) => {
+-+      const {buffer, view} = create_shared_buffer();
+-+      put_and_validate_key(
+-+          t, db, [buffer], view, [new Uint8Array(key_data)]);
+-+    },
+-+    'A SharedArrayBuffer in an array can be used as an IndexedDB key');
+-+</script>
+-diff --git a/third_party/blink/web_tests/external/wpt/IndexedDB/sharedarraybuffer-key.https.html.headers b/third_party/blink/web_tests/external/wpt/IndexedDB/sharedarraybuffer-key.https.html.headers
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..5f8621ef83660c66f0d037ea28fafefb558140f1
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/IndexedDB/sharedarraybuffer-key.https.html.headers
+-@@ -0,0 +1,2 @@
+-+Cross-Origin-Embedder-Policy: require-corp
+-+Cross-Origin-Opener-Policy: same-origin
+diff --git a/patches/chromium/cherry-pick-8c6eb64fa8b5.patch b/patches/chromium/cherry-pick-8c6eb64fa8b5.patch
+index 3354892590..83c4b2b1cf 100644
+--- a/patches/chromium/cherry-pick-8c6eb64fa8b5.patch
++++ b/patches/chromium/cherry-pick-8c6eb64fa8b5.patch
+@@ -57,91 +57,3 @@ index ea10cbf775b73129531c357673ef3dac6ab69630..2e963f51b8f3691e3dc2fd4e4ebcecf8
+    if (!marker_start && !marker_mid && !marker_end)
+      return;
+  
+-diff --git a/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/svg-marker-outside-subtree-ignored.tentative.html b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/svg-marker-outside-subtree-ignored.tentative.html
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..23111f151fb192fc35ce45a3cbb5d5c157b6b507
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/html/canvas/element/manual/draw-element-image/privacy/svg-marker-outside-subtree-ignored.tentative.html
+-@@ -0,0 +1,82 @@
+-+<!DOCTYPE HTML>
+-+<html>
+-+<head>
+-+  <title>drawElementImage does not use SVG markers outside the subtree</title>
+-+  <link rel="help" href="https://github.com/WICG/html-in-canvas">
+-+  <script src='/resources/testharness.js'></script>
+-+  <script src='/resources/testharnessreport.js'></script>
+-+  <script src='/html/canvas/resources/canvas-tests.js'></script>
+-+  <script src="/html/canvas/resources/wait-for-canvas-paint.js"></script>
+-+</head>
+-+<body>
+-+  <svg width="0" height="0">
+-+    <defs>
+-+      <marker id="markerOut" markerUnits="userSpaceOnUse" viewBox="0 0 100 100" markerWidth="20" markerHeight="20" refX="50" refY="50">
+-+        <image href="/images/red-100x100.png" x="0" y="0" width="100" height="100" preserveAspectRatio="none"/>
+-+      </marker>
+-+    </defs>
+-+  </svg>
+-+
+-+  <canvas id="canvas" width="100" height="100" layoutsubtree>
+-+    <svg id=child width="100" height="100">
+-+      <marker id="markerIn" markerUnits="userSpaceOnUse" viewBox="0 0 100 100" markerWidth="20" markerHeight="20" refX="50" refY="50">
+-+        <image href="/images/green-100x100.png" x="0" y="0" width="100" height="100" preserveAspectRatio="none"/>
+-+      </marker>
+-+      <path d="M 20 20 L 50 20 L 80 20"
+-+        stroke="black"
+-+        marker-start="url(#markerOut)"
+-+        marker-mid="url(#markerOut)"
+-+        marker-end="url(#markerOut)" />
+-+      <path d="M 20 40 L 50 40 L 80 40"
+-+        stroke="black"
+-+        marker-start="url(#markerIn)"
+-+        marker-mid="url(#markerIn)"
+-+        marker-end="url(#markerIn)" />
+-+    </svg>
+-+  </canvas>
+-+
+-+  <script>
+-+    window.onload = () => {
+-+      promise_test(async function(t) {
+-+        const preloadImage = (url) => new Promise((resolve, reject) => {
+-+          const img = new Image();
+-+          img.onload = () => resolve(img);
+-+          img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+-+          img.src = url;
+-+        });
+-+
+-+        const imageEl1 = document.querySelector('#markerOut image');
+-+        const imageEl2 = document.querySelector('#markerIn image');
+-+        await Promise.all([
+-+          preloadImage(imageEl1.getAttribute('href')),
+-+          preloadImage(imageEl2.getAttribute('href')),
+-+        ]);
+-+
+-+        await waitForCanvasPaint(canvas);
+-+        var ctx = canvas.getContext('2d');
+-+        ctx.fillStyle = 'white';
+-+        ctx.fillRect(0, 0, 100, 100);
+-+        ctx.drawElementImage(child, 0, 0);
+-+
+-+        // The canvas should ignore the marker and draw the line black.
+-+        // Fetch all pixel data once to avoid multiple slow readbacks.
+-+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+-+
+-+        let pixel = _getPixelFromImageData(imgData, 15, 25);
+-+        assert_array_equals(pixel, [255, 255, 255, 255], "External start marker should not draw");
+-+        pixel = _getPixelFromImageData(imgData, 45, 25);
+-+        assert_array_equals(pixel, [255, 255, 255, 255], "External mid marker should not draw");
+-+        pixel = _getPixelFromImageData(imgData, 85, 25);
+-+        assert_array_equals(pixel, [255, 255, 255, 255], "External end marker should not draw");
+-+
+-+        pixel = _getPixelFromImageData(imgData, 15, 45);
+-+        assert_array_equals(pixel, [0, 255, 0, 255], "Internal start marker should draw");
+-+        pixel = _getPixelFromImageData(imgData, 45, 45);
+-+        assert_array_equals(pixel, [0, 255, 0, 255], "Internal mid marker should draw");
+-+        pixel = _getPixelFromImageData(imgData, 85, 45);
+-+        assert_array_equals(pixel, [0, 255, 0, 255], "Internal end marker should draw");
+-+      });
+-+    }
+-+  </script>
+-+</body>
+-+</html>
+diff --git a/patches/chromium/cherry-pick-cf1e39ed8884.patch b/patches/chromium/cherry-pick-cf1e39ed8884.patch
+index c32ac4d7ba..101fee0457 100644
+--- a/patches/chromium/cherry-pick-cf1e39ed8884.patch
++++ b/patches/chromium/cherry-pick-cf1e39ed8884.patch
+@@ -38,39 +38,3 @@ index fb52e404beb615eba89145c495bc590335edcfc7..5298e887b879496d5bfef116bb755ec5
+ -    [RaisesException, RuntimeEnabled=TrustedTypesCreateParserOptions] TrustedParserOptions createParserOptions(SetHTMLUnsafeOptions input);
+ +    [RaisesException, RuntimeEnabled=TrustedTypesCreateParserOptions, Exposed=Window] TrustedParserOptions createParserOptions(SetHTMLUnsafeOptions input);
+  };
+-diff --git a/third_party/blink/web_tests/http/tests/serviceworker/webexposed/global-interface-listing-service-worker-expected.txt b/third_party/blink/web_tests/http/tests/serviceworker/webexposed/global-interface-listing-service-worker-expected.txt
+-index 462d0bffc5fb7a2b88ac804d831400f46943a93f..6242a6f4a8efd2f505044a42c6e4113ebacf6a94 100644
+---- a/third_party/blink/web_tests/http/tests/serviceworker/webexposed/global-interface-listing-service-worker-expected.txt
+-+++ b/third_party/blink/web_tests/http/tests/serviceworker/webexposed/global-interface-listing-service-worker-expected.txt
+-@@ -2083,7 +2083,6 @@ interface TrustedTypePolicy
+-     getter name
+-     method constructor
+-     method createHTML
+--    method createParserOptions
+-     method createScript
+-     method createScriptURL
+- interface TrustedTypePolicyFactory
+-diff --git a/third_party/blink/web_tests/webexposed/global-interface-listing-dedicated-worker-expected.txt b/third_party/blink/web_tests/webexposed/global-interface-listing-dedicated-worker-expected.txt
+-index ca64be611bf11d29b8eaba804ccd84353dfc6ffd..5de92575eb6ded93303cedb61b20c50c2fcf8e69 100644
+---- a/third_party/blink/web_tests/webexposed/global-interface-listing-dedicated-worker-expected.txt
+-+++ b/third_party/blink/web_tests/webexposed/global-interface-listing-dedicated-worker-expected.txt
+-@@ -2277,7 +2277,6 @@ Starting worker: resources/global-interface-listing-worker.js
+- [Worker]     getter name
+- [Worker]     method constructor
+- [Worker]     method createHTML
+--[Worker]     method createParserOptions
+- [Worker]     method createScript
+- [Worker]     method createScriptURL
+- [Worker] interface TrustedTypePolicyFactory
+-diff --git a/third_party/blink/web_tests/webexposed/global-interface-listing-shared-worker-expected.txt b/third_party/blink/web_tests/webexposed/global-interface-listing-shared-worker-expected.txt
+-index 3a41642958fbace878bd7434bd1ab6a34d8675b2..802fad762c2b1b470502b89eafbe49b76e55d50a 100644
+---- a/third_party/blink/web_tests/webexposed/global-interface-listing-shared-worker-expected.txt
+-+++ b/third_party/blink/web_tests/webexposed/global-interface-listing-shared-worker-expected.txt
+-@@ -1984,7 +1984,6 @@ Starting worker: resources/global-interface-listing-worker.js
+- [Worker]     getter name
+- [Worker]     method constructor
+- [Worker]     method createHTML
+--[Worker]     method createParserOptions
+- [Worker]     method createScript
+- [Worker]     method createScriptURL
+- [Worker] interface TrustedTypePolicyFactory
+diff --git a/patches/chromium/cherry-pick-f8bdf46ae178.patch b/patches/chromium/cherry-pick-f8bdf46ae178.patch
+index acc297298c..957e5274a3 100644
+--- a/patches/chromium/cherry-pick-f8bdf46ae178.patch
++++ b/patches/chromium/cherry-pick-f8bdf46ae178.patch
+@@ -221,45 +221,3 @@ index a74889fca36af65c5e64aac84bfc242e1e2c9d87..d61f8e2adba81d605a4302c9f6c98a07
+    if ((desc.has_get || desc.has_set) && (desc.has_value || desc.has_writable)) {
+      V8ThrowException::ThrowTypeError(
+          isolate,
+-diff --git a/third_party/blink/web_tests/external/wpt/css/cssom/adoptedstylesheets-observablearray.html b/third_party/blink/web_tests/external/wpt/css/cssom/adoptedstylesheets-observablearray.html
+-index 75d8ffc5c38c5d7dac8b1d6370fd23419c2a2af7..d2acde0cbb81aae1c2960a2bde0338aae9d5efa1 100644
+---- a/third_party/blink/web_tests/external/wpt/css/cssom/adoptedstylesheets-observablearray.html
+-+++ b/third_party/blink/web_tests/external/wpt/css/cssom/adoptedstylesheets-observablearray.html
+-@@ -100,4 +100,37 @@ test(function() {
+-   delete Array.prototype["1"];
+-   assert_equals(backing, null);
+- }, "adoptedStyleSheets should not expose its backing object via prototype");
+-+
+-+test(function() {
+-+  // A prototype-less descriptor keeps Object.defineProperty() below working
+-+  // once Object.prototype.get is a number.
+-+  const numeric = Object.create(null);
+-+  numeric.value = 1;
+-+  numeric.writable = true;
+-+  numeric.configurable = true;
+-+  const descriptor = new Proxy(Object.create(null), {
+-+    has(target, key) {
+-+      if (key === "set") {
+-+        // Runs while the descriptor is being converted, after the initial
+-+        // conversion has already looked up "get".
+-+        Object.defineProperty(Object.prototype, "get", numeric);
+-+        Object.defineProperty(Object.prototype, "set", numeric);
+-+      }
+-+      return false;
+-+    },
+-+  });
+-+  try {
+-+    assert_throws_js(TypeError, () => {
+-+      Reflect.defineProperty(document.adoptedStyleSheets, "reentrantAccessor",
+-+                             descriptor);
+-+    });
+-+  } finally {
+-+    delete Object.prototype.get;
+-+    delete Object.prototype.set;
+-+  }
+-+  assert_equals(
+-+      Object.getOwnPropertyDescriptor(document.adoptedStyleSheets,
+-+                                      "reentrantAccessor"),
+-+      undefined);
+-+}, "adoptedStyleSheets defineProperty should reject accessors that become non-callable during descriptor conversion");
+- </script>
+diff --git a/patches/chromium/cherry-pick-fab48e05e108.patch b/patches/chromium/cherry-pick-fab48e05e108.patch
+index 23299335a4..9121dc75dc 100644
+--- a/patches/chromium/cherry-pick-fab48e05e108.patch
++++ b/patches/chromium/cherry-pick-fab48e05e108.patch
+@@ -81,106 +81,3 @@ index d30cdd97881761751618f8c1e6a6c411936f4814..4a73a62e76bff486b61ea1c1b0f857fe
+    LoaderFreezeMode GetLoaderFreezeMode() const;
+    mojom::FrameLifecycleState ContextPauseState() const {
+      return lifecycle_state_;
+-diff --git a/third_party/blink/web_tests/external/wpt/html/browsers/browsing-the-web/back-forward-cache/weblocks-worker.https.window.js b/third_party/blink/web_tests/external/wpt/html/browsers/browsing-the-web/back-forward-cache/weblocks-worker.https.window.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..99cdfbf2aab2fd406db72dc0bc5dc21fa3fb88a6
+---- /dev/null
+-+++ b/third_party/blink/web_tests/external/wpt/html/browsers/browsing-the-web/back-forward-cache/weblocks-worker.https.window.js
+-@@ -0,0 +1,97 @@
+-+// META: title=WebLocks granted to a dedicated worker in BFCache should be deferred.
+-+// META: script=/common/dispatcher/dispatcher.js
+-+// META: script=/common/get-host-info.sub.js
+-+// META: script=/common/utils.js
+-+// META: script=/html/browsers/browsing-the-web/back-forward-cache/resources/rc-helper.js
+-+// META: script=/html/browsers/browsing-the-web/remote-context-helper/resources/remote-context-helper.js
+-+// META: script=/html/browsers/browsing-the-web/remote-context-helper-tests/resources/test-helper.js
+-+
+-+'use strict';
+-+
+-+promise_test(async t => {
+-+  const rcHelper = new RemoteContextHelper();
+-+  // Open a window with noopener so that BFCache will work.
+-+  const rc1 = await rcHelper.addWindow(
+-+      /*extraConfig=*/ {}, /*options=*/ { features: 'noopener' });
+-+
+-+  // BroadcastChannel to receive the grant notification from worker.
+-+  const bc = new BroadcastChannel('bfcache_lock_test_channel');
+-+  let grantedReceived = false;
+-+  bc.onmessage = t.step_func(e => {
+-+    if (e.data === 'granted') {
+-+      grantedReceived = true;
+-+    }
+-+  });
+-+
+-+  // Acquire the lock in the main test window first.
+-+  let mainLockResolver;
+-+  const mainLockPromise = new Promise(resolve => { mainLockResolver = resolve; });
+-+  navigator.locks.request('bfcache_weblock_test', async lock => {
+-+    mainLockResolver();
+-+    // Keep holding the lock until we decide to release it.
+-+    await new Promise(resolve => {
+-+      t.add_cleanup(resolve);
+-+      globalThis.releaseMainLock = resolve;
+-+    });
+-+  });
+-+  await mainLockPromise;
+-+
+-+  // Start a worker in the remote context.
+-+  const worker = await rc1.addWorker(
+-+      /*workerVar=*/ undefined,
+-+    {
+-+      scripts: [],
+-+    }
+-+  );
+-+
+-+  // In the worker, request the same lock.
+-+  // Since the main window holds it, this will pend.
+-+  await worker.executeScript(() => {
+-+    navigator.locks.request('bfcache_weblock_test', () => {
+-+      const bc = new BroadcastChannel('bfcache_lock_test_channel');
+-+      bc.postMessage('granted');
+-+    });
+-+  });
+-+
+-+  // Prepare rc1 for BFCache.
+-+  await prepareForBFCache(rc1);
+-+
+-+  // Navigate away.
+-+  const rc1Away = await rc1.navigateToNew();
+-+  await assertSimplestScriptRuns(rc1Away);
+-+
+-+  // Now rc1 and its worker should be in BFCache.
+-+  // Wait a bit to ensure they are frozen.
+-+  await new Promise(resolve => t.step_timeout(resolve, 1000));
+-+
+-+  // Release the lock in the main window.
+-+  // If the worker is correctly frozen, it will acquire the lock but will not run the callback.
+-+  globalThis.releaseMainLock();
+-+
+-+  // Wait to see if the worker does not run the callback.
+-+  await new Promise(resolve => t.step_timeout(resolve, 1000));
+-+
+-+  // Assert that we have not received the message yet.
+-+  assert_false(grantedReceived, "Lock should not be granted while in BFCache");
+-+
+-+  // Restore rc1 from BFCache.
+-+  await rc1Away.historyBack();
+-+  await assertImplementsBFCacheOptional(rc1);
+-+
+-+  // Now that it is restored, the worker should unfreeze and run the callback.
+-+  // Wait for the message to arrive.
+-+  if (!grantedReceived) {
+-+    await new Promise(resolve => {
+-+      bc.addEventListener('message', t.step_func(e => {
+-+        if (e.data === 'granted') {
+-+          resolve();
+-+        }
+-+      }));
+-+      // Set a timeout just in case it never arrives.
+-+      t.step_timeout(() => resolve(), 2000);
+-+    });
+-+  }
+-+
+-+  assert_true(grantedReceived, "Lock should be granted after restore");
+-+
+-+}, 'WebLocks grant to worker in BFCache is deferred');
+diff --git a/patches/angle/cherry-pick-5211acfc35df.patch b/patches/angle/cherry-pick-5211acfc35df.patch
+index ddc58b7a83..31eb9a30a4 100644
+--- a/patches/angle/cherry-pick-5211acfc35df.patch
++++ b/patches/angle/cherry-pick-5211acfc35df.patch
+@@ -59,40 +59,6 @@ index bcfcfb04712c1204600e2ff3a1d031c64cf04c3b..9f2b7c6dcee1e938d6828818bc6755ed
+          if (expectedSize.valid())
+          {
+              Extents newSize = expectedSize.value();
+-diff --git a/src/tests/angle_end2end_tests_expectations.txt b/src/tests/angle_end2end_tests_expectations.txt
+-index 6b28148bedd3cf330b9d43b903dcdf9c81c07ab4..8fa6050ebc6de52f6869a93c4b640fc2787dffab 100644
+---- a/src/tests/angle_end2end_tests_expectations.txt
+-+++ b/src/tests/angle_end2end_tests_expectations.txt
+-@@ -22,6 +22,12 @@
+- 377614665 VULKAN : GLSLValidationTest.StructSamplerVsComma/* = SKIP
+- 410584007 VULKAN : ImageTestES31.UseSourceTextureAsStorageImage/* = SKIP
+- 535696694 VULKAN : Texture2DTestES3_NonZeroBaseLevelGenMipmaps.UploadAfterDrawShouldNotCrash/* = SKIP
+-+514710696 : PbufferTest.BindTexImageAndGenerateMipmap/* = SKIP
+-+// Fails anywhere RGBA4 is emulated with RGBA8
+-+534823410 VULKAN : FramebufferTestWithFormatFallback.R4G4B4A4_CubeTexImageRedefinedFaceZero/ES3_Vulkan_SwiftShader_ForceRenderableFallbackFormat = SKIP
+-+534823410 VULKAN : FramebufferTestWithFormatFallback.R4G4B4A4_CubeTexImageRedefinedFaceOne/ES3_Vulkan_SwiftShader_ForceRenderableFallbackFormat = SKIP
+-+534823410 VULKAN NVIDIA : FramebufferTestWithFormatFallback.R4G4B4A4_CubeTexImageRedefinedFace*/* = SKIP
+-+534823410 VULKAN LINUX INTEL : FramebufferTestWithFormatFallback.R4G4B4A4_CubeTexImageRedefinedFace*/* = SKIP
+- // Fails in Android with EGL_BAD_ALLOC
+- 374797737 : EGLSurfaceTest.CreateMultiWindowsSurfaceNoDestroy/* = SKIP
+- 
+-@@ -509,6 +515,8 @@
+- 515709506 MAC METAL : DrawBaseVertexBaseInstanceTest_ES3.BaseInstanceSmallDivisorClientMemory/* = SKIP
+- 518849408 MAC OPENGL : GLSLTest.EmulateGLFragColorBroadcastInvariantFragColor/* = SKIP
+- 518849408 MAC OPENGL : GLSLTest.EmulateGLFragColorBroadcastInvariantFragColorUnused/* = SKIP
+-+524008572 MAC METAL : VertexAttributeTestES3.LargeAttribPointerOffsetNoCrash/* = SKIP
+-+534815900 MAC METAL : TextureCubeTestES3.RedefinedCubemapLevelsOnlyFaceZeroCompatible/* = SKIP
+- 
+- // The workaround is not intended to be enabled in this configuration so
+- // skip it as the failure is likely a driver bug.
+-@@ -1193,6 +1201,7 @@
+- 480069042 PIXEL10 GLES : Texture2DTestES3.DepthTexturesWithMipmaps/* = SKIP
+- 480069042 PIXEL10 GLES : Texture2DTestES3.DrawWithLevelZeroUndefined/* = SKIP
+- 480069042 PIXEL10 GLES : Texture2DTestES3.DrawWithLevelsOutsideRangeUndefined/* = SKIP
+-+480069042 PIXEL10 GLES : Texture2DTestES3.MipmapIncompleteMipmappingDisabled/* = SKIP
+- 480069042 PIXEL10 GLES : Texture2DTestES3.TextureFormatChangesWithBaseLevel/* = SKIP
+- 480069042 PIXEL10 GLES : Texture2DTestES3.UnpackOverlappingRowsFromUnpackBuffer/* = SKIP
+- 480069042 PIXEL10 GLES : Texture3DTestES2.CopySubImageAlpha/* = SKIP
+ diff --git a/src/tests/gl_tests/FramebufferTest.cpp b/src/tests/gl_tests/FramebufferTest.cpp
+ index 4089d9ac1ad5fa07dff66571aa756b1b43ce96f5..52123c0bee672aa5bb72e09c2931b0d5c6569898 100644
+ --- a/src/tests/gl_tests/FramebufferTest.cpp
+diff --git a/patches/chromium/cherry-pick-8ec00dde14f6.patch b/patches/chromium/cherry-pick-8ec00dde14f6.patch
+index 9906f115e8..07d96b4c18 100644
+--- a/patches/chromium/cherry-pick-8ec00dde14f6.patch
++++ b/patches/chromium/cherry-pick-8ec00dde14f6.patch
+@@ -58,89 +58,6 @@ Commit-Queue: Kai Ninomiya <kainino@chromium.org>
+ Cr-Commit-Position: refs/branch-heads/7871@{#4330}
+ Cr-Branched-From: f542126b8c1b3e80104b26bb05ec830bd1206f29-refs/heads/main@{#1639810}
+ 
+-diff --git a/content/test/data/gpu/webcodecs/copyTo.html b/content/test/data/gpu/webcodecs/copyTo.html
+-index af001e9f045cc85eb9111adaecd2b0e0d9fdbfee..674232db4a25d3b8bd8f6848918d322c5c8037eb 100644
+---- a/content/test/data/gpu/webcodecs/copyTo.html
+-+++ b/content/test/data/gpu/webcodecs/copyTo.html
+-@@ -177,6 +177,78 @@ Take frames coming from various sources and read them using copyTo().
+-       worker.terminate();
+-     }
+- 
+-+    // Test that padding bytes (stride/offset padding) are not overwritten.
+-+    {
+-+      const PAD = 0xAA;
+-+      const options = {
+-+        layout: [
+-+          {offset: 5, stride: frame.displayWidth * 4 + 16}, // plenty of padding
+-+        ],
+-+      };
+-+      if (frame.format === 'I420' || frame.format === 'I420A') {
+-+        options.layout = [
+-+          {offset: 5, stride: frame.displayWidth + 16},
+-+          {offset: (frame.displayWidth + 16) * frame.displayHeight + 10, stride: frame.displayWidth / 2 + 16},
+-+          {offset: (frame.displayWidth + 16) * frame.displayHeight + (frame.displayWidth / 2 + 16) * (frame.displayHeight / 2) + 20, stride: frame.displayWidth / 2 + 16},
+-+        ];
+-+        if (frame.format === 'I420A') {
+-+          options.layout.push({
+-+            offset: (frame.displayWidth + 16) * frame.displayHeight + (frame.displayWidth / 2 + 16) * (frame.displayHeight / 2) * 2 + 30,
+-+            stride: frame.displayWidth + 16
+-+          });
+-+        }
+-+      } else if (frame.format === 'NV12') {
+-+        options.layout = [
+-+          {offset: 5, stride: frame.displayWidth + 16},
+-+          {offset: (frame.displayWidth + 16) * frame.displayHeight + 10, stride: frame.displayWidth + 16},
+-+        ];
+-+      }
+-+
+-+      let size_with_padding = frame.allocationSize(options);
+-+      let buf = new ArrayBuffer(size_with_padding);
+-+      let view = new Uint8Array(buf);
+-+      view.fill(PAD);
+-+
+-+      let layout = await frame.copyTo(buf, options);
+-+
+-+      // Verify that the layout matches what we specified
+-+      for (let plane = 0; plane < layout.length; plane++) {
+-+        TEST.assert(layout[plane].offset === options.layout[plane].offset, "offset mismatch");
+-+        TEST.assert(layout[plane].stride === options.layout[plane].stride, "stride mismatch");
+-+      }
+-+
+-+      // We want to verify that the bytes between rows (the padding bytes) are untouched (still PAD).
+-+      for (let plane = 0; plane < layout.length; plane++) {
+-+        let plane_offset = layout[plane].offset;
+-+        let stride = layout[plane].stride;
+-+        let plane_height = frame.displayHeight;
+-+        let plane_width = frame.displayWidth;
+-+        if (plane > 0 && (frame.format === 'I420' || frame.format === 'I420A' || frame.format === 'NV12')) {
+-+          plane_height /= 2;
+-+          if (frame.format === 'I420' || frame.format === 'I420A') {
+-+            plane_width /= 2;
+-+          }
+-+        }
+-+        let bytes_per_pixel = 1;
+-+        if (frame.format === 'RGBA' || frame.format === 'RGBX' || frame.format === 'BGRA' || frame.format === 'BGRX') {
+-+          bytes_per_pixel = 4;
+-+        } else if (frame.format === 'NV12' && plane === 1) {
+-+          bytes_per_pixel = 2; // UV interleaved
+-+        }
+-+
+-+        let row_bytes = plane_width * bytes_per_pixel;
+-+        for (let y = 0; y < plane_height; ++y) {
+-+          let row_start = plane_offset + y * stride;
+-+          for (let x = row_bytes; x < stride; ++x) {
+-+            let pad_idx = row_start + x;
+-+            if (pad_idx < size_with_padding) {
+-+              TEST.assert(view[pad_idx] === PAD, `Padding byte overwritten at index ${pad_idx} for plane ${plane}, row ${y}, x ${x}. Expected ${PAD}, got ${view[pad_idx]}`);
+-+            }
+-+          }
+-+        }
+-+      }
+-+    }
+-+
+-     // Validate pixels
+-     if (!arg.validate_camera_frames && source_type == 'camera') {
+-       TEST.log("Skip copyTo result validation");
+ diff --git a/gpu/command_buffer/client/gles2_implementation.cc b/gpu/command_buffer/client/gles2_implementation.cc
+ index e4a31d45e5dece78489b79ea1cf1745bfed769df..d3a3e8b2c1e773a19d29ec90ee6d6f9aef7de635 100644
+ --- a/gpu/command_buffer/client/gles2_implementation.cc
+@@ -768,120 +685,3 @@ index a5c0f1482886f4c496c436b9981506f49949f75c..009fcd2cc56142e34c0690de7cec6cfd
+  #include "gpu/command_buffer/client/raster_implementation_unittest_autogen.h"
+  
+  }  // namespace raster
+-diff --git a/third_party/blink/web_tests/external/wpt/webcodecs/videoFrame-copyTo.any.js b/third_party/blink/web_tests/external/wpt/webcodecs/videoFrame-copyTo.any.js
+-index 7cd3c3f73cdd1e6b125a10526ce97051bf0426ab..8b8a7cd555c105922edebe5db97629e64fd1c834 100644
+---- a/third_party/blink/web_tests/external/wpt/webcodecs/videoFrame-copyTo.any.js
+-+++ b/third_party/blink/web_tests/external/wpt/webcodecs/videoFrame-copyTo.any.js
+-@@ -188,18 +188,7 @@ promise_test(async t => {
+- }, 'Test I420A stride and offset work.');
+- 
+- promise_test(async t => {
+--  const init = {
+--    format: 'NV12',
+--    timestamp: 0,
+--    codedWidth: 4,
+--    codedHeight: 2,
+--  };
+--  const buf = new Uint8Array([
+--    1, 2, 3, 4,   // y
+--    5, 6, 7, 8,
+--    9, 10, 11, 12 // uv
+--  ]);
+--  const frame = new VideoFrame(buf, init);
+-+  const frame = makeNV12_4x2();
+-   const options = {
+-       layout: [
+-           {offset: 4, stride: 4},
+-@@ -365,3 +354,92 @@ promise_test(async t => {
+- 
+-   assert_array_equals(copied_data, packed_data, `Copied frame data incorrect.`);
+- }, 'copyTo from byte data with non-default visibleRect');
+-+
+-+promise_test(async t => {
+-+  const i420_4x4 = new Uint8Array([
+-+    1,  2,  3,  4,   // y y y y
+-+    5,  6,  7,  8,   // y y y y
+-+    9,  10, 11, 12,  // y y y y
+-+    13, 14, 15, 16,  // y y y y
+-+    17, 18,          // u u
+-+    19, 20,          // u u
+-+    21, 22,          // v v
+-+    23, 24,          // v v
+-+  ]);
+-+  const frame = new VideoFrame(i420_4x4, {
+-+    format: 'I420',
+-+    timestamp: 0,
+-+    codedWidth: 4,
+-+    codedHeight: 4,
+-+  });
+-+
+-+  const options = {
+-+    layout: [
+-+      {offset: 15, stride: 5},
+-+      {offset: 1, stride: 3},
+-+      {offset: 8, stride: 3},
+-+    ],
+-+  };
+-+  const PAD = 0xAA;  // Distinct padding value so we can check for it later
+-+  const expectedData = new Uint8Array([
+-+    PAD,                    // unused
+-+    17,  18, PAD,           // u u
+-+    19,  20, PAD,           // u u
+-+    PAD,                    // unused
+-+    21,  22, PAD,           // v v
+-+    23,  24, PAD,           // v v
+-+    PAD,                    // unused
+-+    1,   2,  3,   4,  PAD,  // y y y y
+-+    5,   6,  7,   8,  PAD,  // y y y y
+-+    9,   10, 11,  12, PAD,  // y y y y
+-+    13,  14, 15,  16, PAD,  // y y y y
+-+  ]);
+-+  const size = frame.allocationSize(options);
+-+  assert_equals(size, expectedData.length, 'allocationSize()');
+-+  const data = new Uint8Array(size);
+-+  data.fill(PAD);  // Initialize array with PAD before copying into it
+-+  const layout = await frame.copyTo(data, options);
+-+  assert_layout_equals(layout, options.layout);
+-+  assert_buffer_equals(data, expectedData);
+-+}, 'Test I420 copyTo does not modify destination stride/offset padding bytes.');
+-+
+-+promise_test(async t => {
+-+  const W = 4;
+-+  const H = 4;
+-+  const src = new OffscreenCanvas(W, H);
+-+  const g = src.getContext('2d');
+-+  g.fillStyle = '#00ff00';
+-+  g.fillRect(0, 0, W, H);  // Fill 4x4 source image with all green
+-+
+-+  const frame = new VideoFrame(src, {timestamp: 0});
+-+
+-+  const offset = 5;
+-+  const stride = 20;
+-+  const options = {
+-+    layout: [
+-+      {offset, stride},
+-+    ],
+-+  };
+-+  const PAD = 0xAA;  // Distinct padding value so we can check for it later
+-+
+-+  const size = frame.allocationSize(options);
+-+  assert_equals(size, offset + stride * H, 'allocationSize()');
+-+
+-+  const expectedData = new Uint8Array(size);
+-+  expectedData.fill(PAD);
+-+  for (let y = 0; y < H; ++y) {
+-+    for (let x = 0; x < W; ++x) {
+-+      expectedData[offset + y * stride + x * 4 + 0] = 0;    // R
+-+      expectedData[offset + y * stride + x * 4 + 1] = 255;  // G
+-+      expectedData[offset + y * stride + x * 4 + 2] = 0;    // B
+-+      expectedData[offset + y * stride + x * 4 + 3] = 255;  // A
+-+    }
+-+  }
+-+
+-+  const data = new Uint8Array(size);
+-+  data.fill(PAD);  // Initialize array with PAD before copying into it
+-+  const layout = await frame.copyTo(data, options);
+-+  assert_layout_equals(layout, options.layout);
+-+  assert_buffer_equals(data, expectedData);
+-+  frame.close();
+-+}, 'Test texture-backed RGBA copyTo does not modify destination stride/offset padding bytes.');
+diff --git a/patches/v8/cherry-pick-2ef100a053c5.patch b/patches/v8/cherry-pick-2ef100a053c5.patch
+index 88fac8def3..ca3acbba12 100644
+--- a/patches/v8/cherry-pick-2ef100a053c5.patch
++++ b/patches/v8/cherry-pick-2ef100a053c5.patch
+@@ -33,73 +33,3 @@ index 94607ba803dd5430eefe42cfa17dc375ffc2cf95..63e35c01a89f309dde40da05d5a9b039
+  
+    if (owns_cache_entry_) {
+      GetWasmEngine()->StreamingCompilationFailed(
+-diff --git a/test/unittests/wasm/streaming-decoder-unittest.cc b/test/unittests/wasm/streaming-decoder-unittest.cc
+-index 26494f8be4cec4b05f16722b7eddcd73486fbf77..8177a1ad3689b264da9de7e8f3cd8b060d9e61f8 100644
+---- a/test/unittests/wasm/streaming-decoder-unittest.cc
+-+++ b/test/unittests/wasm/streaming-decoder-unittest.cc
+-@@ -2,16 +2,13 @@
+- // Use of this source code is governed by a BSD-style license that can be
+- // found in the LICENSE file.
+- 
+--#include "test/unittests/test-utils.h"
+--
+--#include "src/objects/objects-inl.h"
+--
+--#include "src/wasm/module-decoder.h"
+- #include "src/wasm/streaming-decoder.h"
+- 
+--#include "src/objects/descriptor-array.h"
+--#include "src/objects/dictionary.h"
+-+#include "src/wasm/module-decoder.h"
+-+#include "src/wasm/wasm-engine.h"
+-+#include "test/common/flag-utils.h"
+- #include "test/common/wasm/wasm-macro-gen.h"
+-+#include "test/unittests/test-utils.h"
+- 
+- namespace v8 {
+- namespace internal {
+-@@ -661,6 +658,44 @@ TEST_F(WasmStreamingDecoderTest, InvalidSectionCode) {
+-   ExpectFailure(base::ArrayVector(data));
+- }
+- 
+-+class EmptyResolver : public CompilationResultResolver {
+-+ public:
+-+  void OnCompilationSucceeded(DirectHandle<WasmModuleObject> module) override {}
+-+  void OnCompilationFailed(DirectHandle<JSAny> error_reason) override {}
+-+};
+-+
+-+using WasmStreamingCompilationTest = TestWithNativeContext;
+-+
+-+TEST_F(WasmStreamingCompilationTest, ContextDisposeDuringValidation) {
+-+  FlagScope<bool> async_compilation(&v8_flags.wasm_async_compilation, true);
+-+  FlagScope<bool> lazy_compilation(&v8_flags.wasm_lazy_compilation, true);
+-+
+-+  std::shared_ptr<EmptyResolver> resolver = std::make_shared<EmptyResolver>();
+-+  WasmEnabledFeatures features = WasmEnabledFeatures::FromIsolate(isolate());
+-+
+-+  std::shared_ptr<StreamingDecoder> stream =
+-+      GetWasmEngine()->StartStreamingCompilation(
+-+          features, CompileTimeImports{}, "WebAssembly.compileStreaming()",
+-+          resolver);
+-+  stream->InitializeIsolateSpecificInfo(isolate());
+-+
+-+  const uint8_t data[] = {
+-+      0x00, 0x61, 0x73, 0x6d,  // wasm magic
+-+      0x01, 0x00, 0x00, 0x00,  // wasm version
+-+      0x01, 0x04,              // Type section, length: 4
+-+      0x01, 0x60, 0x00, 0x00,  // One type, signature, no params, no results
+-+      0x03, 0x02,              // Function section, length: 2
+-+      0x01, 0x00,              // One function, type $sig0
+-+      0x0a, 0x04,              // Code section, length: 4
+-+      0x01, 0x02, 0x00, 0x0b,  // One function, length: 2, unreachable, end
+-+  };
+-+
+-+  stream->OnBytesReceived(base::VectorOf(data));
+-+
+-+  // Dispose context. This triggered crbug.com/523030583 before the fix.
+-+  v8_isolate()->ContextDisposedNotification(ContextDependants::kNoDependants);
+-+}
+-+
+- }  // namespace wasm
+- }  // namespace internal
+- }  // namespace v8
+diff --git a/patches/v8/cherry-pick-5fbdbd64abfc.patch b/patches/v8/cherry-pick-5fbdbd64abfc.patch
+index a541f76d80..c47ab60f86 100644
+--- a/patches/v8/cherry-pick-5fbdbd64abfc.patch
++++ b/patches/v8/cherry-pick-5fbdbd64abfc.patch
+@@ -75,39 +75,3 @@ index fd43d7a95ae64620e8d067d64f6a5f72d8dd25aa..b6d9a3f0fd85400f5da21f06bfc8e399
+    for (int i = 0; i < state_values->InputCount(); i++) {
+      Node* input = state_values->InputAt(i);
+      Node* processed;
+-diff --git a/test/mjsunit/compiler/regress-558734727.js b/test/mjsunit/compiler/regress-558734727.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..4642ee510de98904afd2479ec73aea9a899f8d41
+---- /dev/null
+-+++ b/test/mjsunit/compiler/regress-558734727.js
+-@@ -0,0 +1,30 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --turbofan --allow-natives-syntax
+-+
+-+function f1(a, b) { return a + b + 1; }
+-+function f2(a, b) { return a + b + 2; }
+-+
+-+function test(cond) {
+-+  var f = cond ? f1 : f2;
+-+  var v0 = f;
+-+  var v1 = 1, v2 = 2, v3 = 3, v4 = 4, v5 = 5, v6 = 6, v7 = 7;
+-+  var v8 = (v1 ? f : f);
+-+  var v9 = 9, v10 = 10, v11 = 11, v12 = 12, v13 = 13, v14 = 14, v15 = 15;
+-+  var res = f(v1, v15);
+-+  var temp0 = v0;
+-+  temp0 = 0;
+-+  var temp8 = v8;
+-+  return res + v1 + v2 + v3 + v4 + v5 + v6 + v7 + v9 + v10 + v11 + v12 + v13 + v14 + v15;
+-+}
+-+
+-+%PrepareFunctionForOptimization(f1);
+-+%PrepareFunctionForOptimization(f2);
+-+%PrepareFunctionForOptimization(test);
+-+assertEquals(129, test(true));
+-+assertEquals(130, test(false));
+-+%OptimizeFunctionOnNextCall(test);
+-+assertEquals(129, test(true));
+-+assertEquals(130, test(false));
+diff --git a/patches/v8/cherry-pick-65acd1f04328.patch b/patches/v8/cherry-pick-65acd1f04328.patch
+index 2f992fb2e3..2f7b8959b5 100644
+--- a/patches/v8/cherry-pick-65acd1f04328.patch
++++ b/patches/v8/cherry-pick-65acd1f04328.patch
+@@ -58,18 +58,6 @@ index 53365a87df9699abb484ec082f84a2ebf75694f4..174b1dc505aef8979eaa93f98a656f60
+  }
+  
+  void WasmLiftoffSetupFrame::Iterate(RootVisitor* v) const {
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index 79c3c64a4c4fe463f9ea8fb56510975b242c04d4..b31d424a71fd5ddbfd6282df9f0c7b6efdb063a3 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -3218,6 +3218,7 @@
+-   'regress/wasm/regress-392928805': [SKIP],
+-   'regress/wasm/regress-406043349': [SKIP],
+-   'regress/wasm/regress-413963387': [SKIP],
+-+  'regress/wasm/regress-562455563': [SKIP],
+-   'wasm/interrupt-worker-with-perf': [SKIP],
+-   'wasm/liftoff-trap-handler': [SKIP],
+-   'wasm/log-code-after-post-message': [SKIP],
+ diff --git a/test/mjsunit/regress/wasm/regress-562455563.js b/test/mjsunit/regress/wasm/regress-562455563.js
+ new file mode 100644
+ index 0000000000000000000000000000000000000000..28f82f984a59b7acc7a1a9cbba26fde79a6a5482
+diff --git a/patches/v8/cherry-pick-7e94f5ffc104.patch b/patches/v8/cherry-pick-7e94f5ffc104.patch
+index d6c8ba62fa..72d93ba483 100644
+--- a/patches/v8/cherry-pick-7e94f5ffc104.patch
++++ b/patches/v8/cherry-pick-7e94f5ffc104.patch
+@@ -65,19 +65,6 @@ index 228df2557eaf5de416695d92b7a278b01e7035fa..9ad29411963c391bd0708354877ac0cf
+    // The call could modify arbitrary memory, so we invalidate every
+    // potentially-aliasing object.
+    memory_.InvalidateMaybeAliasing();
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index 071dbb3f84883480cf57b3d25bfe9356d88df445..0d11bf60fb69876f848a01812ab4604c8c9eecf1 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -73,6 +73,8 @@
+-   # Requires throwing exception due to stack overflow.
+-   'maglev/regress-421228426': [PASS, SLOW, ['mode == debug', SKIP]],
+- 
+-+  'turboshaft/regress-554421904': [PASS, SLOW],
+-+
+-   # https://crbug.com/1129854
+-   'tools/log': ['arch == arm or arch == arm64', SKIP],
+- 
+ diff --git a/test/mjsunit/turboshaft/regress-554421904.js b/test/mjsunit/turboshaft/regress-554421904.js
+ new file mode 100644
+ index 0000000000000000000000000000000000000000..1635e70d6de40cce6a27d35da11826e7f5185538
+diff --git a/patches/v8/cherry-pick-ca70b76aefb1.patch b/patches/v8/cherry-pick-ca70b76aefb1.patch
+index 25f87c145e..ccfcf0b455 100644
+--- a/patches/v8/cherry-pick-ca70b76aefb1.patch
++++ b/patches/v8/cherry-pick-ca70b76aefb1.patch
+@@ -65,18 +65,6 @@ index ad653dde2b2a274a345ec55ba4cbb8b0170bd5fb..e7992601c6f7ab30db7ae83eba868d54
+   private:
+    friend class StackFrameIteratorBase;
+  };
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index 0d11bf60fb69876f848a01812ab4604c8c9eecf1..79c3c64a4c4fe463f9ea8fb56510975b242c04d4 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -2692,6 +2692,7 @@
+-   'regress/wasm/regress-349640002': [SKIP],
+-   'regress/wasm/regress-455832038': [SKIP],
+-   'regress/wasm/regress-483269968': [SKIP],
+-+  'regress/wasm/regress-560536735': [SKIP],
+-   'compiler/regress-347724915': [SKIP],
+-   'regress/regress-crbug-418520151': [SKIP],
+-   'regress/regress-535000102': [SKIP],
+ diff --git a/test/mjsunit/regress/wasm/regress-560536735.js b/test/mjsunit/regress/wasm/regress-560536735.js
+ new file mode 100644
+ index 0000000000000000000000000000000000000000..569637fd54865a06bc095ef3ba47411fadb6062e
+diff --git a/patches/angle/cherry-pick-5bfb3c83c16f.patch b/patches/angle/cherry-pick-5bfb3c83c16f.patch
+index ce2f646a82..9538002c10 100644
+--- a/patches/angle/cherry-pick-5bfb3c83c16f.patch
++++ b/patches/angle/cherry-pick-5bfb3c83c16f.patch
+@@ -39,71 +39,6 @@ index 427360b488d6fffe6a3358faf19ad41e7a0cd099..ce845f001775124843b506b0f8807f4b
+  
+          srcImage->resolve(renderer, &dstImage, resolveRegion, commandBuffer);
+  
+-diff --git a/src/tests/angle_end2end_tests_expectations.txt b/src/tests/angle_end2end_tests_expectations.txt
+-index 8fa6050ebc6de52f6869a93c4b640fc2787dffab..8d060e5b2990721e6cc12074a3515b9a4325e38c 100644
+---- a/src/tests/angle_end2end_tests_expectations.txt
+-+++ b/src/tests/angle_end2end_tests_expectations.txt
+-@@ -321,6 +321,12 @@
+- // NVIDIA's glCopyImageSubData may be broken
+- 534923522 NVIDIA OPENGL : Texture2DTestES3_NonZeroBaseLevelGenMipmaps.VerifyMipmapContents/* = SKIP
+- 534923522 NVIDIA GLES : Texture2DTestES3_NonZeroBaseLevelGenMipmaps.VerifyMipmapContents/* = SKIP
+-+// Test cannot run when ASTC is emulated
+-+525079760 NVIDIA VULKAN : ImageTestES3.NonZeroLevel*GetCompressedTexImage/* = SKIP
+-+536046166 NVIDIA VULKAN : FramebufferTest_ES31.MultisampleResolveWithBlitIntoMixedTextures/* = SKIP
+-+536046166 NVIDIA VULKAN : FramebufferTest_ES31.MultisampleResolveWithBlitIntoMixedTexturesAfterFinish/* = SKIP
+-+536046166 NVIDIA VULKAN : FramebufferTest_ES31_MSAA.MultisampleResolveWithBlitIntoMixedTextures/* = SKIP
+-+536046166 NVIDIA VULKAN : FramebufferTest_ES31_MSAA.MultisampleStencilSampling/*EmulatedPrerotation* = SKIP
+- 42265709 NVIDIA VULKAN : GLSLTest_ES31.TessellationControlShaderMatrixCopyBug/* = SKIP
+- 42265709 NVIDIA VULKAN : GLSLTest_ES31.TessellationControlShaderMatrixMultiplicationBug/* = SKIP
+- 
+-@@ -361,6 +367,10 @@
+- 40096893 LINUX INTEL VULKAN : TextureBufferTestES31.TexBufferFormatMismatch/* = SKIP
+- // RobustBufferAccess is not actually robust (will hang).
+- 435228814 LINUX INTEL VULKAN : RobustBufferAccessBehaviorTest.DynamicBufferCrash/* = SKIP
+-+536046166 INTEL VULKAN : FramebufferTest_ES31.MultisampleResolveWithBlitIntoMixedTextures/* = SKIP
+-+536046166 INTEL VULKAN : FramebufferTest_ES31.MultisampleResolveWithBlitIntoMixedTexturesAfterFinish/* = SKIP
+-+536046166 INTEL VULKAN : FramebufferTest_ES31_MSAA.MultisampleResolveWithBlitIntoMixedTextures/* = SKIP
+-+536046166 WIN INTEL VULKAN : FramebufferTest_ES31_MSAA.MultisampleStencilSampling/*EmulatedPrerotation* = SKIP
+- 
+- // Robust init of OOB framebuffer reads is not zero'd
+- 500528706 VULKAN : CopyTexImageTestRobustResourceInit.OOBReadShouldBeZeroInit/* = SKIP
+-@@ -732,6 +742,11 @@
+- 384314370 PIXEL4ORXL GLES : FramebufferFetchES31.WriteOnlyInOutVariableEarlyReturn/* = SKIP
+- 384314370 PIXEL4ORXL GLES : FramebufferFetchES31.WriteOnlyInOutVariablePartial/* = SKIP
+- 384314370 PIXEL4ORXL GLES : FramebufferFetchES31.WriteOnlyInOutVariableInOutArgument/* = SKIP
+-+536042538 PIXEL4ORXL GLES : FramebufferTest_ES31.MultisampleResolveWithBlitInto3DTexture/* = SKIP
+-+536042538 PIXEL4ORXL GLES : FramebufferTest_ES31.MultisampleResolveWithBlitIntoMixedTextures/* = SKIP
+-+536042538 PIXEL4ORXL GLES : FramebufferTest_ES31.MultisampleResolveWithBlitIntoMixedTexturesAfterFinish/* = SKIP
+-+536042538 PIXEL4ORXL GLES : FramebufferTest_ES31_MSAA.MultisampleResolveWithBlitInto3DTexture/* = SKIP
+-+536042538 PIXEL4ORXL GLES : FramebufferTest_ES31_MSAA.MultisampleResolveWithBlitIntoMixedTextures/* = SKIP
+- 42264513 PIXEL4ORXL GLES : GLSLTest.NestedInoutVars2/* = SKIP
+- 42264513 PIXEL4ORXL GLES : GLSLTest.NestedInoutVars3/* = SKIP
+- 42264513 PIXEL4ORXL GLES : SimpleUniformTestES3.TernarySelectAnArrayThenIndex/* = SKIP
+-@@ -806,6 +821,7 @@
+- 40096826 PIXEL6 VULKAN : FramebufferMultiviewLayeredClearTest.ScissoredClearBufferfi/* = SKIP
+- 40096826 PIXEL6 VULKAN : FramebufferTest_ES31.MultipleTextureMultisampleResolveWithBlitMultipleResolves* = SKIP
+- 40096826 PIXEL6 VULKAN : FramebufferTest_ES31.MultisampleResolveWithBlitThenDrawAttachment1/* = SKIP
+-+536046166 PIXEL6 VULKAN : FramebufferTest_ES31.MultisampleResolveWithBlitInto3DTexture/* = SKIP
+- 40096826 PIXEL6 VULKAN : GLSLTest.PointCoordConsistency/* = SKIP
+- 40096826 PIXEL6 VULKAN : GLSLTest_ES31.ArraysOfArraysImage/* = SKIP
+- 40096826 PIXEL6 VULKAN : GLSLTest_ES31.BoolInInterfaceBlocks/* = SKIP
+-@@ -1003,6 +1019,8 @@
+- 480069042 PIXEL10 GLES : FramebufferTest_ES31.DepthStencilResolveThenDrawWithoutResolve/* = SKIP
+- 480069042 PIXEL10 GLES : FramebufferTest_ES31.MixesMultisampleTextureRenderbuffer/* = SKIP
+- 480069042 PIXEL10 GLES : FramebufferTest_ES31.MultisampleDepthStencilResolveMultipleTimesWithDrawInBetween/* = SKIP
+-+536042538 PIXEL10 GLES : FramebufferTest_ES31.MultisampleResolveWithBlitInto3DTexture/* = SKIP
+-+379700129 PIXEL10 GLES : FramebufferTest_ES31_MSAA.MultisampleStencilSampling/* = SKIP
+- 480069042 PIXEL10 GLES : GLSLConstantFoldingTest_ES31.NamedArrayOfArrayIndex/* = SKIP
+- 480069042 PIXEL10 GLES : GLSLTest.NestedStructsWithSamplersAsFunctionArg/* = SKIP
+- 480069042 PIXEL10 GLES : GLSLTest.SwizzledChainedAssign/* = SKIP
+-@@ -1255,6 +1273,7 @@
+- 480069042 PIXEL10 VULKAN : ExternalBufferTestES31.SubDataDoesNotCauseOrphaning/* = SKIP
+- 480069042 PIXEL10 VULKAN : ExternalBufferTestES31.getBufferParameter/* = SKIP
+- 480069042 PIXEL10 VULKAN : FramebufferTest_ES31.DepthStencilResolveThenDrawWithoutResolve/* = SKIP
+-+536046166 PIXEL10 VULKAN : FramebufferTest_ES31.MultisampleResolveWithBlitInto3DTexture/* = SKIP
+- 480069042 PIXEL10 VULKAN : GLSLTest_ES31.ArrayOfArrayOfSamplerDynamicIndexEXT/* = SKIP
+- 480069042 PIXEL10 VULKAN : GLSLTest_ES31.ArrayOfArrayOfSamplerDynamicIndexOES/* = SKIP
+- 480069042 PIXEL10 VULKAN : GLSLTest_ES31.ArrayOfArrayOfSamplerInStructDynamicIndex/* = SKIP
+ diff --git a/src/tests/gl_tests/FramebufferTest.cpp b/src/tests/gl_tests/FramebufferTest.cpp
+ index 52123c0bee672aa5bb72e09c2931b0d5c6569898..125fbc4092bb367e72fc8373b2094c53236cd912 100644
+ --- a/src/tests/gl_tests/FramebufferTest.cpp
+diff --git a/patches/angle/cherry-pick-8521722b7ebc.patch b/patches/angle/cherry-pick-8521722b7ebc.patch
+index 35201ed152..be882659a1 100644
+--- a/patches/angle/cherry-pick-8521722b7ebc.patch
++++ b/patches/angle/cherry-pick-8521722b7ebc.patch
+@@ -151,83 +151,6 @@ index eebbab02e69f082a68a3b94ee63f1fd078ec7238..64cb203eb4267809a3e59b76456a4e0d
+  
+  }  // namespace sh
+  
+-diff --git a/src/tests/angle_end2end_tests_expectations.txt b/src/tests/angle_end2end_tests_expectations.txt
+-index 8cccdef36dc9f0373a450a55bee776d0214aec81..5aa7fb8c37413aecb8f4ee4280de47edb584f95b 100644
+---- a/src/tests/angle_end2end_tests_expectations.txt
+-+++ b/src/tests/angle_end2end_tests_expectations.txt
+-@@ -527,6 +527,8 @@
+- 518849408 MAC OPENGL : GLSLTest.EmulateGLFragColorBroadcastInvariantFragColorUnused/* = SKIP
+- 524008572 MAC METAL : VertexAttributeTestES3.LargeAttribPointerOffsetNoCrash/* = SKIP
+- 534815900 MAC METAL : TextureCubeTestES3.RedefinedCubemapLevelsOnlyFaceZeroCompatible/* = SKIP
+-+536936861 MAC METAL : ClipDistance*.ThreeClipDistancesRedeclaredAndPassedToFunction/* = SKIP
+-+537814733 MAC METAL : WebGLGLSLTest.FragDataIndexClampWithoutDrawBuffers/* = SKIP
+- 
+- // The workaround is not intended to be enabled in this configuration so
+- // skip it as the failure is likely a driver bug.
+-@@ -1261,6 +1263,55 @@
+- 512394647 PIXEL10 GLES : MipmapTestES3.GenerateMipmapLargeNPOTTexture/* = SKIP
+- 512394647 PIXEL10 GLES : RobustBufferAccessBehaviorTest.OutOfBoundsArrayBuffers/* = SKIP
+- 512394647 PIXEL10 GLES : WebGLCompatibilityTest.EXTBlendFuncExtendedMissingOutputsWithAllChannelsMaskedOut/* = SKIP
+-+519218481 PIXEL10 GLES : MSRTTES3Test.CubeMap/* = SKIP
+-+519218481 PIXEL10 GLES : MSRTTES3Test.CubeMapMultipleAttachments/* = SKIP
+-+522247737 PIXEL10 GLES : MSRTTES3Test.DrawDisabled/* = SKIP
+-+522247737 PIXEL10 GLES : MSRTTES3Test.DrawDisabledThenDraw/* = SKIP
+-+522247737 PIXEL10 GLES : MSRTTES3Test.DrawThenDrawDisabled/* = SKIP
+-+533314333 PIXEL10 GLES : MSRTTES3Test.RenderToTextureDepthOnly/* = SKIP
+-+533314333 PIXEL10 GLES : MSRTTES3Test.RenderToTextureStencilOnly/* = SKIP
+-+523128541 PIXEL10 GLES : BufferDataTestES3.CopyBufferSubDataSelfDependency/* = SKIP
+-+523128541 PIXEL10 GLES : ComputeShaderTest.SSBOAliasOverWrite/* = SKIP
+-+523128541 PIXEL10 GLES : GLSLTest_ES3.LargeConstGlobalArraysOfStructs/* = SKIP
+-+523128541 PIXEL10 GLES : ShaderStorageBufferTest31.ComputeShaderWriteThenGraphicsShaderWrite/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsMatrix/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsMatrixAndInstanced/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsMixStructFloatAndMat4/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsMixStructFloatAndVec3/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsMixStructFloatAndVec4/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsMixStructMat4AndFloat/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsMixStructVec2AndVec3/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsMixStructVec3AndFloat/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsStruct/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsStructAndInstanced/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsStructAndInstancedArray/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.MemberTypeIsVec4/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.SharedSameBufferWithOtherOne/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.TwoUniformBlocksInDiffProgram/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBlockWithOneLargeArrayMemberTest.TwoUniformBlocksInSameProgram/* = SKIP
+-+523128541 PIXEL10 GLES : UniformBufferTest.SameBufferDifferentMetalSize/* = SKIP
+-+526503288 PIXEL10 GLES : BaseInstanceOverflowTest.BaseInstanceOverflow2/ES3_OpenGLES_AlwaysEnableEmulatedMultidrawExtensions = SKIP
+-+516824665 PIXEL10 GLES : Texture2DTest.InvalidFormatTypeCombosShouldFail/* = SKIP
+-+516824665 PIXEL10 GLES : Texture2DTest.FormatRGB10A2REVToRGB565/* = SKIP
+-+516824665 PIXEL10 GLES : Texture2DTest.FormatRGB10A2REVToRGB5A1/* = SKIP
+-+516824665 PIXEL10 GLES : Texture2DTest.FormatRGB10A2REVToRGB8/* = SKIP
+-+516824665 PIXEL10 GLES : Texture2DTestES3.InvalidFormatTypeCombosShouldFail/* = SKIP
+-+516824665 PIXEL10 GLES : Texture2DTestES3.FormatRGB10A2REVToRGB5A1/* = SKIP
+-+525786155 PIXEL10 GLES : PbufferTestES3.ImportImageThenBindTexImageShouldOrphan/* = SKIP
+-+525786155 PIXEL10 GLES : PbufferTestES3.ImportImageThenBindTexImageSourceShouldOrphan/* = SKIP
+-+525786155 PIXEL10 GLES : PbufferTestES3.BindRedefinesAllMips/* = SKIP
+-+526518127 PIXEL10 GLES : ImageTestES3.MipLevelsNonZeroBaseLevel/* = SKIP
+-+526518127 PIXEL10 GLES : ImageTestES3.NonZeroLevel*/* = SKIP
+-+526518127 PIXEL10 GLES : ImageTestES3RobustInit.NonZeroLevel*/* = SKIP
+-+533059467 PIXEL10 GLES : TextureTestES31.ComputeShaderLoadPartiallyBoundImageUnits/* = SKIP
+-+533059467 PIXEL10 GLES : TextureTestES31.FragmentShaderLoadUnboundImageUnits/* = SKIP
+-+535213600 PIXEL10 GLES : PbufferTest.BindTexImageAndCopyTexImageSrc/* = SKIP
+-+535213600 PIXEL10 GLES : PbufferTest.BindTexImageAndCopyTexSubImageDst/* = SKIP
+-+535213600 PIXEL10 GLES : PbufferTestES3.BindTexImageAndCopyTexSubTextureDst/* = SKIP
+-+535213600 PIXEL10 GLES : PbufferTestES3.BindTexImageAndCopyTexSubTextureInvertedDst/* = SKIP
+-+535213600 PIXEL10 GLES : PbufferTestES3.BindTexImageAndCopyTextureInvertedSrc/* = SKIP
+-+535213600 PIXEL10 GLES : PbufferTestES3.BindTexImageAndCopyTextureSrc/* = SKIP
+-+537235694 PIXEL10 GLES : WebGLGLSLTest.FragDataIndexClampWithoutDrawBuffers/* = SKIP
+- 
+- 480069042 PIXEL10 VULKAN : ClearTextureEXTTestES31Unrenderable.Clear/ES3_1_Vulkan*__GL_RG16_SNORM_EXT_GL_RG_GL_SHORT_GL_TEXTURE_2D_ARRAY = SKIP
+- 480069042 PIXEL10 VULKAN : ClearTextureEXTTestES31Unrenderable.Clear/ES3_1_Vulkan*__GL_RGB32UI_GL_RGB_INTEGER_GL_UNSIGNED_INT_GL_TEXTURE_2D_ARRAY = SKIP
+-@@ -2449,6 +2500,7 @@
+- 42267100 WGPU : GLSLTest.FragCoordConsistency/* = SKIP
+- 42267100 WGPU : GLSLTest.FragData/* = SKIP
+- 42267100 WGPU : GLSLTest.FragData_AlphaToCoverage/* = SKIP
+-+42267100 WGPU : WebGLGLSLTest.FragDataIndexClampWithoutDrawBuffers/* = SKIP
+- 42267100 WGPU : GLSLTest.SeparateStructDeclaratorStructInStruct/* = SKIP
+- 42267100 WGPU : GLSLTest.ConstructorinSequenceOperator/* = SKIP
+- 42267100 WGPU : GLSLTest.VectorAndMatrixScalarizationDoesNotAffectRendering/* = SKIP
+ diff --git a/src/tests/gl_tests/GLSLTest.cpp b/src/tests/gl_tests/GLSLTest.cpp
+ index 5fb13ddde836fb35609e62aeddfb307efdea8f3b..a1179b297e29d3d29b5cfc7ec648087045a3eda1 100644
+ --- a/src/tests/gl_tests/GLSLTest.cpp
+diff --git a/patches/v8/cherry-pick-ae2e215c3868.patch b/patches/v8/cherry-pick-ae2e215c3868.patch
+index 7b332aa489..281a886095 100644
+--- a/patches/v8/cherry-pick-ae2e215c3868.patch
++++ b/patches/v8/cherry-pick-ae2e215c3868.patch
+@@ -56,34 +56,3 @@ index 97df92c292c064edb09e21b65cee7ded48c70d7a..17550efc44ef0d25a4a2f9ab6bc7af6b
+    return OFFSET_OF_DATA_START(FeedbackVector) + length * kTaggedSize;
+  }
+  constexpr int FeedbackVector::OffsetOfElementAt(int index) {
+-diff --git a/test/unittests/objects/feedback-vector-unittest.cc b/test/unittests/objects/feedback-vector-unittest.cc
+-index 8bf91f75cbc40598f8b1269182a4a8decf79efb5..45f4acdce4cf39b90501f0ff73fe62f2d2c33518 100644
+---- a/test/unittests/objects/feedback-vector-unittest.cc
+-+++ b/test/unittests/objects/feedback-vector-unittest.cc
+-@@ -770,5 +770,26 @@ TEST_F(FeedbackVectorTest, DefineNamedOwnIC) {
+-   CHECK_EQ(InlineCacheState::MONOMORPHIC, nexus.ic_state());
+- }
+- 
+-+TEST_F(FeedbackVectorTest, MaxLengthAndSizeFor) {
+-+  static_assert(FeedbackVector::SizeFor(0) == FeedbackVector::kHeaderSize);
+-+  static_assert(FeedbackVector::SizeFor(10) ==
+-+                FeedbackVector::kHeaderSize + 10 * kTaggedSize);
+-+  static_assert(FeedbackVector::SizeFor(FeedbackVector::kMaxLength) ==
+-+                FeedbackVector::kHeaderSize +
+-+                    FeedbackVector::kMaxLength * kTaggedSize);
+-+
+-+  EXPECT_EQ(FeedbackVector::kHeaderSize, FeedbackVector::SizeFor(0));
+-+  EXPECT_EQ(FeedbackVector::kHeaderSize + 10 * kTaggedSize,
+-+            FeedbackVector::SizeFor(10));
+-+  EXPECT_EQ(
+-+      FeedbackVector::kHeaderSize + FeedbackVector::kMaxLength * kTaggedSize,
+-+      FeedbackVector::SizeFor(FeedbackVector::kMaxLength));
+-+
+-+  ASSERT_DEATH_IF_SUPPORTED({ FeedbackVector::SizeFor(-1); }, ".*");
+-+  ASSERT_DEATH_IF_SUPPORTED(
+-+      { FeedbackVector::SizeFor(FeedbackVector::kMaxLength + 1); }, ".*");
+-+  ASSERT_DEATH_IF_SUPPORTED({ FeedbackVector::SizeFor(1 << 30); }, ".*");
+-+}
+-+
+- }  // namespace internal
+- }  // namespace v8
+diff --git a/patches/angle/cherry-pick-1b3a0894ee53.patch b/patches/angle/cherry-pick-1b3a0894ee53.patch
+index 90044913eb..4a998a2ee9 100644
+--- a/patches/angle/cherry-pick-1b3a0894ee53.patch
++++ b/patches/angle/cherry-pick-1b3a0894ee53.patch
+@@ -67,415 +67,3 @@ index 9f2b7c6dcee1e938d6828818bc6755ed09bd7e42..631c85c9322db2f774be3d1e9ad281fd
+  
+      return angle::Result::Continue;
+  }
+-diff --git a/src/tests/angle_end2end_tests_expectations.txt b/src/tests/angle_end2end_tests_expectations.txt
+-index 5aa7fb8c37413aecb8f4ee4280de47edb584f95b..0b5ce694c409cffeee05f47ceed4f0ee19fb19cc 100644
+---- a/src/tests/angle_end2end_tests_expectations.txt
+-+++ b/src/tests/angle_end2end_tests_expectations.txt
+-@@ -31,6 +31,10 @@
+- // Fails in Android with EGL_BAD_ALLOC
+- 374797737 : EGLSurfaceTest.CreateMultiWindowsSurfaceNoDestroy/* = SKIP
+- 
+-+// Generate mipmap or draw on mismatched stale levels fails on some OpenGL/GLES drivers when robust init is enabled
+-+532617619 OPENGL : Texture2DTestES3RobustInit.MismatchedStaleLevel*/* = SKIP
+-+532617619 GLES : Texture2DTestES3RobustInit.MismatchedStaleLevel*/* = SKIP
+-+
+- 381742474 : ShaderStorageBufferTest31.ExceedMaxShaderStorageBlockSize/* = SKIP
+- 
+- // Vulkan color attachment incorrectly configured when GL_RASTERIZER_DISCARD is enabled and no glClear is issued.
+-diff --git a/src/tests/gl_tests/TextureTest.cpp b/src/tests/gl_tests/TextureTest.cpp
+-index 64ec59c5c71b18d3c9a1989bdf8012853291c2cc..f7ac21d4a60c4d4238a8dbf75c3a100bbd09963f 100644
+---- a/src/tests/gl_tests/TextureTest.cpp
+-+++ b/src/tests/gl_tests/TextureTest.cpp
+-@@ -21158,6 +21158,163 @@ void main()
+-     EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::cyan);
+- }
+- 
+-+// Test that robust initialization of a mismatched stale texture level during generateMipmap
+-+// succeeds and does not cause a crash/OOB read.
+-+TEST_P(Texture2DTestES3RobustInit, MismatchedStaleLevelGenerateMipmap)
+-+{
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+
+-+    glTexImage2D(GL_TEXTURE_2D, 1, GL_R8, 2, 16, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+-+
+-+    std::vector<GLColor> redData(16 * 128, GLColor::red);
+-+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 16, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+-+                 reinterpret_cast<const GLubyte *>(redData.data()));
+-+
+-+    glGenerateMipmap(GL_TEXTURE_2D);
+-+
+-+    GLFramebuffer fbo;
+-+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+-+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 1);
+-+    EXPECT_GL_NO_ERROR();
+-+    EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::red);
+-+}
+-+
+-+// Test that robust initialization of a mismatched stale texture level during generateMipmap
+-+// succeeds and does not cause a crash/OOB read, even when the base level is shifted by N.
+-+TEST_P(Texture2DTestES3RobustInit, MismatchedStaleLevelGenerateMipmapBaseLevel2)
+-+{
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+
+-+    // Set base level to 2. Level 3 is uninitialized/stale with mismatched dimensions.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 2);
+-+
+-+    glTexImage2D(GL_TEXTURE_2D, 3, GL_R8, 2, 16, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+-+
+-+    std::vector<GLColor> redData(16 * 128, GLColor::red);
+-+    glTexImage2D(GL_TEXTURE_2D, 2, GL_RGBA8, 16, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+-+                 reinterpret_cast<const GLubyte *>(redData.data()));
+-+
+-+    glGenerateMipmap(GL_TEXTURE_2D);
+-+
+-+    GLFramebuffer fbo;
+-+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+-+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 3);
+-+    EXPECT_GL_NO_ERROR();
+-+    EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::red);
+-+}
+-+
+-+// Test that robust initialization of a mismatched stale texture level during a draw call succeeds
+-+// and does not cause a crash.
+-+TEST_P(Texture2DTestES3RobustInit, MismatchedStaleLevelDraw)
+-+{
+-+    setUpProgram();
+-+
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+
+-+    glTexImage2D(GL_TEXTURE_2D, 1, GL_R8, 2, 16, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+-+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 16, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+-+
+-+    // Set min filter to linear (no mipmaps) and max level to 0.
+-+    // This makes the texture sampler-complete, so it is active during draw,
+-+    // but level 1 is still robust-initialized because it is dirty.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+-+
+-+    // Draw using the texture to trigger state sync and robust initialization on all levels.
+-+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+-+    glClear(GL_COLOR_BUFFER_BIT);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_GL_NO_ERROR();
+-+    EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::transparentBlack);
+-+
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+-+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+-+    glClear(GL_COLOR_BUFFER_BIT);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_GL_NO_ERROR();
+-+    EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::black);
+-+}
+-+
+-+// Test that robust initialization of a mismatched stale texture level of the same size as level 0
+-+// during a draw call succeeds and does not cause a crash/undefined behavior.
+-+TEST_P(Texture2DTestES3RobustInit, MismatchedStaleLevelSameSizeDraw)
+-+{
+-+    setUpProgram();
+-+
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+
+-+    glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 16, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+-+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 16, 128, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+-+
+-+    // Set min filter to linear (no mipmaps) and max level to 0.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+-+
+-+    // Draw using the texture to trigger state sync and robust initialization on all levels.
+-+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+-+    glClear(GL_COLOR_BUFFER_BIT);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_GL_NO_ERROR();
+-+    EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::transparentBlack);
+-+
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+-+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+-+    glClear(GL_COLOR_BUFFER_BIT);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_GL_NO_ERROR();
+-+    EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::transparentBlack);
+-+}
+-+
+-+// Test that robust initialization of a mismatched stale compressed texture level
+-+// during a draw call succeeds and does not crash (verifies the staging/updateSubresourceLevel
+-+// path).
+-+TEST_P(Texture2DTestES3RobustInit, MismatchedStaleLevelCompressedDraw)
+-+{
+-+    setUpProgram();
+-+
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+
+-+    // ETC2/EAC compressed block size is 4x4.
+-+    // Level 1: 8x8 size (4 blocks), size = 32 bytes for EAC R11.
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_R11_EAC, 8, 8, 0, 32, nullptr);
+-+    // Level 0: 8x8 size (4 blocks), size = 32 bytes for EAC R11.
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_R11_EAC, 8, 8, 0, 32, nullptr);
+-+
+-+    // Set min filter to linear (no mipmaps) and max level to 0.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+-+
+-+    // Draw using the texture to trigger state sync and robust initialization on all levels.
+-+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+-+    glClear(GL_COLOR_BUFFER_BIT);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_GL_NO_ERROR();
+-+    // EAC R11 is a red-channel compressed format, robust init will clear it to zero.
+-+    EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::black);
+-+
+-+    // Change BASE/MAX to 1, clear+draw again and make sure that's also correct (EAC red format =
+-+    // black).
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+-+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+-+    glClear(GL_COLOR_BUFFER_BIT);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_GL_NO_ERROR();
+-+    EXPECT_PIXEL_COLOR_EQ(0, 0, GLColor::black);
+-+}
+- // Use this to select which configurations (e.g. which renderer, which GLES major version) these
+- // tests should be run against.
+- #define ES2_EMULATE_COPY_TEX_IMAGE_VIA_SUB()             \
+-@@ -22008,6 +22165,228 @@ TEST_P(Texture2DTestES3_NonZeroBaseLevelGenMipmaps, VerifyMipmapContents)
+-     EXPECT_GL_NO_ERROR();
+- }
+- 
+-+// Test that robust init via nullptr-upload to texture after invalidating an image with emulated
+-+// alpha works.
+-+TEST_P(Texture2DTestES3RobustInit, InvalidateEmulatedAlphaThenInitViaEmptyUpload)
+-+{
+-+    constexpr uint32_t kWidth  = 5;
+-+    constexpr uint32_t kHeight = 7;
+-+
+-+    // Create an RGB texture, which often has an emulated alpha channel.
+-+    GLTexture texture;
+-+    glBindTexture(GL_TEXTURE_2D, texture);
+-+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kWidth, kHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+-+
+-+    GLFramebuffer fbo;
+-+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+-+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+-+
+-+    // Draw into it, then invalidate it.  On some configurations, this may stage a clear to the
+-+    // texture so that the emulated alpha channel has valid values.
+-+    ANGLE_GL_PROGRAM(program, essl3_shaders::vs::Simple(), essl3_shaders::fs::Red());
+-+    drawQuad(program, essl3_shaders::PositionAttrib(), 0.0f);
+-+    constexpr GLenum kInvalidate[] = {GL_COLOR_ATTACHMENT0};
+-+    glInvalidateFramebuffer(GL_FRAMEBUFFER, 1, kInvalidate);
+-+
+-+    // Redefine the texture with no data.  This causes it to robust-init.
+-+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kWidth, kHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+-+
+-+    // Verify the texture is cleared.
+-+    EXPECT_PIXEL_RECT_EQ(0, 0, kWidth, kHeight, GLColor::black);
+-+}
+-+
+-+#define ES2_EMULATE_COPY_TEX_IMAGE_VIA_SUB()             \
+-+    ES2_OPENGL().enable(Feature::EmulateCopyTexImage2D), \
+-+        ES2_OPENGLES().enable(Feature::EmulateCopyTexImage2D)
+-+#define ES3_EMULATE_COPY_TEX_IMAGE_VIA_SUB()             \
+-+    ES3_OPENGL().enable(Feature::EmulateCopyTexImage2D), \
+-+        ES3_OPENGLES().enable(Feature::EmulateCopyTexImage2D)
+-+#define ES2_EMULATE_COPY_TEX_IMAGE()                                      \
+-+    ES2_OPENGL().enable(Feature::EmulateCopyTexImage2DFromRenderbuffers), \
+-+        ES2_OPENGLES().enable(Feature::EmulateCopyTexImage2DFromRenderbuffers)
+-+#define ES3_EMULATE_COPY_TEX_IMAGE()                                      \
+-+    ES3_OPENGL().enable(Feature::EmulateCopyTexImage2DFromRenderbuffers), \
+-+        ES3_OPENGLES().enable(Feature::EmulateCopyTexImage2DFromRenderbuffers)
+-+ANGLE_INSTANTIATE_TEST_ES2_AND(Texture2DTest,
+-+                               ES2_EMULATE_COPY_TEX_IMAGE_VIA_SUB(),
+-+                               ES2_EMULATE_COPY_TEX_IMAGE(),
+-+                               ES2_OPENGLES().enable(Feature::ForcePassthroughShaders));
+-+ANGLE_INSTANTIATE_TEST_ES2(TextureCubeTest);
+-+ANGLE_INSTANTIATE_TEST_ES2(Texture2DTestWithDrawScale);
+-+ANGLE_INSTANTIATE_TEST_ES2(Sampler2DAsFunctionParameterTest);
+-+ANGLE_INSTANTIATE_TEST_ES2(SamplerArrayTest);
+-+ANGLE_INSTANTIATE_TEST_ES2(SamplerArrayAsFunctionParameterTest);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(Texture2DTestES3,
+-+                               ES3_VULKAN().enable(Feature::AllocateNonZeroMemory),
+-+                               ES3_VULKAN().enable(Feature::ForceFallbackFormat),
+-+                               ES3_VULKAN_SWIFTSHADER().enable(Feature::PreferBGR565ToRGB565));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DMemoryTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture2DMemoryTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES3YUV);
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(Texture2DTestES3YUV,
+-+                               ES3_VULKAN().enable(Feature::PreferLinearFilterForYUV),
+-+                               ES3_VULKAN().enable(Feature::DisableProgramCaching));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES3RobustInit);
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(
+-+    Texture2DTestES3RobustInit,
+-+    ES3_D3D11_WARP(),
+-+    ES3_VULKAN().enable(Feature::PreferSkippingInvalidateForEmulatedFormats),
+-+    ES3_VULKAN().disable(Feature::PreferSkippingInvalidateForEmulatedFormats));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES3PBO);
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(Texture2DTestES3PBO,
+-+                               ES3_OPENGL().enable(Feature::SplitLevel0PboFullSubImage2D),
+-+                               ES3_OPENGLES().enable(Feature::SplitLevel0PboFullSubImage2D));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES3Foveation);
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(
+-+    Texture2DTestES3Foveation,
+-+    ES3_VULKAN().enable(Feature::GenerateFragmentShadingRateAttchementWithCpu));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES31Foveation);
+-+ANGLE_INSTANTIATE_TEST_ES31_AND(
+-+    Texture2DTestES31Foveation,
+-+    ES31_VULKAN().enable(Feature::GenerateFragmentShadingRateAttchementWithCpu));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES31PPO);
+-+ANGLE_INSTANTIATE_TEST_ES31(Texture2DTestES31PPO);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DBaseMaxTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture2DBaseMaxTestES3);
+-+
+-+ANGLE_INSTANTIATE_TEST_ES2(Texture3DTestES2);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture3DTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture3DTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DIntegerAlpha1TestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture2DIntegerAlpha1TestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DUnsignedIntegerAlpha1TestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture2DUnsignedIntegerAlpha1TestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(ShadowSamplerPlusSampler3DTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(ShadowSamplerPlusSampler3DTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(SamplerTypeMixTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(SamplerTypeMixTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DArrayTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture2DArrayTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureSizeTextureArrayTest);
+-+ANGLE_INSTANTIATE_TEST_ES3(TextureSizeTextureArrayTest);
+-+
+-+ANGLE_INSTANTIATE_TEST_ES2(SamplerInStructTest);
+-+ANGLE_INSTANTIATE_TEST_ES2(SamplerInStructAsFunctionParameterTest);
+-+ANGLE_INSTANTIATE_TEST_ES2(SamplerInStructArrayAsFunctionParameterTest);
+-+ANGLE_INSTANTIATE_TEST_ES2(SamplerInNestedStructAsFunctionParameterTest);
+-+ANGLE_INSTANTIATE_TEST_ES2(SamplerInStructAndOtherVariableTest);
+-+ANGLE_INSTANTIATE_TEST_ES2(TextureAnisotropyTest);
+-+ANGLE_INSTANTIATE_TEST_ES2_AND(TextureBorderClampTest,
+-+                               ES2_VULKAN_SWIFTSHADER().enable(Feature::PreferBGR565ToRGB565));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureBorderClampTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(TextureBorderClampTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureBorderClampTestES31);
+-+ANGLE_INSTANTIATE_TEST_ES31(TextureBorderClampTestES31);
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureBorderClampTestES32);
+-+ANGLE_INSTANTIATE_TEST_ES32(TextureBorderClampTestES32);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureBorderClampIntegerTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(TextureBorderClampIntegerTestES3);
+-+
+-+ANGLE_INSTANTIATE_TEST_ES2_AND_ES3(TextureMirrorClampToEdgeTest);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureMirrorClampToEdgeTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(TextureMirrorClampToEdgeTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureMirrorClampToEdgeIntegerTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(TextureMirrorClampToEdgeIntegerTestES3);
+-+
+-+ANGLE_INSTANTIATE_TEST_ES2(TextureLimitsTest);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DNorm16TestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(
+-+    Texture2DNorm16TestES3,
+-+    ES3_OPENGL().enable(Feature::ReadPixelsUsingImplementationColorReadFormatForNorm16),
+-+    ES3_OPENGLES().enable(Feature::ReadPixelsUsingImplementationColorReadFormatForNorm16));
+-+
+-+ANGLE_INSTANTIATE_TEST_ES2_AND_ES3_AND(Texture2DRGTest,
+-+                                       ES2_EMULATE_COPY_TEX_IMAGE_VIA_SUB(),
+-+                                       ES3_EMULATE_COPY_TEX_IMAGE_VIA_SUB(),
+-+                                       ES2_EMULATE_COPY_TEX_IMAGE(),
+-+                                       ES3_EMULATE_COPY_TEX_IMAGE());
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DFloatTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture2DFloatTestES3);
+-+
+-+ANGLE_INSTANTIATE_TEST_ES2(Texture2DFloatTestES2);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureCubeTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(TextureCubeTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureDefaultTextureTest);
+-+ANGLE_INSTANTIATE_TEST_ES3(TextureDefaultTextureTest);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureCubeTestES32);
+-+ANGLE_INSTANTIATE_TEST_ES32(TextureCubeTestES32);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DIntegerTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture2DIntegerTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureCubeIntegerTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(TextureCubeIntegerTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureCubeIntegerEdgeTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(TextureCubeIntegerEdgeTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DIntegerProjectiveOffsetTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture2DIntegerProjectiveOffsetTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DArrayIntegerTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture2DArrayIntegerTestES3);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture3DIntegerTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3(Texture3DIntegerTestES3);
+-+
+-+ANGLE_INSTANTIATE_TEST_ES2_AND_ES3(Texture2DDepthTest);
+-+ANGLE_INSTANTIATE_TEST_ES2_AND_ES3(PBOCompressedTextureTest);
+-+ANGLE_INSTANTIATE_TEST_ES2_AND_ES3(ETC1CompressedTextureTest);
+-+ANGLE_INSTANTIATE_TEST_ES3(PBOCompressedTexture3DTest);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureBufferTestES31);
+-+ANGLE_INSTANTIATE_TEST_ES31(TextureBufferTestES31);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureBufferTestES32);
+-+ANGLE_INSTANTIATE_TEST_ES32(TextureBufferTestES32);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureTestES31);
+-+ANGLE_INSTANTIATE_TEST_ES31(TextureTestES31);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(CopyImageTestES31);
+-+ANGLE_INSTANTIATE_TEST_ES31(CopyImageTestES31);
+-+
+-+ANGLE_INSTANTIATE_TEST_ES3(TextureChangeStorageUploadTest);
+-+
+-+ANGLE_INSTANTIATE_TEST_ES3(ExtraSamplerCubeShadowUseTest);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DDepthStencilTestES3);
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(Texture2DDepthStencilTestES3,
+-+                               ES3_VULKAN().enable(Feature::ForceFallbackFormat));
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(RGBTextureBufferTestES31);
+-+ANGLE_INSTANTIATE_TEST_ES31(RGBTextureBufferTestES31);
+-+
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(MultisampleTexture2DTestES31);
+-+ANGLE_INSTANTIATE_TEST_ES31(MultisampleTexture2DTestES31);
+-+
+- GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES3_NonZeroBaseLevelGenMipmaps);
+- ANGLE_INSTANTIATE_TEST_ES3_AND(
+-     Texture2DTestES3_NonZeroBaseLevelGenMipmaps,
+diff --git a/patches/angle/cherry-pick-72a097d38faf.patch b/patches/angle/cherry-pick-72a097d38faf.patch
+index a953cd930a..f298b5fa72 100644
+--- a/patches/angle/cherry-pick-72a097d38faf.patch
++++ b/patches/angle/cherry-pick-72a097d38faf.patch
+@@ -84,51 +84,6 @@ index 0d30da0cdc391d99b050587516e9ccf03e48b989..04a413efac6bc76ae512a17a0839c695
+          default:
+              UNREACHABLE();
+              return LoadImageFunctionInfo(UnreachableLoadFunction, true);
+-diff --git a/src/tests/angle_end2end_tests_expectations.txt b/src/tests/angle_end2end_tests_expectations.txt
+-index e44d3c6de800d8c3eb92fd2c398cb02df4002b2b..2713214b25b1040f1443dd6e2fade7fe9d3269c8 100644
+---- a/src/tests/angle_end2end_tests_expectations.txt
+-+++ b/src/tests/angle_end2end_tests_expectations.txt
+-@@ -30,6 +30,8 @@
+- 534823410 VULKAN LINUX INTEL : FramebufferTestWithFormatFallback.R4G4B4A4_CubeTexImageRedefinedFace*/* = SKIP
+- // Fails in Android with EGL_BAD_ALLOC
+- 374797737 : EGLSurfaceTest.CreateMultiWindowsSurfaceNoDestroy/* = SKIP
+-+// Array external samplers are not supported by Vulkan
+-+158215272 VULKAN : ImageTestES3.SourceYUVTextureTargetExternalRGBSampleArray/* = SKIP
+- 
+- // Generate mipmap or draw on mismatched stale levels fails on some OpenGL/GLES drivers when robust init is enabled
+- 532617619 OPENGL : Texture2DTestES3RobustInit.MismatchedStaleLevel*/* = SKIP
+-@@ -333,6 +335,7 @@
+- 536046166 NVIDIA VULKAN : FramebufferTest_ES31_MSAA.MultisampleStencilSampling/*EmulatedPrerotation* = SKIP
+- 42265709 NVIDIA VULKAN : GLSLTest_ES31.TessellationControlShaderMatrixCopyBug/* = SKIP
+- 42265709 NVIDIA VULKAN : GLSLTest_ES31.TessellationControlShaderMatrixMultiplicationBug/* = SKIP
+-+540256225 NVIDIA VULKAN : ImageTestES3.SourceYUVTextureTargetExternalRGBSample/* = SKIP
+- 
+- // Intel Vulkan
+- 
+-@@ -375,6 +378,7 @@
+- 536046166 INTEL VULKAN : FramebufferTest_ES31.MultisampleResolveWithBlitIntoMixedTexturesAfterFinish/* = SKIP
+- 536046166 INTEL VULKAN : FramebufferTest_ES31_MSAA.MultisampleResolveWithBlitIntoMixedTextures/* = SKIP
+- 536046166 WIN INTEL VULKAN : FramebufferTest_ES31_MSAA.MultisampleStencilSampling/*EmulatedPrerotation* = SKIP
+-+540256225 INTEL VULKAN : ImageTestES3.SourceYUVTextureTargetExternalRGBSample/* = SKIP
+- 
+- // Robust init of OOB framebuffer reads is not zero'd
+- 500528706 VULKAN : CopyTexImageTestRobustResourceInit.OOBReadShouldBeZeroInit/* = SKIP
+-@@ -836,6 +840,7 @@
+- 40096826 PIXEL6 VULKAN : GLSLTest_ES31.ConsecutiveArraysOfArraysImage/* = SKIP
+- 40096826 PIXEL6 VULKAN : GeometryShaderTest.GeometryShaderImplementationDependentLimits/* = SKIP
+- 40096826 PIXEL6 VULKAN : ImageTestES3.RGBXAHBImport* = SKIP
+-+540256225 PIXEL6 VULKAN : ImageTestES3.SourceYUVTextureTargetExternalRGBSample/* = SKIP
+- 40096826 PIXEL6 VULKAN : IndexedBufferCopyTest.IndexRangeBug/* = SKIP
+- 40096826 PIXEL6 VULKAN : IndexedPointsTest* = SKIP
+- 40096826 PIXEL6 VULKAN : MultisampleTest.Point/* = SKIP
+-@@ -1559,6 +1564,7 @@
+- 
+- // Fails on swangle builders
+- 42266918 SWIFTSHADER : WebGL2GLSLTest.TexelFetchLodOutOfBounds/* = SKIP
+-+540256225 SWIFTSHADER : ImageTestES3.SourceYUVTextureTargetExternalRGBSample/* = SKIP
+- 
+- // HLSL compiler bug
+- 42261155 D3D11 : GLSLTest_ES3.ComplexCrossExpression/* = SKIP
+ diff --git a/src/tests/capture_replay_tests/capture_replay_expectations.txt b/src/tests/capture_replay_tests/capture_replay_expectations.txt
+ index 95cfa57393df8e1cbcd2e908ba766682b6c39b30..810df2a5d02546732c7dbaf9fe7abb1e4f64ce42 100644
+ --- a/src/tests/capture_replay_tests/capture_replay_expectations.txt
+diff --git a/patches/angle/cherry-pick-107da744f62a.patch b/patches/angle/cherry-pick-107da744f62a.patch
+index 67bfa705fa..e9c9ea1744 100644
+--- a/patches/angle/cherry-pick-107da744f62a.patch
++++ b/patches/angle/cherry-pick-107da744f62a.patch
+@@ -285,328 +285,6 @@ index 0e0579ad7a77429564a44ef8dc4dad0ba9f840c9..9ab30c9fd94fe6f1afee0fb1615fb306
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // Slow tests, should appear last in this file
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+-diff --git a/src/tests/gl_tests/TextureTest.cpp b/src/tests/gl_tests/TextureTest.cpp
+-index ebbf7f78e3523ab17842ea429dc2a9157f0d9573..287f2c3979daa87100c11b073487cb4056bfa4e0 100644
+---- a/src/tests/gl_tests/TextureTest.cpp
+-+++ b/src/tests/gl_tests/TextureTest.cpp
+-@@ -22246,6 +22246,304 @@ TEST_P(Texture2DTestES3_NonZeroBaseLevelGenMipmaps, VerifyMipmapContents)
+-     EXPECT_GL_NO_ERROR();
+- }
+- 
+-+class Texture2DTestES3_ResetTexStorage2DBaseLevel : public Texture2DBaseMaxTestES3
+-+{};
+-+
+-+// Test TexStorage2D on a texture that already has non-zero TEXTURE_BASE_LEVEL set.
+-+TEST_P(Texture2DTestES3_ResetTexStorage2DBaseLevel, TexStorage2DWithNonZeroBaseLevel)
+-+{
+-+    // http://anglebug.com/551573368
+-+    ANGLE_SKIP_TEST_IF(IsD3D());
+-+
+-+    constexpr uint32_t kBaseLevel          = 1;
+-+    const GLColor kNewMipColors[kMipCount] = {
+-+        GLColor::yellow,
+-+        GLColor::cyan,
+-+        GLColor::white,
+-+        GLColor(127u, 127u, 127u, 255u),
+-+    };
+-+
+-+    initTest(false);
+-+
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, kBaseLevel);
+-+
+-+    glTexStorage2D(GL_TEXTURE_2D, kMipCount, GL_RGBA8, kMip0Size, kMip0Size);
+-+    std::array<GLColor, getTotalMipDataSize(kMip0Size)> mipData;
+-+    fillMipData(mipData.data(), kMip0Size, kNewMipColors);
+-+    for (size_t mip = 0; mip < kMipCount; ++mip)
+-+    {
+-+        glTexSubImage2D(GL_TEXTURE_2D, static_cast<GLint>(mip), 0, 0, kMip0Size >> mip,
+-+                        kMip0Size >> mip, GL_RGBA, GL_UNSIGNED_BYTE,
+-+                        mipData.data() + getMipDataOffset(kMip0Size, mip));
+-+    }
+-+
+-+    // Test that all enabled mips have the expected data
+-+    for (uint32_t lod = kBaseLevel; lod < kMipCount; ++lod)
+-+    {
+-+        setLodUniform(lod - kBaseLevel);
+-+        drawQuad(mProgram, essl3_shaders::PositionAttrib(), 0.5f);
+-+        EXPECT_PIXEL_COLOR_EQ(0, 0, kNewMipColors[lod]);
+-+    }
+-+
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+-+    for (uint32_t lod = 0; lod < kBaseLevel; ++lod)
+-+    {
+-+        setLodUniform(lod);
+-+        drawQuad(mProgram, essl3_shaders::PositionAttrib(), 0.5f);
+-+        EXPECT_PIXEL_COLOR_EQ(0, 0, kNewMipColors[lod]);
+-+    }
+-+}
+-+
+-+class Texture2DTestES3_OversizedMipLevels : public Texture2DTestES3
+-+{
+-+  protected:
+-+    Texture2DTestES3_OversizedMipLevels() : Texture2DTestES3() {}
+-+
+-+    void testSetUp() override
+-+    {
+-+        Texture2DTestES3::testSetUp();
+-+        setUpProgram();
+-+        glUseProgram(mProgram);
+-+        glUniform1i(mTexture2DUniformLocation, 0);
+-+        glActiveTexture(GL_TEXTURE0);
+-+    }
+-+};
+-+
+-+// Test that defining an oversized nonzero mip level on an uncompressed texture succeeds and
+-+// renders correctly.
+-+TEST_P(Texture2DTestES3_OversizedMipLevels, Uncompressed)
+-+{
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+-+
+-+    // Upload Level 0: 64x64 solid red.
+-+    constexpr int kLevel0Width  = 64;
+-+    constexpr int kLevel0Height = 64;
+-+    std::vector<GLColor> redData(kLevel0Width * kLevel0Height, GLColor::red);
+-+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, kLevel0Width, kLevel0Height, 0, GL_RGBA,
+-+                 GL_UNSIGNED_BYTE, redData.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Upload Level 1: 128x128 solid green (oversized relative to Level 0).
+-+    constexpr int kLevel1Width  = 128;
+-+    constexpr int kLevel1Height = 128;
+-+    std::vector<GLColor> greenData(kLevel1Width * kLevel1Height, GLColor::green);
+-+    glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, kLevel1Width, kLevel1Height, 0, GL_RGBA,
+-+                 GL_UNSIGNED_BYTE, greenData.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Verify Level 0 sampling.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth(), getWindowHeight(), GLColor::red);
+-+
+-+    // Verify Level 1 sampling.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth(), getWindowHeight(), GLColor::green);
+-+}
+-+
+-+// Test that defining an oversized nonzero mip level on an ETC compressed texture succeeds and
+-+// renders correctly.
+-+TEST_P(Texture2DTestES3_OversizedMipLevels, CompressedETC)
+-+{
+-+    const bool hasEtcExt = IsGLExtensionEnabled("GL_OES_compressed_ETC2_RGB8_texture");
+-+    const int clientVer  = getClientMajorVersion();
+-+    ANGLE_SKIP_TEST_IF(!hasEtcExt && clientVer < 3);
+-+
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+-+
+-+    // ETC2 RGB8: 8 bytes per 4x4 block.
+-+    // Level 0: 64x64 (256 blocks = 2048 bytes) solid red.
+-+    // Byte 0 = 0xFF (R1=15, R2=15), Bytes 1..7 = 0x00. Decodes to (255, 2, 2, 255).
+-+    constexpr int kLevel0Width     = 64;
+-+    constexpr int kLevel0Height    = 64;
+-+    constexpr size_t kLevel0Blocks = (kLevel0Width / 4) * (kLevel0Height / 4);
+-+    constexpr size_t kLevel0Bytes  = kLevel0Blocks * 8;
+-+    std::vector<uint8_t> redEtcData(kLevel0Bytes, 0);
+-+    for (size_t b = 0; b < kLevel0Blocks; ++b)
+-+    {
+-+        redEtcData[b * 8 + 0] = 0xFF;
+-+    }
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB8_ETC2, kLevel0Width, kLevel0Height,
+-+                           0, static_cast<GLsizei>(kLevel0Bytes), redEtcData.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Level 1: 128x128 (1024 blocks = 8192 bytes) solid green.
+-+    // Byte 1 = 0xFF (G1=15, G2=15), Bytes 0, 2..7 = 0x00. Decodes to (2, 255, 2, 255).
+-+    constexpr int kLevel1Width     = 128;
+-+    constexpr int kLevel1Height    = 128;
+-+    constexpr size_t kLevel1Blocks = (kLevel1Width / 4) * (kLevel1Height / 4);
+-+    constexpr size_t kLevel1Bytes  = kLevel1Blocks * 8;
+-+    std::vector<uint8_t> greenEtcData(kLevel1Bytes, 0);
+-+    for (size_t b = 0; b < kLevel1Blocks; ++b)
+-+    {
+-+        greenEtcData[b * 8 + 1] = 0xFF;
+-+    }
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGB8_ETC2, kLevel1Width, kLevel1Height,
+-+                           0, static_cast<GLsizei>(kLevel1Bytes), greenEtcData.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Verify Level 0 sampling.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth(), getWindowHeight(), GLColor(255, 2, 2, 255));
+-+
+-+    // Verify Level 1 sampling.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    // Bugs in the PowerVR driver prevent full redefinition of oversized compressed mip levels
+-+    // when level 0 is already defined, because the driver restricts compressed level 1 storage
+-+    // to the slot allocated by the level 0 chain. Check only the lower-left quadrant of the
+-+    // rendered output.
+-+    EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth() / 4, getWindowHeight() / 4,
+-+                         GLColor(2, 255, 2, 255));
+-+}
+-+
+-+// Test that defining an oversized nonzero mip level on an ASTC compressed texture succeeds and
+-+// renders correctly.
+-+TEST_P(Texture2DTestES3_OversizedMipLevels, CompressedASTC)
+-+{
+-+    const bool hasAstcLdr = IsGLExtensionEnabled("GL_KHR_texture_compression_astc_ldr");
+-+    const bool hasAstcOes = IsGLExtensionEnabled("GL_OES_texture_compression_astc");
+-+    ANGLE_SKIP_TEST_IF(!hasAstcLdr && !hasAstcOes);
+-+
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+-+
+-+    // ASTC 4x4 void-extent solid color blocks: 16 bytes per block.
+-+    // Red void-extent block: {0xFC, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
+-+    // 0x00, 0x00, 0x00, 0xFF, 0xFF} Green void-extent block: {0xFC, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF,
+-+    // 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF}
+-+    constexpr uint8_t kAstcRedBlock[16]   = {0xFC, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+-+                                             0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF};
+-+    constexpr uint8_t kAstcGreenBlock[16] = {0xFC, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+-+                                             0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF};
+-+
+-+    // Level 0: 64x64 (256 blocks = 4096 bytes) solid red.
+-+    constexpr int kLevel0Width     = 64;
+-+    constexpr int kLevel0Height    = 64;
+-+    constexpr size_t kLevel0Blocks = (kLevel0Width / 4) * (kLevel0Height / 4);
+-+    constexpr size_t kLevel0Bytes  = kLevel0Blocks * 16;
+-+    std::vector<uint8_t> redAstcData(kLevel0Bytes);
+-+    for (size_t b = 0; b < kLevel0Blocks; ++b)
+-+    {
+-+        memcpy(&redAstcData[b * 16], kAstcRedBlock, 16);
+-+    }
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_ASTC_4x4_KHR, kLevel0Width,
+-+                           kLevel0Height, 0, static_cast<GLsizei>(kLevel0Bytes),
+-+                           redAstcData.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Level 1: 128x128 (1024 blocks = 16384 bytes) solid green.
+-+    constexpr int kLevel1Width     = 128;
+-+    constexpr int kLevel1Height    = 128;
+-+    constexpr size_t kLevel1Blocks = (kLevel1Width / 4) * (kLevel1Height / 4);
+-+    constexpr size_t kLevel1Bytes  = kLevel1Blocks * 16;
+-+    std::vector<uint8_t> greenAstcData(kLevel1Bytes);
+-+    for (size_t b = 0; b < kLevel1Blocks; ++b)
+-+    {
+-+        memcpy(&greenAstcData[b * 16], kAstcGreenBlock, 16);
+-+    }
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGBA_ASTC_4x4_KHR, kLevel1Width,
+-+                           kLevel1Height, 0, static_cast<GLsizei>(kLevel1Bytes),
+-+                           greenAstcData.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Verify Level 0 sampling.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth(), getWindowHeight(), GLColor::red);
+-+
+-+    // Verify Level 1 sampling.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    // Bugs in the PowerVR driver prevent full redefinition of oversized compressed mip levels
+-+    // when level 0 is already defined, because the driver restricts compressed level 1 storage
+-+    // to the slot allocated by the level 0 chain. Check only the lower-left quadrant of the
+-+    // rendered output.
+-+    EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth() / 4, getWindowHeight() / 4, GLColor::green);
+-+}
+-+
+-+// Test that defining an oversized nonzero mip level on a DXT compressed texture succeeds and
+-+// renders correctly.
+-+TEST_P(Texture2DTestES3_OversizedMipLevels, CompressedDXT)
+-+{
+-+    const bool hasDxt1  = IsGLExtensionEnabled("GL_EXT_texture_compression_dxt1");
+-+    const bool hasS3tc  = IsGLExtensionEnabled("GL_EXT_texture_compression_s3tc");
+-+    const bool hasAngle = IsGLExtensionEnabled("GL_ANGLE_texture_compression_dxt1");
+-+    ANGLE_SKIP_TEST_IF(!hasDxt1 && !hasS3tc && !hasAngle);
+-+
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+-+
+-+    // DXT1: 8 bytes per 4x4 block.
+-+    // Red block: {0x00, 0xF8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+-+    // Green block: {0xE0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+-+    constexpr uint8_t kDxtRedBlock[8]   = {0x00, 0xF8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+-+    constexpr uint8_t kDxtGreenBlock[8] = {0xE0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+-+
+-+    // Level 0: 64x64 (256 blocks = 2048 bytes) solid red.
+-+    constexpr int kLevel0Width     = 64;
+-+    constexpr int kLevel0Height    = 64;
+-+    constexpr size_t kLevel0Blocks = (kLevel0Width / 4) * (kLevel0Height / 4);
+-+    constexpr size_t kLevel0Bytes  = kLevel0Blocks * 8;
+-+    std::vector<uint8_t> redDxtData(kLevel0Bytes);
+-+    for (size_t b = 0; b < kLevel0Blocks; ++b)
+-+    {
+-+        memcpy(&redDxtData[b * 8], kDxtRedBlock, 8);
+-+    }
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, kLevel0Width,
+-+                           kLevel0Height, 0, static_cast<GLsizei>(kLevel0Bytes), redDxtData.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Level 1: 128x128 (1024 blocks = 8192 bytes) solid green.
+-+    constexpr int kLevel1Width     = 128;
+-+    constexpr int kLevel1Height    = 128;
+-+    constexpr size_t kLevel1Blocks = (kLevel1Width / 4) * (kLevel1Height / 4);
+-+    constexpr size_t kLevel1Bytes  = kLevel1Blocks * 8;
+-+    std::vector<uint8_t> greenDxtData(kLevel1Bytes);
+-+    for (size_t b = 0; b < kLevel1Blocks; ++b)
+-+    {
+-+        memcpy(&greenDxtData[b * 8], kDxtGreenBlock, 8);
+-+    }
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, kLevel1Width,
+-+                           kLevel1Height, 0, static_cast<GLsizei>(kLevel1Bytes),
+-+                           greenDxtData.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Verify Level 0 sampling.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth(), getWindowHeight(), GLColor::red);
+-+
+-+    // Verify Level 1 sampling.
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 1);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+-+    drawQuad(mProgram, "position", 0.5f);
+-+    // Bugs in the PowerVR driver prevent full redefinition of oversized compressed mip levels
+-+    // when level 0 is already defined, because the driver restricts compressed level 1 storage
+-+    // to the slot allocated by the level 0 chain. Check only the lower-left quadrant of the
+-+    // rendered output.
+-+    EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth() / 4, getWindowHeight() / 4, GLColor::green);
+-+}
+-+
+- // Test that robust init via nullptr-upload to texture after invalidating an image with emulated
+- // alpha works.
+- TEST_P(Texture2DTestES3RobustInit, InvalidateEmulatedAlphaThenInitViaEmptyUpload)
+-@@ -22484,6 +22782,12 @@ ANGLE_INSTANTIATE_TEST_ES3_AND(
+-     ES3_VULKAN().enable(Feature::ReattachTextureToFboAfterLayerIncrease),
+-     ES3_VULKAN().disable(Feature::ReattachTextureToFboAfterLayerIncrease));
+- 
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES3_OversizedMipLevels);
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(
+-+    Texture2DTestES3_OversizedMipLevels,
+-+    ES3_OPENGL().enable(Feature::UploadOversizedMipLevelsViaUnpackBuffer),
+-+    ES3_OPENGLES().enable(Feature::UploadOversizedMipLevelsViaUnpackBuffer));
+-+
+- GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureSizeLimitTest);
+- ANGLE_INSTANTIATE_TEST(TextureSizeLimitTest,
+-                        ES2_D3D11().enable(Feature::LimitMaxTextureBytesTo1MB),
+ diff --git a/util/autogen/angle_features_autogen.cpp b/util/autogen/angle_features_autogen.cpp
+ index b0dca14967492af4f5d935203a2391f2b2bcdcff..4cbb73061c9403d754950f3b30950993d2c4854a 100644
+ --- a/util/autogen/angle_features_autogen.cpp
+diff --git a/patches/angle/cherry-pick-3a0ed7f623ee.patch b/patches/angle/cherry-pick-3a0ed7f623ee.patch
+index 378f37ecec..51a6024d74 100644
+--- a/patches/angle/cherry-pick-3a0ed7f623ee.patch
++++ b/patches/angle/cherry-pick-3a0ed7f623ee.patch
+@@ -137,165 +137,6 @@ index 751a8a663bb9904863060409a5ad662e416e34ae..2e12ff10eadd36104b047206a1129c90
+      // Mac Intel drivers are unable to allocate buffers larger than ~1gb
+      ANGLE_FEATURE_CONDITION(features, limitMaxBufferSizeTo1gb, isApple && isIntel);
+  }
+-diff --git a/src/tests/gl_tests/TextureTest.cpp b/src/tests/gl_tests/TextureTest.cpp
+-index 41be286975ac932de9a6cb32427541e18c266d9d..6f6a720402143b974861254c0a78efa87fc23ea1 100644
+---- a/src/tests/gl_tests/TextureTest.cpp
+-+++ b/src/tests/gl_tests/TextureTest.cpp
+-@@ -22870,6 +22870,141 @@ TEST_P(Texture2DTestES3_OversizedMipLevels, CompressedDXT)
+-     EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth() / 4, getWindowHeight() / 4, GLColor::green);
+- }
+- 
+-+class Texture2DTestES3_NPOTHostTwiddledTexture : public Texture2DTestES3
+-+{};
+-+
+-+// Test that non-power-of-two uploads of RGB10_A2 with UNSIGNED_INT_2_10_10_10_REV data succeed and
+-+// verify texture contents.
+-+TEST_P(Texture2DTestES3_NPOTHostTwiddledTexture, RGB10A2)
+-+{
+-+    constexpr GLsizei kWidth  = 65;
+-+    constexpr GLsizei kHeight = 64;
+-+
+-+    for (int iter = 0; iter < 50; ++iter)
+-+    {
+-+        std::vector<uint32_t> data(kWidth * kHeight);
+-+        for (GLsizei y = 0; y < kHeight; ++y)
+-+        {
+-+            for (GLsizei x = 0; x < kWidth; ++x)
+-+            {
+-+                uint32_t r = ((x + iter) % 2 == 0) ? 0x3FF : 0;
+-+                uint32_t g = ((y + iter) % 2 == 0) ? 0x3FF : 0;
+-+                uint32_t b = ((x + y + iter) % 2 == 0) ? 0x3FF : 0;
+-+                uint32_t a = 3;  // 1.0 in 2-bit alpha
+-+                data[y * kWidth + x] =
+-+                    (r & 0x3FF) | ((g & 0x3FF) << 10) | ((b & 0x3FF) << 20) | ((a & 0x3) << 30);
+-+            }
+-+        }
+-+
+-+        GLTexture tex;
+-+        glBindTexture(GL_TEXTURE_2D, tex);
+-+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+-+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+-+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+-+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+-+
+-+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB10_A2, kWidth, kHeight, 0, GL_RGBA,
+-+                     GL_UNSIGNED_INT_2_10_10_10_REV, data.data());
+-+        ASSERT_GL_NO_ERROR();
+-+
+-+        // Verify texture contents via FBO readback
+-+        GLFramebuffer fbo;
+-+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+-+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+-+        ASSERT_GL_FRAMEBUFFER_COMPLETE(GL_FRAMEBUFFER);
+-+
+-+        std::vector<GLColor> readback(kWidth * kHeight);
+-+        glReadPixels(0, 0, kWidth, kHeight, GL_RGBA, GL_UNSIGNED_BYTE, readback.data());
+-+        ASSERT_GL_NO_ERROR();
+-+
+-+        for (GLsizei y = 0; y < kHeight; ++y)
+-+        {
+-+            for (GLsizei x = 0; x < kWidth; ++x)
+-+            {
+-+                GLubyte expectedR = ((x + iter) % 2 == 0) ? 255 : 0;
+-+                GLubyte expectedG = ((y + iter) % 2 == 0) ? 255 : 0;
+-+                GLubyte expectedB = ((x + y + iter) % 2 == 0) ? 255 : 0;
+-+                GLubyte expectedA = 255;
+-+                GLColor expected(expectedR, expectedG, expectedB, expectedA);
+-+                EXPECT_EQ(readback[y * kWidth + x], expected)
+-+                    << "Mismatch at (" << x << ", " << y << ") on iter " << iter;
+-+            }
+-+        }
+-+
+-+        // Also verify sampling via drawQuad
+-+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+-+        glViewport(0, 0, getWindowWidth(), getWindowHeight());
+-+        drawQuad(mProgram, "position", 0.5f);
+-+        ASSERT_GL_NO_ERROR();
+-+    }
+-+}
+-+
+-+// Test that non-power-of-two uploads of SRGB8_ALPHA8 with UNSIGNED_BYTE data succeed and
+-+// verify texture contents, including non-default unpack alignment and skip pixels.
+-+TEST_P(Texture2DTestES3_NPOTHostTwiddledTexture, SRGB8Alpha8)
+-+{
+-+    constexpr GLsizei kWidth    = 255;
+-+    constexpr GLsizei kHeight   = 256;
+-+    constexpr GLint kSkipPixels = 1;
+-+
+-+    for (int iter = 0; iter < 50; ++iter)
+-+    {
+-+        // Buffer needs kHeight * kWidth + kSkipPixels pixels when UNPACK_ROW_LENGTH is 0.
+-+        std::vector<GLColor> data(kHeight * kWidth + kSkipPixels);
+-+        for (size_t i = 0; i < data.size(); ++i)
+-+        {
+-+            GLubyte r = static_cast<GLubyte>((i * 17 + iter * 3) % 256);
+-+            GLubyte g = static_cast<GLubyte>((i * 31 + iter * 5 + 7) % 256);
+-+            GLubyte b = static_cast<GLubyte>((i * 53 + iter * 11 + 13) % 256);
+-+            GLubyte a = 255;
+-+            data[i]   = GLColor(r, g, b, a);
+-+        }
+-+
+-+        GLTexture tex;
+-+        glBindTexture(GL_TEXTURE_2D, tex);
+-+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+-+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+-+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+-+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+-+
+-+        glPixelStorei(GL_UNPACK_ALIGNMENT, 2);
+-+        glPixelStorei(GL_UNPACK_SKIP_PIXELS, kSkipPixels);
+-+
+-+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, kWidth, kHeight, 0, GL_RGBA,
+-+                     GL_UNSIGNED_BYTE, data.data());
+-+        ASSERT_GL_NO_ERROR();
+-+
+-+        glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+-+        glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+-+
+-+        // Verify texture contents via FBO readback
+-+        GLFramebuffer fbo;
+-+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+-+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+-+        ASSERT_GL_FRAMEBUFFER_COMPLETE(GL_FRAMEBUFFER);
+-+
+-+        std::vector<GLColor> readback(kWidth * kHeight);
+-+        glReadPixels(0, 0, kWidth, kHeight, GL_RGBA, GL_UNSIGNED_BYTE, readback.data());
+-+        ASSERT_GL_NO_ERROR();
+-+
+-+        for (GLsizei y = 0; y < kHeight; ++y)
+-+        {
+-+            for (GLsizei x = 0; x < kWidth; ++x)
+-+            {
+-+                GLColor expected = data[y * kWidth + x + kSkipPixels];
+-+                EXPECT_EQ(readback[y * kWidth + x], expected)
+-+                    << "Mismatch at (" << x << ", " << y << ") on iter " << iter;
+-+            }
+-+        }
+-+
+-+        // Also verify sampling via drawQuad
+-+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+-+        glViewport(0, 0, getWindowWidth(), getWindowHeight());
+-+        drawQuad(mProgram, "position", 0.5f);
+-+        ASSERT_GL_NO_ERROR();
+-+    }
+-+}
+-+
+- // Test that robust init via nullptr-upload to texture after invalidating an image with emulated
+- // alpha works.
+- TEST_P(Texture2DTestES3RobustInit, InvalidateEmulatedAlphaThenInitViaEmptyUpload)
+-@@ -23126,6 +23261,12 @@ ANGLE_INSTANTIATE_TEST_ES3_AND(Texture2DTestES3_ResetTexStorage2DBaseLevel,
+-                                ES3_OPENGLES().enable(Feature::ResetTexStorage2DBaseLevel),
+-                                ES3_OPENGLES().disable(Feature::ResetTexStorage2DBaseLevel));
+- 
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES3_NPOTHostTwiddledTexture);
+-+ANGLE_INSTANTIATE_TEST_ES3_AND(
+-+    Texture2DTestES3_NPOTHostTwiddledTexture,
+-+    ES3_OPENGL().enable(Feature::UseTexSubImageForHostTwiddledNpotUploads),
+-+    ES3_OPENGLES().enable(Feature::UseTexSubImageForHostTwiddledNpotUploads));
+-+
+- GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureSizeLimitTest);
+- ANGLE_INSTANTIATE_TEST(TextureSizeLimitTest,
+-                        ES2_D3D11().enable(Feature::LimitMaxTextureBytesTo1MB),
+ diff --git a/util/autogen/angle_features_autogen.cpp b/util/autogen/angle_features_autogen.cpp
+ index 138328f9f98c492478d10f335056aca4cc99ea27..87c771511dd5b6675ce283eca356966534ea46a4 100644
+ --- a/util/autogen/angle_features_autogen.cpp
+diff --git a/patches/angle/cherry-pick-5382ed032a48.patch b/patches/angle/cherry-pick-5382ed032a48.patch
+index 232355569d..be98c8b48b 100644
+--- a/patches/angle/cherry-pick-5382ed032a48.patch
++++ b/patches/angle/cherry-pick-5382ed032a48.patch
+@@ -103,50 +103,6 @@ index 2e12ff10eadd36104b047206a1129c901eb9a128..5c8ba5ae01bad63083c470d27e69c5fc
+                              false /* IsPowerVR(vendor) */);
+  
+      // Mac Intel drivers are unable to allocate buffers larger than ~1gb
+-diff --git a/src/tests/gl_tests/TextureTest.cpp b/src/tests/gl_tests/TextureTest.cpp
+-index 6f6a720402143b974861254c0a78efa87fc23ea1..61ffdb8fba0fbd72797fc926304d68515ce631d5 100644
+---- a/src/tests/gl_tests/TextureTest.cpp
+-+++ b/src/tests/gl_tests/TextureTest.cpp
+-@@ -22870,12 +22870,12 @@ TEST_P(Texture2DTestES3_OversizedMipLevels, CompressedDXT)
+-     EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth() / 4, getWindowHeight() / 4, GLColor::green);
+- }
+- 
+--class Texture2DTestES3_NPOTHostTwiddledTexture : public Texture2DTestES3
+-+class Texture2DTestES3_NPOTClientDataTexture : public Texture2DTestES3
+- {};
+- 
+- // Test that non-power-of-two uploads of RGB10_A2 with UNSIGNED_INT_2_10_10_10_REV data succeed and
+- // verify texture contents.
+--TEST_P(Texture2DTestES3_NPOTHostTwiddledTexture, RGB10A2)
+-+TEST_P(Texture2DTestES3_NPOTClientDataTexture, RGB10A2)
+- {
+-     constexpr GLsizei kWidth  = 65;
+-     constexpr GLsizei kHeight = 64;
+-@@ -22941,7 +22941,7 @@ TEST_P(Texture2DTestES3_NPOTHostTwiddledTexture, RGB10A2)
+- 
+- // Test that non-power-of-two uploads of SRGB8_ALPHA8 with UNSIGNED_BYTE data succeed and
+- // verify texture contents, including non-default unpack alignment and skip pixels.
+--TEST_P(Texture2DTestES3_NPOTHostTwiddledTexture, SRGB8Alpha8)
+-+TEST_P(Texture2DTestES3_NPOTClientDataTexture, SRGB8Alpha8)
+- {
+-     constexpr GLsizei kWidth    = 255;
+-     constexpr GLsizei kHeight   = 256;
+-@@ -23261,11 +23261,11 @@ ANGLE_INSTANTIATE_TEST_ES3_AND(Texture2DTestES3_ResetTexStorage2DBaseLevel,
+-                                ES3_OPENGLES().enable(Feature::ResetTexStorage2DBaseLevel),
+-                                ES3_OPENGLES().disable(Feature::ResetTexStorage2DBaseLevel));
+- 
+--GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES3_NPOTHostTwiddledTexture);
+-+GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(Texture2DTestES3_NPOTClientDataTexture);
+- ANGLE_INSTANTIATE_TEST_ES3_AND(
+--    Texture2DTestES3_NPOTHostTwiddledTexture,
+--    ES3_OPENGL().enable(Feature::UseTexSubImageForHostTwiddledNpotUploads),
+--    ES3_OPENGLES().enable(Feature::UseTexSubImageForHostTwiddledNpotUploads));
+-+    Texture2DTestES3_NPOTClientDataTexture,
+-+    ES3_OPENGL().enable(Feature::UseTexSubImageForClientDataNpotUploads),
+-+    ES3_OPENGLES().enable(Feature::UseTexSubImageForClientDataNpotUploads));
+- 
+- GTEST_ALLOW_UNINSTANTIATED_PARAMETERIZED_TEST(TextureSizeLimitTest);
+- ANGLE_INSTANTIATE_TEST(TextureSizeLimitTest,
+ diff --git a/util/autogen/angle_features_autogen.cpp b/util/autogen/angle_features_autogen.cpp
+ index 87c771511dd5b6675ce283eca356966534ea46a4..03e0bef56180bd55dabecbb7b65d8a120eb8e658 100644
+ --- a/util/autogen/angle_features_autogen.cpp
+diff --git a/patches/angle/cherry-pick-59438747bc13.patch b/patches/angle/cherry-pick-59438747bc13.patch
+index 578f4eaa23..a9c6c67ee3 100644
+--- a/patches/angle/cherry-pick-59438747bc13.patch
++++ b/patches/angle/cherry-pick-59438747bc13.patch
+@@ -78,112 +78,3 @@ index 80087d4a089a0b843d2644b094e7994d6fab9b5f..7602094a4eec283a0c09fca5468dc97a
+      nativegl::CompressedTexImageFormat compressedTexImageFormat =
+          nativegl::GetCompressedTexImageFormat(functions, features, internalFormat);
+  
+-diff --git a/src/tests/gl_tests/TextureTest.cpp b/src/tests/gl_tests/TextureTest.cpp
+-index 483344b655fac816f7e21a070cef35ea20ca0539..59c2f4b36f96ef18993da6185de64fd6a7f9a5bf 100644
+---- a/src/tests/gl_tests/TextureTest.cpp
+-+++ b/src/tests/gl_tests/TextureTest.cpp
+-@@ -22857,6 +22857,104 @@ TEST_P(Texture2DTestES3_OversizedMipLevels, CompressedASTC)
+-     EXPECT_PIXEL_RECT_EQ(0, 0, getWindowWidth() / 4, getWindowHeight() / 4, GLColor::green);
+- }
+- 
+-+// Test that defining an oversized nonzero mip level (level 0 257x257, level 1 256x256) on an
+-+// ASTC 12x12 compressed texture does not crash during the level 1 upload.
+-+TEST_P(Texture2DTestES3_OversizedMipLevels, CompressedASTC12x12_256x256)
+-+{
+-+    const bool hasAstcLdr = IsGLExtensionEnabled("GL_KHR_texture_compression_astc_ldr");
+-+    const bool hasAstcOes = IsGLExtensionEnabled("GL_OES_texture_compression_astc");
+-+    ANGLE_SKIP_TEST_IF(!hasAstcLdr && !hasAstcOes);
+-+
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+-+
+-+    // ASTC void-extent solid color block: 16 bytes per block.
+-+    constexpr uint8_t kAstcBlock[16] = {0xFC, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+-+                                        0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF};
+-+
+-+    // Level 0: 257x257. In 12x12 blocks: ceil(257/12) = 22 blocks per axis.
+-+    constexpr int kLevel0Width     = 257;
+-+    constexpr int kLevel0Height    = 257;
+-+    constexpr size_t kLevel0Blocks = 22 * 22;
+-+    constexpr size_t kLevel0Bytes  = kLevel0Blocks * 16;
+-+    std::vector<uint8_t> level0Data(kLevel0Bytes);
+-+    for (size_t b = 0; b < kLevel0Blocks; ++b)
+-+    {
+-+        memcpy(&level0Data[b * 16], kAstcBlock, 16);
+-+    }
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_ASTC_12x12_KHR, kLevel0Width,
+-+                           kLevel0Height, 0, static_cast<GLsizei>(kLevel0Bytes), level0Data.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Level 1: 256x256. In 12x12 blocks: ceil(256/12) = 22 blocks per axis.
+-+    constexpr int kLevel1Width     = 256;
+-+    constexpr int kLevel1Height    = 256;
+-+    constexpr size_t kLevel1Blocks = 22 * 22;
+-+    constexpr size_t kLevel1Bytes  = kLevel1Blocks * 16;
+-+    std::vector<uint8_t> level1Data(kLevel1Bytes);
+-+    for (size_t b = 0; b < kLevel1Blocks; ++b)
+-+    {
+-+        memcpy(&level1Data[b * 16], kAstcBlock, 16);
+-+    }
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGBA_ASTC_12x12_KHR, kLevel1Width,
+-+                           kLevel1Height, 0, static_cast<GLsizei>(kLevel1Bytes), level1Data.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    glFinish();
+-+    ASSERT_GL_NO_ERROR();
+-+}
+-+
+-+// Test that defining an oversized nonzero mip level (level 0 257x257, level 1 192x192) on an
+-+// ASTC 12x12 compressed texture does not crash during the level 1 upload.
+-+TEST_P(Texture2DTestES3_OversizedMipLevels, CompressedASTC12x12_192x192)
+-+{
+-+    const bool hasAstcLdr = IsGLExtensionEnabled("GL_KHR_texture_compression_astc_ldr");
+-+    const bool hasAstcOes = IsGLExtensionEnabled("GL_OES_texture_compression_astc");
+-+    ANGLE_SKIP_TEST_IF(!hasAstcLdr && !hasAstcOes);
+-+
+-+    GLTexture tex;
+-+    glBindTexture(GL_TEXTURE_2D, tex);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+-+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+-+
+-+    // ASTC void-extent solid color block: 16 bytes per block.
+-+    constexpr uint8_t kAstcBlock[16] = {0xFC, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+-+                                        0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF};
+-+
+-+    // Level 0: 257x257. In 12x12 blocks: ceil(257/12) = 22 blocks per axis.
+-+    constexpr int kLevel0Width     = 257;
+-+    constexpr int kLevel0Height    = 257;
+-+    constexpr size_t kLevel0Blocks = 22 * 22;
+-+    constexpr size_t kLevel0Bytes  = kLevel0Blocks * 16;
+-+    std::vector<uint8_t> level0Data(kLevel0Bytes);
+-+    for (size_t b = 0; b < kLevel0Blocks; ++b)
+-+    {
+-+        memcpy(&level0Data[b * 16], kAstcBlock, 16);
+-+    }
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_ASTC_12x12_KHR, kLevel0Width,
+-+                           kLevel0Height, 0, static_cast<GLsizei>(kLevel0Bytes), level0Data.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    // Level 1: 192x192. In 12x12 blocks: ceil(192/12) = 16 blocks per axis.
+-+    constexpr int kLevel1Width     = 192;
+-+    constexpr int kLevel1Height    = 192;
+-+    constexpr size_t kLevel1Blocks = 16 * 16;
+-+    constexpr size_t kLevel1Bytes  = kLevel1Blocks * 16;
+-+    std::vector<uint8_t> level1Data(kLevel1Bytes);
+-+    for (size_t b = 0; b < kLevel1Blocks; ++b)
+-+    {
+-+        memcpy(&level1Data[b * 16], kAstcBlock, 16);
+-+    }
+-+    glCompressedTexImage2D(GL_TEXTURE_2D, 1, GL_COMPRESSED_RGBA_ASTC_12x12_KHR, kLevel1Width,
+-+                           kLevel1Height, 0, static_cast<GLsizei>(kLevel1Bytes), level1Data.data());
+-+    ASSERT_GL_NO_ERROR();
+-+
+-+    glFinish();
+-+    ASSERT_GL_NO_ERROR();
+-+}
+-+
+- // Test that defining an oversized nonzero mip level on a DXT compressed texture succeeds and
+- // renders correctly.
+- TEST_P(Texture2DTestES3_OversizedMipLevels, CompressedDXT)

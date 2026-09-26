@@ -1,5 +1,5 @@
 #!/bin/bash
-yq -r '
+yq-python -r '
   # All items
   .[] 
   | select(.resolution) 

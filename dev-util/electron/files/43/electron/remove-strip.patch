@@ -1,0 +1,53 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index 8bbc3ce169..a4877abd93 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -1429,9 +1429,11 @@ dist_zip("electron_dist_zip") {
+         ":strip_electron_binary",
+         ":strip_libEGL_shlib",
+         ":strip_libGLESv2_shlib",
+-        ":strip_libffmpeg_shlib",
+         ":strip_libvk_swiftshader_shlib",
+       ]
++      if (is_component_ffmpeg) {
++        data_deps += [ ":strip_libffmpeg_shlib" ]
++      }
+     }
+ 
+     data_deps += [ "//sandbox/linux:chrome_sandbox" ]
+@@ -1483,11 +1485,13 @@ dist_zip("electron_mksnapshot_zip") {
+     data_deps += [
+       ":strip_libEGL_shlib",
+       ":strip_libGLESv2_shlib",
+-      ":strip_libffmpeg_shlib",
+       ":strip_libvk_swiftshader_shlib",
+       ":strip_mksnapshot_binary",
+       ":strip_v8_context_snapshot_generator_binary",
+     ]
++    if (is_component_ffmpeg) {
++      data_deps += [ ":strip_libffmpeg_shlib" ]
++    }
+   }
+   deps = data_deps
+   outputs = [ "$root_build_dir/mksnapshot.zip" ]
+@@ -1650,13 +1654,14 @@ if (is_linux && is_official_build) {
+     deps = [ "//third_party/angle:libGLESv2" ]
+   }
+ 
+-  strip_binary("strip_libffmpeg_shlib") {
+-    binary_input = "$root_out_dir/libffmpeg.so"
+-    symbol_output = "$root_out_dir/debug/libffmpeg.so.debug"
+-    compress_debug_sections = true
+-    deps = [ "//third_party/ffmpeg" ]
++  if (is_component_ffmpeg) {    
++    strip_binary("strip_libffmpeg_shlib") {
++      binary_input = "$root_out_dir/libffmpeg.so"
++      symbol_output = "$root_out_dir/debug/libffmpeg.so.debug"
++      compress_debug_sections = true
++      deps = [ "//third_party/ffmpeg" ]
++    }
+   }
+-
+   strip_binary("strip_libvk_swiftshader_shlib") {
+     binary_input = "$root_out_dir/libvk_swiftshader.so"
+     symbol_output = "$root_out_dir/debug/libvk_swiftshader.so.debug"
