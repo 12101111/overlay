@@ -1,0 +1,30 @@
+From 8ca128bf1ba5f526f7f8637d95a906caae6eba47 Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sat, 26 Sep 2026 18:55:25 +0800
+Subject: [PATCH 15/15] Build copilot in offline mode
+
+---
+ build/lib/copilot.ts | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/build/lib/copilot.ts b/build/lib/copilot.ts
+index 91321483d5b..cda9bb1c624 100644
+--- a/build/lib/copilot.ts
++++ b/build/lib/copilot.ts
+@@ -377,6 +377,13 @@ function resolveVersionMatchedCopilotPlatformPackage(copilotPackagePlatformArch:
+ 		return { dir: appRootDir, cleanup: noop };
+ 	}
+ 
++	// Offline builds cannot fetch: the extension's own node_modules already
++	// holds the platform package at exactly the extension-pinned version.
++	const extensionDir = path.join(import.meta.dirname, '..', '..', 'extensions', 'copilot', 'node_modules', '@github', `copilot-${copilotPackagePlatformArch}`);
++	if (readOptionalPackageVersion(extensionDir) === extVersion) {
++		return { dir: extensionDir, cleanup: noop };
++	}
++
+ 	const integrity = resolvePinnedPlatformPackageIntegrity(packageName, extVersion, options);
+ 	const staged = fs.mkdtempSync(path.join(os.tmpdir(), 'vscode-copilot-native-'));
+ 	try {
+-- 
+2.55.0
+

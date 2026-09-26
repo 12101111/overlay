@@ -1,16 +1,16 @@
 diff --git a/build/package-lock.json b/build/package-lock.json
-index e9178ced494..548a26f4281 100644
+index 0415f1a4ce7..246c1bf5a23 100644
 --- a/build/package-lock.json
 +++ b/build/package-lock.json
 @@ -63,7 +63,6 @@
-         "source-map": "0.6.1",
+         "svgo": "2.8.4",
          "ternary-stream": "^3.0.0",
          "through2": "^4.0.2",
 -        "tree-sitter": "^0.22.4",
          "vscode-universal-bundler": "^0.1.3",
-         "workerpool": "^6.4.0",
          "yauzl": "^3.3.1",
-@@ -4849,8 +4848,8 @@
+         "zx": "^8.8.5"
+@@ -4874,8 +4873,8 @@
        "version": "4.8.4",
        "resolved": "https://registry.npmjs.org/node-gyp-build/-/node-gyp-build-4.8.4.tgz",
        "integrity": "sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==",
@@ -20,7 +20,7 @@ index e9178ced494..548a26f4281 100644
        "bin": {
          "node-gyp-build": "bin.js",
          "node-gyp-build-optional": "optional.js",
-@@ -6481,18 +6480,6 @@
+@@ -6624,18 +6623,6 @@
          "node": ">=8.0"
        }
      },
@@ -39,7 +39,7 @@ index e9178ced494..548a26f4281 100644
      "node_modules/tree-sitter-javascript": {
        "version": "0.23.1",
        "resolved": "https://registry.npmjs.org/tree-sitter-javascript/-/tree-sitter-javascript-0.23.1.tgz",
-@@ -6554,16 +6541,6 @@
+@@ -6697,16 +6684,6 @@
          "node": "^18 || ^20 || >= 21"
        }
      },
@@ -57,19 +57,19 @@ index e9178ced494..548a26f4281 100644
        "version": "2.8.1",
        "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
 diff --git a/build/package.json b/build/package.json
-index 84db71fd0f9..5b0326af7d3 100644
+index 14e3bf60701..cdbb1284142 100644
 --- a/build/package.json
 +++ b/build/package.json
 @@ -57,7 +57,6 @@
-     "source-map": "0.6.1",
+     "svgo": "2.8.4",
      "ternary-stream": "^3.0.0",
      "through2": "^4.0.2",
 -    "tree-sitter": "^0.22.4",
      "vscode-universal-bundler": "^0.1.3",
-     "workerpool": "^6.4.0",
      "yauzl": "^3.3.1",
+     "zx": "^8.8.5"
 diff --git a/build/rspack/package-lock.json b/build/rspack/package-lock.json
-index 9baae845084..84f1581a252 100644
+index ee211970d98..d14db0d5a75 100644
 --- a/build/rspack/package-lock.json
 +++ b/build/rspack/package-lock.json
 @@ -56,6 +56,8 @@
@@ -359,25 +359,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -705,6 +771,8 @@
-     },
-     "node_modules/baseline-browser-mapping": {
-       "version": "2.10.27",
-+      "resolved": "https://registry.npmjs.org/baseline-browser-mapping/-/baseline-browser-mapping-2.10.27.tgz",
-+      "integrity": "sha512-zEs/ufmZoUd7WftKpKyXaT6RFxpQ5Qm9xytKRHvJfxFV9DFJkZph9RvJ1LcOUi0Z1ZVijMte65JbILeV+8QQEA==",
-       "dev": true,
-       "license": "Apache-2.0",
-       "peer": true,
-@@ -717,6 +785,8 @@
-     },
-     "node_modules/browserslist": {
-       "version": "4.28.2",
-+      "resolved": "https://registry.npmjs.org/browserslist/-/browserslist-4.28.2.tgz",
-+      "integrity": "sha512-48xSriZYYg+8qXna9kwqjIVzuQxi+KYWp2+5nCYnYKPTr0LvD89Jqk2Or5ogxz0NUMfIjhh2lIUX/LyX9B4oIg==",
-       "dev": true,
-       "funding": [
-         {
-@@ -750,12 +820,16 @@
+@@ -754,6 +820,8 @@
      },
      "node_modules/buffer-from": {
        "version": "1.1.2",
@@ -386,15 +368,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true
-     },
-     "node_modules/caniuse-lite": {
-       "version": "1.0.30001791",
-+      "resolved": "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001791.tgz",
-+      "integrity": "sha512-yk0l/YSrOnFZk3UROpDLQD9+kC1l4meK/wed583AXrzoarMGJcbRi2Q4RaUYbKxYAsZ8sWmaSa/DsLmdBeI1vQ==",
-       "dev": true,
-       "funding": [
-         {
-@@ -776,6 +850,8 @@
+@@ -782,6 +850,8 @@
      },
      "node_modules/chrome-trace-event": {
        "version": "1.0.4",
@@ -403,15 +377,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -785,12 +861,16 @@
-     },
-     "node_modules/electron-to-chromium": {
-       "version": "1.5.345",
-+      "resolved": "https://registry.npmjs.org/electron-to-chromium/-/electron-to-chromium-1.5.345.tgz",
-+      "integrity": "sha512-F9JXQGiMrz6yVNPI2qOVPvB9HzjH5cGzhs8oJ6A28V5L/YnzN/0KsuiibqF+F1Fd9qxFzD1BUnYSd8JfULxTwg==",
-       "dev": true,
-       "license": "ISC",
-       "peer": true
+@@ -799,6 +869,8 @@
      },
      "node_modules/enhanced-resolve": {
        "version": "5.21.0",
@@ -420,7 +386,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -804,12 +884,16 @@
+@@ -812,6 +884,8 @@
      },
      "node_modules/es-module-lexer": {
        "version": "2.1.0",
@@ -429,15 +395,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true
-     },
-     "node_modules/escalade": {
-       "version": "3.2.0",
-+      "resolved": "https://registry.npmjs.org/escalade/-/escalade-3.2.0.tgz",
-+      "integrity": "sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==",
-       "dev": true,
-       "license": "MIT",
-       "peer": true,
-@@ -819,6 +903,8 @@
+@@ -829,6 +903,8 @@
      },
      "node_modules/eslint-scope": {
        "version": "5.1.1",
@@ -446,7 +404,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "BSD-2-Clause",
        "peer": true,
-@@ -832,6 +918,8 @@
+@@ -842,6 +918,8 @@
      },
      "node_modules/esrecurse": {
        "version": "4.3.0",
@@ -455,7 +413,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "BSD-2-Clause",
        "peer": true,
-@@ -844,6 +932,8 @@
+@@ -854,6 +932,8 @@
      },
      "node_modules/esrecurse/node_modules/estraverse": {
        "version": "5.3.0",
@@ -464,7 +422,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "BSD-2-Clause",
        "peer": true,
-@@ -853,6 +943,8 @@
+@@ -863,6 +943,8 @@
      },
      "node_modules/estraverse": {
        "version": "4.3.0",
@@ -473,7 +431,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "BSD-2-Clause",
        "peer": true,
-@@ -862,6 +954,8 @@
+@@ -872,6 +954,8 @@
      },
      "node_modules/events": {
        "version": "3.3.0",
@@ -482,7 +440,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -871,6 +965,8 @@
+@@ -881,6 +965,8 @@
      },
      "node_modules/fast-deep-equal": {
        "version": "3.1.3",
@@ -491,7 +449,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true
-@@ -895,6 +991,8 @@
+@@ -905,6 +991,8 @@
      },
      "node_modules/fdir": {
        "version": "6.5.0",
@@ -500,7 +458,7 @@ index 9baae845084..84f1581a252 100644
        "license": "MIT",
        "engines": {
          "node": ">=12.0.0"
-@@ -910,18 +1008,24 @@
+@@ -920,18 +1008,24 @@
      },
      "node_modules/glob-to-regexp": {
        "version": "0.4.1",
@@ -525,7 +483,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -931,6 +1035,8 @@
+@@ -941,6 +1035,8 @@
      },
      "node_modules/jest-worker": {
        "version": "27.5.1",
@@ -534,7 +492,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -945,16 +1051,22 @@
+@@ -955,16 +1051,22 @@
      },
      "node_modules/js-tokens": {
        "version": "4.0.0",
@@ -557,7 +515,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -968,6 +1080,8 @@
+@@ -978,6 +1080,8 @@
      },
      "node_modules/loose-envify": {
        "version": "1.4.0",
@@ -566,7 +524,7 @@ index 9baae845084..84f1581a252 100644
        "license": "MIT",
        "dependencies": {
          "js-tokens": "^3.0.0 || ^4.0.0"
-@@ -978,12 +1092,16 @@
+@@ -988,12 +1092,16 @@
      },
      "node_modules/merge-stream": {
        "version": "2.0.0",
@@ -583,7 +541,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -993,24 +1111,32 @@
+@@ -1003,6 +1111,8 @@
      },
      "node_modules/neo-async": {
        "version": "2.6.2",
@@ -592,22 +550,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true
-     },
-     "node_modules/node-releases": {
-       "version": "2.0.38",
-+      "resolved": "https://registry.npmjs.org/node-releases/-/node-releases-2.0.38.tgz",
-+      "integrity": "sha512-3qT/88Y3FbH/Kx4szpQQ4HzUbVrHPKTLVpVocKiLfoYvw9XSGOX2FmD2d6DrXbVYyAQTF2HeF6My8jmzx7/CRw==",
-       "dev": true,
-       "license": "MIT",
-       "peer": true
-     },
-     "node_modules/picocolors": {
-       "version": "1.1.1",
-+      "resolved": "https://registry.npmjs.org/picocolors/-/picocolors-1.1.1.tgz",
-+      "integrity": "sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==",
-       "dev": true,
-       "license": "ISC",
-       "peer": true
+@@ -1028,6 +1138,8 @@
      },
      "node_modules/picomatch": {
        "version": "4.0.4",
@@ -616,7 +559,7 @@ index 9baae845084..84f1581a252 100644
        "license": "MIT",
        "engines": {
          "node": ">=12"
-@@ -1021,6 +1147,8 @@
+@@ -1038,6 +1150,8 @@
      },
      "node_modules/react": {
        "version": "18.3.1",
@@ -625,7 +568,7 @@ index 9baae845084..84f1581a252 100644
        "license": "MIT",
        "dependencies": {
          "loose-envify": "^1.1.0"
-@@ -1031,6 +1159,8 @@
+@@ -1048,6 +1162,8 @@
      },
      "node_modules/react-dom": {
        "version": "18.3.1",
@@ -634,7 +577,7 @@ index 9baae845084..84f1581a252 100644
        "license": "MIT",
        "dependencies": {
          "loose-envify": "^1.1.0",
-@@ -1042,6 +1172,8 @@
+@@ -1059,6 +1175,8 @@
      },
      "node_modules/require-from-string": {
        "version": "2.0.2",
@@ -643,7 +586,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -1051,11 +1183,15 @@
+@@ -1068,11 +1186,15 @@
      },
      "node_modules/safer-buffer": {
        "version": "2.1.2",
@@ -659,7 +602,7 @@ index 9baae845084..84f1581a252 100644
        "license": "MIT",
        "dependencies": {
          "loose-envify": "^1.1.0"
-@@ -1063,6 +1199,8 @@
+@@ -1080,6 +1202,8 @@
      },
      "node_modules/schema-utils": {
        "version": "4.3.3",
@@ -668,7 +611,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -1082,6 +1220,8 @@
+@@ -1099,6 +1223,8 @@
      },
      "node_modules/source-map": {
        "version": "0.6.1",
@@ -677,7 +620,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "BSD-3-Clause",
        "peer": true,
-@@ -1091,6 +1231,8 @@
+@@ -1108,6 +1234,8 @@
      },
      "node_modules/source-map-js": {
        "version": "1.2.1",
@@ -686,7 +629,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "BSD-3-Clause",
        "engines": {
-@@ -1099,6 +1241,8 @@
+@@ -1116,6 +1244,8 @@
      },
      "node_modules/source-map-loader": {
        "version": "5.0.0",
@@ -695,7 +638,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "dependencies": {
-@@ -1118,6 +1262,8 @@
+@@ -1135,6 +1265,8 @@
      },
      "node_modules/source-map-loader/node_modules/iconv-lite": {
        "version": "0.6.3",
@@ -704,7 +647,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "dependencies": {
-@@ -1129,6 +1275,8 @@
+@@ -1146,6 +1278,8 @@
      },
      "node_modules/source-map-support": {
        "version": "0.5.21",
@@ -713,7 +656,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -1139,6 +1287,8 @@
+@@ -1156,6 +1290,8 @@
      },
      "node_modules/supports-color": {
        "version": "8.1.1",
@@ -722,7 +665,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -1154,6 +1304,8 @@
+@@ -1171,6 +1307,8 @@
      },
      "node_modules/tapable": {
        "version": "2.3.3",
@@ -731,7 +674,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -1167,6 +1319,8 @@
+@@ -1184,6 +1322,8 @@
      },
      "node_modules/terser": {
        "version": "5.46.2",
@@ -740,7 +683,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "BSD-2-Clause",
        "peer": true,
-@@ -1185,6 +1339,8 @@
+@@ -1202,6 +1342,8 @@
      },
      "node_modules/terser-webpack-plugin": {
        "version": "5.5.0",
@@ -749,7 +692,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -1218,12 +1374,16 @@
+@@ -1235,12 +1377,16 @@
      },
      "node_modules/terser/node_modules/commander": {
        "version": "2.20.3",
@@ -766,7 +709,7 @@ index 9baae845084..84f1581a252 100644
        "license": "MIT",
        "dependencies": {
          "fdir": "^6.5.0",
-@@ -1238,18 +1398,24 @@
+@@ -1255,12 +1401,16 @@
      },
      "node_modules/tslib": {
        "version": "2.8.1",
@@ -783,15 +726,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true
-     },
-     "node_modules/update-browserslist-db": {
-       "version": "1.2.3",
-+      "resolved": "https://registry.npmjs.org/update-browserslist-db/-/update-browserslist-db-1.2.3.tgz",
-+      "integrity": "sha512-Js0m9cx+qOgDxo0eMiFGEueWztz+d4+M3rGlmKPT+T4IS/jP4ylw3Nwpu6cpTTP8R1MAC1kF4VbdLt3ARf209w==",
-       "dev": true,
-       "funding": [
-         {
-@@ -1280,6 +1446,8 @@
+@@ -1299,6 +1449,8 @@
      },
      "node_modules/watchpack": {
        "version": "2.5.1",
@@ -800,7 +735,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -1293,6 +1461,8 @@
+@@ -1312,6 +1464,8 @@
      },
      "node_modules/webpack": {
        "version": "5.106.2",
@@ -809,7 +744,7 @@ index 9baae845084..84f1581a252 100644
        "dev": true,
        "license": "MIT",
        "peer": true,
-@@ -1340,6 +1510,8 @@
+@@ -1359,6 +1513,8 @@
      },
      "node_modules/webpack-sources": {
        "version": "3.4.1",
@@ -819,7 +754,7 @@ index 9baae845084..84f1581a252 100644
        "license": "MIT",
        "peer": true,
 diff --git a/extensions/emmet/package-lock.json b/extensions/emmet/package-lock.json
-index 591bf3adb68..5981f5a8954 100644
+index 8868e7d4382..824bef95aab 100644
 --- a/extensions/emmet/package-lock.json
 +++ b/extensions/emmet/package-lock.json
 @@ -42,7 +42,7 @@
@@ -832,15 +767,15 @@ index 591bf3adb68..5981f5a8954 100644
        "dependencies": {
          "@emmetio/stream-reader": "^2.2.0",
 diff --git a/package.json b/package.json
-index 3d371649903..e76d8df588a 100644
+index f4977d91332..2d7586f07f2 100644
 --- a/package.json
 +++ b/package.json
-@@ -297,7 +297,7 @@
+@@ -293,7 +293,7 @@
    "allowScripts": {
      "bufferutil@4.1.0": true,
      "cpu-features": false,
 -    "foundry-local-sdk@1.2.3": true,
 +    "foundry-local-sdk@1.2.3": false,
      "kerberos@2.1.1": true,
-     "koffi@3.1.2": false,
+     "koffi@3.2.1": false,
      "native-keymap@3.3.9": true,

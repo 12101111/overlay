@@ -1,7 +1,7 @@
-From a0a4bb38b4bf480e5ef50e0ee92dbb3e709615ff Mon Sep 17 00:00:00 2001
+From 4d721178dbbd58dd0df40f7b490deef56f05cd42 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 10 Mar 2026 19:32:17 +0800
-Subject: [PATCH 11/13] Fix tunnel path
+Subject: [PATCH 11/15] Fix tunnel path
 
 ---
  src/vs/code/node/cli.ts | 2 +-

@@ -1,7 +1,7 @@
-From 2b842a15b6c3281e78adc5b1a0d752736e603576 Mon Sep 17 00:00:00 2001
+From 0d6b074a93ff2a528a4f97ea82f7f50380d55cc6 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Mon, 10 Mar 2025 15:07:55 +0800
-Subject: [PATCH 07/13] Don't warn electron args
+Subject: [PATCH 07/15] Don't warn electron args
 
 ---
  src/vs/platform/environment/common/argv.ts | 2 ++

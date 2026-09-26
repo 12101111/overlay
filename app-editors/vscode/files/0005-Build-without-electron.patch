@@ -1,7 +1,7 @@
-From 7367f594abdaaf2a371c9c1b1aedaace1fa662ce Mon Sep 17 00:00:00 2001
+From 952ab562905d0a1d76847e33cb63ff288ec3fd14 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 1 Aug 2026 23:32:01 +0800
-Subject: [PATCH 05/13] Build without electron
+Subject: [PATCH 05/15] Build without electron
 
 ---
  build/gulpfile.vscode.ts | 17 ++++++++---------
@@ -9,7 +9,7 @@ Subject: [PATCH 05/13] Build without electron
  2 files changed, 11 insertions(+), 9 deletions(-)
 
 diff --git a/build/gulpfile.vscode.ts b/build/gulpfile.vscode.ts
-index ac122c37940..3cd8658b3ef 100644
+index 8d648346d5c..bb22a131d4c 100644
 --- a/build/gulpfile.vscode.ts
 +++ b/build/gulpfile.vscode.ts
 @@ -8,7 +8,6 @@ import * as fs from 'fs';
@@ -20,7 +20,7 @@ index ac122c37940..3cd8658b3ef 100644
  import * as util from './lib/util.ts';
  import { getVersion } from './lib/getVersion.ts';
  import { readISODate, writeISODate } from './lib/date.ts';
-@@ -268,6 +267,13 @@ function getFoundryLocalExcludeFilter(): string[] {
+@@ -131,6 +130,13 @@ function getFoundryLocalExcludeFilter(): string[] {
  	];
  }
  
@@ -34,7 +34,7 @@ index ac122c37940..3cd8658b3ef 100644
  function packageTask(platform: string, arch: string, sourceFolderName: string, destinationFolderName: string, _opts?: { stats?: boolean }) {
  	const destination = path.join(path.dirname(root), destinationFolderName);
  	platform = platform || process.platform;
-@@ -499,18 +505,11 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
+@@ -358,18 +364,11 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
  			all = es.merge(all, shortcut, policyDest);
  		}
  
@@ -55,7 +55,7 @@ index ac122c37940..3cd8658b3ef 100644
  				'**',
  				'!LICENSE',
 diff --git a/build/npm/preinstall.ts b/build/npm/preinstall.ts
-index 8ce2578510e..39b45342d2c 100644
+index b0c2827e1fb..7fcdbb3cafc 100644
 --- a/build/npm/preinstall.ts
 +++ b/build/npm/preinstall.ts
 @@ -115,6 +115,9 @@ function hasSupportedVisualStudioVersion() {

@@ -1,7 +1,7 @@
-From 7267e2d231451700e7b3bbfd90eef440fa9dbac4 Mon Sep 17 00:00:00 2001
+From 8c9c3866e1bfaf1cbebbf2ac685f54edd583b220 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 2 Aug 2026 02:47:00 +0800
-Subject: [PATCH 13/13] retry tsgo to workaround crash
+Subject: [PATCH 13/15] retry tsgo to workaround crash
 
 ---
  build/lib/tsgo.ts | 68 ++++++++++++++++++++++++++---------------------
