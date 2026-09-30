@@ -57,7 +57,9 @@ elif [[ ${PV} = *rc* ]]; then
 	RC_SNAPSHOT="${rcver:0:4}-${rcver:4:2}-${rcver:6:2}"
 	ABI_VER=${PV//_rc*}
 	MY_P="rustc-${ABI_VER}"
-	SRC_URI="https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz -> rustc-${PV}-src.tar.xz
+	SRC_URI="
+		https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz -> rustc-${PV}-src.tar.xz
+		https://gitweb.gentoo.org/proj/rust-patches.git/snapshot/rust-patches-${RUST_PATCH_VER}.tar.bz2
 		verify-sig? ( https://dev-static.rust-lang.org/dist/${RC_SNAPSHOT}/${MY_P}-src.tar.xz.asc
 			-> rustc-${PV}-src.tar.xz.asc )
 	"
