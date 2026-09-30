@@ -3,9 +3,9 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-156-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-157-patches-01.tar.xz"
 
-LLVM_COMPAT=( 22 )
+LLVM_COMPAT=( 22 23 )
 
 # This will also filter rust versions that don't match LLVM_COMPAT in the non-clang path; this is fine.
 RUST_NEEDS_LLVM=1
@@ -117,7 +117,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	>=app-accessibility/at-spi2-core-2.46.0:2
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.128
+	>=dev-libs/nss-3.129
 	>=dev-libs/nspr-4.39
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -571,6 +571,7 @@ src_prepare() {
 
 	# Clear checksums from cargo crates we've manually patched.
 	# moz_clear_vendor_checksums xyz
+	moz_clear_vendor_checksums bindgen
 
 	# Respect choice for "jumbo-build"
 	# Changing the value for FILES_PER_UNIFIED_FILE may not work, see #905431
@@ -693,7 +694,6 @@ src_configure() {
 		--disable-parental-controls \
 		--disable-strip \
 		--disable-updater \
-		--disable-wmf \
 		--enable-negotiateauth \
 		--enable-new-pass-manager \
 		--enable-official-branding \
