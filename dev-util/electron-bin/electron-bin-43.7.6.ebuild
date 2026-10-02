@@ -61,12 +61,6 @@ _get_install_dir() {
 	echo -n "/usr/$(get_libdir)/electron$(_get_install_suffix)"
 }
 
-src_prepare() {
-	cd "node_headers"
-	eapply "${FILESDIR}/nullptr_t_fix.patch"
-	default
-}
-
 src_install() {
 	local install_dir="$(_get_install_dir)"
 	local install_suffix="$(_get_install_suffix)"
