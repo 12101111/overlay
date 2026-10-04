@@ -6,6 +6,7 @@ import tarfile
 import zipfile
 import gzip
 import io
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from os import path
@@ -200,7 +201,7 @@ def get_source_filename(locator):
         return f"{slugify_ident(locator)}-{selector}.tgz"
 
 
-def tgz_to_zip(tgz_path, zip_path, ident):
+def tgz_to_zip(tgz_path, zip_path, ident, extra_zip_path=None):
     """
     source: packages/yarnpkg-core/sources/tgzUtils.ts
     """
@@ -223,6 +224,11 @@ def tgz_to_zip(tgz_path, zip_path, ident):
     with open(zip_path, 'wb') as f:
         f.write(zip_stream.getvalue())
 
+    if extra_zip_path is not None:
+        if path.exists(extra_zip_path):
+            os.remove(extra_zip_path)
+        os.link(zip_path, extra_zip_path)
+
 
 def load_yarn_lock(lock_path, src_dir, dest_dir):
     with open(lock_path, 'r', encoding='utf-8') as f:
@@ -230,6 +236,7 @@ def load_yarn_lock(lock_path, src_dir, dest_dir):
 
     lock = yaml.load(lock_content, yaml.Loader)
     futures = []
+    failed = False
     with ThreadPoolExecutor() as executor:
         for dep in lock.keys():
             if "resolution" not in lock[dep].keys():
@@ -238,14 +245,32 @@ def load_yarn_lock(lock_path, src_dir, dest_dir):
                 continue
             locator = parse_locator(lock[dep]["resolution"])
             src_name = get_source_filename(locator)
+            src_path = f"{src_dir}/{src_name}"
+            if not path.exists(src_path):
+                if "conditions" in lock[dep].keys():
+                    continue
+                print(f"missing source archive for {dep}: {src_path}", file=sys.stderr)
+                failed = True
+                continue
             dest_name = get_filename(locator, lock[dep]["checksum"])
-            fut = executor.submit(tgz_to_zip, f"{src_dir}/{src_name}", f"{dest_dir}/{dest_name}", stringify_ident(locator))
+            extra_name = None
+            if "conditions" in lock[dep].keys():
+                match = CHECKSUM_REGEX.match(lock[dep]["checksum"])
+                cache_key = match.groupdict().get('cacheKey') if match else None
+                if cache_key:
+                    extra_name = f"{slugify_locator(locator)}-{cache_key}.zip"
+            fut = executor.submit(tgz_to_zip, src_path, f"{dest_dir}/{dest_name}", stringify_ident(locator),
+                                  f"{dest_dir}/{extra_name}" if extra_name else None)
             futures.append(fut)
 
         for fut in as_completed(futures):
             exception = fut.exception()
             if exception is not None:
                 print(exception)
+                failed = True
+
+    if failed:
+        sys.exit(1)
 
 
 

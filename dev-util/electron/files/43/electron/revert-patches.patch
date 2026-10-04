@@ -1,8 +1,8 @@
 diff --git a/patches/angle/.patches b/patches/angle/.patches
-index ae74eae62e..8fc909d4ce 100644
+index 57f0eda4e1..68ba6717f9 100644
 --- a/patches/angle/.patches
 +++ b/patches/angle/.patches
-@@ -37,8 +37,5 @@ cherry-pick-8efd15f71c27.patch
+@@ -37,10 +37,6 @@ cherry-pick-8efd15f71c27.patch
  cherry-pick-a871bdb05932.patch
  cherry-pick-8e14baa6a731.patch
  cherry-pick-8983f40bc8ef.patch
@@ -11,23 +11,29 @@ index ae74eae62e..8fc909d4ce 100644
 -cherry-pick-5382ed032a48.patch
  cherry-pick-b94d422a6fdd.patch
  cherry-pick-59438747bc13.patch
+ cherry-pick-4a004f775637.patch
+-cherry-pick-40b709be4f1f.patch
 diff --git a/patches/dawn/.patches b/patches/dawn/.patches
-index f25cd66969..95d43bae23 100644
+index ef450df3b0..7d6096d5e4 100644
 --- a/patches/dawn/.patches
 +++ b/patches/dawn/.patches
-@@ -1,5 +1,2 @@
+@@ -1,7 +1,4 @@
 -tint_msl_add_switchreturn_ir_transform.patch
 -tint_minor_fixup_to_switchreturn_transform.patch
  cherry-pick-77bdd06ada8f.patch
 -cherry-pick-292e993b4a84.patch
  cherry-pick-023b7514b6a0.patch
+ cherry-pick-47a5943a2006.patch
+ cherry-pick-4d90aa23afd4.patch
 diff --git a/patches/node/.patches b/patches/node/.patches
-index 006db918c2..65714fa204 100644
+index ac0bc7d3d2..369783e598 100644
 --- a/patches/node/.patches
 +++ b/patches/node/.patches
-@@ -63,5 +63,4 @@ src_fix_external_reference_registration_for_new_cfunction_lifetime.patch
+@@ -63,7 +63,6 @@ src_fix_external_reference_registration_for_new_cfunction_lifetime.patch
  fix_do_not_pass_removed_jspi_v8_flag.patch
  src_keep_global_list_of_addon-provided_cleanup_hooks.patch
  src_fix_use-after-free_in_cleanuphookthunkrun.patch
 -test_add_regression_test_for_cleanup_hook_uaf.patch
  fix_allow_electron_s_linked_bindings_under_the_permission_model.patch
+ fs_support_removing_read-only_files_in_rmsync_on_windows.patch
+ src_detach_cppgc_wrappers_from_their_realm_before_it_is_freed.patch

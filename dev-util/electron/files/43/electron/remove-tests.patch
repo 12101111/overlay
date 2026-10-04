@@ -2761,3 +2761,195 @@ index 578f4eaa23..a9c6c67ee3 100644
 - // Test that defining an oversized nonzero mip level on a DXT compressed texture succeeds and
 - // renders correctly.
 - TEST_P(Texture2DTestES3_OversizedMipLevels, CompressedDXT)
+diff --git a/patches/v8/cherry-pick-a488426b7755.patch b/patches/v8/cherry-pick-a488426b7755.patch
+index 69fb76f0bd..79fd811c77 100644
+--- a/patches/v8/cherry-pick-a488426b7755.patch
++++ b/patches/v8/cherry-pick-a488426b7755.patch
+@@ -92,75 +92,3 @@ index a1f6d032ee582c3438558733d8f3b126473ebe00..ee6912c2e8cd1e110c5d5b609c8faef2
+  }
+  
+  Handle<Map> Map::CopyForElementsTransition(Isolate* isolate,
+-diff --git a/test/mjsunit/es6/classes-subclass-builtins.js b/test/mjsunit/es6/classes-subclass-builtins.js
+-index c6a6fda9c189e30c7c219a0a1120e64e1b2da28e..aa5caae1366e4e46eab738316ba14f3034841784 100644
+---- a/test/mjsunit/es6/classes-subclass-builtins.js
+-+++ b/test/mjsunit/es6/classes-subclass-builtins.js
+-@@ -118,9 +118,13 @@ function checkPrototypeChain(object, constructors) {
+-   var sloppy_func1 = new A("return 312;");
+-   assertTrue(%HaveSameMap(sloppy_func, sloppy_func1));
+- 
+--  // Strict function
+-+  // Strict function.
+-+  // When V8_FUNCTION_ARGUMENTS_CALLER_ARE_OWN_PROPS is disabled, strict and
+-+  // sloppy functions have the same descriptors and share the derived initial
+-+  // map.
+-   var strict_func = new A("'use strict'; " + source);
+--  assertFalse(%HaveSameMap(strict_func, sloppy_func));
+-+  assertEquals(!sloppy_func.hasOwnProperty("arguments"),
+-+               %HaveSameMap(strict_func, sloppy_func));
+-   CheckFunction(strict_func, false);
+- 
+-   var strict_func1 = new A("'use strict'; return 312;");
+-@@ -627,9 +631,12 @@ function TestMapSetSubclassing(container, is_map) {
+-   var sloppy_func1 = new A("yield 312;");
+-   assertTrue(%HaveSameMap(sloppy_func, sloppy_func1));
+- 
+--  // Strict generator function
+-+  // Strict generator function.
+-+  // When V8_FUNCTION_ARGUMENTS_CALLER_ARE_OWN_PROPS is disabled, strict and
+-+  // sloppy functions share the derived initial map.
+-   var strict_func = new A("'use strict'; " + source);
+--  assertFalse(%HaveSameMap(strict_func, sloppy_func));
+-+  assertEquals(!sloppy_func.hasOwnProperty("arguments"),
+-+               %HaveSameMap(strict_func, sloppy_func));
+-   CheckFunction(strict_func, false);
+- 
+-   var strict_func1 = new A("'use strict'; yield 312;");
+-diff --git a/test/mjsunit/regress/regress-559266114.js b/test/mjsunit/regress/regress-559266114.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..6896a598f520c77782f8d15dbb60d10a3046bfbb
+---- /dev/null
+-+++ b/test/mjsunit/regress/regress-559266114.js
+-@@ -0,0 +1,31 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+function NewTarget() {}
+-+NewTarget.prototype = new Proxy({}, {});
+-+
+-+function makeFn(body, x, y) {
+-+  const fn = Reflect.construct(Function, [body], NewTarget);
+-+  fn.x = x;
+-+  if (y) fn.y = y;
+-+  return fn;
+-+}
+-+
+-+class Base {
+-+  constructor(o) { return o; }
+-+}
+-+
+-+class DefineY extends Base {
+-+  y = 1.1;
+-+}
+-+
+-+for (let i = 0; i < 15; i++) new DefineY({});
+-+
+-+let strictWithY = makeFn('"use strict"', 42, 42);
+-+let strictWithX = makeFn('"use strict"', 42);
+-+let sloppyWithY = makeFn('', 2.3, 2.3);
+-+let cachedTransition = new DefineY(makeFn('"use strict"', 42));
+-+let victim = new DefineY(makeFn('"use strict"', 42));
+-+victim.x = 13.37;
+-+assertEquals(13.37, victim.x);
+diff --git a/patches/v8/cherry-pick-79c84a5e7569.patch b/patches/v8/cherry-pick-79c84a5e7569.patch
+index 1771527ca6..d07d771b0c 100644
+--- a/patches/v8/cherry-pick-79c84a5e7569.patch
++++ b/patches/v8/cherry-pick-79c84a5e7569.patch
+@@ -131,107 +131,3 @@ index 7772b36e3bd29230012e4e228256882d6042bca1..03841cb14f154f124b1b57d6b717770b
+  }
+  
+  bool CompilationDependencies::DependOnContextCell(ContextRef script_context,
+-diff --git a/test/mjsunit/mjsunit.status b/test/mjsunit/mjsunit.status
+-index b31d424a71fd5ddbfd6282df9f0c7b6efdb063a3..f2d2be06bc60b04879cd483f707722030fec22ef 100644
+---- a/test/mjsunit/mjsunit.status
+-+++ b/test/mjsunit/mjsunit.status
+-@@ -472,9 +472,16 @@
+-   'regress/regress-2249': [SKIP],
+-   'regress/regress-3709': [SKIP],
+-   'regress/regress-4121': [SKIP],
+-+<<<<<<< HEAD   (5ee640fbbdff31ae3411dc1d16192f03ba3c34b9 Version 15.2.124.34)
+-   'regress/regress-6989': [SKIP],
+-   'compare-known-objects-slow': [SKIP],
+-   'compiler/array-multiple-receiver-maps': [SKIP],
+-+||||||| BASE   (dda532107fc6b527d8f0c26e8a7e3dc75c59c0e4 [compiler] Mix the RefsMap hash)
+-+=======
+-+  # --concurrent-recompilation-delay sleeps before the compile starts, so the
+-+  # test's cell rotation finishes before the broker reads the cell.
+-+  'regress/regress-crbug-560233248': [SKIP],
+-+>>>>>>> CHANGE (dd0f8f20b696604962000ea5f805fc3db78286e1 [compiler] Validate the PropertyCell value map against the l)
+-   # Tests taking too long
+-   'regress/regress-1122': [SKIP],
+-   'regress/regress-353551': [SKIP],
+-diff --git a/test/mjsunit/regress/regress-crbug-560233248.js b/test/mjsunit/regress/regress-crbug-560233248.js
+-new file mode 100644
+-index 0000000000000000000000000000000000000000..c1d7b97410fc3adb5686e8021cfcda0f7d4d8c0f
+---- /dev/null
+-+++ b/test/mjsunit/regress/regress-crbug-560233248.js
+-@@ -0,0 +1,77 @@
+-+// Copyright 2026 the V8 project authors. All rights reserved.
+-+// Use of this source code is governed by a BSD-style license that can be
+-+// found in the LICENSE file.
+-+
+-+// Flags: --allow-natives-syntax --no-turbolev
+-+
+-+// Replace and transition a global cell's value between the compiler's value
+-+// and map reads, leaving the compiler with the replaced object's map.
+-+
+-+const template = [1.125, 1.125, 1.125];
+-+const marker = {};
+-+
+-+// The named property keeps these arrays off the shared array maps, so the
+-+// object-elements map below stays stable. slice() copies without an allocation
+-+// site, so transitioning a copy does not generalize later copies.
+-+function mkDouble() { const a = template.slice(); a.tag = 0; return a; }
+-+function transition(a) { a[1] = marker; return a; }
+-+
+-+// Bring the cell to kConstantType and warm the store IC's property cell case.
+-+// From here on, storing a same-map value does not change the cell details.
+-+gl = mkDouble();
+-+function set(x) { gl = x; }
+-+for (let i = 0; i < 100; i++) set(mkDouble());
+-+
+-+const objElements = transition(mkDouble());
+-+
+-+const kPoolSize = 500;
+-+function mkPool() {
+-+  const pool = [];
+-+  for (let i = 0; i < kPoolSize; i++) pool.push(mkDouble());
+-+  return pool;
+-+}
+-+// Rotate the cell through same-map arrays, transitioning each one as soon as
+-+// it leaves the cell.
+-+function rotate(pool) {
+-+  let prev = mkDouble();
+-+  for (let i = 0; i < kPoolSize; i++) {
+-+    const t = pool[i];
+-+    set(t);
+-+    transition(prev);
+-+    prev = t;
+-+  }
+-+  set(mkDouble());
+-+}
+-+
+-+for (let j = 0; j < 10; j++) {
+-+  // Each attempt needs fresh functions: the element access must only ever see
+-+  // the object-elements map, and one read through gl would make it
+-+  // polymorphic. The interpolated j keeps the compilation cache from reusing
+-+  // the script.
+-+  const [get, read] = Function(`
+-+      function get(a, real) {
+-+        if (real) return a[0];
+-+        return ${j};
+-+      }
+-+      return [get, function read(real) { return get(gl, real); }];`)();
+-+  %PrepareFunctionForOptimization(get);
+-+  %PrepareFunctionForOptimization(read);
+-+  for (let i = 0; i < 5; i++) {
+-+    get(objElements, true);
+-+    get(objElements, false);
+-+    read(false);
+-+  }
+-+
+-+  // Only stores made during the compile can hit the window between the
+-+  // broker's two reads, so fill the pool first and start rotating as soon as
+-+  // the job is dispatched.
+-+  const pool = mkPool();
+-+  %OptimizeFunctionOnNextCall(read, "concurrent");
+-+  read(false);
+-+  rotate(pool);
+-+  %WaitForBackgroundOptimization();
+-+  %FinalizeOptimization();
+-+  // gl holds a packed-double array, so this must produce its double element.
+-+  // The stale map made this load read that double as a tagged pointer.
+-+  assertEquals(1.125, read(true));
+-+}
