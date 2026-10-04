@@ -158,6 +158,8 @@ src_configure() {
 		if [[ "${CTARGET}" == *wasm32* || "${CTARGET}" == *elf* ]] ; then
 			mycmakeargs+=(
 				-DCOMPILER_RT_BAREMETAL_BUILD=ON
+				# enable -fPIC to support shared object
+				#-DCOMPILER_RT_HAS_FPIC_FLAG=OFF
 			)
 		fi
 	fi

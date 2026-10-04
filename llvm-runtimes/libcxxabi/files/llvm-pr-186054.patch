@@ -1,0 +1,123 @@
+diff --git a/libcxxabi/include/__cxxabi_config.h b/libcxxabi/include/__cxxabi_config.h
+index 6ec10e469387e..7dafa976d6de2 100644
+--- a/libcxxabi/include/__cxxabi_config.h
++++ b/libcxxabi/include/__cxxabi_config.h
+@@ -134,4 +134,19 @@
+ #  define _LIBCXXABI_DISABLE_POINTER_FIELD_PROTECTION
+ #endif
+ 
++// On Apple, Clang generates calls to _tlv_atexit and __cxa_thread_atexit is defined
++// in libc instead.
++//
++// AIX uses a different mechanism for registering thread local destructors (__pt_atexit_np).
++//
++// On Windows, Clang either doesn't use __cxa_thread_atexit at all (in the MSVC ABI),
++// or (on MinGW) the function is already provided by C runtime.
++//
++// On other platforms, libc++abi provides __cxa_thread_atexit.
++#if defined(__APPLE__) || defined(_AIX) || defined(_WIN32)
++#  define _LIBCXXABI_DEFINE_THREAD_ATEXIT 0
++#else
++#  define _LIBCXXABI_DEFINE_THREAD_ATEXIT 1
++#endif
++
+ #endif // ____CXXABI_CONFIG_H
+diff --git a/libcxxabi/include/cxxabi.h b/libcxxabi/include/cxxabi.h
+index 66301d308282d..5d0513c4ccd66 100644
+--- a/libcxxabi/include/cxxabi.h
++++ b/libcxxabi/include/cxxabi.h
+@@ -179,8 +179,8 @@ __cxa_decrement_exception_refcount(void *primary_exception) _LIBCXXABI_NOEXCEPT;
+ extern _LIBCXXABI_FUNC_VIS bool __cxa_uncaught_exception() _LIBCXXABI_NOEXCEPT;
+ extern _LIBCXXABI_FUNC_VIS unsigned int __cxa_uncaught_exceptions() _LIBCXXABI_NOEXCEPT;
+ 
+-#if defined(__linux__) || defined(__Fuchsia__)
+-// Linux and Fuchsia TLS support. Not yet an official part of the Itanium ABI.
++#if _LIBCXXABI_DEFINE_THREAD_ATEXIT
++// Register a thread local destructor. This is not yet an official part of the Itanium ABI.
+ // https://sourceware.org/glibc/wiki/Destructor%20support%20for%20thread_local%20variables
+ extern _LIBCXXABI_FUNC_VIS int __cxa_thread_atexit(void (*)(void *), void *,
+                                                    void *) _LIBCXXABI_NOEXCEPT;
+diff --git a/libcxxabi/src/CMakeLists.txt b/libcxxabi/src/CMakeLists.txt
+index dd23e9bb5bf79..8f779d913e0a9 100644
+--- a/libcxxabi/src/CMakeLists.txt
++++ b/libcxxabi/src/CMakeLists.txt
+@@ -9,6 +9,7 @@ set(LIBCXXABI_SOURCES
+   cxa_handlers.cpp
+   cxa_vector.cpp
+   cxa_virtual.cpp
++  cxa_thread_atexit.cpp
+   # C++ STL files
+   stdlib_exception.cpp
+   stdlib_stdexcept.cpp
+@@ -36,13 +37,6 @@ else()
+   )
+ endif()
+ 
+-if (LIBCXXABI_ENABLE_THREADS AND (UNIX OR FUCHSIA) AND NOT (APPLE OR CYGWIN)
+-    AND NOT ("${CMAKE_SYSTEM_NAME}" MATCHES "AIX"))
+-  list(APPEND LIBCXXABI_SOURCES
+-    cxa_thread_atexit.cpp
+-  )
+-endif()
+-
+ set(LIBCXXABI_HEADERS
+   ../include/cxxabi.h
+ )
+diff --git a/libcxxabi/src/cxa_thread_atexit.cpp b/libcxxabi/src/cxa_thread_atexit.cpp
+index 402a52c741012..366480f9437da 100644
+--- a/libcxxabi/src/cxa_thread_atexit.cpp
++++ b/libcxxabi/src/cxa_thread_atexit.cpp
+@@ -6,16 +6,18 @@
+ //
+ //===----------------------------------------------------------------------===//
+ 
+-#include "abort_message.h"
+ #include "cxxabi.h"
++
++#if !defined(_LIBCXXABI_HAS_NO_THREADS) && _LIBCXXABI_DEFINE_THREAD_ATEXIT
++
+ #include <__thread/support.h>
+-#ifndef _LIBCXXABI_HAS_NO_THREADS
++#include <stdlib.h>
++
++#include "abort_message.h"
++
+ #if defined(__ELF__) && defined(_LIBCXXABI_LINK_PTHREAD_LIB)
+ #pragma comment(lib, "pthread")
+ #endif
+-#endif
+-
+-#include <stdlib.h>
+ 
+ namespace __cxxabiv1 {
+ 
+@@ -73,7 +75,9 @@ namespace {
+   // Used to trigger destructors on thread exit; value is ignored
+   std::__libcpp_tls_key dtors_key;
+ 
+-  void run_dtors(void*) {
++  // The calling convention of TLS destructors is dictated by the underlying
++  // threading API.
++  void _LIBCPP_TLS_DESTRUCTOR_CC run_dtors(void*) {
+     while (auto head = dtors) {
+       dtors = head->next;
+       head->dtor(head->obj);
+@@ -106,7 +110,6 @@ namespace {
+ 
+ #endif // HAVE___CXA_THREAD_ATEXIT_IMPL
+ 
+-#if defined(__linux__) || defined(__Fuchsia__)
+ extern "C" {
+ 
+   _LIBCXXABI_FUNC_VIS int __cxa_thread_atexit(Dtor dtor, void* obj, void* dso_symbol) throw() {
+@@ -141,6 +144,9 @@ extern "C" {
+     }
+ #endif // HAVE___CXA_THREAD_ATEXIT_IMPL
+   }
++
+ } // extern "C"
+-#endif // defined(__linux__) || defined(__Fuchsia__)
++
+ } // namespace __cxxabiv1
++
++#endif // !defined(_LIBCXXABI_HAS_NO_THREADS) && _LIBCXXABI_DEFINE_THREAD_ATEXIT

@@ -36,6 +36,10 @@ BDEPEND="
 	)
 "
 
+PATCHES=(
+	"${FILESDIR}/llvm-pr-186054.patch"
+)
+
 LLVM_COMPONENTS=( runtimes libcxx{abi,} llvm/{cmake,utils} cmake )
 LLVM_TEST_COMPONENTS=( libc llvm/include/llvm/{Demangle,Testing} )
 llvm.org_set_globals
@@ -91,11 +95,10 @@ multilib_src_configure() {
 	[[ $(tc-get-c-rtlib) == compiler-rt ]] && use_compiler_rt=ON
 
 	local libdir=$(get_libdir)
-	local is_musllibc_like=$(llvm_cmake_use_musl)
 	local enable_shared=ON
 	[[ ${CTARGET} == *elf* ]] && enable_shared=OFF && libdir="lib"
 	[[ ${CTARGET} == *wasi-threads* ]] && enable_shared=OFF && libdir="lib"
-	[[ ${CTARGET} == *wasi* ]] && is_musllibc_like=ON && libdir="lib"
+	[[ ${CTARGET} == *wasi* ]] && libdir="lib"
 
 	local mycmakeargs=(
 		-DLLVM_ROOT="${ESYSROOT}/usr/lib/llvm/${LLVM_MAJOR}"
@@ -121,7 +124,7 @@ multilib_src_configure() {
 		-DLIBCXX_ENABLE_STATIC=OFF
 		-DLIBCXX_CXX_ABI=libcxxabi
 		-DLIBCXX_ENABLE_ABI_LINKER_SCRIPT=OFF
-		-DLIBCXX_HAS_MUSL_LIBC=${is_musllibc_like}
+		-DLIBCXX_HAS_MUSL_LIBC=$(llvm_cmake_use_musl)
 		-DLIBCXX_HAS_GCC_S_LIB=OFF
 		-DLIBCXX_INCLUDE_BENCHMARKS=OFF
 		-DLIBCXX_INCLUDE_TESTS=OFF
