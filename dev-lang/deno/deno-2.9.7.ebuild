@@ -4,7 +4,7 @@
 EAPI=8
 
 GN_MIN_VER=0.2374
-LLVM_COMPAT=( 22 )
+LLVM_COMPAT=( 22 23 )
 RUST_NEEDS_LLVM=1
 PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
@@ -91,7 +91,6 @@ CRATES="
 	arbitrary@1.4.1
 	arc-swap@1.7.1
 	argon2@0.6.0-rc.8
-	arrayref@0.3.9
 	arrayvec@0.7.4
 	ascii@1.1.0
 	ash@0.38.0+1.3.281
@@ -113,7 +112,6 @@ CRATES="
 	autocfg@1.3.0
 	aws-lc-rs@1.16.3
 	aws-lc-sys@0.40.0
-	az@1.2.1
 	backhand@0.25.1
 	backtrace@0.3.74
 	base16ct@0.2.0
@@ -178,8 +176,6 @@ CRATES="
 	clang-sys@1.8.1
 	clap@4.5.56
 	clap_builder@4.5.56
-	clap_complete@4.5.65
-	clap_complete_fig@4.5.2
 	clap_lex@0.7.4
 	clipboard-win@5.3.0
 	cmake@0.1.57
@@ -261,10 +257,10 @@ CRATES="
 	deno-tower-lsp-macros@0.12.0
 	deno_ast@0.53.3
 	deno_core_icudata@0.77.0
-	deno_doc@0.202.0
+	deno_doc@0.207.0
 	deno_error@0.7.1
 	deno_error_macro@0.7.1
-	deno_graph@0.110.1
+	deno_graph@0.111.0
 	deno_lint@0.84.1
 	deno_media_type@0.4.0
 	deno_native_certs@0.3.0
@@ -493,7 +489,6 @@ CRATES="
 	is-macro@0.3.5
 	is-terminal@0.4.17
 	is-wsl@0.4.0
-	is_executable@1.0.5
 	is_terminal_polyfill@1.70.1
 	itertools@0.10.5
 	itertools@0.14.0
@@ -512,7 +507,7 @@ CRATES="
 	khronos_api@3.1.0
 	kqueue-sys@1.0.4
 	kqueue@1.1.1
-	laufey@0.6.1
+	laufey@0.7.0
 	lax-core@0.3.0
 	lax-css@0.3.0
 	lax-markup@0.3.2
@@ -538,7 +533,7 @@ CRATES="
 	libnghttp2@1.68.0
 	libsqlite3-sys@0.38.1
 	libsui@0.16.4
-	libuv-sys-lite@1.48.3
+	libuv-sys-lite@1.48.4
 	libz-sys@1.1.20
 	linux-raw-sys@0.12.1
 	linux-raw-sys@0.4.13
