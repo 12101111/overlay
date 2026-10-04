@@ -15,7 +15,7 @@ LICENSE="MIT"
 SLOT="0"
 IUSE="system-ripgrep savedconfig builtin-extensions"
 
-COMMIT="04c0d99f4fb0d8afe6ce4f0c58e31e183ac3e4b1"
+COMMIT="07f806f999227108933c2e30515b26eecc1fda74"
 
 RG_PREBUILT="https://github.com/microsoft/ripgrep-prebuilt/releases/download"
 # https://github.com/microsoft/vscode-ripgrep/blob/v1.17.0/lib/postinstall.js#L21
@@ -23,13 +23,13 @@ RG_VERSION=("15.0.1")
 VSCODE_RIPGREP_VERSION=("1.17.1")
 
 # .npmrc
-ELECTRON_VERSION="43.6.0"
+ELECTRON_VERSION="43.7.3"
 ELECTRON_SLOT="${ELECTRON_VERSION%%[.+]*}"
 
 # jq -r '.builtInExtensions[] | .name +":"+ .version' product.json | sed -r 's/([^\.]*)\.([a-z0-9\-]*)\:([0-9\.]*)/["\2"]="\3"/g'
 declare -A BUILTINEXTS=(
 ["js-debug-companion"]="1.1.3"
-["js-debug"]="1.117.0"
+["js-debug"]="1.140.0"
 ["vscode-js-profile-table"]="1.0.11"
 )
 
@@ -107,11 +107,11 @@ https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.1.tgz
 https://registry.npmjs.org/ansi-styles/-/ansi-styles-6.2.3.tgz
 https://registry.npmjs.org/ansi-wrap/-/ansi-wrap-0.1.0.tgz
 https://registry.npmjs.org/@antfu/install-pkg/-/install-pkg-1.1.0.tgz
-https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk/-/claude-agent-sdk-0.3.258.tgz
-https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk-linux-arm64/-/claude-agent-sdk-linux-arm64-0.3.258.tgz
-https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk-linux-arm64-musl/-/claude-agent-sdk-linux-arm64-musl-0.3.258.tgz
-https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk-linux-x64/-/claude-agent-sdk-linux-x64-0.3.258.tgz
-https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk-linux-x64-musl/-/claude-agent-sdk-linux-x64-musl-0.3.258.tgz
+https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk/-/claude-agent-sdk-0.3.281.tgz
+https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk-linux-arm64/-/claude-agent-sdk-linux-arm64-0.3.281.tgz
+https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk-linux-arm64-musl/-/claude-agent-sdk-linux-arm64-musl-0.3.281.tgz
+https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk-linux-x64/-/claude-agent-sdk-linux-x64-0.3.281.tgz
+https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk-linux-x64-musl/-/claude-agent-sdk-linux-x64-musl-0.3.281.tgz
 https://registry.npmjs.org/@anthropic-ai/sdk/-/sdk-0.104.1.tgz
 https://registry.npmjs.org/@anthropic-ai/sdk/-/sdk-0.82.0.tgz
 https://registry.npmjs.org/@anthropic-ai/sdk/-/sdk-0.91.1.tgz
@@ -299,10 +299,8 @@ https://registry.npmjs.org/boolbase/-/boolbase-1.0.0.tgz
 https://registry.npmjs.org/boolean/-/boolean-3.1.2.tgz
 https://registry.npmjs.org/@borewit/text-codec/-/text-codec-0.2.1.tgz
 https://registry.npmjs.org/boundary/-/boundary-2.0.0.tgz
-https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.14.tgz
 https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.18.tgz
 https://registry.npmjs.org/brace-expansion/-/brace-expansion-2.1.4.tgz
-https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.6.tgz
 https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.9.tgz
 https://registry.npmjs.org/braces/-/braces-2.3.2.tgz
 https://registry.npmjs.org/braces/-/braces-3.0.3.tgz
@@ -995,11 +993,11 @@ https://registry.npmjs.org/@github/copilot-linux-arm64/-/copilot-linux-arm64-1.0
 https://registry.npmjs.org/@github/copilot-linuxmusl-arm64/-/copilot-linuxmusl-arm64-1.0.73.tgz
 https://registry.npmjs.org/@github/copilot-linuxmusl-x64/-/copilot-linuxmusl-x64-1.0.73.tgz
 https://registry.npmjs.org/@github/copilot-linux-x64/-/copilot-linux-x64-1.0.73.tgz
-https://registry.npmjs.org/@github/copilot-sdk/-/copilot-sdk-1.0.15-unstable.35393089353.gfc44743.tgz
-https://registry.npmjs.org/@github/copilot-sdk-linux-arm64/-/copilot-sdk-linux-arm64-1.0.15-unstable.35393089353.gfc44743.tgz
-https://registry.npmjs.org/@github/copilot-sdk-linuxmusl-arm64/-/copilot-sdk-linuxmusl-arm64-1.0.15-unstable.35393089353.gfc44743.tgz
-https://registry.npmjs.org/@github/copilot-sdk-linuxmusl-x64/-/copilot-sdk-linuxmusl-x64-1.0.15-unstable.35393089353.gfc44743.tgz
-https://registry.npmjs.org/@github/copilot-sdk-linux-x64/-/copilot-sdk-linux-x64-1.0.15-unstable.35393089353.gfc44743.tgz
+https://registry.npmjs.org/@github/copilot-sdk/-/copilot-sdk-1.0.15-preview.4.tgz
+https://registry.npmjs.org/@github/copilot-sdk-linux-arm64/-/copilot-sdk-linux-arm64-1.0.15-preview.4.tgz
+https://registry.npmjs.org/@github/copilot-sdk-linuxmusl-arm64/-/copilot-sdk-linuxmusl-arm64-1.0.15-preview.4.tgz
+https://registry.npmjs.org/@github/copilot-sdk-linuxmusl-x64/-/copilot-sdk-linuxmusl-x64-1.0.15-preview.4.tgz
+https://registry.npmjs.org/@github/copilot-sdk-linux-x64/-/copilot-sdk-linux-x64-1.0.15-preview.4.tgz
 https://registry.npmjs.org/github-from-package/-/github-from-package-0.0.0.tgz
 https://registry.npmjs.org/glob2base/-/glob2base-0.0.12.tgz
 https://registry.npmjs.org/global-agent/-/global-agent-3.0.0.tgz
@@ -1088,7 +1086,6 @@ https://registry.npmjs.org/he/-/he-1.2.0.tgz
 https://registry.npmjs.org/highlight.js/-/highlight.js-11.11.1.tgz
 https://registry.npmjs.org/highlight.js/-/highlight.js-11.8.0.tgz
 https://registry.npmjs.org/homedir-polyfill/-/homedir-polyfill-1.0.3.tgz
-https://registry.npmjs.org/hono/-/hono-4.13.4.tgz
 https://registry.npmjs.org/hono/-/hono-4.13.7.tgz
 https://registry.npmjs.org/@hono/node-server/-/node-server-1.19.17.tgz
 https://registry.npmjs.org/hosted-git-info/-/hosted-git-info-2.8.9.tgz
@@ -1979,7 +1976,6 @@ https://registry.npmjs.org/pump/-/pump-3.0.0.tgz
 https://registry.npmjs.org/pump/-/pump-3.0.4.tgz
 https://registry.npmjs.org/punycode.js/-/punycode.js-2.3.1.tgz
 https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz
-https://registry.npmjs.org/qs/-/qs-6.15.2.tgz
 https://registry.npmjs.org/qs/-/qs-6.16.0.tgz
 https://registry.npmjs.org/queue-microtask/-/queue-microtask-1.2.3.tgz
 https://registry.npmjs.org/queue/-/queue-3.1.0.tgz
@@ -2874,7 +2870,7 @@ https://registry.npmjs.org/vscode-languageserver/-/vscode-languageserver-10.1.1.
 https://registry.npmjs.org/vscode-languageserver/-/vscode-languageserver-9.0.1.tgz
 https://registry.npmjs.org/@vscode/lsif-language-service/-/lsif-language-service-0.1.0-pre.4.tgz
 https://registry.npmjs.org/@vscode/lsif-protocol/-/lsif-protocol-0.6.0-next.9.tgz
-https://registry.npmjs.org/@vscode/markdown-editor/-/markdown-editor-0.0.2-99.tgz
+https://registry.npmjs.org/@vscode/markdown-editor/-/markdown-editor-0.0.2-107.tgz
 https://registry.npmjs.org/@vscode/markdown-it-katex/-/markdown-it-katex-1.1.1.tgz
 https://registry.npmjs.org/@vscode/markdown-it-katex/-/markdown-it-katex-1.1.2.tgz
 https://registry.npmjs.org/vscode-markdown-languageserver/-/vscode-markdown-languageserver-0.5.0.tgz
