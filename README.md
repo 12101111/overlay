@@ -8,7 +8,7 @@ Please follow the [official instruction](https://wiki.gentoo.org/wiki/Ebuild_rep
 
 ## How to compile WASI Sdk using crossdev
 
-(Note that some text here shows LLVM version 22, if you are building for 21 substitute that value where appropriate)
+(Note that some text here shows LLVM version 22, if you are building for 21/23 substitute that value where appropriate)
 
 1. Create `crossdev` overlay
 
@@ -62,6 +62,7 @@ cross_llvm-wasm32-wasip1/wasi-libc cross_llvm-wasm32-wasip1/llvm.conf
 cross_llvm-wasm32-wasip1/libcxxabi cross_llvm-wasm32-wasip1/libcxx.conf
 cross_llvm-wasm32-wasip1/libcxxabi cross_llvm-wasm32-wasip1/llvm.conf
 ```
+
 Then, to create `wasi-libc.conf`:
 ```shell
 cp /etc/portage/env/cross_llvm-wasm32-wasip1/{linux-headers.conf,wasi-libc.conf}
@@ -99,7 +100,7 @@ llvm-readelf -h /usr/lib/clang/22/lib/wasm32-unknown-wasip1/libclang_rt.builtins
 emerge cross_llvm-wasm32-wasip1/wasi-libc
 ```
 
-Check wasi-libc is compiled correctly (wasmtime can be installed with `cargo` or in dev-util/wasm-tools):
+Check wasi-libc is compiled correctly (wasmtime can be installed with `cargo`):
 
 ```shell
 cat << EOF > /tmp/hello.c
@@ -113,7 +114,7 @@ wasm32-wasip1-cc /tmp/hello.c -Os -o /tmp/hello.wasm
 wasmtime /tmp/hello.wasm
 ```
 
-Install C++ std (unmask for 21 or 22):
+Install C++ std (unmask for 21/22/23):
 
 ```shell
 emerge cross_llvm-wasm32-wasip1/libcxxabi

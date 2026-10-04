@@ -51,7 +51,7 @@ src_configure() {
 
 	# don't work with PIC or shared libraries
 	filter-lto
-	filter-flags '-mcpu*' '-march*' '-mtune*'
+	filter-flags '-march*' '-mtune*'
 
 	local mycmakeargs=(
 		-DCMAKE_C_COMPILER_WORKS=ON

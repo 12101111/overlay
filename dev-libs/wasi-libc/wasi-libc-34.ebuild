@@ -4,7 +4,7 @@
 EAPI=8
 
 # minimum_clang_required in wasi-sdk/cmake/wasi-sdk-sysroot.cmake
-LLVM_COMPAT=( {18..22} )
+LLVM_COMPAT=( {18..23} )
 
 inherit cmake crossdev flag-o-matic llvm-r2
 
@@ -28,8 +28,8 @@ BDEPEND=""
 
 if [[ ${CTARGET} == *p[23]* ]]; then
 	BDEPEND+="
-		>=dev-util/wasm-component-ld-0.5.21
-		>=dev-util/wasm-tools-1.244.0
+		>=dev-util/wasm-component-ld-0.5.30
+		>=dev-util/wasm-tools-1.257.0
 	"
 fi
 
@@ -37,6 +37,9 @@ S="${WORKDIR}/${PN}-wasi-sdk-${PV}"
 
 pkg_pretend() {
 	target_is_not_host || die "${PN} should only be used for cross"
+	if [[ ${CTARGET} != *p[123]* ]]; then
+		die "${PN} only support wasm32-wasip{1,2,3}, wasm32-wasi is not supported any more and wasm32-wasip1 should be used instead"
+	fi
 }
 
 src_configure() {
@@ -72,10 +75,6 @@ src_configure() {
 		# Always enable `-fPIC` for the `wasm32-wasip2` and `wasm32-wasip3` targets.
 		# This makes `libc.a` more flexible and usable in dynamic linking situations.
 		append-cflags -fPIC
-	fi
-	if [[ ${CTARGET} == wasm32-wasi* ]]; then
-		# The `wasm32-wasi` target is deprecated in clang, so ignore the deprecation warnings for now.
-		append-cflags -Wno-deprecated
 	fi
 	cmake_src_configure
 }
