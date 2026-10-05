@@ -673,12 +673,16 @@ src_configure() {
 			local wasm_cc=${CHOST}-clang
 			local wasm_cxx=${CHOST}-clang++
 		fi
-		export CFLAGS_${wasm_target//-/_}="$(
-			CC="${wasm_cc} --target=wasm32-unknown-unknown"
-			filter-flags '-mcpu*' '-march*' '-mtune*'
-			strip-unsupported-flags
-			echo "${CFLAGS}"
-		)"
+		# Only derive wasm CFLAGS from the host CFLAGS when the user has not
+		# provided their own from /etc/portage/env.
+		if [[ -z ${CFLAGS_wasm32_unknown_unknown} ]]; then
+			export CFLAGS_${wasm_target//-/_}="$(
+				CC="${wasm_cc} --target=wasm32-unknown-unknown"
+				filter-flags '-mcpu*' '-march*' '-mtune*'
+				strip-unsupported-flags
+				echo "${CFLAGS}"
+			)"
+		fi
 		cat <<- _EOF_ >> "${S}"/bootstrap.toml
 			[target.wasm32-unknown-unknown]
 			cc = "${wasm_cc}"
