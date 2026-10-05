@@ -1,0 +1,58 @@
+From 24fb5a11d281d42d8bc8e72fe7b24cd4eaf1a824 Mon Sep 17 00:00:00 2001
+From: Zonghan Xu <xzonghan@google.com>
+Date: Thu, 13 Aug 2026 18:18:06 -0700
+Subject: [PATCH] [M150] [DTC Consent] [Fortify] Fix potential UAF in
+ ConsentDialogCoordinator::Show()
+
+Original change's description:
+> [DTC Consent] [Fortify] Fix potential UAF in ConsentDialogCoordinator::Show()
+>
+> Showing a modal dialog can spin a nested run loop on macOS, during
+> which the owning browser, profile, or coordinator may be torn down.
+> Guard the post-show write with a weak pointer to avoid a
+> use-after-free write if `this` is destroyed during ShowBrowserModal.
+>
+> Bug: 534862220
+> Change-Id: Ia3536e34be051089bfea7633415ed0939ef933ab
+> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8242507
+> Reviewed-by: Dominique Fauteux-Chapleau <domfc@chromium.org>
+> Commit-Queue: Dominique Fauteux-Chapleau <domfc@chromium.org>
+> Auto-Submit: Zonghan Xu <xzonghan@chromium.org>
+> Cr-Commit-Position: refs/heads/main@{#1677948}
+
+(cherry picked from commit e6bca4df6bc1e28a27e0dbf2921b3b5502a9310b)
+
+Bug: 546214277,534862220
+Change-Id: Ia3536e34be051089bfea7633415ed0939ef933ab
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8258793
+Auto-Submit: chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com <chrome-cherry-picker@chops-service-accounts.iam.gserviceaccount.com>
+Bot-Commit: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>
+Commit-Queue: rubber-stamper@appspot.gserviceaccount.com <rubber-stamper@appspot.gserviceaccount.com>
+Cr-Commit-Position: refs/branch-heads/7871@{#4285}
+Cr-Branched-From: f542126b8c1b3e80104b26bb05ec830bd1206f29-refs/heads/main@{#1639810}
+---
+ .../device_signals_consent/consent_dialog_coordinator.cc   | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/chrome/browser/ui/views/device_signals_consent/consent_dialog_coordinator.cc b/chrome/browser/ui/views/device_signals_consent/consent_dialog_coordinator.cc
+index e7d9568d6862b..11584377c3d0b 100644
+--- a/chrome/browser/ui/views/device_signals_consent/consent_dialog_coordinator.cc
++++ b/chrome/browser/ui/views/device_signals_consent/consent_dialog_coordinator.cc
+@@ -153,8 +153,13 @@ void ConsentDialogCoordinator::Show() {
+     return;
+   }
+   base::RecordAction(base::UserMetricsAction("DeviceSignalsConsent_Shown"));
+-  dialog_widget_ = chrome::ShowBrowserModal(
++
++  auto weak_this = weak_ptr_factory_.GetWeakPtr();
++  views::Widget* widget = chrome::ShowBrowserModal(
+       browser_, CreateDeviceSignalsConsentDialogModel());
++  if (weak_this) {
++    dialog_widget_ = widget;
++  }
+ }
+ 
+ void ConsentDialogCoordinator::OnConsentDialogAccept() {
+-- 
+2.56.0
+

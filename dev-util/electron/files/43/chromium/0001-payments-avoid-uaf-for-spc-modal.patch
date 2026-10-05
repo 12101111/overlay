@@ -1,0 +1,295 @@
+From 2b22bc9765f5ecce5866443c8c85e10dfde83494 Mon Sep 17 00:00:00 2001
+From: Stephen McGruer <smcgruer@chromium.org>
+Date: Wed, 5 Aug 2026 06:27:19 -0700
+Subject: [PATCH] [M150] [payments] Avoid UAF for calls that can show an SPC
+ modal
+
+Original change's description:
+> [payments] Avoid UAF for calls that can show an SPC modal
+>
+> When showing a Secure Payment Confirmation (SPC) web modal dialog via
+> ShowWebModalDialogViews(), the modal delegate checks if the web contents
+> is in fullscreen and if so synchronously calls ExitFullscreen(true). On
+> platforms like Windows and macOS, this can spin a nested message loop or
+> process pending window messages, destroying the WebContents and freeing
+> PaymentRequest and its owned objects while they are still on the stack.
+>
+> This change adds base::WeakPtr self-liveness guards after synchronous
+> re-entrant calls in:
+>
+> - PaymentRequestState::OnDoneCreatingPaymentApps()
+> - PaymentRequestSpec::RecomputeSpecForDetails()
+> - PaymentRequest::UpdateWith()
+> - SecurePaymentConfirmationController::
+>       SetupModelAndShowDialogIfApplicable
+>
+> Fixed: 540138836
+> Change-Id: I7bfc5e8685abe7bc708520fa48059f623d24eaec
+> Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8162516
+> Commit-Queue: Stephen McGruer <smcgruer@chromium.org>
+> Reviewed-by: Darwin Yang <darwinyang@chromium.org>
+> Cr-Commit-Position: refs/heads/main@{#1671557}
+
+(cherry picked from commit 9934ca9908d82b853b4391af74405398db9f1242)
+
+Bug: 541496256,540138836
+Change-Id: I7bfc5e8685abe7bc708520fa48059f623d24eaec
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/8183888
+Reviewed-by: Slobodan Pejic <slobodan@chromium.org>
+Commit-Queue: Slobodan Pejic <slobodan@chromium.org>
+Cr-Commit-Position: refs/branch-heads/7871@{#4260}
+Cr-Branched-From: f542126b8c1b3e80104b26bb05ec830bd1206f29-refs/heads/main@{#1639810}
+---
+ ...secure_payment_confirmation_browsertest.cc | 38 ++++++++++++++++
+ .../payments/content/payment_request.cc       |  6 +++
+ .../payments/content/payment_request_spec.cc  |  6 +++
+ .../content/payment_request_spec_unittest.cc  | 27 +++++++++++
+ .../payments/content/payment_request_state.cc |  7 +++
+ .../content/payment_request_state_unittest.cc | 45 +++++++++++++++++++
+ .../secure_payment_confirmation_controller.cc |  6 +++
+ 7 files changed, 135 insertions(+)
+
+diff --git a/chrome/browser/payments/secure_payment_confirmation_browsertest.cc b/chrome/browser/payments/secure_payment_confirmation_browsertest.cc
+index 2e52323209872..c5ce281aefccf 100644
+--- a/chrome/browser/payments/secure_payment_confirmation_browsertest.cc
++++ b/chrome/browser/payments/secure_payment_confirmation_browsertest.cc
+@@ -523,6 +523,44 @@ IN_PROC_BROWSER_TEST_F(SecurePaymentConfirmationActivationlessShowTest,
+   test_controller()->CloseDialog();
+ }
+ 
++class SecurePaymentConfirmationSynchronousDestructionTest
++    : public SecurePaymentConfirmationTest {
++ public:
++  SecurePaymentConfirmationSynchronousDestructionTest() = default;
++  ~SecurePaymentConfirmationSynchronousDestructionTest() override = default;
++
++  void OnUIDisplayed() override {
++    SecurePaymentConfirmationTest::OnUIDisplayed();
++    GetActiveWebContents()->Close();
++  }
++};
++
++IN_PROC_BROWSER_TEST_F(SecurePaymentConfirmationSynchronousDestructionTest,
++                       CloseTabDuringUIDisplayed) {
++  test_controller()->SetHasAuthenticator(true);
++  NavigateTo("a.com", "/secure_payment_confirmation.html");
++  std::vector<uint8_t> credential_id = {'c', 'r', 'e', 'd'};
++  std::vector<uint8_t> user_id = {'u', 's', 'e', 'r'};
++  webdata_services::WebDataServiceWrapperFactory::
++      GetWebPaymentsWebDataServiceForBrowserContext(
++          GetActiveWebContents()->GetBrowserContext(),
++          ServiceAccessType::EXPLICIT_ACCESS)
++          ->AddSecurePaymentConfirmationCredential(
++              std::make_unique<SecurePaymentConfirmationCredential>(
++                  std::move(credential_id), "a.com", std::move(user_id)),
++              base::BindOnce(
++                  &SecurePaymentConfirmationTest::OnWebDataServiceRequestDone,
++                  weak_ptr_factory_.GetWeakPtr()));
++
++  ResetEventWaiterForSingleEvent(TestEvent::kUIDisplayed);
++  ExecuteScriptAsync(GetActiveWebContents(),
++                     "getSecurePaymentConfirmationStatus()");
++  WaitForObservedEvent();
++
++  // The WebContents and PaymentRequest were closed during OnUIDisplayed(),
++  // and SetupModelAndShowDialogIfApplicable() returned safely without a UAF.
++}
++
+ #if !BUILDFLAG(IS_ANDROID)
+ // Intentionally do not enable the "SecurePaymentConfirmation" Blink runtime
+ // feature or the browser-side Finch flag.
+diff --git a/components/payments/content/payment_request.cc b/components/payments/content/payment_request.cc
+index 1c0ebadb1c2d7..bd4bb14a64717 100644
+--- a/components/payments/content/payment_request.cc
++++ b/components/payments/content/payment_request.cc
+@@ -521,7 +521,13 @@ void PaymentRequest::UpdateWith(mojom::PaymentDetailsPtr details) {
+ 
+   bool is_resolving_promise_passed_into_show_method = !spec_->IsInitialized();
+ 
++  // spec_->UpdateWith() can synchronously trigger observers that destroy the
++  // payment window's WebContents and delete `this`.
++  auto weak_this = weak_ptr_factory_.GetWeakPtr();
+   spec_->UpdateWith(std::move(details));
++  if (!weak_this) {
++    return;
++  }
+ 
+   if (is_resolving_promise_passed_into_show_method) {
+     DCHECK(spec_->details().total);
+diff --git a/components/payments/content/payment_request_spec.cc b/components/payments/content/payment_request_spec.cc
+index 0eb6534866c51..cc74db05d6e2e 100644
+--- a/components/payments/content/payment_request_spec.cc
++++ b/components/payments/content/payment_request_spec.cc
+@@ -210,8 +210,14 @@ void PaymentRequestSpec::RecomputeSpecForDetails() {
+ 
+   NotifyOnSpecUpdated();
+ 
++  // NotifyInitialized() can synchronously trigger observers that destroy the
++  // payment window's WebContents and delete `this`.
++  auto weak_this = weak_ptr_factory_.GetWeakPtr();
+   if (is_initialization)
+     NotifyInitialized();
++  if (!weak_this) {
++    return;
++  }
+ 
+   current_update_reason_ = UpdateReason::NONE;
+ }
+diff --git a/components/payments/content/payment_request_spec_unittest.cc b/components/payments/content/payment_request_spec_unittest.cc
+index 1e84b12c141bf..63400cc4e8886 100644
+--- a/components/payments/content/payment_request_spec_unittest.cc
++++ b/components/payments/content/payment_request_spec_unittest.cc
+@@ -10,6 +10,7 @@
+ #include "base/memory/weak_ptr.h"
+ #include "base/strings/utf_string_conversions.h"
+ #include "base/test/scoped_feature_list.h"
++#include "components/payments/content/initialization_task.h"
+ #include "components/strings/grit/components_strings.h"
+ #include "content/public/common/content_features.h"
+ #include "testing/gmock/include/gmock/gmock.h"
+@@ -47,6 +48,7 @@ class PaymentRequestSpecTest : public testing::Test,
+   }
+ 
+   PaymentRequestSpec* spec() { return spec_.get(); }
++  void ResetSpec() { spec_.reset(); }
+ 
+  private:
+   std::unique_ptr<PaymentRequestSpec> spec_;
+@@ -312,4 +314,29 @@ TEST_F(PaymentRequestSpecTest, RetryWithPayerErrors) {
+ 
+   EXPECT_TRUE(spec()->has_payer_error());
+ }
++
++class PaymentRequestSpecSynchronousDestructionTest
++    : public PaymentRequestSpecTest,
++      public InitializationTask::Observer {
++ public:
++  // InitializationTask::Observer:
++  void OnInitialized(InitializationTask* initialization_task) override {
++    ResetSpec();
++  }
++};
++
++TEST_F(PaymentRequestSpecSynchronousDestructionTest, RecomputeSpecForDetails) {
++  RecreateSpecWithOptionsAndDetails(mojom::PaymentOptions::New(),
++                                    mojom::PaymentDetails::New());
++
++  spec()->AddInitializationObserver(this);
++  spec()->StartWaitingForUpdateWith(
++      PaymentRequestSpec::UpdateReason::INITIAL_PAYMENT_DETAILS);
++  spec()->RecomputeSpecForDetails();
++
++  // RecomputeSpecForDetails will have synchronously torn down the spec object,
++  // but should not cause a UAF.
++  EXPECT_FALSE(spec());
++}
++
+ }  // namespace payments
+diff --git a/components/payments/content/payment_request_state.cc b/components/payments/content/payment_request_state.cc
+index 3ec18e05c0296..7c0193af137dd 100644
+--- a/components/payments/content/payment_request_state.cc
++++ b/components/payments/content/payment_request_state.cc
+@@ -210,7 +210,14 @@ void PaymentRequestState::OnDoneCreatingPaymentApps() {
+       [](const auto& app) { return app->HasEnrolledInstrument(); });
+   are_requested_methods_supported_ |= !available_apps_.empty();
+   NotifyOnGetAllPaymentAppsFinished();
++
++  // NotifyInitialized() can synchronously trigger observers that destroy the
++  // payment window's WebContents and delete `this`.
++  auto weak_this = weak_ptr_factory_.GetWeakPtr();
+   NotifyInitialized();
++  if (!weak_this) {
++    return;
++  }
+ 
+   // Fulfill the pending CanMakePayment call.
+   if (can_make_payment_callback_)
+diff --git a/components/payments/content/payment_request_state_unittest.cc b/components/payments/content/payment_request_state_unittest.cc
+index 42791b6e24ea7..dd04f88666b2d 100644
+--- a/components/payments/content/payment_request_state_unittest.cc
++++ b/components/payments/content/payment_request_state_unittest.cc
+@@ -18,6 +18,7 @@
+ #include "components/autofill/core/browser/data_model/addresses/autofill_profile.h"
+ #include "components/autofill/core/browser/data_model/addresses/autofill_profile_test_api.h"
+ #include "components/autofill/core/browser/test_utils/autofill_test_utils.h"
++#include "components/payments/content/initialization_task.h"
+ #include "components/payments/content/payment_app_factory.h"
+ #include "components/payments/content/payment_app_service.h"
+ #include "components/payments/content/payment_request_spec.h"
+@@ -546,5 +547,49 @@ TEST_F(PaymentRequestStateTest, FilteredHomeWorkAddressProfiles) {
+             autofill::AutofillProfile::RecordType::kLocalOrSyncable);
+ }
+ 
++class PaymentRequestStateSynchronousDestructionTest
++    : public PaymentRequestStateTest,
++      public InitializationTask::Observer {
++ public:
++  // InitializationTask::Observer:
++  void OnInitialized(InitializationTask* initialization_task) override {
++    state_.reset();
++    if (on_initialized_) {
++      std::move(on_initialized_).Run();
++    }
++  }
++
++  base::OnceClosure on_initialized_;
++};
++
++TEST_F(PaymentRequestStateSynchronousDestructionTest,
++       OnDoneCreatingPaymentApps) {
++  auto app_service = std::make_unique<PaymentAppService>(&context_);
++  app_service->AddFactoryForTesting(
++      std::make_unique<TestAppFactory>("https://example.test"));
++
++  base::RunLoop run_loop;
++  on_initialized_ = run_loop.QuitClosure();
++
++  RecreateState(mojom::PaymentOptions::New(), CreateDefaultDetails(),
++                GetMethodDataForUrlMethod("https://example.test"),
++                std::move(app_service));
++
++  // PaymentRequestState's constructor in RecreateState immediately calls
++  // app_service_->Create(), which kicks off payment app factories before
++  // callers can register as an InitializationTask::Observer. We rely on the
++  // fact that default payment app factories in PaymentAppService complete
++  // asynchronously on the message loop, so will not complete until we yield the
++  // run loop below.
++  state()->AddInitializationObserver(this);
++
++  run_loop.Run();
++
++  // OnDoneCreatingPaymentApps should have run and called the initialization
++  // observers, which then synchronously deleted the state. This should not
++  // cause a UAF.
++  EXPECT_FALSE(state_);
++}
++
+ }  // namespace
+ }  // namespace payments
+diff --git a/components/payments/content/secure_payment_confirmation_controller.cc b/components/payments/content/secure_payment_confirmation_controller.cc
+index a232b58ce209b..052e5a4ef4310 100644
+--- a/components/payments/content/secure_payment_confirmation_controller.cc
++++ b/components/payments/content/secure_payment_confirmation_controller.cc
+@@ -373,6 +373,9 @@ void SecurePaymentConfirmationController::
+   view_ = SecurePaymentConfirmationView::Create(
+       request_->state()->GetPaymentRequestDelegate()->GetPaymentUIObserver());
+ 
++  // view_->ShowDialog() can potentially trigger observers that destroy the
++  // payment window's WebContents and delete `this`.
++  auto weak_this = weak_ptr_factory_.GetWeakPtr();
+   view_->ShowDialog(
+       request_->web_contents(), model_.GetWeakPtr(),
+       base::BindOnce(&SecurePaymentConfirmationController::OnConfirm,
+@@ -383,6 +386,9 @@ void SecurePaymentConfirmationController::
+                      weak_ptr_factory_.GetWeakPtr()),
+       base::BindOnce(&SecurePaymentConfirmationController::OnOptOut,
+                      weak_ptr_factory_.GetWeakPtr()));
++  if (!weak_this) {
++    return;
++  }
+ 
+   // For automated testing, SPC can be placed in an 'autoaccept' or
+   // 'autoreject' mode, where the dialog should immediately be
+-- 
+2.56.0
+

@@ -1487,6 +1487,9 @@ src_prepare() {
 	mv "${WORKDIR}/${NODE_P}/" "${NODE_S}/" || die
 	mv "${WORKDIR}/${P}" "${S}/electron" || die
 
+	# the diff of .222 -> .250
+	eapply "${FILESDIR}/${SLOT}/chromium"
+
 	if use elibc_musl; then
 		eapply "${FILESDIR}/${SLOT}/musl"
 		echo "$(rust_abi)" >> build/rust/known-target-triples.txt
