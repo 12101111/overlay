@@ -23,14 +23,23 @@ EAPI=8
 # using an external CI system that we have some control over, in case
 # issues pop up again with official tarball generation.
 
+# DEPS: gn_version
+# using `git rev-list --count` convert git commit to version
 GN_MIN_VER=0.2374
 # chromium-tools/get-chromium-toolchain-strings.py (or just use Chromicler)
+# DEPS: src/third_party/test_fonts/test_fonts
 TEST_FONT="9c07d19d9c5ee1ff94f717e6fb17e0c8c354e6f9"
+# DEPS: src/third_party/llvm-build/Release+Asserts
+# tools/clang/scripts/update.py
 BUNDLED_CLANG_VER="llvmorg-23-init-19482-g53d18800-1"
-BUNDLED_RUST_VER="b998449636a48e2c4a362809085b600a0174e1f2-2"
+# DEPS: src/third_party/rust-toolchain
+# tools/rust/update_rust.py:RUST_REVISION-RUST_SUB_REVISION
+BUNDLED_RUST_VER="b998449636a48e2c4a362809085b600a0174e1f2-5"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
+# third_party/node/update_node_binaries:NODE_VERSION
 NODE_VER="24.12.0"
 GO_MIN_VER="1.25.0"
+# third_party/devtools-frontend/src/package.json
 ESBUILD_VER="0.25.1"
 ROLLUP_VER="4.57.1" # currently manual.
 VIRTUALX_REQUIRED="pgo"
@@ -39,10 +48,10 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
-LLVM_COMPAT=( 21 22 )
+LLVM_COMPAT=( 22 23 )
 PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
-RUST_MIN_VER=1.91.0
+RUST_MIN_VER=1.98.1
 RUST_NEEDS_LLVM="yes please"
 RUST_OPTIONAL="yes" # Not actually optional, but we don't need system Rust (or LLVM) with USE=bundled-toolchain
 RUST_REQ_USE="rustfmt" # Upstream run rustfmt on bindgen output, so we need it to be available.
@@ -53,9 +62,10 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="7aae8a84e327fc2078ce1625c9c70bfda77d626f"
-PATCH_V="151-3"
-COPIUM_COMMIT="3c7e56fb4523b43b47595bb3a22f77178fc76293"
+PPC64_HASH="686bea86fe96a6796dacdc99415c1a2050e6e76d"
+PATCH_V="152"
+COPIUM_COMMIT="a4372c7f31f8001770b8abe014a690a641baff41"
+# no update for now
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
@@ -112,7 +122,7 @@ COMMON_X_DEPEND="
 	x11-libs/libXcursor:=
 	x11-libs/libXdamage:=
 	x11-libs/libXfixes:=
-	>=x11-libs/libXi-1.6.0:=
+	>=x11-libs/libXi-1.8.3:=
 	x11-libs/libXrandr:=
 	x11-libs/libXrender:=
 	x11-libs/libXtst:=
@@ -122,28 +132,28 @@ COMMON_X_DEPEND="
 # sys-libs/zlib: https://bugs.gentoo.org/930365; -ng is not compatible.
 # We _could_ use the bundled minizip, but that's against policy.
 COMMON_SNAPSHOT_DEPEND="
-	system-icu? ( >=dev-libs/icu-73.0:= )
-	>=dev-libs/libxml2-2.12.4:=[icu]
+	system-icu? ( >=dev-libs/icu-78.2:= )
+	>=dev-libs/libxml2-2.15.0:=[icu]
 	dev-libs/nspr:=
-	>=dev-libs/nss-3.26:=
+	>=dev-libs/nss-3.35:=
 	dev-libs/libxslt:=
 	media-libs/fontconfig:=
-	>=media-libs/freetype-2.11.0-r1:=
+	>=media-libs/freetype-2.14.3:=
 	system-harfbuzz? ( >=media-libs/harfbuzz-3:0=[icu(-)] )
 	media-libs/libjpeg-turbo:=
 	system-zstd? ( >=app-arch/zstd-1.5.5:= )
-	>=media-libs/libwebp-0.4.0:=
+	>=media-libs/libwebp-1.6.0:=
 	media-libs/mesa:=[gbm(+)]
 	>=media-libs/openh264-2.6.0:=
 	sys-libs/zlib:=
 	!headless? (
 		dev-libs/glib:2
-		>=media-libs/alsa-lib-1.0.19:=
+		>=media-libs/alsa-lib-1.2.4:=
 		media-video/pipewire:=
 		pulseaudio? ( media-libs/libpulse:= )
 		sys-apps/pciutils:=
 		kerberos? ( virtual/krb5 )
-		vaapi? ( >=media-libs/libva-2.7:=[X?,wayland?] )
+		vaapi? ( >=media-libs/libva-2.17:=[X?,wayland?] )
 		X? (
 			x11-base/xorg-proto:=
 			x11-libs/libX11:=
@@ -366,7 +376,7 @@ pkg_setup() {
 			rust_pkg_setup
 
 			if tc-ld-is-mold; then
-				ewarn "Mold is currently not supported, it will not be used"
+				ewarn "Mold is currently not tested"
 			fi
 
 			# Forcing clang; respect llvm_slot_x to enable selection of impl via LLVM_COMPAT
@@ -382,12 +392,7 @@ pkg_setup() {
 		use_lto="false"
 		local lto_usable="true"
 		if [[ "$want_lto" == "true" ]]; then
-			if use arm64 && [[ "${LLVM_SLOT}" -lt 22 ]]; then
-				einfo "LTO is broken with LLVM 21 on arm64, ignoring CFLAGS."
-				lto_usable="false"
-			else
-				use_lto="true"
-			fi
+			use_lto="true"
 			# We can rely on GN to do this for us; without this builds
 			# take significantly longer with LTO enabled.
 			filter-lto
@@ -543,7 +548,13 @@ src_prepare() {
 	fi
 
 	# We'll fill this in as we go. Patches go in chromium-patches.
-	local PATCHES=()
+	local PATCHES=(
+		"${FILESDIR}/rust_1.89-qr-code.patch"
+		"${FILESDIR}/chromium-149-use-of-undeclared-identifier-ERROR.patch" # archlinux
+		"${FILESDIR}/rust-cbor.patch" # alpine linux
+	)
+
+	( cd third_party/devtools-frontend/src && eapply "${FILESDIR}/chromium-152-fix-gn-no-public_inputs.patch" )
 
 	PATCHES+=(
 		"${WORKDIR}/chromium-patches-${PATCH_V}/common/"
@@ -596,7 +607,8 @@ src_prepare() {
 		# Copium patches go here.
 		PATCHES+=(
 			"${WORKDIR}/copium/cr143-libsync-__BEGIN_DECLS.patch"
-			"${WORKDIR}/copium/cr149-unbundle-minizip-undo-unicode.patch"
+			"${WORKDIR}/copium/cr145-iwyu-dev_t.patch"
+			"${WORKDIR}/copium/cr152-unbundle-minizip-undo-unicode.patch"
 		)
 
 		# Automate conditional application of chromium-patches
@@ -849,10 +861,12 @@ src_prepare() {
 		third_party/devtools-frontend/src/front_end/third_party/wasmparser
 		third_party/devtools-frontend/src/front_end/third_party/web-vitals
 		third_party/devtools-frontend/src/third_party
+		third_party/disarm
 		third_party/dom_distiller_js
 		third_party/dragonbox
 		third_party/eigen3
 		third_party/emoji-segmenter
+		third_party/fadec
 		third_party/farmhash
 		third_party/fast_float
 		third_party/fdlibm
@@ -1038,7 +1052,6 @@ src_prepare() {
 		third_party/zlib/google
 		third_party/zxcvbn-cpp
 		url/third_party/mozilla
-		v8/third_party/glibc
 		v8/third_party/inspector_protocol
 		v8/third_party/rapidhash-v8
 		v8/third_party/siphash
@@ -1274,16 +1287,15 @@ chromium_configure() {
 			"rustc_version=\"${RUST_SLOT}\""
 		)
 
-		# Currently disabled, runtime issues with mold
-		#if tc-ld-is-mold; then
-		#	myconf_gn+=(
-		#		"use_mold=true"
-		#		"use_lld=false"
-		#		"linker_path=\"${EPREFIX}/usr/bin/mold\""
-		#	)
-		#else
-		myconf_gn+=( "use_lld=true" )
-		#fi
+		if tc-ld-is-mold; then
+			myconf_gn+=(
+				"use_mold=true"
+				"use_lld=false"
+				"linker_path=\"${EPREFIX}/usr/bin/mold\""
+			)
+		else
+			myconf_gn+=( "use_lld=true" )
+		fi
 
 		if [[ ${LLVM_SLOT} -lt 23 ]]; then
 			# Workaround for -fsanitize-ignore-for-ubsan-feature (added in LLVM 23)
@@ -1353,9 +1365,8 @@ chromium_configure() {
 		# Custom patch: Enable building Chromium as individual channels (e.g. stable, beta, dev) that
 		# use different profile directories, desktop entries, etc. This enables slotting the ebuild.
 		"enable_channel_branding=true"
-		# 131 began laying the groundwork for replacing freetype with
-		# "Rust-based Fontations set of libraries plus Skia path rendering"
-		# We now need to opt-in
+		# Blink no longer needs FreeType. PDFium needs a recent and properly
+		# build-configured FreeType version to work and avoid security bugs.
 		"enable_freetype=true"
 		"enable_hangout_services_extension=$(usex hangouts true false)"
 		# Don't need nocompile checks and GN crashes with our config (verify with modern GN)
@@ -1394,8 +1405,6 @@ chromium_configure() {
 		# See dependency logic in third_party/BUILD.gn
 		"use_system_harfbuzz=$(usex system-harfbuzz true false)"
 		"use_thin_lto=${use_lto}"
-		# Only enabled for clang, but gcc has endian macros too
-		"v8_use_libm_trig_functions=true"
 		# use system go
 		"tint_use_system_go=true"
 	)
@@ -1539,7 +1548,6 @@ src_configure() {
 }
 
 chromium_compile() {
-
 	# Final link uses lots of file descriptors.
 	ulimit -n 2048
 
