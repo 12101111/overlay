@@ -1,0 +1,158 @@
+diff -ruN a/scripts/build/ninja/copy.gni b/scripts/build/ninja/copy.gni
+--- a/scripts/build/ninja/copy.gni	2026-10-07 13:14:02.567338593 +0800
++++ b/scripts/build/ninja/copy.gni	2026-10-07 13:14:39.031832129 +0800
+@@ -25,9 +25,6 @@
+       string_join(",", sources),
+     ]
+ 
+-    # Expose ts files to dependent targets.
+-    public_inputs = filter_include(sources, [ "*.ts" ])
+-
+     outputs = []
+     foreach(_input, sources) {
+       outputs += [ "$target_gen_dir/$_input" ]
+diff -ruN a/scripts/build/ninja/devtools_entrypoint.gni b/scripts/build/ninja/devtools_entrypoint.gni
+--- a/scripts/build/ninja/devtools_entrypoint.gni	2026-10-07 13:14:02.571988533 +0800
++++ b/scripts/build/ninja/devtools_entrypoint.gni	2026-10-07 13:14:39.031939240 +0800
+@@ -215,9 +215,6 @@
+   node_action(target_name) {
+     script = "scripts/build/ninja/generate-tsconfig.js"
+ 
+-    # Expose ts files to dependent targets.
+-    public_inputs = [ invoker.entrypoint ]
+-
+     args = [
+              rebase_path(_generated_tsconfig_location, root_build_dir),
+              rebase_path(invoker.entrypoint, root_build_dir),
+@@ -242,7 +239,6 @@
+ 
+   _sources_target = "${target_name}_sources"
+   group(_sources_target) {
+-    public_inputs = [ invoker.entrypoint ]
+     if (defined(invoker.testonly)) {
+       testonly = invoker.testonly
+     }
+diff -ruN a/scripts/build/ninja/devtools_entrypoint_split.gni b/scripts/build/ninja/devtools_entrypoint_split.gni
+--- a/scripts/build/ninja/devtools_entrypoint_split.gni	2026-10-07 13:14:02.575332822 +0800
++++ b/scripts/build/ninja/devtools_entrypoint_split.gni	2026-10-07 13:14:39.031981860 +0800
+@@ -51,7 +51,6 @@
+     # consuming this entrypoint.
+     _sources_target = "${target_name}_sources"
+     group(_sources_target) {
+-      public_inputs = [ invoker.entrypoint ]
+       forward_variables_from(invoker, [ "testonly" ])
+       if (defined(invoker.visibility)) {
+         visibility = [ ":*" ] + invoker.visibility
+diff -ruN a/scripts/build/ninja/devtools_pre_built.gni b/scripts/build/ninja/devtools_pre_built.gni
+--- a/scripts/build/ninja/devtools_pre_built.gni	2026-10-07 13:14:02.577930780 +0800
++++ b/scripts/build/ninja/devtools_pre_built.gni	2026-10-07 13:20:41.619183081 +0800
+@@ -116,16 +116,7 @@
+ 
+   # Expose ${target_name}_sources group so ts_deps in devtools_entrypoint_split
+   # can resolve source dependencies for bundling.
+-  _sources = []
+-  if (!invoker.sources_are_release) {
+-    _sources = invoker.sources
+-  }
+-
+   group("${target_name}_sources") {
+-    public_inputs = _sources
+-    if (defined(invoker.inputs)) {
+-      public_inputs += invoker.inputs
+-    }
+     public_deps = [ ":$_gen_target_name" ]
+     if (defined(invoker.public_deps)) {
+       public_deps += invoker.public_deps
+diff -ruN a/scripts/build/typescript/ts_library_split.gni b/scripts/build/typescript/ts_library_split.gni
+--- a/scripts/build/typescript/ts_library_split.gni	2026-10-07 13:14:02.583998682 +0800
++++ b/scripts/build/typescript/ts_library_split.gni	2026-10-07 13:18:05.832637287 +0800
+@@ -199,21 +199,6 @@
+   }
+   _compiler_options.lib = _es_libs + default_ts_base_libs
+ 
+-  _handwritten_dts = filter_include(invoker.sources,
+-                                    [
+-                                      "*.d.ts",
+-                                      "*.d.mts",
+-                                      "*.d.cts",
+-                                    ])
+-  if (defined(invoker.additional_type_definitions)) {
+-    _handwritten_dts += filter_include(invoker.additional_type_definitions,
+-                                       [
+-                                         "*.d.ts",
+-                                         "*.d.mts",
+-                                         "*.d.cts",
+-                                       ])
+-  }
+-
+   # Compute output file paths (tsc does not emit for .d.ts inputs)
+   _dts_outputs = []
+   if (!_no_js_emit) {
+@@ -257,9 +242,6 @@
+ 
+     outputs = _dts_outputs
+ 
+-    # Expose handwritten .d.ts files to dependent targets if any.
+-    public_inputs = filter_include(_all_sources, [ "*.d.ts" ])
+-
+     response_file_contents =
+         rebase_path(_dts_outputs, root_build_dir) + [ "--" ] + [
+           rebase_path(tsc_binary, root_build_dir),
+@@ -313,10 +295,6 @@
+     if (defined(invoker.testonly)) {
+       testonly = invoker.testonly
+     }
+-    public_inputs = filter_include(_all_sources, [ "*.ts" ])
+-    if (defined(invoker.inputs)) {
+-      public_inputs += invoker.inputs
+-    }
+     public_deps = _non_ts_deps
+     if (defined(invoker.visibility)) {
+       visibility = [ ":*" ] + invoker.visibility
+@@ -396,8 +374,6 @@
+                     ":$_dts_target",
+                     ":$_tsconfig_ref_target",
+                   ] + _ts_deps
+-    public_inputs = filter_include(_dts_outputs, [ "*.d.ts" ]) +
+-                    _handwritten_dts + [ _tsconfig_ref_file ]
+     if (defined(invoker.public_deps)) {
+       public_deps += invoker.public_deps
+     }
+diff -ruN a/scripts/build/typescript/typescript.gni b/scripts/build/typescript/typescript.gni
+--- a/scripts/build/typescript/typescript.gni	2026-10-07 13:14:02.582002384 +0800
++++ b/scripts/build/typescript/typescript.gni	2026-10-07 13:14:39.032085314 +0800
+@@ -204,17 +204,6 @@
+     ]
+ 
+     if (defined(sources)) {
+-      # Expose ts files to dependent targets.
+-      public_inputs =
+-          filter_include(sources,
+-                         [
+-                           "*.ts",
+-
+-                           # TODO: Migrate the files below to TypeScript
+-                           # and remove them from this list.
+-                           "*ahem.js",
+-                         ])
+-
+       args += [ "--sources" ] + rebase_path(sources, root_build_dir)
+ 
+       foreach(src, sources) {
+@@ -292,16 +281,6 @@
+     if (defined(invoker.testonly)) {
+       testonly = invoker.testonly
+     }
+-    public_inputs = []
+-    if (defined(invoker.sources)) {
+-      public_inputs += filter_include(invoker.sources, [ "*.ts" ])
+-    }
+-    if (defined(invoker.inputs)) {
+-      public_inputs += invoker.inputs
+-    }
+-    if (defined(invoker.visibility)) {
+-      visibility = [ ":*" ] + invoker.visibility
+-    }
+   }
+ }
+ 

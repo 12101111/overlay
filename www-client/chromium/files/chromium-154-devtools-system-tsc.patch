@@ -1,0 +1,37 @@
+Use the system TypeScript compiler (>= 6, which supports --ignoreConfig)
+instead of the bundled tsgo binary, which upstream only ships for linux-amd64.
+
+See https://github.com/ungoogled-software/ungoogled-chromium/pull/3966
+
+--- a/scripts/build/typescript/typescript_vars.gni
++++ b/scripts/build/typescript/typescript_vars.gni
+@@ -6,7 +6,7 @@
+ import("../ninja/vars.gni")
+ 
+ if (host_os == "linux") {
+-  tsc_binary = "//third_party/typescript/linux-amd64/src/lib/tsc"
++  tsc_binary = "/usr/bin/tsc"
+ } else if (host_os == "win") {
+   tsc_binary = "//third_party/typescript/windows-amd64/src/lib/tsc.exe"
+ } else if (host_os == "mac") {
+--- a/third_party/typescript/typescript.py
++++ b/third_party/typescript/typescript.py
+@@ -10,6 +10,7 @@
+ 
+ 
+ def GetBinaryPath():
++    return "/usr/bin/tsc"
+     if platform.machine() == 'arm64':
+         darwin_path = 'mac-arm64'
+     else:
+--- a/front_end/core/host/DispatchHttpRequestClient.ts
++++ b/front_end/core/host/DispatchHttpRequestClient.ts
+@@ -14,7 +14,7 @@ export enum ErrorType {
+ }
+ 
+ export class DispatchHttpRequestError extends Error {
+-  constructor(readonly type: ErrorType, readonly response?: DispatchHttpRequestResult, options?: ErrorOptions) {
++  constructor(readonly type: ErrorType, readonly response?: DispatchHttpRequestResult | undefined, options?: ErrorOptions) {
+     super(undefined, options);
+   }
+ }

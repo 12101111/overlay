@@ -79,10 +79,11 @@ index c13058c..9b6751e 100644
  void ReportMallinfoStats(ProcessMemoryDump* pmd,
                           size_t* total_virtual_size,
                           size_t* resident_size,
-@@ -389,7 +389,7 @@ bool MallocDumpProvider::OnMemoryDump(const MemoryDumpArgs& args,
-   ReportWinHeapStats(args.level_of_detail, nullptr, &total_virtual_size,
-                      &resident_size, &allocated_objects_size,
-                      &allocated_objects_count);
+@@ -507,7 +507,7 @@ bool MallocDumpProvider::OnMemoryDump(const MemoryDumpArgs& args,
+   ReportWinHeapStats(args.level_of_detail, nullptr, nullptr,
+                      &total_virtual_size, &resident_size,
+                      &allocated_objects_size, &allocated_objects_count,
+                      nullptr);
 -#elif BUILDFLAG(IS_FUCHSIA)
 +#elif BUILDFLAG(IS_FUCHSIA) || BUILDFLAG(IS_LINUX) && !defined(__GLIBC__)
  // TODO(fuchsia): Port, see https://crbug.com/706592.

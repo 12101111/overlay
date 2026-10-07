@@ -25,16 +25,18 @@ EAPI=8
 
 # DEPS: gn_version
 # using `git rev-list --count` convert git commit to version
+# current: 2541
 GN_MIN_VER=0.2374
 # chromium-tools/get-chromium-toolchain-strings.py (or just use Chromicler)
 # DEPS: src/third_party/test_fonts/test_fonts
 TEST_FONT="9c07d19d9c5ee1ff94f717e6fb17e0c8c354e6f9"
 # DEPS: src/third_party/llvm-build/Release+Asserts
 # tools/clang/scripts/update.py
-BUNDLED_CLANG_VER="llvmorg-23-init-19482-g53d18800-1"
+BUNDLED_CLANG_VER="llvmorg-24-init-3796-g20e97c4b-27"
 # DEPS: src/third_party/rust-toolchain
 # tools/rust/update_rust.py:RUST_REVISION-RUST_SUB_REVISION
-BUNDLED_RUST_VER="b998449636a48e2c4a362809085b600a0174e1f2-5"
+# current: rustc version 1.99.0-nightly (4eccbe999 2099-01-01) (0913b18e489ac1011b580e31fa5559654be12bfc-2-llvmorg-24-init-3796-g20e97c4b chromium)
+BUNDLED_RUST_VER="0913b18e489ac1011b580e31fa5559654be12bfc-2"
 RUST_SHORT_HASH=${BUNDLED_RUST_VER:0:10}-${BUNDLED_RUST_VER##*-}
 # third_party/node/update_node_binaries:NODE_VERSION
 NODE_VER="24.12.0"
@@ -48,10 +50,10 @@ CHROMIUM_LANGS="af am ar bg bn ca cs da de el en-GB es es-419 et fa fi fil fr gu
 	hi hr hu id it ja kn ko lt lv ml mr ms nb nl pl pt-BR pt-PT ro ru sk sl sr
 	sv sw ta te th tr uk ur vi zh-CN zh-TW"
 
-LLVM_COMPAT=( 22 23 )
+LLVM_COMPAT=( 23 )
 PYTHON_COMPAT=( python3_{11..14} )
 PYTHON_REQ_USE="xml(+)"
-RUST_MIN_VER=1.98.1
+RUST_MIN_VER=1.99.0
 RUST_NEEDS_LLVM="yes please"
 RUST_OPTIONAL="yes" # Not actually optional, but we don't need system Rust (or LLVM) with USE=bundled-toolchain
 RUST_REQ_USE="rustfmt" # Upstream run rustfmt on bindgen output, so we need it to be available.
@@ -62,13 +64,15 @@ inherit rust-toolchain
 
 DESCRIPTION="Open-source version of Google Chrome web browser"
 HOMEPAGE="https://www.chromium.org/"
-PPC64_HASH="686bea86fe96a6796dacdc99415c1a2050e6e76d"
+PPC64_HASH="1b0d3a694105409689dc4281839df94d48dbf247"
 PATCH_V="152"
-COPIUM_COMMIT="a4372c7f31f8001770b8abe014a690a641baff41"
+COPIUM_COMMIT="da0bd20b50ec8dab12b9efb6c3d3305c9e862d7c"
 # no update for now
 PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
-SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
+#Official tarball: https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
+#Downstream tarball : https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
+SRC_URI="https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://deps.gentoo.zip/www-client/chromium/rollup-wasm-node-${ROLLUP_VER}.tgz
 	https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
 	!bundled-toolchain? (
@@ -246,6 +250,7 @@ BDEPEND="
 	>=dev-util/bindgen-0.72.1
 	>=dev-build/gn-${GN_MIN_VER}
 	>=dev-lang/go-${GO_MIN_VER}
+	>=dev-lang/typescript-6
 	app-alternatives/ninja
 	dev-lang/perl
 	>=dev-util/gperf-3.2
@@ -437,7 +442,7 @@ pkg_setup() {
 }
 
 src_unpack() {
-	unpack ${P}-linux.tar.xz
+	unpack ${P}.tar.xz
 	unpack chromium-patches-${PATCH_V}.tar.bz2
 	# These should only be required when we're not using the official toolchain
 	if use !bundled-toolchain; then
@@ -547,17 +552,27 @@ src_prepare() {
 		eapply "${FILESDIR}/remove-libatomic.patch"
 	fi
 
+	pushd third_party/devtools-frontend/src > /dev/null || die
+	eapply "${FILESDIR}/chromium-154-no-public_inputs.patch"
+	eapply "${FILESDIR}/chromium-154-devtools-system-tsc.patch"
+	popd > /dev/null || die
+
 	# We'll fill this in as we go. Patches go in chromium-patches.
 	local PATCHES=(
 		"${FILESDIR}/rust_1.89-qr-code.patch"
+		"${FILESDIR}/disable-tos-dialog.patch" # ungoogled-chromium
 		"${FILESDIR}/chromium-149-use-of-undeclared-identifier-ERROR.patch" # archlinux
 		"${FILESDIR}/rust-cbor.patch" # alpine linux
+		"${FILESDIR}/chromium-154-revert-crubit.patch" # void linux/ungoogled-chromium
+		"${FILESDIR}/chromium-154-revert-private-verification-tokens.patch" # void linux/ungoogled-chromium
 	)
 
-	( cd third_party/devtools-frontend/src && eapply "${FILESDIR}/chromium-152-fix-gn-no-public_inputs.patch" )
-
+	rm "${WORKDIR}/chromium-patches-${PATCH_V}/common/cr152-revert-to-rollup-wasm.patch" || die
+	rm "${WORKDIR}/chromium-patches-${PATCH_V}/toolchain/cr152-fix-rust-2-oxidize-harder.patch" || die
 	PATCHES+=(
 		"${WORKDIR}/chromium-patches-${PATCH_V}/common/"
+		"${FILESDIR}/chromium-154-revert-to-rollup-wasm.patch"
+		"${FILESDIR}/chromium-154-fix-rust-2-oxidize-harder.patch"
 	)
 
 	# So many fontconfig magic numbers to cover
@@ -609,6 +624,7 @@ src_prepare() {
 			"${WORKDIR}/copium/cr143-libsync-__BEGIN_DECLS.patch"
 			"${WORKDIR}/copium/cr145-iwyu-dev_t.patch"
 			"${WORKDIR}/copium/cr152-unbundle-minizip-undo-unicode.patch"
+			"${WORKDIR}/copium/cr153-typescript-break-definitions.patch"
 		)
 
 		# Automate conditional application of chromium-patches
@@ -897,6 +913,7 @@ src_prepare() {
 		third_party/gperf # We symlink system gperf, but this will purge the symlink since we tidy up afterwards.
 		third_party/highway
 		third_party/hunspell
+		third_party/iamf_tools
 		third_party/ink/src/ink/brush
 		third_party/ink/src/ink/color
 		third_party/ink/src/ink/geometry
@@ -965,6 +982,7 @@ src_prepare() {
 		third_party/openscreen
 		third_party/openscreen/src/third_party/
 		third_party/openscreen/src/third_party/tinycbor/src/src
+		third_party/openxr
 		third_party/opus
 		third_party/ots
 		third_party/pdfium
@@ -1407,6 +1425,8 @@ chromium_configure() {
 		"use_thin_lto=${use_lto}"
 		# use system go
 		"tint_use_system_go=true"
+		# M154 defaults to the tsgo compiler, keep using the JS tsc instead.
+		"use_typescript_go=false"
 	)
 
 	if use bindist ; then

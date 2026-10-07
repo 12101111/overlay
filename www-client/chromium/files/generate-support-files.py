@@ -49,6 +49,8 @@ def main():
     context = {
         "BUGTRACKERURL": "https://bugs.gentoo.org/enter_bug.cgi?product=Gentoo Linux&amp;component=Current packages",
         "DEVELOPER_NAME": "The Chromium Authors",
+        "DESKTOP_EXEC": f"/usr/bin/chromium-browser{channel_suffix}",
+        "DESKTOP_ICON": f"chromium-browser{channel_suffix}",
         "EXTRA_DESKTOP_ENTRIES": "",
         "FULLDESC": "An open-source browser project that aims to build a safer, faster, and more stable way to experience the web.",
         "HELPURL": "https://wiki.gentoo.org/wiki/Chromium",
@@ -61,6 +63,8 @@ def main():
         "PROJECT_LICENSE": "BSD, LGPL-2, LGPL-2.1, MPL-1.1, MPL-2.0, Apache-2.0, and others",
         "SHORTDESC": "Open-source foundation of many web browsers including Google Chrome",
         "STARTUP_WM_CLASS": f"chromium-browser{channel_suffix}",
+        # Upstream default: chrome/installer/linux/common/installer.py
+        "APPSTREAM_SCREENSHOT_URL": "https://www.gstatic.com/chrome/appstream/chrome-2.png",
         # Use a distinct scheme handler for slotted installs to avoid conflicts
         "URI_SCHEME": f"x-scheme-handler/chromium{channel_suffix}",
         "USR_BIN_SYMLINK_NAME": f"chromium-browser{channel_suffix}",
