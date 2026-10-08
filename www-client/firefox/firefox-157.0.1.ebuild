@@ -209,7 +209,7 @@ else
 fi
 
 # Allow MOZ_GMP_PLUGIN_LIST to be set in an eclass or
-# overridden in the enviromnent (advanced hackers only)
+# overridden in the environment (advanced hackers only)
 if [[ -z "${MOZ_GMP_PLUGIN_LIST+set}" ]] ; then
 	MOZ_GMP_PLUGIN_LIST=( gmp-gmpopenh264 gmp-widevinecdm )
 fi
@@ -417,7 +417,7 @@ pkg_setup() {
 		rust_pkg_setup
 		python-any-r1_pkg_setup
 
-		# Avoid PGO profiling problems due to enviroment leakage
+		# Avoid PGO profiling problems due to environment leakage
 		# These should *always* be cleaned up anyway
 		unset \
 			DBUS_SESSION_BUS_ADDRESS \
@@ -507,7 +507,7 @@ src_prepare() {
 
 	eapply "${WORKDIR}/firefox-patches"
 
-	# Allow user to apply any additional patches without modifing ebuild
+	# Allow user to apply any additional patches without modifying ebuild
 	eapply_user
 
 	# Make cargo respect MAKEOPTS
