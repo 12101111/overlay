@@ -27,7 +27,7 @@ inherit rust-toolchain
 # find least version of available snapshot using files/url.sh
 CHROMIUM_VERSION="150.0.7871.222"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="24.21.0"
+NODE_VERSION="24.22.0"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
@@ -1623,19 +1623,28 @@ EOF
 	fi
 
 	# Apply Chromium patches from Electron.
-	local patchespath repopath
-	(jq -r '.[] | .patch_dir + " " + .repo' "${S}/electron/patches/config.json" || die) \
-	| while read -r patchespath repopath; do
+	# Some of them touch files which the Chromium tarball does not ship (tests
+	# and the like) or no longer match the sources, so drop the hunks which
+	# cannot be applied instead of carrying patches-of-patches in ${FILESDIR}.
+	local patchespath repopath patchfile
+	local config_list
+	config_list=$(jq -r '.[] | .patch_dir + " " + .repo' "${S}/electron/patches/config.json") ||
+		die "Failed to read Electron's patch configuration"
+	while read -r patchespath repopath; do
 		if [[ -d "${WORKDIR}/${repopath}" ]]; then
 			einfo "Apply Electron's patches to ${repopath}"
 			cd "${WORKDIR}/${repopath}" || die
-			cat "${WORKDIR}/${patchespath}/.patches" | while read -r patchfile; do
+			while read -r patchfile; do
+				"${EPYTHON}" "${FILESDIR}/${SLOT}/prune-patch-hunks.py" \
+					--repo-root "${WORKDIR}/${repopath}" \
+					"${WORKDIR}/${patchespath}/${patchfile}" ||
+					die "Failed to prune unappliable hunks from ${patchfile}"
 				eapply "${WORKDIR}/${patchespath}/${patchfile}"
-			done
+			done < "${WORKDIR}/${patchespath}/.patches"
 		else
 			einfo "Skip patches for ${repopath}"
 		fi
-	done
+	done <<< "${config_list}"
 
 	cd "${S}"/v8 || die
 

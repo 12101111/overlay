@@ -1,5 +1,5 @@
 diff --git a/patches/angle/.patches b/patches/angle/.patches
-index 701c4f870e..4d6bdc151a 100644
+index 06a454e493..5d3094cbb9 100644
 --- a/patches/angle/.patches
 +++ b/patches/angle/.patches
 @@ -37,13 +37,9 @@ cherry-pick-8efd15f71c27.patch
@@ -38,15 +38,3 @@ index af678c1d29..e69de29bb2 100644
 +++ b/patches/icu/.patches
 @@ -1 +0,0 @@
 -update_tzdata_to_2026d.patch
-diff --git a/patches/node/.patches b/patches/node/.patches
-index ac0bc7d3d2..369783e598 100644
---- a/patches/node/.patches
-+++ b/patches/node/.patches
-@@ -63,7 +63,6 @@ src_fix_external_reference_registration_for_new_cfunction_lifetime.patch
- fix_do_not_pass_removed_jspi_v8_flag.patch
- src_keep_global_list_of_addon-provided_cleanup_hooks.patch
- src_fix_use-after-free_in_cleanuphookthunkrun.patch
--test_add_regression_test_for_cleanup_hook_uaf.patch
- fix_allow_electron_s_linked_bindings_under_the_permission_model.patch
- fs_support_removing_read-only_files_in_rmsync_on_windows.patch
- src_detach_cppgc_wrappers_from_their_realm_before_it_is_freed.patch
