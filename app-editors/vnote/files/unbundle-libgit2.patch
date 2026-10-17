@@ -19,10 +19,10 @@ index 1313756..59ee698 100644
  #include <memory>
  
 diff --git a/third_party/CMakeLists.txt b/third_party/CMakeLists.txt
-index 55ba6e9..1a7ef38 100644
+index 57b094b..faa66a9 100644
 --- a/third_party/CMakeLists.txt
 +++ b/third_party/CMakeLists.txt
-@@ -18,62 +18,102 @@ if(NOT TARGET cmark)
+@@ -18,66 +18,106 @@ if(NOT TARGET cmark)
    endif()
  endif()
  
@@ -58,6 +58,8 @@ index 55ba6e9..1a7ef38 100644
 -# and _RTC_StackFailure crashes on first log call). Generator expression:
 -# MultiThreadedDLL in Release, MultiThreadedDebugDLL in Debug.
 -set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
+-# libgit2 also selects CRT flags explicitly through its own option.
+-set(STATIC_CRT OFF CACHE BOOL "Link the static CRT libraries" FORCE)
 -# Suppress all warnings from libgit2 internal targets (C5287 etc.) by
 -# injecting /w (MSVC) or -w (GCC/Clang) into the C/CXX flags for this scope.
 -set(_saved_c_flags "${CMAKE_C_FLAGS}")
@@ -154,6 +156,8 @@ index 55ba6e9..1a7ef38 100644
 +  # and _RTC_StackFailure crashes on first log call). Generator expression:
 +  # MultiThreadedDLL in Release, MultiThreadedDebugDLL in Debug.
 +  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL" CACHE STRING "" FORCE)
++  # libgit2 also selects CRT flags explicitly through its own option.
++  set(STATIC_CRT OFF CACHE BOOL "Link the static CRT libraries" FORCE)
 +  # Suppress all warnings from libgit2 internal targets (C5287 etc.) by
 +  # injecting /w (MSVC) or -w (GCC/Clang) into the C/CXX flags for this scope.
 +  set(_saved_c_flags "${CMAKE_C_FLAGS}")
@@ -182,3 +186,5 @@ index 55ba6e9..1a7ef38 100644
 +    target_compile_options(libgit2package PRIVATE -w)
 +  endif()
  endif()
+ 
+ # Function scope keeps sodium's options from changing other dependencies.

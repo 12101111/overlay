@@ -32,7 +32,9 @@ DEPEND="
 	dev-qt/qtwebengine:6
 	dev-qt/qtsvg:6
 	dev-libs/qtkeychain:=
+	dev-libs/pugixml
 	>=dev-libs/libgit2-1.9.2
+	net-misc/curl[ssl]
 "
 RDEPEND="${DEPEND}"
 
@@ -61,7 +63,10 @@ src_prepare() {
 		libs/vxcore/third_party/CMakeLists.txt || die
 	pushd "${S}/libs/vxcore" > /dev/null || die
 	eapply "${FILESDIR}/unbundle-libgit2.patch"
+	eapply "${FILESDIR}/unbundle-curl-pugixml.patch"
 	popd > /dev/null || die
+	# Don't install license files for libs that are no longer bundled.
+	eapply "${FILESDIR}/drop-unbundled-lib-licenses.patch"
 	cmake_src_prepare
 }
 

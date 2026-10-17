@@ -1,0 +1,176 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b85086e..5a746ec 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -24,6 +24,12 @@ set(CMAKE_AUTORCC OFF)
+ 
+ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+ 
++# WebDAV uses the system libcurl and pugixml instead of vendored copies. They
++# are looked up in the top-level directory so the imported targets are visible
++# to every subdirectory (imported targets are directory-scoped).
++find_package(CURL 7.64 REQUIRED)
++find_package(pugixml REQUIRED CONFIG)
++
+ find_package(Threads REQUIRED)
+ 
+ # OpenSSL is only required on Linux; Windows uses WinHTTP and macOS uses SecureTransport.
+@@ -81,15 +87,6 @@ if(VXCORE_INSTALL)
+     install(FILES "${_vxcore_sodium_source_dir}/LICENSE"
+         DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vxcore RENAME LICENSE.libsodium-cmake)
+ 
+-    get_target_property(_vxcore_pugixml_license pugixml VXCORE_LICENSE_FILE)
+-    install(FILES "${_vxcore_pugixml_license}"
+-        DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vxcore RENAME LICENSE.pugixml)
+-    if(NOT APPLE)
+-        get_target_property(_vxcore_curl_license vxcore_webdav_curl VXCORE_LICENSE_FILE)
+-        install(FILES "${_vxcore_curl_license}"
+-            DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vxcore RENAME LICENSE.curl)
+-    endif()
+-
+     install(DIRECTORY include/
+         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+         FILES_MATCHING PATTERN "*.h"
+diff --git a/third_party/CMakeLists.txt b/third_party/CMakeLists.txt
+index 57b094b..32d321b 100644
+--- a/third_party/CMakeLists.txt
++++ b/third_party/CMakeLists.txt
+@@ -102,134 +102,12 @@ endfunction()
+ vxcore_add_sodium()
+ 
+ 
+-# Keep WebDAV dependency options local, just like the sodium adapter above.
++# WebDAV uses the system libcurl and pugixml.
+ function(vxcore_add_webdav_dependencies)
+-  include(FetchContent)
+-  set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+-  # Preserve normal variables when dependencies declare cache STRING options.
+-  set(CMAKE_POLICY_DEFAULT_CMP0126 NEW)
+-  if(POLICY CMP0135)
+-    cmake_policy(SET CMP0135 NEW)
+-  endif()
+-  set(BUILD_SHARED_LIBS OFF)
+-  set(BUILD_TESTING OFF)
+-  set(BUILD_EXAMPLES OFF)
+-
++  # Both libraries are found at the top level so their imported targets are
++  # visible to every subdirectory; only the compatibility target lives here.
+   add_library(vxcore_webdav_curl INTERFACE)
+-  if(APPLE)
+-    if(IS_DIRECTORY "${CMAKE_OSX_SYSROOT}")
+-      set(_dav_sdk "${CMAKE_OSX_SYSROOT}")
+-    else()
+-      set(_dav_sdk_name "${CMAKE_OSX_SYSROOT}")
+-      if(NOT _dav_sdk_name)
+-        set(_dav_sdk_name macosx)
+-      endif()
+-      execute_process(COMMAND xcrun --sdk "${_dav_sdk_name}" --show-sdk-path
+-        OUTPUT_VARIABLE _dav_sdk OUTPUT_STRIP_TRAILING_WHITESPACE
+-        RESULT_VARIABLE _dav_sdk_result)
+-      if(NOT _dav_sdk_result EQUAL 0)
+-        message(FATAL_ERROR "WebDAV requires the active Apple SDK and its system libcurl headers")
+-      endif()
+-    endif()
+-    find_path(_dav_curl_include curl/curl.h PATHS "${_dav_sdk}/usr/include" NO_DEFAULT_PATH REQUIRED)
+-    find_library(_dav_curl_library NAMES curl PATHS "${_dav_sdk}/usr/lib" NO_DEFAULT_PATH REQUIRED)
+-    file(STRINGS "${_dav_curl_include}/curl/curlver.h" _dav_version_line
+-      REGEX "^#define LIBCURL_VERSION_NUM ")
+-    string(REGEX MATCH "0x[0-9a-fA-F]+" _dav_version "${_dav_version_line}")
+-    if(NOT _dav_version OR _dav_version LESS 0x074000)
+-      message(FATAL_ERROR "WebDAV requires Apple SDK libcurl 7.64 or newer")
+-    endif()
+-    target_include_directories(vxcore_webdav_curl INTERFACE "${_dav_curl_include}")
+-    target_link_libraries(vxcore_webdav_curl INTERFACE "${_dav_curl_library}")
+-  else()
+-    set(BUILD_STATIC_LIBS ON)
+-    set(BUILD_CURL_EXE OFF)
+-    set(BUILD_LIBCURL_DOCS OFF)
+-    set(BUILD_MISC_DOCS OFF)
+-    set(ENABLE_CURL_MANUAL OFF)
+-    set(CURL_DISABLE_INSTALL ON)
+-    set(CURL_ENABLE_EXPORT_TARGET OFF)
+-    set(CURL_BUILD_EVERYTHING OFF)
+-    set(ENABLE_DEBUG OFF)
+-    set(ENABLE_ARES OFF)
+-    set(ENABLE_THREADED_RESOLVER ON)
+-    set(HTTP_ONLY ON)
+-    set(CURL_ZLIB OFF)
+-    set(CURL_BROTLI OFF)
+-    set(CURL_ZSTD OFF)
+-    set(USE_NGHTTP2 OFF)
+-    set(USE_NGTCP2 OFF)
+-    set(USE_QUICHE OFF)
+-    set(CURL_USE_LIBPSL OFF)
+-    set(CURL_USE_LIBSSH2 OFF)
+-    set(CURL_USE_LIBSSH OFF)
+-    set(CURL_USE_GSSAPI OFF)
+-    set(CURL_USE_GSASL OFF)
+-    set(CURL_DISABLE_BASIC_AUTH OFF)
+-    set(CURL_DISABLE_DIGEST_AUTH OFF)
+-    set(CURL_DISABLE_KERBEROS_AUTH ON)
+-    set(CURL_DISABLE_NEGOTIATE_AUTH ON)
+-    set(CURL_DISABLE_BEARER_AUTH ON)
+-    set(CURL_DISABLE_AWS ON)
+-    set(CURL_DISABLE_COOKIES ON)
+-    set(CURL_DISABLE_NETRC ON)
+-    set(CURL_DISABLE_DOH ON)
+-    set(CURL_ENABLE_NTLM OFF)
+-    set(CURL_ENABLE_SMB OFF)
+-    set(CURL_STATIC_CRT OFF)
+-    if(WIN32)
+-      set(CURL_USE_SCHANNEL ON)
+-      set(CURL_USE_OPENSSL OFF)
+-      set(CURL_TARGET_WINDOWS_VERSION "0x0601")
+-    else()
+-      set(CURL_USE_OPENSSL ON)
+-    endif()
+-    # CMake 3.20 predates CMP0126; restore temporary cache overrides afterward.
+-    if(CMAKE_VERSION VERSION_LESS 3.21)
+-      set(_dav_string_options CURL_ZLIB CURL_BROTLI CURL_ZSTD)
+-      if(WIN32)
+-        list(APPEND _dav_string_options CURL_TARGET_WINDOWS_VERSION)
+-      endif()
+-      foreach(_option IN LISTS _dav_string_options)
+-        get_property(_dav_had_${_option} CACHE ${_option} PROPERTY TYPE SET)
+-        if(_dav_had_${_option})
+-          get_property(_dav_value_${_option} CACHE ${_option} PROPERTY VALUE)
+-          get_property(_dav_type_${_option} CACHE ${_option} PROPERTY TYPE)
+-          get_property(_dav_help_${_option} CACHE ${_option} PROPERTY HELPSTRING)
+-        endif()
+-        set(${_option} "${${_option}}" CACHE STRING "WebDAV dependency option" FORCE)
+-      endforeach()
+-    endif()
+-    FetchContent_Declare(vxcore_curl
+-      URL https://github.com/curl/curl/releases/download/curl-8_22_0/curl-8.22.0.tar.gz
+-      URL_HASH SHA256=d54dd598bf05927a726deb38df31c6a255ba83ff1de57c5d1464dac3ed8f44a1
+-    )
+-    FetchContent_MakeAvailable(vxcore_curl)
+-    if(CMAKE_VERSION VERSION_LESS 3.21)
+-      foreach(_option IN LISTS _dav_string_options)
+-        if(_dav_had_${_option})
+-          set(${_option} "${_dav_value_${_option}}" CACHE "${_dav_type_${_option}}"
+-            "${_dav_help_${_option}}" FORCE)
+-        else()
+-          unset(${_option} CACHE)
+-        endif()
+-      endforeach()
+-    endif()
+-    set_target_properties(libcurl_static PROPERTIES
+-      MSVC_RUNTIME_LIBRARY "${CMAKE_MSVC_RUNTIME_LIBRARY}")
+-    target_link_libraries(vxcore_webdav_curl INTERFACE CURL::libcurl_static)
+-    set_property(TARGET vxcore_webdav_curl PROPERTY VXCORE_LICENSE_FILE "${vxcore_curl_SOURCE_DIR}/COPYING")
+-  endif()
+-
+-  set(PUGIXML_BUILD_TESTS OFF)
+-  set(PUGIXML_BUILD_SHARED_AND_STATIC_LIBS OFF)
+-  set(PUGIXML_INSTALL OFF)
+-  FetchContent_Declare(vxcore_pugixml
+-    URL https://github.com/zeux/pugixml/releases/download/v1.16/pugixml-1.16.tar.gz
+-    URL_HASH SHA256=4cee1ca4aad395170f4c7a07824f3bdd41f28316c6e1e1090a1425b278ec0b4b
+-  )
+-  FetchContent_MakeAvailable(vxcore_pugixml)
+-  set_property(TARGET pugixml PROPERTY VXCORE_LICENSE_FILE "${vxcore_pugixml_SOURCE_DIR}/LICENSE.md")
++  target_link_libraries(vxcore_webdav_curl INTERFACE CURL::libcurl)
+ endfunction()
+ 
+ vxcore_add_webdav_dependencies()

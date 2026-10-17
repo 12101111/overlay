@@ -1,0 +1,43 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 7b41c9f..94fbdad 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -159,10 +159,6 @@ if(APPLE)
+ endif()
+ 
+ get_target_property(VX_SODIUM_SOURCE_DIR sodium SOURCE_DIR)
+-get_target_property(VX_PUGIXML_LICENSE pugixml VXCORE_LICENSE_FILE)
+-if(NOT APPLE)
+-    get_target_property(VX_CURL_LICENSE vxcore_webdav_curl VXCORE_LICENSE_FILE)
+-endif()
+ 
+ # Copy the qt.conf on Windows
+ if(WIN32)
+@@ -183,9 +179,6 @@ elseif(APPLE)
+         "${VX_SODIUM_SOURCE_DIR}/LICENSE"
+         "$<TARGET_FILE_DIR:vnote>/../Resources/LICENSE.libsodium-cmake"
+         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+-        "${VX_PUGIXML_LICENSE}"
+-        "$<TARGET_FILE_DIR:vnote>/../Resources/LICENSE.pugixml"
+-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+         "${PROJECT_SOURCE_DIR}/libs/m3/LICENSE"
+         "$<TARGET_FILE_DIR:vnote>/../Resources/LICENSE.m3"
+         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+@@ -210,8 +203,6 @@ if (WIN32)
+         DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME LICENSE.libsodium)
+     install(FILES "${VX_SODIUM_SOURCE_DIR}/LICENSE"
+         DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME LICENSE.libsodium-cmake)
+-    install(FILES "${VX_PUGIXML_LICENSE}" DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME LICENSE.pugixml)
+-    install(FILES "${VX_CURL_LICENSE}" DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME LICENSE.curl)
+     install(FILES "${PROJECT_SOURCE_DIR}/libs/m3/LICENSE"
+         DESTINATION ${CMAKE_INSTALL_BINDIR} RENAME LICENSE.m3)
+     install(FILES "${PROJECT_SOURCE_DIR}/libs/m3/third_party/nlohmann/LICENSE.MIT"
+@@ -253,8 +244,6 @@ else()
+         DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vnote RENAME LICENSE.libsodium)
+     install(FILES "${VX_SODIUM_SOURCE_DIR}/LICENSE"
+         DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vnote RENAME LICENSE.libsodium-cmake)
+-    install(FILES "${VX_PUGIXML_LICENSE}" DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vnote RENAME LICENSE.pugixml)
+-    install(FILES "${VX_CURL_LICENSE}" DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vnote RENAME LICENSE.curl)
+     install(FILES "${PROJECT_SOURCE_DIR}/libs/m3/LICENSE"
+         DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vnote RENAME LICENSE.m3)
+     install(FILES "${PROJECT_SOURCE_DIR}/libs/m3/third_party/nlohmann/LICENSE.MIT"
