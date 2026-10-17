@@ -1,0 +1,161 @@
+From 40b709be4f1f62cab5fac9d888cd5e8b9259d068 Mon Sep 17 00:00:00 2001
+From: Kai Ninomiya <kainino@chromium.org>
+Date: Thu, 17 Sep 2026 06:08:28 +0000
+Subject: [PATCH] Add round_up_3d_texture_size_to_POT_for_limit for PowerVR
+
+PowerVR drivers have an issue which seems to be specific to 3D textures
+where they round up NPOT sizes to POT sizes before doing some size math.
+
+Bug: chromium:551673541
+Change-Id: I64a1efb7a1afb8021f80a3be3aef0f8a733104ae
+Reviewed-on: https://chromium-review.googlesource.com/c/angle/angle/+/8424039
+Auto-Submit: Kai Ninomiya <kainino@chromium.org>
+Commit-Queue: Geoff Lang <geofflang@chromium.org>
+Reviewed-by: Geoff Lang <geofflang@chromium.org>
+(cherry picked from commit 40b709be4f1f62cab5fac9d888cd5e8b9259d068)
+
+---
+ include/platform/autogen/FeaturesGL_autogen.h |  6 ++++++
+ include/platform/gl_features.json             |  9 +++++++++
+ src/libANGLE/Caps.h                           |  3 +++
+ src/libANGLE/renderer/gl/renderergl_utils.cpp |  7 +++++++
+ src/libANGLE/validationES.cpp                 | 17 ++++++++++++++++-
+ util/autogen/angle_features_autogen.cpp       |  1 +
+ util/autogen/angle_features_autogen.h         |  1 +
+ 7 files changed, 43 insertions(+), 1 deletion(-)
+
+diff --git a/third_party/angle/include/platform/autogen/FeaturesGL_autogen.h b/third_party/angle/include/platform/autogen/FeaturesGL_autogen.h
+index da3ad5e255..25285ff4d5 100644
+--- a/third_party/angle/include/platform/autogen/FeaturesGL_autogen.h
++++ b/third_party/angle/include/platform/autogen/FeaturesGL_autogen.h
+@@ -284,6 +284,12 @@ struct FeaturesGL : FeatureSetBase
+         &members,
+     };
+ 
++    FeatureInfo roundUp3dTextureSizeToPOTForLimit = {
++        "roundUp3dTextureSizeToPOTForLimit",
++        FeatureCategory::OpenGLWorkarounds,
++        &members,
++    };
++
+     FeatureInfo adjustSrcDstRegionForBlitFramebuffer = {
+         "adjustSrcDstRegionForBlitFramebuffer",
+         FeatureCategory::OpenGLWorkarounds,
+diff --git a/third_party/angle/include/platform/gl_features.json b/third_party/angle/include/platform/gl_features.json
+index 2e6a242581..5f16bf0614 100644
+--- a/third_party/angle/include/platform/gl_features.json
++++ b/third_party/angle/include/platform/gl_features.json
+@@ -351,6 +351,15 @@
+             ],
+             "issue": "http://crbug.com/927470"
+         },
++        {
++            "name": "round_up_3d_texture_size_to_POT_for_limit",
++            "category": "Workarounds",
++            "description": [
++                "Round up 3D texture dimensions to nearest power of two before checking image allocation ",
++                "size limits to prevent mishandling of large 3D textures on older PowerVR drivers."
++            ],
++            "issue": "http://crbug.com/551673541"
++        },
+         {
+             "name": "adjust_src_dst_region_for_BlitFramebuffer",
+             "category": "Workarounds",
+diff --git a/third_party/angle/src/libANGLE/Caps.h b/third_party/angle/src/libANGLE/Caps.h
+index b79a856182..1bfa827e24 100644
+--- a/third_party/angle/src/libANGLE/Caps.h
++++ b/third_party/angle/src/libANGLE/Caps.h
+@@ -176,6 +176,9 @@ struct Limitations
+     // bytes-per-pixel. 1Gb is chosen as a conservative limit to allow for backends to expand
+     // textures formats up to 4x and still stay within 32-bit sizes.
+     size_t maxTextureBytes = 1 * 1024 * 1024 * 1024;
++
++    // Workaround for PowerVR Rogue drivers that round up 3D texture dimensions to POT internally.
++    bool roundUp3DTextureSizeToPOTForLimit = false;
+ };
+ 
+ struct TypePrecision
+diff --git a/third_party/angle/src/libANGLE/renderer/gl/renderergl_utils.cpp b/third_party/angle/src/libANGLE/renderer/gl/renderergl_utils.cpp
+index 7b4573389c..f1c45b0f61 100644
+--- a/third_party/angle/src/libANGLE/renderer/gl/renderergl_utils.cpp
++++ b/third_party/angle/src/libANGLE/renderer/gl/renderergl_utils.cpp
+@@ -2221,6 +2221,11 @@ void GenerateCaps(const FunctionsGL *functions,
+     {
+         limitations->maxBufferBytes = 1 << 30;
+     }
++
++    if (features.roundUp3dTextureSizeToPOTForLimit.enabled)
++    {
++        limitations->roundUp3DTextureSizeToPOTForLimit = true;
++    }
+ }
+ 
+ bool GetSystemInfoVendorIDAndDeviceID(const FunctionsGL *functions,
+@@ -2424,6 +2429,8 @@ void InitializeFeatures(const FunctionsGL *functions, angle::FeaturesGL *feature
+     ANGLE_FEATURE_CONDITION(features, disableMSAASampleCount1, isHuaweiMaleoon);
+     ANGLE_FEATURE_CONDITION(features, limitMax3dArrayTextureSizeTo1024,
+                             isIntelLinuxLessThanKernelVersion5);
++    ANGLE_FEATURE_CONDITION(features, roundUp3dTextureSizeToPOTForLimit,
++                            isPowerVRDriver && powerVRVersion < (std::array<int, 2>{26, 2}));
+ 
+     ANGLE_FEATURE_CONDITION(features, allowClearForRobustResourceInit, IsApple());
+ 
+diff --git a/third_party/angle/src/libANGLE/validationES.cpp b/third_party/angle/src/libANGLE/validationES.cpp
+index 3eeb53c72b..24cb68de52 100644
+--- a/third_party/angle/src/libANGLE/validationES.cpp
++++ b/third_party/angle/src/libANGLE/validationES.cpp
+@@ -1428,6 +1428,20 @@ bool ValidImageDataSize(const Context *context,
+     return true;
+ }
+ 
++Extents RoundImageAllocationExtentIfNeeded(const Context *context,
++                                           GLsizei width,
++                                           GLsizei height,
++                                           GLsizei depth)
++{
++    if (context->getLimitations().roundUp3DTextureSizeToPOTForLimit && depth > 1)
++    {
++        return Extents(gl::clampCast<GLsizei>(gl::ceilPow2(width)),
++                       gl::clampCast<GLsizei>(gl::ceilPow2(height)),
++                       gl::clampCast<GLsizei>(gl::ceilPow2(depth)));
++    }
++    return Extents(width, height, depth);
++}
++
+ bool ValidImageAllocationSize(const Context *context,
+                               angle::EntryPoint entryPoint,
+                               GLsizei width,
+@@ -1438,7 +1452,8 @@ bool ValidImageAllocationSize(const Context *context,
+ {
+     const InternalFormat &formatInfo = GetSizedInternalFormatInfo(sizedInternalFormat);
+     GLuint allocationSize            = 0;
+-    if (!formatInfo.computeImageSize(Extents(width, height, depth), samples, &allocationSize) ||
++    Extents extents = RoundImageAllocationExtentIfNeeded(context, width, height, depth);
++    if (!formatInfo.computeImageSize(extents, samples, &allocationSize) ||
+         allocationSize > context->getLimitations().maxTextureBytes)
+     {
+         ANGLE_VALIDATION_ERROR(GL_INVALID_OPERATION, kTextureSizeLimitation);
+diff --git a/third_party/angle/util/autogen/angle_features_autogen.cpp b/third_party/angle/util/autogen/angle_features_autogen.cpp
+index b53627c3c1..8f91202e05 100644
+--- a/third_party/angle/util/autogen/angle_features_autogen.cpp
++++ b/third_party/angle/util/autogen/angle_features_autogen.cpp
+@@ -315,6 +315,7 @@ constexpr PackedEnumMap<Feature, const char *> kFeatureNames = {{
+     {Feature::RGBA4IsNotSupportedForColorRendering, "RGBA4IsNotSupportedForColorRendering"},
+     {Feature::RGBDXT1TexturesSampleZeroAlpha, "RGBDXT1TexturesSampleZeroAlpha"},
+     {Feature::RoundOutputAfterDithering, "roundOutputAfterDithering"},
++    {Feature::RoundUp3dTextureSizeToPOTForLimit, "roundUp3dTextureSizeToPOTForLimit"},
+     {Feature::SanitizeAMDGPURendererString, "sanitizeAMDGPURendererString"},
+     {Feature::ScalarizeVecAndMatConstructorArgs, "scalarizeVecAndMatConstructorArgs"},
+     {Feature::SelectViewInGeometryShader, "selectViewInGeometryShader"},
+diff --git a/third_party/angle/util/autogen/angle_features_autogen.h b/third_party/angle/util/autogen/angle_features_autogen.h
+index 30d1b30abb..df547b9a15 100644
+--- a/third_party/angle/util/autogen/angle_features_autogen.h
++++ b/third_party/angle/util/autogen/angle_features_autogen.h
+@@ -315,6 +315,7 @@ enum class Feature
+     RGBA4IsNotSupportedForColorRendering,
+     RGBDXT1TexturesSampleZeroAlpha,
+     RoundOutputAfterDithering,
++    RoundUp3dTextureSizeToPOTForLimit,
+     SanitizeAMDGPURendererString,
+     ScalarizeVecAndMatConstructorArgs,
+     SelectViewInGeometryShader,
