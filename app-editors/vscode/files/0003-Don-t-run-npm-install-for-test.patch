@@ -1,6 +1,6 @@
-From 5b61ae3e6c785a1dbd8ca275d997b16f7d7ee6b1 Mon Sep 17 00:00:00 2001
+From 21fbb31812480ae772d0901a65b8d773d081a949 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Tue, 22 Sep 2026 23:00:12 +0800
+Date: Sat, 17 Oct 2026 22:30:44 +0800
 Subject: [PATCH 03/15] Don't run npm install for test
 
 ---
@@ -30,28 +30,28 @@ index 7bc33635f86..d4e3fffaaaa 100644
  
  if (existsSync(`${import.meta.dirname}/../../.build/distro/npm`)) {
 diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
-index 774df8476dc..cf7c579dfbb 100644
+index 6405a015318..3509f81b432 100644
 --- a/build/npm/postinstall.ts
 +++ b/build/npm/postinstall.ts
-@@ -243,8 +243,6 @@ async function main() {
- 
+@@ -245,8 +245,6 @@ async function main() {
  	if (!process.env['VSCODE_FORCE_INSTALL'] && isUpToDate()) {
+ 		finishCloudSandbox();
  		log('.', 'All dependencies up to date, skipping postinstall.');
 -		child_process.execSync('git config pull.rebase merges');
 -		child_process.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
  		return;
  	}
  
-@@ -316,9 +314,6 @@ async function main() {
+@@ -318,9 +316,6 @@ async function main() {
  	log('.', `Running ${parallelTasks.length} npm installs with concurrency ${concurrency}...`);
  	await runWithConcurrency(parallelTasks, concurrency);
  
 -	child_process.execSync('git config pull.rebase merges');
 -	child_process.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
 -
- 	fs.writeFileSync(stateFile, JSON.stringify(_state));
- 	fs.writeFileSync(stateContentsFile, JSON.stringify(computeContents()));
+ 	finishCloudSandbox();
  
+ 	fs.writeFileSync(stateFile, JSON.stringify(_state));
 -- 
-2.55.0
+2.56.0
 

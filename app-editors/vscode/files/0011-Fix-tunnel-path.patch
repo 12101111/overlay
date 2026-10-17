@@ -1,4 +1,4 @@
-From 4d721178dbbd58dd0df40f7b490deef56f05cd42 Mon Sep 17 00:00:00 2001
+From a0c1ae79a05986da2c4fe0dcd8443e79cd6bf3ee Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 10 Mar 2026 19:32:17 +0800
 Subject: [PATCH 11/15] Fix tunnel path
@@ -21,5 +21,5 @@ index 994f6c38d99..706ea841a84 100644
  					tunnelProcess = spawn(tunnelCommand, [subcommand, ...tunnelArgs], { cwd: cwd(), stdio, env });
  				}
 -- 
-2.55.0
+2.56.0
 

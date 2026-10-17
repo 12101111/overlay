@@ -1,4 +1,4 @@
-From 4a1eaaf9b3557e420a5c85fd051787079ee8a047 Mon Sep 17 00:00:00 2001
+From 333ffb4571e04e45c31a67b775698ddeab806e3e Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 26 Sep 2026 18:00:08 +0800
 Subject: [PATCH 14/15] Fix not found error from @github/copilot/sdk
@@ -34,5 +34,5 @@ index 10bd9fbd693..e5310b797df 100644
  	).pipe(util2.setExecutableBit(['**/*.sh']));
  }
 -- 
-2.55.0
+2.56.0
 

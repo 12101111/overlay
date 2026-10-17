@@ -1,4 +1,4 @@
-From 7a37807889dcb0fc8db793afa1191c06327bb562 Mon Sep 17 00:00:00 2001
+From 83cec28f5a558d6a0712621e93eed87b89cbfda5 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 22 Sep 2026 23:01:37 +0800
 Subject: [PATCH 12/15] skip npm version check
@@ -8,10 +8,10 @@ Subject: [PATCH 12/15] skip npm version check
  1 file changed, 1 deletion(-)
 
 diff --git a/build/npm/preinstall.ts b/build/npm/preinstall.ts
-index 7fcdbb3cafc..d1f69ed7bac 100644
+index d75719c2be5..c6eb46c6daf 100644
 --- a/build/npm/preinstall.ts
 +++ b/build/npm/preinstall.ts
-@@ -48,7 +48,6 @@ if (npmVersionMatch) {
+@@ -49,7 +49,6 @@ if (npmVersionMatch) {
  	const npmMajor = parseInt(npmVersionMatch[1]);
  	if (npmMajor >= 13) {
  		console.error(`\x1b[1;31m*** Please use npm version < 13.0.0. Currently using v${npmUserAgent}.\x1b[0;0m`);
@@ -20,5 +20,5 @@ index 7fcdbb3cafc..d1f69ed7bac 100644
  }
  
 -- 
-2.55.0
+2.56.0
 

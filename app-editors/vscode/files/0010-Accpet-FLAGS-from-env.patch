@@ -1,4 +1,4 @@
-From a2335a53784893c8bd1cde5eff8023300006a075 Mon Sep 17 00:00:00 2001
+From 6b927248a5ea1dbe21bb0379add159ccaf52cb3e Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Tue, 10 Mar 2026 22:01:32 +0800
 Subject: [PATCH 10/15] Accpet FLAGS from env
@@ -8,10 +8,10 @@ Subject: [PATCH 10/15] Accpet FLAGS from env
  1 file changed, 11 deletions(-)
 
 diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
-index cf7c579dfbb..207ac21056c 100644
+index 3509f81b432..bcb872be1d4 100644
 --- a/build/npm/postinstall.ts
 +++ b/build/npm/postinstall.ts
-@@ -260,10 +260,6 @@ async function main() {
+@@ -262,10 +262,6 @@ async function main() {
  		if (dir === 'build') {
  			nativeTasks.push(() => {
  				const env: NodeJS.ProcessEnv = { ...process.env };
@@ -22,7 +22,7 @@ index cf7c579dfbb..207ac21056c 100644
  				setNpmrcConfig('build', env);
  				return npmInstallAsync('build', { env });
  			});
-@@ -276,17 +272,10 @@ async function main() {
+@@ -278,17 +274,10 @@ async function main() {
  				const env: NodeJS.ProcessEnv = { ...process.env };
  				if (process.env['VSCODE_REMOTE_CC']) {
  					env['CC'] = process.env['VSCODE_REMOTE_CC'];
@@ -41,5 +41,5 @@ index cf7c579dfbb..207ac21056c 100644
  				if (process.env['VSCODE_REMOTE_LDFLAGS']) { env['LDFLAGS'] = process.env['VSCODE_REMOTE_LDFLAGS']; }
  				if (process.env['VSCODE_REMOTE_NODE_GYP']) { env['npm_config_node_gyp'] = process.env['VSCODE_REMOTE_NODE_GYP']; }
 -- 
-2.55.0
+2.56.0
 

@@ -1,4 +1,4 @@
-From 8c9c3866e1bfaf1cbebbf2ac685f54edd583b220 Mon Sep 17 00:00:00 2001
+From 3079353597fb0091003720db8230098ecc5422bc Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sun, 2 Aug 2026 02:47:00 +0800
 Subject: [PATCH 13/15] retry tsgo to workaround crash
@@ -8,10 +8,10 @@ Subject: [PATCH 13/15] retry tsgo to workaround crash
  1 file changed, 37 insertions(+), 31 deletions(-)
 
 diff --git a/build/lib/tsgo.ts b/build/lib/tsgo.ts
-index 7c48e299981..885e3301cb0 100644
+index 8ec2cf16208..a2461fa8b31 100644
 --- a/build/lib/tsgo.ts
 +++ b/build/lib/tsgo.ts
-@@ -40,44 +40,50 @@ export function spawnTsgo(projectPath: string, config: { taskName: string; noEmi
+@@ -42,44 +42,50 @@ export function spawnTsgo(projectPath: string, config: { taskName: string; noEmi
  	} else {
  		args.push('--sourceMap', '--inlineSources');
  	}
@@ -94,5 +94,5 @@ index 7c48e299981..885e3301cb0 100644
  
  export function createTsgoStream(projectPath: string, config: { taskName: string; noEmit?: boolean }, onComplete?: () => Promise<void> | void): NodeJS.ReadWriteStream {
 -- 
-2.55.0
+2.56.0
 

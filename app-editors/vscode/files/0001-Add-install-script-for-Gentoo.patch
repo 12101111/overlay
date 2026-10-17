@@ -1,4 +1,4 @@
-From 23f5035566a39a3c50f82673351cfc6f1ed66ad8 Mon Sep 17 00:00:00 2001
+From f3038dcd52639878800b01c275be1683037d3a41 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Fri, 5 Jun 2026 21:19:44 +0800
 Subject: [PATCH 01/15] Add install script for Gentoo
@@ -77,5 +77,5 @@ index 9c5f85be15b..e2374e8b77d 100644
 +	task.task(installGentooTask);
  });
 -- 
-2.55.0
+2.56.0
 
