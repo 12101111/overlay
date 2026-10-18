@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-157-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-158-patches-02.tar.xz"
 
 LLVM_COMPAT=( 22 23 )
 
@@ -70,7 +70,7 @@ IUSE+=" +system-av1 +system-harfbuzz +system-icu +system-jpeg +system-libevent +
 IUSE+=" system-pipewire system-png +system-webp test wayland wifi +X"
 
 # Firefox-only IUSE
-IUSE+=" +gmp-autoupdate gnome-shell jpegxl +jumbo-build openh264 +telemetry valgrind wasm-sandbox"
+IUSE+=" +gmp-autoupdate gnome-shell +jumbo-build openh264 +telemetry valgrind wasm-sandbox"
 
 REQUIRED_USE="|| ( X wayland )
 	debug? ( !system-av1 )
@@ -97,7 +97,7 @@ BDEPEND="${PYTHON_DEPS}
 	app-arch/unzip
 	app-arch/zip
 	>=dev-util/cbindgen-0.29.4
-	net-libs/nodejs
+	net-libs/nodejs[ssl]
 	virtual/pkgconfig
 	amd64? ( >=dev-lang/nasm-2.14 )
 	x86? ( >=dev-lang/nasm-2.14 )
@@ -117,7 +117,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	>=app-accessibility/at-spi2-core-2.46.0:2
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.129
+	>=dev-libs/nss-3.130
 	>=dev-libs/nspr-4.39
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -494,10 +494,6 @@ src_unpack() {
 }
 
 src_prepare() {
-	if [[ ${use_lto} == "yes" ]]; then
-		rm -v "${WORKDIR}"/firefox-patches/*-LTO-Only-enable-LTO-*.patch || die
-	fi
-
 	# Workaround for bgo#915651 and bmo#1988166 on musl
 	if use elibc_glibc ; then
 		rm -v "${WORKDIR}"/firefox-patches/*bgo-748849-RUST_TARGET_override.patch || die
@@ -834,8 +830,6 @@ src_configure() {
 		mozconfig_add_options_ac 'no wasm-sandbox' --without-wasm-sandboxed-libraries
 		mozconfig_use_with system-harfbuzz system-graphite2
 	fi
-
-	! use jpegxl && mozconfig_add_options_ac '-jpegxl' --disable-jxl
 
 	if [[ ${use_lto} == "yes" ]] ; then
 		if use clang ; then
@@ -1230,12 +1224,6 @@ src_install() {
 		# Update prefs to enable Gnome search provider
 		cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to enable gnome-search-provider via prefs"
 		pref("browser.gnome-search-provider.enabled", true);
-		EOF
-	fi
-
-	if use jpegxl ; then
-		cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to enable jpegxl via pref"
-		pref("image.jxl.enabled", true);
 		EOF
 	fi
 
