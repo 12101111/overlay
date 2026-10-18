@@ -103,6 +103,9 @@ BDEPEND="${PYTHON_DEPS}
 	x86? ( >=dev-lang/nasm-2.14 )
 	wasm-sandbox? ( cross_llvm-wasm32-wasip1/wasi-libc )
 	pgo? (
+		elibc_musl? (
+			dev-util/patchelf
+		)
 		X? (
 			sys-devel/gettext
 			x11-base/xorg-server[xvfb]
@@ -552,6 +555,12 @@ src_prepare() {
 	sed -i \
 		-e 's/ccache_stats = None/return None/' \
 		"${S}"/python/mozbuild/mozbuild/controller/building.py || die "sed failed to disable ccache stats call"
+
+	# Crash on musl libc if ABI of libmozavutil.so is changed.
+	# Because rpath is set to /usr/lib/firefox, the instrumented firefox will try to load the old one.
+	if use pgo; then
+		eapply "${FILESDIR}/musl-pgo-profileserver-origin-rpath.patch"
+	fi
 
 	if use pgo && use clang; then
 		eapply "${FILESDIR}/cross-pgo.patch"

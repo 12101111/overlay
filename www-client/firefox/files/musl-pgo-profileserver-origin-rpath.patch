@@ -1,0 +1,20 @@
+diff --git a/build/pgo/profileserver.py b/build/pgo/profileserver.py
+index a769b33..5121ad6 100755
+--- a/build/pgo/profileserver.py
++++ b/build/pgo/profileserver.py
+@@ -95,6 +95,15 @@ if __name__ == "__main__":
+             sys.exit(1)
+     binary = os.path.normpath(os.path.abspath(binary))
+ 
++    if sys.platform.startswith("linux"):
++        stagedir = os.path.dirname(binary)
++        for lib in ("libmozavutil.so", "libmozavcodec.so"):
++            libpath = os.path.join(stagedir, lib)
++            if os.path.exists(libpath):
++                subprocess.check_call(
++                    ["patchelf", "--set-rpath", "$ORIGIN", libpath]
++                )
++
+     extended_corpus_dir = cli.extended_corpus_dir()
+     has_extended_corpus = extended_corpus_dir is not None
+ 
