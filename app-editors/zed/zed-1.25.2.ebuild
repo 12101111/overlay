@@ -13,17 +13,21 @@ declare -A GIT_CRATES=(
 	[async-pipe]='https://github.com/zed-industries/async-pipe-rs;82d00a04211cf4e1236029aa03e6b6ce2a74c553;async-pipe-rs-%commit%'
 	[async-process]='https://github.com/zed-industries/async-process;0b6d6713570af61806e1e5cb40e0f757cb93fd9d;async-process-%commit%'
 	[async-tar]='https://github.com/zed-industries/async-tar;bd3ad6f89df9a9da7a8535958756d6bf465936a0;async-tar-%commit%'
-	[async-task]='https://github.com/smol-rs/async-task;b4486cd71e4e94fbda54ce6302444de14f4d190e;async-task-%commit%'
+	[async-task]='https://github.com/zed-industries/async-task;015845a19fc31752c02367567d3b8900a406f9da;async-task-%commit%'
 	[calloop]='https://github.com/zed-industries/calloop;3759371fee14c40066d64777e2a36b6ffcc22590;calloop-%commit%'
+	[cpal]='https://github.com/RustAudio/cpal;e1612d5d98152f8dc2a62e1b51ef7cbf4f7f26b7;cpal-%commit%'
 	[dap-types]='https://github.com/zed-industries/dap-types;1b461b310481d01e02b2603c16d7144b926339f8;dap-types-%commit%/dap-types'
 	[gh-workflow-macros]='https://github.com/zed-industries/gh-workflow;37f3c0575d379c218a9c455ee67585184e40d43f;gh-workflow-%commit%/crates/gh-workflow-macros'
 	[gh-workflow]='https://github.com/zed-industries/gh-workflow;37f3c0575d379c218a9c455ee67585184e40d43f;gh-workflow-%commit%/crates/gh-workflow'
+	[khronos-egl]='https://github.com/zed-industries/khronos-egl;42214b36347b108fd9630ca6254b96dde59e04fe;khronos-egl-%commit%'
 	[libwebrtc]='https://github.com/zed-industries/livekit-rust-sdks;0a1c519cfce9b365229026b55de9b9dbdb6fed3c;livekit-rust-sdks-%commit%/libwebrtc'
 	[livekit-api]='https://github.com/zed-industries/livekit-rust-sdks;0a1c519cfce9b365229026b55de9b9dbdb6fed3c;livekit-rust-sdks-%commit%/livekit-api'
 	[livekit-protocol]='https://github.com/zed-industries/livekit-rust-sdks;0a1c519cfce9b365229026b55de9b9dbdb6fed3c;livekit-rust-sdks-%commit%/livekit-protocol'
 	[livekit-runtime]='https://github.com/zed-industries/livekit-rust-sdks;0a1c519cfce9b365229026b55de9b9dbdb6fed3c;livekit-rust-sdks-%commit%/livekit-runtime'
 	[livekit]='https://github.com/zed-industries/livekit-rust-sdks;0a1c519cfce9b365229026b55de9b9dbdb6fed3c;livekit-rust-sdks-%commit%/livekit'
 	[lsp-types]='https://github.com/zed-industries/lsp-types;f1783e63a7f4eb4397bf51d4148b4895a1f7ab16;lsp-types-%commit%'
+	[naga-types]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/naga-types'
+	[naga]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/naga'
 	[notify-types]='https://github.com/zed-industries/notify;d842f16b2716bd60f09caf3ae3a894237ab38f54;notify-%commit%/notify-types'
 	[notify]='https://github.com/zed-industries/notify;d842f16b2716bd60f09caf3ae3a894237ab38f54;notify-%commit%/notify'
 	[nvim-rs]='https://github.com/KillTheMule/nvim-rs;764dd270c642f77f10f3e19d05cc178a6cbe69f3;nvim-rs-%commit%'
@@ -56,7 +60,7 @@ declare -A GIT_CRATES=(
 	[pet]='https://github.com/zed-industries/python-environment-tools;5aad7164bfc2a58977b103c8ef8fdd7302ed2e9f;python-environment-tools-%commit%/crates/pet'
 	[proptest-macro]='https://github.com/proptest-rs/proptest;3dca198a8fef1b32e3a66f1e1897c955b4dc5b5b;proptest-%commit%/proptest-macro'
 	[proptest]='https://github.com/proptest-rs/proptest;3dca198a8fef1b32e3a66f1e1897c955b4dc5b5b;proptest-%commit%/proptest'
-	[rodio]='https://github.com/RustAudio/rodio;e50e726ddd0292f6ef9de0dda6b90af4ed1fb66a;rodio-%commit%'
+	[rodio]='https://github.com/RustAudio/rodio;3ee9745862279ce1d18db593155016e7ce024aeb;rodio-%commit%'
 	[trash]='https://github.com/zed-industries/trash-rs;41c6c800d884a89351f3b8856d12894cccee261d;trash-rs-%commit%'
 	[tree-sitter-cpp]='https://github.com/tree-sitter/tree-sitter-cpp;5cb9b693cfd7bfacab1d9ff4acac1a4150700609;tree-sitter-cpp-%commit%'
 	[tree-sitter-gitcommit]='https://github.com/zed-industries/tree-sitter-git-commit;88309716a69dd13ab83443721ba6e0b491d37ee9;tree-sitter-git-commit-%commit%'
@@ -71,6 +75,17 @@ declare -A GIT_CRATES=(
 	[wasm_thread]='https://github.com/zed-industries/wasm_thread;0cf96c7708dfb97ccf3da50347e25edcf75d6937;wasm_thread-%commit%'
 	[webrtc-sys-build]='https://github.com/zed-industries/livekit-rust-sdks;0a1c519cfce9b365229026b55de9b9dbdb6fed3c;livekit-rust-sdks-%commit%/webrtc-sys/build'
 	[webrtc-sys]='https://github.com/zed-industries/livekit-rust-sdks;0a1c519cfce9b365229026b55de9b9dbdb6fed3c;livekit-rust-sdks-%commit%/webrtc-sys'
+	[wgpu-core-deps-apple]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu-core/platform-deps/apple'
+	[wgpu-core-deps-emscripten]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu-core/platform-deps/emscripten'
+	[wgpu-core-deps-linux-android-bsd]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu-core/platform-deps/linux-android-bsd'
+	[wgpu-core-deps-wasm]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu-core/platform-deps/wasm'
+	[wgpu-core-deps-windows]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu-core/platform-deps/windows'
+	[wgpu-core]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu-core'
+	[wgpu-hal]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu-hal'
+	[wgpu-naga-bridge]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu-naga-bridge'
+	[wgpu-sync]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu-sync'
+	[wgpu-types]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu-types'
+	[wgpu]='https://github.com/gfx-rs/wgpu;3b3506ea31154edc04de64debda0e780cba2639c;wgpu-%commit%/wgpu'
 	[windows-capture]='https://github.com/zed-industries/windows-capture;f0d6c1b6691db75461b732f6d5ff56eed002eeb9;windows-capture-%commit%'
 	[wprcontrol]='https://github.com/zed-industries/wprcontrol;cd811f7d744f65291e13131b1d907fda63ed91a1;wprcontrol-%commit%'
 	[xim-ctext]='https://github.com/zed-industries/xim-rs;16f35a2c881b815a2b6cdfd6687988e84f8447d8;xim-rs-%commit%/xim-ctext'
@@ -192,12 +207,16 @@ src_prepare() {
 	envsubst < "crates/zed/resources/zed.desktop.in" > ${APP_ID}.desktop || die
 
 	# Cargo offline fetch workaround
+	local CPAL_COMMIT="e1612d5d98152f8dc2a62e1b51ef7cbf4f7f26b7"
+	local CPAL_GIT="cpal = { git = \"https://github.com/RustAudio/cpal\", rev = \"${CPAL_COMMIT}\""
+	local CPAL_PATH="cpal = \\{ path = \"${WORKDIR}/cpal-${CPAL_COMMIT}\""
+
 	local ASYNC_PROCESS_COMMIT="0b6d6713570af61806e1e5cb40e0f757cb93fd9d"
 	local ASYNC_PROCESS_GIT="async-process = { git = \"https://github.com/zed-industries/async-process.git\", rev = \"${ASYNC_PROCESS_COMMIT}\""
 	local ASYNC_PROCESS_PATH="async-process = \\{ path = \"${WORKDIR}/async-process-${ASYNC_PROCESS_COMMIT}\""
 
-	local ASYNC_TASK_COMMIT="b4486cd71e4e94fbda54ce6302444de14f4d190e"
-	local ASYNC_TASK_GIT="async-task = { git = \"https://github.com/smol-rs/async-task.git\", rev = \"${ASYNC_TASK_COMMIT}\""
+	local ASYNC_TASK_COMMIT="015845a19fc31752c02367567d3b8900a406f9da"
+	local ASYNC_TASK_GIT="async-task = { git = \"https://github.com/zed-industries/async-task.git\", rev = \"${ASYNC_TASK_COMMIT}\""
 	local ASYNC_TASK_PATH="async-task = \\{ path = \"${WORKDIR}/async-task-${ASYNC_TASK_COMMIT}\""
 
 	local CALLOOP_COMMIT="3759371fee14c40066d64777e2a36b6ffcc22590"
@@ -228,7 +247,12 @@ src_prepare() {
 	local TS_GIT="tree-sitter-language = { git = \"https://github.com/tree-sitter/tree-sitter\", rev = \"${TS_COMMIT}\" }"
 	local TS_PATH="tree-sitter-language = \\{ path = \"${WORKDIR}/tree-sitter-${TS_COMMIT}/crates/language\" }"
 
+	local KHRONOS_EGL_COMMIT="42214b36347b108fd9630ca6254b96dde59e04fe"
+	local KHRONOS_EGL_GIT="khronos-egl = { git = \"https://github.com/zed-industries/khronos-egl\", rev = \"${KHRONOS_EGL_COMMIT}\""
+	local KHRONOS_EGL_PATH="khronos-egl = \\{ path = \"${WORKDIR}/khronos-egl-${KHRONOS_EGL_COMMIT}\""
+
 	sed \
+		-e "s#${CPAL_GIT}#${CPAL_PATH}#" \
 		-e "s#${ASYNC_PROCESS_GIT}#${ASYNC_PROCESS_PATH}#" \
 		-e "s#${ASYNC_TASK_GIT}#${ASYNC_TASK_PATH}#" \
 		-e "s#${CALLOOP_GIT}#${CALLOOP_PATH}#" \
@@ -239,6 +263,7 @@ src_prepare() {
 		-e "s#${NOTIFY_TYPES_GIT}#${NOTIFY_TYPES_PATH}#" \
 		-e "s#${WIN_CAP_GIT}#${WIN_CAP_PATH}#" \
 		-e "s#${TS_GIT}#${TS_PATH}#" \
+		-e "s#${KHRONOS_EGL_GIT}#${KHRONOS_EGL_PATH}#" \
 		-i "${S}/Cargo.toml" || die "Cargo fetch workaround failed"
 	if (! use collab) || (! use elibc_glibc) || !(use abi_x86_64 || use arm64); then
 		local files=(
@@ -247,7 +272,7 @@ src_prepare() {
 			"${S}/crates/call/src/call_impl/diagnostics.rs"
 			"${S}/crates/livekit_client/Cargo.toml"
 			"${S}/crates/livekit_client/src/lib.rs"
-		) 
+		)
 		for file in "${files[@]}"; do
 			sed -e 's/all(target_os = "windows", target_env = "gnu")/all(target_os = "windows", target_env = "gnu"), all(target_os = "linux", target_env = "musl")/g' -i $file || die
 		done
