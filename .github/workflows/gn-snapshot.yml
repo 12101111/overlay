@@ -1,0 +1,100 @@
+name: GN source snapshot
+
+# Create a redistributable source tarball for chromium's GN.
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/gn-snapshot.yml
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "GN commit SHA"
+        required: false
+      version:
+        description: "release tag suffix"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gn-snapshot
+  cancel-in-progress: false
+
+# Edit both values here to publish a new tarball.
+env:
+  GN_REPO: https://gn.googlesource.com/gn
+  GN_COMMIT: ${{ github.event.inputs.commit || '938087829fcbcc8fd87835ee301dd522c7637685' }}
+  GN_VERSION: ${{ github.event.inputs.version || '0.2603' }}
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Validate inputs
+        run: |
+          set -euo pipefail
+          if [[ ! "${GN_COMMIT}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::GN_COMMIT must be a full 40-character lowercase SHA-1, got '${GN_COMMIT}'"
+            exit 1
+          fi
+          if [[ ! "${GN_VERSION}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "::error::GN_VERSION must look like 0.2603, got '${GN_VERSION}'"
+            exit 1
+          fi
+
+      - name: Install zstd
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends zstd
+
+      - name: Clone GN and generate build files
+        run: |
+          set -euo pipefail
+          git clone "${GN_REPO}" gn
+          cd gn
+          git checkout -q "${GN_COMMIT}"
+          echo "Checking out: $(git rev-parse HEAD)"
+          rm -rf .git
+          cd ..
+
+      - name: Create source tarball
+        run: |
+          set -euo pipefail
+          tarball="gn-${GN_VERSION}.tar"
+          archive="gn-${GN_VERSION}.tar.zst"
+
+          tar cf "${tarball}" gn
+          zstd --auto-threads=logical --ultra --long -22 -T0 -vv \
+            "${tarball}" -o "${archive}"
+          rm -f "${tarball}"
+
+          {
+            echo "### GN ${GN_VERSION} source snapshot"
+            echo
+            echo "- Commit: \`${GN_COMMIT}\`"
+            echo "- Archive: \`${archive}\` (${size} bytes)"
+            echo
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gn-${{ env.GN_VERSION }}
+          path: |
+            gn-${{ env.GN_VERSION }}.tar.zst
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          prerelease: true
+          name: gn-${{ env.GN_VERSION }}
+          tag_name: gn-${{ env.GN_VERSION }}
+          files: |
+            gn-${{ env.GN_VERSION }}.tar.zst
