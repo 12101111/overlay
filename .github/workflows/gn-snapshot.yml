@@ -73,14 +73,6 @@ jobs:
             "${tarball}" -o "${archive}"
           rm -f "${tarball}"
 
-          {
-            echo "### GN ${GN_VERSION} source snapshot"
-            echo
-            echo "- Commit: \`${GN_COMMIT}\`"
-            echo "- Archive: \`${archive}\` (${size} bytes)"
-            echo
-          } >> "${GITHUB_STEP_SUMMARY}"
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
