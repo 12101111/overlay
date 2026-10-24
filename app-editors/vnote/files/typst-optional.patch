@@ -1,0 +1,125 @@
+Make the Typst editor and its Rust helper optional.
+--- a/libs/CMakeLists.txt
++++ b/libs/CMakeLists.txt
+@@ -24,7 +24,9 @@
+ # set(CMAKE_MSVC_RUNTIME_LIBRARY ... FORCE) (libs/vxcore/third_party/CMakeLists.txt)
+ # ahead of vtextedit's configure, applying it to syntax-highlighting, katevi,
+ # sonnet, hunspell and VTextEdit. Do not reorder.
+-set(VTEXTEDIT_ENABLE_TYPST ON CACHE BOOL "Build the required native Typst editor" FORCE)
++if(NOT DEFINED VTEXTEDIT_ENABLE_TYPST)
++    set(VTEXTEDIT_ENABLE_TYPST ON CACHE BOOL "Build the required native Typst editor")
++endif()
+ set(VTEXTEDIT_BUILD_DEMOS OFF CACHE BOOL "Disable vtextedit demo applications" FORCE)
+ add_subdirectory(vtextedit)
+ 
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -69,14 +69,16 @@
+ 
+ # Always refresh runtime dependencies, including builds that do not relink vnote.
+ add_custom_target(vnote_typst_runtime)
+-add_dependencies(vnote_typst_runtime vtextedit-typst)
+-get_target_property(VX_TYPST_HELPER vtextedit-typst VTEXTEDIT_TYPST_HELPER)
+-add_custom_command(TARGET vnote_typst_runtime
+-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vnote>"
+-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+-        "${VX_TYPST_HELPER}" "$<TARGET_FILE_DIR:vnote>"
+-    VERBATIM
+-)
++if(TARGET vtextedit-typst)
++    add_dependencies(vnote_typst_runtime vtextedit-typst)
++    get_target_property(VX_TYPST_HELPER vtextedit-typst VTEXTEDIT_TYPST_HELPER)
++    add_custom_command(TARGET vnote_typst_runtime
++        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vnote>"
++        COMMAND ${CMAKE_COMMAND} -E copy_if_different
++            "${VX_TYPST_HELPER}" "$<TARGET_FILE_DIR:vnote>"
++        VERBATIM
++    )
++endif()
+ if(WIN32)
+     add_dependencies(vnote_typst_runtime VTextEdit)
+     add_custom_command(TARGET vnote_typst_runtime
+--- a/src/widgets/CMakeLists.txt
++++ b/src/widgets/CMakeLists.txt
+@@ -142,7 +142,6 @@
+     tagviewer2.cpp tagviewer2.h
+     textviewwindow2.cpp textviewwindow2.h
+     textviewwindowhelper.h
+-    typstviewwindow.cpp typstviewwindow.h
+     titlebar.cpp titlebar.h
+     titlebarcontainer.cpp titlebarcontainer.h
+     titletoolbar2.cpp titletoolbar2.h
+@@ -162,3 +161,9 @@
+     wordcountpopup2.cpp wordcountpopup2.h
+     zoomtoolbar.cpp zoomtoolbar.h
+ )
++
++if(TARGET vtextedit-typst)
++    target_sources(vnote PRIVATE
++        typstviewwindow.cpp typstviewwindow.h
++    )
++endif()
+--- a/src/controllers/CMakeLists.txt
++++ b/src/controllers/CMakeLists.txt
+@@ -21,7 +21,6 @@
+     snippetcontroller.cpp snippetcontroller.h
+     taskcontroller.cpp taskcontroller.h
+     textviewwindowcontroller.cpp textviewwindowcontroller.h
+-    typstviewwindowcontroller.cpp typstviewwindowcontroller.h
+     commentcontroller.cpp commentcontroller.h
+     pdfviewwindowcontroller.cpp pdfviewwindowcontroller.h
+     mindmapviewwindowcontroller.cpp mindmapviewwindowcontroller.h
+@@ -44,3 +43,8 @@
+     ${CMAKE_CURRENT_SOURCE_DIR}
+ )
+ 
++if(TARGET vtextedit-typst)
++    target_sources(vnote PRIVATE
++        typstviewwindowcontroller.cpp typstviewwindowcontroller.h
++    )
++endif()
+--- a/src/gui/services/viewwindowfactory.cpp
++++ b/src/gui/services/viewwindowfactory.cpp
+@@ -7,7 +7,9 @@
+ #include <widgets/markdownviewwindow2.h>
+ #include <widgets/mindmapviewwindow2.h>
+ #include <widgets/textviewwindow2.h>
++#ifdef VTEXTEDIT_ENABLE_TYPST
+ #include <widgets/typstviewwindow.h>
++#endif
+ 
+ #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+ #include <widgets/pdfviewwindow2.h>
+@@ -30,11 +32,19 @@
+                      ViewWindowMode) -> ViewWindow2 * {
+                     return new TextViewWindow2(p_services, p_buffer, p_parent);
+                   });
++#ifdef VTEXTEDIT_ENABLE_TYPST
+   registerCreator("Typst",
+                   [](ServiceLocator &p_services, const Buffer2 &p_buffer, QWidget *p_parent,
+                      ViewWindowMode p_mode) -> ViewWindow2 * {
+                     return new TypstViewWindow(p_services, p_buffer, p_parent, p_mode);
+                   });
++#else
++  registerCreator("Typst",
++                  [](ServiceLocator &p_services, const Buffer2 &p_buffer, QWidget *p_parent,
++                     ViewWindowMode) -> ViewWindow2 * {
++                    return new TextViewWindow2(p_services, p_buffer, p_parent);
++                  });
++#endif
+   registerCreator("Image",
+                   [](ServiceLocator &p_services, const Buffer2 &p_buffer, QWidget *p_parent,
+                      ViewWindowMode) -> ViewWindow2 * {
+--- a/src/Packaging.cmake
++++ b/src/Packaging.cmake
+@@ -237,8 +237,9 @@
+         include(InstallRequiredSystemLibraries)
+     endif()
+ else()
+     install(DIRECTORY "${VX_TYPST_NOTICES_DIR}/"
+-        DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/vnote/typst")
++        DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/vnote/typst"
++        OPTIONAL)
+     message(STATUS "LinuxDeployExecutable: ${LINUXDEPLOY_EXECUTABLE}")
+     if(LINUXDEPLOY_EXECUTABLE)
+         message(STATUS "Package generation - Linux - AppImage")

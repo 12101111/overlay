@@ -2,8 +2,9 @@
 <!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
 <pkgmetadata>
 	<maintainer type="person">
-		<email>jpizarrocallejas@gmail.com</email>
-		<name>Jorge Pizarro Callejas</name>
-		<description>Jorgicio Gentoo Overlay</description>
+		<email>w12101111@gmail.com</email>
 	</maintainer>
+	<use>
+		<flag name="typst">Enable the Typst editor and PDF preview, including the bundled Rust Typst helper (needs qtpdf from <pkg>dev-qt/qtwebengine</pkg>)</flag>
+	</use>
 </pkgmetadata>
