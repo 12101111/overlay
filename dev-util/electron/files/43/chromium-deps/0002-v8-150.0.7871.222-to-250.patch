@@ -1,0 +1,198 @@
+diff --git a/v8/src/codegen/compiler.cc b/v8/src/codegen/compiler.cc
+index 2c82e865b83..4796334decb 100644
+--- a/v8/src/codegen/compiler.cc
++++ b/v8/src/codegen/compiler.cc
+@@ -1288,7 +1288,7 @@ MaybeHandle<Code> CompileMaglev(Isolate* isolate, Handle<JSFunction> function,
+     CompilerTracer::TraceStartMaglevCompile(isolate, function, job->is_osr(),
+                                             mode);
+     CompilationJob::Status status = job->PrepareJob(isolate);
+-    CHECK_EQ(status, CompilationJob::SUCCEEDED);  // TODO(v8:7700): Use status.
++    if (status != CompilationJob::SUCCEEDED) return {};
+   }
+ 
+   if (IsSynchronous(mode)) {
+diff --git a/v8/src/compiler/access-info.cc b/v8/src/compiler/access-info.cc
+index e3da8b02ce2..631395ce50c 100644
+--- a/v8/src/compiler/access-info.cc
++++ b/v8/src/compiler/access-info.cc
+@@ -979,6 +979,43 @@ bool AccessInfoFactory::TryLoadPropertyDetails(
+   return true;
+ }
+ 
++namespace {
++
++PropertyAccessInfo TryComputeDictionaryDataFieldAccessInfo(
++    Zone* zone, MapRef map, NameRef name, OptionalObjectRef handler) {
++  if constexpr (V8_ENABLE_SWISS_NAME_DICTIONARY_BOOL) {
++    return PropertyAccessInfo::Invalid(zone);
++  }
++  if (!handler.has_value() || !handler->IsSmi()) {
++    return PropertyAccessInfo::Invalid(zone);
++  }
++
++  // Receiver map must be a standard JSObject without access checks or
++  // interceptors.
++  if (!map.is_dictionary_map() || !map.IsJSObjectMap() ||
++      IsJSGlobalObjectMap(*map.object()) || map.is_access_check_needed() ||
++      map.has_named_interceptor()) {
++    return PropertyAccessInfo::Invalid(zone);
++  }
++
++  const auto smi_handler = Cast<Smi>(*handler->object());
++  const int smi_value = smi_handler.value();
++  if (LoadHandler::GetHandlerKind(smi_handler) != LoadHandler::Kind::kNormal ||
++      !LoadHandler::IsDataPropertyBits::decode(smi_value)) {
++    return PropertyAccessInfo::Invalid(zone);
++  }
++
++  uint32_t index = LoadHandler::DictionaryIndexBits::decode(smi_value);
++  if (index == LoadHandler::DictionaryIndexBits::kMax) {
++    return PropertyAccessInfo::Invalid(zone);
++  }
++
++  return PropertyAccessInfo::DictionaryDataField(
++      zone, map, OptionalJSObjectRef(), InternalIndex(index), name);
++}
++
++}  // namespace
++
+ PropertyAccessInfo AccessInfoFactory::ComputePropertyAccessInfo(
+     MapRef map, NameRef name, AccessMode access_mode,
+     OptionalObjectRef handler) const {
+@@ -989,22 +1026,11 @@ PropertyAccessInfo AccessInfoFactory::ComputePropertyAccessInfo(
+ 
+   JSHeapBroker::MapUpdaterGuardIfNeeded mumd_scope(broker());
+ 
+-  if (map.is_dictionary_map() && access_mode == AccessMode::kLoad &&
+-      handler.has_value() && handler->IsSmi()) {
+-    if constexpr (V8_ENABLE_SWISS_NAME_DICTIONARY_BOOL) {
+-      return Invalid();
+-    }
+-    auto smi_handler = Cast<Smi>(*handler->object());
+-    if (LoadHandler::GetHandlerKind(smi_handler) ==
+-        LoadHandler::Kind::kNormal) {
+-      if (LoadHandler::IsDataPropertyBits::decode(smi_handler.value())) {
+-        uint32_t index =
+-            LoadHandler::DictionaryIndexBits::decode(smi_handler.value());
+-        if (index != LoadHandler::DictionaryIndexBits::kMax) {
+-          return PropertyAccessInfo::DictionaryDataField(
+-              zone(), map, OptionalJSObjectRef(), InternalIndex(index), name);
+-        }
+-      }
++  if (access_mode == AccessMode::kLoad) {
++    PropertyAccessInfo access_info =
++        TryComputeDictionaryDataFieldAccessInfo(zone(), map, name, handler);
++    if (!access_info.IsInvalid()) {
++      return access_info;
+     }
+   }
+ 
+diff --git a/v8/src/compiler/access-info.h b/v8/src/compiler/access-info.h
+index d51bebad253..74029290fd7 100644
+--- a/v8/src/compiler/access-info.h
++++ b/v8/src/compiler/access-info.h
+@@ -314,6 +314,8 @@ class AccessInfoFactory final {
+   PropertyAccessInfo ComputeAccessorDescriptorAccessInfo(
+       MapRef receiver_map, NameRef name, MapRef map, OptionalJSObjectRef holder,
+       InternalIndex descriptor, AccessMode access_mode) const;
++  PropertyAccessInfo ComputeDictionaryDataFieldAccessInfo(
++      MapRef map, NameRef name, OptionalObjectRef handler) const;
+ 
+   PropertyAccessInfo Invalid() const {
+     return PropertyAccessInfo::Invalid(zone());
+diff --git a/v8/src/flags/flag-definitions.h b/v8/src/flags/flag-definitions.h
+index 68d539576d0..194c576cded 100644
+--- a/v8/src/flags/flag-definitions.h
++++ b/v8/src/flags/flag-definitions.h
+@@ -859,7 +859,7 @@ DEFINE_EXPERIMENTAL_FEATURE(
+     "strings.")
+ 
+ #ifdef V8_TARGET_ARCH_64_BIT
+-DEFINE_BOOL(additive_safe_int_feedback, true,
++DEFINE_BOOL(additive_safe_int_feedback, false,
+             "Enable the use of AdditiveSafeInteger feedback")
+ DEFINE_EXPERIMENTAL_FEATURE(
+     turbolev_additive_safe_int_feedback,
+diff --git a/v8/src/maglev/maglev-compiler.cc b/v8/src/maglev/maglev-compiler.cc
+index 410f444b6a1..b750dafa451 100644
+--- a/v8/src/maglev/maglev-compiler.cc
++++ b/v8/src/maglev/maglev-compiler.cc
+@@ -48,6 +48,8 @@ namespace internal {
+ namespace maglev {
+ 
+ namespace {
++constexpr uint32_t kMaxStackSlots = 4 * KB / kSystemPointerSize;
++
+ void PrintGraph(Graph* graph, bool condition, const char* message,
+                 bool has_regalloc_data = false) {
+   if (V8_UNLIKELY(condition &&
+@@ -218,6 +220,15 @@ bool MaglevCompiler::Compile(LocalIsolate* local_isolate,
+     }
+   }
+ 
++  // The prologue grows the frame with a single stack pointer decrement, before
++  // FunctionEntryStackCheck runs. A frame no larger than the smallest OS page
++  // cannot step over a guard page, so bail out rather than emit an unchecked
++  // stack pointer jump of arbitrary size.
++  if (graph->tagged_stack_slots() + graph->untagged_stack_slots() >
++      kMaxStackSlots) {
++    return false;
++  }
++
+   {
+     TRACE_EVENT(TRACE_DISABLED_BY_DEFAULT("v8.compile"),
+                 "V8.Maglev.CodeAssembly");
+diff --git a/v8/src/maglev/maglev-concurrent-dispatcher.cc b/v8/src/maglev/maglev-concurrent-dispatcher.cc
+index 6b78c2175ff..ea9362e165d 100644
+--- a/v8/src/maglev/maglev-concurrent-dispatcher.cc
++++ b/v8/src/maglev/maglev-concurrent-dispatcher.cc
+@@ -112,7 +112,20 @@ MaglevCompilationJob::MaglevCompilationJob(
+ 
+ MaglevCompilationJob::~MaglevCompilationJob() = default;
+ 
++CompilationJob::Status MaglevCompilationJob::AbortOptimization(
++    Isolate* isolate, BailoutReason reason) {
++  DCHECK_EQ(ThreadId::Current(), isolate->thread_id());
++  bailout_reason_ = reason;
++  DirectHandle<SharedFunctionInfo> shared(function()->shared(), isolate);
++  shared->DisableOptimization(isolate, reason);
++  return UpdateState(FAILED, State::kFailed);
++}
++
+ CompilationJob::Status MaglevCompilationJob::PrepareJobImpl(Isolate* isolate) {
++  if (function()->shared()->GetBytecodeArray(isolate)->length() >
++      v8_flags.max_optimized_bytecode_size) {
++    return AbortOptimization(isolate, BailoutReason::kFunctionTooBig);
++  }
+   BeginPhaseKind("V8.MaglevPrepareJob");
+   if (info()->collect_source_positions()) {
+     SharedFunctionInfo::EnsureSourcePositionsAvailable(
+diff --git a/v8/src/maglev/maglev-concurrent-dispatcher.h b/v8/src/maglev/maglev-concurrent-dispatcher.h
+index 5f339731d3b..aa71cea3640 100644
+--- a/v8/src/maglev/maglev-concurrent-dispatcher.h
++++ b/v8/src/maglev/maglev-concurrent-dispatcher.h
+@@ -35,6 +35,8 @@ class MaglevCompilationJob final : public OptimizedCompilationJob {
+                         LocalIsolate* local_isolate) override;
+   Status FinalizeJobImpl(Isolate* isolate) override;
+ 
++  Status AbortOptimization(Isolate* isolate, BailoutReason reason);
++
+   IndirectHandle<JSFunction> function() const;
+   MaybeIndirectHandle<Code> code() const;
+   BytecodeOffset osr_offset() const;
+diff --git a/v8/src/objects/string.tq b/v8/src/objects/string.tq
+index 0165da42e98..f7cb50a778a 100644
+--- a/v8/src/objects/string.tq
++++ b/v8/src/objects/string.tq
+@@ -325,6 +325,11 @@ macro StringToSlice(string: String): never labels OneByte(ConstSlice<char8>),
+ // Dispatch on the slice type of two different strings.
+ macro TwoStringsToSlices<Result: type, Functor: type>(
+     s1: String, s2: String, f: Functor): Result {
++  // Flatten both strings before taking either slice. A slice into an external
++  // string is a raw pointer that doesn't keep the string alive, so flattening
++  // s2 while holding s1's slice could collect s1 and free its resource.
++  const s1 = Flatten(s1);
++  const s2 = Flatten(s2);
+   try {
+     StringToSlice(s1) otherwise FirstOneByte, FirstTwoByte;
+   } label FirstOneByte(s1Slice: ConstSlice<char8>) {

@@ -1,0 +1,246 @@
+diff --git a/third_party/angle/include/platform/autogen/FeaturesGL_autogen.h b/third_party/angle/include/platform/autogen/FeaturesGL_autogen.h
+index 6647c3f102..8204f5c0b2 100644
+--- a/third_party/angle/include/platform/autogen/FeaturesGL_autogen.h
++++ b/third_party/angle/include/platform/autogen/FeaturesGL_autogen.h
+@@ -266,6 +266,12 @@ struct FeaturesGL : FeatureSetBase
+         &members,
+     };
+ 
++    FeatureInfo useTempForNonZeroBaseLevelGenMipmapUsingCopyImageSubData = {
++        "useTempForNonZeroBaseLevelGenMipmapUsingCopyImageSubData",
++        FeatureCategory::OpenGLWorkarounds,
++        &members,
++    };
++
+     FeatureInfo limitMax3dArrayTextureSizeTo1024 = {
+         "limitMax3dArrayTextureSizeTo1024",
+         FeatureCategory::OpenGLWorkarounds,
+diff --git a/third_party/angle/include/platform/gl_features.json b/third_party/angle/include/platform/gl_features.json
+index 12f5ca1782..3cdfd93983 100644
+--- a/third_party/angle/include/platform/gl_features.json
++++ b/third_party/angle/include/platform/gl_features.json
+@@ -326,6 +326,15 @@
+             ],
+             "issue": "https://crbug.com/528131119"
+         },
++        {
++            "name": "use_temp_for_non_zero_base_level_GenMipmap_using_CopyImageSubData",
++            "category": "Workarounds",
++            "description": [
++                "Allocate a temporary texture when generating mipmaps on an immutable texture with a ",
++                "non-zero base level to avoid driver bugs."
++            ],
++            "issue": "https://crbug.com/534923522"
++        },
+         {
+             "name": "limit_max_3d_array_texture_size_to_1024",
+             "category": "Workarounds",
+diff --git a/third_party/angle/src/libANGLE/renderer/gl/TextureGL.cpp b/third_party/angle/src/libANGLE/renderer/gl/TextureGL.cpp
+index d5953da0eb..1b8eb64fb0 100644
+--- a/third_party/angle/src/libANGLE/renderer/gl/TextureGL.cpp
++++ b/third_party/angle/src/libANGLE/renderer/gl/TextureGL.cpp
+@@ -1563,12 +1563,18 @@ angle::Result TextureGL::generateMipmap(const gl::Context *context)
+ 
+     const LevelInfoGL &baseLevelInfo = getBaseLevelInfo();
+ 
+-    if (getType() == gl::TextureType::_2D &&
+-        ((baseLevelInternalFormat.colorEncoding == GL_SRGB &&
+-          features.decodeEncodeSRGBForGenerateMipmap.enabled) ||
+-         (features.useIntermediateTextureForGenerateMipmap.enabled &&
+-          nativegl::SupportsNativeRendering(functions, mState.getType(),
+-                                            baseLevelInfo.nativeInternalFormat))))
++    if (features.useTempForNonZeroBaseLevelGenMipmapUsingCopyImageSubData.enabled &&
++        functions->copyImageSubData != nullptr && mState.getImmutableFormat() &&
++        getType() == gl::TextureType::_2D && effectiveBaseLevel > 0)
++    {
++        ANGLE_TRY(useTempForNonZeroBaseLevelGenmipmap(context));
++    }
++    else if (getType() == gl::TextureType::_2D &&
++             ((baseLevelInternalFormat.colorEncoding == GL_SRGB &&
++               features.decodeEncodeSRGBForGenerateMipmap.enabled) ||
++              (features.useIntermediateTextureForGenerateMipmap.enabled &&
++               nativegl::SupportsNativeRendering(functions, mState.getType(),
++                                                 baseLevelInfo.nativeInternalFormat))))
+     {
+         // Manually allocate the mip levels of this texture if they don't exist
+         // This might already be done above if recreateMipmapLevelsBeforeGenerate is in effect.
+@@ -2263,23 +2269,41 @@ angle::Result TextureGL::recreateTexture(const gl::Context *context)
+     return angle::Result::Continue;
+ }
+ 
+-angle::Result TextureGL::copyTextureLevels(const gl::Context *context,
+-                                           GLuint srcTexture,
+-                                           GLuint dstTexture)
++angle::Result TextureGL::copyLevelsBetweenTextures(const gl::Context *context,
++                                                   GLuint sourceTexture,
++                                                   size_t sourceLevel,
++                                                   GLuint destTexture,
++                                                   size_t destLevel,
++                                                   size_t levelCount)
+ {
++    ASSERT(sourceTexture == mTextureID || destTexture == mTextureID);
++
++    // Checking mState for the level size only works here because the
++    // levels are already defined. If this was a mutable texture in a
++    // glGenerateMipMaps call, the level sizes would not be set until
++    // after the call finishes.
++    ASSERT(mState.getImmutableFormat());
++
++    ContextGL *contextGL         = GetImplAs<ContextGL>(context);
+     const FunctionsGL *functions = GetFunctionsGL(context);
+-    ASSERT(functions->copyImageSubData);
+ 
+-    const GLuint immutableLevels = mState.getImmutableLevels();
+-    for (GLuint level = 0; level < immutableLevels; ++level)
++    ANGLE_CHECK(contextGL, functions->copyImageSubData != nullptr,
++                "glCopyImageSubData is not available.", GL_INVALID_OPERATION);
++
++    for (size_t t = 0; t < levelCount; ++t)
+     {
+-        const gl::Extents levelSize = mState.getImageDesc(gl::TextureTarget::_2D, level).size;
+-        ASSERT(!levelSize.empty());
++        const size_t srcLevel     = sourceLevel + t;
++        const size_t dstLevel     = destLevel + t;
++        const size_t levelInState = (sourceTexture == mTextureID ? srcLevel : dstLevel);
++        const gl::Extents levelSize =
++            mState.getImageDesc(gl::TextureTarget::_2D, levelInState).size;
++
+         ANGLE_GL_TRY(context, functions->copyImageSubData(
+-                                  srcTexture, GL_TEXTURE_2D, static_cast<GLint>(level), 0, 0, 0,
+-                                  dstTexture, GL_TEXTURE_2D, static_cast<GLint>(level), 0, 0, 0,
+-                                  levelSize.width, levelSize.height, 1));
++                                  sourceTexture, GL_TEXTURE_2D, static_cast<GLint>(srcLevel), 0, 0,
++                                  0, destTexture, GL_TEXTURE_2D, static_cast<GLint>(dstLevel), 0, 0,
++                                  0, levelSize.width, levelSize.height, 1));
+     }
++
+     return angle::Result::Continue;
+ }
+ 
+@@ -2306,7 +2330,8 @@ angle::Result TextureGL::recreateNativeStoragePreservingLevels(const gl::Context
+     const gl::ImageDesc &levelZeroDesc = mState.getLevelZeroDesc();
+     ANGLE_TRY(setStorage(context, getType(), mState.getImmutableLevels(),
+                          levelZeroDesc.format.info->sizedInternalFormat, levelZeroDesc.size));
+-    ANGLE_TRY(copyTextureLevels(context, oldTextureID, mTextureID));
++    ANGLE_TRY(copyLevelsBetweenTextures(context, oldTextureID, 0, mTextureID, 0,
++                                        mState.getImmutableLevels()));
+ 
+     stateManager->deleteTexture(oldTextureID);
+ 
+@@ -2316,6 +2341,55 @@ angle::Result TextureGL::recreateNativeStoragePreservingLevels(const gl::Context
+     return angle::Result::Continue;
+ }
+ 
++angle::Result TextureGL::useTempForNonZeroBaseLevelGenmipmap(const gl::Context *context)
++{
++    // Will need to be updated to support other texture types.
++    ASSERT(getType() == gl::TextureType::_2D);
++
++    const FunctionsGL *functions      = GetFunctionsGL(context);
++    StateManagerGL *stateManager      = GetStateManagerGL(context);
++    const angle::FeaturesGL &features = GetFeaturesGL(context);
++
++    ASSERT(functions->copyImageSubData != nullptr);
++
++    const GLuint effectiveBaseLevel = mState.getEffectiveBaseLevel();
++    const GLuint maxLevel           = mState.getMipmapMaxLevel();
++    const GLuint immutableLevels    = mState.getImmutableLevels();
++    ASSERT(immutableLevels > effectiveBaseLevel);
++    ASSERT(maxLevel >= effectiveBaseLevel);
++    const GLuint tempLevels = immutableLevels - effectiveBaseLevel;
++    const GLuint tempMax    = maxLevel - effectiveBaseLevel;
++
++    const gl::ImageDesc &baseLevelDesc                = mState.getBaseLevelDesc();
++    const gl::InternalFormat &baseLevelInternalFormat = *baseLevelDesc.format.info;
++    nativegl::TexStorageFormat texStorageFormat       = nativegl::GetTexStorageFormat(
++        functions, features, baseLevelInternalFormat.sizedInternalFormat);
++
++    GLuint tempTextureID = 0;
++    functions->genTextures(1, &tempTextureID);
++    stateManager->bindTexture(gl::TextureType::_2D, tempTextureID);
++
++    ANGLE_GL_TRY_ALWAYS_CHECK(
++        context, functions->texStorage2D(GL_TEXTURE_2D, static_cast<GLsizei>(tempLevels),
++                                         texStorageFormat.internalFormat, baseLevelDesc.size.width,
++                                         baseLevelDesc.size.height));
++
++    functions->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(tempMax));
++
++    ANGLE_TRY(
++        copyLevelsBetweenTextures(context, mTextureID, effectiveBaseLevel, tempTextureID, 0, 1));
++
++    ANGLE_GL_TRY_ALWAYS_CHECK(context, functions->generateMipmap(GL_TEXTURE_2D));
++
++    ANGLE_TRY(copyLevelsBetweenTextures(context, tempTextureID, 1, mTextureID,
++                                        effectiveBaseLevel + 1, tempMax));
++
++    stateManager->deleteTexture(tempTextureID);
++    stateManager->bindTexture(getType(), mTextureID);
++
++    return angle::Result::Continue;
++}
++
+ angle::Result TextureGL::syncTextureStateSwizzle(const gl::Context *context,
+                                                  const FunctionsGL *functions,
+                                                  GLenum name,
+diff --git a/third_party/angle/src/libANGLE/renderer/gl/TextureGL.h b/third_party/angle/src/libANGLE/renderer/gl/TextureGL.h
+index 96a7e9611f..0c98168527 100644
+--- a/third_party/angle/src/libANGLE/renderer/gl/TextureGL.h
++++ b/third_party/angle/src/libANGLE/renderer/gl/TextureGL.h
+@@ -233,10 +233,15 @@ class TextureGL : public TextureImpl
+ 
+   private:
+     angle::Result recreateTexture(const gl::Context *context);
+-    angle::Result copyTextureLevels(const gl::Context *context,
+-                                    GLuint srcTexture,
+-                                    GLuint dstTexture);
++    // One of sourceTexture or destTexture must be mTextureID.
++    angle::Result copyLevelsBetweenTextures(const gl::Context *context,
++                                            GLuint sourceTexture,
++                                            size_t sourceLevel,
++                                            GLuint destTexture,
++                                            size_t destLevel,
++                                            size_t levelCount);
+     angle::Result recreateNativeStoragePreservingLevels(const gl::Context *context);
++    angle::Result useTempForNonZeroBaseLevelGenmipmap(const gl::Context *context);
+ 
+     angle::Result setImageHelper(const gl::Context *context,
+                                  gl::TextureTarget target,
+diff --git a/third_party/angle/src/libANGLE/renderer/gl/renderergl_utils.cpp b/third_party/angle/src/libANGLE/renderer/gl/renderergl_utils.cpp
+index 316d86708e..64ad52b6af 100644
+--- a/third_party/angle/src/libANGLE/renderer/gl/renderergl_utils.cpp
++++ b/third_party/angle/src/libANGLE/renderer/gl/renderergl_utils.cpp
+@@ -2447,6 +2447,9 @@ void InitializeFeatures(const FunctionsGL *functions, angle::FeaturesGL *feature
+     ANGLE_FEATURE_CONDITION(features, recreateImmutableTextureOnBaseLevelIncrease,
+                             IsPowerVR(vendor));
+ 
++    ANGLE_FEATURE_CONDITION(features, useTempForNonZeroBaseLevelGenMipmapUsingCopyImageSubData,
++                            IsPowerVR(vendor));
++
+     ANGLE_FEATURE_CONDITION(features, adjustSrcDstRegionForBlitFramebuffer,
+                             IsLinux() || (IsAndroid() && isNvidia) || (IsWindows() && isNvidia) ||
+                                 (IsApple() && functions->standard == STANDARD_GL_ES));
+diff --git a/third_party/angle/util/autogen/angle_features_autogen.cpp b/third_party/angle/util/autogen/angle_features_autogen.cpp
+index 283a8f7e0f..02b10778a5 100644
+--- a/third_party/angle/util/autogen/angle_features_autogen.cpp
++++ b/third_party/angle/util/autogen/angle_features_autogen.cpp
+@@ -511,6 +511,7 @@ constexpr PackedEnumMap<Feature, const char *> kFeatureNames = {{
+     {Feature::UseStencilOpDynamicState, "useStencilOpDynamicState"},
+     {Feature::UseStencilTestEnableDynamicState, "useStencilTestEnableDynamicState"},
+     {Feature::UseSystemMemoryForConstantBuffers, "useSystemMemoryForConstantBuffers"},
++    {Feature::UseTempForNonZeroBaseLevelGenMipmapUsingCopyImageSubData, "useTempForNonZeroBaseLevelGenMipmapUsingCopyImageSubData"},
+     {Feature::UseUnusedBlocksWithStandardOrSharedLayout, "useUnusedBlocksWithStandardOrSharedLayout"},
+     {Feature::UseVertexInputBindingStrideDynamicState, "useVertexInputBindingStrideDynamicState"},
+     {Feature::UseVkEventForBufferBarrier, "useVkEventForBufferBarrier"},
+diff --git a/third_party/angle/util/autogen/angle_features_autogen.h b/third_party/angle/util/autogen/angle_features_autogen.h
+index a63beed511..0463852e9f 100644
+--- a/third_party/angle/util/autogen/angle_features_autogen.h
++++ b/third_party/angle/util/autogen/angle_features_autogen.h
+@@ -511,6 +511,7 @@ enum class Feature
+     UseStencilOpDynamicState,
+     UseStencilTestEnableDynamicState,
+     UseSystemMemoryForConstantBuffers,
++    UseTempForNonZeroBaseLevelGenMipmapUsingCopyImageSubData,
+     UseUnusedBlocksWithStandardOrSharedLayout,
+     UseVertexInputBindingStrideDynamicState,
+     UseVkEventForBufferBarrier,

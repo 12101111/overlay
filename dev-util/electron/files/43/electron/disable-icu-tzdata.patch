@@ -1,0 +1,6 @@
+diff --git a/patches/icu/.patches b/patches/icu/.patches
+index af678c1d29..e69de29bb2 100644
+--- a/patches/icu/.patches
++++ b/patches/icu/.patches
+@@ -1 +0,0 @@
+-update_tzdata_to_2026d.patch

@@ -1487,8 +1487,10 @@ src_prepare() {
 	mv "${WORKDIR}/${NODE_P}/" "${NODE_S}/" || die
 	mv "${WORKDIR}/${P}" "${S}/electron" || die
 
-	# the diff of .222 -> .250
+	# Security fixes from .222 -> .250 diff
 	eapply "${FILESDIR}/${SLOT}/chromium"
+	# DEPS rolls from .222 -> .250 diff
+	eapply "${FILESDIR}/${SLOT}/chromium-deps"
 
 	if use elibc_musl; then
 		eapply "${FILESDIR}/${SLOT}/musl"

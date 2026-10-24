@@ -1,0 +1,66 @@
+diff --git a/third_party/dawn/src/dawn/native/Texture.cpp b/third_party/dawn/src/dawn/native/Texture.cpp
+index ca235578c4..a329ad5981 100644
+--- a/third_party/dawn/src/dawn/native/Texture.cpp
++++ b/third_party/dawn/src/dawn/native/Texture.cpp
+@@ -873,6 +873,15 @@ MaybeError ValidateTextureDescriptor(
+                         (format->aspects & (Aspect::Depth | Aspect::Stencil)),
+                     "The dimension (%s) of a texture with a depth/stencil format (%s) is not 2D.",
+                     descriptor->dimension, format->format);
++    if (device->IsToggleEnabled(Toggle::VulkanDisallowNPOTDepthStencilMipmaps)) {
++        DAWN_INVALID_IF(
++            (format->aspects & (Aspect::Depth | Aspect::Stencil)) &&
++                descriptor->mipLevelCount > 1 &&
++                (!IsPowerOfTwo(descriptor->size.width) || !IsPowerOfTwo(descriptor->size.height)),
++            "Non-power-of-two depth/stencil texture (%s) with mipLevelCount (%u) > 1 is "
++            "disallowed on this device due to a driver bug.",
++            descriptor->size, descriptor->mipLevelCount);
++    }
+ 
+     DAWN_TRY(ValidateTextureSize(device, *descriptor, format));
+     return {};
+diff --git a/third_party/dawn/src/dawn/native/Toggles.cpp b/third_party/dawn/src/dawn/native/Toggles.cpp
+index 23026c92fb..6c1f9387e9 100644
+--- a/third_party/dawn/src/dawn/native/Toggles.cpp
++++ b/third_party/dawn/src/dawn/native/Toggles.cpp
+@@ -800,6 +800,11 @@ static constexpr ToggleEnumAndInfoList kToggleNameAndInfoList = {{
+      {"metal_fix_u32_div_mod",
+       "Workaround a driver bug on Apple Silicon with u32 div and mod operations.",
+       "https://crbug.com/517225032", ToggleStage::Device}},
++    {Toggle::VulkanDisallowNPOTDepthStencilMipmaps,
++     {"vulkan_disallow_npot_depth_stencil_mipmaps",
++      "Reject NPOT depth/stencil textures with mipLevelCount > 1. Workaround for mip level "
++      "miscomputation in PowerVR proprietary driver.",
++      "https://crbug.com/540087398", ToggleStage::Device}},
+     {Toggle::WaitIsThreadSafe,
+      {"wait_is_thread_safe",
+       "WaitFor* functions are thread-safe and can be called without the device-lock if implicit "
+diff --git a/third_party/dawn/src/dawn/native/Toggles.h b/third_party/dawn/src/dawn/native/Toggles.h
+index 5ee76926b0..6110f00c4d 100644
+--- a/third_party/dawn/src/dawn/native/Toggles.h
++++ b/third_party/dawn/src/dawn/native/Toggles.h
+@@ -191,6 +191,7 @@ enum class Toggle {
+     VulkanForceStaticSamplersForExternalTextures,
+     D3D12UseHLSL2021,
+     MetalFixU32DivMod,
++    VulkanDisallowNPOTDepthStencilMipmaps,
+ 
+     // Once all backends have been updated to be thread safe for waiting, we can remove this toggle.
+     WaitIsThreadSafe,
+diff --git a/third_party/dawn/src/dawn/native/vulkan/PhysicalDeviceVk.cpp b/third_party/dawn/src/dawn/native/vulkan/PhysicalDeviceVk.cpp
+index 4ec250e7bd..02c5f50fc6 100644
+--- a/third_party/dawn/src/dawn/native/vulkan/PhysicalDeviceVk.cpp
++++ b/third_party/dawn/src/dawn/native/vulkan/PhysicalDeviceVk.cpp
+@@ -1046,8 +1046,12 @@ void PhysicalDevice::SetupBackendDeviceToggles(dawn::platform::Platform* platfor
+     }
+ 
+     if (MayBeImaginationProprietary()) {
+-        // crbug.com/443906252: Polyfill for case switch with large ranges.
++        // crbug.com/443906252 - Polyfill for case switch with large ranges.
+         deviceToggles->Default(Toggle::VulkanPolyfillSwitchWithIf, true);
++
++        // crbug.com/540087398 - Driver bug miscomputes mip sizes for NPOT depth/stencil textures.
++        // TODO(https://crbug.com/540087398): Limit this to old drivers once there's a driver fix.
++        deviceToggles->Default(Toggle::VulkanDisallowNPOTDepthStencilMipmaps, true);
+     }
+ 
+     // AMD Mesa front end optimizer bug for unary negation and abs.
