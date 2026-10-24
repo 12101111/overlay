@@ -56,6 +56,9 @@ fi
 PATCHES=(
 	"${FILESDIR}"/${PN}-getifaddrs-qemu-workaround.patch
 	"${WORKDIR}"/${P}-patches
+	"${FILESDIR}"/${P}-riscv32-syscalls.patch
+	"${FILESDIR}"/${P}-riscv32-syscalls-2.patch
+	"${FILESDIR}"/${PN}-1.2.6-CVE-2026-107891.patch
 	"${FILESDIR}"/musl-1.2.2-gethostid.patch
 	"${FILESDIR}"/Make-scheduler-functions-Linux-compatible.patch
 	"${FILESDIR}"/Add-rpmalloc-for-musl.patch
