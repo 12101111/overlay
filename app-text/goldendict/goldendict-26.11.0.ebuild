@@ -33,12 +33,12 @@ DEPEND="
 	app-arch/bzip2
 	app-arch/lzma
 	app-arch/xz-utils
-	app-i18n/opencc
-	app-text/hunspell
+	app-i18n/opencc:=
+	app-text/hunspell:=
 	dev-cpp/tomlplusplus
-	dev-libs/libfmt
+	dev-libs/libfmt:=
 	dev-libs/lzo:2
-	dev-libs/xapian
+	dev-libs/xapian:=
 	>=dev-qt/qt5compat-${QT_MIN}:6
 	>=dev-qt/qtbase-${QT_MIN}:6[${QTBASE_USE}]
 	>=dev-qt/qtmultimedia-${QT_MIN}:6[gstreamer]
@@ -49,7 +49,7 @@ DEPEND="
 	epwing? ( dev-libs/eb )
 	media-libs/libvorbis
 	tts? ( >=dev-qt/qtspeech-${QT_MIN}:6 )
-	virtual/zlib
+	virtual/zlib:=
 	virtual/opengl
 	virtual/libiconv
 	X? (
