@@ -120,7 +120,7 @@ build host, and the local registry has to answer.  `--config.optional=false`
 would skip them, but it also skips `@deepseek-ai/libreoffice-kit-wasm`, which
 the Office skill needs.
 
-For `ARCH = "x64"` the list has 585 tarballs (146 MiB) plus the CLI tarball.
+For `ARCH = "x64"` the list has 587 tarballs (139 MiB) plus the CLI tarball.
 The source archive, the require-builtin archive and the `node-addon-api`
 headers needed by the local builds are three additional distfiles.
 

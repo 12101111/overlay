@@ -3,8 +3,7 @@
 
 <pkgmetadata>
   <maintainer type="person">
-    <email>vowstar@gmail.com</email>
-    <name>Huang Rui</name>
+    <email>w12101111@gmail.com</email>
   </maintainer>
   <longdescription lang="en">
     DeepSeek Harness (dsh) is an open-source agent harness developed by DeepSeek AI, built on an everything-is-a-plugin architecture powered by Cordis.
@@ -16,4 +15,7 @@
     <doc>https://deepseek-harness.github.io/deepseek-harness/</doc>
     <remote-id type="github">deepseek-ai/deepseek-harness</remote-id>
   </upstream>
+  <use>
+    <flag name="sharp">Use sharp, a high-speed Node.js image processing library built on top of libvips, to open images</flag>
+  </use>
 </pkgmetadata>
