@@ -1,0 +1,75 @@
+diff --git a/build/config/rust.gni b/build/config/rust.gni
+index c5bc2e6..8a59e7f 100644
+--- a/build/config/rust.gni
++++ b/build/config/rust.gni
+@@ -445,7 +445,7 @@ rustc_wrapper_inputs = [
+ ]
+ 
+ if (host_os == "win") {
+-  rustc_wrapper_inputs += [ "//third_party/rust-toolchain/bin/rustc.exe" ]
++  rustc_wrapper_inputs += [ "$rust_sysroot/bin/rustc.exe" ]
+ } else {
+-  rustc_wrapper_inputs += [ "//third_party/rust-toolchain/bin/rustc" ]
++  rustc_wrapper_inputs += [ "$rust_sysroot/bin/rustc" ]
+ }
+diff --git a/build/rust/gni_impl/rust_target.gni b/build/rust/gni_impl/rust_target.gni
+index ed5c9f1..b3af1fa 100644
+--- a/build/rust/gni_impl/rust_target.gni
++++ b/build/rust/gni_impl/rust_target.gni
+@@ -727,9 +727,9 @@ template("rust_target") {
+           # `import`ed for `LoadRustEnvAndFlags`, etc.
+           inputs = rustc_wrapper_inputs
+           if (host_os == "win") {
+-            inputs += [ "//third_party/rust-toolchain/bin/clippy-driver.exe" ]
++            inputs += [ "$rust_sysroot/bin/clippy-driver.exe" ]
+           } else {
+-            inputs += [ "//third_party/rust-toolchain/bin/clippy-driver" ]
++            inputs += [ "$rust_sysroot/bin/clippy-driver" ]
+           }
+           if (rust_clippy_conf_file != "") {
+             inputs += [ rust_clippy_conf_file ]
+@@ -737,7 +737,7 @@ template("rust_target") {
+ 
+           args = [
+             "--clippy-driver",
+-            rebase_path("//third_party/rust-toolchain/bin/clippy-driver",
++            rebase_path("$rust_sysroot/bin/clippy-driver",
+                         root_build_dir),
+             "--rustc-env-and-flags",
+             rebase_path(_rustc_env_and_flags, root_build_dir),
+diff --git a/build/rust/rs_bindings_from_cc.gni b/build/rust/rs_bindings_from_cc.gni
+index 117001f..b212ec3 100644
+--- a/build/rust/rs_bindings_from_cc.gni
++++ b/build/rust/rs_bindings_from_cc.gni
+@@ -248,10 +248,19 @@ template("rs_bindings_from_cc") {
+     }
+ 
+     script = "//build/rust/gni_impl/run_rs_bindings_from_cc.py"
++    if (host_os == "win") {
++      _rs_bindings_from_cc_exe = "${rust_sysroot}/bin/rs_bindings_from_cc.exe"
++      _rustfmt_exe = "${rust_sysroot}/bin/rustfmt.exe"
++    } else {
++      _rs_bindings_from_cc_exe = "${rust_sysroot}/bin/rs_bindings_from_cc"
++      _rustfmt_exe = "${rust_sysroot}/bin/rustfmt"
++    }
++    inputs = [ ]
++
+     inputs = [
+                # Public headers are inputs to this action rather than sources,
+                # so GN does not consider this target an owner of the headers.
+-               "//third_party/rust-toolchain/bin/rs_bindings_from_cc",
++               _rs_bindings_from_cc_exe
+              ] + invoker.public_headers
+     outputs = [
+       _rs_out_path,
+@@ -271,6 +280,10 @@ template("rs_bindings_from_cc") {
+       string_join(",", _rebased_public_headers),
+       "--targets_and_args_from_gn",
+       rebase_path(_metadata_path),
++      "--rs_bindings_from_cc_path",
++      rebase_path(_rs_bindings_from_cc_exe, root_build_dir),
++      "--rustfmt_path",
++      rebase_path(_rustfmt_exe, root_build_dir),
+     ]
+ 
+     # Several important compiler flags come from default_compiler_configs
