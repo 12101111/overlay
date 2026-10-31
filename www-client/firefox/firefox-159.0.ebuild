@@ -3,13 +3,13 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-158-patches-02.tar.xz"
+FIREFOX_PATCHSET="firefox-159-patches-01.tar.xz"
 
 LLVM_COMPAT=( 22 23 )
 
 # This will also filter rust versions that don't match LLVM_COMPAT in the non-clang path; this is fine.
 RUST_NEEDS_LLVM=1
-RUST_MIN_VER=1.90.0
+RUST_MIN_VER=1.91.0
 
 PYTHON_COMPAT=( python3_{12..14} )
 PYTHON_REQ_USE="ncurses,sqlite,ssl"
@@ -120,7 +120,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	>=app-accessibility/at-spi2-core-2.46.0:2
 	dev-libs/glib:2
 	dev-libs/libffi:=
-	>=dev-libs/nss-3.130
+	>=dev-libs/nss-3.132
 	>=dev-libs/nspr-4.39
 	media-libs/alsa-lib
 	media-libs/fontconfig
@@ -149,7 +149,7 @@ COMMON_DEPEND="${FF_ONLY_DEPEND}
 	sndio? ( >=media-sound/sndio-1.8.0-r1 )
 	system-av1? (
 		>=media-libs/dav1d-1.5.4:=
-		>=media-libs/libaom-3.12.1:=
+		>=media-libs/libaom-3.14.1:=
 	)
 	system-harfbuzz? (
 		>=media-libs/harfbuzz-2.8.1:0=
@@ -1118,7 +1118,7 @@ src_install() {
 
 	# Force hwaccel prefs if USE=hwaccel is enabled
 	if use hwaccel ; then
-		cat "${FILESDIR}"/gentoo-hwaccel-prefs.js-r4 \
+		cat "${FILESDIR}"/gentoo-hwaccel-prefs.js-r5 \
 		>>"${GENTOO_PREFS}" \
 		|| die "failed to add prefs to force hardware-accelerated rendering to all-gentoo.js"
 
@@ -1158,6 +1158,14 @@ src_install() {
 	# options stop working.
 	if ! use telemetry ; then
 		cat "${FILESDIR}"/gentoo-telemetry-prefs.js >>"${GENTOO_PREFS}" || die "failed to set telemetry prefs"
+
+		# When not building "official" copy of Firefox, ie when building with '-telemetry' use flag, these
+		# prefs are turned on causing verbose messaging in sysjournal. Guard these prefs behind 'telemetry'
+		# use flag so they get enabled for '+debug' builds correctly. # bgo#956677
+		cat >>"${GENTOO_PREFS}" <<-EOF || die "failed to set non-official debug prefs"
+		sticky_pref("browser.dom.window.dump.enabled", false);
+		sticky_pref("devtools.console.stdout.chrome", false);
+		EOF
 	fi
 
 	# Install icons
