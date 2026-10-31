@@ -3,9 +3,6 @@
 
 EAPI=8
 
-CRATES="
-"
-
 LLVM_COMPAT=( {16..23} )
 RUST_MIN_VER="1.79.0"
 
@@ -13,9 +10,9 @@ inherit cargo llvm-r1 shell-completion check-reqs
 
 DESCRIPTION="CLI of the Sequoia OpenPGP implementation"
 HOMEPAGE="https://sequoia-pgp.org/ https://gitlab.com/sequoia-pgp/sequoia-sq"
-SRC_URI="https://gitlab.com/sequoia-pgp/sequoia-sq/-/archive/v${PV}/${PN}-v${PV}.tar.bz2"
-SRC_URI+=" https://github.com/gentoo-crate-dist/${PN}/releases/download/v${PV}/${P}-crates.tar.xz"
-S="${WORKDIR}"/${PN}-v${PV}
+SRC_URI="https://gitlab.com/sequoia-pgp/sequoia-sq/-/archive/${PN}/v${PV}/${PN}-${PN}-v${PV}.tar.bz2"
+SRC_URI+=" https://github.com/gentoo-crate-dist/${PN}/releases/download/${PN}/v${PV}/${P}-crates.tar.xz"
+S="${WORKDIR}"/${PN}-${PN}-v${PV}
 
 LICENSE="LGPL-2.1+"
 # Dependent crate licenses
@@ -25,7 +22,7 @@ LICENSE+="
 	|| ( GPL-2 GPL-3 LGPL-3 )
 "
 SLOT="0"
-KEYWORDS="amd64 arm64 ~ppc64"
+KEYWORDS="~amd64 ~arm64 ~ppc64"
 IUSE="botan"
 CHECKREQS_DISK_BUILD="4G"
 CHECKREQS_MEMORY="3G"
@@ -86,7 +83,7 @@ src_configure() {
 }
 
 src_install() {
-	cargo_src_install
+	cargo_src_install --path tool
 
 	doman "${asset_dir}"/man-pages/*.1
 
