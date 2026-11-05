@@ -3,7 +3,7 @@
 
 EAPI=8
 
-FIREFOX_PATCHSET="firefox-159-patches-01.tar.xz"
+FIREFOX_PATCHSET="firefox-159-patches-02.tar.xz"
 
 LLVM_COMPAT=( 22 23 )
 
@@ -1118,7 +1118,7 @@ src_install() {
 
 	# Force hwaccel prefs if USE=hwaccel is enabled
 	if use hwaccel ; then
-		cat "${FILESDIR}"/gentoo-hwaccel-prefs.js-r5 \
+		cat "${FILESDIR}"/gentoo-hwaccel-prefs.js-r6 \
 		>>"${GENTOO_PREFS}" \
 		|| die "failed to add prefs to force hardware-accelerated rendering to all-gentoo.js"
 
