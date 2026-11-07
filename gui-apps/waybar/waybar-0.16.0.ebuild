@@ -1,9 +1,9 @@
-# Copyright 1999-2025 Gentoo Authors
+# Copyright 1999-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 EAPI=8
 
-inherit meson toolchain-funcs optfeature
+inherit meson optfeature toolchain-funcs
 
 DESCRIPTION="Highly customizable Wayland bar for Sway and Wlroots based compositors"
 HOMEPAGE="https://github.com/Alexays/Waybar"
@@ -13,13 +13,13 @@ if [[ ${PV} == 9999 ]]; then
 	EGIT_REPO_URI="https://github.com/Alexays/${PN^}.git"
 else
 	SRC_URI="https://github.com/Alexays/${PN^}/archive/${PV}.tar.gz -> ${P}.tar.gz"
-	KEYWORDS="~amd64 ~arm64"
+	KEYWORDS="amd64 ~arm64"
 	S="${WORKDIR}/${PN^}-${PV}"
 fi
 
 LICENSE="MIT"
 SLOT="0"
-IUSE="backlight evdev experimental gps jack +libinput +logind mpd mpris network niri pipewire pulseaudio sndio systemd test tray +udev upower wifi"
+IUSE="backlight evdev experimental gps jack +libinput +logind mpd mpris network niri pipewire pulseaudio screencast sndio systemd test tray +udev upower wifi"
 REQUIRED_USE="
 	upower? ( logind )
 	backlight? ( udev logind )
@@ -29,10 +29,12 @@ RESTRICT="!test? ( test )"
 
 BDEPEND="
 	>=app-text/scdoc-1.9.2
-	dev-util/gdbus-codegen
+	>=dev-util/gdbus-codegen-2.80.5-r1
 	dev-util/wayland-scanner
 	virtual/pkgconfig
 "
+
+# dev-libs/date not used if C++ library supports chrono
 RDEPEND="
 	dev-cpp/cairomm:0
 	dev-cpp/glibmm:2
@@ -41,11 +43,10 @@ RDEPEND="
 	dev-libs/jsoncpp:=
 	dev-libs/libsigc++:2
 	>=dev-libs/libfmt-8.1.1:=
-	>=dev-libs/spdlog-1.15.3:=
+	>=dev-libs/spdlog-1.15.2:=
 	dev-libs/date:=
 	dev-libs/wayland
 	>=gui-libs/gtk-layer-shell-0.9.0
-	media-video/pipewire:=
 	x11-libs/gtk+:3[wayland]
 	x11-libs/libxkbcommon
 	evdev? ( dev-libs/libevdev )
@@ -53,14 +54,15 @@ RDEPEND="
 	jack? ( virtual/jack )
 	libinput? ( dev-libs/libinput:= )
 	logind? (
-		|| ( sys-apps/systemd
-			 sys-auth/elogind )
+		systemd? ( sys-apps/systemd )
+		!systemd? ( sys-auth/elogind )
 	)
 	mpd? ( media-libs/libmpdclient )
 	mpris? ( >=media-sound/playerctl-2 )
 	network? ( dev-libs/libnl:3 )
 	pipewire? ( media-video/wireplumber:0/0.5 )
 	pulseaudio? ( media-libs/libpulse )
+	screencast? ( media-video/pipewire:= )
 	sndio? ( media-sound/sndio:= )
 	systemd? ( sys-apps/systemd:= )
 	tray? (
@@ -77,7 +79,15 @@ DEPEND="${RDEPEND}
 "
 
 src_configure() {
+	local cxx_stdlib=$(tc-get-cxx-stdlib)
+	einfo "C++ standard library: ${cxx_stdlib:-unknown}"
+	local libcxx=false
+	if [[ ${cxx_stdlib} == libc++ ]]; then
+		libcxx=true
+	fi
+
 	local emesonargs=(
+		-Dlibcxx=${libcxx}
 		-Dman-pages=enabled
 		-Dcava=disabled # depends on LukashonakV/cava fork, but media-sound/cava is karlstav/cava
 		$(meson_feature evdev libevdev)
@@ -89,8 +99,8 @@ src_configure() {
 		$(meson_feature mpris)
 		$(meson_feature network libnl)
 		$(meson_feature pulseaudio)
-		$(meson_feature pipewire wireplumber)
-		$(meson_feature pipewire)
+		$(meson_feature pipewire wireplumber) # module for changing the volume for pipewire with wireplumber
+		$(meson_feature screencast pipewire) # module for checking whether the screen is recorded
 		$(meson_feature sndio)
 		$(meson_feature systemd)
 		$(meson_feature test tests)
@@ -102,9 +112,6 @@ src_configure() {
 		$(meson_use experimental)
 		$(meson_use niri) # communicates by socket with gui-wm/niri::guru
 	)
-	if [[ $(tc-get-cxx-stdlib) == libc++ ]]; then
-		emesonargs+=( -Dlibcxx=true )
-	fi
 	meson_src_configure
 }
 
