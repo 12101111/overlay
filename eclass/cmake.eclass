@@ -610,14 +610,14 @@ cmake_src_configure() {
 		if is_crosspkg && [[ ${CTARGET} == *wasi** ]] ; then
 			kernel=WASI
 		fi
-		case "${KERNEL:-linux}" in
+		case "${kernel}" in
 			Cygwin) sysname="CYGWIN_NT-5.1" ;;
 			HPUX) sysname="HP-UX" ;;
 			Hurd) sysname="GNU" ;;
 			linux) sysname="Linux" ;;
 			Winnt) sysname="Windows" ;;
 			WASI) sysname="WASI" ;;
-			*) sysname="${KERNEL}" ;;
+			*) sysname="${kernel}" ;;
 		esac
 	fi
 

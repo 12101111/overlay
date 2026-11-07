@@ -76,8 +76,12 @@ pkg_setup() {
 }
 
 test_compiler() {
-	$(tc-getCXX) ${CXXFLAGS} ${LDFLAGS} "${@}" -o /dev/null -x c++ - \
+	local out="${T}/test_compiler"
+	$(tc-getCXX) ${CXXFLAGS} ${LDFLAGS} "${@}" -o "${out}" -x c++ - \
 		<<<'int main() { return 0; }' &>/dev/null
+	local ret=$?
+	rm "${out}"
+	return $ret
 }
 
 src_configure() {
