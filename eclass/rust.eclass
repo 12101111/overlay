@@ -52,7 +52,7 @@ if [[ -z ${_RUST_ECLASS} ]]; then
 _RUST_ECLASS=1
 
 if [[ -n ${RUST_NEEDS_LLVM} ]]; then
-	inherit llvm-r1
+	inherit llvm-r2
 fi
 
 if [[ -n ${RUST_MULTILIB} ]]; then
@@ -68,6 +68,7 @@ fi
 # Definitive list of Rust slots and the associated LLVM slot, newest first.
 declare -A -g -r _RUST_LLVM_MAP=(
 	["9999"]=23
+	["1.100.0"]=23
 	["1.99.1"]=23
 	["1.99.0"]=23
 	["1.98.1"]=22
@@ -75,9 +76,7 @@ declare -A -g -r _RUST_LLVM_MAP=(
 	["1.96.1"]=22
 	["1.95.0"]=22
 	["1.94.1"]=21
-	["1.94.0"]=21
 	["1.93.1"]=21
-	["1.93.0"]=21
 	["1.92.0"]=21
 	["1.91.0"]=21
 	["1.90.0"]=20
@@ -91,6 +90,7 @@ declare -A -g -r _RUST_LLVM_MAP=(
 # this array is used to store the Rust slots in a more convenient order for iteration.
 declare -a -g -r _RUST_SLOTS_ORDERED=(
 	"9999"
+	"1.100.0"
 	"1.99.1"
 	"1.99.0"
 	"1.98.1"
@@ -98,9 +98,7 @@ declare -a -g -r _RUST_SLOTS_ORDERED=(
 	"1.96.1"
 	"1.95.0"
 	"1.94.1"
-	"1.94.0"
 	"1.93.1"
-	"1.93.0"
 	"1.92.0"
 	"1.91.0"
 	"1.90.0"
@@ -163,7 +161,7 @@ declare -a -g -r _RUST_SLOTS_ORDERED=(
 # packages that need a tight coupling between Rust and LLVM but don't
 # really care _which_ version of Rust is selected. Combine with
 # RUST_MAX_VER and RUST_MIN_VER to limit the range of Rust versions
-# that are acceptable. Will `die` if llvm-r1 is not inherited or
+# that are acceptable. Will `die` if llvm-r2 is not inherited or
 # an invalid combination of RUST and LLVM slots is detected; this probably
 # means that a LLVM slot in LLVM_COMPAT has had all of its Rust slots filtered.
 
