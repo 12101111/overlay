@@ -1113,7 +1113,7 @@ CRATES="
 	zune-jpeg@0.4.13
 "
 
-inherit bash-completion-r1 cargo check-reqs llvm-r1 python-any-r1 rust toolchain-funcs
+inherit bash-completion-r1 cargo check-reqs llvm-r2 python-any-r1 rust toolchain-funcs
 
 DESCRIPTION="A secure JavaScript and TypeScript runtime"
 HOMEPAGE="https://deno.land"
@@ -1163,7 +1163,7 @@ pkg_pretend() {
 
 pkg_setup() {
 	check-reqs_pkg_setup
-	llvm-r1_pkg_setup
+	llvm-r2_pkg_setup
 	rust_pkg_setup
 	python-any-r1_pkg_setup
 	# I hate doing this but upstream Rust have yet to come up with a better solution for
