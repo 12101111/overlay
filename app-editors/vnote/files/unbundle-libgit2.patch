@@ -1,5 +1,5 @@
 diff --git a/src/sync/git/git_handles.h b/src/sync/git/git_handles.h
-index 1313756..59ee698 100644
+index 1313756..345589e 100644
 --- a/src/sync/git/git_handles.h
 +++ b/src/sync/git/git_handles.h
 @@ -2,6 +2,15 @@
@@ -13,16 +13,16 @@ index 1313756..59ee698 100644
 +#if defined(__has_include)
 +#  if __has_include(<git2/sys/errors.h>)
 +#    include <git2/sys/errors.h>
-+#  endif
++#  endif()
 +#endif
  
  #include <memory>
  
 diff --git a/third_party/CMakeLists.txt b/third_party/CMakeLists.txt
-index 57b094b..faa66a9 100644
+index 9b35ca7..c1c8076 100644
 --- a/third_party/CMakeLists.txt
 +++ b/third_party/CMakeLists.txt
-@@ -18,66 +18,106 @@ if(NOT TARGET cmark)
+@@ -18,70 +18,110 @@ if(NOT TARGET cmark)
    endif()
  endif()
  
@@ -47,7 +47,7 @@ index 57b094b..faa66a9 100644
 -set(REGEX_BACKEND "builtin" CACHE STRING "" FORCE)
 -if(WIN32)
 -  set(USE_HTTPS "WinHTTP" CACHE STRING "" FORCE)
--elseif(APPLE)
+-elseif(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
 -  set(USE_HTTPS "SecureTransport" CACHE STRING "" FORCE)
 -else()
 -  set(USE_HTTPS "OpenSSL" CACHE STRING "" FORCE)
@@ -70,6 +70,11 @@ index 57b094b..faa66a9 100644
 -else()
 -  string(APPEND CMAKE_C_FLAGS " -w")
 -  string(APPEND CMAKE_CXX_FLAGS " -w")
+-endif()
+-add_subdirectory(libgit2 EXCLUDE_FROM_ALL)
+-if(ANDROID)
+-  # NDK network headers require C99 inline; libgit2 1.7 defaults to C90.
+-  set_target_properties(libgit2 util PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED ON)
 +# libgit2 — prefer the SYSTEM shared library over the bundled static copy.
 +#
 +# The vendored build under libgit2/ compiles its own deps/zlib and exports its
@@ -100,14 +105,13 @@ index 57b094b..faa66a9 100644
 +    if(TARGET PkgConfig::SYSTEM_LIBGIT2)
 +      add_library(libgit2package INTERFACE)
 +      target_link_libraries(libgit2package INTERFACE PkgConfig::SYSTEM_LIBGIT2)
-+      message(STATUS "vxcore: using system libgit2 ${SYSTEM_LIBGIT2_VERSION} (pkg-config)")
++      message(STATUS "vxcore: using system libgit2 (pkg-config)")
 +    else()
 +      message(STATUS "vxcore: system libgit2 not found, falling back to the bundled copy")
 +      set(VXCORE_USE_BUNDLED_LIBGIT2 ON)
 +    endif()
 +  endif()
  endif()
--add_subdirectory(libgit2 EXCLUDE_FROM_ALL)
 -set(CMAKE_C_FLAGS "${_saved_c_flags}")
 -set(CMAKE_CXX_FLAGS "${_saved_cxx_flags}")
 -# libgit2 v1.7 names its public static-library target "libgit2package"; expose
@@ -145,7 +149,7 @@ index 57b094b..faa66a9 100644
 +  set(REGEX_BACKEND "builtin" CACHE STRING "" FORCE)
 +  if(WIN32)
 +    set(USE_HTTPS "WinHTTP" CACHE STRING "" FORCE)
-+  elseif(APPLE)
++  elseif(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
 +    set(USE_HTTPS "SecureTransport" CACHE STRING "" FORCE)
 +  else()
 +    set(USE_HTTPS "OpenSSL" CACHE STRING "" FORCE)
@@ -170,6 +174,10 @@ index 57b094b..faa66a9 100644
 +    string(APPEND CMAKE_CXX_FLAGS " -w")
 +  endif()
 +  add_subdirectory(libgit2 EXCLUDE_FROM_ALL)
++  if(ANDROID)
++    # NDK network headers require C99 inline; libgit2 1.7 defaults to C90.
++    set_target_properties(libgit2 util PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED ON)
++  endif()
 +  set(CMAKE_C_FLAGS "${_saved_c_flags}")
 +  set(CMAKE_CXX_FLAGS "${_saved_cxx_flags}")
 +  # libgit2 v1.7 names its public static-library target "libgit2package"; expose

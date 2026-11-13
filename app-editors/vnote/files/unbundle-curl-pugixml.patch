@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index b85086e..5a746ec 100644
+index 32f41dc..cae9f34 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -24,6 +24,12 @@ set(CMAKE_AUTORCC OFF)
+@@ -48,6 +48,12 @@ set(CMAKE_AUTORCC OFF)
  
  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
  
@@ -14,15 +14,15 @@ index b85086e..5a746ec 100644
 +
  find_package(Threads REQUIRED)
  
- # OpenSSL is only required on Linux; Windows uses WinHTTP and macOS uses SecureTransport.
-@@ -81,15 +87,6 @@ if(VXCORE_INSTALL)
+ # Android, iOS and other Unix targets use OpenSSL; desktop Apple retains SecureTransport.
+@@ -105,15 +111,6 @@ if(VXCORE_INSTALL)
      install(FILES "${_vxcore_sodium_source_dir}/LICENSE"
          DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vxcore RENAME LICENSE.libsodium-cmake)
  
 -    get_target_property(_vxcore_pugixml_license pugixml VXCORE_LICENSE_FILE)
 -    install(FILES "${_vxcore_pugixml_license}"
 -        DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vxcore RENAME LICENSE.pugixml)
--    if(NOT APPLE)
+-    if(NOT APPLE OR CMAKE_SYSTEM_NAME STREQUAL "iOS")
 -        get_target_property(_vxcore_curl_license vxcore_webdav_curl VXCORE_LICENSE_FILE)
 -        install(FILES "${_vxcore_curl_license}"
 -            DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/vxcore RENAME LICENSE.curl)
@@ -30,12 +30,12 @@ index b85086e..5a746ec 100644
 -
      install(DIRECTORY include/
          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-         FILES_MATCHING PATTERN "*.h"
+         FILES_MATCHING PATTERN "*.h" PATTERN "mobile" EXCLUDE
 diff --git a/third_party/CMakeLists.txt b/third_party/CMakeLists.txt
-index 57b094b..32d321b 100644
+index c1c8076..a0be214 100644
 --- a/third_party/CMakeLists.txt
 +++ b/third_party/CMakeLists.txt
-@@ -102,134 +102,12 @@ endfunction()
+@@ -143,141 +143,19 @@ endfunction()
  vxcore_add_sodium()
  
  
@@ -56,7 +56,7 @@ index 57b094b..32d321b 100644
 +  # Both libraries are found at the top level so their imported targets are
 +  # visible to every subdirectory; only the compatibility target lives here.
    add_library(vxcore_webdav_curl INTERFACE)
--  if(APPLE)
+-  if(APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "iOS")
 -    if(IS_DIRECTORY "${CMAKE_OSX_SYSROOT}")
 -      set(_dav_sdk "${CMAKE_OSX_SYSROOT}")
 -    else()
@@ -158,8 +158,22 @@ index 57b094b..32d321b 100644
 -    set_target_properties(libcurl_static PROPERTIES
 -      MSVC_RUNTIME_LIBRARY "${CMAKE_MSVC_RUNTIME_LIBRARY}")
 -    target_link_libraries(vxcore_webdav_curl INTERFACE CURL::libcurl_static)
+-    if(CURL_USE_OPENSSL)
+-      # Only the bundled OpenSSL backend exposes the replacing certificate verifier.
+-      # System Apple curl and Windows Schannel keep their existing platform defaults.
+-      find_package(OpenSSL REQUIRED COMPONENTS SSL Crypto)
+-      target_compile_definitions(vxcore_webdav_curl INTERFACE VXCORE_SYNC_TLS_OPENSSL=1)
+-      target_link_libraries(vxcore_webdav_curl INTERFACE OpenSSL::SSL OpenSSL::Crypto)
+-    endif()
 -    set_property(TARGET vxcore_webdav_curl PROPERTY VXCORE_LICENSE_FILE "${vxcore_curl_SOURCE_DIR}/COPYING")
--  endif()
++  target_link_libraries(vxcore_webdav_curl INTERFACE CURL::libcurl)
++  # The system curl on Linux is normally the OpenSSL flavour, and only that
++  # backend can install the replacing certificate verifier.
++  find_package(OpenSSL QUIET COMPONENTS SSL Crypto)
++  if(OpenSSL_FOUND)
++    target_link_libraries(vxcore_webdav_curl INTERFACE OpenSSL::SSL OpenSSL::Crypto)
++    target_compile_definitions(vxcore_webdav_curl INTERFACE VXCORE_SYNC_TLS_OPENSSL=1)
+   endif()
 -
 -  set(PUGIXML_BUILD_TESTS OFF)
 -  set(PUGIXML_BUILD_SHARED_AND_STATIC_LIBS OFF)
@@ -170,7 +184,6 @@ index 57b094b..32d321b 100644
 -  )
 -  FetchContent_MakeAvailable(vxcore_pugixml)
 -  set_property(TARGET pugixml PROPERTY VXCORE_LICENSE_FILE "${vxcore_pugixml_SOURCE_DIR}/LICENSE.md")
-+  target_link_libraries(vxcore_webdav_curl INTERFACE CURL::libcurl)
  endfunction()
  
  vxcore_add_webdav_dependencies()

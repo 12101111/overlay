@@ -1,7 +1,8 @@
-Make the Typst editor and its Rust helper optional.
+diff --git a/libs/CMakeLists.txt b/libs/CMakeLists.txt
+index 284aab8c..3afd44d5 100644
 --- a/libs/CMakeLists.txt
 +++ b/libs/CMakeLists.txt
-@@ -24,7 +24,9 @@
+@@ -24,7 +24,9 @@ add_subdirectory(QHotkey)
  # set(CMAKE_MSVC_RUNTIME_LIBRARY ... FORCE) (libs/vxcore/third_party/CMakeLists.txt)
  # ahead of vtextedit's configure, applying it to syntax-highlighting, katevi,
  # sonnet, hunspell and VTextEdit. Do not reorder.
@@ -10,58 +11,78 @@ Make the Typst editor and its Rust helper optional.
 +    set(VTEXTEDIT_ENABLE_TYPST ON CACHE BOOL "Build the required native Typst editor")
 +endif()
  set(VTEXTEDIT_BUILD_DEMOS OFF CACHE BOOL "Disable vtextedit demo applications" FORCE)
+ set(VTEXTEDIT_BUILD_TESTS ${VNOTE_BUILD_TESTS} CACHE BOOL "Build vtextedit tests with VNote tests" FORCE)
  add_subdirectory(vtextedit)
- 
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index b620c577..f1d116c4 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
-@@ -69,14 +69,16 @@
+@@ -72,24 +72,28 @@ add_dependencies(vnote VX_EXTRA_RESOURCE)
  
  # Always refresh runtime dependencies, including builds that do not relink vnote.
  add_custom_target(vnote_typst_runtime)
--add_dependencies(vnote_typst_runtime vtextedit-typst)
--get_target_property(VX_TYPST_HELPER vtextedit-typst VTEXTEDIT_TYPST_HELPER)
--add_custom_command(TARGET vnote_typst_runtime
--    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vnote>"
--    COMMAND ${CMAKE_COMMAND} -E copy_if_different
--        "${VX_TYPST_HELPER}" "$<TARGET_FILE_DIR:vnote>"
--    VERBATIM
--)
-+if(TARGET vtextedit-typst)
-+    add_dependencies(vnote_typst_runtime vtextedit-typst)
-+    get_target_property(VX_TYPST_HELPER vtextedit-typst VTEXTEDIT_TYPST_HELPER)
-+    add_custom_command(TARGET vnote_typst_runtime
-+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vnote>"
-+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-+            "${VX_TYPST_HELPER}" "$<TARGET_FILE_DIR:vnote>"
-+        VERBATIM
-+    )
+-add_dependencies(vnote_typst_runtime VTextEditTypst VTextEdit)
+-if(WIN32)
+-    # VNote's package is flat: the required DLL must never land in pruned lib/bin.
+-    add_custom_command(TARGET vnote_typst_runtime
+-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vnote>"
+-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+-            "$<TARGET_FILE:VTextEdit>" "$<TARGET_FILE:VTextEditTypst>"
+-            "$<TARGET_FILE_DIR:vnote>"
+-        VERBATIM
+-    )
+-elseif(APPLE)
+-    # macOS packages the build bundle directly, not the ordinary install tree.
+-    add_custom_command(TARGET vnote_typst_runtime
+-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vnote>/../Frameworks"
+-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+-            "$<TARGET_FILE:VTextEditTypst>" "$<TARGET_FILE_DIR:vnote>/../Frameworks"
+-        VERBATIM
+-    )
++if(VTEXTEDIT_ENABLE_TYPST)
++    add_dependencies(vnote_typst_runtime VTextEditTypst VTextEdit)
++    if(WIN32)
++        # VNote's package is flat: the required DLL must never land in pruned lib/bin.
++        add_custom_command(TARGET vnote_typst_runtime
++            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vnote>"
++            COMMAND ${CMAKE_COMMAND} -E copy_if_different
++                "$<TARGET_FILE:VTextEdit>" "$<TARGET_FILE:VTextEditTypst>"
++                "$<TARGET_FILE_DIR:vnote>"
++            VERBATIM
++        )
++    elseif(APPLE)
++        # macOS packages the build bundle directly, not the ordinary install tree.
++        add_custom_command(TARGET vnote_typst_runtime
++            COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:vnote>/../Frameworks"
++            COMMAND ${CMAKE_COMMAND} -E copy_if_different
++                "$<TARGET_FILE:VTextEditTypst>" "$<TARGET_FILE_DIR:vnote>/../Frameworks"
++            VERBATIM
++        )
++    endif()
 +endif()
- if(WIN32)
-     add_dependencies(vnote_typst_runtime VTextEdit)
-     add_custom_command(TARGET vnote_typst_runtime
---- a/src/widgets/CMakeLists.txt
-+++ b/src/widgets/CMakeLists.txt
-@@ -142,7 +142,6 @@
-     tagviewer2.cpp tagviewer2.h
-     textviewwindow2.cpp textviewwindow2.h
-     textviewwindowhelper.h
--    typstviewwindow.cpp typstviewwindow.h
-     titlebar.cpp titlebar.h
-     titlebarcontainer.cpp titlebarcontainer.h
-     titletoolbar2.cpp titletoolbar2.h
-@@ -162,3 +161,9 @@
-     wordcountpopup2.cpp wordcountpopup2.h
-     zoomtoolbar.cpp zoomtoolbar.h
- )
-+
-+if(TARGET vtextedit-typst)
-+    target_sources(vnote PRIVATE
-+        typstviewwindow.cpp typstviewwindow.h
-+    )
-+endif()
++if(APPLE)
+     set_property(TARGET vnote APPEND PROPERTY BUILD_RPATH "@executable_path/../Frameworks")
+     set_property(TARGET vnote APPEND PROPERTY INSTALL_RPATH "@executable_path/../Frameworks")
+ elseif(UNIX)
+diff --git a/src/Packaging.cmake b/src/Packaging.cmake
+index 7299928d..e1dc7d6d 100644
+--- a/src/Packaging.cmake
++++ b/src/Packaging.cmake
+@@ -304,7 +304,8 @@ endif()
+     endif()
+ else()
+     install(DIRECTORY "${VX_TYPST_NOTICES_DIR}/"
+-        DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/vnote/typst")
++        DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/vnote/typst"
++        OPTIONAL)
+     message(STATUS "LinuxDeployExecutable: ${LINUXDEPLOY_EXECUTABLE}")
+     if(LINUXDEPLOY_EXECUTABLE)
+         message(STATUS "Package generation - Linux - AppImage")
+diff --git a/src/controllers/CMakeLists.txt b/src/controllers/CMakeLists.txt
+index 56a105f9..89989c17 100644
 --- a/src/controllers/CMakeLists.txt
 +++ b/src/controllers/CMakeLists.txt
-@@ -21,7 +21,6 @@
+@@ -21,7 +21,6 @@ target_sources(vnote PRIVATE
      snippetcontroller.cpp snippetcontroller.h
      taskcontroller.cpp taskcontroller.h
      textviewwindowcontroller.cpp textviewwindowcontroller.h
@@ -69,15 +90,69 @@ Make the Typst editor and its Rust helper optional.
      commentcontroller.cpp commentcontroller.h
      pdfviewwindowcontroller.cpp pdfviewwindowcontroller.h
      mindmapviewwindowcontroller.cpp mindmapviewwindowcontroller.h
-@@ -44,3 +43,8 @@
+@@ -52,3 +51,8 @@ target_include_directories(vnote PRIVATE
      ${CMAKE_CURRENT_SOURCE_DIR}
  )
  
-+if(TARGET vtextedit-typst)
++if(VTEXTEDIT_ENABLE_TYPST)
 +    target_sources(vnote PRIVATE
 +        typstviewwindowcontroller.cpp typstviewwindowcontroller.h
 +    )
 +endif()
+diff --git a/src/export/CMakeLists.txt b/src/export/CMakeLists.txt
+index 19c54999..95dbfb9a 100644
+--- a/src/export/CMakeLists.txt
++++ b/src/export/CMakeLists.txt
+@@ -6,7 +6,6 @@ target_sources(vnote PRIVATE
+     exportrendererfactory.cpp exportrendererfactory.h
+     exportbuiltinrenderers.cpp
+     mindmapexporter.cpp mindmapexporter.h
+-    typstexporter.cpp typstexporter.h
+     htmlpdfexporter.cpp htmlpdfexporter.h
+     exportfontresolver.cpp exportfontresolver.h
+     exportstyleresolver.cpp exportstyleresolver.h
+@@ -14,3 +13,9 @@ target_sources(vnote PRIVATE
+     webviewexporter.cpp webviewexporter.h
+     wkhtmltopdfhtmlpatch.cpp wkhtmltopdfhtmlpatch.h
+ )
++
++if(VTEXTEDIT_ENABLE_TYPST)
++    target_sources(vnote PRIVATE
++        typstexporter.cpp typstexporter.h
++    )
++endif()
+diff --git a/src/export/exportbuiltinrenderers.cpp b/src/export/exportbuiltinrenderers.cpp
+index 8d04dcb8..8b7146c1 100644
+--- a/src/export/exportbuiltinrenderers.cpp
++++ b/src/export/exportbuiltinrenderers.cpp
+@@ -1,7 +1,9 @@
+ #include "exportrendererfactory.h"
+ 
+ #include "mindmapexporter.h"
++#ifdef VTEXTEDIT_ENABLE_TYPST
+ #include "typstexporter.h"
++#endif
+ #include "webviewexporter.h"
+ 
+ using namespace vnotex;
+@@ -33,6 +35,7 @@ void vnotex::registerBuiltinExportRenderers(ExportRendererFactory &p_factory) {
+        ExportOptionGroup::PdfLayout | ExportOptionGroup::Wkhtmltopdf},
+       {ExportFormat::Custom, {}, {}},
+   }};
++#ifdef VTEXTEDIT_ENABLE_TYPST
+   const ExportCapabilities typstCapabilities{{
+       {ExportFormat::Typst, QStringLiteral("typst"), {}},
+       {ExportFormat::HTML, QStringLiteral("html"), {}},
+@@ -43,6 +46,7 @@ void vnotex::registerBuiltinExportRenderers(ExportRendererFactory &p_factory) {
+                              [](ServiceLocator &p_services, QWidget *p_host, QObject *p_parent) {
+                                return new TypstExporter(p_services, p_host, p_parent);
+                              });
++#endif
+   p_factory.registerRenderer(QStringLiteral("Markdown"), markdownCapabilities, webRenderer);
+   p_factory.registerRenderer(QStringLiteral("Text"), textCapabilities, webRenderer);
+   p_factory.registerRenderer(QStringLiteral("Others"), textCapabilities, webRenderer);
+diff --git a/src/gui/services/viewwindowfactory.cpp b/src/gui/services/viewwindowfactory.cpp
+index 71e26e33..1151b27a 100644
 --- a/src/gui/services/viewwindowfactory.cpp
 +++ b/src/gui/services/viewwindowfactory.cpp
 @@ -7,7 +7,9 @@
@@ -90,7 +165,7 @@ Make the Typst editor and its Rust helper optional.
  
  #if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
  #include <widgets/pdfviewwindow2.h>
-@@ -30,11 +32,19 @@
+@@ -30,11 +32,20 @@ void ViewWindowFactory::registerBuiltInCreators() {
                       ViewWindowMode) -> ViewWindow2 * {
                      return new TextViewWindow2(p_services, p_buffer, p_parent);
                    });
@@ -101,6 +176,7 @@ Make the Typst editor and its Rust helper optional.
                      return new TypstViewWindow(p_services, p_buffer, p_parent, p_mode);
                    });
 +#else
++  // Without the native Typst editor, Typst notes open in the plain text editor.
 +  registerCreator("Typst",
 +                  [](ServiceLocator &p_services, const Buffer2 &p_buffer, QWidget *p_parent,
 +                     ViewWindowMode) -> ViewWindow2 * {
@@ -110,16 +186,138 @@ Make the Typst editor and its Rust helper optional.
    registerCreator("Image",
                    [](ServiceLocator &p_services, const Buffer2 &p_buffer, QWidget *p_parent,
                       ViewWindowMode) -> ViewWindow2 * {
---- a/src/Packaging.cmake
-+++ b/src/Packaging.cmake
-@@ -237,8 +237,9 @@
-         include(InstallRequiredSystemLibraries)
-     endif()
- else()
-     install(DIRECTORY "${VX_TYPST_NOTICES_DIR}/"
--        DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/vnote/typst")
-+        DESTINATION "${CMAKE_INSTALL_DATADIR}/licenses/vnote/typst"
-+        OPTIONAL)
-     message(STATUS "LinuxDeployExecutable: ${LINUXDEPLOY_EXECUTABLE}")
-     if(LINUXDEPLOY_EXECUTABLE)
-         message(STATUS "Package generation - Linux - AppImage")
+diff --git a/src/main.cpp b/src/main.cpp
+index cb40a615..31374d5c 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -70,7 +70,9 @@
+ #include <utils/autostartutils.h>
+ #include <utils/docsutils.h>
+ #include <vtextedit/spellchecker.h>
++#ifdef VTEXTEDIT_ENABLE_TYPST
+ #include <vtextedit/typstruntime.h>
++#endif
+ #include <vtextedit/vtexteditor.h>
+ #include <vxcore/vxcore.h>
+ #include <widgets/editors/markdownwebjobhost.h>
+@@ -718,9 +720,11 @@ int main(int argc, char *argv[]) {
+     themeService.setHookManager(&hookManager);
+     qInfo() << "ThemeService registered";
+ 
++#ifdef VTEXTEDIT_ENABLE_TYPST
+     // Outlives every editor and accepted-close image scan; native calls drain on teardown.
+     vte::TypstRuntime typstRuntime;
+     serviceLocator.registerService<vte::TypstRuntime>(&typstRuntime);
++#endif
+ 
+     // Shared QtWebEngine profile with a disk HTTP cache. Declared here (before MainWindow2) so
+     // that stack destruction tears the window - and every page using this profile - down first.
+diff --git a/src/widgets/CMakeLists.txt b/src/widgets/CMakeLists.txt
+index ee64e396..ae7fbb16 100644
+--- a/src/widgets/CMakeLists.txt
++++ b/src/widgets/CMakeLists.txt
+@@ -147,7 +147,6 @@ target_sources(vnote PRIVATE
+     tagviewer2.cpp tagviewer2.h
+     textviewwindow2.cpp textviewwindow2.h
+     textviewwindowhelper.h
+-    typstviewwindow.cpp typstviewwindow.h
+     titlebar.cpp titlebar.h
+     titlebarcontainer.cpp titlebarcontainer.h
+     titletoolbar2.cpp titletoolbar2.h
+@@ -167,3 +166,9 @@ target_sources(vnote PRIVATE
+     wordcountpopup2.cpp wordcountpopup2.h
+     zoomtoolbar.cpp zoomtoolbar.h
+ )
++
++if(VTEXTEDIT_ENABLE_TYPST)
++    target_sources(vnote PRIVATE
++        typstviewwindow.cpp typstviewwindow.h
++    )
++endif()
+diff --git a/src/widgets/editors/markdownvieweradapter.cpp b/src/widgets/editors/markdownvieweradapter.cpp
+index 0c859103..4de57505 100644
+--- a/src/widgets/editors/markdownvieweradapter.cpp
++++ b/src/widgets/editors/markdownvieweradapter.cpp
+@@ -18,8 +18,10 @@
+ #include <core/servicelocator.h>
+ #include <gui/utils/imageutils.h>
+ #include <utils/sectionnumberutils.h>
++#ifdef VTEXTEDIT_ENABLE_TYPST
+ #include <vtextedit/typstfragmentrenderer.h>
+ #include <vtextedit/typstruntime.h>
++#endif
+ 
+ using namespace vnotex;
+ 
+@@ -85,6 +87,7 @@ QJsonObject typstFailure(const QString &p_error) {
+           {QStringLiteral("pageCount"), 0},   {QStringLiteral("error"), p_error}};
+ }
+ 
++#ifdef VTEXTEDIT_ENABLE_TYPST
+ QJsonObject typstResult(const vte::TypstFragmentRenderer::Result &p_result) {
+   if (!p_result.isSuccess() && typstUtf8Size(p_result.m_error, c_maxTypstError) > 0) {
+     return typstFailure(p_result.m_error);
+@@ -105,6 +108,7 @@ QJsonObject typstResult(const vte::TypstFragmentRenderer::Result &p_result) {
+           {QStringLiteral("pageCount"), p_result.m_pageCount},
+           {QStringLiteral("error"), QString()}};
+ }
++#endif
+ } // namespace
+ 
+ MarkdownViewerAdapter::Position::Position(int p_lineNumber, const QString &p_anchor)
+@@ -136,8 +140,10 @@ MarkdownViewerAdapter::~MarkdownViewerAdapter() {
+   m_typstActive.reset();
+   m_typstQueue.clear();
+   m_typstIds.clear();
++#ifdef VTEXTEDIT_ENABLE_TYPST
+   // Facade destruction suppresses callbacks and releases native work without waiting.
+   delete m_typstRenderer;
++#endif
+ }
+ 
+ void MarkdownViewerAdapter::setProtectedView(bool p_protected) {
+@@ -669,6 +675,7 @@ void MarkdownViewerAdapter::enqueueTypst(const QString &p_id, const QString &p_s
+     return;
+   }
+   if (!m_typstRenderer) {
++#ifdef VTEXTEDIT_ENABLE_TYPST
+     auto *runtime = m_services ? m_services->get<vte::TypstRuntime>() : nullptr;
+     if (!runtime || !runtime->isAvailable()) {
+       emit typstReady(p_id, typstFailure(tr("Typst runtime is unavailable.")));
+@@ -696,6 +703,10 @@ void MarkdownViewerAdapter::enqueueTypst(const QString &p_id, const QString &p_s
+               m_typstIds.remove(request->m_id);
+               emit typstReady(request->m_id, result);
+             });
++#else
++    emit typstReady(p_id, typstFailure(tr("Typst runtime is unavailable.")));
++    return;
++#endif
+   }
+   if (m_typstQueue.size() >= c_maxTypstWaiting ||
+       sourceBytes > c_maxTypstQueuedSource - m_typstQueuedBytes) {
+@@ -738,11 +749,15 @@ void MarkdownViewerAdapter::startNextTypst() {
+     m_typstActive = std::move(request);
+     m_typstInFlight = true;
+     const auto &active = *m_typstActive;
++#ifdef VTEXTEDIT_ENABLE_TYPST
+     const bool accepted =
+         active.m_markup ? m_typstRenderer->renderMarkupToSvg(active.m_source, active.m_foreground,
+                                                              m_protectedView)
+                         : m_typstRenderer->renderMathToSvg(active.m_source, active.m_display,
+                                                            active.m_foreground, m_protectedView);
++#else
++    const bool accepted = false;
++#endif
+     if (accepted) {
+       // Only native work needs the source now; retain identity, not another source copy.
+       m_typstActive->m_source.clear();
+@@ -792,7 +807,9 @@ void MarkdownViewerAdapter::retireTypst(const QString &p_scope, bool p_readersOn
+   if (cancelActive) {
+     // Clear ownership first and cancel before signals can submit replacement work.
+     // Keep m_typstInFlight until the facade's asynchronous terminal callback.
++#ifdef VTEXTEDIT_ENABLE_TYPST
+     m_typstRenderer->cancel();
++#endif
+   }
+   const auto result = typstFailure(tr("Typst rendering was cancelled."));
+   for (qsizetype idx = 0; idx < count; ++idx) {

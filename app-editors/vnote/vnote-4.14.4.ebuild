@@ -371,11 +371,27 @@ HOMEPAGE="https://vnotex.github.io/vnote"
 EGIT_REPO_URI="https://github.com/vnotex/vnote.git"
 EGIT_COMMIT="v${PV}"
 
-KEYWORDS="~amd64"
-SLOT="4"
+# Commits pinned by libs/vxcore/third_party/CMakeLists.txt (FetchContent vxcore_sodium).
+SODIUM_CMAKE_COMMIT="9b2848dfc1b917a9410f0de9d81059b26cbfaa8d"
+SODIUM_COMMIT="93a7d0d41fe2e32409b5d00386946f491750b7de" # libsodium submodule of libsodium-cmake
+# Commit pinned by src/http/CMakeLists.txt (FetchContent vnote_cpp_httplib, v0.64.0).
+# not packaged in gentoo
+CPP_HTTPLIB_COMMIT="24e58ce5b25d55045af4cd6f463e83a8082fbe6b"
+SRC_URI="
+	https://github.com/robinlinden/libsodium-cmake/archive/${SODIUM_CMAKE_COMMIT}.tar.gz
+		-> libsodium-cmake-${SODIUM_CMAKE_COMMIT}.tar.gz
+	https://github.com/jedisct1/libsodium/archive/${SODIUM_COMMIT}.tar.gz
+		-> libsodium-${SODIUM_COMMIT}.tar.gz
+	https://github.com/yhirose/cpp-httplib/archive/${CPP_HTTPLIB_COMMIT}.tar.gz
+		-> cpp-httplib-${CPP_HTTPLIB_COMMIT}.tar.gz
+	typst? ( ${CARGO_CRATE_URIS} )
+"
 
 LICENSE="LGPL-3 Apache-2.0 Apache-2.0-with-LLVM-exceptions BSD-2 BSD MIT MPL-2.0 Unicode-3.0 ZLIB
 	|| ( 0BSD CC0-1.0 )"
+
+SLOT="4"
+KEYWORDS="~amd64"
 
 IUSE="+typst"
 BDEPEND="
@@ -385,29 +401,16 @@ DEPEND="
 	dev-qt/qtbase:6=[X,cups,gui,network,sql,widgets]
 	dev-qt/qtdeclarative:6=
 	dev-qt/qtwebchannel:6=
-	typst? (
-	    dev-qt/qtwebengine:6[pdfium]
-		dev-libs/openssl
-	)
+	typst? ( dev-qt/qtwebengine:6[pdfium] )
 	!typst? ( dev-qt/qtwebengine:6 )
 	dev-qt/qtsvg:6=
 	dev-libs/qtkeychain:=
+	dev-libs/openssl
 	dev-libs/pugixml
 	>=dev-libs/libgit2-1.9.2
 	net-misc/curl[ssl]
 "
 RDEPEND="${DEPEND}"
-
-# Commits pinned by libs/vxcore/third_party/CMakeLists.txt (FetchContent vxcore_sodium).
-SODIUM_CMAKE_COMMIT="9b2848dfc1b917a9410f0de9d81059b26cbfaa8d"
-SODIUM_COMMIT="93a7d0d41fe2e32409b5d00386946f491750b7de" # libsodium submodule of libsodium-cmake
-SRC_URI="
-	https://github.com/robinlinden/libsodium-cmake/archive/${SODIUM_CMAKE_COMMIT}.tar.gz
-		-> libsodium-cmake-${SODIUM_CMAKE_COMMIT}.tar.gz
-	https://github.com/jedisct1/libsodium/archive/${SODIUM_COMMIT}.tar.gz
-		-> libsodium-${SODIUM_COMMIT}.tar.gz
-	typst? ( ${CARGO_CRATE_URIS} )
-"
 
 src_unpack() {
 	git-r3_src_unpack
@@ -438,7 +441,8 @@ src_prepare() {
 	popd > /dev/null || die
 	# Don't install license files for libs that are no longer bundled.
 	eapply "${FILESDIR}/drop-unbundled-lib-licenses.patch"
-	# Don't force to build the Typst editor and its Rust helper
+	# Make the Typst editor and its Rust helper follow USE=typst instead of
+	# being force-enabled, and keep the vnote sources buildable without them.
 	eapply "${FILESDIR}/typst-optional.patch"
 	cmake_src_prepare
 }
@@ -447,6 +451,7 @@ src_configure() {
 	# export CARGO_NET_OFFLINE=true
 	local mycmakeargs=(
 		-DVTEXTEDIT_ENABLE_TYPST=$(usex typst ON OFF)
+		-DFETCHCONTENT_SOURCE_DIR_VNOTE_CPP_HTTPLIB="${WORKDIR}/cpp-httplib-${CPP_HTTPLIB_COMMIT}"
 	)
 	cmake_src_configure
 }
