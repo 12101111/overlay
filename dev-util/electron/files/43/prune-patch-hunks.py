@@ -14,6 +14,13 @@ very same options that eapply(1) uses for Electron's patches
 (-p1 -f -g0 --no-backup-if-mismatch), and rewrites the patch file without the
 hunks which cannot be applied.
 
+Git renames and copies are handled as well.  patch(1) applies their
+"rename from"/"rename to" (and "copy from"/"copy to") headers itself, so a
+section without any hunk is checked as a whole.  Such a section is dropped
+when patch(1) cannot apply it, which happens for a rename whose source and
+destination files both are missing from the tree: Chromium's tarball strips
+the web tests, and some patches only move test files around.
+
 Only changes under the test directories listed in KNOWN_TEST_PREFIXES may be
 dropped silently: the Chromium tarball strips those files, so failing hunks
 there are expected.  A hunk outside of those directories which cannot be
@@ -59,6 +66,17 @@ PATCH_ENV = dict(os.environ, LC_ALL="C", LC_MESSAGES="C")
 
 HUNK_RE = re.compile(rb"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
+# Git names the file of a rename or a copy in one of these headers instead of
+# the '---'/'+++' lines.  patch(1) understands them and moves or copies the
+# file itself, so their paths must be known to decide whether a section can be
+# applied.
+GIT_PATH_HEADERS = (
+    (b"rename from ", "old"),
+    (b"rename to ", "new"),
+    (b"copy from ", "old"),
+    (b"copy to ", "new"),
+)
+
 # Directories which contain tests only.  Chromium's source tarball does not
 # ship them, so hunks which touch these files are expected to fail and are
 # dropped without a message.  Any other failing hunk aborts the build.
@@ -94,14 +112,28 @@ class Hunk:
 class Section:
     """One file section of a patch, e.g. everything for one 'diff --git'."""
 
-    __slots__ = ("prefix", "old_line", "new_line", "hunks", "suffix")
+    __slots__ = ("prefix", "old_line", "new_line", "git_old", "git_new",
+                 "hunks", "suffix")
 
     def __init__(self):
         self.prefix = []      # lines before the '---' line
         self.old_line = None
         self.new_line = None
+        self.git_old = None   # path from 'rename from'/'copy from'
+        self.git_new = None   # path from 'rename to'/'copy to'
         self.hunks = []
         self.suffix = []      # trailing lines which belong to no hunk
+
+    def record_git_path(self, line):
+        """Remember the file name of a 'rename from' style header, if any."""
+        for keyword, which in GIT_PATH_HEADERS:
+            if line.startswith(keyword):
+                path = parse_git_path(line, keyword)
+                if which == "old":
+                    self.git_old = path
+                else:
+                    self.git_new = path
+                return
 
     def render(self, hunks=None):
         out = list(self.prefix)
@@ -207,6 +239,7 @@ def parse_patch(data):
                     current.new_line = lines[index]
                     index += 1
                 continue
+            current.record_git_path(line)
             current.prefix.append(line)
             index += 1
             continue
@@ -260,6 +293,19 @@ def unquote_c(text):
             out.append(char)
             index += 1
     return "".join(out)
+
+
+def parse_git_path(line, keyword):
+    """Return the path of a git 'rename from' style header.
+
+    Unlike '---'/'+++' lines these paths carry no a/ or b/ prefix, so they are
+    already relative to the repository root and must not be stripped.
+    """
+    rest = line[len(keyword):].rstrip(b"\r\n")
+    text = rest.decode("utf-8", "surrogateescape")
+    if text.startswith('"') and text.endswith('"') and len(text) >= 2:
+        text = unquote_c(text[1:-1])
+    return text
 
 
 def filename_of(line, strip, what):
@@ -327,22 +373,53 @@ def section_paths(section, strip):
     old_rel = new_rel = None
     if section.old_line is not None:
         old_rel = filename_of(section.old_line, strip, "---")
+    elif section.git_old is not None:
+        old_rel = section.git_old
     if section.new_line is not None:
         new_rel = filename_of(section.new_line, strip, "+++")
+    elif section.git_new is not None:
+        new_rel = section.git_new
     return old_rel, new_rel
 
 
-def section_status(section, repo, strip, scratch_root):
-    """Return ('keep'|'drop', reason) for a whole file section."""
-    if not section.hunks:
-        # Metadata only (mode change, rename, binary diff, ...).  Leave it
-        # alone; patch(1) will decide what to do with it.
-        return "keep", "metadata only"
+def metadata_applies(section, repo, strip, scratch_root, old_rel, new_rel):
+    """Return True if patch(1) accepts a section which has no hunk."""
+    scratch = tempfile.mkdtemp(dir=scratch_root)
+    try:
+        materialize(scratch, repo, (old_rel, new_rel))
+        data = b"".join(section.render())
+        code, _output = run_patch(scratch, data, strip, dry_run=True)
+    finally:
+        shutil.rmtree(scratch, ignore_errors=True)
+    return code == 0
 
+
+def section_status(section, repo, strip, scratch_root):
+    """Return ('keep'|'drop'|'partial', reason) for a whole file section."""
     try:
         old_rel, new_rel = section_paths(section, strip)
     except PatchError as exc:
         return "drop", str(exc)
+
+    if not section.hunks:
+        # Metadata only (mode change, rename, copy, binary diff, ...).  A
+        # section which names no file at all (a pure mode change, for example)
+        # is left alone; patch(1) will decide what to do with it.  A rename or
+        # a copy does name its files, and patch(1) refuses it when neither the
+        # source nor the destination exists -- which is what happens when the
+        # tarball strips the web tests a patch only moves around -- so check
+        # those sections as well.
+        if old_rel is None and new_rel is None:
+            return "keep", "metadata only"
+        if metadata_applies(
+            section, repo, strip, scratch_root, old_rel, new_rel
+        ):
+            return "keep", ""
+        if old_rel is not None and not os.path.lexists(
+            os.path.join(repo, old_rel)
+        ):
+            return "drop", "%s: file does not exist" % old_rel
+        return "drop", "does not apply"
 
     if old_rel is None and new_rel is None:
         return "keep", "no file names"

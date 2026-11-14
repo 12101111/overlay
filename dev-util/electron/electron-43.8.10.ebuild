@@ -4,6 +4,13 @@
 EAPI=8
 
 GN_MIN_VER=0.2374
+# dev-build/gn >= this version enables check_includes_strict by default and only
+# forwards hard deps from public_deps, so generated headers of private deps are
+# no longer ordered before their consumers compile.
+#   https://gn.googlesource.com/gn/+/526295467bd18f5f8d9cb11f03a1c56cb40b7b28
+#   https://gn.googlesource.com/gn/+/f90c3d9df882a9da4a66457f47dd3d99b3df3dd5
+# 	https://issues.chromium.org/issues/583557973
+GN_STRICT_INCLUDE_VER=0.2603
 NODE_VER="24.16.0-r1"
 ESBUILD_VER="0.25.1"
 ROLLUP_VER="4.57.1" # currently manual.
@@ -27,7 +34,7 @@ inherit rust-toolchain
 # find least version of available snapshot using files/url.sh
 CHROMIUM_VERSION="150.0.7871.222"
 # Keep this in sync with DEPS:node_version
-NODE_VERSION="24.22.0"
+NODE_VERSION="24.22.1"
 
 DESCRIPTION="Cross platform application development framework based on web technologies"
 HOMEPAGE="https://electronjs.org/"
@@ -1624,6 +1631,13 @@ EOF
 			eapply "${FILESDIR}/${SLOT}/electron-musl-environ.patch"
 	fi
 
+	# git binary patch can't apply using eapply.
+	pushd "${S}"/third_party/icu >/dev/null || die
+	git apply "${S}"/electron/patches/icu/update_icu_to_2a51536df.patch || die
+	popd >/dev/null || die
+	sed -i '\|^update_icu_to_2a51536df\.patch$|d' \
+		"${S}"/electron/patches/icu/.patches || die
+
 	# Apply Chromium patches from Electron.
 	# Some of them touch files which the Chromium tarball does not ship (tests
 	# and the like) or no longer match the sources, so drop the hunks which
@@ -2482,6 +2496,13 @@ src_configure() {
 		"override_electron_version=\"${PV}\""
 		"import(\"//electron/build/args/release.gn\")"
 	)
+
+	if has_version -b ">=dev-build/gn-${GN_STRICT_INCLUDE_VER}"; then
+		if ! grep -q '^check_includes_strict_exceptions' .gn; then
+			sed -i '1i check_includes_strict_exceptions = [ { includer = "//*" } ]' .gn ||
+				die "Failed to add check_includes_strict_exceptions to .gn"
+		fi
+	fi
 
 	einfo "Configuring Electron..."
 	set -- gn gen --args="${myconf_gn[*]}${EXTRA_GN:+ ${EXTRA_GN}}" out/Release
