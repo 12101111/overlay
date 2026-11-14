@@ -1,0 +1,13 @@
+diff --git a/src/bootstrap/src/core/build_steps/compile.rs b/src/bootstrap/src/core/build_steps/compile.rs
+index 3aded581235..8d66da00315 100644
+--- a/src/bootstrap/src/core/build_steps/compile.rs
++++ b/src/bootstrap/src/core/build_steps/compile.rs
+@@ -2061,7 +2061,7 @@ fn run(self, builder: &Builder<'_>) -> PathBuf {
+         }
+ 
+         // rustc-src component is already part of CI rustc's sysroot
+-        if !builder.download_rustc() {
++        if !builder.download_rustc() && compiler.stage != 0 {
+             let sysroot_lib_rustlib_rustcsrc = sysroot.join("lib/rustlib/rustc-src");
+             t!(fs::create_dir_all(&sysroot_lib_rustlib_rustcsrc));
+             let sysroot_lib_rustlib_rustcsrc_rust = sysroot_lib_rustlib_rustcsrc.join("rust");
