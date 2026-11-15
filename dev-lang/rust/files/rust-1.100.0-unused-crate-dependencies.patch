@@ -24,18 +24,6 @@ Subject: [PATCH] Re-bless tests / adjust for new Cargo lints
  tests/ui/pattern/pattern-tyvar-2.stderr                      | 1 -
  18 files changed, 44 insertions(+), 12 deletions(-)
 
-diff --git a/compiler/rustc/src/main.rs b/compiler/rustc/src/main.rs
-index 17f768f6dc54a..6609a19fa9e34 100644
---- a/compiler/rustc/src/main.rs
-+++ b/compiler/rustc/src/main.rs
-@@ -1,7 +1,5 @@
- // We need this feature as it changes `dylib` linking behavior and allows us to link to `rustc_driver`.
- #![feature(rustc_private)]
--// Several crates are depended upon but unused so that they are present in the sysroot
--#![expect(unused_crate_dependencies)]
- 
- use std::process::ExitCode;
- 
 diff --git a/library/alloc/Cargo.toml b/library/alloc/Cargo.toml
 index b32e5e991cc74..a1071d2cde5f0 100644
 --- a/library/alloc/Cargo.toml
