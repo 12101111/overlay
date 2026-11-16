@@ -1,17 +1,17 @@
-From 3079353597fb0091003720db8230098ecc5422bc Mon Sep 17 00:00:00 2001
+From 2bfb934ae3e9ae40d56ca54acb5303720df015b1 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sun, 2 Aug 2026 02:47:00 +0800
+Date: Sun, 15 Nov 2026 16:05:09 +0800
 Subject: [PATCH 13/15] retry tsgo to workaround crash
 
 ---
- build/lib/tsgo.ts | 68 ++++++++++++++++++++++++++---------------------
- 1 file changed, 37 insertions(+), 31 deletions(-)
+ build/lib/tsgo.ts | 70 ++++++++++++++++++++++++++---------------------
+ 1 file changed, 39 insertions(+), 31 deletions(-)
 
 diff --git a/build/lib/tsgo.ts b/build/lib/tsgo.ts
-index 8ec2cf16208..a2461fa8b31 100644
+index c218d131c05..5c5c49b5c6f 100644
 --- a/build/lib/tsgo.ts
 +++ b/build/lib/tsgo.ts
-@@ -42,44 +42,50 @@ export function spawnTsgo(projectPath: string, config: { taskName: string; noEmi
+@@ -42,44 +42,52 @@ export function spawnTsgo(projectPath: string, config: { taskName: string; noEmi
  	} else {
  		args.push('--sourceMap', '--inlineSources');
  	}
@@ -66,7 +66,7 @@ index 8ec2cf16208..a2461fa8b31 100644
 +				runReporter(lines.join('\n'));
  
 -			if (code === 0) {
--				Promise.resolve(onComplete?.()).then(() => resolve(), reject);
+-				Promise.resolve().then(() => onComplete?.()).then(() => resolve(), reject);
 -			} else {
 -				reject(new Error(`tsgo exited with code ${code ?? 'unknown'}`));
 -			}
@@ -74,7 +74,9 @@ index 8ec2cf16208..a2461fa8b31 100644
 +				if (code === 0) {
 +					Promise.resolve(onComplete?.()).then(() => resolve(), reject);
 +				} else if (retriesLeft > 0) {
-+					fancyLog(`tsgo exited with code ${code ?? 'unknown'}, retrying... (${retriesLeft} attempts left)`);
++					fancyLog(
++						`tsgo exited with code ${code ?? "unknown"}, retrying... (${retriesLeft} attempts left)`,
++					);
 +					attempt(retriesLeft - 1).then(resolve, reject);
 +				} else {
 +					reject(new Error(`tsgo exited with code ${code ?? 'unknown'}`));
@@ -94,5 +96,5 @@ index 8ec2cf16208..a2461fa8b31 100644
  
  export function createTsgoStream(projectPath: string, config: { taskName: string; noEmit?: boolean }, onComplete?: () => Promise<void> | void): NodeJS.ReadWriteStream {
 -- 
-2.56.0
+2.56.1
 

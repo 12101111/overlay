@@ -1,4 +1,4 @@
-From 333ffb4571e04e45c31a67b775698ddeab806e3e Mon Sep 17 00:00:00 2001
+From c064d52f53b006470e35b85626dbd057cc8b76dc Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 26 Sep 2026 18:00:08 +0800
 Subject: [PATCH 14/15] Fix not found error from @github/copilot/sdk
@@ -8,10 +8,10 @@ Subject: [PATCH 14/15] Fix not found error from @github/copilot/sdk
  1 file changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/build/lib/extensions.ts b/build/lib/extensions.ts
-index 10bd9fbd693..e5310b797df 100644
+index d440640f34d..e5571671d2a 100644
 --- a/build/lib/extensions.ts
 +++ b/build/lib/extensions.ts
-@@ -479,10 +479,20 @@ export function packageCopilotExtensionStream(): Stream {
+@@ -562,10 +562,20 @@ export function packageCopilotExtensionStream(): Stream {
  	const productionDependencies = getProductionDependencies('extensions/copilot');
  	const dependenciesSrc = productionDependencies.map(d => path.relative(root, d)).map(d => [`${d}/**`, `!${d}/**/{test,tests}/**`]).flat();
  
@@ -34,5 +34,5 @@ index 10bd9fbd693..e5310b797df 100644
  	).pipe(util2.setExecutableBit(['**/*.sh']));
  }
 -- 
-2.56.0
+2.56.1
 

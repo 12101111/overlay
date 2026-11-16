@@ -1,6 +1,6 @@
-From e115ed7371058631cdefc57547bbab8cb2290e4a Mon Sep 17 00:00:00 2001
+From 2e9fb336cb22b568abfb9cea6e76f8a29859c554 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 1 Aug 2026 23:32:01 +0800
+Date: Sun, 15 Nov 2026 15:53:38 +0800
 Subject: [PATCH 05/15] Build without electron
 
 ---
@@ -9,7 +9,7 @@ Subject: [PATCH 05/15] Build without electron
  2 files changed, 11 insertions(+), 9 deletions(-)
 
 diff --git a/build/gulpfile.vscode.ts b/build/gulpfile.vscode.ts
-index 185be479a22..b79b2cf1495 100644
+index f1875976b70..9762e76df11 100644
 --- a/build/gulpfile.vscode.ts
 +++ b/build/gulpfile.vscode.ts
 @@ -8,7 +8,6 @@ import * as fs from 'fs';
@@ -20,7 +20,7 @@ index 185be479a22..b79b2cf1495 100644
  import * as util from './lib/util.ts';
  import { getVersion } from './lib/getVersion.ts';
  import { readISODate, writeISODate } from './lib/date.ts';
-@@ -126,6 +125,13 @@ function getFoundryLocalExcludeFilter(): string[] {
+@@ -132,6 +131,13 @@ function getFoundryLocalExcludeFilter(): string[] {
  	];
  }
  
@@ -34,7 +34,7 @@ index 185be479a22..b79b2cf1495 100644
  function packageTask(platform: string, arch: string, sourceFolderName: string, destinationFolderName: string, _opts?: { stats?: boolean }) {
  	const destination = path.join(path.dirname(root), destinationFolderName);
  	platform = platform || process.platform;
-@@ -351,18 +357,11 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
+@@ -357,18 +363,11 @@ function packageTask(platform: string, arch: string, sourceFolderName: string, d
  			all = es.merge(all, shortcut, policyDest);
  		}
  
@@ -55,19 +55,19 @@ index 185be479a22..b79b2cf1495 100644
  				'**',
  				'!LICENSE',
 diff --git a/build/npm/preinstall.ts b/build/npm/preinstall.ts
-index e1daa6f062a..d75719c2be5 100644
+index 4aa78395144..a427441c136 100644
 --- a/build/npm/preinstall.ts
 +++ b/build/npm/preinstall.ts
-@@ -121,6 +121,9 @@ function hasSupportedVisualStudioVersion() {
+@@ -112,6 +112,9 @@ function hasSupportedVisualStudioVersion() {
  }
  
- function installHeaders() {
+ async function installHeaders() {
 +	if (process.env['ELECTRON_SKIP_BINARY_DOWNLOAD']) {
 +		return;
 +	}
- 	const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
- 	child_process.execSync(`${npm} ${process.env.npm_command || 'ci'}`, {
- 		env: process.env,
+ 	// The headers are installed by the node-gyp that pnpm builds native modules with: the one
+ 	// bundled with pnpm, unless npm_config_node_gyp was already set when pnpm started.
+ 	const nodeGypScript = process.env.npm_config_node_gyp!;
 -- 
-2.56.0
+2.56.1
 

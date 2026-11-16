@@ -1,4 +1,4 @@
-From f4c7b50fb74443a5d882cddcc1517767a99ee87b Mon Sep 17 00:00:00 2001
+From abebeb5826efd130e07b27e2fbc914fe6165de8f Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
 Date: Sat, 26 Sep 2026 18:55:25 +0800
 Subject: [PATCH 15/15] Build copilot in offline mode
@@ -8,10 +8,10 @@ Subject: [PATCH 15/15] Build copilot in offline mode
  1 file changed, 7 insertions(+)
 
 diff --git a/build/lib/copilot.ts b/build/lib/copilot.ts
-index 7d8ae23f34e..65e8bf97358 100644
+index 6387d4f94b3..a9b3c4e2f3a 100644
 --- a/build/lib/copilot.ts
 +++ b/build/lib/copilot.ts
-@@ -357,6 +357,13 @@ function resolveVersionMatchedCopilotPlatformPackage(copilotPackagePlatformArch:
+@@ -382,6 +382,13 @@ function resolveVersionMatchedCopilotPlatformPackage(copilotPackagePlatformArch:
  		return { dir: appRootDir, cleanup: noop };
  	}
  
@@ -26,5 +26,5 @@ index 7d8ae23f34e..65e8bf97358 100644
  	const staged = fs.mkdtempSync(path.join(os.tmpdir(), 'vscode-copilot-native-'));
  	try {
 -- 
-2.56.0
+2.56.1
 

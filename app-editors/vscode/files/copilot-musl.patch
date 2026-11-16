@@ -1,8 +1,8 @@
 diff --git a/build/lib/copilot.ts b/build/lib/copilot.ts
-index 65e8bf97358..1694c5ad907 100644
+index a9b3c4e2f3a..137f32910b9 100644
 --- a/build/lib/copilot.ts
 +++ b/build/lib/copilot.ts
-@@ -104,7 +104,7 @@ function toCopilotTgrepPlatformArch(platform: string, arch: string): string {
+@@ -129,7 +129,7 @@ function toCopilotTgrepPlatformArch(platform: string, arch: string): string {
  }
  
  function toCopilotPackagePlatformArch(platform: string, arch: string): string {

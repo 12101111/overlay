@@ -1,49 +1,42 @@
-From 21fbb31812480ae772d0901a65b8d773d081a949 Mon Sep 17 00:00:00 2001
+From 45d9cf9dd368a228efedb3535e3ab333c80cbde0 Mon Sep 17 00:00:00 2001
 From: 12101111 <w12101111@gmail.com>
-Date: Sat, 17 Oct 2026 22:30:44 +0800
+Date: Sun, 15 Nov 2026 15:51:11 +0800
 Subject: [PATCH 03/15] Don't run npm install for test
 
 ---
- build/npm/dirs.ts        | 10 ----------
- build/npm/postinstall.ts |  5 -----
- 2 files changed, 15 deletions(-)
+ build/npm/dirs.ts        | 11 -----------
+ build/npm/postinstall.ts |  3 ---
+ 2 files changed, 14 deletions(-)
 
 diff --git a/build/npm/dirs.ts b/build/npm/dirs.ts
-index 7bc33635f86..d4e3fffaaaa 100644
+index c147d4bb663..a19277140ba 100644
 --- a/build/npm/dirs.ts
 +++ b/build/npm/dirs.ts
-@@ -55,16 +55,6 @@ export const dirs = [
- 	'extensions/vscode-test-resolver',
- 	'remote',
- 	'remote/web',
--	'test/automation',
--	'test/integration/browser',
--	'test/monaco',
--	'test/smoke',
--	'test/scenario',
--	'test/mcp',
+@@ -13,18 +13,7 @@ import { existsSync } from 'fs';
+ export const workspaceMembers = [
+ 	'',
+ 	'.eslint-plugin-local',
 -	'.vscode/extensions/vscode-selfhost-import-aid',
 -	'.vscode/extensions/vscode-selfhost-test-provider',
--	'.vscode/extensions/vscode-extras',
 -	'.vscode/extensions/vscode-pr-pinger',
+ 	'scripts',
+-	'src/vs/sessions/test/e2e',
+-	'test/automation',
+-	'test/componentFixtures/playwright',
+-	'test/integration/browser',
+-	'test/monaco',
+-	'test/scenario',
+-	'test/smoke',
+-	'test/unit',
  ];
  
- if (existsSync(`${import.meta.dirname}/../../.build/distro/npm`)) {
+ /**
 diff --git a/build/npm/postinstall.ts b/build/npm/postinstall.ts
-index 6405a015318..3509f81b432 100644
+index 52d0f701b65..1116576148c 100644
 --- a/build/npm/postinstall.ts
 +++ b/build/npm/postinstall.ts
-@@ -245,8 +245,6 @@ async function main() {
- 	if (!process.env['VSCODE_FORCE_INSTALL'] && isUpToDate()) {
- 		finishCloudSandbox();
- 		log('.', 'All dependencies up to date, skipping postinstall.');
--		child_process.execSync('git config pull.rebase merges');
--		child_process.execSync('git config blame.ignoreRevsFile .git-blame-ignore-revs');
- 		return;
- 	}
- 
-@@ -318,9 +316,6 @@ async function main() {
- 	log('.', `Running ${parallelTasks.length} npm installs with concurrency ${concurrency}...`);
+@@ -274,9 +274,6 @@ async function main() {
+ 	log('.', `Running ${parallelTasks.length} pnpm installs with concurrency ${concurrency}...`);
  	await runWithConcurrency(parallelTasks, concurrency);
  
 -	child_process.execSync('git config pull.rebase merges');
@@ -51,7 +44,7 @@ index 6405a015318..3509f81b432 100644
 -
  	finishCloudSandbox();
  
- 	fs.writeFileSync(stateFile, JSON.stringify(_state));
+ 	// Symlink .claude/ files to their canonical locations to test Claude agent harness
 -- 
-2.56.0
+2.56.1
 

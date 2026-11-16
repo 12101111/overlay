@@ -1,0 +1,24 @@
+From 5f0a4c0e0f8f2d7f6a3b1c9d2e4f6a8b0c1d3e5f Mon Sep 17 00:00:00 2001
+From: 12101111 <w12101111@gmail.com>
+Date: Sun, 15 Nov 2026 17:10:00 +0800
+Subject: [PATCH 16/16] Don't generate node compile cache without electron
+---
+ build/lib/nodeCompileCache.ts | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/build/lib/nodeCompileCache.ts b/build/lib/nodeCompileCache.ts
+index 6a1d2f0a4c3..9b7e3d2c5a1 100644
+--- a/build/lib/nodeCompileCache.ts
++++ b/build/lib/nodeCompileCache.ts
+@@ -27,6 +27,9 @@ export interface INodeCompileCachePaths {
+ }
+ 
+ export function shouldGenerateNodeCompileCache(platform: string, arch: string, product: INodeCompileCacheProduct): boolean {
++	if (process.env['ELECTRON_SKIP_BINARY_DOWNLOAD']) {
++		return false;
++	}
+ 	if (!product.quality) {
+ 		return false;
+ 	}
+-- 
+2.56.1
