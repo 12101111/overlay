@@ -70,7 +70,8 @@ PATCHSET_LOONG_PV="134.0.6998.39"
 PATCHSET_LOONG="chromium-${PATCHSET_LOONG_PV}-1"
 #Official tarball: https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 #Downstream tarball : https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
-SRC_URI="https://github.com/chromium-linux-tarballs/chromium-tarballs/releases/download/${PV}/chromium-${PV}-linux.tar.xz
+SRC_URI="
+	https://commondatastorage.googleapis.com/chromium-browser-official/${P}.tar.xz
 	https://gitlab.com/Matt.Jolly/chromium-patches/-/archive/${PATCH_V}/chromium-patches-${PATCH_V}.tar.bz2
 	!bundled-toolchain? (
 		https://codeberg.org/selfisekai/copium/archive/${COPIUM_COMMIT}.tar.gz
@@ -422,7 +423,7 @@ pkg_setup() {
 }
 
 src_unpack() {
-	unpack ${P}-linux.tar.xz
+	unpack ${P}.tar.xz
 	unpack chromium-patches-${PATCH_V}.tar.bz2
 	# These should only be required when we're not using the official toolchain
 	if use !bundled-toolchain; then
